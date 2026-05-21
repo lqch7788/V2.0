@@ -1,0 +1,1016 @@
+<template>
+  <div class="space-y-6">
+    <!-- 页面头部 -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <el-icon :size="24" class="text-white"><Box /></el-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">物料审批</h1>
+          <p class="text-gray-500">领料、退料、采购审批流程管理</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-blue-600"><Clipboard /></el-icon>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-xs text-gray-500">总申请数</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
+            <p class="text-xs text-gray-500">待审批</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
+            <p class="text-xs text-gray-500">已通过</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-red-600"><CircleClose /></el-icon>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
+            <p class="text-xs text-gray-500">已拒绝</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab切换 -->
+    <div class="bg-white rounded-xl p-1 inline-flex shadow-sm">
+      <el-button
+        v-for="tab in tabs"
+        :key="tab.key"
+        :type="activeTab === tab.key ? 'primary' : ''"
+        :class="['px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors', activeTab === tab.key ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100']"
+        @click="handleTabChange(tab.key)"
+      >
+        <el-icon :size="16"><component :is="tab.icon" /></el-icon>
+        {{ tab.label }}
+      </el-button>
+    </div>
+
+    <!-- 筛选区域 -->
+    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+      <div class="grid grid-cols-8 gap-3 items-end">
+        <!-- 领料单号 -->
+        <div>
+          <label class="text-xs text-gray-700 block mb-1">领料单号</label>
+          <el-input v-model="searchTerm" placeholder="单号..." clearable />
+        </div>
+
+        <!-- 申领人 -->
+        <div>
+          <label class="text-xs text-gray-700 block mb-1">申领人</label>
+          <el-input v-model="searchApplicant" placeholder="申请人..." clearable />
+        </div>
+
+        <!-- 部门 -->
+        <div>
+          <label class="text-xs text-gray-700 block mb-1">部门</label>
+          <el-select v-model="searchDepartment" placeholder="全部" class="w-full">
+            <el-option label="全部" value="全部" />
+            <el-option label="生产部" value="生产部" />
+            <el-option label="技术部" value="技术部" />
+            <el-option label="后勤部" value="后勤部" />
+            <el-option label="设备部" value="设备部" />
+          </el-select>
+        </div>
+
+        <!-- 生产批次号 -->
+        <div>
+          <label class="text-xs text-gray-700 block mb-1">生产批次号</label>
+          <el-input v-model="searchBatchCode" placeholder="批次号..." clearable />
+        </div>
+
+        <!-- 开始日期 -->
+        <div>
+          <label class="text-xs text-gray-700 block mb-1">开始日期</label>
+          <el-date-picker
+            v-model="searchDateStart"
+            type="date"
+            placeholder="选择日期"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            class="w-full"
+          />
+        </div>
+
+        <!-- 结束日期 -->
+        <div>
+          <label class="text-xs text-gray-700 block mb-1">结束日期</label>
+          <el-date-picker
+            v-model="searchDateEnd"
+            type="date"
+            placeholder="选择日期"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            class="w-full"
+          />
+        </div>
+
+        <!-- 状态 -->
+        <div>
+          <label class="text-xs text-gray-700 block mb-1">状态</label>
+          <el-select v-model="statusFilter" placeholder="全部" class="w-full">
+            <el-option label="全部" value="全部" />
+            <el-option label="待审批" value="待审批" />
+            <el-option label="已通过" value="已通过" />
+            <el-option label="已拒绝" value="已拒绝" />
+          </el-select>
+        </div>
+
+        <!-- 按钮区域 -->
+        <div class="flex gap-2">
+          <el-button type="primary" class="flex-1">搜索</el-button>
+          <el-button @click="handleReset" class="flex-1">
+            <el-icon><RefreshRight /></el-icon>
+            重置
+          </el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据表格 -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- 表格标题栏 -->
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">{{ currentTabLabel }}</h3>
+        <el-link type="primary" :underline="false">查看全部 →</el-link>
+      </div>
+
+      <!-- 表格内容 -->
+      <el-table
+        v-loading="loading"
+        :data="paginatedData"
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #6366f1)', color: 'white', fontWeight: '600' }"
+        row-class-name="hover:bg-blue-50"
+        @expand-change="handleExpandChange"
+        :expand-row-keys="expandedRows"
+        row-key="id"
+        class="w-full"
+      >
+        <!-- 领料审批表格 -->
+        <template v-if="activeTab === 'material'">
+          <el-table-column type="expand" width="50">
+            <template #default="props">
+              <div class="p-4 bg-gray-50">
+                <div class="font-medium text-blue-800 mb-2">物料明细</div>
+                <el-table :data="props.row.materials" size="small" class="mb-3">
+                  <el-table-column prop="materialCode" label="物料编码" width="120" />
+                  <el-table-column prop="materialName" label="物料名称" />
+                  <el-table-column prop="spec" label="规格" />
+                  <el-table-column prop="unit" label="单位" width="80" />
+                  <el-table-column prop="requestedQuantity" label="申领数量" width="100" />
+                  <el-table-column prop="stockQuantity" label="当前库存" width="100" />
+                  <el-table-column prop="unitPrice" label="单价(元)" width="100">
+                    <template #default="scope">
+                      {{ scope.row.unitPrice != null ? scope.row.unitPrice.toFixed(2) : '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="小计(元)" width="100">
+                    <template #default="scope">
+                      {{ scope.row.unitPrice != null ? (scope.row.requestedQuantity * scope.row.unitPrice).toFixed(2) : '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="warehousePosition" label="仓库货位" />
+                  <el-table-column prop="remark" label="备注" />
+                </el-table>
+                <div v-if="props.row.description" class="text-gray-600 mt-3">
+                  <span class="font-medium">申请说明：</span>{{ props.row.description }}
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="code" label="领料单号" width="150">
+            <template #default="scope">
+              <el-link type="primary" :underline="false" class="font-medium">{{ scope.row.code }}</el-link>
+            </template>
+          </el-table-column>
+          <el-table-column prop="applyDate" label="申请日期" width="120" />
+          <el-table-column prop="applicantName" label="申请人" width="100" />
+          <el-table-column prop="applicantDepartment" label="部门" width="100" />
+          <el-table-column prop="warehouseLocation" label="库存地点" width="120" />
+          <el-table-column label="物料种类" width="100">
+            <template #default="scope">
+              {{ scope.row.materials?.length > 0 ? `${scope.row.materials.length}种` : '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="plantArea" label="种植区域/用途" width="120" />
+          <el-table-column label="审核人" width="100">
+            <template #default="scope">
+              {{ scope.row.approvers?.[0]?.userName || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="batchCode" label="生产计划批次号" width="150" />
+          <el-table-column label="状态" width="120">
+            <template #default="scope">
+              <el-tag :type="getStatusTagType(scope.row.status)" size="small">
+                {{ getStatusText(scope.row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" label="备注" />
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="scope">
+              <div class="flex items-center gap-1">
+                <el-button
+                  v-if="scope.row.status === 'pending' && canApprove"
+                  text
+                  type="success"
+                  size="small"
+                  @click="handleApprove(scope.row)"
+                  title="通过"
+                >
+                  <el-icon><CircleCheck /></el-icon>
+                </el-button>
+                <el-button
+                  v-if="scope.row.status === 'pending' && canApprove"
+                  text
+                  type="danger"
+                  size="small"
+                  @click="handleRejectClick(scope.row)"
+                  title="拒绝"
+                >
+                  <el-icon><CircleClose /></el-icon>
+                </el-button>
+                <el-button
+                  text
+                  type="primary"
+                  size="small"
+                  @click="handleViewDetail(scope.row)"
+                  title="查看详情"
+                >
+                  <el-icon><View /></el-icon>
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </template>
+
+        <!-- 退料审批表格 -->
+        <template v-else-if="activeTab === 'return'">
+          <el-table-column type="expand" width="50">
+            <template #default="props">
+              <div class="p-4 bg-gray-50">
+                <div class="font-medium text-blue-800 mb-2">退料物料明细</div>
+                <el-table :data="props.row.materials" size="small" class="mb-3">
+                  <el-table-column prop="sourceApplicationCode" label="来源领料单号" width="140" />
+                  <el-table-column prop="materialCode" label="物料编码" width="120" />
+                  <el-table-column prop="category" label="物料分类" />
+                  <el-table-column prop="materialName" label="物料名称" />
+                  <el-table-column prop="spec" label="规格" />
+                  <el-table-column prop="unit" label="单位" width="80" />
+                  <el-table-column label="退料数量" width="100">
+                    <template #default="scope">
+                      {{ scope.row.returnQuantity || scope.row.requestedQuantity || 0 }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="unitPrice" label="单价(元)" width="100">
+                    <template #default="scope">
+                      {{ scope.row.unitPrice != null ? scope.row.unitPrice.toFixed(2) : '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="小计(元)" width="100">
+                    <template #default="scope">
+                      {{ scope.row.unitPrice != null ? ((scope.row.returnQuantity || scope.row.requestedQuantity || 0) * scope.row.unitPrice).toFixed(2) : '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="warehousePosition" label="仓库货位" />
+                  <el-table-column prop="reason" label="退料原因" />
+                </el-table>
+                <div v-if="props.row.description" class="text-gray-600 mt-3">
+                  <span class="font-medium">退料说明：</span>{{ props.row.description }}
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="code" label="退料单号" width="150">
+            <template #default="scope">
+              <el-link type="primary" :underline="false" class="font-medium">{{ scope.row.code }}</el-link>
+            </template>
+          </el-table-column>
+          <el-table-column prop="applyDate" label="退料日期" width="120" />
+          <el-table-column label="退料类型" width="100">
+            <template #default="scope">
+              {{ getReturnType(scope.row) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="applicantName" label="申请人" width="100" />
+          <el-table-column prop="applicantDepartment" label="退料部门" width="100" />
+          <el-table-column prop="warehouseLocation" label="仓库位置" width="120" />
+          <el-table-column label="审批状态" width="120">
+            <template #default="scope">
+              <el-tag :type="getReturnStatusTagType(scope.row.status)" size="small">
+                {{ getReturnStatusText(scope.row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="审核人" width="100">
+            <template #default="scope">
+              {{ scope.row.approvers?.[0]?.userName || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" label="备注" />
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="scope">
+              <div class="flex items-center gap-1">
+                <el-button
+                  v-if="scope.row.status === 'pending' && canApprove"
+                  text
+                  type="success"
+                  size="small"
+                  @click="handleApprove(scope.row)"
+                  title="通过"
+                >
+                  <el-icon><CircleCheck /></el-icon>
+                </el-button>
+                <el-button
+                  v-if="scope.row.status === 'pending' && canApprove"
+                  text
+                  type="danger"
+                  size="small"
+                  @click="handleRejectClick(scope.row)"
+                  title="拒绝"
+                >
+                  <el-icon><CircleClose /></el-icon>
+                </el-button>
+                <el-button
+                  text
+                  type="primary"
+                  size="small"
+                  @click="handleViewDetail(scope.row)"
+                  title="查看详情"
+                >
+                  <el-icon><View /></el-icon>
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </template>
+
+        <!-- 采购审批表格 -->
+        <template v-else-if="activeTab === 'purchase'">
+          <el-table-column prop="code" label="计划编号" width="150" />
+          <el-table-column prop="title" label="计划名称" />
+          <el-table-column label="类型" width="100">
+            <template #default="scope">
+              {{ scope.row.businessLink?.items?.[0]?.materialName ? '物资' : '生产物资' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="applicantName" label="申请人" width="100" />
+          <el-table-column prop="applyDate" label="申请日期" width="120" />
+          <el-table-column prop="amount" label="总金额" width="120">
+            <template #default="scope">
+              <span class="font-medium">{{ scope.row.amount || '-' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="供应商" width="120">
+            <template #default="scope">
+              {{ scope.row.businessLink?.items?.[0]?.supplier || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="交货日期" width="120">
+            <template #default="scope">
+              {{ scope.row.businessLink?.expectedDeliveryDate || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="优先级" width="80">
+            <template #default="scope">
+              <el-tag
+                :type="scope.row.priority === 'urgent' ? 'danger' : scope.row.priority === 'high' ? 'warning' : scope.row.priority === 'normal' ? 'primary' : 'info'"
+                size="small"
+              >
+                {{ scope.row.priority === 'urgent' ? '紧急' : scope.row.priority === 'high' ? '高' : scope.row.priority === 'normal' ? '中' : '低' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="scope">
+              <el-tag :type="getStatusTagType(scope.row.status)" size="small">
+                {{ getStatusText(scope.row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="scope">
+              <div class="flex items-center gap-1">
+                <el-button
+                  v-if="scope.row.status === 'pending' && canApprove"
+                  text
+                  type="success"
+                  size="small"
+                  @click="handleApprove(scope.row)"
+                  title="通过"
+                >
+                  <el-icon><CircleCheck /></el-icon>
+                </el-button>
+                <el-button
+                  v-if="scope.row.status === 'pending' && canApprove"
+                  text
+                  type="danger"
+                  size="small"
+                  @click="handleRejectClick(scope.row)"
+                  title="拒绝"
+                >
+                  <el-icon><CircleClose /></el-icon>
+                </el-button>
+                <el-button
+                  text
+                  type="primary"
+                  size="small"
+                  @click="handleViewDetail(scope.row)"
+                  title="查看详情"
+                >
+                  <el-icon><View /></el-icon>
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </template>
+      </el-table>
+
+      <!-- 空状态 -->
+      <div v-if="filteredData.length === 0" class="p-12 text-center text-gray-500">
+        <el-icon :size="48" class="text-gray-300 mb-3"><Clipboard /></el-icon>
+        <p>暂无审批记录</p>
+        <p class="text-sm text-gray-400 mt-2">在领料/退料/采购页面提交申请后，这里将显示审批列表</p>
+      </div>
+
+      <!-- 分页 -->
+      <div v-if="filteredData.length > 0" class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <div class="text-sm text-gray-500">
+          共 {{ filteredData.length }} 条记录，第 {{ currentPage }}/{{ totalPages || 1 }} 页
+        </div>
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="filteredData.length"
+          layout="prev, pager, next"
+          background
+        />
+      </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <el-dialog
+      v-model="detailModal.show"
+      :title="`${activeTab === 'return' ? '退料单' : activeTab === 'purchase' ? '采购单' : '领料单'}详情`"
+      width="900px"
+      :close-on-click-modal="false"
+    >
+      <div v-if="detailModal.item" class="space-y-6">
+        <!-- 基本信息 -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div>
+            <label class="text-xs text-gray-500 block">单号</label>
+            <p class="font-mono font-semibold text-gray-900">{{ detailModal.item.code }}</p>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block">申请日期</label>
+            <p class="font-semibold text-gray-900">{{ detailModal.item.applyDate }}</p>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block">状态</label>
+            <el-tag :type="getStatusTagType(detailModal.item.status)" size="small">
+              {{ getStatusText(detailModal.item.status) }}
+            </el-tag>
+            <p v-if="detailModal.item.status === 'rejected' && detailModal.item.records && detailModal.item.records.length > 0" class="text-xs text-red-600 mt-1">
+              拒绝原因：{{ detailModal.item.records[detailModal.item.records.length - 1]?.comment || '-' }}
+            </p>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block">申请人</label>
+            <p class="font-semibold text-gray-900">{{ detailModal.item.applicantName }}</p>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block">部门</label>
+            <p class="font-semibold text-gray-900">{{ detailModal.item.applicantDepartment }}</p>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block">审核人</label>
+            <p class="font-semibold text-gray-900">{{ detailModal.item.approvers?.[0]?.userName || '-' }}</p>
+          </div>
+          <template v-if="activeTab === 'material' && detailModal.item.businessLink">
+            <div>
+              <label class="text-xs text-gray-500 block">库存地点</label>
+              <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.warehouseLocation || '-' }}</p>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 block">生产计划批次号</label>
+              <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.batchCode || '-' }}</p>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 block">物料种类</label>
+              <p class="font-semibold text-gray-900">
+                {{ detailModal.item.materials?.length > 0 ? `${detailModal.item.materials.length}种` : '-' }}
+              </p>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 block">种植区域/用途</label>
+              <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.plantArea || '-' }}</p>
+            </div>
+          </template>
+        </div>
+
+        <!-- 描述/说明 -->
+        <div v-if="detailModal.item.description" class="mb-6">
+          <label class="text-xs text-gray-500 block mb-1">申请说明</label>
+          <p class="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{{ detailModal.item.description }}</p>
+        </div>
+
+        <!-- 物料明细 -->
+        <div class="mb-6">
+          <label class="text-xs text-gray-500 block mb-2">
+            {{ activeTab === 'return' ? '退料单' : activeTab === 'purchase' ? '采购单' : '领料单' }}物料明细
+          </label>
+          <el-table v-if="detailModal.item.materials?.length > 0" :data="detailModal.item.materials" size="small">
+            <el-table-column prop="materialCode" label="物料编码" width="120">
+              <template #default="scope">
+                <span class="text-blue-700 font-mono">{{ scope.row.materialCode }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="materialName" label="物料名称">
+              <template #default="scope">
+                <span class="text-blue-700">{{ scope.row.materialName }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="物料分类" width="120">
+              <template #default="scope">
+                {{ getCategoryByCode(scope.row.materialCode) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="spec" label="规格" />
+            <el-table-column prop="unit" label="单位" width="80" />
+            <el-table-column label="数量" width="80">
+              <template #default="scope">
+                {{ scope.row.requestedQuantity || scope.row.returnQuantity }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="approvedQuantity" label="已批数量" width="80">
+              <template #default="scope">
+                {{ scope.row.approvedQuantity || '-' }}
+              </template>
+            </el-table-column>
+          </el-table>
+          <div v-else class="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">暂无物料明细</div>
+        </div>
+
+        <!-- 审批记录 -->
+        <div v-if="detailModal.item.records && detailModal.item.records.length > 0" class="mb-6">
+          <label class="text-xs text-gray-500 block mb-2">审批记录</label>
+          <div class="space-y-2">
+            <div v-for="(r, idx) in detailModal.item.records" :key="idx" class="bg-gray-50 rounded-lg p-3 text-sm">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-gray-700">{{ r.approverName }}</span>
+                <el-tag
+                  :type="r.action === 'approve' ? 'success' : r.action === 'reject' ? 'danger' : 'info'"
+                  size="small"
+                >
+                  {{ r.action === 'approve' ? '通过' : r.action === 'reject' ? '拒绝' : '部分通过' }}
+                </el-tag>
+              </div>
+              <p v-if="r.comment" class="text-gray-600 mt-1">原因：{{ r.comment }}</p>
+              <p class="text-xs text-gray-400 mt-1">{{ r.actionTime }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <el-button @click="detailModal.show = false">关闭</el-button>
+          <template v-if="detailModal.item?.status === 'pending'">
+            <el-button type="primary" @click="handleApprove(detailModal.item)">通过</el-button>
+            <el-button type="danger" @click="handleRejectClick(detailModal.item)">拒绝</el-button>
+          </template>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 拒绝原因弹窗 -->
+    <el-dialog
+      v-model="rejectModal.show"
+      title="拒绝审批"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <div v-if="rejectModal.item">
+        <p class="text-sm text-gray-600 mb-2">
+          确定要拒绝「<span class="font-medium text-gray-900">{{ rejectModal.item.title }}</span>」吗？
+        </p>
+        <p class="text-xs text-gray-500 mb-4">拒绝后，申请人可以在领料页面修改料单后重新提交审批。</p>
+        <div class="mb-4">
+          <label class="text-xs text-gray-700 block mb-1">拒绝原因（必填）</label>
+          <el-input
+            v-model="rejectModal.reason"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入拒绝原因..."
+          />
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <el-button @click="rejectModal.show = false">取消</el-button>
+          <el-button type="danger" @click="handleConfirmReject">确认拒绝</el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, computed, watch } from 'vue'
+import {
+  Box,
+  DocumentCopy,
+  Clock,
+  CircleCheck,
+  CircleClose,
+  RefreshRight,
+  View,
+  RefreshLeft,
+  ShoppingCart,
+  Goods,
+  Crop,
+} from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+
+// Tab配置
+const tabs = [
+  { key: 'material', label: '领料审批', icon: Clipboard },
+  { key: 'return', label: '退料审批', icon: RefreshLeft },
+  { key: 'purchase', label: '采购审批', icon: ShoppingCart },
+]
+
+// 统计数据
+const stats = reactive({
+  total,
+  pending,
+  approved,
+  rejected,
+})
+
+// 筛选状态
+const activeTab = ref('material')
+const searchTerm = ref('')
+const statusFilter = ref('全部')
+const searchApplicant = ref('')
+const searchBatchCode = ref('')
+const searchDepartment = ref('全部')
+const searchDateStart = ref('')
+const searchDateEnd = ref('')
+
+// 分页状态
+const currentPage = ref(1)
+const pageSize = 10
+
+// 展开行状态
+const expandedRows = ref([])
+
+// 详情弹窗状态
+const detailModal = reactive({
+  show,
+  item: null | null,
+})
+
+// 拒绝原因弹窗状态
+const rejectModal = reactive({
+  show,
+  item: null | null,
+  reason: '',
+})
+
+// 权限
+const canApprove = true
+const loading = ref(false)
+
+// 当前Tab标签
+const currentTabLabel = computed(() => {
+  return tabs.find(t => t.key === activeTab.value)?.label || ''
+})
+
+// 模拟数据
+const mockData = ref([
+  {
+    id: '1',
+    code: 'LL202401001',
+    title: '温室A区领料申请',
+    description: '温室A区番茄种植所需肥料和农药',
+    applicantId: 'U001',
+    applicantName: '张三',
+    applicantDepartment: '生产部',
+    applyDate: '2024-03-15',
+    status: 'pending',
+    businessLink: {
+      warehouseLocation: '仓库A区',
+      batchCode: 'B2024001',
+      plantArea: '温室A区',
+    },
+    materials: [
+      { materialCode: 'SP0201', materialName: '有机肥', spec: '50kg/袋', unit: '袋', requestedQuantity, unitPrice, stockQuantity: 100 },
+      { materialCode: 'SP0301', materialName: '杀虫剂', spec: '500ml/瓶', unit: '瓶', requestedQuantity, unitPrice, stockQuantity: 50 },
+    ],
+    approvers: [{ userName: '李主任' }],
+    records: [],
+  },
+  {
+    id: '2',
+    code: 'LL202401002',
+    title: '温室B区领料申请',
+    description: '温室B区黄瓜种植所需肥料',
+    applicantId: 'U002',
+    applicantName: '李四',
+    applicantDepartment: '技术部',
+    applyDate: '2024-03-14',
+    status: 'approved',
+    businessLink: {
+      warehouseLocation: '仓库B区',
+      batchCode: 'B2024002',
+      plantArea: '温室B区',
+    },
+    materials: [
+      { materialCode: 'SP0202', materialName: '复合肥', spec: '40kg/袋', unit: '袋', requestedQuantity, unitPrice, stockQuantity: 80 },
+    ],
+    approvers: [{ userName: '王经理' }],
+    records: [{ approverName: '王经理', action: 'approve', comment: '同意', actionTime: '2024-03-14 15:30:00' }],
+  },
+  {
+    id: '3',
+    code: 'TL202401001',
+    title: '退料申请-生产退料',
+    description: '温室A区多余肥料退料',
+    applicantId: 'U001',
+    applicantName: '张三',
+    applicantDepartment: '生产部',
+    applyDate: '2024-03-13',
+    status: 'pending',
+    businessLink: {
+      warehouseLocation: '仓库A区',
+    },
+    materials: [
+      { materialCode: 'SP0201', materialName: '有机肥', spec: '50kg/袋', unit: '袋', returnQuantity, unitPrice: 150 },
+    ],
+    approvers: [{ userName: '李主任' }],
+    records: [],
+  },
+  {
+    id: '4',
+    code: 'CG202401001',
+    title: '农业生产物资采购计划',
+    description: '春季种植所需种子和肥料采购',
+    applicantId: 'U003',
+    applicantName: '王五',
+    applicantDepartment: '后勤部',
+    applyDate: '2024-03-12',
+    status: 'pending',
+    businessLink: {
+      items: [{ materialName: '种子', supplier: '农业物资公司' }],
+      expectedDeliveryDate: '2024-03-20',
+    },
+    materials: [
+      { materialCode: 'SP0101', materialName: '番茄种子', spec: '100粒/袋', unit: '袋', requestedQuantity, unitPrice: 30 },
+    ],
+    approvers: [{ userName: '赵总' }],
+    records: [],
+    priority: 'high',
+    amount: '15,000.00',
+  },
+])
+
+// 根据Tab类型筛选数据
+const getCurrentData = computed(() => {
+  if (activeTab.value === 'material') {
+    return mockData.value
+  } else if (activeTab.value === 'return') {
+    return mockData.value.filter(a => a.code.startsWith('TL'))
+  } else if (activeTab.value === 'purchase') {
+    return mockData.value.filter(a => a.code.startsWith('CG'))
+  }
+  return mockData.value
+})
+
+// 筛选数据
+const filteredData = computed(() => {
+  return getCurrentData.value.filter(item => {
+    const matchSearch =
+      item.title?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      item.applicantName?.includes(searchTerm.value) ||
+      item.code?.includes(searchTerm.value)
+    const matchStatus =
+      statusFilter.value === '全部' ||
+      (statusFilter.value === '待审批' && item.status === 'pending') ||
+      (statusFilter.value === '已通过' && item.status === 'approved') ||
+      (statusFilter.value === '已拒绝' && item.status === 'rejected')
+    const matchApplicant = !searchApplicant.value || item.applicantName?.includes(searchApplicant.value)
+    const matchBatchCode = !searchBatchCode.value || item.businessLink?.batchCode?.toLowerCase().includes(searchBatchCode.value.toLowerCase())
+    const matchDepartment = searchDepartment.value === '全部' || item.applicantDepartment === searchDepartment.value
+    let matchDate = true
+    if (searchDateStart.value && item.applyDate) {
+      matchDate = matchDate && item.applyDate >= searchDateStart.value
+    }
+    if (searchDateEnd.value && item.applyDate) {
+      matchDate = matchDate && item.applyDate <= searchDateEnd.value
+    }
+    return matchSearch && matchStatus && matchApplicant && matchBatchCode && matchDepartment && matchDate
+  })
+})
+
+// 分页数据
+const totalPages = computed(() => Math.ceil(filteredData.value.length / pageSize))
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredData.value.slice(start, start + pageSize)
+})
+
+// Tab切换
+const handleTabChange = (tab) => {
+  activeTab.value = tab
+  currentPage.value = 1
+  expandedRows.value = []
+}
+
+// 展开行
+const handleExpandChange = (row) => {
+  const idx = expandedRows.value.indexOf(row.id)
+  if (idx > -1) {
+    expandedRows.value.splice(idx, 1)
+  } else {
+    expandedRows.value.push(row.id)
+  }
+}
+
+// 重置筛选
+const handleReset = () => {
+  searchTerm.value = ''
+  searchApplicant.value = ''
+  searchDepartment.value = '全部'
+  searchBatchCode.value = ''
+  searchDateStart.value = ''
+  searchDateEnd.value = ''
+  statusFilter.value = '全部'
+  currentPage.value = 1
+}
+
+// 查看详情
+const handleViewDetail = (item) => {
+  detailModal.item = item
+  detailModal.show = true
+}
+
+// 拒绝点击
+const handleRejectClick = (item) => {
+  rejectModal.item = item
+  rejectModal.reason = ''
+  rejectModal.show = true
+}
+
+// 确认拒绝
+const handleConfirmReject = async () => {
+  if (!rejectModal.reason.trim()) {
+    ElMessage.warning('请输入拒绝原因')
+    return
+  }
+  // 模拟拒绝操作
+  const item = rejectModal.item
+  if (item) {
+    const idx = mockData.value.findIndex(a => a.id === item.id)
+    if (idx > -1) {
+      mockData.value[idx].status = 'rejected'
+      mockData.value[idx].records = [
+        ...(mockData.value[idx].records || []),
+        { approverName: '当前用户', action: 'reject', comment: rejectModal.reason, actionTime: new Date().toLocaleString('zh-CN') }
+      ]
+    }
+    ElMessage.success('已拒绝该申请')
+  }
+  rejectModal.show = false
+  detailModal.show = false
+}
+
+// 通过审批
+const handleApprove = async (item) => {
+  try {
+    await ElMessageBox.confirm(`确定要通过「${item.title}」吗？`, '审批确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+    // 模拟通过操作
+    const idx = mockData.value.findIndex(a => a.id === item.id)
+    if (idx > -1) {
+      mockData.value[idx].status = 'approved'
+      mockData.value[idx].records = [
+        ...(mockData.value[idx].records || []),
+        { approverName: '当前用户', action: 'approve', actionTime: new Date().toLocaleString('zh-CN') }
+      ]
+    }
+    ElMessage.success('已通过该申请')
+    detailModal.show = false
+  } catch {
+    // 用户取消
+  }
+}
+
+// 物料分类辅助函数
+const getCategoryByCode = (code) => {
+  const prefix = code.substring(0, 2)
+  const categoryMap = {
+    'SP': '种质资源',
+    'EQ': '农业机械',
+    'OP': '劳保与防护用品',
+    'PH': '采收容器',
+    'IT': '监测设备',
+  }
+  if (prefix === 'SP') {
+    const subPrefix = code.substring(2, 4)
+    if (subPrefix === '02') return '肥料与土壤改良剂'
+    if (subPrefix === '03') return '农药与植保产品'
+    if (subPrefix === '01') return '种质资源'
+  }
+  return categoryMap[prefix] || '其他'
+}
+
+// 状态显示
+const getStatusText = (status) => {
+  const statusMap = {
+    approved: '已通过',
+    rejected: '已拒绝',
+    pending: '待审批',
+    cancelled: '已取消',
+    draft: '草稿',
+  }
+  return statusMap[status] || status
+}
+
+const getStatusTagType = (status) => {
+  const typeMap = {
+    approved: 'success',
+    rejected: 'danger',
+    pending: 'warning',
+    cancelled: 'info',
+    draft: 'info',
+  }
+  return typeMap[status] || 'info'
+}
+
+// 退料状态显示
+const getReturnStatusText = (status) => {
+  const statusMap = {
+    approved: '已完成',
+    rejected: '已驳回',
+    pending: '待审批',
+    cancelled: '已取消',
+  }
+  return statusMap[status] || status
+}
+
+const getReturnStatusTagType = (status) => {
+  const typeMap = {
+    approved: 'success',
+    rejected: 'danger',
+    pending: 'warning',
+    cancelled: 'info',
+  }
+  return typeMap[status] || 'info'
+}
+
+// 退料类型映射
+const getReturnType = (item) => {
+  if (item.businessLink?.warehouseLocation) return '生产退料'
+  if (item.description?.includes('品质退料')) return '品质退料'
+  if (item.description?.includes('试制退料')) return '试制退料'
+  return '生产退料'
+}
+
+// 监听分页变化
+watch(currentPage, () => {
+  expandedRows.value = []
+})
+</script>

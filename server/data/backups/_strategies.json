@@ -1,0 +1,24 @@
+[
+  {
+    "id": "BS001",
+    "name": "每日全量备份",
+    "type": "full",
+    "schedule": "每天 02:00",
+    "retention": 7,
+    "status": "active",
+    "lastRun": "-",
+    "nextRun": "-",
+    "target": "全部数据库"
+  },
+  {
+    "id": "BS002",
+    "name": "每周全量备份",
+    "type": "full",
+    "schedule": "每周日 01:00",
+    "retention": 30,
+    "status": "active",
+    "lastRun": "-",
+    "nextRun": "-",
+    "target": "全部数据库"
+  }
+]

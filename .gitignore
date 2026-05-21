@@ -1,0 +1,80 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Test files and screenshots
+*.spec.js
+*.spec.mjs
+*.mjs
+test-*.js
+test-*.mjs
+test-screenshots/
+screenshots/
+
+# Temporary files
+temp_*
+*.tmp
+*.temp
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+
+# Project memo (generated during development)
+PROJECT_MEMO.md
+
+# Conversion and fix scripts
+convert-to-js.cjs
+convert-to-js-v2.cjs
+fix-ts.cjs
+fix-types.cjs
+fix-colon.cjs
+fix-optional.cjs
+safe-convert.cjs
+
+# E2E tests
+e2e-*.cjs
+e2e-*.ts
+test-*.spec.ts
+test-*.ts
+
+# Project documentation (not source code)
+*.md
+!CLAUDE.md
+"2026-05-21-vue3转换方案.md"
+
+# Batch files
+*.bat
+
+# Local omc directory
+.omc/
+
+# Test files
+login-flow-test.js
+
+# Claude configuration
+.claude/

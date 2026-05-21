@@ -1,0 +1,199 @@
+/* ============================================
+   智慧种植管理系统 V2.0 CSS 变量
+   必须与 V1.1 React 系统完全一致
+   ============================================ */
+
+:root {
+  /* ============================================
+     主题色彩系统
+     ============================================ */
+
+  /* 主色调 - 绿色系（农业主题） */
+  --primary-color: #059669;
+  --primary-color-hover: #047857;
+  --primary-color-active: #065f46;
+  --primary-color-light: #34d399;
+  --primary-color-lighter: #6ee7b7;
+  --primary-color-bg: #ecfdf5;
+
+  /* 成功色 */
+  --success-color: #22c55e;
+  --success-color-hover: #16a34a;
+  --success-color-active: #15803d;
+  --success-color-light: #4ade80;
+  --success-color-bg: #f0fdf4;
+
+  /* 警告色 */
+  --warning-color: #f59e0b;
+  --warning-color-hover: #d97706;
+  --warning-color-active: #b45309;
+  --warning-color-light: #fbbf24;
+  --warning-color-bg: #fffbeb;
+
+  /* 错误色 */
+  --error-color: #ef4444;
+  --error-color-hover: #dc2626;
+  --error-color-active: #b91c1c;
+  --error-color-light: #f87171;
+  --error-color-bg: #fef2f2;
+
+  /* 信息色 */
+  --info-color: #3b82f6;
+  --info-color-hover: #2563eb;
+  --info-color-active: #1d4ed8;
+  --info-color-light: #60a5fa;
+  --info-color-bg: #eff6ff;
+
+  /* ============================================
+     文字色彩系统
+     ============================================ */
+
+  /* 主要文字 */
+  --text-color: #1f2937;
+  --text-color-hover: #111827;
+  --text-color-active: #000000;
+
+  /* 次要文字 */
+  --text-color-secondary: #6b7280;
+  --text-color-secondary-hover: #4b5563;
+  --text-color-secondary-active: #374151;
+
+  /* 占位文字 */
+  --text-color-placeholder: #9ca3af;
+
+  /* 禁用文字 */
+  --text-color-disabled: #d1d5db;
+
+  /* ============================================
+     背景色彩系统
+     ============================================ */
+
+  /* 页面背景 */
+  --bg-color: #f5f7fa;
+  --bg-color-page: #f3f4f6;
+
+  /* 内容区域背景 */
+  --content-bg: #ffffff;
+
+  /* 侧边栏背景 - 与V1.1保持一致 */
+  --sidebar-bg: #F2F6FA;
+  --sidebar-bg-hover: #e5e7eb;
+  --sidebar-bg-active: #f3f4f6;
+  --sidebar-active-bg: #dbeafe;
+  --sidebar-active-text: #1d4ed8;
+  --sidebar-collapsed-w: 64px;
+  --sidebar-expanded-w: 208px;
+
+  /* 头部背景 - 与V1.1保持一致 */
+  --header-bg: #F2F6FA;
+
+  /* 卡片背景 */
+  --card-bg: #ffffff;
+  --card-bg-hover: #f9fafb;
+
+  /* 模态框背景 */
+  --modal-bg: #ffffff;
+  --modal-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* ============================================
+     边框色彩系统
+     ============================================ */
+
+  /* 主要边框 */
+  --border-color: #e5e7eb;
+  --border-color-hover: #d1d5db;
+  --border-color-active: #9ca3af;
+  --border-color-light: #f3f4f6;
+
+  /* 分割线 */
+  --divider-color: #e5e7eb;
+
+  /* 表格边框 */
+  --table-border-color: #e5e7eb;
+  --table-header-bg: #f9fafb;
+  --table-row-hover-bg: #f9fafb;
+
+  /* ============================================
+     阴影系统
+     ============================================ */
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* ============================================
+     圆角系统
+     ============================================ */
+
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* ============================================
+     间距系统
+     ============================================ */
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* ============================================
+     布局尺寸
+     ============================================ */
+
+  /* 侧边栏 */
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 64px;
+
+  /* 头部 - 与V1.1保持一致 */
+  --header-height: 48px;
+
+  /* 内容区域 */
+  --content-padding: 24px;
+
+  /* ============================================
+     动画系统
+     ============================================ */
+
+  --transition-fast: 150ms ease;
+  --transition: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* ============================================
+     层级系统
+     ============================================ */
+
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}
+
+/* 暗色主题 */
+[data-theme="dark"] {
+  --primary-color: #059669;
+  --primary-color-hover: #34d399;
+
+  --text-color: #f9fafb;
+  --text-color-secondary: #9ca3af;
+
+  --bg-color: #111827;
+  --content-bg: #1f2937;
+  --sidebar-bg: #1f2937;
+  --header-bg: #1f2937;
+
+  --border-color: #374151;
+  --divider-color: #374151;
+}

@@ -1,0 +1,170 @@
+<template>
+  <el-dialog
+    :model-value="visible"
+    title="新增订单"
+    width="800px"
+    @close="handleClose"
+  >
+    <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="订单编号" prop="orderCode">
+            <el-input v-model="form.orderCode" placeholder="请输入订单编号" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="订单名称" prop="orderName">
+            <el-input v-model="form.orderName" placeholder="请输入订单名称" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="订单类型" prop="orderType">
+            <el-select v-model="form.orderType" placeholder="请选择订单类型" style="width: 100%">
+              <el-option
+                v-for="option in orderTypeOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="作物名称" prop="cropName">
+            <el-input v-model="form.cropName" placeholder="请输入作物名称" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="计划数量" prop="plannedQuantity">
+            <el-input-number v-model="form.plannedQuantity" :min="0" style="width: 100%" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="单位" prop="unit">
+            <el-input v-model="form.unit" placeholder="请输入单位" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="订单日期" prop="orderDate">
+            <el-date-picker
+              v-model="form.orderDate"
+              type="date"
+              placeholder="请选择订单日期"
+              value-format="YYYY-MM-DD"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="预计采收日期" prop="expectedHarvestDate">
+            <el-date-picker
+              v-model="form.expectedHarvestDate"
+              type="date"
+              placeholder="请选择预计采收日期"
+              value-format="YYYY-MM-DD"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-form-item label="备注">
+        <el-input v-model="form.remarks" type="textarea" :rows="3" placeholder="请输入备注" />
+      </el-form-item>
+    </el-form>
+
+    <template #footer>
+      <el-button @click="handleClose">取消</el-button>
+      <el-button type="primary" @click="handleSubmit" :loading="submitting">提交</el-button>
+    </template>
+  </el-dialog>
+</template>
+
+<script setup>
+import { ref, reactive, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import { useOrderDataStore } from '@/stores/modules/orderData'
+import dayjs from 'dayjs'
+
+const props = defineProps({
+  visible: Boolean
+})
+
+const emit = defineEmits(['close', 'success'])
+
+const orderDataStore = useOrderDataStore()
+const formRef = ref()
+const submitting = ref(false)
+
+const form = reactive({
+  orderCode: '',
+  orderName: '',
+  orderType: 'production',
+  cropName: '',
+  cropCategory: '',
+  cropVariety: '',
+  plannedQuantity: 0,
+  actualQuantity: 0,
+  unit: 'kg',
+  orderDate: dayjs().format('YYYY-MM-DD'),
+  expectedHarvestDate: '',
+  remarks: '',
+  status: 'planned',
+  createBy: localStorage.getItem('username') || '陆启闯'
+})
+
+const rules = {
+  orderCode: [{ required: true, message: '请输入订单编号', trigger: 'blur' }],
+  orderName: [{ required: true, message: '请输入订单名称', trigger: 'blur' }],
+  orderType: [{ required: true, message: '请选择订单类型', trigger: 'change' }],
+  cropName: [{ required: true, message: '请输入作物名称', trigger: 'blur' }],
+  plannedQuantity: [{ required: true, message: '请输入计划数量', trigger: 'blur' }],
+  unit: [{ required: true, message: '请输入单位', trigger: 'blur' }],
+  orderDate: [{ required: true, message: '请选择订单日期', trigger: 'change' }]
+}
+
+watch(() => props.visible, (val) => {
+  if (val) {
+    // 重置表单
+    form.orderCode = `DD${dayjs().format('YYYYMMDD')}${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`
+    form.orderDate = dayjs().format('YYYY-MM-DD')
+  }
+})
+
+const handleClose = () => {
+  emit('close')
+}
+
+const handleSubmit = async () => {
+  if (!formRef.value) return
+
+  try {
+    await formRef.value.validate()
+    submitting.value = true
+
+    const orderData = {
+      ...form,
+      id: `DD${Date.now()}`
+    }
+
+    await orderDataStore.addOrder(orderData)
+    ElMessage.success('添加成功')
+    emit('success')
+  } catch (error) {
+    if (error !== false) {
+      ElMessage.error('添加失败，请稍后重试')
+    }
+  } finally {
+    submitting.value = false
+  }
+}
+</script>
