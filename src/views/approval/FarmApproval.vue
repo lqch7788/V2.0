@@ -334,10 +334,10 @@ const statusTypeMap = {
 
 // 统计数据
 const stats = reactive({
-  total,
-  task,
-  tempTask,
-  manual: 6
+  total: 12,
+  task: 5,
+  tempTask: 4,
+  manual: 3
 })
 
 // 权限
@@ -368,10 +368,10 @@ const batchDeleteMode = ref(false)
 
 // 农事记录数据
 const records = ref([
-  { id: '1', recordCode: 'AR2024030101', sourceType: 'task', sourceCode: 'T2024030101', operationType: 'planting', cropName: '番茄', greenhouseName: '1号棚', operatorName: '张伟民', operationDate: '2024-03-01', progress, status: 'completed', remarks: '已完成播种' },
-  { id: '2', recordCode: 'AR2024030102', sourceType: 'tempTask', sourceCode: 'TT2024030101', operationType: 'irrigation', cropName: '黄瓜', greenhouseName: '2号棚', operatorName: '李明轩', operationDate: '2024-03-01', progress, status: 'in_progress', remarks: '灌溉进行中' },
-  { id: '3', recordCode: 'AR2024030103', sourceType: 'manual', operationType: 'fertilization', cropName: '茄子', greenhouseName: '3号棚', operatorName: '王建国', operationDate: '2024-03-02', progress, status: 'waiting_acceptance', remarks: '等待验收' },
-  { id: '4', recordCode: 'AR2024030104', sourceType: 'task', sourceCode: 'T2024030102', operationType: 'pest_control', cropName: '辣椒', greenhouseName: '4号棚', operatorName: '赵俊杰', operationDate: '2024-03-02', progress, status: 'in_progress', remarks: '病虫害防治中' },
+  { id: '1', recordCode: 'AR2024030101', sourceType: 'task', sourceCode: 'T2024030101', operationType: 'planting', cropName: '番茄', greenhouseName: '1号棚', operatorName: '张伟民', operationDate: '2024-03-01', progress: 100, status: 'completed', remarks: '已完成播种' },
+  { id: '2', recordCode: 'AR2024030102', sourceType: 'tempTask', sourceCode: 'TT2024030101', operationType: 'irrigation', cropName: '黄瓜', greenhouseName: '2号棚', operatorName: '李明轩', operationDate: '2024-03-01', progress: 60, status: 'in_progress', remarks: '灌溉进行中' },
+  { id: '3', recordCode: 'AR2024030103', sourceType: 'manual', operationType: 'fertilization', cropName: '茄子', greenhouseName: '3号棚', operatorName: '王建国', operationDate: '2024-03-02', progress: 80, status: 'waiting_acceptance', remarks: '等待验收' },
+  { id: '4', recordCode: 'AR2024030104', sourceType: 'task', sourceCode: 'T2024030102', operationType: 'pest_control', cropName: '辣椒', greenhouseName: '4号棚', operatorName: '赵俊杰', operationDate: '2024-03-02', progress: 40, status: 'in_progress', remarks: '病虫害防治中' },
 ])
 
 // 筛选后的记录

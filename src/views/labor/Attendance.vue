@@ -49,7 +49,7 @@ const activeTab = ref('worker-attendance')
 
 // Tab切换处理
 const handleTabChange = (tabName) => {
-  console.log('Tab切换到:', tabName)
+  // noop
 }
 </script>
 

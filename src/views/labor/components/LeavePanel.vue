@@ -277,7 +277,7 @@ const filters = reactive({
 // 分页配置
 const pagination = reactive({
   currentPage: 1,
-  pageSize,
+  pageSize: 10,
   total: 0
 })
 
@@ -295,12 +295,12 @@ const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
-  id: null | null,
+  id: null,
   userName: '',
   leaveType: 'annual',
   startDate: '',
   endDate: '',
-  days,
+  days: 1,
   reason: '',
   remarks: ''
 })
@@ -316,10 +316,10 @@ const formRules = {
 
 // 模拟数据
 const allData = ref([
-  { id, userName: '张三', leaveType: 'annual', startDate: '2026-05-20', endDate: '2026-05-22', days, reason: '年假出游', status: 'pending', approver: '', approvedAt: '' },
-  { id, userName: '李四', leaveType: 'sick', startDate: '2026-05-18', endDate: '2026-05-18', days, reason: '身体不适', status: 'approved', approver: '王经理', approvedAt: '2026-05-18 10:00' },
-  { id, userName: '王五', leaveType: 'personal', startDate: '2026-05-15', endDate: '2026-05-15', days, reason: '家中有事', status: 'rejected', approver: '王经理', approvedAt: '2026-05-15 14:00' },
-  { id, userName: '赵六', leaveType: 'other', startDate: '2026-05-10', endDate: '2026-05-12', days, reason: '处理私事', status: 'approved', approver: '王经理', approvedAt: '2026-05-10 09:00' }
+  { id: 1, userName: '张三', leaveType: 'annual', startDate: '2026-05-20', endDate: '2026-05-22', days: 3, reason: '年假出游', status: 'pending', approver: '', approvedAt: '' },
+  { id: 2, userName: '李四', leaveType: 'sick', startDate: '2026-05-18', endDate: '2026-05-18', days: 1, reason: '身体不适', status: 'approved', approver: '王经理', approvedAt: '2026-05-18 10:00' },
+  { id: 3, userName: '王五', leaveType: 'personal', startDate: '2026-05-15', endDate: '2026-05-15', days: 1, reason: '家中有事', status: 'rejected', approver: '王经理', approvedAt: '2026-05-15 14:00' },
+  { id: 4, userName: '赵六', leaveType: 'other', startDate: '2026-05-10', endDate: '2026-05-12', days: 3, reason: '处理私事', status: 'approved', approver: '王经理', approvedAt: '2026-05-10 09:00' }
 ])
 
 // 统计
@@ -405,12 +405,12 @@ const editRecord = (row) => {
 const openFormModal = () => {
   isEdit.value = false
   Object.assign(formData, {
-    id,
+    id: null,
     userName: '',
     leaveType: 'annual',
     startDate: '',
     endDate: '',
-    days,
+    days: 1,
     reason: '',
     remarks: ''
   })

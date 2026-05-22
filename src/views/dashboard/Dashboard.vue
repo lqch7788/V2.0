@@ -137,6 +137,34 @@
         </el-descriptions>
       </div>
     </el-dialog>
+
+    <!-- 基地详情弹窗（温室/大田详情） -->
+    <BaseDetailModal
+      :is-open="showBaseDetailModal"
+      :selected-detail="selectedDetail"
+      :enlarged-image-index="enlargedImageIndex"
+      @close="showBaseDetailModal = false"
+      @enter="handleEnterClick"
+      @image-click="handleImageClick"
+      @update:is-open="showBaseDetailModal = $event"
+    />
+
+    <!-- 温室详情弹窗 -->
+    <GreenhouseDetailModal
+      :is-open="showGreenhouseDetailModal"
+      :selected-greenhouse="selectedGreenhouse"
+      :greenhouse-env-data="greenhouseEnvData"
+      :get-crop-info="getCropInfo"
+      @close="showGreenhouseDetailModal = false"
+      @update:is-open="showGreenhouseDetailModal = $event"
+    />
+
+    <!-- 图片放大弹窗 -->
+    <ImageEnlargementModal
+      :is-open="enlargedImageIndex !== null"
+      :image-index="enlargedImageIndex || 1"
+      @close="enlargedImageIndex = null"
+    />
   </div>
 </template>
 
@@ -158,6 +186,9 @@ import ActiveBatchesTable from './components/ActiveBatchesTable.vue'
 import WeatherWidget from '@/components/dashboard/widgets/WeatherWidget.vue'
 import YieldChart from './components/YieldChart.vue'
 import CostChart from './components/CostChart.vue'
+import BaseDetailModal from './components/BaseDetailModal.vue'
+import GreenhouseDetailModal from './components/GreenhouseDetailModal.vue'
+import ImageEnlargementModal from '@/components/dashboard/ImageEnlargementModal.vue'
 
 // 展开状态
 const overviewExpanded = ref(true)
@@ -170,6 +201,15 @@ const greenhousePage = ref(1)
 const greenhousePageSize = ref(10)
 const showEnvDetailModal = ref(false)
 const selectedEnv = ref(null)
+
+// 详情弹窗状态
+const showBaseDetailModal = ref(false)
+const selectedDetail = ref(null)
+const enlargedImageIndex = ref(null)
+
+// 温室详情弹窗
+const showGreenhouseDetailModal = ref(false)
+const selectedGreenhouse = ref(null)
 
 // 产量统计筛选
 const yieldRegion = ref('')
@@ -215,11 +255,19 @@ const handlePageSizeChange = (size) => {
 }
 
 const handleEnvDetail = (greenhouseId) => {
-  const env = greenhouseEnvData.value.find(g => g.id === greenhouseId)
-  if (env) {
-    selectedEnv.value = env
-    showEnvDetailModal.value = true
+  selectedGreenhouse.value = greenhouseId
+  showGreenhouseDetailModal.value = true
+}
+
+// 获取作物信息（根据温室ID）
+const getCropInfo = (greenhouseId) => {
+  // 根据温室ID返回作物信息mock数据
+  const cropInfoMap = {
+    'G001': { cropName: '番茄', variety: '红富士樱桃番茄', stageName: '结果期', greenhouseName: '1号棚', plantingArea: '6500', startDate: '2024-01-15', expectedHarvestDate: '2024-04-20', batchCode: 'B2024001', responsiblePerson: '张伟民' },
+    'G002': { cropName: '番茄', variety: '红富士樱桃番茄', stageName: '结果期', greenhouseName: '2号棚', plantingArea: '6500', startDate: '2024-01-15', expectedHarvestDate: '2024-04-20', batchCode: 'B2024002', responsiblePerson: '张伟民' },
+    'G003': { cropName: '番茄', variety: '红富士樱桃番茄', stageName: '开花期', greenhouseName: '3号棚', plantingArea: '6500', startDate: '2024-01-15', expectedHarvestDate: '2024-04-20', batchCode: 'B2024003', responsiblePerson: '张伟民' },
   }
+  return cropInfoMap[greenhouseId] || null
 }
 
 // 今日任务数据
@@ -263,11 +311,25 @@ const filteredCostAnalysis = ref([
 
 // 处理详情点击
 const handleGreenhouseDetail = (data) => {
-  console.log('温室详情:', data)
+  selectedDetail.value = data
+  showBaseDetailModal.value = true
 }
 
 const handleFieldDetail = (data) => {
-  console.log('大田详情:', data)
+  selectedDetail.value = data
+  showBaseDetailModal.value = true
+}
+
+// 处理进入按钮点击
+const handleEnterClick = () => {
+  showBaseDetailModal.value = false
+  selectedDetail.value = null
+  // 导航到详情页
+}
+
+// 处理图片点击
+const handleImageClick = (index) => {
+  enlargedImageIndex.value = index
 }
 </script>
 

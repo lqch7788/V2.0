@@ -144,7 +144,7 @@ const filters = ref({
   createBy: ''
 })
 
-const pagination = ref({ current, pageSize: 10 })
+const pagination = ref({ current: 1, pageSize: 10 })
 const selectedRows = ref([])
 const loading = ref(false)
 

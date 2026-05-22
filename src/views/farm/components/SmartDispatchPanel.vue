@@ -284,7 +284,7 @@ const dispatchTasks = ref([
     taskType: '植保',
     priority: '紧急',
     workZone: '1号大棚',
-    estimatedHours,
+    estimatedHours: 4,
     dueDate: '2024-01-20',
     description: '发现番茄叶霉病，需要紧急处理',
     requiredSkills: ['植保', '病虫害识别', '喷药操作']
@@ -296,7 +296,7 @@ const dispatchTasks = ref([
     taskType: '施肥',
     priority: '高',
     workZone: '2号大棚',
-    estimatedHours,
+    estimatedHours: 6,
     dueDate: '2024-01-22',
     description: '按计划进行番茄生长期施肥',
     requiredSkills: ['施肥', '农具操作']
@@ -308,7 +308,7 @@ const dispatchTasks = ref([
     taskType: '灌溉',
     priority: '中',
     workZone: '3号大棚',
-    estimatedHours,
+    estimatedHours: 2,
     dueDate: '2024-01-21',
     description: '近期降雨不足，需要临时补水',
     requiredSkills: ['灌溉']

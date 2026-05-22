@@ -147,9 +147,13 @@
 <script setup>
 import { CaretRight, LocationInformation } from '@element-plus/icons-vue'
 
-defineProps({})
+defineProps({
+  expanded: { type: Boolean, default: false },
+  onToggle: { type: Function, default: () => {} },
+  onMapClick: { type: Function, default: () => {} }
+})
 
-defineEmits(['toggle'])
+defineEmits(['toggle', 'map-click'])
 </script>
 
 <style scoped>

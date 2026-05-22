@@ -1,22 +1,386 @@
 <template>
   <div class="space-y-6">
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-          <el-icon :size="20" color="white"><Clock /></el-icon>
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+          <el-icon :size="24" class="text-white"><Clock /></el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">待审批</h1>
-          <p class="text-xs text-gray-500">待处理的审批任务</p>
+          <h1 class="text-2xl font-bold text-gray-900">待审批</h1>
+          <p class="text-gray-500">待处理的审批任务</p>
         </div>
       </div>
     </div>
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-      <el-empty description="待审批页面建设中..." />
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">待审批</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">已通过</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-red-600"><Warning /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">已驳回</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-purple-600"><Grid /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">全部</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 筛选工具栏 -->
+    <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">审批类型</label>
+          <el-select v-model="filters.type" placeholder="全部" clearable style="width: 100%">
+            <el-option label="全部" value="" />
+            <el-option label="领料审批" value="material" />
+            <el-option label="采购审批" value="purchase" />
+            <el-option label="生产审批" value="production" />
+            <el-option label="农事审批" value="farm" />
+          </el-select>
+        </div>
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+          <el-select v-model="filters.status" placeholder="全部" clearable style="width: 100%">
+            <el-option label="全部" value="" />
+            <el-option label="待审批" value="pending" />
+            <el-option label="已通过" value="approved" />
+            <el-option label="已驳回" value="rejected" />
+          </el-select>
+        </div>
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">搜索关键词</label>
+          <el-input v-model="filters.searchText" placeholder="申请单号/申请人" clearable />
+        </div>
+        <div class="flex gap-2">
+          <el-button type="primary" @click="handleSearch">
+            <el-icon><Search /></el-icon>
+            搜索
+          </el-button>
+          <el-button @click="handleReset">
+            <el-icon><Refresh /></el-icon>
+            重置
+          </el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据表格 -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <h3 class="text-lg font-semibold text-gray-900">待审批列表</h3>
+        <div class="flex gap-2">
+          <el-button
+            v-if="!batchDeleteMode"
+            type="danger"
+            plain
+            size="small"
+            @click="batchDeleteMode = true"
+          >
+            批量删除
+          </el-button>
+          <template v-if="batchDeleteMode">
+            <el-button type="danger" size="small" @click="handleBatchDelete" :disabled="selectedRows.length === 0">
+              确认删除 ({{ selectedRows.length }})
+            </el-button>
+            <el-button size="small" @click="cancelBatchDelete">取消</el-button>
+          </template>
+        </div>
+      </div>
+
+      <el-table
+        :data="paginatedRecords"
+        style="width: 100%"
+        stripe
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column v-if="batchDeleteMode" type="selection" width="50" align="center" />
+        <el-table-column prop="code" label="申请单号" min-width="140" align="center" />
+        <el-table-column prop="type" label="审批类型" min-width="120" align="center">
+          <template #default="{ row }">
+            <el-tag :type="typeColorMap[row.type]" size="small" effect="light">
+              {{ typeLabelMap[row.type] }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="applicant" label="申请人" min-width="100" align="center" />
+        <el-table-column prop="department" label="部门" min-width="100" align="center" />
+        <el-table-column prop="createTime" label="申请时间" min-width="120" align="center" />
+        <el-table-column prop="reason" label="申请原因" min-width="150" align="center">
+          <template #default="{ row }">
+            <span class="text-sm text-gray-500 truncate block max-w-[150px]" :title="row.reason">
+              {{ row.reason || '-' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="100" align="center">
+          <template #default="{ row }">
+            <el-tag :type="statusColorMap[row.status]" size="small" effect="light">
+              {{ statusLabelMap[row.status] }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="120" align="center">
+          <template #default="{ row }">
+            <div class="flex items-center justify-center gap-1">
+              <el-button type="success" size="small" @click="handleApprove(row)">通过</el-button>
+              <el-button type="danger" size="small" @click="handleReject(row)">驳回</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">每页</span>
+          <el-select v-model="pageSize" @change="handlePageSizeChange" style="width: 80px">
+            <el-option :value="10" label="10" />
+            <el-option :value="20" label="20" />
+            <el-option :value="50" label="50" />
+          </el-select>
+          <span class="text-sm text-gray-500">条</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">共 {{ filteredRecords.length }} 条</span>
+          <el-button
+            :icon="ArrowLeft"
+            circle
+            size="small"
+            :disabled="currentPage === 1"
+            @click="handlePrevPage"
+          />
+          <span class="text-sm">{{ currentPage }} / {{ totalPages }}</span>
+          <el-button
+            :icon="ArrowRight"
+            circle
+            size="small"
+            :disabled="currentPage >= totalPages"
+            @click="handleNextPage"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { Clock } from '@element-plus/icons-vue'
+import { ref, reactive, computed } from 'vue'
+import {
+  Clock,
+  CircleCheck,
+  Warning,
+  Grid,
+  Search,
+  Refresh,
+  ArrowLeft,
+  ArrowRight
+} from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+
+// 审批类型标签映射
+const typeLabelMap = {
+  'material': '领料审批',
+  'purchase': '采购审批',
+  'production': '生产审批',
+  'farm': '农事审批',
+  'budget': '预算审批'
+}
+
+// 审批类型颜色映射
+const typeColorMap = {
+  'material': 'primary',
+  'purchase': 'warning',
+  'production': 'success',
+  'farm': 'info',
+  'budget': 'danger'
+}
+
+// 状态标签映射
+const statusLabelMap = {
+  'pending': '待审批',
+  'approved': '已通过',
+  'rejected': '已驳回'
+}
+
+// 状态颜色映射
+const statusColorMap = {
+  'pending': 'warning',
+  'approved': 'success',
+  'rejected': 'danger'
+}
+
+// 统计数据
+const stats = reactive({
+  pending: 8,
+  approved: 15,
+  rejected: 3,
+  total: 26
+})
+
+// 筛选条件
+const filters = reactive({
+  type: '',
+  status: 'pending',
+  searchText: ''
+})
+
+// 分页
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// 批量选择
+const selectedRows = ref([])
+const batchDeleteMode = ref(false)
+
+// 待审批数据
+const records = ref([
+  { id: '1', code: 'AP2024030101', type: 'material', applicant: '张伟民', department: '生产部', createTime: '2024-03-01 09:30', reason: '番茄种植所需肥料', status: 'pending' },
+  { id: '2', code: 'AP2024030102', type: 'purchase', applicant: '李明轩', department: '采购部', createTime: '2024-03-01 10:15', reason: '采购新型灌溉设备', status: 'pending' },
+  { id: '3', code: 'AP2024030103', type: 'production', applicant: '王建国', department: '生产部', createTime: '2024-03-01 11:00', reason: '调整本周生产计划', status: 'pending' },
+  { id: '4', code: 'AP2024030104', type: 'farm', applicant: '赵俊杰', department: '农业部', createTime: '2024-03-01 14:20', reason: '巡查发现病虫害需紧急处理', status: 'pending' },
+  { id: '5', code: 'AP2024030105', type: 'budget', applicant: '钱文涛', department: '财务部', createTime: '2024-03-02 09:00', reason: '季度预算调整申请', status: 'pending' },
+  { id: '6', code: 'AP2024030106', type: 'material', applicant: '孙丽华', department: '生产部', createTime: '2024-03-02 10:30', reason: '黄瓜种植所需农具', status: 'pending' },
+  { id: '7', code: 'AP2024030107', type: 'purchase', applicant: '周建设', department: '采购部', createTime: '2024-03-02 15:45', reason: '采购新型植保无人机', status: 'pending' },
+  { id: '8', code: 'AP2024030108', type: 'production', applicant: '吴光明', department: '生产部', createTime: '2024-03-03 08:30', reason: '新增一条生产线', status: 'pending' },
+])
+
+// 筛选后的记录
+const filteredRecords = computed(() => {
+  return records.value.filter(record => {
+    if (filters.type && record.type !== filters.type) return false
+    if (filters.status && record.status !== filters.status) return false
+    if (filters.searchText) {
+      const text = filters.searchText.toLowerCase()
+      if (!record.code.toLowerCase().includes(text) &&
+          !record.applicant.toLowerCase().includes(text)) {
+        return false
+      }
+    }
+    return true
+  })
+})
+
+// 总页数
+const totalPages = computed(() => Math.ceil(filteredRecords.value.length / pageSize.value) || 1)
+
+// 分页数据
+const paginatedRecords = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredRecords.value.slice(start, start + pageSize.value)
+})
+
+// 搜索
+const handleSearch = () => {
+  currentPage.value = 1
+}
+
+// 重置
+const handleReset = () => {
+  Object.assign(filters, {
+    type: '',
+    status: 'pending',
+    searchText: ''
+  })
+  currentPage.value = 1
+}
+
+// 批量删除
+const handleBatchDelete = () => {
+  ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '删除确认', {
+    confirmButtonText: '确认删除',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    ElMessage.success('删除成功')
+    batchDeleteMode.value = false
+    selectedRows.value = []
+  }).catch(() => {})
+}
+
+const cancelBatchDelete = () => {
+  batchDeleteMode.value = false
+  selectedRows.value = []
+}
+
+// 表格选择
+const handleSelectionChange = (selection) => {
+  selectedRows.value = selection
+}
+
+// 审核通过
+const handleApprove = (row) => {
+  ElMessageBox.confirm(`确定要通过该审批申请吗？`, '审核确认', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'success'
+  }).then(() => {
+    ElMessage.success('审核已通过')
+  }).catch(() => {})
+}
+
+// 审核驳回
+const handleReject = (row) => {
+  ElMessageBox.prompt('请输入驳回原因', '驳回确认', {
+    confirmButtonText: '确认驳回',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(({ value }) => {
+    if (value) {
+      ElMessage.success('已驳回')
+    }
+  }).catch(() => {})
+}
+
+// 分页操作
+const handlePrevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const handleNextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const handlePageSizeChange = () => {
+  currentPage.value = 1
+}
 </script>

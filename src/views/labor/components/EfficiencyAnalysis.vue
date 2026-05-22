@@ -210,8 +210,8 @@ const pagination = reactive({
 
 // 汇总指标
 const summaryMetrics = reactive({
-  totalOutput,
-  avgOutputPerWorker,
+  totalOutput: 125000,
+  avgOutputPerWorker: 2500,
   avgEfficiency: 0.92,
   taskCompletionRate: 0.88,
   attendanceRate: 0.95
@@ -219,11 +219,11 @@ const summaryMetrics = reactive({
 
 // 表格数据
 const data = ref([
-  { id: '1', date: '2024-03', department: '技术部', totalWorkers, totalOutput, avgOutputPerWorker, totalHours, avgEfficiency: 0.94, taskCompletionRate: 0.90, attendanceRate: 0.96 },
-  { id: '2', date: '2024-03', department: '运营部', totalWorkers, totalOutput, avgOutputPerWorker, totalHours, avgEfficiency: 0.91, taskCompletionRate: 0.87, attendanceRate: 0.94 },
-  { id: '3', date: '2024-03', department: '生产部', totalWorkers, totalOutput, avgOutputPerWorker, totalHours, avgEfficiency: 0.89, taskCompletionRate: 0.85, attendanceRate: 0.93 },
-  { id: '4', date: '2024-02', department: '技术部', totalWorkers, totalOutput, avgOutputPerWorker, totalHours, avgEfficiency: 0.92, taskCompletionRate: 0.88, attendanceRate: 0.95 },
-  { id: '5', date: '2024-02', department: '运营部', totalWorkers, totalOutput, avgOutputPerWorker, totalHours, avgEfficiency: 0.90, taskCompletionRate: 0.86, attendanceRate: 0.93 }
+  { id: '1', date: '2024-03', department: '技术部', totalWorkers: 15, totalOutput: 42000, avgOutputPerWorker: 2800, totalHours: 3600, avgEfficiency: 0.94, taskCompletionRate: 0.90, attendanceRate: 0.96 },
+  { id: '2', date: '2024-03', department: '运营部', totalWorkers: 12, totalOutput: 30000, avgOutputPerWorker: 2500, totalHours: 2880, avgEfficiency: 0.91, taskCompletionRate: 0.87, attendanceRate: 0.94 },
+  { id: '3', date: '2024-03', department: '生产部', totalWorkers: 25, totalOutput: 53000, avgOutputPerWorker: 2120, totalHours: 6000, avgEfficiency: 0.89, taskCompletionRate: 0.85, attendanceRate: 0.93 },
+  { id: '4', date: '2024-02', department: '技术部', totalWorkers: 15, totalOutput: 40000, avgOutputPerWorker: 2667, totalHours: 3600, avgEfficiency: 0.92, taskCompletionRate: 0.88, attendanceRate: 0.95 },
+  { id: '5', date: '2024-02', department: '运营部', totalWorkers: 12, totalOutput: 28000, avgOutputPerWorker: 2333, totalHours: 2880, avgEfficiency: 0.90, taskCompletionRate: 0.86, attendanceRate: 0.93 }
 ])
 
 const total = computed(() => data.value.length)
@@ -242,8 +242,8 @@ const editingRecord = ref(null)
 const formData = reactive({
   date: '',
   department: '',
-  totalWorkers,
-  totalOutput,
+  totalWorkers: 0,
+  totalOutput: 0,
   totalHours: 0
 })
 
@@ -266,8 +266,8 @@ const handleAdd = () => {
   Object.assign(formData, {
     date: '',
     department: '',
-    totalWorkers,
-    totalOutput,
+    totalWorkers: 0,
+    totalOutput: 0,
     totalHours: 0
   })
   modalVisible.value = true

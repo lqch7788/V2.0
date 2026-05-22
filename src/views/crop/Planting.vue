@@ -202,9 +202,9 @@ const canPrint = ref(true)
 // 统计数据
 
 const statsData = ref({
-  total,
-  growing,
-  harvested,
+  total: 0,
+  growing: 0,
+  harvested: 0,
   monthCount: 0
 })
 
@@ -221,8 +221,8 @@ const filters = ref({
   transplantDate: '',
   createBy: '',
   orgName: '',
-  countMin,
-  countMax,
+  countMin: undefined,
+  countMax: undefined,
 })
 
 // 加载状态
@@ -236,15 +236,15 @@ const mockData = ref([
     productionPlanCode: 'SC202405001',
     cropName: '番茄',
     areaName: '1号棚',
-    plantingCount,
+    plantingCount: 1000,
     plantingDate: '2024-05-01',
     soilPH: 6.5,
     soilEC: 2.3,
     attritionRate: 2.5,
-    harvestQuantity,
+    harvestQuantity: 0,
     unit: '株',
     status: 'growing',
-    isHarvest,
+    isHarvest: false,
     remarks: ''
   },
   {
@@ -252,15 +252,15 @@ const mockData = ref([
     plantCode: 'ZZ202405002',
     cropName: '黄瓜',
     areaName: '2号棚',
-    plantingCount,
+    plantingCount: 1000,
     plantingDate: '2024-05-03',
     soilPH: 6.8,
     soilEC: 2.1,
     attritionRate: 1.5,
-    harvestQuantity,
+    harvestQuantity: 0,
     unit: '株',
     status: 'harvested',
-    isHarvest,
+    isHarvest: false,
     remarks: ''
   }
 ])
@@ -321,24 +321,24 @@ const currentRecord = ref(null)
 const addForm = ref({
   cropName: '',
   areaName: '',
-  plantingCount,
+  plantingCount: 0,
   plantingDate: '',
-  soilPH: undefined | undefined,
-  soilEC: undefined | undefined,
+  soilPH: undefined,
+  soilEC: undefined,
   remarks: ''
 })
 
 const editForm = ref({
   plantCode: '',
   cropName: '',
-  plantingCount,
-  soilPH: undefined | undefined,
-  soilEC: undefined | undefined,
+  plantingCount: 0,
+  soilPH: undefined,
+  soilEC: undefined,
   remarks: ''
 })
 
 const harvestForm = ref({
-  harvestQuantity,
+  harvestQuantity: 0,
   harvestDate: '',
   remarks: ''
 })
@@ -377,8 +377,8 @@ const handleReset = () => {
     transplantDate: '',
     createBy: '',
     orgName: '',
-    countMin,
-    countMax,
+    countMin: undefined,
+    countMax: undefined,
   }
   updateStats()
 }
@@ -407,7 +407,7 @@ const handleDetail = (record) => {
 const handleHarvest = (record) => {
   currentRecord.value = record
   harvestForm.value = {
-    harvestQuantity,
+    harvestQuantity: 0,
     harvestDate: new Date().toISOString().slice(0, 10),
     remarks: ''
   }
@@ -441,11 +441,11 @@ const handleAddSubmit = () => {
     plantingDate: addForm.value.plantingDate,
     soilPH: addForm.value.soilPH,
     soilEC: addForm.value.soilEC,
-    attritionRate,
-    harvestQuantity,
+    attritionRate: 0,
+    harvestQuantity: 0,
     unit: '株',
     status: 'planted',
-    isHarvest,
+    isHarvest: false,
     remarks: addForm.value.remarks
   }
   mockData.value.unshift(newRecord)
@@ -480,7 +480,7 @@ const handleHarvestSubmit = () => {
     mockData.value[index] = {
       ...mockData.value[index],
       harvestQuantity: (mockData.value[index].harvestQuantity || 0) + harvestForm.value.harvestQuantity,
-      isHarvest,
+      isHarvest: true,
       status: 'harvested'
     }
   }

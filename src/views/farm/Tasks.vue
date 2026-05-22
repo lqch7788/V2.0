@@ -1,5 +1,6 @@
 <template>
   <div class="space-y-6">
+    <!-- 页面标题 -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -11,12 +12,15 @@
         </div>
       </div>
     </div>
+
+    <!-- 任务管理面板 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
-      <el-empty description="任务列表页面建设中..." />
+      <TaskExecutePanel />
     </div>
   </div>
 </template>
 
 <script setup>
 import { List } from '@element-plus/icons-vue'
+import TaskExecutePanel from './components/TaskExecutePanel.vue'
 </script>

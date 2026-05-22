@@ -139,6 +139,7 @@
 <script setup>
 import { ref, computed, reactive } from 'vue'
 import { Delete, Search } from '@element-plus/icons-vue'
+import UserDelete from '@/components/icons/UserDelete.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 // 状态映射
@@ -169,9 +170,9 @@ const currentRecord = ref(null)
 
 // 模拟数据
 const allData = ref([
-  { id, employeeName: '张三', department: '技术部', position: '农艺师', joinDate: '2024-01-15', applyDate: '2026-05-18', resignDate: '2026-05-31', reason: '个人发展需要', status: 'pending', approver: '', approvedAt: '', comment: '' },
-  { id, employeeName: '李四', department: '运营部', position: '运营专员', joinDate: '2024-03-20', applyDate: '2026-05-10', resignDate: '2026-05-25', reason: '家庭原因', status: 'approved', approver: '王总', approvedAt: '2026-05-11 10:00', comment: '同意离职' },
-  { id, employeeName: '王五', department: '市场部', position: '市场专员', joinDate: '2023-06-01', applyDate: '2026-05-05', resignDate: '2026-05-20', reason: '薪资问题', status: 'rejected', approver: '王总', approvedAt: '2026-05-06 14:00', comment: '暂不批准，考虑调薪' }
+  { id: 1, employeeName: '张三', department: '技术部', position: '农艺师', joinDate: '2024-01-15', applyDate: '2026-05-18', resignDate: '2026-05-31', reason: '个人发展需要', status: 'pending', approver: '', approvedAt: '', comment: '' },
+  { id: 2, employeeName: '李四', department: '运营部', position: '运营专员', joinDate: '2024-03-20', applyDate: '2026-05-10', resignDate: '2026-05-25', reason: '家庭原因', status: 'approved', approver: '王总', approvedAt: '2026-05-11 10:00', comment: '同意离职' },
+  { id: 3, employeeName: '王五', department: '市场部', position: '市场专员', joinDate: '2023-06-01', applyDate: '2026-05-05', resignDate: '2026-05-20', reason: '薪资问题', status: 'rejected', approver: '王总', approvedAt: '2026-05-06 14:00', comment: '暂不批准，考虑调薪' }
 ])
 
 // 统计

@@ -288,7 +288,7 @@ const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
-  id: null | null,
+  id: null,
   workerName: '',
   department: '',
   date: '',
@@ -327,9 +327,9 @@ const paginatedData = computed(() => {
 
 // 排班对比数据（模拟）
 const scheduleComparison = ref({
-  scheduledCount,
-  checkedInCount,
-  absentCount,
+  scheduledCount: 20,
+  checkedInCount: 18,
+  absentCount: 2,
   unscheduledCount: 1
 })
 
@@ -403,10 +403,10 @@ const editRecord = (row) => {
 const openFormModal = () => {
   isEdit.value = false
   Object.assign(formData, {
-    id,
+    id: null,
     workerName: '',
     department: '',
-    date,
+    date: '',
     checkInTime: '',
     checkOutTime: '',
     status: 'normal',

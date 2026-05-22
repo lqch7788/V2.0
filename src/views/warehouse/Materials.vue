@@ -684,15 +684,15 @@ const exportFormats = [
 
 // Mock数据
 const mockWarehouseMaterials = ref([
-  { id, code: '010101001', name: '番茄种子', category: '种子', unit: '袋', quantity, minStock, price: '25.00', supplier: '种子公司A', location: 'A区-01' },
-  { id, code: '010201001', name: '尿素', category: '肥料', unit: '袋', quantity, minStock, price: '120.00', supplier: '肥料公司B', location: 'B区-02' },
-  { id, code: '010301001', name: '多菌灵', category: '农药', unit: '瓶', quantity, minStock, price: '35.00', supplier: '农药公司C', location: 'C区-01' },
-  { id, code: '020101001', name: '纸箱(大)', category: '资材', unit: '个', quantity, minStock, price: '8.00', supplier: '资材公司D', location: 'D区-03' },
+  { id: 1, code: '010101001', name: '番茄种子', category: '种子', unit: '袋', quantity: 100, minStock: 20, price: '25.00', supplier: '种子公司A', location: 'A区-01' },
+  { id: 2, code: '010201001', name: '尿素', category: '肥料', unit: '袋', quantity: 200, minStock: 50, price: '120.00', supplier: '肥料公司B', location: 'B区-02' },
+  { id: 3, code: '010301001', name: '多菌灵', category: '农药', unit: '瓶', quantity: 80, minStock: 15, price: '35.00', supplier: '农药公司C', location: 'C区-01' },
+  { id: 4, code: '020101001', name: '纸箱(大)', category: '资材', unit: '个', quantity: 150, minStock: 30, price: '8.00', supplier: '资材公司D', location: 'D区-03' },
 ])
 
 const mockInboundRecords = ref([
-  { id, code: 'RK20260121-001', materialCode: '010101001', materialName: '番茄种子', quantity, unit: '袋', supplier: '种子公司A', inboundDate: '2026-01-21', operator: '张三', status: 'completed' },
-  { id, code: 'RK20260120-001', materialCode: '010201001', materialName: '尿素', quantity, unit: '袋', supplier: '肥料公司B', inboundDate: '2026-01-20', operator: '李四', status: 'pending' },
+  { id: 1, code: 'RK20260121-001', materialCode: '010101001', materialName: '番茄种子', quantity: 50, unit: '袋', supplier: '种子公司A', inboundDate: '2026-01-21', operator: '张三', status: 'completed' },
+  { id: 2, code: 'RK20260120-001', materialCode: '010201001', materialName: '尿素', quantity: 100, unit: '袋', supplier: '肥料公司B', inboundDate: '2026-01-20', operator: '李四', status: 'pending' },
 ])
 
 // 状态

@@ -353,7 +353,7 @@ const handleSubmit = () => {
       leaderId: 'new',
       leaderName: formData.value.leaderName,
       memberIds: [],
-      memberCount,
+      memberCount: 0,
       description: formData.value.description,
       workZone: formData.value.workZone,
       createdAt: new Date().toISOString().split('T')[0],

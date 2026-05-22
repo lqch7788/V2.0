@@ -12,11 +12,12 @@
       </div>
     </div>
     <div class="bg-white rounded-xl p-6 shadow-sm">
-      <el-empty description="风险管控页面建设中..." />
+      <RiskWarning />
     </div>
   </div>
 </template>
 
 <script setup>
 import { Warning } from '@element-plus/icons-vue'
+import RiskWarning from './components/RiskWarning.vue'
 </script>

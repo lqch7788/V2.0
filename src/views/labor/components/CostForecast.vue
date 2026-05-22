@@ -228,10 +228,10 @@ import { ElMessage } from 'element-plus'
 // 输入参数
 const inputParams = reactive({
   year: '2024',
-  formalWorkerCount,
-  tempWorkerCount,
-  avgSalary,
-  tempHourlyRate,
+  formalWorkerCount: 50,
+  tempWorkerCount: 30,
+  avgSalary: 5000,
+  tempHourlyRate: 25,
   warningThreshold: 80
 })
 
@@ -243,41 +243,41 @@ const warnings = ref([
 
 // 年度预算汇总
 const yearlyBudget = reactive({
-  totalLaborCost,
-  formalWorkerCost,
-  formalWorkerRatio,
-  tempWorkerCost,
-  tempWorkerRatio,
-  totalYield,
-  avgYieldPerPerson,
+  totalLaborCost: 4500000,
+  formalWorkerCost: 3000000,
+  formalWorkerRatio: 66.7,
+  tempWorkerCost: 1500000,
+  tempWorkerRatio: 33.3,
+  totalYield: 2500000,
+  avgYieldPerPerson: 31250,
   avgCostPerUnit: 1.94
 })
 
 // 季度分布
 const quarterlyBudget = ref([
-  { quarter: 'Q1', laborCost, headcount, yieldPrediction: 450000 },
-  { quarter: 'Q2', laborCost, headcount, yieldPrediction: 680000 },
-  { quarter: 'Q3', laborCost, headcount, yieldPrediction: 820000 },
-  { quarter: 'Q4', laborCost, headcount, yieldPrediction: 550000 }
+  { quarter: 'Q1', laborCost: 1000000, headcount: 75, yieldPrediction: 450000 },
+  { quarter: 'Q2', laborCost: 1200000, headcount: 85, yieldPrediction: 680000 },
+  { quarter: 'Q3', laborCost: 1400000, headcount: 90, yieldPrediction: 820000 },
+  { quarter: 'Q4', laborCost: 900000, headcount: 70, yieldPrediction: 550000 }
 ])
 
 // 月度明细
 const monthlyBudget = ref([
-  { month: '2024-01', laborCost, formalWorkerCost, tempWorkerCost, socialSecurity, benefits, headcount, yieldPrediction, costPerUnit: 1.78 },
-  { month: '2024-02', laborCost, formalWorkerCost, tempWorkerCost, socialSecurity, benefits, headcount, yieldPrediction, costPerUnit: 1.74 },
-  { month: '2024-03', laborCost, formalWorkerCost, tempWorkerCost, socialSecurity, benefits, headcount, yieldPrediction, costPerUnit: 1.75 },
-  { month: '2024-04', laborCost, formalWorkerCost, tempWorkerCost, socialSecurity, benefits, headcount, yieldPrediction, costPerUnit: 1.91 },
-  { month: '2024-05', laborCost, formalWorkerCost, tempWorkerCost, socialSecurity, benefits, headcount, yieldPrediction, costPerUnit: 1.92 },
-  { month: '2024-06', laborCost, formalWorkerCost, tempWorkerCost, socialSecurity, benefits, headcount, yieldPrediction, costPerUnit: 1.83 }
+  { month: '2024-01', laborCost: 320000, formalWorkerCost: 220000, tempWorkerCost: 100000, socialSecurity: 25600, benefits: 9600, headcount: 72, yieldPrediction: 180000, costPerUnit: 1.78 },
+  { month: '2024-02', laborCost: 350000, formalWorkerCost: 240000, tempWorkerCost: 110000, socialSecurity: 28000, benefits: 10500, headcount: 75, yieldPrediction: 201000, costPerUnit: 1.74 },
+  { month: '2024-03', laborCost: 330000, formalWorkerCost: 230000, tempWorkerCost: 100000, socialSecurity: 26400, benefits: 9900, headcount: 73, yieldPrediction: 188000, costPerUnit: 1.75 },
+  { month: '2024-04', laborCost: 380000, formalWorkerCost: 250000, tempWorkerCost: 130000, socialSecurity: 30400, benefits: 11400, headcount: 80, yieldPrediction: 199000, costPerUnit: 1.91 },
+  { month: '2024-05', laborCost: 400000, formalWorkerCost: 260000, tempWorkerCost: 140000, socialSecurity: 32000, benefits: 12000, headcount: 85, yieldPrediction: 208000, costPerUnit: 1.92 },
+  { month: '2024-06', laborCost: 420000, formalWorkerCost: 270000, tempWorkerCost: 150000, socialSecurity: 33600, benefits: 12600, headcount: 88, yieldPrediction: 230000, costPerUnit: 1.83 }
 ])
 
 // 弹窗状态
 const addModalVisible = ref(false)
 const formData = reactive({
   month: '',
-  totalCost,
-  formalWorkerCost,
-  tempWorkerCost,
+  totalCost: 0,
+  formalWorkerCost: 0,
+  tempWorkerCost: 0,
   headcount: 0
 })
 
@@ -304,9 +304,9 @@ const handleExport = () => {
 const handleAdd = () => {
   Object.assign(formData, {
     month: '',
-    totalCost,
-    formalWorkerCost,
-    tempWorkerCost,
+    totalCost: 0,
+    formalWorkerCost: 0,
+    tempWorkerCost: 0,
     headcount: 0
   })
   addModalVisible.value = true
@@ -318,11 +318,11 @@ const handleConfirmAdd = () => {
     ElMessage.warning('请填写月份')
     return
   }
-  const totalCost = formData.totalCost * 10000
-  const socialSecurity = totalCost * 0.08
-  const benefits = totalCost * 0.03
+  const laborCost = formData.totalCost * 10000
+  const socialSecurity = laborCost * 0.08
+  const benefits = laborCost * 0.03
   const yieldPrediction = formData.headcount * 3000
-  const costPerUnit = totalCost / yieldPrediction
+  const costPerUnit = laborCost / yieldPrediction
 
   monthlyBudget.value.push({
     month: formData.month,

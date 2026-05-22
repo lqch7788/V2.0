@@ -268,8 +268,8 @@ const filters = reactive({
 
 // 分页配置
 const pagination = reactive({
-  current,
-  pageSize,
+  current: 1,
+  pageSize: 10,
   total: 0
 })
 
@@ -279,11 +279,11 @@ const tableData = ref([
     id: '1',
     department: '技术部',
     month: '2024-03',
-    baseSalary,
-    overtimePay,
-    bonus,
-    deduction,
-    totalAmount,
+    baseSalary: 80000,
+    overtimePay: 5000,
+    bonus: 10000,
+    deduction: 2000,
+    totalAmount: 93000,
     status: '已审批',
     submitter: '张三',
     submitTime: '2024-03-25 14:30:00',
@@ -293,11 +293,11 @@ const tableData = ref([
     id: '2',
     department: '运营部',
     month: '2024-03',
-    baseSalary,
-    overtimePay,
-    bonus,
-    deduction,
-    totalAmount,
+    baseSalary: 60000,
+    overtimePay: 3000,
+    bonus: 5000,
+    deduction: 1000,
+    totalAmount: 67000,
     status: '已提交',
     submitter: '李四',
     submitTime: '2024-03-26 10:15:00',
@@ -307,11 +307,11 @@ const tableData = ref([
     id: '3',
     department: '市场部',
     month: '2024-03',
-    baseSalary,
-    overtimePay,
-    bonus,
-    deduction,
-    totalAmount,
+    baseSalary: 50000,
+    overtimePay: 0,
+    bonus: 3000,
+    deduction: 500,
+    totalAmount: 52500,
     status: '待提交',
     submitter: '王五',
     submitTime: '',
@@ -331,10 +331,10 @@ const formTitle = ref('新增预算')
 const formData = reactive({
   department: '',
   month: '',
-  baseSalary,
-  overtimePay,
-  bonus,
-  deduction,
+  baseSalary: 0,
+  overtimePay: 0,
+  bonus: 0,
+  deduction: 0,
   remarks: ''
 })
 
@@ -396,10 +396,10 @@ const handleOpenFormModal = () => {
   Object.assign(formData, {
     department: '',
     month: '',
-    baseSalary,
-    overtimePay,
-    bonus,
-    deduction,
+    baseSalary: 0,
+    overtimePay: 0,
+    bonus: 0,
+    deduction: 0,
     remarks: ''
   })
   formModalVisible.value = true
@@ -416,7 +416,7 @@ const handleSubmit = () => {
     ElMessage.warning('请填写完整信息')
     return
   }
-  const total = formData.baseSalary + formData.overtimePay + formData.bonus - formData.deduction
+  const totalAmount = formData.baseSalary + formData.overtimePay + formData.bonus - formData.deduction
   const newRecord = {
     id: Date.now().toString(),
     ...formData,
@@ -475,7 +475,7 @@ const handleOpenSummary = () => {
   const byDepartment = {}
   tableData.value.forEach(item => {
     if (!byDepartment[item.department]) {
-      byDepartment[item.department] = { department: item.department, count, totalAmount: 0 }
+      byDepartment[item.department] = { department: item.department, count: 0, totalAmount: 0 }
     }
     byDepartment[item.department].count++
     byDepartment[item.department].totalAmount += item.totalAmount

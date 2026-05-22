@@ -454,9 +454,9 @@ const exportFormats = [
 
 // Mock数据
 const mockRecords = ref([
-  { id, code: 'RK20260121-001', materialCode: '010101001', materialName: '番茄种子', quantity, unit: '袋', supplier: '种子公司A', inboundDate: '2026-01-21', operator: '张三', status: 'completed' },
-  { id, code: 'RK20260120-001', materialCode: '010201001', materialName: '尿素', quantity, unit: '袋', supplier: '肥料公司B', inboundDate: '2026-01-20', operator: '李四', status: 'pending' },
-  { id, code: 'RK20260119-001', materialCode: '010301001', materialName: '多菌灵', quantity, unit: '瓶', supplier: '农药公司C', inboundDate: '2026-01-19', operator: '王五', status: 'completed' },
+  { id: 1, code: 'RK20260121-001', materialCode: '010101001', materialName: '番茄种子', quantity: 50, unit: '袋', supplier: '种子公司A', inboundDate: '2026-01-21', operator: '张三', status: 'completed' },
+  { id: 2, code: 'RK20260120-001', materialCode: '010201001', materialName: '尿素', quantity: 100, unit: '袋', supplier: '肥料公司B', inboundDate: '2026-01-20', operator: '李四', status: 'pending' },
+  { id: 3, code: 'RK20260119-001', materialCode: '010301001', materialName: '多菌灵', quantity: 30, unit: '瓶', supplier: '农药公司C', inboundDate: '2026-01-19', operator: '王五', status: 'completed' },
 ])
 
 // 状态

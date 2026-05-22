@@ -163,12 +163,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 
 // 统计数据
 const stats = ref({
-  total,
-  pending,
-  inProgress,
-  completed,
-  critical,
-  overdue,
+  total: 0,
+  pending: 0,
+  inProgress: 0,
+  completed: 0,
+  critical: 0,
+  overdue: 0,
   warning: 0
 })
 
@@ -182,7 +182,7 @@ const filters = ref({
 
 // 分页
 const pagination = ref({
-  currentPage,
+  currentPage: 1,
   pageSize: 10
 })
 

@@ -115,19 +115,19 @@ const handleClick = (event) => {
 }
 
 :deep(.el-button--default) {
-  background-color: #10b981;
-  border-color: #10b981;
+  background-color: #059669;
+  border-color: #059669;
   color: white;
 }
 
 :deep(.el-button--default:hover) {
-  background-color: #059669;
-  border-color: #059669;
+  background-color: #047857;
+  border-color: #047857;
 }
 
 :deep(.el-button--primary) {
-  background-color: #10b981;
-  border-color: #10b981;
+  background-color: #059669;
+  border-color: #059669;
 }
 
 :deep(.el-button--danger) {

@@ -1,150 +1,151 @@
 <template>
-  <div class="task-tabs">
-    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-      <el-tab-pane label="全部任务" name="all">
-        <div class="task-list">
-          <el-empty v-if="tasks.length === 0" description="暂无任务" />
-          <div v-else v-for="task in tasks" :key="task.id" class="task-item">
-            <div class="task-info">
-              <h4>{{ task.title }}</h4>
-              <p>{{ task.description }}</p>
-            </div>
-            <div class="task-status">
-              <el-tag :type="getStatusType(task.status)">{{ task.statusText }}</el-tag>
-            </div>
+  <div class="space-y-6 p-6">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+          <el-icon :size="24" class="text-white"><Grape /></el-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">农事管理</h1>
+          <p class="text-gray-500">智能排程与任务调度管理中心</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl p-6 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+            <el-icon :size="24" class="text-blue-600"><Clock /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">今日待办</p>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.todayTasks }}</p>
           </div>
         </div>
-      </el-tab-pane>
-      <el-tab-pane label="待处理" name="pending">
-        <div class="task-list">
-          <el-empty v-if="pendingTasks.length === 0" description="暂无待处理任务" />
-          <div v-else v-for="task in pendingTasks" :key="task.id" class="task-item">
-            <div class="task-info">
-              <h4>{{ task.title }}</h4>
-              <p>{{ task.description }}</p>
-            </div>
-            <div class="task-status">
-              <el-tag :type="getStatusType(task.status)">{{ task.statusText }}</el-tag>
-            </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-6 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <el-icon :size="24" class="text-emerald-600"><CircleCheck /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">进行中任务</p>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.inProgressTasks }}</p>
           </div>
         </div>
-      </el-tab-pane>
-      <el-tab-pane label="进行中" name="in_progress">
-        <div class="task-list">
-          <el-empty v-if="inProgressTasks.length === 0" description="暂无进行中任务" />
-          <div v-else v-for="task in inProgressTasks" :key="task.id" class="task-item">
-            <div class="task-info">
-              <h4>{{ task.title }}</h4>
-              <p>{{ task.description }}</p>
-            </div>
-            <div class="task-status">
-              <el-tag :type="getStatusType(task.status)">{{ task.statusText }}</el-tag>
-            </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-6 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+            <el-icon :size="24" class="text-amber-600"><Warning /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">超时预警</p>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.overdueTasks }}</p>
           </div>
         </div>
-      </el-tab-pane>
-      <el-tab-pane label="已完成" name="completed">
-        <div class="task-list">
-          <el-empty v-if="completedTasks.length === 0" description="暂无已完成任务" />
-          <div v-else v-for="task in completedTasks" :key="task.id" class="task-item">
-            <div class="task-info">
-              <h4>{{ task.title }}</h4>
-              <p>{{ task.description }}</p>
-            </div>
-            <div class="task-status">
-              <el-tag :type="getStatusType(task.status)">{{ task.statusText }}</el-tag>
-            </div>
-          </div>
-        </div>
-      </el-tab-pane>
-    </el-tabs>
+      </div>
+    </div>
+
+    <!-- 快捷入口 -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">快捷入口</h3>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <router-link
+          to="/farm/task"
+          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all"
+        >
+          <el-icon :size="32" class="text-emerald-600 mb-2"><List /></el-icon>
+          <span class="text-sm font-medium text-gray-700">任务中心</span>
+        </router-link>
+
+        <router-link
+          to="/farm/schedule"
+          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all"
+        >
+          <el-icon :size="32" class="text-blue-600 mb-2"><Calendar /></el-icon>
+          <span class="text-sm font-medium text-gray-700">排班调度</span>
+        </router-link>
+
+        <router-link
+          to="/farm/dispatch"
+          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
+        >
+          <el-icon :size="32" class="text-purple-600 mb-2"><Operation /></el-icon>
+          <span class="text-sm font-medium text-gray-700">智能派工</span>
+        </router-link>
+
+        <router-link
+          to="/farm/worklog"
+          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-all"
+        >
+          <el-icon :size="32" class="text-amber-600 mb-2"><Document /></el-icon>
+          <span class="text-sm font-medium text-gray-700">工作日志</span>
+        </router-link>
+
+        <router-link
+          to="/farm/temp-task"
+          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all"
+        >
+          <el-icon :size="32" class="text-red-600 mb-2"><Clock /></el-icon>
+          <span class="text-sm font-medium text-gray-700">临时任务</span>
+        </router-link>
+      </div>
+    </div>
+
+    <!-- 最近任务动态 -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">最近任务动态</h3>
+      <el-table :data="recentTasks" style="width: 100%">
+        <el-table-column prop="taskCode" label="任务编号" width="120" />
+        <el-table-column prop="title" label="任务名称" min-width="180" />
+        <el-table-column prop="typeName" label="任务类型" width="100" />
+        <el-table-column prop="assigneeName" label="执行人" width="100" />
+        <el-table-column prop="status" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.status)">{{ row.statusText }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="updateTime" label="更新时间" width="180" />
+      </el-table>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import { Grape, Clock, CircleCheck, Warning, List, Calendar, Operation, Document } from '@element-plus/icons-vue'
 
-const activeTab = ref('all')
+// 统计数据
+const stats = ref({
+  todayTasks: 12,
+  inProgressTasks: 5,
+  overdueTasks: 0
+})
 
-const tasks = ref([
-  { id: 1, title: '温室A1浇水任务', description: '需要对温室A1进行浇水', status: 'pending', statusText: '待处理' },
-  { id: 2, title: '温室B2施肥任务', description: '需要对温室B2进行施肥', status: 'in_progress', statusText: '进行中' },
-  { id: 3, title: '温室C1巡查任务', description: '需要对温室C1进行日常巡查', status: 'completed', statusText: '已完成' },
+// 最近任务
+const recentTasks = ref([
+  { taskCode: 'TT202401001', title: '番茄浇水任务', typeName: '灌溉', assigneeName: '张三', status: 'in_progress', statusText: '进行中', updateTime: '2024-01-15 14:30' },
+  { taskCode: 'NS202401002', title: '施肥作业', typeName: '施肥', assigneeName: '李四', status: 'pending', statusText: '待执行', updateTime: '2024-01-15 10:00' },
 ])
 
-const pendingTasks = computed(() => tasks.value.filter(t => t.status === 'pending'))
-const inProgressTasks = computed(() => tasks.value.filter(t => t.status === 'in_progress'))
-const completedTasks = computed(() => tasks.value.filter(t => t.status === 'completed'))
-
-const handleTabChange = (tab) => {
-  console.log('切换到:', tab)
-}
-
+// 获取状态标签类型
 const getStatusType = (status) => {
   const typeMap = {
-    pending: 'warning',
-    in_progress: 'primary',
-    completed: 'success'
+    pending: 'info',
+    in_progress: 'warning',
+    completed: 'success',
+    overdue: 'danger'
   }
   return typeMap[status] || 'info'
 }
+
+onMounted(() => {
+  // 加载统计数据
+})
 </script>
-
-<style scoped>
-.task-tabs :deep(.el-tabs__header) {
-  margin: 0;
-  padding: 0 20px;
-  background: linear-gradient(to right, #3b82f6, #2563eb);
-}
-
-.task-tabs :deep(.el-tabs__nav-wrap::after) {
-  display: none;
-}
-
-.task-tabs :deep(.el-tabs__item) {
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
-  height: 40px;
-  line-height: 40px;
-}
-
-.task-tabs :deep(.el-tabs__item:hover) {
-  color: #fff;
-}
-
-.task-tabs :deep(.el-tabs__item.is-active) {
-  color: #fff;
-  font-weight: 600;
-}
-
-.task-tabs :deep(.el-tabs__active-bar) {
-  background-color: #fff;
-  height: 3px;
-}
-
-.task-list {
-  padding: 16px;
-}
-
-.task-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: #f9fafb;
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.task-info h4 {
-  margin: 0 0 4px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.task-info p {
-  margin: 0;
-  font-size: 12px;
-  color: #6b7280;
-}
-</style>

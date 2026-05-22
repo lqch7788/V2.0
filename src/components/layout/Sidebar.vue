@@ -66,7 +66,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/production') || productionExpanded }"
+            :class="{ active: isActive('/production') }"
             @click="toggleProduction"
           >
             <el-icon :size="20"><Memo /></el-icon>
@@ -109,7 +109,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/crop') || cropExpanded }"
+            :class="{ active: isActive('/crop') }"
             @click="toggleCrop"
           >
             <el-icon :size="20"><Grape /></el-icon>
@@ -170,7 +170,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/farm') || farmExpanded }"
+            :class="{ active: isActive('/farm') }"
             @click="toggleFarm"
           >
             <el-icon :size="20"><List /></el-icon>
@@ -219,7 +219,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/inventory') || inventoryExpanded }"
+            :class="{ active: isActive('/inventory') }"
             @click="toggleInventory"
           >
             <el-icon :size="20"><Box /></el-icon>
@@ -268,7 +268,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/labor') || laborExpanded }"
+            :class="{ active: isActive('/labor') }"
             @click="toggleLabor"
           >
             <el-icon :size="20"><User /></el-icon>
@@ -311,7 +311,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/summary') || summaryExpanded }"
+            :class="{ active: isActive('/summary') }"
             @click="toggleSummary"
           >
             <el-icon :size="20"><DataLine /></el-icon>
@@ -360,7 +360,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/approval') || approvalExpanded }"
+            :class="{ active: isActive('/approval') }"
             @click="toggleApproval"
           >
             <el-icon :size="20"><CircleCheck /></el-icon>

@@ -1,5 +1,66 @@
 <template>
   <div class="space-y-6">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <el-icon :size="24" class="text-white"><Edit /></el-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">工作日志</h1>
+          <p class="text-gray-500">工作日志记录与审批</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><Document /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">总日志</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-blue-600"><Calendar /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">今日</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.today }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-purple-600"><Grid /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">本周</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.week }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-red-600"><Warning /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">异常</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.exception }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 筛选栏 -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap gap-4 items-end">
@@ -342,11 +403,24 @@ import {
   View,
   Edit,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Edit as EditIcon,
+  Document,
+  Calendar,
+  Grid,
+  Warning
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 // 工作日志数据类型
+
+// 统计数据
+const stats = reactive({
+  total: 35,
+  today: 5,
+  week: 18,
+  exception: 3
+})
 
 // 筛选条件
 const filters = reactive({
@@ -357,8 +431,8 @@ const filters = reactive({
 
 // 分页
 const pagination = reactive({
-  currentPage,
-  pageSize,
+  currentPage: 1,
+  pageSize: 10,
   total: 0
 })
 
@@ -402,11 +476,11 @@ const exportFormats = [
 
 // 工作日志数据
 const workLogs = ref([
-  { id, code: 'WL2024030101', date: '2024-03-01', worker: '张伟民', weather: '晴', temperature, crop: '番茄', greenhouse: '1号棚', growthStatus: '良好', tasks: '浇水、施肥', problems: '', solutions: '' },
-  { id, code: 'WL2024030102', date: '2024-03-01', worker: '李明轩', weather: '多云', temperature, crop: '黄瓜', greenhouse: '2号棚', growthStatus: '一般', tasks: '除草、松土', problems: '发现少量虫害', solutions: '已喷洒农药' },
-  { id, code: 'WL2024030103', date: '2024-03-02', worker: '王建国', weather: '晴', temperature, crop: '茄子', greenhouse: '3号棚', growthStatus: '良好', tasks: '修剪、浇水', problems: '', solutions: '' },
-  { id, code: 'WL2024030104', date: '2024-03-02', worker: '赵俊杰', weather: '阴', temperature, crop: '辣椒', greenhouse: '4号棚', growthStatus: '较差', tasks: '施肥、病虫害防治', problems: '生长缓慢', solutions: '增加施肥频次' },
-  { id, code: 'WL2024030105', date: '2024-03-03', worker: '钱文涛', weather: '晴', temperature, crop: '番茄', greenhouse: '1号棚', growthStatus: '良好', tasks: '采收、浇水', problems: '', solutions: '' },
+  { id: '1', code: 'WL2024030101', date: '2024-03-01', worker: '张伟民', weather: '晴', temperature: 25, crop: '番茄', greenhouse: '1号棚', growthStatus: '良好', tasks: '浇水、施肥', problems: '', solutions: '' },
+  { id: '2', code: 'WL2024030102', date: '2024-03-01', worker: '李明轩', weather: '多云', temperature: 22, crop: '黄瓜', greenhouse: '2号棚', growthStatus: '一般', tasks: '除草、松土', problems: '发现少量虫害', solutions: '已喷洒农药' },
+  { id: '3', code: 'WL2024030103', date: '2024-03-02', worker: '王建国', weather: '晴', temperature: 26, crop: '茄子', greenhouse: '3号棚', growthStatus: '良好', tasks: '修剪、浇水', problems: '', solutions: '' },
+  { id: '4', code: 'WL2024030104', date: '2024-03-02', worker: '赵俊杰', weather: '阴', temperature: 20, crop: '辣椒', greenhouse: '4号棚', growthStatus: '较差', tasks: '施肥、病虫害防治', problems: '生长缓慢', solutions: '增加施肥频次' },
+  { id: '5', code: 'WL2024030105', date: '2024-03-03', worker: '钱文涛', weather: '晴', temperature: 28, crop: '番茄', greenhouse: '1号棚', growthStatus: '良好', tasks: '采收、浇水', problems: '', solutions: '' },
 ])
 
 // 筛选后的数据

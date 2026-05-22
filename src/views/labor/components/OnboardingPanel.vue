@@ -283,9 +283,9 @@ const formRules = {
 
 // 模拟数据
 const allData = ref([
-  { id, name: '新员工A', phone: '13700137001', idCard: '110101199001011234', position: '技术员', department: '技术部', contractType: '劳动合同', joinDate: '2026-05-25', status: 'pending' },
-  { id, name: '新员工B', phone: '13700137002', idCard: '110101199002022345', position: '运营专员', department: '运营部', contractType: '劳动合同', joinDate: '2026-05-20', status: 'processing' },
-  { id, name: '新员工C', phone: '13700137003', idCard: '110101199003033456', position: '市场专员', department: '市场部', contractType: '实习协议', joinDate: '2026-05-15', status: 'completed' }
+  { id: 1, name: '新员工A', phone: '13700137001', idCard: '110101199001011234', position: '技术员', department: '技术部', contractType: '劳动合同', joinDate: '2026-05-25', status: 'pending' },
+  { id: 2, name: '新员工B', phone: '13700137002', idCard: '110101199002022345', position: '运营专员', department: '运营部', contractType: '劳动合同', joinDate: '2026-05-20', status: 'processing' },
+  { id: 3, name: '新员工C', phone: '13700137003', idCard: '110101199003033456', position: '市场专员', department: '市场部', contractType: '实习协议', joinDate: '2026-05-15', status: 'completed' }
 ])
 
 // 统计

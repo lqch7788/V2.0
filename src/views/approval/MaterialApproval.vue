@@ -671,10 +671,10 @@ const tabs = [
 
 // 统计数据
 const stats = reactive({
-  total,
-  pending,
-  approved,
-  rejected,
+  total: 15,
+  pending: 5,
+  approved: 8,
+  rejected: 2,
 })
 
 // 筛选状态
@@ -696,14 +696,14 @@ const expandedRows = ref([])
 
 // 详情弹窗状态
 const detailModal = reactive({
-  show,
-  item: null | null,
+  show: false,
+  item: null,
 })
 
 // 拒绝原因弹窗状态
 const rejectModal = reactive({
-  show,
-  item: null | null,
+  show: false,
+  item: null,
   reason: '',
 })
 
@@ -734,8 +734,8 @@ const mockData = ref([
       plantArea: '温室A区',
     },
     materials: [
-      { materialCode: 'SP0201', materialName: '有机肥', spec: '50kg/袋', unit: '袋', requestedQuantity, unitPrice, stockQuantity: 100 },
-      { materialCode: 'SP0301', materialName: '杀虫剂', spec: '500ml/瓶', unit: '瓶', requestedQuantity, unitPrice, stockQuantity: 50 },
+      { materialCode: 'SP0201', materialName: '有机肥', spec: '50kg/袋', unit: '袋', requestedQuantity: 50, unitPrice: 120, stockQuantity: 100 },
+      { materialCode: 'SP0301', materialName: '杀虫剂', spec: '500ml/瓶', unit: '瓶', requestedQuantity: 20, unitPrice: 45, stockQuantity: 50 },
     ],
     approvers: [{ userName: '李主任' }],
     records: [],
@@ -756,7 +756,7 @@ const mockData = ref([
       plantArea: '温室B区',
     },
     materials: [
-      { materialCode: 'SP0202', materialName: '复合肥', spec: '40kg/袋', unit: '袋', requestedQuantity, unitPrice, stockQuantity: 80 },
+      { materialCode: 'SP0202', materialName: '复合肥', spec: '40kg/袋', unit: '袋', requestedQuantity: 30, unitPrice: 150, stockQuantity: 80 },
     ],
     approvers: [{ userName: '王经理' }],
     records: [{ approverName: '王经理', action: 'approve', comment: '同意', actionTime: '2024-03-14 15:30:00' }],
@@ -775,7 +775,7 @@ const mockData = ref([
       warehouseLocation: '仓库A区',
     },
     materials: [
-      { materialCode: 'SP0201', materialName: '有机肥', spec: '50kg/袋', unit: '袋', returnQuantity, unitPrice: 150 },
+      { materialCode: 'SP0201', materialName: '有机肥', spec: '50kg/袋', unit: '袋', returnQuantity: 10, unitPrice: 120 },
     ],
     approvers: [{ userName: '李主任' }],
     records: [],
@@ -795,7 +795,7 @@ const mockData = ref([
       expectedDeliveryDate: '2024-03-20',
     },
     materials: [
-      { materialCode: 'SP0101', materialName: '番茄种子', spec: '100粒/袋', unit: '袋', requestedQuantity, unitPrice: 30 },
+      { materialCode: 'SP0101', materialName: '番茄种子', spec: '100粒/袋', unit: '袋', requestedQuantity: 100, unitPrice: 30 },
     ],
     approvers: [{ userName: '赵总' }],
     records: [],

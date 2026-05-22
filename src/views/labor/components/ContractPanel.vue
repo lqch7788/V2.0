@@ -237,14 +237,14 @@ const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
-  id: null | null,
+  id: null,
   contractNo: '',
   employeeName: '',
   department: '',
   contractType: '劳动合同',
   startDate: '',
   endDate: '',
-  amount,
+  amount: 0,
   remark: ''
 })
 
@@ -259,10 +259,10 @@ const formRules = {
 
 // 模拟数据
 const allData = ref([
-  { id, contractNo: 'HT-2024-001', employeeName: '张三', department: '技术部', contractType: '劳动合同', startDate: '2024-01-15', endDate: '2027-01-14', amount, status: 'normal', signDate: '2024-01-15', archiveNo: 'GD-2024-001', remark: '' },
-  { id, contractNo: 'HT-2024-002', employeeName: '李四', department: '运营部', contractType: '劳动合同', startDate: '2024-03-20', endDate: '2026-06-19', amount, status: 'expiring', signDate: '2024-03-20', archiveNo: 'GD-2024-002', remark: '即将到期' },
-  { id, contractNo: 'HT-2023-003', employeeName: '王五', department: '市场部', contractType: '劳动合同', startDate: '2023-06-01', endDate: '2026-05-31', amount, status: 'expired', signDate: '2023-06-01', archiveNo: 'GD-2023-003', remark: '已到期' },
-  { id, contractNo: 'HT-2025-001', employeeName: '赵六', department: '财务部', contractType: '劳动合同', startDate: '2025-01-10', endDate: '2028-01-09', amount, status: 'normal', signDate: '2025-01-10', archiveNo: 'GD-2025-001', remark: '' }
+  { id: 1, contractNo: 'HT-2024-001', employeeName: '张三', department: '技术部', contractType: '劳动合同', startDate: '2024-01-15', endDate: '2027-01-14', amount: 60000, status: 'normal', signDate: '2024-01-15', archiveNo: 'GD-2024-001', remark: '' },
+  { id: 2, contractNo: 'HT-2024-002', employeeName: '李四', department: '运营部', contractType: '劳动合同', startDate: '2024-03-20', endDate: '2026-06-19', amount: 55000, status: 'expiring', signDate: '2024-03-20', archiveNo: 'GD-2024-002', remark: '即将到期' },
+  { id: 3, contractNo: 'HT-2023-003', employeeName: '王五', department: '市场部', contractType: '劳动合同', startDate: '2023-06-01', endDate: '2026-05-31', amount: 50000, status: 'expired', signDate: '2023-06-01', archiveNo: 'GD-2023-003', remark: '已到期' },
+  { id: 4, contractNo: 'HT-2025-001', employeeName: '赵六', department: '财务部', contractType: '劳动合同', startDate: '2025-01-10', endDate: '2028-01-09', amount: 65000, status: 'normal', signDate: '2025-01-10', archiveNo: 'GD-2025-001', remark: '' }
 ])
 
 // 统计
@@ -323,14 +323,14 @@ const editRecord = (row) => {
 const openFormModal = () => {
   isEdit.value = false
   Object.assign(formData, {
-    id,
+    id: null,
     contractNo: '',
     employeeName: '',
     department: '',
     contractType: '劳动合同',
     startDate: '',
     endDate: '',
-    amount,
+    amount: 0,
     remark: ''
   })
   formDialogVisible.value = true

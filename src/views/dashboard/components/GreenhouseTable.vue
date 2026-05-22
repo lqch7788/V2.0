@@ -55,9 +55,13 @@
 <script setup>
 import { CaretRight, Grape } from '@element-plus/icons-vue'
 
-defineProps({})
+defineProps({
+  expanded: { type: Boolean, default: false },
+  onToggle: { type: Function, default: () => {} },
+  onDetailClick: { type: Function, default: () => {} }
+})
 
-defineEmits([])
+defineEmits(['toggle', 'detail-click'])
 
 // 温室数据
 const greenhouseData = [

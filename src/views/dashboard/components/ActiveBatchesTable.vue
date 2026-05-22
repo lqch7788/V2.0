@@ -58,10 +58,10 @@ defineProps({
 })
 
 const stageProgress = {
-  seedling: 20,
+  seedling: 15,
   vegetative: 40,
-  flowering: 60,
-  fruiting: 80,
+  flowering: 65,
+  fruiting: 85,
   harvest: 100
 }
 

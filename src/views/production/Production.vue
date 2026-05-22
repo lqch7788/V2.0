@@ -294,7 +294,7 @@ const handleOpenCreateModal = () => {
     planTypeName: '种植计划',
     cropName: '',
     variety: '',
-    greenhouseId,
+    greenhouseId: firstGreenhouseId,
     plantingArea: '',
     startDate: '',
     expectedHarvestDate: '',
@@ -349,7 +349,7 @@ const handleSaveDraft = async () => {
     areaId: '',
     targetQuantity: parseInt(formData.targetYield) || 0,
     targetYield: parseInt(formData.targetYield) || 0,
-    actualYield,
+    actualYield: 0,
     startDate: formData.startDate,
     expectedHarvestDate: formData.expectedHarvestDate,
     actualHarvestDate: '',
@@ -370,8 +370,8 @@ const handleSaveDraft = async () => {
     plantingMode: formData.plantingMode,
     supplierName: '',
     seedlingSiteName: '',
-    seedQuantity,
-    targetSeedlingCount,
+    seedQuantity: 0,
+    targetSeedlingCount: 0,
   }
 
   try {
@@ -403,7 +403,7 @@ const handleSubmitForApproval = async () => {
     areaId: '',
     targetQuantity: parseInt(formData.targetYield) || 0,
     targetYield: parseInt(formData.targetYield) || 0,
-    actualYield,
+    actualYield: 0,
     startDate: formData.startDate,
     expectedHarvestDate: formData.expectedHarvestDate,
     actualHarvestDate: '',
@@ -416,7 +416,7 @@ const handleSubmitForApproval = async () => {
     createBy: formData.publisher,
     responsiblePerson: formData.responsiblePerson,
     unit: 'kg',
-    publishDate,
+    publishDate: '',
     batchStatus: 'pending',
     planDetail: formData.planDetail || '',
     planDetailFileName: '',
@@ -424,8 +424,8 @@ const handleSubmitForApproval = async () => {
     plantingMode: formData.plantingMode,
     supplierName: '',
     seedlingSiteName: '',
-    seedQuantity,
-    targetSeedlingCount,
+    seedQuantity: 0,
+    targetSeedlingCount: 0,
   }
 
   try {

@@ -244,9 +244,9 @@ const pagination = reactive({
 
 // 统计数据
 const stats = reactive({
-  totalWorkers,
-  totalQuantity,
-  totalAmount,
+  totalWorkers: 12,
+  totalQuantity: 15000,
+  totalAmount: 82500,
   avgAmountPerWorker: 5140
 })
 
@@ -257,9 +257,9 @@ const data = ref([
     workerName: '赵六',
     taskName: '番茄采摘',
     unit: '斤',
-    quantity,
+    quantity: 500,
     unitPrice: 0.5,
-    total,
+    total: 250,
     workDate: '2024-03-15',
     status: '已确认',
     remarks: ''
@@ -269,9 +269,9 @@ const data = ref([
     workerName: '钱七',
     taskName: '黄瓜包装',
     unit: '箱',
-    quantity,
-    unitPrice,
-    total,
+    quantity: 200,
+    unitPrice: 2.5,
+    total: 500,
     workDate: '2024-03-15',
     status: '待确认',
     remarks: ''
@@ -281,9 +281,9 @@ const data = ref([
     workerName: '孙八',
     taskName: '茄子分拣',
     unit: '斤',
-    quantity,
+    quantity: 800,
     unitPrice: 0.6,
-    total,
+    total: 480,
     workDate: '2024-03-14',
     status: '已发放',
     remarks: ''
@@ -307,8 +307,8 @@ const formData = reactive({
   workerName: '',
   taskName: '',
   unit: '斤',
-  quantity,
-  unitPrice,
+  quantity: 0,
+  unitPrice: 0,
   workDate: '',
   remarks: ''
 })
@@ -338,8 +338,8 @@ const handleAdd = () => {
     workerName: '',
     taskName: '',
     unit: '斤',
-    quantity,
-    unitPrice,
+    quantity: 0,
+    unitPrice: 0,
     workDate: '',
     remarks: ''
   })

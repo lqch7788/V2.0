@@ -278,10 +278,10 @@ const formRules = {
 
 // 模拟数据
 const allData = ref([
-  { id, employeeName: '张三', department: '技术部', skillName: '农艺师资格证', skillType: 'agriculture', certNo: 'NY-2024-001', issuer: '农业部', issueDate: '2024-01-15', expireDate: '2027-01-14', status: 'valid', remark: '' },
-  { id, employeeName: '李四', department: '运营部', skillName: '安全生产证书', skillType: 'safety', certNo: 'AQ-2024-002', issuer: '安监局', issueDate: '2024-03-20', expireDate: '2026-06-19', status: 'expiring', remark: '即将到期' },
-  { id, employeeName: '王五', department: '生产部', skillName: '特种作业操作证', skillType: 'operation', certNo: 'TS-2023-003', issuer: '人社局', issueDate: '2023-06-01', expireDate: '2026-05-31', status: 'expired', remark: '已过期' },
-  { id, employeeName: '赵六', department: '技术部', skillName: '农业技术员证', skillType: 'agriculture', certNo: 'NY-2025-001', issuer: '农业部', issueDate: '2025-01-10', expireDate: '2028-01-09', status: 'valid', remark: '' }
+  { id: 1, employeeName: '张三', department: '技术部', skillName: '农艺师资格证', skillType: 'agriculture', certNo: 'NY-2024-001', issuer: '农业部', issueDate: '2024-01-15', expireDate: '2027-01-14', status: 'valid', remark: '' },
+  { id: 2, employeeName: '李四', department: '运营部', skillName: '安全生产证书', skillType: 'safety', certNo: 'AQ-2024-002', issuer: '安监局', issueDate: '2024-03-20', expireDate: '2026-06-19', status: 'expiring', remark: '即将到期' },
+  { id: 3, employeeName: '王五', department: '生产部', skillName: '特种作业操作证', skillType: 'operation', certNo: 'TS-2023-003', issuer: '人社局', issueDate: '2023-06-01', expireDate: '2026-05-31', status: 'expired', remark: '已过期' },
+  { id: 4, employeeName: '赵六', department: '技术部', skillName: '农业技术员证', skillType: 'agriculture', certNo: 'NY-2025-001', issuer: '农业部', issueDate: '2025-01-10', expireDate: '2028-01-09', status: 'valid', remark: '' }
 ])
 
 // 统计

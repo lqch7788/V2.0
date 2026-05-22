@@ -176,15 +176,12 @@ import { ref, computed } from 'vue'
 import { DocumentDelete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
-// 任务筛选类型
-type TaskFilterType = 'all' | 'problem' | 'production' | 'temp'
-
 // 当前筛选
 const taskFilter = ref('all')
 
 // 分页
 const pagination = ref({
-  currentPage,
+  currentPage: 1,
   pageSize: 10
 })
 
@@ -204,9 +201,9 @@ const tasks = ref([
     assignee: '张三',
     planStart: '2024-01-15',
     planEnd: '2024-01-16',
-    estimatedHours,
-    estimatedDays,
-    progress,
+    estimatedHours: 6,
+    estimatedDays: 1,
+    progress: 50,
     priority: 'high',
     status: 'in_progress',
     remarks: '按计划执行'
@@ -220,8 +217,8 @@ const tasks = ref([
     assigneeName: '李四',
     startDate: '2024-01-15',
     dueDate: '2024-01-20',
-    workerCount,
-    totalEstimatedHours,
+    workerCount: 2,
+    totalEstimatedHours: 8,
     urgency: 'urgent',
     status: 'pending'
   },
@@ -235,8 +232,8 @@ const tasks = ref([
     assigneeName: '王五',
     planStart: '2024-01-14',
     planEnd: '2024-01-14',
-    estimatedHours,
-    progress,
+    estimatedHours: 2,
+    progress: 100,
     priority: 'normal',
     status: 'completed',
     remarks: '已完成'
@@ -246,7 +243,7 @@ const tasks = ref([
 // 任务统计
 const taskCounts = computed(() => ({
   all: tasks.value.length,
-  problem,
+  problem: tasks.value.filter(t => t.taskCode?.startsWith('TS')).length,
   production: tasks.value.filter(t => t.taskCode?.startsWith('NS')).length,
   temp: tasks.value.filter(t => t.taskCode?.startsWith('TT')).length
 }))

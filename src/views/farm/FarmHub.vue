@@ -7,8 +7,8 @@
           <el-icon :size="24" class="text-white"><Grape /></el-icon>
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">农事管理</h1>
-          <p class="text-gray-500">智能排程与任务调度管理中心</p>
+          <h1 class="text-2xl font-bold text-gray-900">农事总览</h1>
+          <p class="text-gray-500">农场资产与作业情况总览</p>
         </div>
       </div>
     </div>
@@ -17,24 +17,24 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-white rounded-xl p-6 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-            <el-icon :size="24" class="text-blue-600"><Clock /></el-icon>
+          <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <el-icon :size="24" class="text-emerald-600"><Grid /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">今日待办</p>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.todayTasks }}</p>
+            <p class="text-sm text-gray-500">土地总面积</p>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.totalArea }} <span class="text-sm font-normal">亩</span></p>
           </div>
         </div>
       </div>
 
       <div class="bg-white rounded-xl p-6 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-            <el-icon :size="24" class="text-emerald-600"><CircleCheck /></el-icon>
+          <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+            <el-icon :size="24" class="text-blue-600"><House /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">进行中任务</p>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.inProgressTasks }}</p>
+            <p class="text-sm text-gray-500">温室数量</p>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.greenhouseCount }} <span class="text-sm font-normal">个</span></p>
           </div>
         </div>
       </div>
@@ -42,11 +42,11 @@
       <div class="bg-white rounded-xl p-6 shadow-sm">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
-            <el-icon :size="24" class="text-amber-600"><Warning /></el-icon>
+            <el-icon :size="24" class="text-amber-600"><Tools /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">超时预警</p>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.overdueTasks }}</p>
+            <p class="text-sm text-gray-500">设备数量</p>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.deviceCount }} <span class="text-sm font-normal">台</span></p>
           </div>
         </div>
       </div>
@@ -57,61 +57,61 @@
       <h3 class="text-lg font-semibold text-gray-900 mb-4">快捷入口</h3>
       <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <router-link
-          to="/farm/task"
+          to="/farm/record"
           class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all"
         >
-          <el-icon :size="32" class="text-emerald-600 mb-2"><List /></el-icon>
+          <el-icon :size="32" class="text-emerald-600 mb-2"><Folder /></el-icon>
+          <span class="text-sm font-medium text-gray-700">农事记录</span>
+        </router-link>
+
+        <router-link
+          to="/farm/inspection"
+          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all"
+        >
+          <el-icon :size="32" class="text-blue-600 mb-2"><View /></el-icon>
+          <span class="text-sm font-medium text-gray-700">巡检管理</span>
+        </router-link>
+
+        <router-link
+          to="/farm/task"
+          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
+        >
+          <el-icon :size="32" class="text-purple-600 mb-2"><List /></el-icon>
           <span class="text-sm font-medium text-gray-700">任务中心</span>
         </router-link>
 
         <router-link
           to="/farm/schedule"
-          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all"
+          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-all"
         >
-          <el-icon :size="32" class="text-blue-600 mb-2"><Calendar /></el-icon>
+          <el-icon :size="32" class="text-amber-600 mb-2"><Calendar /></el-icon>
           <span class="text-sm font-medium text-gray-700">排班调度</span>
         </router-link>
 
         <router-link
           to="/farm/dispatch"
-          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
-        >
-          <el-icon :size="32" class="text-purple-600 mb-2"><Operation /></el-icon>
-          <span class="text-sm font-medium text-gray-700">智能派工</span>
-        </router-link>
-
-        <router-link
-          to="/farm/worklog"
-          class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-all"
-        >
-          <el-icon :size="32" class="text-amber-600 mb-2"><Document /></el-icon>
-          <span class="text-sm font-medium text-gray-700">工作日志</span>
-        </router-link>
-
-        <router-link
-          to="/farm/temp-task"
           class="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all"
         >
-          <el-icon :size="32" class="text-red-600 mb-2"><Clock /></el-icon>
-          <span class="text-sm font-medium text-gray-700">临时任务</span>
+          <el-icon :size="32" class="text-red-600 mb-2"><Operation /></el-icon>
+          <span class="text-sm font-medium text-gray-700">智能派工</span>
         </router-link>
       </div>
     </div>
 
-    <!-- 最近任务动态 -->
+    <!-- 今日作业情况 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
-      <h3 class="text-lg font-semibold text-gray-900 mb-4">最近任务动态</h3>
-      <el-table :data="recentTasks" style="width: 100%">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">今日作业情况</h3>
+      <el-table :data="todayTasks" style="width: 100%">
         <el-table-column prop="taskCode" label="任务编号" width="120" />
         <el-table-column prop="title" label="任务名称" min-width="180" />
         <el-table-column prop="typeName" label="任务类型" width="100" />
+        <el-table-column prop="zone" label="作业区域" width="100" />
         <el-table-column prop="assigneeName" label="执行人" width="100" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">{{ row.statusText }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" width="180" />
       </el-table>
     </div>
   </div>
@@ -119,19 +119,20 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Grape, Clock, CircleCheck, Warning, List, Calendar, Operation, Document } from '@element-plus/icons-vue'
+import { Grape, Grid, House, Tools, Folder, View, List, Calendar, Operation } from '@element-plus/icons-vue'
 
 // 统计数据
 const stats = ref({
-  todayTasks: 12,
-  inProgressTasks: 5,
-  overdueTasks: 0
+  totalArea: 500,
+  greenhouseCount: 20,
+  deviceCount: 45
 })
 
-// 最近任务
-const recentTasks = ref([
-  { taskCode: 'TT202401001', title: '番茄浇水任务', typeName: '灌溉', assigneeName: '张三', status: 'in_progress', statusText: '进行中', updateTime: '2024-01-15 14:30' },
-  { taskCode: 'NS202401002', title: '施肥作业', typeName: '施肥', assigneeName: '李四', status: 'pending', statusText: '待执行', updateTime: '2024-01-15 10:00' },
+// 今日作业
+const todayTasks = ref([
+  { taskCode: 'NS20240115001', title: '番茄浇水任务', typeName: '灌溉', zone: '东区1号棚', assigneeName: '张三', status: 'in_progress', statusText: '进行中' },
+  { taskCode: 'NS20240115002', title: '黄瓜施肥作业', typeName: '施肥', zone: '东区2号棚', assigneeName: '李四', status: 'pending', statusText: '待执行' },
+  { taskCode: 'NS20240115003', title: '茄子除草任务', typeName: '除草', zone: '西区1号棚', assigneeName: '王五', status: 'completed', statusText: '已完成' },
 ])
 
 // 获取状态标签类型

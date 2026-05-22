@@ -13,6 +13,54 @@
       </div>
     </div>
 
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><Document /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">总工单</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-blue-600"><Clock /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">进行中</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.inProgress }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">已完成</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.completed }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-amber-600"><RefreshRight /></el-icon>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">待开始</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 模式切换 -->
     <div class="bg-white rounded-xl p-1 shadow-sm">
       <div class="flex gap-1 p-1">
@@ -164,7 +212,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import {
   DocumentCopy,
   Search,
@@ -172,7 +220,11 @@ import {
   View,
   Edit,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Document,
+  Clock,
+  CircleCheck,
+  RefreshRight
 } from '@element-plus/icons-vue'
 
 // 工单数据类型
@@ -183,6 +235,14 @@ const modes = [
   { value: 'solar', label: '模式二（日光温室）' },
   { value: 'field', label: '模式三（大田）' }
 ]
+
+// 统计数据
+const stats = reactive({
+  total: 25,
+  inProgress: 8,
+  completed: 12,
+  pending: 5
+})
 
 // 状态类型映射
 const statusTypeMap = {
@@ -205,11 +265,11 @@ const pageSize = ref(10)
 
 // 工单数据
 const workOrders = ref([
-  { id, code: 'WO20240301', name: '张伟民', workerId: 'W001', area: '1号棚', process: '授粉', workload: '500株', date: '2024-03-01', status: '已完成', statusClass: 'normal' },
-  { id, code: 'WO20240302', name: '李明轩', workerId: 'W002', area: '2号棚', process: '浇水', workload: '800㎡', date: '2024-03-01', status: '进行中', statusClass: 'pending' },
-  { id, code: 'WO20240303', name: '王建国', workerId: 'W003', area: '3号棚', process: '施肥', workload: '200kg', date: '2024-03-01', status: '已完成', statusClass: 'normal' },
-  { id, code: 'WO20240304', name: '赵俊杰', workerId: 'W004', area: '1号棚', process: '疏果', workload: '300株', date: '2024-03-02', status: '待开始', statusClass: 'draft' },
-  { id, code: 'WO20240305', name: '钱文涛', workerId: 'W005', area: '2号棚', process: '病虫害防治', workload: '600㎡', date: '2024-03-02', status: '进行中', statusClass: 'pending' },
+  { id: '1', code: 'WO20240301', name: '张伟民', workerId: 'W001', area: '1号棚', process: '授粉', workload: '500株', date: '2024-03-01', status: '已完成', statusClass: 'normal' },
+  { id: '2', code: 'WO20240302', name: '李明轩', workerId: 'W002', area: '2号棚', process: '浇水', workload: '800㎡', date: '2024-03-01', status: '进行中', statusClass: 'pending' },
+  { id: '3', code: 'WO20240303', name: '王建国', workerId: 'W003', area: '3号棚', process: '施肥', workload: '200kg', date: '2024-03-01', status: '已完成', statusClass: 'normal' },
+  { id: '4', code: 'WO20240304', name: '赵俊杰', workerId: 'W004', area: '1号棚', process: '疏果', workload: '300株', date: '2024-03-02', status: '待开始', statusClass: 'draft' },
+  { id: '5', code: 'WO20240305', name: '钱文涛', workerId: 'W005', area: '2号棚', process: '病虫害防治', workload: '600㎡', date: '2024-03-02', status: '进行中', statusClass: 'pending' },
 ])
 
 // 计算当前模式标签

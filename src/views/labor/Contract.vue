@@ -12,11 +12,12 @@
       </div>
     </div>
     <div class="bg-white rounded-xl p-6 shadow-sm">
-      <el-empty description="合同管理页面建设中..." />
+      <ContractPanel />
     </div>
   </div>
 </template>
 
 <script setup>
 import { Document } from '@element-plus/icons-vue'
+import ContractPanel from './components/ContractPanel.vue'
 </script>

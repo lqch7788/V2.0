@@ -124,17 +124,17 @@ const router = useRouter()
 
 // 统计数据
 const stats = reactive({
-  pending,
-  approved,
-  rejected,
-  total,
+  pending: 8,
+  approved: 15,
+  rejected: 3,
+  total: 26,
 })
 
 // 快捷入口配置
 const quickEntries = [
   {
     group: '业务审批',
-    icon,
+    icon: DocumentCopy,
     color: 'blue',
     entries: [
       { label: '领料审批', path: '/material-approval', desc: '物资/领料申请审批' },
@@ -148,7 +148,7 @@ const quickEntries = [
   },
   {
     group: '生产审批',
-    icon,
+    icon: TrendCharts,
     color: 'emerald',
     entries: [
       { label: '技术方案', path: '/production-approval?tab=tech', desc: '技术方案审批' },
@@ -158,7 +158,7 @@ const quickEntries = [
   },
   {
     group: '农事审批',
-    icon,
+    icon: Crop,
     color: 'green',
     entries: [
       { label: '任务派发', path: '/farm-approval?tab=task_dispatch', desc: '农事任务派发审批' },
@@ -169,7 +169,7 @@ const quickEntries = [
   },
   {
     group: '指标/预算审批',
-    icon,
+    icon: Coin,
     color: 'purple',
     entries: [
       { label: '指标发布', path: '/indicator-budget-approval?tab=indicator', desc: '指标发布审批' },
@@ -180,7 +180,7 @@ const quickEntries = [
   },
   {
     group: 'HR审批',
-    icon,
+    icon: User,
     color: 'orange',
     entries: [
       { label: 'HR审批中心', path: '/hr-approval', desc: '请假/加班/离职等HR审批' },

@@ -258,9 +258,9 @@ const pagination = reactive({
 
 // 统计数据
 const stats = reactive({
-  critical,
-  warning,
-  pending,
+  critical: 2,
+  warning: 5,
+  pending: 3,
   resolved: 8
 })
 

@@ -322,14 +322,14 @@ const statusLabelMap = {
 
 const harvestRecords = ref([
   {
-    id,
+    id: '1',
     harvestCode: 'HS20240521001',
     batchCode: 'PC202405001',
     cropName: '番茄',
     greenhouseId: 'G001',
     greenhouseName: '1号棚',
     harvestDate: '2024-05-21 10:30',
-    harvestQuantity,
+    harvestQuantity: 100,
     unit: 'kg',
     grade: 'A',
     warehouseId: 'W001',
@@ -341,19 +341,19 @@ const harvestRecords = ref([
     auditor: '管理员',
     variety: '大红番茄',
     plantingMode: '温室',
-    targetYield,
+    targetYield: 500,
     unitPrice: 3.5,
     totalAmount: 1750
   },
   {
-    id,
+    id: '2',
     harvestCode: 'HS20240520002',
     batchCode: 'PC202405002',
     cropName: '黄瓜',
     greenhouseId: 'G002',
     greenhouseName: '2号棚',
     harvestDate: '2024-05-20 15:00',
-    harvestQuantity,
+    harvestQuantity: 100,
     unit: 'kg',
     grade: 'A',
     warehouseId: 'W001',
@@ -365,7 +365,7 @@ const harvestRecords = ref([
     auditor: '管理员',
     variety: '水果黄瓜',
     plantingMode: '温室',
-    targetYield,
+    targetYield: 500,
     unitPrice: 2.8,
     totalAmount: 840
   }
@@ -381,7 +381,7 @@ const newRecord = ref({
   harvesterIds: [],
   auditor: '管理员',
   remarks: '',
-  unitPrice,
+  unitPrice: 0,
   products: []
 })
 
@@ -444,7 +444,7 @@ const generateHarvestCode = () => {
 const handleAddProduct = () => {
   newRecord.value.products.push({
     variety: '',
-    harvestQuantity,
+    harvestQuantity: 0,
     grade: 'A'
   })
 }
@@ -492,7 +492,7 @@ const handleCreateRecord = () => {
     auditor: newRecord.value.auditor,
     variety: selectedBatch?.variety || '',
     plantingMode: selectedBatch?.plantingMode || '',
-    targetYield,
+    targetYield: 0,
     unitPrice: newRecord.value.unitPrice,
     totalAmount: totalQuantity * newRecord.value.unitPrice
   }
@@ -510,7 +510,7 @@ const handleCreateRecord = () => {
     harvesterIds: [],
     auditor: '管理员',
     remarks: '',
-    unitPrice,
+    unitPrice: 0,
     products: []
   }
 

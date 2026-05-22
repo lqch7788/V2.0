@@ -226,11 +226,11 @@ const data = ref([
     staffName: '张三',
     month: '2024-03',
     calcType: '月薪制',
-    baseSalary,
-    overtimePay,
-    bonus,
-    deduction,
-    netSalary,
+    baseSalary: 8000,
+    overtimePay: 500,
+    bonus: 1000,
+    deduction: 200,
+    netSalary: 9300,
     status: '已发放'
   },
   {
@@ -239,11 +239,11 @@ const data = ref([
     staffName: '李四',
     month: '2024-03',
     calcType: '月薪制',
-    baseSalary,
-    overtimePay,
-    bonus,
-    deduction,
-    netSalary,
+    baseSalary: 6000,
+    overtimePay: 300,
+    bonus: 500,
+    deduction: 100,
+    netSalary: 6700,
     status: '已确认'
   },
   {
@@ -252,11 +252,11 @@ const data = ref([
     staffName: '王五',
     month: '2024-03',
     calcType: '月薪制',
-    baseSalary,
-    overtimePay,
-    bonus,
-    deduction,
-    netSalary,
+    baseSalary: 5000,
+    overtimePay: 0,
+    bonus: 300,
+    deduction: 50,
+    netSalary: 5250,
     status: '待确认'
   }
 ])
@@ -278,9 +278,9 @@ const formData = reactive({
   staffId: '',
   staffName: '',
   month: '',
-  baseSalary,
-  overtimePay,
-  bonus,
+  baseSalary: 0,
+  overtimePay: 0,
+  bonus: 0,
   deduction: 0
 })
 
@@ -313,9 +313,9 @@ const handleAdd = () => {
     staffId: '',
     staffName: '',
     month: '',
-    baseSalary,
-    overtimePay,
-    bonus,
+    baseSalary: 0,
+    overtimePay: 0,
+    bonus: 0,
     deduction: 0
   })
   addModalVisible.value = true

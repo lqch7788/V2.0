@@ -267,7 +267,7 @@ const filters = reactive({
 // 分页配置
 const pagination = reactive({
   currentPage: 1,
-  pageSize,
+  pageSize: 10,
   total: 0
 })
 
@@ -285,12 +285,12 @@ const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
-  id: null | null,
+  id: null,
   userName: '',
   date: '',
   overtimeType: 'weekday',
-  hours,
-  totalPay,
+  hours: 2,
+  totalPay: 0,
   reason: '',
   remarks: ''
 })
@@ -305,10 +305,10 @@ const formRules = {
 
 // 模拟数据
 const allData = ref([
-  { id, userName: '张三', date: '2026-05-20', overtimeType: 'weekday', hours, totalPay, reason: '项目紧急上线', status: 'pending', approver: '', approvedAt: '' },
-  { id, userName: '李四', date: '2026-05-18', overtimeType: 'weekend', hours, totalPay, reason: '设备维护', status: 'approved', approver: '王经理', approvedAt: '2026-05-18 17:00' },
-  { id, userName: '王五', date: '2026-05-15', overtimeType: 'holiday', hours, totalPay, reason: '节假日值班', status: 'approved', approver: '王经理', approvedAt: '2026-05-15 12:00' },
-  { id, userName: '赵六', date: '2026-05-10', overtimeType: 'weekday', hours, totalPay, reason: '客户需求变更', status: 'rejected', approver: '王经理', approvedAt: '2026-05-10 15:00' }
+  { id: 1, userName: '张三', date: '2026-05-20', overtimeType: 'weekday', hours: 3, totalPay: 150, reason: '项目紧急上线', status: 'pending', approver: '', approvedAt: '' },
+  { id: 2, userName: '李四', date: '2026-05-18', overtimeType: 'weekend', hours: 8, totalPay: 320, reason: '设备维护', status: 'approved', approver: '王经理', approvedAt: '2026-05-18 17:00' },
+  { id: 3, userName: '王五', date: '2026-05-15', overtimeType: 'holiday', hours: 8, totalPay: 480, reason: '节假日值班', status: 'approved', approver: '王经理', approvedAt: '2026-05-15 12:00' },
+  { id: 4, userName: '赵六', date: '2026-05-10', overtimeType: 'weekday', hours: 2, totalPay: 100, reason: '客户需求变更', status: 'rejected', approver: '王经理', approvedAt: '2026-05-10 15:00' }
 ])
 
 // 统计
@@ -394,12 +394,12 @@ const editRecord = (row) => {
 const openFormModal = () => {
   isEdit.value = false
   Object.assign(formData, {
-    id,
+    id: null,
     userName: '',
     date: new Date().toISOString().split('T')[0],
     overtimeType: 'weekday',
-    hours,
-    totalPay,
+    hours: 2,
+    totalPay: 0,
     reason: '',
     remarks: ''
   })

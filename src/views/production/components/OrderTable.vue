@@ -166,11 +166,11 @@ const handleSelectionChange = (selection) => {
 }
 
 const handlePageChange = (page) => {
-  emit('page-change', { current, pageSize: props.pagination.pageSize })
+  emit('page-change', { current: page, pageSize: props.pagination.pageSize })
 }
 
 const handlePageSizeChange = (size) => {
-  emit('page-change', { current, pageSize: size })
+  emit('page-change', { current: props.pagination.current, pageSize: size })
 }
 
 const handleDeleteRow = (row) => {

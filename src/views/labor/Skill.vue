@@ -12,11 +12,12 @@
       </div>
     </div>
     <div class="bg-white rounded-xl p-6 shadow-sm">
-      <el-empty description="技能管理页面建设中..." />
+      <SkillPanel />
     </div>
   </div>
 </template>
 
 <script setup>
 import { Medal } from '@element-plus/icons-vue'
+import SkillPanel from './components/SkillPanel.vue'
 </script>

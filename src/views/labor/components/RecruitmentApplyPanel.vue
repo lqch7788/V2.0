@@ -168,10 +168,10 @@ const currentRecord = ref(null)
 
 // 模拟数据
 const allData = ref([
-  { id, applicant: '张三', department: '技术部', position: '高级农艺师', headcount, reason: '业务扩张，需要更多技术支持', applyDate: '2026-05-18', status: 'pending', approver: '', approvedAt: '', comment: '' },
-  { id, applicant: '李四', department: '运营部', position: '运营专员', headcount, reason: '现有人员离职补充', applyDate: '2026-05-15', status: 'approved', approver: '王总', approvedAt: '2026-05-16 10:00', comment: '同意招聘' },
-  { id, applicant: '王五', department: '市场部', position: '市场专员', headcount, reason: '市场拓展需要', applyDate: '2026-05-10', status: 'rejected', approver: '王总', approvedAt: '2026-05-11 14:00', comment: '暂不扩张市场部门' },
-  { id, applicant: '赵六', department: '仓储部', position: '仓库管理员', headcount, reason: '仓库扩容', applyDate: '2026-05-05', status: 'approved', approver: '王总', approvedAt: '2026-05-06 09:00', comment: '批准' }
+  { id: 1, applicant: '张三', department: '技术部', position: '高级农艺师', headcount: 2, reason: '业务扩张，需要更多技术支持', applyDate: '2026-05-18', status: 'pending', approver: '', approvedAt: '', comment: '' },
+  { id: 2, applicant: '李四', department: '运营部', position: '运营专员', headcount: 1, reason: '现有人员离职补充', applyDate: '2026-05-15', status: 'approved', approver: '王总', approvedAt: '2026-05-16 10:00', comment: '同意招聘' },
+  { id: 3, applicant: '王五', department: '市场部', position: '市场专员', headcount: 1, reason: '市场拓展需要', applyDate: '2026-05-10', status: 'rejected', approver: '王总', approvedAt: '2026-05-11 14:00', comment: '暂不扩张市场部门' },
+  { id: 4, applicant: '赵六', department: '仓储部', position: '仓库管理员', headcount: 2, reason: '仓库扩容', applyDate: '2026-05-05', status: 'approved', approver: '王总', approvedAt: '2026-05-06 09:00', comment: '批准' }
 ])
 
 // 统计

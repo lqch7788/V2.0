@@ -235,19 +235,19 @@ const pagination = reactive({
 
 // 当前统计数据
 const currentStats = reactive({
-  completedTasks,
-  onDutyCount,
-  completionRate,
+  completedTasks: 42,
+  onDutyCount: 48,
+  completionRate: 87.5,
   incidents: 2
 })
 
 // 表格数据
 const reports = ref([
-  { id: '1', month: '2024-03', dept: '技术部', completedTasks, totalTasks, onDutyCount, totalManhours, output, completionRate, incidents, createTime: '2024-03-31 18:00:00', summary: '本月技术部完成了大部分开发任务，团队协作效率有所提升。' },
-  { id: '2', month: '2024-03', dept: '运营部', completedTasks, totalTasks, onDutyCount, totalManhours, output, completionRate, incidents, createTime: '2024-03-31 17:30:00', summary: '运营部工作整体顺利，完成了日常运营和客户对接工作。' },
-  { id: '3', month: '2024-03', dept: '生产部', completedTasks, totalTasks, onDutyCount, totalManhours, output, completionRate, incidents, createTime: '2024-03-31 17:00:00', summary: '生产部产量稳定，但因设备维修导致部分延误。' },
-  { id: '4', month: '2024-02', dept: '技术部', completedTasks, totalTasks, onDutyCount, totalManhours, output, completionRate, incidents, createTime: '2024-02-29 18:00:00', summary: '春节假期后团队快速恢复工作状态，效率提升明显。' },
-  { id: '5', month: '2024-02', dept: '运营部', completedTasks, totalTasks, onDutyCount, totalManhours, output, completionRate, incidents, createTime: '2024-02-29 17:30:00', summary: '受春节假期影响，本月任务完成率略有下降。' }
+  { id: '1', month: '2024-03', dept: '技术部', completedTasks: 15, totalTasks: 18, onDutyCount: 12, totalManhours: 960, output: 1200, completionRate: 83, incidents: 1, createTime: '2024-03-31 18:00:00', summary: '本月技术部完成了大部分开发任务，团队协作效率有所提升。' },
+  { id: '2', month: '2024-03', dept: '运营部', completedTasks: 12, totalTasks: 14, onDutyCount: 10, totalManhours: 800, output: 1500, completionRate: 86, incidents: 0, createTime: '2024-03-31 17:30:00', summary: '运营部工作整体顺利，完成了日常运营和客户对接工作。' },
+  { id: '3', month: '2024-03', dept: '生产部', completedTasks: 18, totalTasks: 20, onDutyCount: 15, totalManhours: 1200, output: 3500, completionRate: 90, incidents: 1, createTime: '2024-03-31 17:00:00', summary: '生产部产量稳定，但因设备维修导致部分延误。' },
+  { id: '4', month: '2024-02', dept: '技术部', completedTasks: 14, totalTasks: 18, onDutyCount: 11, totalManhours: 880, output: 1100, completionRate: 78, incidents: 2, createTime: '2024-02-29 18:00:00', summary: '春节假期后团队快速恢复工作状态，效率提升明显。' },
+  { id: '5', month: '2024-02', dept: '运营部', completedTasks: 10, totalTasks: 14, onDutyCount: 8, totalManhours: 640, output: 1200, completionRate: 71, incidents: 1, createTime: '2024-02-29 17:30:00', summary: '受春节假期影响，本月任务完成率略有下降。' }
 ])
 
 const total = computed(() => reports.value.length)
@@ -267,12 +267,12 @@ const editingReport = ref(null)
 const formData = reactive({
   month: '',
   dept: '',
-  completedTasks,
-  totalTasks,
-  onDutyCount,
-  totalManhours,
-  output,
-  incidents,
+  completedTasks: 0,
+  totalTasks: 0,
+  onDutyCount: 0,
+  totalManhours: 0,
+  output: 0,
+  incidents: 0,
   summary: ''
 })
 

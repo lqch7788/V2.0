@@ -260,6 +260,7 @@
 <script setup>
 import { ref, computed, reactive } from 'vue'
 import { User, Search, Plus, Edit, Delete, Download, Document, CircleCheck, Clock } from '@element-plus/icons-vue'
+import UserDelete from '@/components/icons/UserDelete.vue'
 import { ElMessage } from 'element-plus'
 import { } from 'element-plus'
 
@@ -292,6 +293,9 @@ const pagination = reactive({
   pageSize: 10
 })
 
+// 每页条数选项
+const pageSizeOptions = [10, 20, 50]
+
 // 批量操作模式
 const batchMode = ref(false)
 const selectedRows = ref([])
@@ -306,7 +310,7 @@ const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
-  id: null | null,
+  id: null,
   code: '',
   name: '',
   gender: '男',
@@ -330,11 +334,11 @@ const formRules = {
 
 // 模拟数据
 const allData = ref([
-  { id, code: 'EMP001', name: '张三', gender: '男', phone: '13800138001', idCard: '110101199001011234', department: '技术部', position: '经理', joinDate: '2024-01-15', status: 'active', remark: '' },
-  { id, code: 'EMP002', name: '李四', gender: '女', phone: '13800138002', idCard: '110101199002022345', department: '运营部', position: '主管', joinDate: '2024-03-20', status: 'active', remark: '' },
-  { id, code: 'EMP003', name: '王五', gender: '男', phone: '13800138003', idCard: '110101199003033456', department: '市场部', position: '专员', joinDate: '2025-01-10', status: 'trial', remark: '' },
-  { id, code: 'EMP004', name: '赵六', gender: '女', phone: '13800138004', idCard: '110101199004044567', department: '财务部', position: '技术员', joinDate: '2023-06-01', status: 'active', remark: '' },
-  { id, code: 'EMP005', name: '钱七', gender: '男', phone: '13800138005', idCard: '110101199005055678', department: '人力资源部', position: '助理', joinDate: '2025-02-15', status: 'inactive', remark: '已离职' }
+  { id: 1, code: 'EMP001', name: '张三', gender: '男', phone: '13800138001', idCard: '110101199001011234', department: '技术部', position: '经理', joinDate: '2024-01-15', status: 'active', remark: '' },
+  { id: 2, code: 'EMP002', name: '李四', gender: '女', phone: '13800138002', idCard: '110101199002022345', department: '运营部', position: '主管', joinDate: '2024-03-20', status: 'active', remark: '' },
+  { id: 3, code: 'EMP003', name: '王五', gender: '男', phone: '13800138003', idCard: '110101199003033456', department: '市场部', position: '专员', joinDate: '2025-01-10', status: 'trial', remark: '' },
+  { id: 4, code: 'EMP004', name: '赵六', gender: '女', phone: '13800138004', idCard: '110101199004044567', department: '财务部', position: '技术员', joinDate: '2023-06-01', status: 'active', remark: '' },
+  { id: 5, code: 'EMP005', name: '钱七', gender: '男', phone: '13800138005', idCard: '110101199005055678', department: '人力资源部', position: '助理', joinDate: '2025-02-15', status: 'inactive', remark: '已离职' }
 ])
 
 // 统计
@@ -418,7 +422,7 @@ const editRecord = (row) => {
 const openFormModal = () => {
   isEdit.value = false
   Object.assign(formData, {
-    id,
+    id: null,
     code: '',
     name: '',
     gender: '男',

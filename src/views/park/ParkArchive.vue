@@ -242,9 +242,9 @@
         <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-between">
           <h3 class="text-lg font-semibold text-white">{{ selectedField.name }} - 地块档案</h3>
           <div class="flex items-center gap-3">
-            <el-button size="small" type="primary" @click="goToDashboard(selectedField)">进入{'>>>'}</el-button>
-            <el-button size="small" circle @click="showDetailModal = false">
-              <el-icon class="text-white"><Close /></el-icon>
+            <el-button size="small" @click="goToDashboard(selectedField)" class="text-white bg-transparent hover:bg-white/20">进入&gt;&gt;</el-button>
+            <el-button size="small" @click="showDetailModal = false" class="bg-transparent border-0 hover:bg-white/20">
+              <span class="text-white text-lg leading-none">×</span>
             </el-button>
           </div>
         </div>

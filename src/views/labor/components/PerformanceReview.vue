@@ -307,18 +307,18 @@ const pagination = reactive({
 
 // 统计数据
 const stats = reactive({
-  total,
-  evaluated,
+  total: 15,
+  evaluated: 12,
   avgScore: 85
 })
 
 // 表格数据
 const data = ref([
-  { id: '1', staffId: 'EMP001', staffName: '张三', department: '技术部', month: '2024-03', taskCompletionRate, attendanceRate, workQuality, safetyCompliance, teamworkAttitude, totalScore, rank, status: '已评估' },
-  { id: '2', staffId: 'EMP002', staffName: '李四', department: '技术部', month: '2024-03', taskCompletionRate, attendanceRate, workQuality, safetyCompliance, teamworkAttitude, totalScore, rank, status: '已评估' },
-  { id: '3', staffId: 'EMP003', staffName: '王五', department: '运营部', month: '2024-03', taskCompletionRate, attendanceRate, workQuality, safetyCompliance, teamworkAttitude, totalScore, rank, status: '已评估' },
-  { id: '4', staffId: 'EMP004', staffName: '赵六', department: '运营部', month: '2024-03', taskCompletionRate, attendanceRate, workQuality, safetyCompliance, teamworkAttitude, totalScore, rank, status: '已评估' },
-  { id: '5', staffId: 'EMP005', staffName: '钱七', department: '市场部', month: '2024-03', taskCompletionRate, attendanceRate, workQuality, safetyCompliance, teamworkAttitude, totalScore, rank, status: '待评估' }
+  { id: '1', staffId: 'EMP001', staffName: '张三', department: '技术部', month: '2024-03', taskCompletionRate: 92, attendanceRate: 95, workQuality: 88, safetyCompliance: 96, teamworkAttitude: 90, totalScore: 92, rank: 1, status: '已评估' },
+  { id: '2', staffId: 'EMP002', staffName: '李四', department: '技术部', month: '2024-03', taskCompletionRate: 88, attendanceRate: 90, workQuality: 85, safetyCompliance: 92, teamworkAttitude: 88, totalScore: 88, rank: 2, status: '已评估' },
+  { id: '3', staffId: 'EMP003', staffName: '王五', department: '运营部', month: '2024-03', taskCompletionRate: 85, attendanceRate: 92, workQuality: 90, safetyCompliance: 88, teamworkAttitude: 85, totalScore: 87, rank: 3, status: '已评估' },
+  { id: '4', staffId: 'EMP004', staffName: '赵六', department: '运营部', month: '2024-03', taskCompletionRate: 80, attendanceRate: 88, workQuality: 82, safetyCompliance: 85, teamworkAttitude: 80, totalScore: 82, rank: 4, status: '已评估' },
+  { id: '5', staffId: 'EMP005', staffName: '钱七', department: '市场部', month: '2024-03', taskCompletionRate: 0, attendanceRate: 0, workQuality: 0, safetyCompliance: 0, teamworkAttitude: 0, totalScore: 0, rank: 0, status: '待评估' }
 ])
 
 const total = computed(() => data.value.length)
@@ -341,11 +341,11 @@ const formData = reactive({
   staffName: '',
   department: '',
   month: '',
-  taskCompletionRate,
-  attendanceRate,
-  workQuality,
-  safetyCompliance,
-  teamworkAttitude,
+  taskCompletionRate: 0,
+  attendanceRate: 0,
+  workQuality: 0,
+  safetyCompliance: 0,
+  teamworkAttitude: 0,
   status: '待评估'
 })
 
@@ -372,11 +372,11 @@ const handleAdd = () => {
     staffName: '',
     department: '',
     month: '',
-    taskCompletionRate,
-    attendanceRate,
-    workQuality,
-    safetyCompliance,
-    teamworkAttitude,
+    taskCompletionRate: 0,
+    attendanceRate: 0,
+    workQuality: 0,
+    safetyCompliance: 0,
+    teamworkAttitude: 0,
     status: '待评估'
   })
   modalVisible.value = true

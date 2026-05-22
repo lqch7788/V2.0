@@ -200,7 +200,7 @@ const filters = reactive({
 // 分页配置
 const pagination = reactive({
   currentPage: 1,
-  pageSize,
+  pageSize: 10,
   total: 0
 })
 
@@ -216,7 +216,7 @@ const formData = reactive({
   title: '',
   department: '',
   position: '',
-  headcount,
+  headcount: 1,
   salaryRange: '',
   description: '',
   requirements: ''
@@ -231,10 +231,10 @@ const formRules = {
 
 // 模拟数据
 const allData = ref([
-  { id, title: '高级农艺师', department: '技术部', position: '农艺师', headcount, salaryRange: '8000-12000', publishDate: '2026-05-01', status: 'open', applicants, description: '负责农业技术指导', requirements: '有3年以上农业经验' },
-  { id, title: '运营专员', department: '运营部', position: '运营', headcount, salaryRange: '5000-8000', publishDate: '2026-05-10', status: 'open', applicants, description: '负责日常运营管理', requirements: '有运营经验优先' },
-  { id, title: '市场专员', department: '市场部', position: '市场', headcount, salaryRange: '6000-10000', publishDate: '2026-04-15', status: 'paused', applicants, description: '负责市场推广', requirements: '有市场推广经验' },
-  { id, title: '仓库管理员', department: '仓储部', position: '仓储', headcount, salaryRange: '4000-6000', publishDate: '2026-04-01', status: 'closed', applicants, description: '负责仓库管理', requirements: '有仓储管理经验' }
+  { id: 1, title: '高级农艺师', department: '技术部', position: '农艺师', headcount: 2, salaryRange: '8000-12000', publishDate: '2026-05-01', status: 'open', applicants: 5, description: '负责农业技术指导', requirements: '有3年以上农业经验' },
+  { id: 2, title: '运营专员', department: '运营部', position: '运营', headcount: 1, salaryRange: '5000-8000', publishDate: '2026-05-10', status: 'open', applicants: 3, description: '负责日常运营管理', requirements: '有运营经验优先' },
+  { id: 3, title: '市场专员', department: '市场部', position: '市场', headcount: 2, salaryRange: '6000-10000', publishDate: '2026-04-15', status: 'paused', applicants: 8, description: '负责市场推广', requirements: '有市场推广经验' },
+  { id: 4, title: '仓库管理员', department: '仓储部', position: '仓储', headcount: 1, salaryRange: '4000-6000', publishDate: '2026-04-01', status: 'closed', applicants: 2, description: '负责仓库管理', requirements: '有仓储管理经验' }
 ])
 
 // 统计
@@ -307,7 +307,7 @@ const openFormModal = () => {
     title: '',
     department: '',
     position: '',
-    headcount,
+    headcount: 1,
     salaryRange: '',
     description: '',
     requirements: ''

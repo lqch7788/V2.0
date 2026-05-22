@@ -154,7 +154,7 @@ const formData = reactive({
   idCard: '',
   position: '',
   department: '',
-  dailyWage,
+  dailyWage: 200,
   joinDate: new Date().toISOString().split('T')[0]
 })
 
@@ -170,9 +170,9 @@ const formRules = {
 
 // 模拟数据
 const allData = ref([
-  { id, name: '临时工A', phone: '13900139001', idCard: '110101199001011234', position: '搬运工', department: '仓储部', dailyWage, joinDate: '2026-05-01', status: 'active' },
-  { id, name: '临时工B', phone: '13900139002', idCard: '110101199002022345', position: '包装工', department: '生产部', dailyWage, joinDate: '2026-05-10', status: 'active' },
-  { id, name: '临时工C', phone: '13900139003', idCard: '110101199003033456', position: '搬运工', department: '仓储部', dailyWage, joinDate: '2026-04-15', status: 'inactive' }
+  { id: 1, name: '临时工A', phone: '13900139001', idCard: '110101199001011234', position: '搬运工', department: '仓储部', dailyWage: 200, joinDate: '2026-05-01', status: 'active' },
+  { id: 2, name: '临时工B', phone: '13900139002', idCard: '110101199002022345', position: '包装工', department: '生产部', dailyWage: 180, joinDate: '2026-05-10', status: 'active' },
+  { id: 3, name: '临时工C', phone: '13900139003', idCard: '110101199003033456', position: '搬运工', department: '仓储部', dailyWage: 200, joinDate: '2026-04-15', status: 'inactive' }
 ])
 
 // 分页数据
@@ -200,7 +200,7 @@ const openFormModal = () => {
     idCard: '',
     position: '',
     department: '',
-    dailyWage,
+    dailyWage: 200,
     joinDate: new Date().toISOString().split('T')[0]
   })
   formDialogVisible.value = true
