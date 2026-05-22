@@ -1,16 +1,16 @@
 <template>
   <div class="space-y-6">
     <!-- 页面标题卡片 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" color="white">
-            <List />
-          </el-icon>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">订单管理</h1>
-          <p class="text-gray-500">管理作物订单、跟踪订单执行状态和交付进度</p>
+    <div class="bg-white rounded-xl p-6 shadow-none">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+            <ClipboardList class="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">订单管理</h1>
+            <p class="text-gray-500">管理作物订单、跟踪订单执行状态和交付进度</p>
+          </div>
         </div>
       </div>
     </div>
@@ -20,34 +20,66 @@
 
     <!-- 筛选工具栏 -->
     <OrderFilter
-      :filters="filters"
+      v-model:filters="filters"
       :order-status-options="orderStatusOptions"
       :crop-names="cropNames"
-      @change="handleFilterChange"
       @search="handleSearch"
       @reset="handleReset"
     />
 
     <!-- 操作按钮 -->
-    <ActionToolbar
-      :batch-edit-mode="batchEditMode"
-      :delete-mode="deleteMode"
-      :export-mode="exportMode"
-      :selected-rows="selectedRows"
-      :filters="{ showLowStock: false }"
-      :can-create="canCreate"
-      :can-edit="false"
-      :can-delete="false"
-      :can-export="true"
-      :show-low-stock-button="false"
-      :no-card="true"
-      @add="handleOpenAddModal"
-      @export="handleExportClick"
-      @confirm-export="handleExportClickConfirm"
-      @cancel-export="handleExportCancel"
-    />
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold text-gray-900 text-base">订单列表</h2>
+      <div class="flex gap-2">
+        <!-- 默认模式 -->
+        <template v-if="!batchEditMode && !deleteMode && !exportMode">
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="addModalOpen = true">
+            <Plus class="w-4 h-4" />
+            新增
+          </button>
+          <button v-if="canEdit" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="batchEditMode = true">
+            批量编辑
+          </button>
+          <button v-if="false" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700" @click="deleteMode = true">
+            删除
+          </button>
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="handleExportClick">
+            <Download class="w-4 h-4" />
+            导出
+          </button>
+        </template>
+        <!-- 批量编辑模式 -->
+        <template v-if="batchEditMode && !deleteMode && !exportMode">
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="handleConfirmBatchEdit">
+            确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+          </button>
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="handleCancelBatchEdit">
+            取消
+          </button>
+        </template>
+        <!-- 导出模式 -->
+        <template v-if="exportMode && !batchEditMode && !deleteMode">
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="handleExportClickConfirm">
+            <Download class="w-4 h-4" />
+            确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+          </button>
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="handleExportCancel">
+            取消选择
+          </button>
+        </template>
+        <!-- 删除模式 -->
+        <template v-if="deleteMode && !batchEditMode && !exportMode">
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700" @click="handleConfirmDelete">
+            确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+          </button>
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="handleCancelDelete">
+            取消
+          </button>
+        </template>
+      </div>
+    </div>
 
-    <!-- 数据表格 -->
+    <!-- 加载中 -->
     <div v-if="loading" class="flex items-center justify-center py-12">
       <div class="flex items-center gap-3">
         <div class="w-6 h-6 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -55,83 +87,87 @@
       </div>
     </div>
 
+    <!-- 数据表格 -->
     <OrderTable
-      v-else
+      v-show="!loading"
       :data="filteredData"
-      :pagination="pagination"
-      :selected-rows="selectedRows"
+      v-model:pagination="pagination"
+      v-model:selected-rows="selectedRows"
       :export-mode="exportMode"
       :batch-edit-mode="batchEditMode"
       :can-create="canCreate"
       :can-delete="canDelete"
       :can-export="canExport"
-      @selection-change="handleSelectionChange"
       @detail="handleDetail"
       @edit="handleEdit"
       @delete="handleDelete"
-      @add="handleOpenAddModal"
       @export-select-all="handleExportSelectAll"
-      @export-cancel="handleExportCancel"
-      @confirm-export="handleExportClickConfirm"
-      @page-change="handlePageChange"
     />
 
     <!-- 弹窗 -->
-    <AddModal
-      v-model:visible="addModalOpen"
+    <OrderAddModal
+      v-model="addModalOpen"
       :order-type-options="orderTypeOptions"
-      @success="handleAddSuccess"
+      @success="fetchOrders"
     />
 
-    <DetailModal
+    <OrderDetailModal
       v-if="currentRecord"
-      v-model:visible="detailModalOpen"
+      v-model="detailModalOpen"
       :record="currentRecord"
     />
 
-    <EditModal
+    <OrderEditModal
       v-if="currentRecord"
-      v-model:visible="editModalOpen"
+      v-model="editModalOpen"
       :record="currentRecord"
       :order-type-options="orderTypeOptions"
-      @success="handleEditSuccess"
+      @success="() => {}"
     />
 
     <!-- 导出格式选择弹窗 -->
-    <ExportFormatModal
-      v-model:visible="showExportModal"
-      :export-file-type="exportFormat"
+    <OrderExportModal
+      v-model="showExportModal"
+      v-model:export-format="exportFormat"
       :selected-count="selectedRows.length"
-      @change="setExportFormat"
       @confirm="handleConfirmExport"
     />
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { List } from '@element-plus/icons-vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { Plus, Download, ClipboardList } from 'lucide-vue-next'
+import { useOrderDataStore } from '@/stores'
+import { showAlert, showConfirm } from '@/lib/dialogService'
+import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
 import OrderStats from './components/OrderStats.vue'
 import OrderFilter from './components/OrderFilter.vue'
 import OrderTable from './components/OrderTable.vue'
-import ActionToolbar from '@/components/farm/agriculture/components/AgricultureRecordTableToolbar.vue'
-import AddModal from './modals/AddModal.vue'
-import DetailModal from './modals/DetailModal.vue'
-import EditModal from './modals/EditModal.vue'
-import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
-import { useOrderDataStore } from '@/stores/modules/orderData'
-import { CropOrder, CropOrderFilters, CropOrderStatus } from '@/types/crop'
-import * as apiCropVarietyService from '@/services/apiCropVarietyService'
-import dayjs from 'dayjs'
+import OrderAddModal from './components/OrderAddModal.vue'
+import OrderDetailModal from './components/OrderDetailModal.vue'
+import OrderEditModal from './components/OrderEditModal.vue'
+import OrderExportModal from './components/OrderExportModal.vue'
+// 订单状态枚举常量（与V1.1 TypeScript枚举保持一致）
+const CropOrderStatus = {
+  PLANNED: 'planned',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+}
 
 // 权限检查 - 已取消，所有人可使用所有功能
-const canCreate = ref(true)
-const canDelete = ref(true)
-const canExport = ref(true)
+const canCreate = true
+const canDelete = true
+const canEdit = false
+const canExport = true
 
-// 从 Store 获取订单数据和操作方法
-const orderDataStore = useOrderDataStore()
+// 从 Pinia Store 获取订单数据和操作方法
+const store = useOrderDataStore()
+
+const loading = computed(() => store.isLoading)
+const orders = computed(() => store.orders)
+const apiStats = computed(() => store.stats)
 
 // 筛选状态
 const filters = ref({
@@ -139,200 +175,151 @@ const filters = ref({
   orderName: '',
   cropName: '',
   status: '',
-  startDate: '',
-  endDate: '',
-  createBy: ''
+  orderDate: '',
 })
 
 const pagination = ref({ current: 1, pageSize: 10 })
-const selectedRows = ref([])
-const loading = ref(false)
+const selectedRows = ref<string[]>([])
 
 // 作物品种数据
 const cropVarietyOptions = computed(() => {
-  cropVarietyService.initVarieties()
-  return cropVarietyService.getVarietyOptions()
+  initVarieties()
+  return getVarietyOptions()
 })
 
-// 将品种库选项转换为旧格式以兼容现有组件
 const cropNames = computed(() =>
   cropVarietyOptions.value.map(v => ({ value: v.value, label: v.label }))
 )
-const cropVarieties = computed(() =>
-  cropVarietyOptions.value.map(v => ({ value: v.varietyCode, label: v.label }))
-)
+
+// 组件挂载时加载数据
+onMounted(async () => {
+  const result = await store.syncPending()
+  if (result.success > 0 || result.failed > 0) {
+    console.log(`[OrderPage] 同步结果: 成功 ${result.success}, 失败 ${result.failed}`)
+  }
+  await store.fetchOrders()
+  await store.fetchStats()
+})
 
 // 弹窗状态
 const addModalOpen = ref(false)
 const detailModalOpen = ref(false)
 const editModalOpen = ref(false)
-const currentRecord = ref(null)
+const currentRecord = ref<any>(null)
 
 // 导出状态
 const exportMode = ref(false)
-const exportFormat = ref('xlsx')
+const exportFormat = ref('excel')
 const showExportModal = ref(false)
 
 // 工具栏模式状态
 const batchEditMode = ref(false)
 const deleteMode = ref(false)
 
-// 统计数据
-const statsData = computed(() => {
-  const orders = orderDataStore.orders
-  const total = orders.length
-  const inProgress = orders.filter(o => o.status === CropOrderStatus.IN_PROGRESS).length
-  const completed = orders.filter(o => o.status === CropOrderStatus.COMPLETED).length
-  const thisMonth = orders.filter(o => {
-    const date = new Date(o.createTime || '')
-    const now = new Date()
-    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
-  }).length
-  return { total, inProgress, completed, thisMonth }
-})
-
-// 筛选后的数据 - 按创建时间倒序排列，确保新建订单排在第一位
+// 筛选后的数据
 const filteredData = computed(() => {
-  const orders = orderDataStore.orders
-  const filtered = orders.filter(item => {
-    if (filters.value.orderCode && !item.orderCode.includes(filters.value.orderCode)) return false
-    if (filters.value.orderName && !item.orderName.includes(filters.value.orderName)) return false
-    if (filters.value.cropName && !item.cropName.includes(filters.value.cropName)) return false
+  const filtered = orders.value.filter((item: any) => {
+    if (filters.value.orderCode && !item.orderCode?.includes(filters.value.orderCode)) return false
+    if (filters.value.orderName && !item.orderName?.includes(filters.value.orderName)) return false
+    if (filters.value.cropName && !item.cropName?.includes(filters.value.cropName) && !item.cropVariety?.includes(filters.value.cropName)) return false
     if (filters.value.status && item.status !== filters.value.status) return false
-    if (filters.value.startDate && item.orderDate < filters.value.startDate) return false
-    if (filters.value.endDate && item.orderDate > filters.value.endDate) return false
-    if (filters.value.createBy && !item.createBy.includes(filters.value.createBy)) return false
+    if (filters.value.orderDate && item.orderDate !== filters.value.orderDate) return false
     return true
   })
-  // 按创建时间倒序排列（新建的排在前面）
-  return filtered.sort((a, b) => {
+  return filtered.sort((a: any, b: any) => {
     const timeA = a.createTime || ''
     const timeB = b.createTime || ''
     return timeB.localeCompare(timeA)
   })
 })
 
-// 订单状态选项
-const orderStatusOptions = [
-  { value: CropOrderStatus.PLANNED, label: '已计划' },
-  { value: CropOrderStatus.IN_PROGRESS, label: '进行中' },
-  { value: CropOrderStatus.COMPLETED, label: '已完成' },
-  { value: CropOrderStatus.CANCELLED, label: '已取消' },
-]
-
-const orderTypeOptions = [
-  { value: 'breeding', label: '育种订单' },
-  { value: 'seedling', label: '育苗订单' },
-  { value: 'production', label: '生产订单' },
-  { value: 'research', label: '研发订单' },
-  { value: 'other', label: '其他' },
-]
-
-// 组件挂载时加载数据
-onMounted(async () => {
-  loading.value = true
-  try {
-    // 同步待处理订单 + 加载数据
-    const result = await orderDataStore.syncPending()
-    if (result.success > 0 || result.failed > 0) {
-      console.log(`[OrderPage] 同步结果: 成功 ${result.success}, 失败 ${result.failed}`)
-    }
-    await orderDataStore.fetchOrders()
-    await orderDataStore.fetchStats()
-  } finally {
-    loading.value = false
+// 统计卡片数据
+const statsData = computed(() => {
+  if (apiStats.value) {
+    return apiStats.value
   }
+  const total = orders.value.length
+  const inProgress = orders.value.filter((o: any) => o.status === CropOrderStatus.IN_PROGRESS).length
+  const completed = orders.value.filter((o: any) => o.status === CropOrderStatus.COMPLETED).length
+  const thisMonth = orders.value.filter((o: any) => {
+    const date = new Date(o.createTime)
+    const now = new Date()
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+  }).length
+  return { total, inProgress, completed, thisMonth }
 })
 
 // 处理操作
-const handleDetail = (record) => {
+function handleDetail(record: any) {
   currentRecord.value = record
   detailModalOpen.value = true
 }
 
-const handleEdit = (record) => {
+function handleEdit(record: any) {
   currentRecord.value = record
   editModalOpen.value = true
 }
 
-const handleDelete = async (ids) => {
-  try {
-    await ElMessageBox.confirm(`确定要删除选中的 ${ids.length} 条记录吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await orderDataStore.deleteOrders(ids)
-    selectedRows.value = []
-    ElMessage.success('删除成功')
-  } catch (error) {
-    if (error !== 'cancel') {
+async function handleDelete(ids: string[]) {
+  if (await showConfirm(`确定要删除选中的 ${ids.length} 条记录吗？`)) {
+    try {
+      await store.deleteOrders(ids)
+      selectedRows.value = []
+    } catch (error) {
       console.error('删除订单失败:', error)
-      ElMessage.error('删除失败，请稍后重试')
+      showAlert('删除失败，请稍后重试')
     }
   }
 }
 
-const handleSearch = () => {
-  pagination.value.current = 1
+function handleSearch() {
+  pagination.value = { ...pagination.value, current: 1 }
 }
 
-const handleReset = () => {
+function handleReset() {
   filters.value = {
     orderCode: '',
     orderName: '',
     cropName: '',
     status: '',
-    startDate: '',
-    endDate: '',
-    createBy: ''
+    orderDate: '',
   }
-  pagination.value.current = 1
-}
-
-const handleFilterChange = (newFilters) => {
-  filters.value = newFilters
+  pagination.value = { ...pagination.value, current: 1 }
 }
 
 // 导出相关处理
-const handleExportClick = () => {
+function handleExportClick() {
   exportMode.value = true
   selectedRows.value = []
 }
 
-const handleExportSelectAll = () => {
+function handleExportSelectAll() {
   if (selectedRows.value.length === filteredData.value.length) {
     selectedRows.value = []
   } else {
-    selectedRows.value = filteredData.value.map(item => item.id)
+    selectedRows.value = filteredData.value.map((item: any) => item.id)
   }
 }
 
-const handleExportCancel = () => {
+function handleExportCancel() {
   exportMode.value = false
   selectedRows.value = []
 }
 
-const handleExportClickConfirm = () => {
+function handleExportClickConfirm() {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要导出的数据')
+    showAlert('请先选择要导出的数据')
     return
   }
   showExportModal.value = true
 }
 
-const setExportFormat = (format) => {
-  exportFormat.value = format
-}
+async function handleConfirmExport() {
+  const selectedData = filteredData.value.filter((item: any) => selectedRows.value.includes(item.id))
 
-const handleConfirmExport = async () => {
-  const selectedData = filteredData.value.filter(item => selectedRows.value.includes(item.id))
-
-  // 导出表头
   const headers = ['订单编号', '订单名称', '订单类型', '品种路径', '作物品种', '计划数量', '实际数量', '单位', '订单日期', '预计采收日期', '状态', '创建人', '创建时间', '备注']
 
-  // 生成导出数据
-  const exportData = selectedData.map(record => ({
+  const exportData = selectedData.map((record: any) => ({
     '订单编号': record.orderCode,
     '订单名称': record.orderName,
     '订单类型': record.orderType === 'breeding' ? '育种订单' : record.orderType === 'seedling' ? '育苗订单' : record.orderType === 'production' ? '生产订单' : record.orderType === 'research' ? '研发订单' : '其他',
@@ -354,8 +341,8 @@ const handleConfirmExport = async () => {
   let extension = ''
 
   if (exportFormat.value === 'csv') {
-    content = headers.join(',') + '\n' + exportData.map(row =>
-      headers.map(h => `"${row[h] || ''}"`).join(',')
+    content = headers.join(',') + '\n' + exportData.map((row: any) =>
+      headers.map((h: string) => `"${row[h] || ''}"`).join(',')
     ).join('\n')
     mimeType = 'text/csv;charset=utf-8'
     extension = 'csv'
@@ -366,28 +353,41 @@ const handleConfirmExport = async () => {
       th { background-color: #4a90d9; color: white; }
     </style></head><body>
       <table border="1">
-        <tr>${headers.map(h => `<th style="background-color: #4a90d9; color: white;">${h}</th>`).join('')}</tr>
-        ${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}
+        <tr>${headers.map((h: string) => `<th style="background-color: #4a90d9; color: white;">${h}</th>`).join('')}</tr>
+        ${exportData.map((row: any) => `<tr>${headers.map((h: string) => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}
       </table>
     </body></html>`
     mimeType = 'application/vnd.ms-word;charset=utf-8'
     extension = 'docx'
   } else {
-    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map((h: string) => `<th>${h}</th>`).join('')}</tr>${exportData.map((row: any) => `<tr>${headers.map((h: string) => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
     mimeType = 'application/vnd.ms-excel;charset=utf-8'
     extension = 'xls'
   }
 
-  const fileName = `订单管理_${dayjs().format('YYYY-MM-DD')}.${extension}`
+  const fileName = `订单管理_${new Date().toISOString().slice(0, 10)}.${extension}`
 
   try {
-    const blob = new Blob([content], { type: mimeType })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = fileName
-    a.click()
-    URL.revokeObjectURL(url)
+    if (window.showSaveFilePicker) {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{
+          description: exportFormat.value.toUpperCase() + ' Files',
+          accept: { [mimeType]: ['.' + extension] }
+        }]
+      })
+      const writable = await handle.createWritable()
+      await writable.write(content)
+      await writable.close()
+    } else {
+      const blob = new Blob([content], { type: mimeType })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      a.click()
+      URL.revokeObjectURL(url)
+    }
   } catch (err) {
     console.error('Export failed:', err)
     const blob = new Blob([content], { type: mimeType })
@@ -404,34 +404,48 @@ const handleConfirmExport = async () => {
   showExportModal.value = false
 }
 
-const handleSelectionChange = (rows) => {
-  selectedRows.value = rows
+async function handleConfirmDelete() {
+  if (selectedRows.value.length === 0) {
+    showAlert('请先选择要删除的数据')
+    return
+  }
+  await handleDelete(selectedRows.value)
+  deleteMode.value = false
 }
 
-const handlePageChange = (page) => {
-  pagination.value = page
+function handleCancelDelete() {
+  deleteMode.value = false
+  selectedRows.value = []
 }
 
-const handleOpenAddModal = () => {
-  addModalOpen.value = true
+function handleConfirmBatchEdit() {
+  if (selectedRows.value.length === 0) {
+    showAlert('请先选择要编辑的数据')
+    return
+  }
+  showAlert('批量编辑功能开发中')
+  batchEditMode.value = false
+  selectedRows.value = []
 }
 
-const handleAddSuccess = () => {
-  orderDataStore.fetchOrders()
-  addModalOpen.value = false
+function handleCancelBatchEdit() {
+  batchEditMode.value = false
+  selectedRows.value = []
 }
 
-const handleCloseDetailModal = () => {
-  detailModalOpen.value = false
-  currentRecord.value = null
-}
+// 订单状态选项
+const orderStatusOptions = [
+  { value: CropOrderStatus.PLANNED, label: '已计划' },
+  { value: CropOrderStatus.IN_PROGRESS, label: '进行中' },
+  { value: CropOrderStatus.COMPLETED, label: '已完成' },
+  { value: CropOrderStatus.CANCELLED, label: '已取消' },
+]
 
-const handleCloseEditModal = () => {
-  editModalOpen.value = false
-  currentRecord.value = null
-}
-
-const handleEditSuccess = () => {
-  orderDataStore.fetchOrders()
-}
+const orderTypeOptions = [
+  { value: 'breeding', label: '育种订单' },
+  { value: 'seedling', label: '育苗订单' },
+  { value: 'production', label: '生产订单' },
+  { value: 'research', label: '研发订单' },
+  { value: 'other', label: '其他' },
+]
 </script>
