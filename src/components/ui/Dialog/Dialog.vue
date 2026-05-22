@@ -27,7 +27,7 @@
                 :title="isMaximized ? '还原窗口' : '最大化窗口'"
                 @click.stop="handleToggleMaximize"
               >
-                <el-icon :size="16"><component :is="isMaximized ? 'Copy' : 'FullScreen'" /></el-icon>
+                <el-icon :size="16"><component :is="isMaximized ? 'DocumentCopy' : 'FullScreen'" /></el-icon>
               </button>
               <!-- 关闭按钮 -->
               <button class="dialog-header-btn" title="关闭" @click.stop="handleClose">
@@ -74,7 +74,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { Close, FullScreen, Copy } from '@element-plus/icons-vue'
+import { Close, FullScreen, DocumentCopy } from '@element-plus/icons-vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },

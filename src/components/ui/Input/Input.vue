@@ -1,6 +1,6 @@
 <template>
   <el-input
-    v-model="modelValue"
+    :model-value="modelValue"
     :type="type"
     :placeholder="placeholder"
     :disabled="disabled"
