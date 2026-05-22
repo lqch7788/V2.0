@@ -7,6 +7,7 @@ export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
   const userInfo = ref(null)
   const permissions = ref([])
+  const users = ref([])  // 用户列表
   const loading = ref(false)
   const error = ref(null)
 
@@ -31,6 +32,25 @@ export const useUserStore = defineStore('user', () => {
     permissions.value = []
     localStorage.removeItem('token')
     localStorage.removeItem('currentUser')
+  }
+
+  /**
+   * 加载用户列表
+   * 从后端获取所有用户
+   */
+  const loadUsers = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await enhancedApiClient.get('/authority/users')
+      users.value = Array.isArray(response) ? response : (response?.data || [])
+    } catch (err) {
+      error.value = err.message || '加载用户列表失败'
+      console.warn('[UserStore] 加载用户列表失败:', err)
+      users.value = []
+    } finally {
+      loading.value = false
+    }
   }
 
   /**
@@ -83,6 +103,7 @@ export const useUserStore = defineStore('user', () => {
     token,
     userInfo,
     permissions,
+    users,
     loading,
     error,
     isLoggedIn,
@@ -90,6 +111,7 @@ export const useUserStore = defineStore('user', () => {
     setToken,
     setUserInfo,
     logout,
-    login
+    login,
+    loadUsers
   }
 })

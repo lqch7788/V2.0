@@ -236,6 +236,11 @@ const showExportModal = ref(false)
 const exportFormat = ref('excel')
 const exportMode = ref(false)
 
+// 设置导出格式
+const setExportFormat = (val) => {
+  exportFormat.value = val
+}
+
 // ========== 选择状态 ==========
 
 const selectedIds = ref([])

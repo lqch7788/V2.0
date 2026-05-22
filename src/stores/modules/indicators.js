@@ -160,6 +160,14 @@ export const useIndicatorStore = defineStore('indicators', () => {
     }
   }
 
+  /**
+   * 获取评估数据（占位方法）
+   */
+  const fetchEvaluations = async () => {
+    // 评估功能暂未实现
+    console.log('[IndicatorStore] fetchEvaluations 暂未实现')
+  }
+
   return {
     // 状态
     indicators,
@@ -169,6 +177,7 @@ export const useIndicatorStore = defineStore('indicators', () => {
     fetchIndicators,
     createIndicator,
     updateIndicator,
-    deleteIndicator
+    deleteIndicator,
+    fetchEvaluations
   }
 })
