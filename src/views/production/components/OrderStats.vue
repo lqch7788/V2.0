@@ -1,69 +1,40 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- 全部订单 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-emerald-500">
-      <div class="flex items-center justify-between">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div
+      v-for="(stat, index) in stats"
+      :key="index"
+      class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+    >
+      <div class="flex items-center gap-2">
+        <div :class="`w-8 h-8 rounded-lg ${stat.color} flex items-center justify-center`">
+          <component :is="stat.icon" class="w-4 h-4 text-white" />
+        </div>
         <div>
-          <p class="text-sm text-gray-500 mb-1">全部订单</p>
-          <p class="text-2xl font-bold text-gray-900">{{ data?.total || 0 }}</p>
-        </div>
-        <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-          <el-icon :size="24" color="#10b981">
-            <Document />
-          </el-icon>
-        </div>
-      </div>
-    </div>
-
-    <!-- 进行中 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-blue-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-500 mb-1">进行中</p>
-          <p class="text-2xl font-bold text-gray-900">{{ data?.inProgress || 0 }}</p>
-        </div>
-        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-          <el-icon :size="24" color="#3b82f6">
-            <Loading />
-          </el-icon>
-        </div>
-      </div>
-    </div>
-
-    <!-- 已完成 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-green-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-500 mb-1">已完成</p>
-          <p class="text-2xl font-bold text-gray-900">{{ data?.completed || 0 }}</p>
-        </div>
-        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-          <el-icon :size="24" color="#22c55e">
-            <CircleCheck />
-          </el-icon>
-        </div>
-      </div>
-    </div>
-
-    <!-- 本月新增 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-purple-500">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-500 mb-1">本月新增</p>
-          <p class="text-2xl font-bold text-gray-900">{{ data?.thisMonth || 0 }}</p>
-        </div>
-        <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-          <el-icon :size="24" color="#a855f7">
-            <Plus />
-          </el-icon>
+          <p class="text-xl font-bold text-gray-900">{{ stat.value }}</p>
+          <p class="text-xs text-gray-500">{{ stat.label }}</p>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { Document, Loading, CircleCheck, Plus } from '@element-plus/icons-vue'
+<script setup lang="ts">
+import { computed } from 'vue'
+import { Package, TrendingUp, CheckCircle, Calendar } from 'lucide-vue-next'
 
-defineProps({})
+const props = defineProps<{
+  data: {
+    total: number
+    inProgress: number
+    completed: number
+    thisMonth: number
+  }
+}>()
+
+const stats = computed(() => [
+  { label: '订单总数', value: props.data.total, color: 'bg-blue-500', icon: Package },
+  { label: '进行中', value: props.data.inProgress, color: 'bg-amber-500', icon: TrendingUp },
+  { label: '已完成', value: props.data.completed, color: 'bg-emerald-500', icon: CheckCircle },
+  { label: '本月新增', value: props.data.thisMonth, color: 'bg-purple-500', icon: Calendar },
+])
 </script>

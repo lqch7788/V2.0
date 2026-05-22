@@ -1,189 +1,260 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-    <!-- 表格 -->
-    <el-table
-      :data="paginatedData"
-      stripe
-      @selection-change="handleSelectionChange"
-      :row-class-name="tableRowClassName"
-    >
-      <!-- 导出模式复选框 -->
-      <el-table-column v-if="exportMode" type="selection" width="50" />
-
-      <el-table-column prop="orderCode" label="订单编号" width="150">
-        <template #default="{ row }">
-          <el-button link type="primary" @click="$emit('detail', row)">
-            {{ row.orderCode }}
-          </el-button>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="orderName" label="订单名称" min-width="150">
-        <template #default="{ row }">
-          <span class="font-medium text-gray-900">{{ row.orderName }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="orderType" label="订单类型" width="120">
-        <template #default="{ row }">
-          <span>{{ getOrderTypeName(row.orderType) }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="cropName" label="作物名称" width="120" />
-
-      <el-table-column prop="plannedQuantity" label="计划数量" width="100">
-        <template #default="{ row }">
-          {{ row.plannedQuantity }} {{ row.unit }}
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="actualQuantity" label="实际数量" width="100">
-        <template #default="{ row }">
-          {{ row.actualQuantity }} {{ row.unit }}
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="orderDate" label="订单日期" width="120" />
-
-      <el-table-column prop="expectedHarvestDate" label="预计采收日期" width="140" />
-
-      <el-table-column prop="status" label="状态" width="100">
-        <template #default="{ row }">
-          <el-tag :type="getStatusType(row.status)" size="small">
-            {{ getStatusName(row.status) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="createBy" label="创建人" width="100" />
-
-      <el-table-column prop="createTime" label="创建时间" width="160" />
-
-      <el-table-column label="操作" width="150" fixed="right">
-        <template #default="{ row }">
-          <div class="flex gap-1">
-            <el-button link type="primary" size="small" @click="$emit('detail', row)">
-              详情
-            </el-button>
-            <el-button link type="primary" size="small" @click="$emit('edit', row)">
-              编辑
-            </el-button>
-            <el-button link type="danger" size="small" @click="handleDeleteRow(row)">
-              删除
-            </el-button>
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- 数据表格 -->
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <tr>
+            <th v-if="exportMode || batchEditMode" class="px-4 py-3 text-left text-sm font-semibold w-12">
+              <el-checkbox
+                :model-value="selectedRows.length === data.length && data.length > 0"
+                class="border-white"
+                @change="onExportSelectAll"
+              />
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">订单编号</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">订单名称</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">订单类型</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">作物信息</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">数量</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">订单日期</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">预计采收</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">状态</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold">操作</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-300">
+          <tr v-if="paginatedData.length === 0">
+            <td :colspan="exportMode || batchEditMode ? 10 : 9" class="px-4 py-8 text-center text-gray-500">
+              暂无数据
+            </td>
+          </tr>
+          <tr
+            v-for="record in paginatedData"
+            :key="record.id"
+            class="hover:bg-emerald-50 transition-colors"
+          >
+            <td v-if="exportMode || batchEditMode" class="px-4 py-3">
+              <el-checkbox
+                :model-value="selectedRows.includes(record.id)"
+                @change="() => handleSelectRow(record.id)"
+              />
+            </td>
+            <td class="px-4 py-3 text-sm">
+              <button class="text-sm text-blue-600 hover:text-blue-800 hover:underline" title="点击查看详情" @click="onDetail(record)">
+                {{ record.orderCode }}
+              </button>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-900">{{ record.orderName }}</td>
+            <td class="px-4 py-3">
+              <OrderTypeBadge :type="record.orderType" />
+            </td>
+            <td class="px-4 py-3">
+              <div class="text-sm text-gray-900">{{ record.cropVariety }}</div>
+              <div class="text-xs text-gray-500 truncate" :title="record.cropCategory">{{ record.cropCategory }}</div>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-600">
+              {{ record.plannedQuantity }} {{ record.unit }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-600">{{ record.orderDate }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">{{ record.expectedHarvestDate || '-' }}</td>
+            <td class="px-4 py-3">
+              <StatusBadge :status="record.status" />
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <template v-if="record.status !== CropOrderStatus.COMPLETED">
+                  <button class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-gray-100 transition-colors" title="编辑" @click="onEdit(record)">
+                    <Pencil class="w-4 h-4" />
+                  </button>
+                  <button class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-gray-100 transition-colors" title="删除" @click="handleDeleteSingle(record)">
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </template>
+                <span v-else class="text-xs text-gray-400">已归档</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- 分页 -->
-    <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-100">
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
       <div class="flex items-center gap-2">
         <span class="text-sm text-gray-500">每页</span>
-        <el-select
-          :model-value="pagination.pageSize"
-          @update:model-value="handlePageSizeChange"
-          style="width: 80px"
-        >
-          <el-option :value="10" label="10" />
-          <el-option :value="20" label="20" />
-          <el-option :value="50" label="50" />
+        <el-select v-model="localPagination.pageSize" class="w-20" size="small" @change="handlePageSizeChange">
+          <el-option label="10" :value="10" />
+          <el-option label="20" :value="20" />
+          <el-option label="50" :value="50" />
         </el-select>
         <span class="text-sm text-gray-500">条</span>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-500">共 {{ data.length }} 条</span>
-        <el-button
-          :disabled="pagination.current === 1"
-          size="small"
-          @click="handlePageChange(pagination.current - 1)"
+      <div class="flex items-center gap-1">
+        <button
+          class="p-2 rounded-lg transition-colors"
+          :class="localPagination.current === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'"
+          :disabled="localPagination.current === 1"
+          @click="onPageChange(1)"
         >
-          上一页
-        </el-button>
-        <span class="text-sm">{{ pagination.current }} / {{ totalPages }}</span>
-        <el-button
-          :disabled="pagination.current >= totalPages"
-          size="small"
-          @click="handlePageChange(pagination.current + 1)"
+          <ChevronsLeft class="w-4 h-4" />
+        </button>
+        <button
+          class="p-2 rounded-lg transition-colors"
+          :class="localPagination.current === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'"
+          :disabled="localPagination.current === 1"
+          @click="onPageChange(localPagination.current - 1)"
         >
-          下一页
-        </el-button>
+          <ChevronLeft class="w-4 h-4" />
+        </button>
+        <template v-for="(page, index) in visiblePages" :key="`${page}-${index}`">
+          <button
+            v-if="typeof page === 'number'"
+            class="min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-colors"
+            :class="localPagination.current === page ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'"
+            @click="onPageChange(page)"
+          >
+            {{ page }}
+          </button>
+          <span v-else class="px-2 text-gray-400">{{ page }}</span>
+        </template>
+        <button
+          class="p-2 rounded-lg transition-colors"
+          :class="localPagination.current >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'"
+          :disabled="localPagination.current >= totalPages"
+          @click="onPageChange(localPagination.current + 1)"
+        >
+          <ChevronRight class="w-4 h-4" />
+        </button>
+        <button
+          class="p-2 rounded-lg transition-colors"
+          :class="localPagination.current >= totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'"
+          :disabled="localPagination.current >= totalPages"
+          @click="onPageChange(totalPages)"
+        >
+          <ChevronsRight class="w-4 h-4" />
+        </button>
+        <span class="text-sm text-gray-500 ml-2">共 {{ totalPages }} 页</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import {  CropOrder, CropOrderStatus  } from '@/types/crop'
+import { computed, watch, ref } from 'vue'
+import { Pencil, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
+import { showConfirm } from '@/lib/dialogService'
+import { CropOrderStatus } from '@/types/crop'
+import StatusBadge from './StatusBadge.vue'
+import OrderTypeBadge from './OrderTypeBadge.vue'
 
-const props = defineProps({})
+const props = defineProps({
+  data: { type: Array, default: () => [] },
+  pagination: { type: Object, required: true },
+  selectedRows: { type: Array, default: () => [] },
+  exportMode: { type: Boolean, default: false },
+  batchEditMode: { type: Boolean, default: false },
+  canCreate: { type: Boolean, default: true },
+  canDelete: { type: Boolean, default: true },
+  canExport: { type: Boolean, default: true },
+})
 
-const emit = defineEmits(['selection-change', 'detail', 'edit', 'delete', 'add', 'export-select-all', 'export-cancel', 'confirm-export', 'page-change'])
+const emit = defineEmits([
+  'update:pagination',
+  'update:selectedRows',
+  'detail',
+  'edit',
+  'delete',
+  'exportSelectAll',
+])
 
-const totalPages = computed(() => Math.ceil(props.data.length / props.pagination.pageSize))
+const localPagination = ref({ ...props.pagination })
+
+watch(() => props.pagination, (val) => {
+  localPagination.value = { ...val }
+}, { deep: true })
+
+watch(localPagination, (val) => {
+  emit('update:pagination', { ...val })
+}, { deep: true })
+
+const totalPages = computed(() => {
+  return Math.ceil(props.data.length / localPagination.value.pageSize) || 1
+})
+
+const visiblePages = computed(() => {
+  const current = localPagination.value.current
+  const total = totalPages.value
+  const pages = []
+  const showEllipsis = total > 7
+
+  if (!showEllipsis) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    pages.push(1)
+    if (current > 3) {
+      pages.push('...')
+    }
+    const start = Math.max(2, current - 1)
+    const end = Math.min(total - 1, current + 1)
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+    if (current < total - 2) {
+      pages.push('...')
+    }
+    if (total > 1) {
+      pages.push(total)
+    }
+  }
+  return pages
+})
 
 const paginatedData = computed(() => {
-  const start = (props.pagination.current - 1) * props.pagination.pageSize
-  const end = start + props.pagination.pageSize
+  const start = (localPagination.value.current - 1) * localPagination.value.pageSize
+  const end = start + localPagination.value.pageSize
   return props.data.slice(start, end)
 })
 
-const getOrderTypeName = (type) => {
-  const typeMap = {
-    breeding: '育种订单',
-    seedling: '育苗订单',
-    production: '生产订单',
-    research: '研发订单',
-    other: '其他'
+function handleSelectRow(id) {
+  const rows = [...props.selectedRows]
+  const index = rows.indexOf(id)
+  if (index > -1) {
+    rows.splice(index, 1)
+  } else {
+    rows.push(id)
   }
-  return typeMap[type] || type
+  emit('update:selectedRows', rows)
 }
 
-const getStatusName = (status) => {
-  const statusMap = {
-    planned: '已计划',
-    in_progress: '进行中',
-    completed: '已完成',
-    cancelled: '已取消'
+function onExportSelectAll() {
+  emit('exportSelectAll')
+}
+
+async function handleDeleteSingle(record) {
+  if (await showConfirm(`确定要删除订单 ${record.orderCode} 吗？`)) {
+    emit('delete', [record.id])
   }
-  return statusMap[status] || status
 }
 
-const getStatusType = (status) => {
-  const typeMap = {
-    planned: 'info',
-    in_progress: 'warning',
-    completed: 'success',
-    cancelled: 'danger'
-  }
-  return typeMap[status] || 'info'
+function onDetail(record) {
+  emit('detail', record)
 }
 
-const handleSelectionChange = (selection) => {
-  emit('selection-change', selection.map(item => item.id))
+function onEdit(record) {
+  emit('edit', record)
 }
 
-const handlePageChange = (page) => {
-  emit('page-change', { current: page, pageSize: props.pagination.pageSize })
+function onPageChange(page) {
+  if (page < 1 || page > totalPages.value) return
+  localPagination.value = { ...localPagination.value, current: page }
+  emit('update:pagination', { ...localPagination.value })
 }
 
-const handlePageSizeChange = (size) => {
-  emit('page-change', { current: props.pagination.current, pageSize: size })
-}
-
-const handleDeleteRow = (row) => {
-  emit('delete', [row.id])
-}
-
-const tableRowClassName = ({ row }) => {
-  return 'hover:bg-blue-50 transition-colors'
+function handlePageSizeChange(size) {
+  localPagination.value = { pageSize: size, current: 1 }
+  emit('update:pagination', { ...localPagination.value })
 }
 </script>
-
-<style scoped>
-:deep(.el-table tr) {
-  transition: background-color 0.2s;
-}
-</style>

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import * as techSolutionService from '@/services/techSolutionService'
 
 export const useTechSolutionStore = defineStore('techSolution', () => {
   // 状态
@@ -10,12 +11,8 @@ export const useTechSolutionStore = defineStore('techSolution', () => {
   const fetchSolutions = async () => {
     isLoading.value = true
     try {
-      const storedSolutions = localStorage.getItem('techSolutions')
-      if (storedSolutions) {
-        solutions.value = JSON.parse(storedSolutions)
-      } else {
-        solutions.value = []
-      }
+      const data = await techSolutionService.getTechSolutions()
+      solutions.value = data || []
     } catch (error) {
       console.error('获取技术方案数据失败:', error)
       solutions.value = []
@@ -26,56 +23,35 @@ export const useTechSolutionStore = defineStore('techSolution', () => {
 
   // 添加技术方案
   const addSolution = async (solution) => {
-    const newSolution = {
-      id: solution.id || `T${Date.now()}`,
-      code: solution.code || '',
-      title: solution.title || '',
-      crop: solution.crop || '',
-      cropCode: solution.cropCode || '',
-      plantingMode: solution.plantingMode || '水培',
-      stage: solution.stage || '',
-      author: solution.author || localStorage.getItem('username') || '陆启闯',
-      authorId: solution.authorId || '',
-      createDate: new Date().toISOString().slice(0, 10),
-      status: solution.status || '草稿',
-      statusClass: solution.statusClass || 'draft',
-      version: solution.version || 'V1.0',
-      content: solution.content || '',
-      relatedBatchCode: solution.relatedBatchCode || '',
-      planDetailFileName: solution.planDetailFileName || '',
-      lastSubmitTime: solution.lastSubmitTime || '',
-      isValid: solution.isValid || '有效'
+    const newSolution = await techSolutionService.addTechSolution(solution)
+    if (newSolution) {
+      solutions.value.unshift(newSolution)
     }
-
-    solutions.value.unshift(newSolution)
-    saveSolutions()
     return newSolution
   }
 
   // 更新技术方案
   const updateSolution = async (id, updates) => {
-    const index = solutions.value.findIndex(s => s.id === id)
-    if (index !== -1) {
-      solutions.value[index] = { ...solutions.value[index], ...updates }
-      saveSolutions()
+    const updated = await techSolutionService.updateTechSolution(id, updates)
+    if (updated) {
+      const index = solutions.value.findIndex(s => s.id === id)
+      if (index !== -1) {
+        solutions.value[index] = { ...solutions.value[index], ...updates }
+      }
     }
+    return updated
   }
 
   // 删除技术方案
   const deleteSolution = async (id) => {
+    await techSolutionService.deleteTechSolution(id)
     solutions.value = solutions.value.filter(s => s.id !== id)
-    saveSolutions()
   }
 
   // 批量删除技术方案
   const deleteSolutions = async (ids) => {
+    await techSolutionService.deleteTechSolutions(ids)
     solutions.value = solutions.value.filter(s => !ids.includes(s.id))
-    saveSolutions()
-  }
-
-  // 保存到 localStorage
-  const saveSolutions = () => {
-    localStorage.setItem('techSolutions', JSON.stringify(solutions.value))
   }
 
   return {

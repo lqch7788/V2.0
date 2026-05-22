@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import * as purchasePlanService from '@/services/purchasePlanService'
 
 export const usePurchasePlanStore = defineStore('purchasePlan', () => {
   // 状态
@@ -11,12 +12,8 @@ export const usePurchasePlanStore = defineStore('purchasePlan', () => {
   const fetchPlans = async () => {
     isLoading.value = true
     try {
-      const storedPlans = localStorage.getItem('purchasePlans')
-      if (storedPlans) {
-        plans.value = JSON.parse(storedPlans)
-      } else {
-        plans.value = []
-      }
+      const data = await purchasePlanService.getPurchasePlans()
+      plans.value = data || []
     } catch (error) {
       console.error('获取采购计划数据失败:', error)
       plans.value = []
@@ -78,57 +75,35 @@ export const usePurchasePlanStore = defineStore('purchasePlan', () => {
 
   // 添加采购计划
   const addPlan = async (plan) => {
-    const newPlan = {
-      id: plan.id || `PP${Date.now()}`,
-      purchaseApplicationCode: plan.purchaseApplicationCode || '',
-      relatedBatchCode: plan.relatedBatchCode || '',
-      purchaseType: plan.purchaseType || 'production',
-      applicant: plan.applicant || '',
-      applicantId: plan.applicantId || '',
-      applicantDepartment: plan.applicantDepartment || '',
-      applyDate: plan.applyDate || new Date().toISOString().slice(0, 10),
-      requiredDate: plan.requiredDate || '',
-      priority: plan.priority || 'normal',
-      status: plan.status || 'pending',
-      approvalStatus: plan.approvalStatus || 'pending',
-      remarks: plan.remarks || '',
-      approvalPerson: plan.approvalPerson || '',
-      items: plan.items || [],
-      totalAmount: plan.totalAmount || 0,
-      attachments: plan.attachments || [],
-      supplierName: plan.supplierName || '',
-      planTitle: plan.planTitle || `${plan.purchaseType || ''} - ${plan.purchaseApplicationCode || ''}`
+    const newPlan = await purchasePlanService.addPurchasePlan(plan)
+    if (newPlan) {
+      plans.value.unshift(newPlan)
     }
-
-    plans.value.unshift(newPlan)
-    savePlans()
     return newPlan
   }
 
   // 更新采购计划
   const updatePlan = async (id, updates) => {
-    const index = plans.value.findIndex(p => p.id === id)
-    if (index !== -1) {
-      plans.value[index] = { ...plans.value[index], ...updates }
-      savePlans()
+    const updated = await purchasePlanService.updatePurchasePlan(id, updates)
+    if (updated) {
+      const index = plans.value.findIndex(p => p.id === id)
+      if (index !== -1) {
+        plans.value[index] = { ...plans.value[index], ...updated }
+      }
     }
+    return updated
   }
 
   // 删除采购计划
   const deletePlan = async (id) => {
+    await purchasePlanService.deletePurchasePlan(id)
     plans.value = plans.value.filter(p => p.id !== id)
-    savePlans()
   }
 
   // 批量删除采购计划
   const deletePlans = async (ids) => {
+    await purchasePlanService.deletePurchasePlans(ids)
     plans.value = plans.value.filter(p => !ids.includes(p.id))
-    savePlans()
-  }
-
-  // 保存到 localStorage
-  const savePlans = () => {
-    localStorage.setItem('purchasePlans', JSON.stringify(plans.value))
   }
 
   return {
