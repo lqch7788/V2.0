@@ -61,3 +61,30 @@ export const DictionaryItem = {
   sort: 0,
   remark: ''
 }
+
+// 设备
+export const Device = {
+  id: 0,
+  oid: '',
+  deviceName: '',
+  deviceCode: '',
+  deviceType: '',
+  manufacturer: '',
+  serialNumber: '',
+  greenhouseOid: '',
+  greenhouseName: '',
+  location: '',
+  installDate: '',
+  status: 'online',
+  description: ''
+}
+
+// 设备状态
+export const DeviceStatus = {
+  ONLINE: 'online',
+  OFFLINE: 'offline',
+  MAINTENANCE: 'maintenance'
+}
+
+// 设备类型
+export const DEVICE_TYPES = ['传感器', '摄像头', '控制器', '气象站', '灌溉设备', '施肥设备', '其他']

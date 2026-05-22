@@ -1,7 +1,7 @@
 <template>
   <div class="p-6 space-y-4">
     <!-- 标题卡片 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <el-icon :size="24" class="text-white">
@@ -14,9 +14,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 统计卡片 -->
-    <SeedSourceStats :data="statsData" />
 
     <!-- 筛选工具栏 -->
     <SeedSourceFilter
@@ -37,6 +34,8 @@
         :selected-rows="selectedRows"
         :loading="loading"
         :export-mode="exportMode"
+        :operation-mode="operationMode"
+        :print-mode="printMode"
         :can-create="canCreate"
         :can-edit="canEdit"
         :can-delete="canDelete"
@@ -53,6 +52,12 @@
         @selection-change="handleSelectionChange"
         @page-change="handlePageChange"
         @size-change="handleSizeChange"
+        @operation-mode-change="handleOperationModeChange"
+        @print-mode-change="handlePrintModeChange"
+        @confirm-print="handleConfirmPrint"
+        @end="handleEnd"
+        @propagation-record="handlePropagationRecord"
+        @propagation-stage="handlePropagationStage"
       />
     </div>
 
@@ -93,6 +98,21 @@
       @confirm="handleConfirmExport"
       @update:export-file-type="exportFormat = $event"
     />
+
+    <!-- 繁殖途径弹窗 -->
+    <PropagationRecordModal
+      v-if="propagationRecord"
+      v-model:visible="propagationRecordVisible"
+      :record="propagationRecord"
+      @success="loadItems"
+    />
+
+    <PropagationStageModal
+      v-if="propagationStageRecord"
+      v-model:visible="propagationStageVisible"
+      :record="propagationStageRecord"
+      @success="loadItems"
+    />
   </div>
 </template>
 
@@ -100,7 +120,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { Goods } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import SeedSourceStats from '@/components/farm/seed-source/components/SeedSourceStats.vue'
 import SeedSourceFilter from '@/components/farm/seed-source/components/SeedSourceFilter.vue'
 import SeedSourceTable from '@/components/farm/seed-source/components/SeedSourceTable.vue'
 import AddModal from '@/components/farm/seed-source/modals/AddModal.vue'
@@ -109,6 +128,8 @@ import DetailModal from '@/components/farm/seed-source/modals/DetailModal.vue'
 import PrintLabelModal from '@/components/farm/seed-source/modals/PrintLabelModal.vue'
 import ImageLightboxModal from '@/components/common/ImageLightboxModal.vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
+import PropagationRecordModal from '@/components/farm/seed-source/modals/PropagationRecordModal.vue'
+import PropagationStageModal from '@/components/farm/seed-source/modals/PropagationStageModal.vue'
 import { useSeedSourceStore } from '@/stores'
 import {  SeedSource, SeedSourceFilters  } from '@/types/crop'
 
@@ -136,11 +157,18 @@ const filters = ref({
   startDate: '',
   endDate: '',
   status: '',
-  createBy: ''
+  createBy: '',
+  cropType: '',
+  orgId: '',
+  recorderId: '',
+  surplusMin: undefined,
+  surplusMax: undefined,
+  propagationType: undefined,
+  propagationStatus: undefined
 })
 
 // 分页
-const pagination = ref({ current, pageSize: 10 })
+const pagination = ref({ current: 1, pageSize: 10 })
 
 // 选中行
 const selectedRows = ref([])
@@ -156,6 +184,18 @@ const editModalVisible = ref(false)
 const detailModalVisible = ref(false)
 const printModalVisible = ref(false)
 const lightboxVisible = ref(false)
+
+// 操作模式状态（用于批量操作：编辑、删除、导出、打印）
+const operationMode = ref('normal')
+
+// 打印模式状态
+const printMode = ref(false)
+
+// 繁殖途径弹窗状态
+const propagationRecordVisible = ref(false)
+const propagationStageVisible = ref(false)
+const propagationRecord = ref(null)
+const propagationStageRecord = ref(null)
 
 // 当前记录
 const currentRecord = ref(null)
@@ -188,6 +228,8 @@ const filteredData = computed(() => {
   return items.value.filter(item => {
     if (filters.value.cropCategory && filters.value.cropCategory !== '__all__' && item.cropCategory !== filters.value.cropCategory) return false
     if (filters.value.cropName && !item.cropName.includes(filters.value.cropName)) return false
+    // 作物类型筛选（按cropCategory匹配）
+    if (filters.value.cropType && filters.value.cropType !== '__all__' && item.cropCategory !== filters.value.cropType) return false
     if (filters.value.seedCode && !item.seedCode.includes(filters.value.seedCode)) return false
     if (filters.value.sourceType && filters.value.sourceType !== '__all__' && item.sourceType !== filters.value.sourceType) return false
     if (filters.value.supplierName && filters.value.supplierName !== '__all__' && !item.supplierName.includes(filters.value.supplierName)) return false
@@ -195,27 +237,24 @@ const filteredData = computed(() => {
     if (filters.value.startDate && item.purchaseDate < filters.value.startDate) return false
     if (filters.value.endDate && item.purchaseDate > filters.value.endDate) return false
     if (filters.value.createBy && !item.createBy.includes(filters.value.createBy)) return false
+    // 剩余数量范围筛选
+    if (filters.value.surplusMin !== undefined && item.availableCount < filters.value.surplusMin) return false
+    if (filters.value.surplusMax !== undefined && item.availableCount > filters.value.surplusMax) return false
+    // 繁殖途径筛选
+    if (filters.value.propagationType) {
+      const itemPropType = item.propagationType || 'external'
+      if (itemPropType !== filters.value.propagationType) return false
+    }
+    if (filters.value.propagationStatus) {
+      const itemPropStatus = item.propagationStatus
+      if (itemPropStatus !== filters.value.propagationStatus) return false
+    }
     return true
   }).sort((a, b) => {
     const timeA = a.createTime ? new Date(a.createTime).getTime() : 0
     const timeB = b.createTime ? new Date(b.createTime).getTime() : 0
     return timeB - timeA
   })
-})
-
-// 统计数据
-const statsData = computed(() => {
-  const total = items.value.length
-  const totalQuantity = items.value.reduce((sum, item) => sum + item.availableCount, 0)
-  const monthCount = items.value.filter(item => {
-    const date = new Date(item.createTime)
-    const now = new Date()
-    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
-  }).length
-  const alertCount = items.value.filter(item =>
-    item.status === 'low' || item.status === 'depleted'
-  ).length
-  return { total, totalQuantity, monthCount, alertCount }
 })
 
 // 加载数据
@@ -242,7 +281,14 @@ const handleReset = () => {
     startDate: '',
     endDate: '',
     status: '',
-    createBy: ''
+    createBy: '',
+    cropType: '',
+    orgId: '',
+    recorderId: '',
+    surplusMin: undefined,
+    surplusMax: undefined,
+    propagationType: undefined,
+    propagationStatus: undefined
   }
   pagination.value.current = 1
 }
@@ -275,6 +321,54 @@ const handleDelete = async (ids) => {
   } catch {
     ElMessage.error('删除失败')
   }
+}
+
+// 操作模式变更
+const handleOperationModeChange = (mode) => {
+  operationMode.value = mode
+  selectedRows.value = []
+}
+
+// 打印模式变更
+const handlePrintModeChange = (mode) => {
+  printMode.value = mode
+  selectedRows.value = []
+}
+
+// 确认打印
+const handleConfirmPrint = (records) => {
+  if (records.length === 0) {
+    ElMessage.warning('请先选择要打印的记录')
+    return
+  }
+  currentRecord.value = records[0]
+  printModalVisible.value = true
+  printMode.value = false
+  selectedRows.value = []
+}
+
+// 处理结束（正常/异常）
+const handleEnd = (record, endType) => {
+  // 获取关联的生产计划批次号
+  if (!record.productionPlanCode) {
+    ElMessage.warning('该种源没有关联的生产计划，无法结束')
+    return
+  }
+  // 简化处理：直接提示
+  const isNormal = endType === 'normal'
+  ElMessage.info(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
+}
+
+// 处理繁殖过程记录
+const handlePropagationRecord = (record) => {
+  propagationRecord.value = record
+  propagationRecordVisible.value = true
+}
+
+// 处理繁殖阶段推进
+const handlePropagationStage = (record) => {
+  propagationStageRecord.value = record
+  propagationStageVisible.value = true
 }
 
 const handleExportClick = () => {

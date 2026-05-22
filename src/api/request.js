@@ -37,9 +37,19 @@ request.interceptors.response.use(
     // 关闭加载提示
     // loadingInstance?.close()
 
-    const { code, message, data } = response.data
+    // V1.1/V2.0 后端返回格式: { success: true, data } 或 { success: true, message, data }
+    const { success, message, data } = response.data
 
-    // 根据状态码处理
+    // 根据状态处理
+    if (success === true) {
+      return data
+    } else if (success === false || !success) {
+      // 业务层面的失败
+      ElMessage.warning(message || '请求失败')
+      return Promise.reject(new Error(message))
+    }
+    // 兼容旧的 code 格式（如果后端偶尔返回 code: 200）
+    const { code } = response.data
     if (code === 200) {
       return data
     } else if (code === 401) {

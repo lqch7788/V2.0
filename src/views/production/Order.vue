@@ -232,6 +232,11 @@ const orderTypeOptions = [
 onMounted(async () => {
   loading.value = true
   try {
+    // 同步待处理订单 + 加载数据
+    const result = await orderDataStore.syncPending()
+    if (result.success > 0 || result.failed > 0) {
+      console.log(`[OrderPage] 同步结果: 成功 ${result.success}, 失败 ${result.failed}`)
+    }
     await orderDataStore.fetchOrders()
     await orderDataStore.fetchStats()
   } finally {

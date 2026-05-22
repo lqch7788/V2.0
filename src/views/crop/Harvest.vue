@@ -1,19 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" class="text-white">
-            <OfficeBuilding />
-          </el-icon>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">采收入库</h1>
-          <p class="text-gray-500">管理采收记录、品质分级和入库操作</p>
-        </div>
-      </div>
-    </div>
+    <HarvestPageHeader />
 
     <!-- 统计卡片 -->
     <HarvestStatsCards :records="harvestRecords" />
@@ -28,29 +16,29 @@
       @reset="handleReset"
     />
 
-    <!-- 表格工具栏 -->
+    <!-- 表格区域 -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900">采收入库记录表</h3>
-        <div class="flex gap-2">
-          <el-button v-if="canCreate" type="primary" size="small" @click="isCreateModalOpen = true">
-            <el-icon><Plus /></el-icon>
-            新增
-          </el-button>
-          <el-button v-if="canEdit" type="primary" size="small" @click="handleBatchEdit">
-            <el-icon><Edit /></el-icon>
-            编辑
-          </el-button>
-          <el-button v-if="canDelete" type="danger" size="small" @click="handleBatchDelete">
-            <el-icon><Delete /></el-icon>
-            删除
-          </el-button>
-          <el-button v-if="canExport" size="small" @click="handleExport">
-            <el-icon><Download /></el-icon>
-            导出
-          </el-button>
-        </div>
-      </div>
+      <!-- 表格工具栏 -->
+      <HarvestTableToolbar
+        :can-create="canCreate"
+        :can-edit="canEdit"
+        :can-delete="canDelete"
+        :can-export="canExport"
+        :export-mode="exportMode"
+        :batch-edit-mode="batchEditMode"
+        :batch-delete-mode="batchDeleteMode"
+        :selected-rows="selectedRows"
+        @create="isCreateModalOpen = true"
+        @batch-edit="handleBatchEdit"
+        @batch-delete="handleBatchDelete"
+        @export="handleExport"
+        @confirm-export="handleConfirmExport"
+        @cancel-export="handleCancelExport"
+        @confirm-batch-edit="handleConfirmBatchEdit"
+        @cancel-batch-edit="handleCancelBatchEdit"
+        @confirm-batch-delete="handleConfirmBatchDelete"
+        @cancel-batch-delete="handleCancelBatchDelete"
+      />
 
       <!-- 加载状态 -->
       <div v-if="loading" class="flex items-center justify-center py-12">
@@ -64,8 +52,20 @@
       <HarvestTable
         v-else
         :records="filteredRecords"
+        :current-page="currentPage"
+        :page-size="pageSize"
         @view-detail="handleViewDetail"
       />
+
+      <!-- 批量操作底部提示栏 -->
+      <div v-if="(exportMode || batchEditMode || batchDeleteMode) && selectedRows.length > 0" class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
+        <div class="flex items-center gap-4">
+          <el-button link size="sm" @click="handleSelectAll">
+            {{ selectedRows.length === filteredRecords.length ? '全不选' : '全选' }}
+          </el-button>
+          <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
+        </div>
+      </div>
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
@@ -82,163 +82,71 @@
     </div>
 
     <!-- 新增采收记录弹窗 -->
-    <el-dialog v-model="isCreateModalOpen" title="新增采收记录" width="900px" destroy-on-close>
-      <el-form :model="newRecord" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="采收批次">
-              <el-select v-model="newRecord.batchCode" placeholder="请选择" class="w-full">
-                <el-option v-for="b in cropBatches" :key="b.batchCode" :label="b.batchCode" :value="b.batchCode" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="采收单号">
-              <el-input v-model="newRecord.harvestCode" placeholder="点击生成" class="w-full">
-                <template #append>
-                  <el-button @click="generateHarvestCode">生成</el-button>
-                </template>
-              </el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="采收区域">
-              <el-select v-model="newRecord.greenhouseId" placeholder="请选择" class="w-full">
-                <el-option v-for="g in greenhouses" :key="g.id" :label="g.name" :value="g.id" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="入库仓库">
-              <el-select v-model="newRecord.warehouseId" placeholder="请选择" class="w-full">
-                <el-option v-for="w in warehouseOptions" :key="w.value" :label="w.label" :value="w.value" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="采收时间">
-              <el-date-picker v-model="newRecord.harvestDate" type="datetime" format="YYYY-MM-DD HH:mm" value-format="YYYY-MM-DD HH:mm" class="w-full" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="采收人员">
-              <el-select v-model="newRecord.harvesterIds" multiple placeholder="请选择" class="w-full">
-                <el-option v-for="u in users" :key="u.id" :label="u.name" :value="u.id" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="单价(元/kg)">
-              <el-input-number v-model="newRecord.unitPrice" :min="0" :precision="2" class="w-full" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="审核人员">
-              <el-input v-model="newRecord.auditor" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="备注">
-          <el-input v-model="newRecord.remarks" type="textarea" :rows="3" />
-        </el-form-item>
-
-        <!-- 产品明细 -->
-        <el-divider>产品明细</el-divider>
-        <div v-for="(product, index) in newRecord.products" :key="index" class="mb-4 p-4 bg-gray-50 rounded">
-          <el-row :gutter="20">
-            <el-col :span="8">
-              <el-form-item label="品种">
-                <el-input v-model="product.variety" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="采收量">
-                <el-input-number v-model="product.harvestQuantity" :min="0" class="w-full" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="品质等级">
-                <el-select v-model="product.grade" class="w-full">
-                  <el-option label="A级" value="A" />
-                  <el-option label="B级" value="B" />
-                  <el-option label="C级" value="C" />
-                </el-select>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-button type="danger" size="small" @click="handleRemoveProduct(index)">删除</el-button>
-        </div>
-        <el-button type="primary" plain @click="handleAddProduct">添加产品</el-button>
-      </el-form>
-      <template #footer>
-        <el-button @click="isCreateModalOpen = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateRecord">确定</el-button>
-      </template>
-    </el-dialog>
+    <AddModal
+      :is-open="isCreateModalOpen"
+      :crop-batches="cropBatches"
+      :greenhouses="greenhouses"
+      :warehouse-options="warehouseOptions"
+      :users="users"
+      @close="isCreateModalOpen = false"
+      @save="handleAddModalSave"
+    />
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="showDetailModal" title="采收详情" width="800px" destroy-on-close>
-      <el-descriptions v-if="selectedDetailRecord" :column="2" border>
-        <el-descriptions-item label="采收单号">{{ selectedDetailRecord.harvestCode }}</el-descriptions-item>
-        <el-descriptions-item label="采收时间">{{ selectedDetailRecord.harvestDate }}</el-descriptions-item>
-        <el-descriptions-item label="采收区域">{{ selectedDetailRecord.greenhouseName }}</el-descriptions-item>
-        <el-descriptions-item label="入库仓库">{{ selectedDetailRecord.warehouseName }}</el-descriptions-item>
-        <el-descriptions-item label="采收人员">{{ (selectedDetailRecord.harvesterNames || []).join(', ') }}</el-descriptions-item>
-        <el-descriptions-item label="单价">{{ selectedDetailRecord.unitPrice ? `${selectedDetailRecord.unitPrice.toFixed(2)} 元/kg` : '-' }}</el-descriptions-item>
-        <el-descriptions-item label="总收入">{{ selectedDetailRecord.totalAmount ? `${selectedDetailRecord.totalAmount.toFixed(2)} 元` : '-' }}</el-descriptions-item>
-        <el-descriptions-item label="品质等级">{{ selectedDetailRecord.grade || 'A' }}级</el-descriptions-item>
-        <el-descriptions-item label="采收量">{{ selectedDetailRecord.harvestQuantity }} {{ selectedDetailRecord.unit || 'kg' }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="statusTypeMap[selectedDetailRecord.status] || 'info'" size="small">
-            {{ statusLabelMap[selectedDetailRecord.status] || selectedDetailRecord.status }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="审核人员">{{ selectedDetailRecord.auditor || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">{{ selectedDetailRecord.remarks || '-' }}</el-descriptions-item>
-      </el-descriptions>
-    </el-dialog>
+    <DetailModal
+      :is-open="showDetailModal"
+      :record="selectedDetailRecord"
+      @close="showDetailModal = false"
+    />
 
     <!-- 导出格式选择弹窗 -->
-    <el-dialog v-model="showExportModal" title="导出数据" width="400px">
-      <el-form label-width="100px">
-        <el-form-item label="导出格式">
-          <el-radio-group v-model="exportFormat">
-            <el-radio label="excel">Excel</el-radio>
-            <el-radio label="csv">CSV</el-radio>
-            <el-radio label="word">Word</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showExportModal = false">取消</el-button>
-        <el-button type="primary" @click="handleDoExport">确定</el-button>
-      </template>
-    </el-dialog>
+    <ExportModal
+      :is-open="showExportModal"
+      :export-format="exportFormat"
+      :selected-count="selectedRows.length"
+      @close="showExportModal = false"
+      @confirm="handleDoExport"
+      @format-change="exportFormat = $event"
+    />
 
     <!-- 删除确认弹窗 -->
-    <el-dialog v-model="showDeleteWarning" title="确认删除" width="400px">
-      <p>确定要删除选中的 {{ selectedRows.length }} 条记录吗？此操作不可恢复。</p>
-      <template #footer>
-        <el-button @click="showDeleteWarning = false">取消</el-button>
-        <el-button type="danger" @click="handleConfirmBatchDelete">确认删除</el-button>
-      </template>
-    </el-dialog>
+    <DeleteModal
+      :is-open="showDeleteWarning"
+      :selected-count="selectedRows.length"
+      @close="showDeleteWarning = false"
+      @confirm="handleConfirmBatchDelete"
+    />
+
+    <!-- 批量编辑弹窗 -->
+    <BatchEditModal
+      :is-open="showBatchEditModal"
+      :selected-rows="selectedRows"
+      :records="filteredRecords"
+      :edited-record-ids="editedRecordIds"
+      :edited-records="editedRecords"
+      :selected-record-id="selectedRecordId"
+      :greenhouses="greenhouses"
+      :warehouses="warehouseOptions"
+      :users="users"
+      :crop-batches="cropBatches"
+      @close="showBatchEditModal = false"
+      @confirm="handleConfirmBatchEdit"
+      @update:selectedRecordId="selectedRecordId = $event"
+      @update:editedRecords="editedRecords = $event"
+      @update:editedRecordIds="editedRecordIds = $event"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { OfficeBuilding, Plus, Edit, Delete, Download } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import HarvestPageHeader from '@/components/farm/harvest/components/HarvestPageHeader.vue'
 import HarvestStatsCards from '@/components/farm/harvest/components/HarvestStatsCards.vue'
 import HarvestFilterToolbar from '@/components/farm/harvest/HarvestFilterToolbar.vue'
+import HarvestTableToolbar from '@/components/farm/harvest/components/HarvestTableToolbar.vue'
 import HarvestTable from '@/components/farm/harvest/HarvestTable.vue'
+import { AddModal, DetailModal, ExportModal, DeleteModal, BatchEditModal } from '@/components/farm/harvest/modals'
 
 // 权限设置（已取消，直接设置为 true）
 const canCreate = ref(true)
@@ -247,7 +155,6 @@ const canDelete = ref(true)
 const canExport = ref(true)
 
 // 搜索筛选
-
 const searchFilters = ref({
   harvestCode: '',
   batchCode: '',
@@ -271,9 +178,20 @@ const isCreateModalOpen = ref(false)
 const showDetailModal = ref(false)
 const showExportModal = ref(false)
 const showDeleteWarning = ref(false)
+const showBatchEditModal = ref(false)
 
 // 选中行
 const selectedRows = ref([])
+
+// 批量操作模式
+const exportMode = ref(false)
+const batchEditMode = ref(false)
+const batchDeleteMode = ref(false)
+
+// 批量编辑状态
+const editedRecordIds = ref([])
+const editedRecords = ref({})
+const selectedRecordId = ref('')
 
 // 导出格式
 const exportFormat = ref('excel')
@@ -297,29 +215,14 @@ const users = ref([
 ])
 
 const cropBatches = ref([
-  { batchCode: 'PC202405001', cropName: '番茄', variety: '大红番茄', plantingMode: '温室' },
-  { batchCode: 'PC202405002', cropName: '黄瓜', variety: '水果黄瓜', plantingMode: '温室' },
+  { batchCode: 'PC202405001', cropName: '番茄', variety: '大红番茄', plantingMode: '温室', planType: 'planting' },
+  { batchCode: 'PC202405002', cropName: '黄瓜', variety: '水果黄瓜', plantingMode: '温室', planType: 'planting' },
 ])
 
-// 状态映射
-const statusTypeMap = {
-  pending: 'info',
-  harvesting: 'warning',
-  harvested: 'success',
-  graded: 'primary',
-  stored: 'success'
-}
-
-const statusLabelMap = {
-  pending: '待采收',
-  harvesting: '采收中',
-  harvested: '已采收',
-  graded: '已分级',
-  stored: '已入库'
-}
+// 详情记录
+const selectedDetailRecord = ref(null)
 
 // 采收记录数据
-
 const harvestRecords = ref([
   {
     id: '1',
@@ -371,23 +274,6 @@ const harvestRecords = ref([
   }
 ])
 
-// 新增表单
-const newRecord = ref({
-  harvestCode: '',
-  batchCode: '',
-  greenhouseId: '',
-  harvestDate: new Date().toISOString().slice(0, 16),
-  warehouseId: '',
-  harvesterIds: [],
-  auditor: '管理员',
-  remarks: '',
-  unitPrice: 0,
-  products: []
-})
-
-// 详情记录
-const selectedDetailRecord = ref(null)
-
 // 筛选后的记录
 const filteredRecords = computed(() => {
   return harvestRecords.value.filter(record => {
@@ -433,93 +319,44 @@ const handleViewDetail = (record) => {
   showDetailModal.value = true
 }
 
-// 生成采收单号
-const generateHarvestCode = () => {
-  const date = new Date()
-  const code = `HS${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
-  newRecord.value.harvestCode = code
+// 批量编辑
+const handleBatchEdit = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要编辑的记录')
+    return
+  }
+  batchEditMode.value = true
+  showBatchEditModal.value = true
 }
 
-// 添加产品
-const handleAddProduct = () => {
-  newRecord.value.products.push({
-    variety: '',
-    harvestQuantity: 0,
-    grade: 'A'
+// AddModal 保存回调
+const handleAddModalSave = (record) => {
+  harvestRecords.value.unshift({
+    id: Date.now().toString(),
+    ...record
   })
-}
-
-// 删除产品
-const handleRemoveProduct = (index) => {
-  newRecord.value.products.splice(index, 1)
-}
-
-// 创建记录
-const handleCreateRecord = () => {
-  if (!newRecord.value.batchCode) {
-    ElMessage.warning('请选择采收批次')
-    return
-  }
-  if (!newRecord.value.harvestCode) {
-    ElMessage.warning('请生成采收单号')
-    return
-  }
-
-  const selectedBatch = cropBatches.value.find(b => b.batchCode === newRecord.value.batchCode)
-  const selectedGreenhouse = greenhouses.value.find(g => g.id === newRecord.value.greenhouseId)
-  const selectedWarehouse = warehouseOptions.value.find(w => w.value === newRecord.value.warehouseId)
-  const selectedUsers = users.value.filter(u => newRecord.value.harvesterIds.includes(u.id))
-
-  const totalQuantity = newRecord.value.products.reduce((sum, p) => sum + (p.harvestQuantity || 0), 0)
-
-  const record = {
-    id: Date.now(),
-    harvestCode: newRecord.value.harvestCode,
-    batchCode: newRecord.value.batchCode,
-    cropName: selectedBatch?.cropName || '',
-    greenhouseId: newRecord.value.greenhouseId,
-    greenhouseName: selectedGreenhouse?.name || '',
-    harvestDate: newRecord.value.harvestDate,
-    harvestQuantity: totalQuantity || 0,
-    unit: 'kg',
-    grade: newRecord.value.products[0]?.grade || 'A',
-    warehouseId: newRecord.value.warehouseId,
-    warehouseName: selectedWarehouse?.label || '',
-    harvesterIds: newRecord.value.harvesterIds,
-    harvesterNames: selectedUsers.map(u => u.name),
-    status: 'harvested',
-    remarks: newRecord.value.remarks,
-    auditor: newRecord.value.auditor,
-    variety: selectedBatch?.variety || '',
-    plantingMode: selectedBatch?.plantingMode || '',
-    targetYield: 0,
-    unitPrice: newRecord.value.unitPrice,
-    totalAmount: totalQuantity * newRecord.value.unitPrice
-  }
-
-  harvestRecords.value.unshift(record)
   isCreateModalOpen.value = false
-
-  // 重置表单
-  newRecord.value = {
-    harvestCode: '',
-    batchCode: '',
-    greenhouseId: '',
-    harvestDate: new Date().toISOString().slice(0, 16),
-    warehouseId: '',
-    harvesterIds: [],
-    auditor: '管理员',
-    remarks: '',
-    unitPrice: 0,
-    products: []
-  }
-
   ElMessage.success('新增成功')
 }
 
-// 批量编辑
-const handleBatchEdit = () => {
-  ElMessage.info('批量编辑功能')
+// 确认批量编辑
+const handleConfirmBatchEdit = async () => {
+  showBatchEditModal.value = false
+  batchEditMode.value = false
+  selectedRows.value = []
+  editedRecordIds.value = []
+  editedRecords.value = {}
+  selectedRecordId.value = ''
+  ElMessage.success('批量编辑成功')
+}
+
+// 取消批量编辑
+const handleCancelBatchEdit = () => {
+  batchEditMode.value = false
+  selectedRows.value = []
+  editedRecordIds.value = []
+  editedRecords.value = {}
+  selectedRecordId.value = ''
 }
 
 // 批量删除
@@ -528,6 +365,7 @@ const handleBatchDelete = () => {
     ElMessage.warning('请先选择要删除的记录')
     return
   }
+  batchDeleteMode.value = true
   showDeleteWarning.value = true
 }
 
@@ -535,8 +373,15 @@ const handleBatchDelete = () => {
 const handleConfirmBatchDelete = async () => {
   // 删除逻辑
   showDeleteWarning.value = false
+  batchDeleteMode.value = false
   selectedRows.value = []
   ElMessage.success('删除成功')
+}
+
+// 取消批量删除
+const handleCancelBatchDelete = () => {
+  batchDeleteMode.value = false
+  selectedRows.value = []
 }
 
 // 导出
@@ -545,12 +390,39 @@ const handleExport = () => {
     ElMessage.warning('请先选择要导出的数据')
     return
   }
+  exportMode.value = true
   showExportModal.value = true
 }
 
 // 确认导出
+const handleConfirmExport = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要导出的数据')
+    return
+  }
+  showExportModal.value = true
+}
+
+// 取消导出
+const handleCancelExport = () => {
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+// 执行导出
 const handleDoExport = () => {
-  ElMessage.info(`导出格式: ${exportFormat.value}`)
+  ElMessage.info('导出格式: ' + exportFormat.value)
   showExportModal.value = false
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+// 全选/取消全选
+const handleSelectAll = () => {
+  if (selectedRows.value.length === filteredRecords.value.length) {
+    selectedRows.value = []
+  } else {
+    selectedRows.value = filteredRecords.value.map((_, index) => index)
+  }
 }
 </script>

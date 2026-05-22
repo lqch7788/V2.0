@@ -1,5 +1,5 @@
 <template>
-  <!-- 分类管理面板组件 -->
+  <!-- 分类管理面板组件 - V1.1样式 -->
   <div class="space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- 分类汇总 -->
@@ -17,9 +17,7 @@
             <div class="flex items-center gap-3">
               <div class="w-4 h-4 rounded" :style="{ backgroundColor: cat.color }" />
               <span class="text-sm font-medium text-gray-900">{{ cat.name }}</span>
-              <el-tag size="small" type="info" effect="plain">
-                {{ cat.count }}个
-              </el-tag>
+              <span class="px-2 py-0.5 text-xs bg-blue-50 text-blue-700 rounded-full border border-blue-200">{{ cat.count }}个</span>
             </div>
             <span class="text-sm font-medium text-blue-600 font-mono">
               平均达成 {{ cat.avgAchievement }}%
@@ -41,45 +39,42 @@
         <el-icon :size="20" class="text-blue-600"><Setting /></el-icon>
         指标定义配置
       </h3>
-      <el-table :data="paginatedIndicators" style="width: 100%">
-        <el-table-column prop="code" label="编码" width="120">
-          <template #default="{ row }">
-            <span class="text-sm font-mono text-gray-600">{{ row.code }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="name" label="名称" min-width="150">
-          <template #default="{ row }">
-            <span class="text-sm font-medium text-gray-900">{{ row.name }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="unit" label="计量单位" width="100" />
-        <el-table-column prop="target" label="目标值" width="100">
-          <template #default="{ row }">
-            <span class="text-sm text-gray-700 font-mono">{{ row.target }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="预警值" width="100">
-          <template #default="{ row }">
-            <span class="text-sm text-amber-600 font-mono">{{ row.warning }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="weight" label="权重" width="100">
-          <template #default="{ row }">
-            <span class="text-sm text-gray-700 font-mono">{{ row.weight }}%</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="100">
-          <template #default>
-            <el-button type="primary" link size="small">配置</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <tr>
+            <th class="px-3 py-3 text-left text-sm font-semibold">编码</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">名称</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">计量单位</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">目标值</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">预警值</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">权重</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">操作</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-300">
+          <tr
+            v-for="ind in paginatedIndicators"
+            :key="ind.id"
+            class="hover:bg-blue-50 transition-all duration-300"
+          >
+            <td class="px-3 py-3 text-sm font-mono text-gray-600">{{ ind.code }}</td>
+            <td class="px-3 py-3 text-sm font-medium text-gray-900">{{ ind.name }}</td>
+            <td class="px-3 py-3 text-sm text-gray-700">{{ ind.unit }}</td>
+            <td class="px-3 py-3 text-sm text-gray-700 font-mono">{{ ind.target }}</td>
+            <td class="px-3 py-3 text-sm text-amber-600 font-mono">{{ ind.warning }}</td>
+            <td class="px-3 py-3 text-sm text-gray-700 font-mono">{{ ind.weight }}%</td>
+            <td class="px-3 py-3">
+              <el-button type="primary" link size="small" class="text-blue-600">配置</el-button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { PieChart, Setting } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 
@@ -90,17 +85,18 @@ const props = defineProps({
 
 // 饼图容器
 const pieChartRef = ref()
+let pieChartInstance = null
 
-// 分页后的指标数据
+// 分页后的指标数据（只显示前10条）
 const paginatedIndicators = computed(() => {
-  return props.indicators.slice(0, 10)
+  return props.indicators ? props.indicators.slice(0, 10) : []
 })
 
 // 初始化饼图
 const initPieChart = () => {
   if (!pieChartRef.value) return
 
-  const chart = echarts.init(pieChartRef.value)
+  pieChartInstance = echarts.init(pieChartRef.value)
 
   const option = {
     tooltip: {
@@ -109,32 +105,66 @@ const initPieChart = () => {
     },
     legend: {
       orient: 'vertical',
-      left: 'left'
+      right: 10,
+      top: 'center'
     },
     series: [
       {
         name: '指标分布',
         type: 'pie',
-        radius: '70%',
+        radius: ['0%', '70%'],
+        center: ['30%', '50%'],
         data: props.categorySummary.map(item => ({
           name: item.name,
-          value: item.count
+          value: item.count,
+          itemStyle: { color: item.color }
         })),
         emphasis: {
           itemStyle: {
-            shadowBlur,
-            shadowOffsetX,
+            shadowBlur: 10,
+            shadowOffsetX: 0,
             shadowColor: 'rgba(0, 0, 0, 0.5)'
           }
+        },
+        label: {
+          show: true,
+          formatter: '{b}: {c}',
+          fontSize: 12
         }
       }
     ]
   }
 
-  chart.setOption(option)
+  pieChartInstance.setOption(option)
+}
+
+// 响应窗口大小变化
+const handleResize = () => {
+  if (pieChartInstance) {
+    pieChartInstance.resize()
+  }
 }
 
 onMounted(() => {
   initPieChart()
+  window.addEventListener('resize', handleResize)
+})
+
+// 监听数据变化，当数据更新时重新渲染图表
+watch(() => props.categorySummary, () => {
+  if (pieChartInstance) {
+    initPieChart()
+  }
+}, { deep: true })
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (pieChartInstance) {
+    pieChartInstance.dispose()
+  }
 })
 </script>
+
+<style scoped>
+/* V1.1表格样式，表头渐变蓝色，行悬浮高亮 */
+</style>

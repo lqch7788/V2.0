@@ -3,16 +3,16 @@
     <div
       v-for="(stat, index) in stats"
       :key="index"
-      class="bg-white rounded-lg p-3 shadow-sm border border-gray-100"
+      class="bg-white rounded-lg p-4 shadow-sm border border-gray-100"
     >
-      <div class="flex items-center gap-2">
-        <div :class="['w-8 h-8 rounded-lg flex items-center justify-center', stat.color]">
-          <el-icon :size="16" class="text-white">
+      <div class="flex items-center gap-3">
+        <div :class="['w-10 h-10 rounded-lg flex items-center justify-center', stat.color]">
+          <el-icon :size="20" style="color: white;">
             <component :is="stat.icon" />
           </el-icon>
         </div>
         <div>
-          <p class="text-lg font-bold text-gray-900">{{ stat.value }}</p>
+          <p class="text-xl font-bold text-gray-900">{{ stat.value }}</p>
           <p class="text-xs text-gray-500">{{ stat.label }}</p>
         </div>
       </div>
@@ -22,34 +22,43 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Goods, OfficeBuilding, CaretTop, Warning } from '@element-plus/icons-vue'
+import { Goods, OfficeBuilding, TrendCharts, Warning } from '@element-plus/icons-vue'
 
-const props = defineProps({})
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({
+      total: 0,
+      totalQuantity: 0,
+      monthCount: 0,
+      alertCount: 0
+    })
+  }
+})
 
 const stats = computed(() => [
   {
     label: '总种源数',
-    value: props.data.total,
-    icon,
+    value: props.data.total || 0,
+    icon: Goods,
     color: 'bg-emerald-500',
   },
   {
     label: '库存总量',
-    value: props.data.totalQuantity.toLocaleString(),
-    icon,
+    value: (props.data.totalQuantity || 0).toLocaleString(),
+    icon: OfficeBuilding,
     color: 'bg-blue-500',
-    unit: '株/粒',
   },
   {
     label: '本月新增',
-    value: props.data.monthCount,
-    icon,
+    value: props.data.monthCount || 0,
+    icon: TrendCharts,
     color: 'bg-amber-500',
   },
   {
     label: '库存预警',
-    value: props.data.alertCount,
-    icon,
+    value: props.data.alertCount || 0,
+    icon: Warning,
     color: 'bg-red-500',
   },
 ])

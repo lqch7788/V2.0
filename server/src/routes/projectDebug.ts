@@ -34,7 +34,7 @@ router.get('/diagnostics', (req, res) => {
 
     res.json({
       success: true, data: {
-        hmi: { version: 'V1.1.0', buildDate: '2026-05-19', nodeVersion: process.version, platform: process.platform },
+        hmi: { version: 'V2.0.0', buildDate: '2026-05-22', nodeVersion: process.version, platform: process.platform },
         database: { tableCount, tableRows, dbSize: 'SQLite (运行中)' },
         memory: { heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024), heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024), unit: 'MB' },
         uptime: process.uptime(),
@@ -71,8 +71,8 @@ router.post('/db-test', (req, res) => {
 router.get('/hmi', (req, res) => {
   res.json({
     success: true, data: {
-      version: 'V1.1.0',
-      buildDate: '2026-05-19',
+      version: 'V2.0.0',
+      buildDate: '2026-05-22',
       nodeVersion: process.version,
       platform: process.platform,
       arch: process.arch,

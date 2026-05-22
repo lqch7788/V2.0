@@ -145,8 +145,8 @@ router.use('/material-requests', requireAuth, materialRequestRouter);
 // 基础数据路由（部门/仓库/温室/职位/区域/地块/编码规则/通知渠道/通知规则等）- 可选认证（公开数据）
 router.use('/basic-data', optionalAuth, basicDataRouter);
 
-// 数据字典路由 - 需要认证
-router.use('/dictionary', requireAuth, dictionaryRouter);
+// 数据字典路由 - 可选认证（公开数据，系统配置可匿名访问）
+router.use('/dictionary', optionalAuth, dictionaryRouter);
 
 // 组织与权限路由 - 公开（登录/验证接口）
 router.use('/authority', authorityRouter);

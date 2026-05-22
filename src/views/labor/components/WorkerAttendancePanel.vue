@@ -246,16 +246,19 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import {
   Calendar, CircleCheck, CircleClose, Warning, Search, Plus, Edit, Delete, Download
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { } from 'element-plus'
-import { mockAttendanceRecords } from '@/data/mockData'
+import { useLaborStore } from '@/stores/modules/labor'
+import { enhancedApiClient } from '@/lib/apiClient'
 
 // 今日日期字符串
 const todayStr = new Date().toISOString().split('T')[0]
+
+// Labor Store
+const laborStore = useLaborStore()
 
 // 部门列表
 const departments = ['技术部', '运营部', '市场部', '财务部']
@@ -305,13 +308,61 @@ const formRules = {
   status: [{ required: true, message: '请选择状态', trigger: 'change' }]
 }
 
-// 模拟数据
-const allData = ref([...mockAttendanceRecords])
+// 规范化后端数据为前端格式
+function normalizeAttendance(record) {
+  return {
+    id: record.id,
+    workerName: record.name || record.worker_name || '',
+    department: record.dept || '',
+    date: record.date || '',
+    checkInTime: record.check_in || '',
+    checkOutTime: record.check_out || '',
+    status: record.status_class || record.status || 'normal',
+    remark: record.remarks || ''
+  }
+}
+
+// 规范化前端数据为后端格式
+function denormalizeAttendance(data) {
+  return {
+    id: data.id,
+    worker_id: data.workerName,
+    name: data.workerName,
+    dept: data.department,
+    date: data.date,
+    check_in: data.checkInTime,
+    check_out: data.checkOutTime,
+    status: data.status,
+    status_class: data.status,
+    remarks: data.remark
+  }
+}
+
+// 考勤数据
+const allData = ref([])
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = {}
+    if (filters.date) params.start_date = filters.date
+    if (filters.date) params.end_date = filters.date
+    if (filters.department) params.dept = filters.department
+    if (filters.keyword) params.keyword = filters.keyword
+
+    const response = await enhancedApiClient.get('/attendance', params)
+    const records = response?.data || response || []
+    allData.value = Array.isArray(records) ? records.map(r => normalizeAttendance(r)) : []
+  } catch (error) {
+    console.error('[WorkerAttendancePanel] 加载考勤数据失败:', error)
+    allData.value = []
+  }
+}
 
 // 筛选后的数据
 const filteredData = computed(() => {
   return allData.value.filter(record => {
-    if (filters.keyword && !record.userName.includes(filters.keyword)) return false
+    if (filters.keyword && !record.workerName.includes(filters.keyword)) return false
     if (filters.department && record.department !== filters.department) return false
     if (filters.status && record.status !== filters.status) return false
     if (filters.date && record.date !== filters.date) return false
@@ -325,12 +376,15 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(start, start + pagination.pageSize)
 })
 
-// 排班对比数据（模拟）
-const scheduleComparison = ref({
-  scheduledCount: 20,
-  checkedInCount: 18,
-  absentCount: 2,
-  unscheduledCount: 1
+// 排班对比数据（基于实际数据计算）
+const scheduleComparison = computed(() => {
+  const todayRecords = allData.value.filter(r => r.date === todayStr)
+  return {
+    scheduledCount: todayRecords.length,
+    checkedInCount: todayRecords.filter(r => r.checkInTime).length,
+    absentCount: todayRecords.filter(r => !r.checkInTime && r.status !== 'leave').length,
+    unscheduledCount: 0
+  }
 })
 
 // 状态映射
@@ -348,6 +402,7 @@ const getStatusType = (status) => statusMap[status]?.type || 'info'
 // 搜索
 const handleSearch = () => {
   pagination.currentPage = 1
+  loadData()
 }
 
 // 重置
@@ -357,6 +412,7 @@ const handleReset = () => {
   filters.status = ''
   filters.date = todayStr
   pagination.currentPage = 1
+  loadData()
 }
 
 // 批量模式
@@ -406,7 +462,7 @@ const openFormModal = () => {
     id: null,
     workerName: '',
     department: '',
-    date: '',
+    date: filters.date || todayStr,
     checkInTime: '',
     checkOutTime: '',
     status: 'normal',
@@ -418,27 +474,34 @@ const openFormModal = () => {
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      if (isEdit.value) {
-        // 编辑
-        const index = allData.value.findIndex(r => r.id === formData.id)
-        if (index !== -1) {
-          allData.value[index] = { ...formData }
+      try {
+        const data = denormalizeAttendance(formData)
+        if (isEdit.value) {
+          // 编辑
+          await enhancedApiClient.put(`/attendance/${formData.id}`, data)
+          ElMessage.success('编辑成功')
+        } else {
+          // 新增
+          data.id = `ATT_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+          await enhancedApiClient.post('/attendance/batch', { records: [data] })
+          ElMessage.success('新增成功')
         }
-        ElMessage.success('编辑成功')
-      } else {
-        // 新增
-        allData.value.unshift({
-          id: Date.now(),
-          ...formData
-        })
-        ElMessage.success('新增成功')
+        formDialogVisible.value = false
+        loadData()
+      } catch (error) {
+        console.error('提交考勤失败:', error)
+        ElMessage.error('提交失败')
       }
-      formDialogVisible.value = false
     }
   })
 }
+
+// 初始化加载
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>

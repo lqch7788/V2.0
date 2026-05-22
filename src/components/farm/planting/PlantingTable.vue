@@ -12,7 +12,7 @@
           <el-icon><Download /></el-icon>
           导出
         </el-button>
-        <el-button size="small" type="primary" class="bg-purple-600 hover:bg-purple-700" @click="$emit('print')">
+        <el-button v-if="canPrint" size="small" type="primary" class="bg-purple-600 hover:bg-purple-700" @click="$emit('print')">
           <el-icon><Printer /></el-icon>
           标签打印
         </el-button>
@@ -20,8 +20,10 @@
     </div>
 
     <!-- 表格 -->
-    <el-table :data="paginatedData" border style="width: 100%" max-height="calc(100vh - 380px)">
+    <el-table :data="paginatedData" border style="width: 100%" max-height="calc(100vh - 420px)">
       <el-table-column type="index" width="50" label="序号" align="center" />
+
+      <!-- 种植批号 -->
       <el-table-column prop="plantCode" label="种植批号" width="140">
         <template #default="{ row }">
           <span class="font-mono text-blue-600 font-semibold cursor-pointer hover:text-blue-800 hover:underline" @click="$emit('detail', row)">
@@ -29,36 +31,104 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="productionPlanCode" label="关联生产计划" width="140">
+
+      <!-- 来源类型 -->
+      <el-table-column prop="sourceType" label="来源类型" width="90" align="center">
         <template #default="{ row }">
-          <span v-if="row.productionPlanCode" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">
-            {{ row.productionPlanCode }}
+          <span :class="row.sourceType === 'seed' ? 'text-emerald-600' : 'text-blue-600'">
+            {{ row.sourceType === 'seed' ? '种子' : '种苗' }}
           </span>
-          <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column prop="cropName" label="作物品种" width="100" />
-      <el-table-column prop="areaName" label="种植区域" width="140" />
+
+      <!-- 来源批号 -->
+      <el-table-column prop="sourceCode" label="来源批号" width="130">
+        <template #default="{ row }">
+          <span class="text-gray-700">{{ row.sourceCode || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 作物品种 -->
+      <el-table-column prop="cropName" label="作物品种" width="90" />
+
+      <!-- 品种 -->
+      <el-table-column prop="cropVariety" label="品种" width="100">
+        <template #default="{ row }">
+          <span class="text-gray-700">{{ row.cropVariety || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 种植区域 -->
+      <el-table-column prop="areaName" label="种植区域" width="100" />
+
+      <!-- 大棚名称 -->
+      <el-table-column prop="rootName" label="大棚名称" width="100">
+        <template #default="{ row }">
+          <span class="text-gray-700">{{ row.rootName || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 种植数量 -->
       <el-table-column prop="plantingCount" label="种植数量" width="100" align="right">
         <template #default="{ row }">
           <span class="text-emerald-600 font-medium">{{ row.plantingCount?.toLocaleString() }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="plantingDate" label="种植日期" width="120" />
-      <el-table-column prop="soilPH" label="土壤PH" width="90" align="center">
+
+      <!-- 种植日期 -->
+      <el-table-column prop="plantingDate" label="种植日期" width="110" />
+
+      <!-- 土壤PH -->
+      <el-table-column prop="soilPH" label="土壤PH" width="80" align="center">
         <template #default="{ row }">
           <span :class="row.soilPH != null && row.soilPH > 0 ? 'font-mono text-gray-700' : 'text-gray-400'">
             {{ row.soilPH != null && row.soilPH > 0 ? row.soilPH.toFixed(1) : '-' }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="soilEC" label="土壤EC" width="90" align="center">
+
+      <!-- 土壤EC -->
+      <el-table-column prop="soilEC" label="土壤EC" width="80" align="center">
         <template #default="{ row }">
           <span :class="row.soilEC != null && row.soilEC > 0 ? 'font-mono text-gray-700' : 'text-gray-400'">
             {{ row.soilEC != null && row.soilEC > 0 ? row.soilEC.toFixed(1) : '-' }}
           </span>
         </template>
       </el-table-column>
+
+      <!-- 移栽数量 -->
+      <el-table-column prop="transplantCount" label="移栽数量" width="100" align="right">
+        <template #default="{ row }">
+          <span :class="row.transplantCount > 0 ? 'text-blue-600' : 'text-gray-400'">
+            {{ row.transplantCount > 0 ? row.transplantCount.toLocaleString() : '-' }}
+          </span>
+        </template>
+      </el-table-column>
+
+      <!-- 移栽日期 -->
+      <el-table-column prop="transplantDate" label="移栽日期" width="110">
+        <template #default="{ row }">
+          <span class="text-gray-700">{{ row.transplantDate || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 是否采收 -->
+      <el-table-column prop="isHarvest" label="是否采收" width="90" align="center">
+        <template #default="{ row }">
+          <el-tag :type="row.isHarvest ? 'success' : 'info'" size="small">
+            {{ row.isHarvest ? '是' : '否' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+
+      <!-- 采收日期 -->
+      <el-table-column prop="harvestDate" label="采收日期" width="110">
+        <template #default="{ row }">
+          <span class="text-gray-700">{{ row.harvestDate || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 损耗率 -->
       <el-table-column prop="attritionRate" label="损耗率" width="85" align="center">
         <template #default="{ row }">
           <span :class="row.attritionRate != null && row.attritionRate > 0 ? 'text-amber-600 font-medium' : 'text-gray-400'">
@@ -66,23 +136,41 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="harvestQuantity" label="已采收" width="100" align="right">
+
+      <!-- 溯源码 -->
+      <el-table-column prop="traceabilityCode" label="溯源码" width="130">
         <template #default="{ row }">
-          <span class="text-blue-600 font-medium">
-            {{ row.harvestQuantity ? `${row.harvestQuantity.toLocaleString()}${row.unit || ''}` : '0' }}
-          </span>
+          <span class="text-xs text-gray-500 font-mono">{{ row.traceabilityCode || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="状态" width="100" align="center">
+
+      <!-- 状态 -->
+      <el-table-column prop="status" label="状态" width="90" align="center">
         <template #default="{ row }">
           <el-tag :type="statusTypeMap[row.status] || 'info'" size="small">
             {{ statusLabelMap[row.status] || row.status }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+
+      <!-- 创建人 -->
+      <el-table-column prop="createBy" label="创建人" width="90">
         <template #default="{ row }">
-          <div class="flex gap-1">
+          <span class="text-gray-700">{{ row.createBy || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 创建时间 -->
+      <el-table-column prop="createTime" label="创建时间" width="150">
+        <template #default="{ row }">
+          <span class="text-gray-500 text-xs">{{ row.createTime || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 操作列 -->
+      <el-table-column label="操作" width="320" fixed="right">
+        <template #default="{ row }">
+          <div class="flex gap-1 flex-wrap">
             <el-button link type="primary" size="small" @click="$emit('edit', row)" title="编辑">
               <el-icon><Edit /></el-icon>
             </el-button>
@@ -92,11 +180,20 @@
             <el-button link type="danger" size="small" @click="$emit('delete', [row.id])" title="删除">
               <el-icon><Delete /></el-icon>
             </el-button>
-            <el-button link type="warning" size="small" @click="$emit('label-detail', row)" title="标签详情">
+            <el-button link type="primary" size="small" @click="$emit('end', row, 'normal')" title="正常结束">
+              <el-icon><Check /></el-icon>
+            </el-button>
+            <el-button link type="warning" size="small" @click="$emit('end', row, 'abnormal')" title="异常结束">
+              <el-icon><Close /></el-icon>
+            </el-button>
+            <el-button link type="info" size="small" @click="$emit('label-detail', row)" title="标签详情">
               <el-icon><PriceTag /></el-icon>
             </el-button>
             <el-button v-if="!row.isHarvest" link type="primary" size="small" @click="$emit('move', row)" title="移入/移出">
               <el-icon><Right /></el-icon>
+            </el-button>
+            <el-button link type="success" size="small" @click="$emit('seed-saving', row)" title="留种">
+              <el-icon><Refrigerator /></el-icon>
             </el-button>
           </div>
         </template>
@@ -120,11 +217,24 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Plus, Download, Printer, Edit, Delete, CircleCheck, PriceTag, Right } from '@element-plus/icons-vue'
+import {
+  Plus, Download, Printer, Edit, Delete, CircleCheck, PriceTag, Right,
+  Check, Close, Refrigerator
+} from '@element-plus/icons-vue'
 
-const props = defineProps({"canCreate":"true","canEdit":"true","canDelete":"true","canExport":"true","canPrint":"true"})
+const props = defineProps({
+  data: { type: Array, default: () => [] },
+  canCreate: { type: Boolean, default: true },
+  canEdit: { type: Boolean, default: true },
+  canDelete: { type: Boolean, default: true },
+  canExport: { type: Boolean, default: true },
+  canPrint: { type: Boolean, default: true }
+})
 
-defineEmits(['(e', 'row', 'row', 'row', 'ids', 'row', 'row'])
+const emit = defineEmits([
+  'add', 'edit', 'delete', 'detail', 'harvest', 'print', 'export',
+  'end', 'label-detail', 'move', 'mark', 'seed-saving'
+])
 
 const currentPage = ref(1)
 const pageSize = ref(10)

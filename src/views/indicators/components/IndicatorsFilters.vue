@@ -1,5 +1,5 @@
 <template>
-  <!-- 指标筛选器组件 -->
+  <!-- 指标筛选器组件 - V1.1样式 -->
   <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
     <div class="flex flex-wrap items-center gap-4">
       <!-- 类别筛选 -->
@@ -10,10 +10,12 @@
             v-for="cat in categories"
             :key="cat"
             size="small"
-            :type="categoryFilter === cat ? 'primary' : 'default'"
-            :plain="categoryFilter !== cat"
+            :class="[
+              categoryFilter === cat
+                ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600 hover:border-blue-600'
+                : 'text-gray-700 border-gray-300 hover:bg-gray-50'
+            ]"
             @click="onCategoryChange(cat)"
-            class="text-xs"
           >
             {{ cat }}
           </el-button>
@@ -47,7 +49,7 @@ const props = defineProps({
   categoryFilter: String
 })
 
-const emit = defineEmits(['update:searchKeyword', 'update:categoryFilter', 'search', 'reset'])
+const emit = defineEmits(['update:searchKeyword', 'update:categoryFilter'])
 
 // 类别选项
 const categories = indicatorCategories
@@ -70,3 +72,7 @@ const onCategoryChange = (category) => {
   emit('update:categoryFilter', category)
 }
 </script>
+
+<style scoped>
+/* 筛选按钮选中态由内联样式控制 */
+</style>

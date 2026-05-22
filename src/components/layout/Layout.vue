@@ -42,6 +42,10 @@ const handleMenuSelect = (index) => {
 const handleUserCommand = (command) => {
   if (command === 'logout') {
     router.push('/login')
+  } else if (command === 'settings') {
+    router.push('/settings')
+  } else if (command === 'profile') {
+    router.push('/profile')
   }
 }
 </script>
@@ -67,6 +71,5 @@ const handleUserCommand = (command) => {
   padding-left: 16px;
   padding-right: 16px;
   padding-bottom: 16px;
-  margin-top: 48px;
 }
 </style>

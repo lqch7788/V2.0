@@ -1,10 +1,10 @@
 <template>
   <div class="p-6 space-y-4">
     <!-- 标题卡片 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" color="white"><Barcode /></el-icon>
+          <el-icon :size="24" color="white"><Collection /></el-icon>
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">作物实例追溯</h1>
@@ -106,7 +106,7 @@
                   </span>
                 </div>
                 <div>
-                  <p class="text-xs text-gray-500">作物名称</p>
+                  <p class="text-xs text-gray-500">作物品种</p>
                   <p class="font-medium">{{ selectedInstance.cropName }}</p>
                 </div>
                 <div>
@@ -241,9 +241,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Search, Goods, Calendar, Location, Collection, Check } from '@element-plus/icons-vue'
-import {  CropInstance, CropInstanceStatus, SourceOrigin, CropTraceChain  } from '@/types/crop'
+import { Search, Goods, Calendar, Location, Check } from '@element-plus/icons-vue'
 import { CROP_INSTANCE_STATUS_MAP, SOURCE_ORIGIN_MAP } from '@/constants/cropConstants'
+import * as cropInstanceService from '@/services/apiCropInstanceService'
 
 // 搜索关键词
 const searchCode = ref('')
@@ -269,7 +269,7 @@ const getStatusLabel = (status) => {
   return STATUS_MAP[status]?.label || status
 }
 
-// 获取状态样式类
+// 获取状态样式类（与V1.1保持一致）
 const getStatusBadgeClass = (status) => {
   const style = STATUS_MAP[status]
   if (!style) return ''
@@ -298,105 +298,22 @@ const handleSearch = () => {
   // 搜索时会自动通过computed更新
 }
 
-// 选择实例
+// 选择实例并查询溯源链
 const handleSelect = (inst) => {
   selectedInstance.value = inst
-  // 查询溯源链（模拟）
   queryTraceChain(inst.id)
 }
 
 // 查询溯源链
 const queryTraceChain = async (id) => {
-  // 模拟数据，实际应调用API
-  traceChain.value = {
-    instance: selectedInstance.value,
-    seedSources: [],
-    seedlings: [],
-    plantings: [],
-    harvests: []
-  }
+  const chain = await cropInstanceService.getTraceChain(id)
+  traceChain.value = chain
 }
 
 // 加载实例数据
 const loadInstances = async () => {
-  // 模拟数据，实际应从API获取
-  instances.value = [
-    {
-      id: '1',
-      instanceCode: 'PD030100400240426001',
-      cropCategory: '蔬菜类',
-      cropName: '番茄',
-      cropVariety: '红果番茄',
-      categoryCode: 'PD',
-      typeCode: '03',
-      subCode: '01',
-      sourceOrigin: 'external_purchase',
-      sourceDescription: '从XX供应商采购',
-      initialQuantity: 1000,
-      currentQuantity: 800,
-      plantedQuantity: 500,
-      harvestedQuantity: 200,
-      status: 'growing',
-      seedEntryDate: '2024-04-01',
-      seedlingStartDate: '2024-04-15',
-      plantingDate: '2024-05-01',
-      harvestDate: '2024-07-01',
-      unit: '株',
-      createBy: 'admin',
-      createTime: '2024-04-01 10:00:00',
-      updateTime: '2024-07-01 10:00:00'
-    },
-    {
-      id: '2',
-      instanceCode: 'PD030100400240427002',
-      cropCategory: '蔬菜类',
-      cropName: '番茄',
-      cropVariety: '樱桃番茄',
-      categoryCode: 'PD',
-      typeCode: '03',
-      subCode: '01',
-      sourceOrigin: 'internal_seed',
-      sourceDescription: '内部留种',
-      initialQuantity: 1000,
-      currentQuantity: 800,
-      plantedQuantity: 500,
-      harvestedQuantity: 200,
-      status: 'planted',
-      seedEntryDate: '2024-04-10',
-      seedlingStartDate: '2024-04-20',
-      plantingDate: '2024-05-15',
-      unit: '株',
-      createBy: 'admin',
-      createTime: '2024-04-10 10:00:00',
-      updateTime: '2024-05-15 10:00:00'
-    },
-    {
-      id: '3',
-      instanceCode: 'PD020100400240428003',
-      cropCategory: '蔬菜类',
-      cropName: '黄瓜',
-      cropVariety: '水果黄瓜',
-      categoryCode: 'PD',
-      typeCode: '02',
-      subCode: '01',
-      sourceOrigin: 'external_purchase',
-      sourceDescription: '从YY供应商采购',
-      initialQuantity: 1000,
-      currentQuantity: 800,
-      plantedQuantity: 500,
-      harvestedQuantity: 200,
-      status: 'harvested',
-      seedEntryDate: '2024-03-01',
-      seedlingStartDate: '2024-03-15',
-      plantingDate: '2024-04-10',
-      harvestDate: '2024-06-01',
-      outboundDate: '2024-06-15',
-      unit: '株',
-      createBy: 'admin',
-      createTime: '2024-03-01 10:00:00',
-      updateTime: '2024-06-15 10:00:00'
-    }
-  ]
+  const data = await cropInstanceService.getInstances()
+  instances.value = data
 }
 
 // 查询按钮处理

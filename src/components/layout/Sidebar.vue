@@ -356,6 +356,227 @@
           </transition>
         </li>
 
+        <!-- 系统设置 -->
+        <li>
+          <button
+            class="menu-item menu-item-submenu"
+            :class="{ active: isActive('/system') }"
+            @click="toggleSystem"
+          >
+            <el-icon :size="20"><Setting /></el-icon>
+            <span v-if="!collapsed" class="menu-text">系统设置</span>
+            <el-icon v-if="!collapsed" :size="16" class="submenu-arrow" :class="{ expanded: systemExpanded }">
+              <CaretRight />
+            </el-icon>
+          </button>
+          <transition name="submenu">
+            <ul v-if="systemExpanded && !collapsed" class="submenu-list">
+              <!-- 组1: 基础数据 -->
+              <li class="submenu-group-title">
+                <span>基础数据</span>
+              </li>
+              <li>
+                <router-link to="/settings/system-config" class="submenu-item" :class="{ active: isActive('/settings/system-config') }">
+                  <el-icon :size="16"><Tools /></el-icon>
+                  <span>系统配置</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/dictionary" class="submenu-item" :class="{ active: isActive('/settings/dictionary') }">
+                  <el-icon :size="16"><Notebook /></el-icon>
+                  <span>数据字典</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/departments" class="submenu-item" :class="{ active: isActive('/settings/departments') }">
+                  <el-icon :size="16"><Aim /></el-icon>
+                  <span>部门设置</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/notification" class="submenu-item" :class="{ active: isActive('/settings/notification') }">
+                  <el-icon :size="16"><Bell /></el-icon>
+                  <span>通知设置</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/audit-log" class="submenu-item" :class="{ active: isActive('/settings/audit-log') }">
+                  <el-icon :size="16"><Document /></el-icon>
+                  <span>操作日志</span>
+                </router-link>
+              </li>
+              <!-- 组2: 农场结构 -->
+              <li class="submenu-group-title">
+                <span>农场结构</span>
+              </li>
+              <li>
+                <router-link to="/settings/bases" class="submenu-item" :class="{ active: isActive('/settings/bases') }">
+                  <el-icon :size="16"><House /></el-icon>
+                  <span>基地设置</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/farm-structure" class="submenu-item" :class="{ active: isActive('/settings/farm-structure') }">
+                  <el-icon :size="16"><House /></el-icon>
+                  <span>基地架构</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/block" class="submenu-item" :class="{ active: isActive('/settings/block') }">
+                  <el-icon :size="16"><Grid /></el-icon>
+                  <span>区块管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/partitions" class="submenu-item" :class="{ active: isActive('/settings/partitions') }">
+                  <el-icon :size="16"><MapLocation /></el-icon>
+                  <span>分区管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/area-systems" class="submenu-item" :class="{ active: isActive('/settings/area-systems') }">
+                  <el-icon :size="16"><MapLocation /></el-icon>
+                  <span>区域系统</span>
+                </router-link>
+              </li>
+              <!-- 组3: 权限管理 -->
+              <li class="submenu-group-title">
+                <span>权限管理</span>
+              </li>
+              <li>
+                <router-link to="/settings/authority" class="submenu-item" :class="{ active: isActive('/settings/authority') }">
+                  <el-icon :size="16"><Lock /></el-icon>
+                  <span>用户权限管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/approval-workflow" class="submenu-item" :class="{ active: isActive('/settings/approval-workflow') }">
+                  <el-icon :size="16"><Guide /></el-icon>
+                  <span>审批流程</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/approval-level-config" class="submenu-item" :class="{ active: isActive('/settings/approval-level-config') }">
+                  <el-icon :size="16"><Lock /></el-icon>
+                  <span>分级审批</span>
+                </router-link>
+              </li>
+              <!-- 组4: 生产配置 -->
+              <li class="submenu-group-title">
+                <span>生产配置</span>
+              </li>
+              <li>
+                <router-link to="/settings/crop-variety" class="submenu-item" :class="{ active: isActive('/settings/crop-variety') }">
+                  <el-icon :size="16"><Goods /></el-icon>
+                  <span>作物品种库</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/processes" class="submenu-item" :class="{ active: isActive('/settings/processes') }">
+                  <el-icon :size="16"><List /></el-icon>
+                  <span>工序管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/plant-settings" class="submenu-item" :class="{ active: isActive('/settings/plant-settings') }">
+                  <el-icon :size="16"><Van /></el-icon>
+                  <span>种植设置</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/cost-accounting" class="submenu-item" :class="{ active: isActive('/settings/cost-accounting') }">
+                  <el-icon :size="16"><Coin /></el-icon>
+                  <span>成本核算</span>
+                </router-link>
+              </li>
+              <!-- 组5: IoT设备 -->
+              <li class="submenu-group-title">
+                <span>IoT设备</span>
+              </li>
+              <li>
+                <router-link to="/settings/device-systems" class="submenu-item" :class="{ active: isActive('/settings/device-systems') }">
+                  <el-icon :size="16"><Monitor /></el-icon>
+                  <span>系统管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/cameras" class="submenu-item" :class="{ active: isActive('/settings/cameras') }">
+                  <el-icon :size="16"><VideoCamera /></el-icon>
+                  <span>视频管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/water-fertilizer" class="submenu-item" :class="{ active: isActive('/settings/water-fertilizer') }">
+                  <el-icon :size="16"><Connection /></el-icon>
+                  <span>水肥一体机</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/device" class="submenu-item" :class="{ active: isActive('/settings/device') }">
+                  <el-icon :size="16"><Odometer /></el-icon>
+                  <span>设备管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/device-distribution" class="submenu-item" :class="{ active: isActive('/settings/device-distribution') }">
+                  <el-icon :size="16"><CircleCheck /></el-icon>
+                  <span>设备分配</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/project-debug" class="submenu-item" :class="{ active: isActive('/settings/project-debug') }">
+                  <el-icon :size="16"><Tools /></el-icon>
+                  <span>工程调试</span>
+                </router-link>
+              </li>
+              <!-- 组6: 监控告警 -->
+              <li class="submenu-group-title">
+                <span>监控告警</span>
+              </li>
+              <li>
+                <router-link to="/settings/monitor" class="submenu-item" :class="{ active: isActive('/settings/monitor') }">
+                  <el-icon :size="16"><Monitor /></el-icon>
+                  <span>系统监控</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/backup" class="submenu-item" :class="{ active: isActive('/settings/backup') }">
+                  <el-icon :size="16"><Download /></el-icon>
+                  <span>备份恢复</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/energy-configs" class="submenu-item" :class="{ active: isActive('/settings/energy-configs') }">
+                  <el-icon :size="16"><Lightning /></el-icon>
+                  <span>能耗管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/alarm-configs" class="submenu-item" :class="{ active: isActive('/settings/alarm-configs') }">
+                  <el-icon :size="16"><Warning /></el-icon>
+                  <span>警报管理</span>
+                </router-link>
+              </li>
+              <!-- 组7: 运营管理 -->
+              <li class="submenu-group-title">
+                <span>运营管理</span>
+              </li>
+              <li>
+                <router-link to="/settings/warehouse" class="submenu-item" :class="{ active: isActive('/settings/warehouse') }">
+                  <el-icon :size="16"><Box /></el-icon>
+                  <span>仓库管理</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/settings/team" class="submenu-item" :class="{ active: isActive('/settings/team') }">
+                  <el-icon :size="16"><User /></el-icon>
+                  <span>班组管理</span>
+                </router-link>
+              </li>
+            </ul>
+          </transition>
+        </li>
+
         <!-- 审批管理 -->
         <li>
           <button
@@ -454,7 +675,22 @@ import {
   Histogram,
   Collection,
   WarnTriangleFilled,
-  Odometer
+  Odometer,
+  Setting,
+  Tools,
+  Notebook,
+  House,
+  Grid,
+  Lock,
+  Guide,
+  Goods,
+  Coin,
+  Monitor,
+  VideoCamera,
+  Connection,
+  Download,
+  Lightning,
+  Warning
 } from '@element-plus/icons-vue'
 
 const props = defineProps({ collapsed: false })
@@ -471,6 +707,7 @@ const inventoryExpanded = ref(true)
 const laborExpanded = ref(true)
 const summaryExpanded = ref(true)
 const approvalExpanded = ref(true)
+const systemExpanded = ref(true)
 
 const toggleCollapse = () => {
   emit('update:collapsed', !props.collapsed)
@@ -502,6 +739,10 @@ const toggleSummary = () => {
 
 const toggleApproval = () => {
   approvalExpanded.value = !approvalExpanded.value
+}
+
+const toggleSystem = () => {
+  systemExpanded.value = !systemExpanded.value
 }
 
 const isActive = (path) => {
@@ -676,6 +917,20 @@ const isActive = (path) => {
 
 .submenu-item.active .el-icon {
   color: var(--sidebar-active-text);
+}
+
+/* 子菜单组标题 */
+.submenu-group-title {
+  padding: 12px 12px 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.submenu-group-title span {
+  display: block;
 }
 
 /* 子菜单动画 */

@@ -1,36 +1,36 @@
 <template>
-  <!-- 指标删除确认弹窗组件 -->
-  <el-dialog
-    :model-value="isOpen"
-    @update:model-value="handleClose"
-    title="确认删除"
-    width="400px"
-    :close-on-click-modal="false"
-    class="indicator-delete-modal"
-  >
-    <div class="text-center py-4">
-      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <el-icon :size="32" class="text-red-600"><Delete /></el-icon>
+  <!-- 指标删除确认弹窗组件 - V1.1原生div样式 -->
+  <div v-if="isOpen && item" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-white rounded-lg w-full max-w-md shadow-2xl">
+      <!-- 内容区域 - 居中布局 -->
+      <div class="p-6 text-center">
+        <!-- 红色删除图标 -->
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <el-icon :size="32" class="text-red-600"><Delete /></el-icon>
+        </div>
+        <!-- 标题 -->
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">确认删除</h3>
+        <!-- 描述 -->
+        <p class="text-gray-600 mb-1">确定要删除指标「{{ item.name }}」吗？</p>
+        <p class="text-gray-400 text-sm mb-6">删除后无法恢复</p>
+        <!-- 按钮组 -->
+        <div class="flex justify-center gap-3">
+          <el-button size="small" @click="handleClose">取消</el-button>
+          <el-button size="small" type="danger" @click="handleConfirm">确认删除</el-button>
+        </div>
       </div>
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">确认删除</h3>
-      <p class="text-gray-600 mb-1">确定要删除指标「{{ item?.name }}」吗？</p>
-      <p class="text-gray-400 text-sm">删除后无法恢复</p>
     </div>
-
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="danger" @click="handleConfirm">确认删除</el-button>
-      </div>
-    </template>
-  </el-dialog>
+  </div>
 </template>
 
 <script setup>
 import { Delete } from '@element-plus/icons-vue'
-import {  Indicator  } from '@/types/indicators'
 
-const props = defineProps({})
+const props = defineProps({
+  isOpen: Boolean,
+  item: Object
+})
+
 const emit = defineEmits(['close', 'confirm'])
 
 // 关闭弹窗
@@ -45,18 +45,5 @@ const handleConfirm = () => {
 </script>
 
 <style scoped>
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-:deep(.indicator-delete-modal .el-dialog__header) {
-  text-align: center;
-  padding: 20px 20px 0;
-}
-
-:deep(.indicator-delete-modal .el-dialog__body) {
-  padding: 0 20px 20px;
-}
+/* V1.1原生div弹窗，居中布局，红色删除图标 */
 </style>

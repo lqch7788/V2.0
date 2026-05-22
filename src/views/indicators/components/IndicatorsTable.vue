@@ -1,167 +1,149 @@
 <template>
-  <!-- 指标表格组件 -->
+  <!-- 指标表格组件 - V1.1样式 -->
   <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-    <el-table
-      :data="indicators"
-      style="width: 100%"
-      :row-class-name="tableRowClassName"
-    >
-      <!-- 导出模式选择列 -->
-      <el-table-column v-if="exportMode" width="60" align="center">
-        <template #header>
-          <el-checkbox
-            :model-value="selectedIds.length === indicators.length && indicators.length > 0"
-            @change="handleSelectAll"
-          />
-        </template>
-        <template #default="{ row }">
-          <el-checkbox
-            :model-value="selectedIds.includes(row.id)"
-            @change="() => onToggleSelect(row.id)"
-          />
-        </template>
-      </el-table-column>
-
-      <!-- 指标编码 -->
-      <el-table-column prop="code" label="指标编码" width="120">
-        <template #default="{ row }">
-          <span class="text-sm text-gray-600 font-mono">{{ row.code }}</span>
-        </template>
-      </el-table-column>
-
-      <!-- 指标名称 -->
-      <el-table-column label="指标名称" min-width="180">
-        <template #default="{ row }">
-          <div class="flex items-center gap-2">
-            <el-icon :size="16" class="text-blue-600"><DataAnalysis /></el-icon>
-            <span class="text-sm font-medium text-gray-900">{{ row.name }}</span>
-          </div>
-        </template>
-      </el-table-column>
-
-      <!-- 类别 -->
-      <el-table-column label="类别" width="120">
-        <template #default="{ row }">
-          <el-tag size="small" type="info" effect="plain">
-            {{ row.category }}
-          </el-tag>
-        </template>
-      </el-table-column>
-
-      <!-- 采集方式 -->
-      <el-table-column label="采集方式" width="120">
-        <template #default="{ row }">
-          <el-tag
-            size="small"
-            :type="row.source === '自动采集' ? 'primary' : 'warning'"
-            effect="plain"
-          >
-            {{ row.source }}
-          </el-tag>
-        </template>
-      </el-table-column>
-
-      <!-- 目标值 -->
-      <el-table-column label="目标值" width="120">
-        <template #default="{ row }">
-          <span class="text-sm text-gray-700 font-mono">{{ row.target }}{{ row.unit }}</span>
-        </template>
-      </el-table-column>
-
-      <!-- 实际值 -->
-      <el-table-column label="实际值" width="120">
-        <template #default="{ row }">
-          <span class="text-sm text-gray-900 font-medium font-mono">{{ row.actual }}{{ row.unit }}</span>
-        </template>
-      </el-table-column>
-
-      <!-- 达成率 -->
-      <el-table-column label="达成率" width="180">
-        <template #default="{ row }">
-          <div class="flex items-center gap-2">
-            <div class="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                :class="getProgressColor(row.actual, row.target)"
-                class="h-full rounded-full transition-all"
-                :style="{ width: `${Math.min((row.actual / row.target) * 100, 100)}%` }"
+    <table class="w-full">
+      <!-- 表头 - V1.1渐变蓝色样式 -->
+      <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+        <tr>
+          <!-- 导出模式选择列 -->
+          <th v-if="exportMode" class="px-3 py-3 text-left text-sm font-semibold w-12">
+            <el-checkbox
+              :model-value="selectedIds.length === indicators.length && indicators.length > 0"
+              @change="handleSelectAll"
+            />
+          </th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">指标编码</th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">指标名称</th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">类别</th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">采集方式</th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">目标值</th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">实际值</th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">达成率</th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">趋势</th>
+          <th class="px-3 py-3 text-left text-sm font-semibold">操作</th>
+        </tr>
+      </thead>
+      <!-- 表格主体 -->
+      <tbody class="divide-y divide-gray-300">
+        <tr
+          v-for="ind in indicators"
+          :key="ind.id"
+          :class="[
+            'hover:bg-blue-50 transition-all duration-300',
+            selectedIds.includes(ind.id) ? 'bg-blue-50' : ''
+          ]"
+        >
+          <!-- 导出模式选择列 -->
+          <td v-if="exportMode" class="px-3 py-3">
+            <el-checkbox
+              :model-value="selectedIds.includes(ind.id)"
+              @change="() => onToggleSelect(ind.id)"
+            />
+          </td>
+          <!-- 指标编码 -->
+          <td class="px-3 py-3 text-sm text-gray-600 font-mono">{{ ind.code }}</td>
+          <!-- 指标名称 -->
+          <td class="px-3 py-3">
+            <div class="flex items-center gap-2">
+              <el-icon :size="16" class="text-blue-600"><DataAnalysis /></el-icon>
+              <span class="text-sm font-medium text-gray-900">{{ ind.name }}</span>
+            </div>
+          </td>
+          <!-- 类别 -->
+          <td class="px-3 py-3">
+            <span class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full border border-blue-200">{{ ind.category }}</span>
+          </td>
+          <!-- 采集方式 -->
+          <td class="px-3 py-3">
+            <span :class="[
+              'px-2 py-1 text-xs rounded-full',
+              ind.source === '自动采集'
+                ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                : 'bg-amber-100 text-amber-800 border border-amber-300'
+            ]">
+              {{ ind.source }}
+            </span>
+          </td>
+          <!-- 目标值 -->
+          <td class="px-3 py-3 text-sm text-gray-700 font-mono">{{ ind.target }}{{ ind.unit }}</td>
+          <!-- 实际值 -->
+          <td class="px-3 py-3 text-sm text-gray-900 font-medium font-mono">{{ ind.actual }}{{ ind.unit }}</td>
+          <!-- 达成率 -->
+          <td class="px-3 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  :class="getProgressColor(ind.actual, ind.target)"
+                  class="h-full rounded-full transition-all"
+                  :style="{ width: `${Math.min((ind.actual / ind.target) * 100, 100)}%` }"
+                />
+              </div>
+              <span :class="getAchievementColor(ind.actual, ind.target)" class="text-xs font-medium font-mono">
+                {{ calcAchievementRate(ind.actual, ind.target) }}
+              </span>
+            </div>
+          </td>
+          <!-- 趋势 -->
+          <td class="px-3 py-3">
+            <div class="flex items-center gap-1">
+              <el-icon :size="16" :class="getTrendIconClass(ind.trend)">
+                <component :is="getTrendIcon(ind.trend)" />
+              </el-icon>
+              <span class="text-xs text-gray-500">{{ getTrendText(ind.trend) }}</span>
+            </div>
+          </td>
+          <!-- 操作 -->
+          <td class="px-3 py-3">
+            <div class="flex items-center gap-1">
+              <el-button
+                type="primary"
+                :icon="View"
+                circle
+                size="small"
+                text
+                @click="onView(ind)"
+                title="查看"
+              />
+              <el-button
+                type="primary"
+                :icon="Odometer"
+                circle
+                size="small"
+                text
+                @click="onAnalyze(ind)"
+                title="分析"
+              />
+              <el-button
+                type="primary"
+                :icon="Edit"
+                circle
+                size="small"
+                text
+                @click="onEdit(ind)"
+                title="编辑"
+              />
+              <el-button
+                type="danger"
+                :icon="Delete"
+                circle
+                size="small"
+                text
+                @click="onDelete(ind)"
+                title="删除"
               />
             </div>
-            <span
-              :class="getAchievementColor(row.actual, row.target)"
-              class="text-xs font-medium font-mono"
-            >
-              {{ calcAchievementRate(row.actual, row.target) }}
-            </span>
-          </div>
-        </template>
-      </el-table-column>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-      <!-- 趋势 -->
-      <el-table-column label="趋势" width="100">
-        <template #default="{ row }">
-          <div class="flex items-center gap-1">
-            <el-icon :size="16" :class="getTrendIconClass(row.trend)">
-              <component :is="getTrendIcon(row.trend)" />
-            </el-icon>
-            <span class="text-xs text-gray-500">{{ getTrendText(row.trend) }}</span>
-          </div>
-        </template>
-      </el-table-column>
+    <!-- 空状态 -->
+    <div v-if="indicators.length === 0" class="text-center py-12">
+      <el-icon :size="48" class="text-gray-400"><DataAnalysis /></el-icon>
+      <p class="text-gray-500 mt-4">暂无数据</p>
+    </div>
 
-      <!-- 操作 -->
-      <el-table-column label="操作" width="160" fixed="right">
-        <template #default="{ row }">
-          <div class="flex items-center gap-1">
-            <el-button
-              type="primary"
-              :icon="View"
-              circle
-              size="small"
-              text
-              @click="onView(row)"
-              title="查看"
-            />
-            <el-button
-              type="primary"
-              :icon="Odometer"
-              circle
-              size="small"
-              text
-              @click="onAnalyze(row)"
-              title="分析"
-            />
-            <el-button
-              type="primary"
-              :icon="Edit"
-              circle
-              size="small"
-              text
-              @click="onEdit(row)"
-              title="编辑"
-            />
-            <el-button
-              type="danger"
-              :icon="Delete"
-              circle
-              size="small"
-              text
-              @click="onDelete(row)"
-              title="删除"
-            />
-          </div>
-        </template>
-      </el-table-column>
-
-      <!-- 空状态 -->
-      <template #empty>
-        <div class="text-center py-12">
-          <el-icon :size="48" class="text-gray-400"><DataAnalysis /></el-icon>
-          <p class="text-gray-500 mt-4">暂无数据</p>
-        </div>
-      </template>
-    </el-table>
-
-    <!-- 分页控件 -->
+    <!-- 分页控件 - V1.1自定义样式 -->
     <div v-if="indicators.length > 0" class="mt-4 flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3">
       <div class="flex items-center gap-4">
         <span class="text-sm text-gray-600">
@@ -180,17 +162,63 @@
         </div>
       </div>
 
-      <el-pagination
-        v-model:current-page="currentPageModel"
-        :page-size="pageSize"
-        :total="totalCount"
-        :pager-count="5"
-        layout="prev, pager, next"
-        background
-      />
-
+      <!-- 分页按钮组 -->
       <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600">
+        <!-- 首页按钮 -->
+        <el-button
+          variant="text"
+          size="small"
+          @click="() => onPageChange(1)"
+          :disabled="currentPage === 1"
+          class="text-gray-600"
+        >
+          <el-icon><DArrowLeft /></el-icon>
+        </el-button>
+        <!-- 上一页按钮 -->
+        <el-button
+          variant="text"
+          size="small"
+          @click="() => onPageChange(currentPage - 1)"
+          :disabled="currentPage === 1"
+          class="text-gray-600"
+        >
+          <el-icon><ArrowLeft /></el-icon>
+        </el-button>
+        <!-- 页码按钮 -->
+        <template v-for="page in visiblePages" :key="page">
+          <el-button
+            size="small"
+            :class="[
+              page === currentPage
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-none'
+                : 'text-gray-700 hover:bg-blue-50 border-gray-300'
+            ]"
+            @click="() => onPageChange(page)"
+          >
+            {{ page }}
+          </el-button>
+        </template>
+        <!-- 下一页按钮 -->
+        <el-button
+          variant="text"
+          size="small"
+          @click="() => onPageChange(currentPage + 1)"
+          :disabled="currentPage === totalPages"
+          class="text-gray-600"
+        >
+          <el-icon><ArrowRight /></el-icon>
+        </el-button>
+        <!-- 末页按钮 -->
+        <el-button
+          variant="text"
+          size="small"
+          @click="() => onPageChange(totalPages)"
+          :disabled="currentPage === totalPages"
+          class="text-gray-600"
+        >
+          <el-icon><DArrowRight /></el-icon>
+        </el-button>
+        <span class="text-sm text-gray-600 ml-2">
           第 <span class="text-blue-600 font-medium">{{ currentPage }}</span> / {{ totalPages }} 页
         </span>
       </div>
@@ -208,7 +236,11 @@ import {
   Odometer,
   Top,
   Bottom,
-  Minus
+  Minus,
+  ArrowLeft,
+  ArrowRight,
+  DArrowLeft,
+  DArrowRight
 } from '@element-plus/icons-vue'
 
 const props = defineProps({
@@ -236,18 +268,22 @@ const emit = defineEmits([
 // 分页选项
 const pageSizeOptions = [5, 10, 20, 50]
 
-// 当前页双向绑定
-const currentPageModel = computed({
-  get() {
-    return props.currentPage
-  },
-  set: (val) => emit('update:currentPage', val)
-})
+// 计算可见的页码（最多显示5页）
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, props.currentPage - Math.floor(maxVisible / 2))
+  const endPage = Math.min(props.totalPages, startPage + maxVisible - 1)
 
-// 表格行样式
-const tableRowClassName = ({ row }) => {
-  return props.selectedIds.includes(row.id) ? 'bg-blue-50' : ''
-}
+  if (endPage - startPage + 1 < maxVisible) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
 
 // 获取进度条颜色
 const getProgressColor = (actual, target) => {
@@ -308,17 +344,18 @@ const getTrendText = (trend) => {
 
 // 全选操作
 const handleSelectAll = () => {
-  emit('selectAll')
+  emit('select-all')
 }
 
 // 页面变化
-const handlePageChange = (page) => {
-  emit('pageChange', page)
+const onPageChange = (page) => {
+  emit('update:currentPage', page)
+  emit('page-change', page)
 }
 
 // 页面大小变化
-const handlePageSizeChange = (size) => {
-  emit('pageSizeChange', size)
+const onPageSizeChange = (size) => {
+  emit('page-size-change', size)
 }
 
 // 查看
@@ -340,10 +377,19 @@ const onEdit = (item) => {
 const onDelete = (item) => {
   emit('delete', item)
 }
+
+// 切换选择
+const onToggleSelect = (id) => {
+  emit('toggle-select', id)
+}
 </script>
 
 <style scoped>
-:deep(.el-table .bg-blue-50) {
-  background-color: #eff6ff;
+/* 表格行悬浮效果由hover:bg-blue-50 transition-all duration-300实现 */
+
+/* 渐变按钮样式 */
+:deep(.bg-gradient-to-r.from-blue-500.to-blue-600) {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: white;
 }
 </style>

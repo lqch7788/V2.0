@@ -1,269 +1,486 @@
 <template>
-  <div class="p-6">
-    <h2 class="text-xl font-bold mb-4">用户管理</h2>
-    <el-card>
-      <template #header>
-        <div class="flex justify-between items-center">
-          <span>用户列表</span>
-          <el-button type="primary" @click="openFormModal">添加用户</el-button>
+  <div class="space-y-6">
+    <!-- 页面头部 -->
+    <div class="bg-white rounded-xl p-6 shadow-none">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <a
+            href="/settings"
+            class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
+            title="返回系统设置"
+          >
+            <el-icon :size="20" color="#4b5563">
+              <ArrowLeft />
+            </el-icon>
+          </a>
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+            <el-icon :size="24" color="white"><User /></el-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">用户管理</h1>
+            <p class="text-gray-500">管理系统用户账号、角色分配与状态</p>
+          </div>
         </div>
-      </template>
-      <!-- 筛选栏 -->
-      <div class="mb-4 flex flex-col sm:flex-row gap-4">
-        <el-input
-          v-model="filters.keyword"
-          placeholder="搜索用户名、姓名..."
-          clearable
-          @clear="handleSearch"
-          class="w-full sm:w-64"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-        <el-select v-model="filters.role" placeholder="全部角色" clearable class="w-full sm:w-36">
-          <el-option label="全部角色" value="" />
-          <el-option label="管理员" value="admin" />
-          <el-option label="普通用户" value="user" />
-        </el-select>
-        <el-select v-model="filters.status" placeholder="全部状态" clearable class="w-full sm:w-32">
-          <el-option label="全部状态" value="" />
-          <el-option label="启用" value="active" />
-          <el-option label="禁用" value="inactive" />
-        </el-select>
-        <el-button type="primary" @click="handleSearch">
-          <el-icon><Search /></el-icon> 搜索
-        </el-button>
-        <el-button @click="handleReset">重置</el-button>
       </div>
-      <!-- 数据表格 -->
-      <el-table :data="paginatedData" stripe>
-        <el-table-column prop="username" label="用户名" min-width="120" />
-        <el-table-column prop="name" label="姓名" min-width="100" />
-        <el-table-column prop="email" label="邮箱" min-width="180" />
-        <el-table-column prop="role" label="角色" min-width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.role === 'admin' ? 'danger' : 'primary'" size="small">
-              {{ row.role === 'admin' ? '管理员' : '普通用户' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="department" label="部门" min-width="120" />
-        <el-table-column prop="status" label="状态" min-width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'info'" size="small">
-              {{ row.status === 'active' ? '启用' : '禁用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180">
-          <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button link type="primary" size="small" @click="editRecord(row)">编辑</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <!-- 分页 -->
-      <div class="flex items-center justify-between p-4 border-t border-gray-100">
-        <div class="text-sm text-gray-500">
-          共 {{ filteredData.length }} 条记录
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex items-center gap-2 ml-auto">
+        <div class="relative">
+          <el-icon class="absolute left-2.5 top-1/2 -translate-y-1/2" :size="14" color="#9ca3af">
+            <Search />
+          </el-icon>
+          <el-input
+            v-model="searchTerm"
+            placeholder="搜索..."
+            clearable
+            class="w-36 pl-8"
+            size="small"
+            @clear="handleSearch"
+          />
         </div>
+        <el-select v-model="statusFilter" placeholder="全部" clearable size="small" class="w-24">
+          <el-option value="all" label="全部" />
+          <el-option value="active" label="启用" />
+          <el-option value="inactive" label="禁用" />
+        </el-select>
+        <el-button size="small" @click="handleReset">重置</el-button>
+        <el-button type="primary" size="small" @click="openAddModal">
+          <el-icon :size="14"><Plus /></el-icon>
+          新增用户
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 用户表格 -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-b">
+            <th class="text-left py-2.5 px-4 font-medium text-white">用户名</th>
+            <th class="text-left py-2.5 px-4 font-medium text-white">姓名</th>
+            <th class="text-left py-2.5 px-4 font-medium text-white">所属组织</th>
+            <th class="text-left py-2.5 px-4 font-medium text-white">部门</th>
+            <th class="text-left py-2.5 px-4 font-medium text-white">邮箱/电话</th>
+            <th class="text-center py-2.5 px-4 font-medium text-white w-20">状态</th>
+            <th class="text-right py-2.5 px-4 font-medium text-white w-36">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading && users.length === 0">
+            <td colspan="7" class="py-8 text-center text-gray-500">
+              <el-icon class="is-loading" :size="24"><Loading /></el-icon>
+            </td>
+          </tr>
+          <tr v-else-if="pagedUsers.length === 0">
+            <td colspan="7" class="py-12 text-center text-gray-400">暂无用户数据</td>
+          </tr>
+          <tr
+            v-for="user in pagedUsers"
+            :key="user.oid"
+            class="border-b border-gray-100 hover:bg-blue-50"
+          >
+            <td class="py-2 px-4 text-gray-700 font-medium">{{ user.username || user.aid }}</td>
+            <td class="py-2 px-4 text-gray-700">{{ user.real_name || user.name }}</td>
+            <td class="py-2 px-4 text-gray-500">{{ getOrgName(user.org_oid || user.orgOid) }}</td>
+            <td class="py-2 px-4">
+              <el-tag v-if="user.department_oid || user.departmentOid" size="small" type="success">
+                {{ getDeptName(user.department_oid || user.departmentOid) }}
+              </el-tag>
+              <span v-else class="text-xs text-gray-400">-</span>
+            </td>
+            <td class="py-2 px-4 text-xs text-gray-400">
+              <span v-if="user.email">{{ user.email }}</span>
+              <span v-if="user.phone" class="ml-2">{{ user.phone }}</span>
+            </td>
+            <td class="py-2 px-4 text-center">
+              <el-tag :type="user.status === 'active' ? 'success' : 'danger'" size="small">
+                {{ user.status === 'active' ? '正常' : '禁用' }}
+              </el-tag>
+            </td>
+            <td class="py-2 px-4">
+              <div class="flex items-center justify-end gap-1">
+                <el-button text size="small" @click="openEditModal(user)" title="编辑">
+                  <el-icon :size="16" color="#2563eb"><Edit /></el-icon>
+                </el-button>
+                <el-button text size="small" @click="openPasswordModal(user)" title="修改密码">
+                  <el-icon :size="16" color="#d97706"><Key /></el-icon>
+                </el-button>
+                <el-button text size="small" @click="handleToggleStatus(user)" :title="user.status === 'active' ? '禁用' : '启用'">
+                  <el-icon :size="16" :color="user.status === 'active' ? '#7c3aed' : '#10b981'">
+                    <component :is="user.status === 'active' ? 'Close' : 'Plus'" />
+                  </el-icon>
+                </el-button>
+                <el-button text size="small" @click="handleDelete(user.oid)" title="删除">
+                  <el-icon :size="16" color="#dc2626"><Delete /></el-icon>
+                </el-button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 分页 -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 border-t bg-blue-50/30">
+        <span class="text-sm text-gray-500">共 {{ filteredUsers.length }} 名用户</span>
         <el-pagination
-          v-model:current-page="pagination.currentPage"
-          :page-size="pagination.pageSize"
-          :total="filteredData.length"
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="filteredUsers.length"
           layout="prev, pager, next"
           background
         />
       </div>
-    </el-card>
+    </div>
 
-    <!-- 详情弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="用户详情" width="500px">
-      <div v-if="currentRecord" class="space-y-4">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="用户名">{{ currentRecord.username }}</el-descriptions-item>
-          <el-descriptions-item label="姓名">{{ currentRecord.name }}</el-descriptions-item>
-          <el-descriptions-item label="邮箱">{{ currentRecord.email }}</el-descriptions-item>
-          <el-descriptions-item label="角色">
-            <el-tag :type="currentRecord.role === 'admin' ? 'danger' : 'primary'" size="small">
-              {{ currentRecord.role === 'admin' ? '管理员' : '普通用户' }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="部门">{{ currentRecord.department }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="currentRecord.status === 'active' ? 'success' : 'info'" size="small">
-              {{ currentRecord.status === 'active' ? '启用' : '禁用' }}
-            </el-tag>
-          </el-descriptions-item>
-        </el-descriptions>
+    <!-- ========== 新增/编辑用户弹窗 ========== -->
+    <el-dialog
+      v-model="userDialogVisible"
+      :title="editingUser ? '编辑用户' : '新增用户'"
+      width="550px"
+      :close-on-click-modal="false"
+    >
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">用户名 <span class="text-red-500">*</span></label>
+            <el-input v-model="userForm.username" placeholder="登录账号" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">姓名 <span class="text-red-500">*</span></label>
+            <el-input v-model="userForm.realName" placeholder="真实姓名" />
+          </div>
+        </div>
+        <div v-if="!editingUser">
+          <label class="block text-xs text-gray-500 mb-1">初始密码</label>
+          <el-input v-model="userForm.password" type="password" placeholder="留空则使用默认密码" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">所属组织</label>
+          <el-select v-model="userForm.orgOid" class="w-full" placeholder="请选择组织">
+            <el-option
+              v-for="org in organizations"
+              :key="org.oid"
+              :label="org.name"
+              :value="org.oid"
+            />
+          </el-select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">邮箱</label>
+            <el-input v-model="userForm.email" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">电话</label>
+            <el-input v-model="userForm.phone" />
+          </div>
+        </div>
+        <!-- 角色分配 -->
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">角色分配</label>
+          <div class="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 space-y-1">
+            <div
+              v-for="role in roles"
+              :key="role.oid"
+              class="flex items-center gap-2 text-sm cursor-pointer hover:bg-blue-50 py-0.5 px-1 rounded"
+              @click="toggleUserRole(role.oid)"
+            >
+              <el-checkbox :model-value="userRoleOids.includes(role.oid)" size="small" />
+              <span class="text-gray-700">{{ role.name }}</span>
+              <span class="text-xs text-gray-400 font-mono ml-auto">{{ role.aid }}</span>
+            </div>
+          </div>
+        </div>
       </div>
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="userDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleUserSave" :loading="saving">保存</el-button>
       </template>
     </el-dialog>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="formDialogVisible" :title="isEdit ? '编辑用户' : '新增用户'" width="500px">
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="formData.username" placeholder="请输入用户名" />
-        </el-form-item>
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入姓名" />
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="formData.email" placeholder="请输入邮箱" />
-        </el-form-item>
-        <el-form-item label="角色" prop="role">
-          <el-select v-model="formData.role" placeholder="请选择角色">
-            <el-option label="管理员" value="admin" />
-            <el-option label="普通用户" value="user" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="部门" prop="department">
-          <el-input v-model="formData.department" placeholder="请输入部门" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="formData.status" placeholder="请选择状态">
-            <el-option label="启用" value="active" />
-            <el-option label="禁用" value="inactive" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+    <!-- ========== 修改密码弹窗 ========== -->
+    <el-dialog
+      v-model="passwordDialogVisible"
+      title="修改密码"
+      width="400px"
+      :close-on-click-modal="false"
+    >
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">新密码</label>
+        <el-input v-model="newPassword" type="password" placeholder="输入新密码" show-password />
+      </div>
       <template #footer>
-        <el-button @click="formDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">确定</el-button>
+        <el-button @click="passwordDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handlePasswordChange" :loading="saving">确认修改</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ========== 删除确认弹窗 ========== -->
+    <el-dialog
+      v-model="deleteDialogVisible"
+      title="确认删除用户"
+      width="400px"
+      :close-on-click-modal="false"
+    >
+      <p class="text-sm text-gray-600">删除后用户将无法登录系统，确定要删除吗？</p>
+      <template #footer>
+        <el-button @click="deleteDialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="confirmDelete" :loading="saving">确认删除</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import { Search } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-import { mockUsers } from '@/data'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  User,
+  Search,
+  Plus,
+  Edit,
+  Delete,
+  Key,
+  Loading,
+  Close,
+  ArrowLeft
+} from '@element-plus/icons-vue'
+import { useAuthorityStore } from '@/stores/modules/authority'
+import { useDepartmentStore } from '@/stores/modules/department'
+import { updateUserStatus, updateUserPassword, getUserRoles, assignUserRoles } from '@/api/system/authority'
 
-// 筛选条件
-const filters = reactive({
-  keyword: '',
-  role: '',
-  status: ''
-})
+// Store
+const authorityStore = useAuthorityStore()
+const departmentStore = useDepartmentStore()
+const {
+  users,
+  loading,
+  loadUsers,
+  saveUser,
+  deleteUser,
+  organizations,
+  loadOrganizations,
+  roles,
+  loadRoles
+} = authorityStore
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10
-})
+// 部门
+const departments = computed(() => departmentStore.departments || [])
 
-// 详情弹窗
-const detailDialogVisible = ref(false)
-const currentRecord = ref(null)
+// UI 状态
+const searchTerm = ref('')
+const statusFilter = ref('all')
+const currentPage = ref(1)
+const pageSize = 10
 
-// 表单弹窗
-const formDialogVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref()
-const formData = reactive({
-  id: null,
+// 弹窗状态
+const userDialogVisible = ref(false)
+const editingUser = ref(null)
+const userForm = reactive({
   username: '',
-  name: '',
+  realName: '',
+  password: '',
+  orgOid: '',
   email: '',
-  role: 'user',
-  department: '',
+  phone: '',
   status: 'active'
 })
+const userRoleOids = ref([])
 
-const formRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
-  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
-  department: [{ required: true, message: '请输入部门', trigger: 'blur' }]
-}
+const passwordDialogVisible = ref(false)
+const passwordUser = ref(null)
+const newPassword = ref('')
 
-// 模拟数据
-const allData = ref([...mockUsers])
+const deleteDialogVisible = ref(false)
+const deleteTarget = ref(null)
+const saving = ref(false)
 
-// 筛选后的数据
-const filteredData = computed(() => {
-  return allData.value.filter(record => {
-    if (filters.keyword && !record.name.includes(filters.keyword) && !record.username.includes(filters.keyword)) return false
-    if (filters.role && record.role !== filters.role) return false
-    if (filters.status && record.status !== filters.status) return false
+// 筛选
+const filteredUsers = computed(() => {
+  return users.value.filter(u => {
+    if (statusFilter.value !== 'all' && u.status !== statusFilter.value) return false
+    if (searchTerm.value) {
+      const term = searchTerm.value.toLowerCase()
+      const name = (u.real_name || u.name || '').toLowerCase()
+      const uname = (u.username || u.aid || '').toLowerCase()
+      if (!name.includes(term) && !uname.includes(term)) return false
+    }
     return true
   })
 })
 
-// 分页数据
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return filteredData.value.slice(start, start + pagination.pageSize)
+// 分页
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize))
+const pagedUsers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredUsers.value.slice(start, start + pageSize)
 })
 
-// 搜索
+// 获取组织名称
+const getOrgName = (orgOid) => {
+  const org = organizations.value.find(o => o.oid === orgOid)
+  return org?.name || orgOid || '-'
+}
+
+// 获取部门名称
+const getDeptName = (deptOid) => {
+  const dept = departments.value.find(d => (d.id || d.oid) === deptOid)
+  return dept?.name || deptOid
+}
+
+// 搜索和重置
 const handleSearch = () => {
-  pagination.currentPage = 1
+  currentPage.value = 1
 }
 
-// 重置
 const handleReset = () => {
-  filters.keyword = ''
-  filters.role = ''
-  filters.status = ''
-  pagination.currentPage = 1
+  searchTerm.value = ''
+  statusFilter.value = 'all'
+  currentPage.value = 1
 }
 
-// 详情
-const viewDetail = (row) => {
-  currentRecord.value = row
-  detailDialogVisible.value = true
-}
-
-// 编辑
-const editRecord = (row) => {
-  isEdit.value = true
-  Object.assign(formData, row)
-  formDialogVisible.value = true
-}
-
-// 新增
-const openFormModal = () => {
-  isEdit.value = false
-  Object.assign(formData, {
-    id: null,
+// 弹窗操作
+const openAddModal = () => {
+  editingUser.value = null
+  Object.assign(userForm, {
     username: '',
-    name: '',
+    realName: '',
+    password: '',
+    orgOid: organizations.value[0]?.oid || '',
     email: '',
-    role: 'user',
-    department: '',
+    phone: '',
     status: 'active'
   })
-  formDialogVisible.value = true
+  userRoleOids.value = []
+  userDialogVisible.value = true
 }
 
-// 提交表单
-const submitForm = async () => {
-  if (!formRef.value) return
-  await formRef.value.validate((valid) => {
-    if (valid) {
-      if (isEdit.value) {
-        const index = allData.value.findIndex(r => r.id === formData.id)
-        if (index !== -1) {
-          allData.value[index] = { ...formData }
-        }
-        ElMessage.success('编辑成功')
-      } else {
-        allData.value.unshift({
-          id: Date.now(),
-          ...formData
-        })
-        ElMessage.success('新增成功')
-      }
-      formDialogVisible.value = false
-    }
-  })
+const openEditModal = async (user) => {
+  editingUser.value = user
+  userForm.username = user.username || user.aid || ''
+  userForm.realName = user.real_name || user.name || ''
+  userForm.password = ''
+  userForm.orgOid = user.org_oid || user.orgOid || ''
+  userForm.email = user.email || ''
+  userForm.phone = user.phone || ''
+  userForm.status = user.status || 'active'
+
+  // 加载用户角色
+  try {
+    const roleOids = await getUserRoles(user.oid)
+    userRoleOids.value = roleOids || []
+  } catch {
+    userRoleOids.value = []
+  }
+  userDialogVisible.value = true
 }
+
+const handleUserSave = async () => {
+  if (!userForm.username || !userForm.realName) {
+    ElMessage.warning('请填写用户名和姓名')
+    return
+  }
+  saving.value = true
+  try {
+    const payload = {
+      oid: editingUser.value?.oid || `USER_${Date.now()}`,
+      username: userForm.username,
+      real_name: userForm.realName,
+      org_oid: userForm.orgOid,
+      email: userForm.email,
+      phone: userForm.phone,
+      status: userForm.status,
+      passwordHash: userForm.password || undefined
+    }
+    await saveUser(payload)
+
+    // 保存用户角色
+    if (userRoleOids.value.length > 0) {
+      try {
+        await assignUserRoles(payload.oid, userRoleOids.value)
+      } catch (err) {
+        console.error('保存用户角色失败:', err)
+      }
+    }
+
+    userDialogVisible.value = false
+    await loadUsers()
+    ElMessage.success('保存成功')
+  } catch (err) {
+    ElMessage.error('保存失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+const handleDelete = (oid) => {
+  deleteTarget.value = oid
+  deleteDialogVisible.value = true
+}
+
+const confirmDelete = async () => {
+  if (!deleteTarget.value) return
+  saving.value = true
+  try {
+    await deleteUser(deleteTarget.value)
+    deleteDialogVisible.value = false
+    deleteTarget.value = null
+    await loadUsers()
+    ElMessage.success('删除成功')
+  } catch (err) {
+    ElMessage.error('删除失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+const openPasswordModal = (user) => {
+  passwordUser.value = user
+  newPassword.value = ''
+  passwordDialogVisible.value = true
+}
+
+const handlePasswordChange = async () => {
+  if (!passwordUser.value || !newPassword.value) return
+  saving.value = true
+  try {
+    await updateUserPassword(passwordUser.value.oid, newPassword.value)
+    passwordDialogVisible.value = false
+    ElMessage.success('修改成功')
+  } catch (err) {
+    ElMessage.error('修改失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+const handleToggleStatus = async (user) => {
+  const newStatus = user.status === 'active' ? 'inactive' : 'active'
+  try {
+    await updateUserStatus(user.oid, newStatus)
+    await loadUsers()
+    ElMessage.success(`已${newStatus === 'active' ? '启用' : '禁用'}`)
+  } catch (err) {
+    ElMessage.error('操作失败')
+  }
+}
+
+const toggleUserRole = (roleOid) => {
+  const index = userRoleOids.value.indexOf(roleOid)
+  if (index > -1) {
+    userRoleOids.value.splice(index, 1)
+  } else {
+    userRoleOids.value.push(roleOid)
+  }
+}
+
+// 初始化
+onMounted(async () => {
+  await loadUsers()
+  await loadOrganizations()
+  await departmentStore.loadDepartments?.()
+  await loadRoles()
+})
 </script>

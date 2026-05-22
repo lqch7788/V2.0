@@ -135,91 +135,48 @@ export const mockIndicators = [
   }
 ]
 
-// 评估数据 Mock 数据
+// 评估数据 Mock 数据 - 与V1.1保持一致
 export const mockEvaluationData = [
-  {
-    id: '1',
-    name: '崇明岛基地',
-    productionScore: 92,
-    qualityScore: 88,
-    costScore: 85,
-    efficiencyScore: 90,
-    totalScore: 88.75,
-    rank: 1
-  },
-  {
-    id: '2',
-    name: '浦东基地',
-    productionScore: 88,
-    qualityScore: 90,
-    costScore: 82,
-    efficiencyScore: 85,
-    totalScore: 86.25,
-    rank: 2
-  },
-  {
-    id: '3',
-    name: '嘉定基地',
-    productionScore: 85,
-    qualityScore: 85,
-    costScore: 88,
-    efficiencyScore: 82,
-    totalScore: 85.0,
-    rank: 3
-  },
-  {
-    id: '4',
-    name: '松江基地',
-    productionScore: 80,
-    qualityScore: 82,
-    costScore: 85,
-    efficiencyScore: 80,
-    totalScore: 81.75,
-    rank: 4
-  },
-  {
-    id: '5',
-    name: '青浦基地',
-    productionScore: 78,
-    qualityScore: 80,
-    costScore: 78,
-    efficiencyScore: 75,
-    totalScore: 77.75,
-    rank: 5
-  }
+  { id: '1', name: '上海松江基地', productionScore: 92, qualityScore: 95, costScore: 88, efficiencyScore: 90, totalScore: 91.25, rank: 1 },
+  { id: '2', name: '上海崇明基地', productionScore: 88, qualityScore: 92, costScore: 85, efficiencyScore: 87, totalScore: 88.0, rank: 2 },
+  { id: '3', name: '上海嘉定基地', productionScore: 85, qualityScore: 90, costScore: 90, efficiencyScore: 85, totalScore: 87.5, rank: 3 },
+  { id: '4', name: '上海奉贤基地', productionScore: 90, qualityScore: 88, costScore: 82, efficiencyScore: 88, totalScore: 87.0, rank: 4 },
+  { id: '5', name: '西安雁塔基地', productionScore: 82, qualityScore: 85, costScore: 88, efficiencyScore: 86, totalScore: 85.25, rank: 5 },
+  { id: '6', name: '西安高新基地', productionScore: 80, qualityScore: 88, costScore: 85, efficiencyScore: 84, totalScore: 84.25, rank: 6 },
+  { id: '7', name: '宁波北仑基地', productionScore: 78, qualityScore: 82, costScore: 86, efficiencyScore: 82, totalScore: 82.0, rank: 7 },
+  { id: '8', name: '宁波镇海基地', productionScore: 75, qualityScore: 80, costScore: 84, efficiencyScore: 80, totalScore: 79.75, rank: 8 }
 ]
 
-// 分析数据 Mock 数据
+// 分析数据 Mock 数据 - 与V1.1保持一致，使用"达成率"作为key
 export const mockAnalyzeData = [
-  { month: '1月', target: 4800, actual: 4900, achievementRate: 102.1 },
-  { month: '2月', target: 4900, actual: 5000, achievementRate: 102.0 },
-  { month: '3月', target: 5000, actual: 5100, achievementRate: 102.0 },
-  { month: '4月', target: 5100, actual: 5050, achievementRate: 99.0 },
-  { month: '5月', target: 5000, actual: 5200, achievementRate: 104.0 },
-  { month: '6月', target: 5200, actual: 5300, achievementRate: 101.9 }
+  { month: '1月', target: 4800, actual: 4900, 达成率: 102.1 },
+  { month: '2月', target: 4900, actual: 5000, 达成率: 102.0 },
+  { month: '3月', target: 5000, actual: 5100, 达成率: 102.0 },
+  { month: '4月', target: 5100, actual: 5050, 达成率: 99.0 },
+  { month: '5月', target: 5000, actual: 5200, 达成率: 104.0 },
+  { month: '6月', target: 5200, actual: 5300, 达成率: 101.9 }
 ]
 
-// 分类汇总 Mock 数据
+// 分类汇总 Mock 数据 - 与V1.1保持一致的颜色
 export const mockCategorySummary = [
-  { name: '生产指标', count: 12, avgAchievement: 98.5, color: '#3B82F6' },
-  { name: '质量指标', count: 8, avgAchievement: 97.2, color: '#10B981' },
-  { name: '成本指标', count: 6, avgAchievement: 95.8, color: '#F59E0B' },
-  { name: '效率指标', count: 5, avgAchievement: 96.5, color: '#8B5CF6' },
-  { name: '资源指标', count: 4, avgAchievement: 94.2, color: '#EC4899' },
-  { name: '服务指标', count: 3, avgAchievement: 98.0, color: '#06B6D4' },
-  { name: '设备指标', count: 5, avgAchievement: 92.5, color: '#84CC16' },
-  { name: '安全指标', count: 2, avgAchievement: 100.0, color: '#EF4444' }
+  { name: '生产指标', count: 12, avgAchievement: 98.5, color: '#06b6d4' },
+  { name: '质量指标', count: 8, avgAchievement: 97.2, color: '#7C3AED' },
+  { name: '成本指标', count: 6, avgAchievement: 95.8, color: '#22c55e' },
+  { name: '效率指标', count: 5, avgAchievement: 96.5, color: '#f59e0b' },
+  { name: '服务指标', count: 3, avgAchievement: 98.0, color: '#ec4899' },
+  { name: '设备指标', count: 5, avgAchievement: 92.5, color: '#0891b2' },
+  { name: '资源指标', count: 4, avgAchievement: 94.2, color: '#3b82f6' },
+  { name: '安全指标', count: 2, avgAchievement: 100.0, color: '#ef4444' }
 ]
 
-// 指标类别选项
+// 指标类别选项 - 与V1.1和数据保持一致
 export const indicatorCategories = [
   '全部',
   '生产指标',
-  '资源指标',
   '质量指标',
   '成本指标',
   '效率指标',
-  '效益指标',
+  '资源指标',
   '服务指标',
   '设备指标',
   '安全指标'

@@ -1,119 +1,262 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <!-- 表格 -->
-    <el-table :data="paginatedData" border style="width: 100%" max-height="calc(100vh - 420px)">
-      <el-table-column type="index" width="50" label="序号" align="center" />
-      <el-table-column prop="harvestCode" label="采收单号" width="150">
-        <template #default="{ row }">
-          <span class="font-mono text-blue-600 font-semibold cursor-pointer hover:text-blue-800 hover:underline" @click="$emit('view-detail', row)">
-            {{ row.harvestCode }}
-          </span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="harvestDate" label="采收时间" width="160">
-        <template #default="{ row }">
-          {{ row.harvestDate?.replace('T', ' ') || '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="greenhouseName" label="采收区域" width="120" />
-      <el-table-column prop="warehouseName" label="入库仓库" width="120" />
-      <el-table-column prop="harvesterNames" label="采收人员" width="120">
-        <template #default="{ row }">
-          {{ (row.harvesterNames || []).join(', ') || '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="unitPrice" label="单价(元/kg)" width="120" align="right">
-        <template #default="{ row }">
-          {{ row.unitPrice ? row.unitPrice.toFixed(2) : '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="totalAmount" label="收入(元)" width="120" align="right">
-        <template #default="{ row }">
-          <span class="text-emerald-600 font-medium">
-            {{ row.totalAmount ? row.totalAmount.toFixed(2) : '-' }}
-          </span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="variety" label="作物品种" width="100" />
-      <el-table-column prop="batchCode" label="批次号" width="140" />
-      <el-table-column prop="harvestQuantity" label="采收量(kg)" width="120" align="right">
-        <template #default="{ row }">
-          {{ row.harvestQuantity }} {{ row.unit || 'kg' }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="grade" label="品质等级" width="100" align="center">
-        <template #default="{ row }">
-          <el-tag :type="gradeTypeMap[row.grade] || 'info'" size="small">
-            {{ row.grade || 'A' }}级
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="status" label="状态" width="100" align="center">
-        <template #default="{ row }">
-          <el-tag :type="statusTypeMap[row.status] || 'info'" size="small">
-            {{ statusLabelMap[row.status] || row.status }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="auditor" label="审核人员" width="100" />
-      <el-table-column label="操作" width="80" fixed="right">
-        <template #default="{ row }">
-          <el-button link type="primary" size="small" @click="$emit('view-detail', row)">详情</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+  <!-- 采收表格组件 - V1.1样式 -->
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <!-- 表头 -->
+      <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+        <tr>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-10"></th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">采收单号</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">入库类型</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">采收时间</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">采收区域</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">入库仓库</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">采收人员</th>
+          <th class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap">单价(元/kg)</th>
+          <th class="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap">收入(元)</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">产品数量</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审核人员</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
+        </tr>
+      </thead>
+      <!-- 表格主体 -->
+      <tbody class="divide-y divide-gray-300">
+        <tr
+          v-for="record in paginatedRecords"
+          :key="record.id"
+          class="hover:bg-blue-100 transition-colors"
+        >
+          <!-- 展开按钮 -->
+          <td class="px-4 py-3">
+            <el-button link @click="toggleExpand(record.id)">
+              <el-icon class="text-gray-500">
+                <DArrowRight v-if="expandedRow !== record.id" />
+                <DArrowLeft v-else />
+              </el-icon>
+            </el-button>
+          </td>
+          <!-- 采收单号 -->
+          <td class="px-4 py-3 text-sm font-medium text-blue-600 cursor-pointer hover:text-blue-800 underline whitespace-nowrap" @click="$emit('view-detail', record)">
+            {{ record.harvestCode }}
+          </td>
+          <!-- 入库类型 -->
+          <td class="px-4 py-3 text-sm whitespace-nowrap">
+            <span v-if="record.inboundType" :class="getInboundTypeBadgeClass(record.inboundType)">
+              {{ getInboundTypeLabel(record.inboundType) }}
+            </span>
+            <span v-else class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">-</span>
+            <span v-if="record.isSupplementary" class="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-xs">
+              补录
+            </span>
+          </td>
+          <!-- 采收时间 -->
+          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+            {{ formatDate(record.harvestDate) }}
+          </td>
+          <!-- 采收区域 -->
+          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+            {{ record.greenhouseName || '-' }}
+          </td>
+          <!-- 入库仓库 -->
+          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+            {{ record.warehouseName || '-' }}
+          </td>
+          <!-- 采收人员 -->
+          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+            {{ (record.harvesterNames || []).join(', ') || '-' }}
+          </td>
+          <!-- 单价 -->
+          <td class="px-4 py-3 text-sm text-gray-600 text-right whitespace-nowrap">
+            {{ record.unitPrice ? record.unitPrice.toFixed(2) : '-' }}
+          </td>
+          <!-- 收入 -->
+          <td class="px-4 py-3 text-sm text-emerald-600 font-medium text-right whitespace-nowrap">
+            {{ record.totalAmount ? record.totalAmount.toFixed(2) : '-' }}
+          </td>
+          <!-- 产品数量 -->
+          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+            {{ record.products?.length || 1 }} 条
+          </td>
+          <!-- 审核人员 -->
+          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+            {{ record.auditor || '-' }}
+          </td>
+          <!-- 状态 -->
+          <td class="px-4 py-3 whitespace-nowrap">
+            <span :class="getStatusBadgeClass(record.status)">
+              {{ getStatusLabel(record.status) }}
+            </span>
+          </td>
+        </tr>
+        <!-- 展开行：产品明细 -->
+        <tr v-if="expandedRow" class="bg-gray-50">
+          <td colspan="12" class="px-4 py-3">
+            <div class="text-sm">
+              <p class="font-medium text-gray-700 mb-2">产品明细：</p>
+              <div class="overflow-x-auto rounded border">
+                <table class="bg-white w-full">
+                  <!-- 产品明细表头 -->
+                  <thead class="bg-emerald-600 text-white">
+                    <tr>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">产品编码</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">作物名称</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">品种</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">生产计划批次号</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">种植模式</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">采收量</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">目标产量</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">完成率</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">品质等级</th>
+                      <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">备注</th>
+                    </tr>
+                  </thead>
+                  <!-- 产品明细表体 -->
+                  <tbody class="divide-y divide-gray-200">
+                    <tr v-for="(product, pIdx) in getProducts(expandedRow)" :key="pIdx">
+                      <td class="px-2 py-2 text-xs font-mono text-emerald-600 whitespace-nowrap">
+                        {{ product.productCode || generateProductCode(record?.cropName, record?.variety, pIdx) }}
+                      </td>
+                      <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">{{ product.cropName || record?.cropName }}</td>
+                      <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ product.variety || record?.variety || '-' }}</td>
+                      <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ product.batchCode || record?.batchCode || '-' }}</td>
+                      <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ product.plantingMode || record?.plantingMode || '-' }}</td>
+                      <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">{{ product.harvestQuantity || 0 }} {{ record?.unit || 'kg' }}</td>
+                      <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ product.targetYield || 0 }}</td>
+                      <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">
+                        {{ product.targetYield > 0 ? Math.round((product.harvestQuantity || 0) / product.targetYield * 100) : 0 }}%
+                      </td>
+                      <td class="px-2 py-2 text-xs whitespace-nowrap">
+                        <span :class="getGradeBadgeClass(product.grade || record?.grade)">
+                          {{ product.grade || record?.grade || 'A' }}级
+                        </span>
+                      </td>
+                      <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ product.remarks || record?.remarks || '-' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <!-- 分页 -->
-    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-sm text-gray-500">共 {{ total }} 条</span>
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50]"
-        :total="total"
-        layout="sizes, prev, pager, next"
-        background
-      />
+    <!-- 空状态 -->
+    <div v-if="!records || records.length === 0" class="text-center py-12">
+      <el-icon class="text-6xl text-gray-400 mb-4"><Box /></el-icon>
+      <p class="text-gray-500">暂无数据</p>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import { DArrowLeft, DArrowRight, Box } from '@element-plus/icons-vue'
 
-const props = defineProps({})
-
-defineEmits(['(e', 'row'])
-
-const currentPage = ref(1)
-const pageSize = ref(10)
-
-const total = computed(() => props.records.length)
-
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return props.records.slice(start, start + pageSize.value)
+const props = defineProps({
+  records: {
+    type: Array,
+    default: () => []
+  },
+  currentPage: {
+    type: Number,
+    default: 1
+  },
+  pageSize: {
+    type: Number,
+    default: 10
+  }
 })
 
-const gradeTypeMap = {
-  'A': 'success',
-  'B': 'warning',
-  'C': 'danger'
+const emit = defineEmits(['view-detail', 'page-change', 'page-size-change'])
+
+// 展开行状态
+const expandedRow = ref(null)
+
+// 分页后的记录
+const paginatedRecords = computed(() => {
+  const start = (props.currentPage - 1) * props.pageSize
+  return props.records.slice(start, start + props.pageSize)
+})
+
+// 获取当前展开行的产品
+const record = computed(() => {
+  if (!expandedRow.value) return null
+  return props.records.find(r => r.id === expandedRow.value)
+})
+
+const getProducts = (id) => {
+  const rec = props.records.find(r => r.id === id)
+  return rec?.products || []
 }
 
-const statusTypeMap = {
-  pending: 'info',
-  harvesting: 'warning',
-  harvested: 'success',
-  graded: 'primary',
-  stored: 'success'
+// 切换展开
+const toggleExpand = (id) => {
+  expandedRow.value = expandedRow.value === id ? null : id
 }
 
-const statusLabelMap = {
-  pending: '待采收',
-  harvesting: '采收中',
-  harvested: '已采收',
-  graded: '已分级',
-  stored: '已入库'
+// 格式化日期
+const formatDate = (dateStr) => {
+  if (!dateStr) return '-'
+  return dateStr.replace('T', ' ').slice(0, 16)
+}
+
+// 入库类型标签
+const getInboundTypeLabel = (type) => {
+  const map = {
+    'seed_source': '种源入库',
+    'seedling': '育苗成活入库',
+    'planting_harvest': '种植采收入库'
+  }
+  return map[type] || type
+}
+
+const getInboundTypeBadgeClass = (type) => {
+  const map = {
+    'seed_source': 'px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs',
+    'seedling': 'px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs',
+    'planting_harvest': 'px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs'
+  }
+  return map[type] || 'px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs'
+}
+
+// 状态标签
+const getStatusLabel = (status) => {
+  const map = {
+    'pending': '待采收',
+    'harvesting': '采收中',
+    'harvested': '已采收',
+    'graded': '已分级',
+    'stored': '已入库'
+  }
+  return map[status] || status
+}
+
+const getStatusBadgeClass = (status) => {
+  const map = {
+    'pending': 'px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full',
+    'harvesting': 'px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full',
+    'harvested': 'px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full',
+    'graded': 'px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full',
+    'stored': 'px-2 py-1 bg-cyan-100 text-cyan-700 text-xs rounded-full'
+  }
+  return map[status] || 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
+}
+
+// 品质等级标签
+const getGradeBadgeClass = (grade) => {
+  const map = {
+    'A': 'px-2 py-0.5 bg-green-500 text-white text-xs rounded font-semibold',
+    'B': 'px-2 py-0.5 bg-yellow-500 text-white text-xs rounded font-semibold',
+    'C': 'px-2 py-0.5 bg-red-500 text-white text-xs rounded font-semibold'
+  }
+  return map[grade] || 'px-2 py-0.5 bg-gray-500 text-white text-xs rounded font-semibold'
+}
+
+// 生成产品编码
+const generateProductCode = (cropName, variety, index) => {
+  if (!cropName) return `PD${String(index + 1).padStart(3, '0')}`
+  const seq = String(index + 1).padStart(3, '0')
+  return `PD0101001${seq}`
 }
 </script>

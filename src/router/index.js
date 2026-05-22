@@ -12,6 +12,217 @@ const routes = [
     path: '/home',
     redirect: '/'
   },
+  // V1.1兼容路由 - /settings 指向系统设置首页
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('@/views/system/SystemIndex.vue'),
+    meta: { title: '系统设置' }
+  },
+  {
+    path: '/settings/system-config',
+    name: 'SystemConfig',
+    component: () => import('@/views/system/SystemConfig.vue'),
+    meta: { title: '系统配置' }
+  },
+  {
+    path: '/settings/dictionary',
+    name: 'Dictionary',
+    component: () => import('@/views/system/DictionaryManagement.vue'),
+    meta: { title: '数据字典' }
+  },
+  {
+    path: '/settings/departments',
+    name: 'DepartmentSettings',
+    component: () => import('@/views/system/DepartmentSettings.vue'),
+    meta: { title: '部门设置' }
+  },
+  {
+    path: '/settings/notification',
+    name: 'NotificationSettings',
+    component: () => import('@/views/system/NotificationSettings.vue'),
+    meta: { title: '通知设置' }
+  },
+  {
+    path: '/settings/audit-log',
+    name: 'AuditLog',
+    component: () => import('@/views/system/AuditLog.vue'),
+    meta: { title: '操作日志' }
+  },
+  {
+    path: '/settings/bases',
+    name: 'BaseSettings',
+    component: () => import('@/views/system/BaseSettings.vue'),
+    meta: { title: '基地设置' }
+  },
+  {
+    path: '/settings/farm-structure',
+    name: 'FarmStructure',
+    component: () => import('@/views/system/FarmStructureManagement.vue'),
+    meta: { title: '基地架构' }
+  },
+  {
+    path: '/settings/block',
+    name: 'BlockManagement',
+    component: () => import('@/views/system/BlockManagement.vue'),
+    meta: { title: '区块管理' }
+  },
+  {
+    path: '/settings/partitions',
+    name: 'Partitions',
+    component: () => import('@/views/system/FarmPartitionManagement.vue'),
+    meta: { title: '分区管理' }
+  },
+  {
+    path: '/settings/area-systems',
+    name: 'AreaSystems',
+    component: () => import('@/views/system/AreaSystemManagement.vue'),
+    meta: { title: '区域系统' }
+  },
+  {
+    path: '/settings/user-permission',
+    name: 'UserPermission',
+    component: () => import('@/views/system/authority/UserPermissionHub.vue'),
+    meta: { title: '用户权限管理' }
+  },
+  {
+    path: '/settings/organizations',
+    name: 'Organizations',
+    component: () => import('@/views/system/authority/OrganizationManagement.vue'),
+    meta: { title: '组织管理' }
+  },
+  {
+    path: '/settings/roles',
+    name: 'Roles',
+    component: () => import('@/views/system/authority/RoleManagement.vue'),
+    meta: { title: '角色管理' }
+  },
+  {
+    path: '/settings/authority-config',
+    name: 'AuthorityConfig',
+    component: () => import('@/views/system/authority/AuthorityConfiguration.vue'),
+    meta: { title: '权限配置' }
+  },
+  {
+    path: '/settings/users',
+    name: 'Users',
+    component: () => import('@/views/system/authority/UserManagement.vue'),
+    meta: { title: '用户管理' }
+  },
+  {
+    path: '/settings/user-authority',
+    name: 'UserAuthority',
+    component: () => import('@/views/system/authority/UserAuthorityConfig.vue'),
+    meta: { title: '用户权限' }
+  },
+  {
+    path: '/settings/approval-workflow',
+    name: 'ApprovalWorkflow',
+    component: () => import('@/views/system/ApprovalWorkflowConfig.vue'),
+    meta: { title: '审批流程' }
+  },
+  {
+    path: '/settings/approval-level-config',
+    name: 'ApprovalLevelConfig',
+    component: () => import('@/views/system/ApprovalLevelConfig.vue'),
+    meta: { title: '分级审批' }
+  },
+  {
+    path: '/settings/crop-variety',
+    name: 'CropVariety',
+    component: () => import('@/views/system/CropVarietyManagement.vue'),
+    meta: { title: '作物品种库' }
+  },
+  {
+    path: '/settings/processes',
+    name: 'ProcessManagement',
+    component: () => import('@/views/system/ProcessManagement.vue'),
+    meta: { title: '工序管理' }
+  },
+  {
+    path: '/settings/plant-settings',
+    name: 'PlantSettings',
+    component: () => import('@/views/system/PlantSettingManagement.vue'),
+    meta: { title: '种植设置' }
+  },
+  {
+    path: '/settings/cost-accounting',
+    name: 'CostAccounting',
+    component: () => import('@/views/system/CostAccounting.vue'),
+    meta: { title: '成本核算' }
+  },
+  {
+    path: '/settings/device-systems',
+    name: 'DeviceSystems',
+    component: () => import('@/views/system/DeviceSystemManagement.vue'),
+    meta: { title: '系统管理' }
+  },
+  {
+    path: '/settings/cameras',
+    name: 'Cameras',
+    component: () => import('@/views/system/CameraManagement.vue'),
+    meta: { title: '视频管理' }
+  },
+  {
+    path: '/settings/water-fertilizer',
+    name: 'WaterFertilizer',
+    component: () => import('@/views/system/WaterFertilizerManagement.vue'),
+    meta: { title: '水肥一体机' }
+  },
+  {
+    path: '/settings/device',
+    name: 'DeviceManagement',
+    component: () => import('@/views/system/DeviceManagement.vue'),
+    meta: { title: '设备管理' }
+  },
+  {
+    path: '/settings/device-distribution',
+    name: 'DeviceDistribution',
+    component: () => import('@/views/system/DeviceDistributionManagement.vue'),
+    meta: { title: '设备分配' }
+  },
+  {
+    path: '/settings/project-debug',
+    name: 'ProjectDebug',
+    component: () => import('@/views/system/ProjectDebugManagement.vue'),
+    meta: { title: '工程调试' }
+  },
+  {
+    path: '/settings/monitor',
+    name: 'SystemMonitor',
+    component: () => import('@/views/system/SystemMonitor.vue'),
+    meta: { title: '系统监控' }
+  },
+  {
+    path: '/settings/backup',
+    name: 'Backup',
+    component: () => import('@/views/system/BackupRecovery.vue'),
+    meta: { title: '备份恢复' }
+  },
+  {
+    path: '/settings/energy-configs',
+    name: 'EnergyConfigs',
+    component: () => import('@/views/system/EnergyConfigManagement.vue'),
+    meta: { title: '能耗管理' }
+  },
+  {
+    path: '/settings/alarm-configs',
+    name: 'AlarmConfigs',
+    component: () => import('@/views/system/AlarmConfigManagement.vue'),
+    meta: { title: '警报管理' }
+  },
+  {
+    path: '/settings/warehouse',
+    name: 'WarehouseManagement',
+    component: () => import('@/views/system/WarehouseManagement.vue'),
+    meta: { title: '仓库管理' }
+  },
+  {
+    path: '/settings/team',
+    name: 'TeamManagement',
+    component: () => import('@/views/system/TeamManagement.vue'),
+    meta: { title: '班组管理' }
+  },
   {
     path: '/dashboard',
     name: 'Dashboard',
@@ -73,36 +284,28 @@ const routes = [
     meta: { title: '人事管理' }
   },
   {
-    path: '/crop',
-    name: 'Crop',
-    component: () => import('@/views/crop/CropIndex.vue'),
-    meta: { title: '作物管理' },
-    children: [
-      {
-        path: 'seed-source',
-        name: 'SeedSource',
-        component: () => import('@/views/crop/SeedSource.vue'),
-        meta: { title: '种源管理' }
-      },
-      {
-        path: 'seedling',
-        name: 'Seedling',
-        component: () => import('@/views/crop/Seedling.vue'),
-        meta: { title: '育苗管理' }
-      },
-      {
-        path: 'planting',
-        name: 'Planting',
-        component: () => import('@/views/crop/Planting.vue'),
-        meta: { title: '种植管理' }
-      },
-      {
-        path: 'harvest',
-        name: 'Harvest',
-        component: () => import('@/views/crop/Harvest.vue'),
-        meta: { title: '采收入库' }
-      }
-    ]
+    path: '/crop/seed-source',
+    name: 'SeedSource',
+    component: () => import('@/views/crop/SeedSource.vue'),
+    meta: { title: '种源管理' }
+  },
+  {
+    path: '/crop/seedling',
+    name: 'Seedling',
+    component: () => import('@/views/crop/Seedling.vue'),
+    meta: { title: '育苗管理' }
+  },
+  {
+    path: '/crop/planting',
+    name: 'Planting',
+    component: () => import('@/views/crop/Planting.vue'),
+    meta: { title: '种植管理' }
+  },
+  {
+    path: '/crop/harvest',
+    name: 'Harvest',
+    component: () => import('@/views/crop/Harvest.vue'),
+    meta: { title: '采收入库' }
   },
   {
     path: '/inventory',
@@ -321,29 +524,7 @@ const routes = [
   },
   {
     path: '/system',
-    name: 'System',
-    redirect: '/system/authority',
-    meta: { title: '系统设置' },
-    children: [
-      {
-        path: 'authority',
-        name: 'Authority',
-        component: () => import('@/views/system/authority/AuthorityConfiguration.vue'),
-        meta: { title: '权限配置' }
-      },
-      {
-        path: 'user',
-        name: 'UserManagement',
-        component: () => import('@/views/system/authority/UserManagement.vue'),
-        meta: { title: '用户管理' }
-      },
-      {
-        path: 'role',
-        name: 'RoleManagement',
-        component: () => import('@/views/system/authority/RoleManagement.vue'),
-        meta: { title: '角色管理' }
-      }
-    ]
+    redirect: '/settings'
   },
   {
     path: '/worker-attendance',

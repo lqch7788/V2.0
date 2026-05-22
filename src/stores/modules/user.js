@@ -1,11 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { enhancedApiClient } from '@/lib/apiClient'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
   const token = ref(localStorage.getItem('token') || '')
   const userInfo = ref(null)
   const permissions = ref([])
+  const loading = ref(false)
+  const error = ref(null)
 
   // 计算属性
   const isLoggedIn = computed(() => !!token.value)
@@ -27,30 +30,61 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null
     permissions.value = []
     localStorage.removeItem('token')
+    localStorage.removeItem('currentUser')
   }
 
+  /**
+   * 用户登录
+   * 调用真实API：POST /authority/auth/login
+   */
   const login = async (username, password) => {
-    // 模拟登录
-    const mockToken = 'mock_token_' + Date.now()
-    const mockUser = {
-      id: 1,
-      username: username,
-      name: '管理员',
-      department: '系统管理部',
-      position: '系统管理员',
-      role: 'admin',
-      status: 'active',
-      createdAt: new Date().toISOString()
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await enhancedApiClient.post('/authority/auth/login', { username, password })
+
+      if (!response?.token) {
+        throw new Error('登录失败：未返回 token')
+      }
+
+      // 构建用户信息
+      const user = {
+        id: response.user?.id || 1,
+        oid: response.user?.oid || '',
+        username: response.user?.username || username,
+        name: response.user?.real_name || response.user?.name || username,
+        realName: response.user?.real_name || response.user?.name || username,
+        orgOid: response.user?.org_oid || '',
+        department: response.user?.department || '',
+        position: response.user?.position || '',
+        role: response.user?.role || 'admin',
+        email: response.user?.email || '',
+        phone: response.user?.phone || '',
+        status: response.user?.status || 'active',
+        createdAt: new Date().toISOString()
+      }
+
+      setToken(response.token)
+      setUserInfo(user)
+      localStorage.setItem('currentUser', JSON.stringify(user))
+
+      return user
+    } catch (err) {
+      error.value = err.message || '登录失败'
+      console.warn('[UserStore] 登录失败:', err)
+      throw err
+    } finally {
+      loading.value = false
     }
-    setToken(mockToken)
-    setUserInfo(mockUser)
-    return mockUser
   }
 
   return {
     token,
     userInfo,
     permissions,
+    loading,
+    error,
     isLoggedIn,
     hasPermission,
     setToken,

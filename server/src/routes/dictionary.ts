@@ -160,8 +160,8 @@ router.get('/system-configs', (req, res) => {
   const db = getDatabase();
   const { configKey } = req.query;
 
-  let sql = 'SELECT * FROM system_configs WHERE status = ?';
-  const bindings: string[] = ['active'];
+  let sql = 'SELECT * FROM system_configs WHERE is_active = 1';
+  const bindings: string[] = [];
 
   if (configKey) {
     sql += ' AND config_key = ?';
@@ -205,15 +205,15 @@ router.post('/system-configs', (req, res) => {
       for (const config of inserted) {
         const id = config.id || `CFG_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         db.run(
-          `INSERT INTO system_configs (id, config_key, config_value, config_type, description, status, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO system_configs (id, config_key, config_value, config_type, category, description, is_active, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
           [
             id,
-            config.configKey,
-            config.configValue || '',
-            config.configType || 'string',
+            config.config_key || config.configKey,
+            config.config_value || config.configValue || '',
+            config.config_type || config.configType || 'string',
+            config.category || 'system',
             config.description || null,
-            'active',
             now,
             now
           ]
@@ -226,12 +226,13 @@ router.post('/system-configs', (req, res) => {
     if (updated && updated.length > 0) {
       for (const config of updated) {
         db.run(
-          `UPDATE system_configs SET config_key = ?, config_value = ?, config_type = ?, description = ?, updated_at = ?
+          `UPDATE system_configs SET config_key = ?, config_value = ?, config_type = ?, category = ?, description = ?, updated_at = ?
            WHERE id = ?`,
           [
-            config.configKey,
-            config.configValue || '',
-            config.configType || 'string',
+            config.config_key || config.configKey,
+            config.config_value || config.configValue || '',
+            config.config_type || config.configType || 'string',
+            config.category || 'system',
             config.description || null,
             now,
             config.id
@@ -244,7 +245,7 @@ router.post('/system-configs', (req, res) => {
     // 处理删除
     if (deleted && deleted.length > 0) {
       for (const id of deleted) {
-        db.run('UPDATE system_configs SET status = ? WHERE id = ?', ['inactive', id]);
+        db.run('UPDATE system_configs SET is_active = 0 WHERE id = ?', [id]);
         results.deleted.push(id);
       }
     }

@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
     <div
       v-for="(stat, index) in stats"
       :key="index"
@@ -22,33 +22,43 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Crop, Sugar, CircleCheck, CaretTop } from '@element-plus/icons-vue'
+import { Crop, Sunny, CircleCheck, Top } from '@element-plus/icons-vue'
 
-const props = defineProps({})
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({
+      total: 0,
+      growing: 0,
+      harvested: 0,
+      monthCount: 0
+    })
+  }
+})
 
 const stats = computed(() => [
   {
     label: '总批次数',
-    value: props.data.total,
-    icon,
+    value: props.data.total || 0,
+    icon: Crop,
     color: 'bg-emerald-500',
   },
   {
     label: '生长期',
-    value: props.data.growing,
-    icon,
+    value: props.data.growing || 0,
+    icon: Sunny,
     color: 'bg-amber-500',
   },
   {
     label: '已采收',
-    value: props.data.harvested,
-    icon,
+    value: props.data.harvested || 0,
+    icon: CircleCheck,
     color: 'bg-green-500',
   },
   {
     label: '本月新增',
-    value: props.data.monthCount,
-    icon,
+    value: props.data.monthCount || 0,
+    icon: Top,
     color: 'bg-blue-500',
   },
 ])

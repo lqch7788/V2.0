@@ -96,7 +96,7 @@
           v-model:current-page="pagination.currentPage"
           v-model:page-size="pagination.pageSize"
           :page-sizes="[10, 20, 50, 100]"
-          :total="filteredRecords.length"
+          :total="total"
           layout="total, sizes, prev, pager, next"
           @size-change="handlePageSizeChange"
           @current-change="handlePageChange"
@@ -107,9 +107,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Folder, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getTasksWithPagination, deleteTask } from '@/services/apiFarmTaskService'
 
 // 筛选条件
 const filters = ref({
@@ -127,45 +128,57 @@ const pagination = ref({
 // 加载状态
 const loading = ref(false)
 
-// 记录数据
-const records = ref([
-  {
-    id: '1',
-    recordCode: 'AR20240115001',
-    date: '2024-01-15',
-    zone: '东区',
-    greenhouse: '1号大棚',
-    crop: '番茄',
-    activityType: '浇水',
-    workContent: '完成温室A1区番茄的浇水作业',
-    worker: '张三',
-    workHours: 2
-  },
-  {
-    id: '2',
-    recordCode: 'AR20240115002',
-    date: '2024-01-15',
-    zone: '东区',
-    greenhouse: '2号大棚',
-    crop: '黄瓜',
-    activityType: '施肥',
-    workContent: '对黄瓜进行生长期施肥',
-    worker: '李四',
-    workHours: 3
-  },
-  {
-    id: '3',
-    recordCode: 'AR20240114001',
-    date: '2024-01-14',
-    zone: '西区',
-    greenhouse: '1号大棚',
-    crop: '茄子',
-    activityType: '除草',
-    workContent: '温室除草作业',
-    worker: '王五',
-    workHours: 4
+// 记录数据（从真实API获取）
+const records = ref([])
+
+// 总数
+const total = ref(0)
+
+// 加载数据
+const loadRecords = async () => {
+  loading.value = true
+  try {
+    // 构建筛选参数
+    const params = {
+      page: pagination.value.currentPage,
+      limit: pagination.value.pageSize
+    }
+    if (filters.value.date) {
+      params.startDate = filters.value.date
+      params.endDate = filters.value.date
+    }
+
+    const result = await getTasksWithPagination(params)
+
+    // 数据映射：将后端任务数据映射为前端记录格式
+    records.value = (result.data || []).map(task => ({
+      id: task.id || task.taskCode || '',
+      recordCode: task.taskCode || task.id || '',
+      date: task.planDate || '',
+      zone: task.greenhouseName || '',
+      greenhouse: task.greenhouseName || '',
+      crop: task.crop || '',
+      activityType: task.taskType || task.typeName || '',
+      workContent: task.content || task.title || '',
+      worker: task.assigneeName || '',
+      workHours: task.estimatedHours || 0,
+      // 保留原始任务数据供其他操作使用
+      _原始数据: task
+    }))
+
+    total.value = result.total || records.value.length
+  } catch (error) {
+    console.error('加载农事记录失败:', error)
+    ElMessage.error('加载农事记录失败')
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadRecords()
+})
 
 // 过滤后的记录
 const filteredRecords = computed(() => {
@@ -206,6 +219,7 @@ const getActivityTypeTag = (type) => {
 // 搜索
 const handleSearch = () => {
   pagination.value.currentPage = 1
+  loadRecords()
 }
 
 // 重置
@@ -216,6 +230,7 @@ const handleReset = () => {
     crop: ''
   }
   pagination.value.currentPage = 1
+  loadRecords()
 }
 
 // 新增
@@ -239,24 +254,38 @@ const handleEdit = (row) => {
 }
 
 // 删除
-const handleDelete = (row) => {
-  ElMessageBox.confirm(`确定要删除记录 "${row.recordCode}" 吗？`, '删除确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除记录 "${row.recordCode}" 吗？`, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+
+    // 调用真实API删除
+    await deleteTask(row.id)
     ElMessage.success('删除成功')
-  }).catch(() => {})
+
+    // 重新加载数据
+    loadRecords()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 // 分页大小改变
 const handlePageSizeChange = (size) => {
   pagination.value.pageSize = size
   pagination.value.currentPage = 1
+  loadRecords()
 }
 
 // 页码改变
 const handlePageChange = (page) => {
   pagination.value.currentPage = page
+  loadRecords()
 }
 </script>

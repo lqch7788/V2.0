@@ -31,25 +31,25 @@ const stats = computed(() => [
     label: '订单总数',
     value: props.data.total,
     color: 'bg-blue-500',
-    icon,
+    icon: Goods,
   },
   {
     label: '进行中',
     value: props.data.inProgress,
     color: 'bg-amber-500',
-    icon,
+    icon: CaretTop,
   },
   {
     label: '已完成',
     value: props.data.completed,
     color: 'bg-emerald-500',
-    icon,
+    icon: CircleCheck,
   },
   {
     label: '本月新增',
     value: props.data.thisMonth,
     color: 'bg-purple-500',
-    icon,
+    icon: Calendar,
   },
 ])
 </script>

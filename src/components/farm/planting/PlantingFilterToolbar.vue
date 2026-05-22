@@ -84,7 +84,11 @@ import { Search } from '@element-plus/icons-vue'
 const props = defineProps({
   filters: Object,
   areas: Array,
-  statusOptions: Array
+  statusOptions: Array,
+  cropNames: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const emit = defineEmits(['update:filters', 'search', 'reset'])

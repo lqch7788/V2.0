@@ -1,5 +1,5 @@
 <template>
-  <!-- 达成分析面板组件 -->
+  <!-- 达成分析面板组件 - V1.1样式 -->
   <div class="space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- 月度达成率趋势 -->
@@ -18,58 +18,48 @@
     <!-- 达成情况明细 -->
     <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
       <h3 class="text-lg font-semibold text-gray-900 mb-4">达成情况明细</h3>
-      <el-table :data="analyzeData" style="width: 100%">
-        <el-table-column prop="month" label="指标名称" width="120">
-          <template #default="{ row }">
-            <span class="text-sm font-medium text-gray-900">{{ row.month }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="target" label="目标值" width="120">
-          <template #default="{ row }">
-            <span class="text-sm text-gray-700 font-mono">{{ row.target }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="actual" label="实际值" width="120">
-          <template #default="{ row }">
-            <span class="text-sm text-gray-900 font-medium font-mono">{{ row.actual }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="差距" width="120">
-          <template #default="{ row }">
-            <span class="text-sm text-gray-700 font-mono">
-              {{ row.actual - row.target > 0 ? '+' : '' }}{{ row.actual - row.target }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="达成率" width="120">
-          <template #default="{ row }">
-            <el-tag
-              size="small"
-              :type="getAchievementTagType(row.achievementRate)"
-              effect="plain"
-            >
-              {{ row.achievementRate }}%
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="120">
-          <template #default="{ row }">
-            <el-tag
-              size="small"
-              :type="getAchievementTagType(row.achievementRate)"
-              effect="plain"
-            >
-              {{ getAchievementStatus(row.achievementRate) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-      </el-table>
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <tr>
+            <th class="px-3 py-3 text-left text-sm font-semibold">指标名称</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">目标值</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">实际值</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">差距</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">达成率</th>
+            <th class="px-3 py-3 text-left text-sm font-semibold">状态</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-300">
+          <tr
+            v-for="(item, index) in analyzeData"
+            :key="index"
+            class="hover:bg-blue-50 transition-all duration-300"
+          >
+            <td class="px-3 py-3 text-sm font-medium text-gray-900">{{ item.month }}</td>
+            <td class="px-3 py-3 text-sm text-gray-700 font-mono">{{ item.target }}</td>
+            <td class="px-3 py-3 text-sm text-gray-900 font-medium font-mono">{{ item.actual }}</td>
+            <td class="px-3 py-3 text-sm text-gray-700 font-mono">
+              {{ item.actual - item.target > 0 ? '+' : '' }}{{ item.actual - item.target }}
+            </td>
+            <td class="px-3 py-3">
+              <span :class="getAchievementClass(item.达成率)" class="px-2 py-1 text-xs rounded-full">
+                {{ item.达成率 }}%
+              </span>
+            </td>
+            <td class="px-3 py-3">
+              <span :class="getAchievementClass(item.达成率)" class="px-2 py-1 text-xs rounded-full">
+                {{ getAchievementStatus(item.达成率) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 
 const props = defineProps({
@@ -79,12 +69,14 @@ const props = defineProps({
 // 图表容器
 const lineChartRef = ref()
 const barChartRef = ref()
+let lineChartInstance = null
+let barChartInstance = null
 
-// 获取达成率标签类型
-const getAchievementTagType = (rate) => {
-  if (rate >= 98) return 'success'
-  if (rate >= 95) return 'warning'
-  return 'danger'
+// 获取达成率样式
+const getAchievementClass = (rate) => {
+  if (rate >= 98) return 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+  if (rate >= 95) return 'bg-amber-100 text-amber-800 border border-amber-300'
+  return 'bg-red-100 text-red-800 border border-red-300'
 }
 
 // 获取达成状态文字
@@ -98,7 +90,7 @@ const getAchievementStatus = (rate) => {
 const initLineChart = () => {
   if (!lineChartRef.value) return
 
-  const chart = echarts.init(lineChartRef.value)
+  lineChartInstance = echarts.init(lineChartRef.value)
 
   const option = {
     tooltip: {
@@ -115,16 +107,16 @@ const initLineChart = () => {
       type: 'category',
       data: props.analyzeData.map(item => item.month),
       axisLabel: {
-        fontSize,
+        fontSize: 12,
         color: '#6b7280'
       }
     },
     yAxis: {
       type: 'value',
-      min,
-      max,
+      min: 90,
+      max: 100,
       axisLabel: {
-        fontSize,
+        fontSize: 12,
         color: '#6b7280',
         formatter: '{value}%'
       }
@@ -133,8 +125,8 @@ const initLineChart = () => {
       {
         name: '达成率',
         type: 'line',
-        data: props.analyzeData.map(item => item.achievementRate),
-        smooth,
+        data: props.analyzeData.map(item => item.达成率),
+        smooth: true,
         lineStyle: {
           color: '#06b6d4',
           width: 2
@@ -144,49 +136,51 @@ const initLineChart = () => {
         },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset, color: 'rgba(6, 182, 212, 0.3)' },
-            { offset, color: 'rgba(6, 182, 212, 0.05)' }
+            { offset: 0, color: 'rgba(6, 182, 212, 0.3)' },
+            { offset: 1, color: 'rgba(6, 182, 212, 0.05)' }
           ])
         }
       }
     ]
   }
 
-  chart.setOption(option)
+  lineChartInstance.setOption(option)
 }
 
 // 初始化柱状图
 const initBarChart = () => {
   if (!barChartRef.value) return
 
-  const chart = echarts.init(barChartRef.value)
+  barChartInstance = echarts.init(barChartRef.value)
 
   const option = {
     tooltip: {
       trigger: 'axis'
     },
     grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '3%',
+      left: 50,
+      right: 20,
+      top: 40,
+      bottom: 50,
       containLabel: true
     },
     legend: {
       data: ['目标值', '实际值'],
-      bottom: 0
+      top: 5,
+      left: 'center'
     },
     xAxis: {
       type: 'category',
       data: props.analyzeData.map(item => item.month),
       axisLabel: {
-        fontSize,
+        fontSize: 12,
         color: '#6b7280'
       }
     },
     yAxis: {
       type: 'value',
       axisLabel: {
-        fontSize,
+        fontSize: 12,
         color: '#6b7280'
       }
     },
@@ -212,11 +206,44 @@ const initBarChart = () => {
     ]
   }
 
-  chart.setOption(option)
+  barChartInstance.setOption(option)
+}
+
+// 响应窗口大小变化
+const handleResize = () => {
+  if (lineChartInstance) {
+    lineChartInstance.resize()
+  }
+  if (barChartInstance) {
+    barChartInstance.resize()
+  }
 }
 
 onMounted(() => {
   initLineChart()
   initBarChart()
+  window.addEventListener('resize', handleResize)
+})
+
+// 监听数据变化，当数据更新时重新渲染图表
+watch(() => props.analyzeData, () => {
+  if (lineChartInstance && barChartInstance) {
+    initLineChart()
+    initBarChart()
+  }
+}, { deep: true })
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (lineChartInstance) {
+    lineChartInstance.dispose()
+  }
+  if (barChartInstance) {
+    barChartInstance.dispose()
+  }
 })
 </script>
+
+<style scoped>
+/* V1.1表格样式，表头渐变蓝色，行悬浮高亮 */
+</style>

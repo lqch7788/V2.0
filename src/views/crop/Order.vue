@@ -1,0 +1,735 @@
+<template>
+  <!-- 订单管理主页面 - V1.1样式 -->
+  <div class="p-6 bg-[#F2F6FA] min-h-screen">
+    <!-- 页面标题卡片 -->
+    <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+            <el-icon :size="24" class="text-white">
+              <ClipboardList />
+            </el-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">订单管理</h1>
+            <p class="text-gray-500">管理作物订单、跟踪订单执行状态和交付进度</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+            <el-icon class="text-white"><Package /></el-icon>
+          </div>
+          <div>
+            <p class="text-xl font-bold text-gray-900">{{ statsData.total }}</p>
+            <p class="text-xs text-gray-500">订单总数</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+            <el-icon class="text-white"><TrendCharts /></el-icon>
+          </div>
+          <div>
+            <p class="text-xl font-bold text-gray-900">{{ statsData.inProgress }}</p>
+            <p class="text-xs text-gray-500">进行中</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+            <el-icon class="text-white"><CircleCheck /></el-icon>
+          </div>
+          <div>
+            <p class="text-xl font-bold text-gray-900">{{ statsData.completed }}</p>
+            <p class="text-xs text-gray-500">已完成</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+            <el-icon class="text-white"><Calendar /></el-icon>
+          </div>
+          <div>
+            <p class="text-xl font-bold text-gray-900">{{ statsData.thisMonth }}</p>
+            <p class="text-xs text-gray-500">本月新增</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 筛选工具栏 -->
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+      <div class="flex items-end gap-4 flex-wrap">
+        <!-- 订单编号 -->
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm text-gray-700 mb-1">订单编号</label>
+          <el-input v-model="filters.orderCode" placeholder="请输入订单编号" clearable />
+        </div>
+        <!-- 订单名称 -->
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm text-gray-700 mb-1">订单名称</label>
+          <el-input v-model="filters.orderName" placeholder="请输入订单名称" clearable />
+        </div>
+        <!-- 作物品种 -->
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm text-gray-700 mb-1">作物品种</label>
+          <el-select v-model="filters.cropName" placeholder="请选择" clearable class="w-full">
+            <el-option v-for="item in cropNameOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </div>
+        <!-- 订单状态 -->
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm text-gray-700 mb-1">订单状态</label>
+          <el-select v-model="filters.status" placeholder="请选择" clearable class="w-full">
+            <el-option v-for="opt in orderStatusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
+        </div>
+        <!-- 订单日期 -->
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm text-gray-700 mb-1">订单日期</label>
+          <el-date-picker
+            v-model="filters.startDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            class="w-full"
+          />
+        </div>
+        <!-- 按钮 -->
+        <div class="flex gap-2">
+          <el-button size="small" @click="handleReset">
+            <el-icon><RefreshRight /></el-icon>
+            重置
+          </el-button>
+          <el-button type="primary" size="small" @click="handleSearch">
+            <el-icon><Search /></el-icon>
+            搜索
+          </el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium text-gray-700">订单列表</span>
+          <span class="text-xs text-gray-500">（共 {{ filteredData.length }} 条）</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- 导出模式 -->
+          <template v-if="exportMode">
+            <el-button type="primary" size="small" @click="handleExportConfirm">
+              <el-icon><Download /></el-icon>
+              确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+            </el-button>
+            <el-button size="small" @click="handleExportCancel">取消</el-button>
+          </template>
+          <template v-else>
+            <el-button size="small" @click="handleExportClick">
+              <el-icon><Download /></el-icon>
+              导出
+            </el-button>
+            <el-button type="primary" size="small" @click="handleAdd">
+              <el-icon><Plus /></el-icon>
+              新增订单
+            </el-button>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据表格 -->
+    <div v-loading="loading" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <tr>
+              <th v-if="exportMode" class="px-4 py-3 text-left text-sm font-semibold w-12">
+                <el-checkbox
+                  :model-value="selectedRows.length === filteredData.length && filteredData.length > 0"
+                  @change="handleSelectAll"
+                />
+              </th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">订单编号</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">订单名称</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">订单类型</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">作物信息</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">数量</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">订单日期</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">预计采收</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">状态</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-300">
+            <tr v-if="paginatedData.length === 0">
+              <td :colspan="exportMode ? 10 : 9" class="px-4 py-8 text-center text-gray-500">
+                暂无数据
+              </td>
+            </tr>
+            <tr
+              v-for="record in paginatedData"
+              :key="record.id"
+              class="transition-colors"
+            >
+              <td v-if="exportMode" class="px-4 py-3">
+                <el-checkbox
+                  :model-value="selectedRows.includes(record.id)"
+                  @change="() => handleToggleSelect(record.id)"
+                />
+              </td>
+              <td class="px-4 py-3 text-sm">
+                <el-button link type="primary" @click="handleDetail(record)">
+                  {{ record.orderCode }}
+                </el-button>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-900">
+                {{ record.orderName }}
+              </td>
+              <td class="px-4 py-3">
+                <span :class="getOrderTypeBadgeClass(record.orderType)">
+                  {{ getOrderTypeLabel(record.orderType) }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <div class="text-sm text-gray-900">{{ record.cropVariety }}</div>
+                <div class="text-xs text-gray-500 truncate max-w-[150px]" :title="record.cropCategory">{{ record.cropCategory }}</div>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600">
+                {{ record.plannedQuantity }} {{ record.unit }}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600">
+                {{ record.orderDate }}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600">
+                {{ record.expectedHarvestDate || '-' }}
+              </td>
+              <td class="px-4 py-3">
+                <span :class="getStatusBadgeClass(record.status)">
+                  {{ getStatusLabel(record.status) }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <template v-if="record.status !== 'completed'">
+                    <el-button link @click="handleEdit(record)" title="编辑">
+                      <el-icon><Edit /></el-icon>
+                    </el-button>
+                    <el-button link @click="handleDelete(record)" title="删除">
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </template>
+                  <template v-else>
+                    <span class="text-xs text-gray-400">已归档</span>
+                  </template>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <div class="flex items-center gap-4">
+          <span class="text-sm text-gray-600">
+            共 <span class="text-blue-600 font-medium">{{ filteredData.length }}</span> 条记录
+          </span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-600">每页</span>
+            <el-select
+              :model-value="pagination.pageSize"
+              @change="(val) => handlePageSizeChange(val)"
+              style="width: 80px"
+            >
+              <el-option v-for="opt in pageSizeOptions" :key="opt" :label="opt" :value="opt" />
+            </el-select>
+            <span class="text-sm text-gray-600">条</span>
+          </div>
+        </div>
+
+        <!-- 分页按钮组 -->
+        <div class="flex items-center gap-2">
+          <el-button variant="text" size="small" @click="() => handlePageChange(1)" :disabled="pagination.current === 1" class="text-gray-600">
+            <el-icon><DArrowLeft /></el-icon>
+          </el-button>
+          <el-button variant="text" size="small" @click="() => handlePageChange(pagination.current - 1)" :disabled="pagination.current === 1" class="text-gray-600">
+            <el-icon><ArrowLeft /></el-icon>
+          </el-button>
+          <template v-for="page in visiblePages" :key="page">
+            <el-button
+              size="small"
+              :class="[
+                page === pagination.current
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-none'
+                  : 'text-gray-700 hover:bg-blue-50 border-gray-300'
+              ]"
+              @click="() => handlePageChange(page)"
+            >
+              {{ page }}
+            </el-button>
+          </template>
+          <el-button variant="text" size="small" @click="() => handlePageChange(pagination.current + 1)" :disabled="pagination.current === totalPages" class="text-gray-600">
+            <el-icon><ArrowRight /></el-icon>
+          </el-button>
+          <el-button variant="text" size="small" @click="() => handlePageChange(totalPages)" :disabled="pagination.current === totalPages" class="text-gray-600">
+            <el-icon><DArrowRight /></el-icon>
+          </el-button>
+          <span class="text-sm text-gray-600 ml-2">
+            第 <span class="text-blue-600 font-medium">{{ pagination.current }}</span> / {{ totalPages }} 页
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 弹窗组件 -->
+    <AddModal
+      :is-open="addModalVisible"
+      @close="addModalVisible = false"
+      @success="handleAddSuccess"
+    />
+
+    <DetailModal
+      v-if="currentRecord"
+      :is-open="detailModalVisible"
+      :record="currentRecord"
+      @close="detailModalVisible = false"
+    />
+
+    <EditModal
+      v-if="currentRecord"
+      :is-open="editModalVisible"
+      :record="currentRecord"
+      @close="editModalVisible = false"
+      @success="handleEditSuccess"
+    />
+
+    <ExportModal
+      :is-open="showExportModal"
+      :export-format="exportFormat"
+      :selected-count="selectedRows.length"
+      @close="showExportModal = false"
+      @format-change="exportFormat = $event"
+      @confirm="handleDoExport"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import {
+  ClipboardList,
+  Package,
+  TrendCharts,
+  CircleCheck,
+  Calendar,
+  Plus,
+  Edit,
+  Delete,
+  Download,
+  Search,
+  RefreshRight,
+  DArrowLeft,
+  DArrowRight,
+  ArrowLeft,
+  ArrowRight
+} from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useOrderDataStore } from '@/stores/modules/orderData'
+import { CropOrderStatus } from '@/types/crop'
+import AddModal from './modals/AddModal.vue'
+import DetailModal from './modals/DetailModal.vue'
+import EditModal from './modals/EditModal.vue'
+import ExportModal from './modals/ExportModal.vue'
+
+// Store
+const orderDataStore = useOrderDataStore()
+
+// 订单状态选项
+const orderStatusOptions = [
+  { value: CropOrderStatus.PLANNED, label: '已计划' },
+  { value: CropOrderStatus.IN_PROGRESS, label: '进行中' },
+  { value: CropOrderStatus.COMPLETED, label: '已完成' },
+  { value: CropOrderStatus.CANCELLED, label: '已取消' }
+]
+
+// 订单类型选项
+const orderTypeOptions = [
+  { value: 'breeding', label: '育种订单' },
+  { value: 'seedling', label: '育苗订单' },
+  { value: 'production', label: '生产订单' },
+  { value: 'research', label: '研发订单' },
+  { value: 'other', label: '其他' }
+]
+
+// 作物品种选项（模拟数据）
+const cropNameOptions = [
+  { value: '番茄', label: '番茄' },
+  { value: '黄瓜', label: '黄瓜' },
+  { value: '辣椒', label: '辣椒' },
+  { value: '茄子', label: '茄子' },
+  { value: '白菜', label: '白菜' }
+]
+
+// 筛选条件
+const filters = ref({
+  orderCode: '',
+  orderName: '',
+  cropName: '',
+  status: '',
+  startDate: '',
+  endDate: '',
+  createBy: ''
+})
+
+// 分页
+const pagination = ref({
+  current: 1,
+  pageSize: 10
+})
+
+// 分页选项
+const pageSizeOptions = [10, 20, 50]
+
+// 选中行
+const selectedRows = ref([])
+
+// 导出模式
+const exportMode = ref(false)
+const exportFormat = ref('xlsx')
+const showExportModal = ref(false)
+
+// 弹窗状态
+const addModalVisible = ref(false)
+const detailModalVisible = ref(false)
+const editModalVisible = ref(false)
+
+// 当前记录
+const currentRecord = ref(null)
+
+// 加载状态
+const loading = computed(() => orderDataStore.isLoading)
+
+// 统计数据
+const statsData = computed(() => {
+  const orders = orderDataStore.orders
+  return {
+    total: orders.length,
+    inProgress: orders.filter(o => o.status === CropOrderStatus.IN_PROGRESS).length,
+    completed: orders.filter(o => o.status === CropOrderStatus.COMPLETED).length,
+    thisMonth: orders.filter(o => {
+      const date = new Date(o.createTime || '')
+      const now = new Date()
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+    }).length
+  }
+})
+
+// 筛选后的数据
+const filteredData = computed(() => {
+  return orderDataStore.orders.filter(item => {
+    if (filters.value.orderCode && !item.orderCode.includes(filters.value.orderCode)) return false
+    if (filters.value.orderName && !item.orderName.includes(filters.value.orderName)) return false
+    if (filters.value.cropName && !item.cropVariety.includes(filters.value.cropName)) return false
+    if (filters.value.status && item.status !== filters.value.status) return false
+    if (filters.value.startDate && item.orderDate < filters.value.startDate) return false
+    if (filters.value.endDate && item.orderDate > filters.value.endDate) return false
+    if (filters.value.createBy && !item.createBy.includes(filters.value.createBy)) return false
+    return true
+  }).sort((a, b) => {
+    const timeA = a.createTime || ''
+    const timeB = b.createTime || ''
+    return timeB.localeCompare(timeA)
+  })
+})
+
+// 总页数
+const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.value.pageSize) || 1)
+
+// 当前页数据
+const paginatedData = computed(() => {
+  const start = (pagination.value.current - 1) * pagination.value.pageSize
+  const end = start + pagination.value.pageSize
+  return filteredData.value.slice(start, end)
+})
+
+// 计算可见的页码（最多显示5页）
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, pagination.value.current - Math.floor(maxVisible / 2))
+  const endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage + 1 < maxVisible) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+// 获取状态标签
+const getStatusLabel = (status) => {
+  switch (status) {
+    case CropOrderStatus.PLANNED: return '已计划'
+    case CropOrderStatus.IN_PROGRESS: return '进行中'
+    case CropOrderStatus.COMPLETED: return '已完成'
+    case CropOrderStatus.CANCELLED: return '已取消'
+    default: return status
+  }
+}
+
+// 获取状态样式
+const getStatusBadgeClass = (status) => {
+  switch (status) {
+    case CropOrderStatus.PLANNED:
+      return 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
+    case CropOrderStatus.IN_PROGRESS:
+      return 'px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full'
+    case CropOrderStatus.COMPLETED:
+      return 'px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full'
+    case CropOrderStatus.CANCELLED:
+      return 'px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full'
+    default:
+      return 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
+  }
+}
+
+// 获取订单类型标签
+const getOrderTypeLabel = (type) => {
+  switch (type) {
+    case 'breeding': return '育种订单'
+    case 'seedling': return '育苗订单'
+    case 'production': return '生产订单'
+    case 'research': return '研发订单'
+    case 'other': return '其他'
+    default: return type
+  }
+}
+
+// 获取订单类型样式
+const getOrderTypeBadgeClass = (type) => {
+  switch (type) {
+    case 'breeding':
+      return 'px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded-full'
+    case 'seedling':
+      return 'px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full'
+    case 'production':
+      return 'px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full'
+    case 'research':
+      return 'px-2 py-1 bg-cyan-100 text-cyan-700 text-xs rounded-full'
+    case 'other':
+      return 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
+    default:
+      return 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
+  }
+}
+
+// 搜索
+const handleSearch = () => {
+  pagination.value.current = 1
+}
+
+// 重置
+const handleReset = () => {
+  filters.value = {
+    orderCode: '',
+    orderName: '',
+    cropName: '',
+    status: '',
+    startDate: '',
+    endDate: '',
+    createBy: ''
+  }
+  pagination.value.current = 1
+}
+
+// 新增
+const handleAdd = () => {
+  currentRecord.value = null
+  addModalVisible.value = true
+}
+
+// 新增成功
+const handleAddSuccess = () => {
+  orderDataStore.fetchOrders()
+  orderDataStore.fetchStats()
+}
+
+// 详情
+const handleDetail = (record) => {
+  currentRecord.value = record
+  detailModalVisible.value = true
+}
+
+// 编辑
+const handleEdit = (record) => {
+  currentRecord.value = record
+  editModalVisible.value = true
+}
+
+// 编辑成功
+const handleEditSuccess = () => {
+  orderDataStore.fetchOrders()
+  orderDataStore.fetchStats()
+}
+
+// 删除
+const handleDelete = async (record) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除订单 ${record.orderCode} 吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await orderDataStore.deleteOrder(record.id)
+    ElMessage.success('删除成功')
+  } catch {
+    // 用户取消
+  }
+}
+
+// 导出
+const handleExportClick = () => {
+  exportMode.value = true
+  selectedRows.value = []
+}
+
+const handleExportCancel = () => {
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+const handleSelectAll = () => {
+  if (selectedRows.value.length === filteredData.value.length) {
+    selectedRows.value = []
+  } else {
+    selectedRows.value = filteredData.value.map(item => item.id)
+  }
+}
+
+const handleToggleSelect = (id) => {
+  const index = selectedRows.value.indexOf(id)
+  if (index > -1) {
+    selectedRows.value.splice(index, 1)
+  } else {
+    selectedRows.value.push(id)
+  }
+}
+
+const handleExportConfirm = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要导出的数据')
+    return
+  }
+  showExportModal.value = true
+}
+
+const handleDoExport = () => {
+  const dataToExport = selectedRows.value.length > 0
+    ? filteredData.value.filter(o => selectedRows.value.includes(o.id))
+    : filteredData.value
+
+  // 导出表头
+  const headers = ['订单编号', '订单名称', '订单类型', '品种路径', '作物品种', '计划数量', '实际数量', '单位', '订单日期', '预计采收日期', '状态', '创建人', '创建时间', '备注']
+
+  // 生成导出数据
+  const exportData = dataToExport.map(record => ({
+    '订单编号': record.orderCode,
+    '订单名称': record.orderName,
+    '订单类型': getOrderTypeLabel(record.orderType),
+    '品种路径': record.cropCategory,
+    '作物品种': record.cropVariety,
+    '计划数量': record.plannedQuantity,
+    '实际数量': record.actualQuantity,
+    '单位': record.unit,
+    '订单日期': record.orderDate,
+    '预计采收日期': record.expectedHarvestDate || '',
+    '状态': getStatusLabel(record.status),
+    '创建人': record.createBy,
+    '创建时间': record.createTime,
+    '备注': record.remarks || ''
+  }))
+
+  let content = ''
+  let mimeType = ''
+  let extension = ''
+
+  if (exportFormat.value === 'csv') {
+    content = headers.join(',') + '\n' + exportData.map(row =>
+      headers.map(h => `"${row[h] || ''}"`).join(',')
+    ).join('\n')
+    mimeType = 'text/csv;charset=utf-8'
+    extension = 'csv'
+  } else if (exportFormat.value === 'word') {
+    content = `<html><head><meta charset="utf-8"><style>
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background-color: #4a90d9; color: white; }
+    </style></head><body>
+      <table border="1">
+        <tr>${headers.map(h => `<th style="background-color: #4a90d9; color: white;">${h}</th>`).join('')}</tr>
+        ${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}
+      </table>
+    </body></html>`
+    mimeType = 'application/vnd.ms-word;charset=utf-8'
+    extension = 'docx'
+  } else {
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    mimeType = 'application/vnd.ms-excel;charset=utf-8'
+    extension = 'xls'
+  }
+
+  const fileName = `订单管理_${new Date().toISOString().slice(0, 10)}.${extension}`
+
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  a.click()
+  URL.revokeObjectURL(url)
+
+  exportMode.value = false
+  selectedRows.value = []
+  showExportModal.value = false
+  ElMessage.success('导出成功')
+}
+
+// 分页
+const handlePageChange = (page) => {
+  pagination.value.current = page
+}
+
+const handlePageSizeChange = (size) => {
+  pagination.value.pageSize = size
+  pagination.value.current = 1
+}
+
+// 初始化
+onMounted(async () => {
+  await orderDataStore.syncPending()
+  await orderDataStore.fetchOrders()
+  await orderDataStore.fetchStats()
+})
+</script>
+
+<style scoped>
+/* V1.1样式保持 */
+:deep(.bg-gradient-to-r.from-blue-500.to-blue-600) {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: white;
+}
+</style>

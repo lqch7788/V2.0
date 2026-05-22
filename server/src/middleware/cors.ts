@@ -20,22 +20,18 @@ const getAllowedOrigins = (): string[] => {
     ];
   }
 
-  // 开发环境允许多个本地端口
+  // 开发环境允许多个本地端口（避免与V1.1的5188/3001端口冲突）
   return [
+    'http://localhost:5000',  // V2.0 Vite 开发服务器
+    'http://localhost:5001',  // V2.0 备用端口
+    'http://localhost:5002',  // V2.0 备用端口
     'http://localhost:5173',  // Vite 开发服务器
-    'http://localhost:5188',  // 备用端口
-    'http://localhost:5189',  // 备用端口
-    'http://localhost:5190',  // 当前前端端口
-    'http://localhost:5191',  // 当前前端端口
-    'http://localhost:5192',  // 当前前端端口
     'http://localhost:4174',  // Vite preview 端口
     'http://localhost:4173',  // Vite preview 备用端口
+    'http://127.0.0.1:5000',
+    'http://127.0.0.1:5001',
+    'http://127.0.0.1:5002',
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:5188',
-    'http://127.0.0.1:5189',
-    'http://127.0.0.1:5190',
-    'http://127.0.0.1:5191',
-    'http://127.0.0.1:5192',
     'http://127.0.0.1:4174',
     'http://127.0.0.1:4173',
   ];

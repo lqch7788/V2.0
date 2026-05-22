@@ -11,12 +11,92 @@
  * - /api/summary/labor-stats  → 人工统计
  * - /api/summary/batch-stats  → 批次汇总
  * - /api/summary/indicators   → 生产指标
- * - /api/problems/daily-summary  → 问题每日汇总
  */
 
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { mockChartData } from '@/data/mockData'
+import { ref } from 'vue'
+import { enhancedApiClient } from '@/lib/apiClient'
+
+// ============================================
+// 工具函数
+// ============================================
+
+/**
+ * 规范化批次数据
+ */
+function normalizeBatch(db) {
+  return {
+    id: db.id,
+    batchCode: db.batchCode,
+    batchName: db.batchName,
+    cropName: db.cropName,
+    variety: db.variety,
+    greenhouse: db.greenhouse,
+    plantingArea: db.plantingArea,
+    targetYield: Number(db.targetYield) || 0,
+    actualQuantity: Number(db.actualQuantity) || 0,
+    harvestQuantity: Number(db.harvestQuantity) || 0,
+    completionRate: Number(db.completionRate) || 0,
+    status: db.status,
+    plantingDate: db.plantingDate,
+    expectedHarvestDate: db.expectedHarvestDate,
+    actualHarvestDate: db.actualHarvestDate,
+    taskCount: Number(db.taskCount) || 0,
+    completedTaskCount: Number(db.completedTaskCount) || 0,
+    pendingTaskCount: Number(db.pendingTaskCount) || 0,
+    inProgressTaskCount: Number(db.inProgressTaskCount) || 0,
+    totalWorkHours: Number(db.totalWorkHours) || 0,
+    laborCost: Number(db.laborCost) || 0,
+    remainingYield: Number(db.remainingYield) || 0
+  }
+}
+
+/**
+ * 规范化产量统计数据项
+ */
+function normalizeYieldItem(db) {
+  return {
+    name: db.name,
+    value: Number(db.value) || 0,
+    count: Number(db.count) || 0,
+    year: db.year,
+    month: db.month
+  }
+}
+
+/**
+ * 规范化概览数据
+ */
+function normalizeOverview(db) {
+  return {
+    yield: {
+      monthHarvestCount: Number(db.yield?.monthHarvestCount || db.yield?.month_harvest_count) || 0,
+      monthTotalYield: Number(db.yield?.monthTotalYield || db.yield?.month_total_yield) || 0,
+      monthTotalAmount: Number(db.yield?.monthTotalYield || db.yield?.month_total_amount) || 0
+    },
+    task: {
+      totalTasks: Number(db.task?.totalTasks || db.task?.total_tasks) || 0,
+      completedTasks: Number(db.task?.completedTasks || db.task?.completed_tasks) || 0,
+      inProgressTasks: Number(db.task?.inProgressTasks || db.task?.in_progress_tasks) || 0,
+      pendingTasks: Number(db.task?.pendingTasks || db.task?.pending_tasks) || 0,
+      completionRate: Number(db.task?.completionRate || db.task?.completion_rate) || 0
+    },
+    labor: {
+      totalHours: Number(db.labor?.totalHours || db.labor?.total_hours) || 0,
+      totalLaborCost: Number(db.labor?.totalLaborCost || db.labor?.total_labor_cost) || 0
+    },
+    problem: {
+      totalProblems: Number(db.problem?.totalProblems || db.problem?.total_problems) || 0,
+      resolvedProblems: Number(db.problem?.resolvedProblems || db.problem?.resolved_problems) || 0,
+      resolutionRate: Number(db.problem?.resolutionRate || db.problem?.resolution_rate) || 0
+    },
+    batch: {
+      activeCount: Number(db.batch?.activeCount || db.batch?.active_count) || 0,
+      totalBatches: Number(db.batch?.totalBatches || db.batch?.total_batches) || 0
+    },
+    totalCost: Number(db.totalCost || db.total_cost) || 0
+  }
+}
 
 // ========== Store ==========
 
@@ -36,343 +116,261 @@ export const useSummaryStore = defineStore('summary', () => {
   const error = ref(null)
   const lastFetchTimestamps = ref({})
 
-  // Mock 数据生成函数
-  const generateMockOverview = () => ({
-    yield: {
-      monthHarvestCount: 24,
-      monthTotalYield: 12580,
-      monthTotalAmount: 87500,
-    },
-    task: {
-      totalTasks: 156,
-      completedTasks: 98,
-      inProgressTasks: 32,
-      pendingTasks: 26,
-      completionRate: 62.8,
-    },
-    labor: {
-      totalHours: 4520,
-      totalLaborCost: 135600,
-    },
-    problem: {
-      totalProblems: 42,
-      resolvedProblems: 35,
-      resolutionRate: 83.3,
-    },
-    batch: {
-      activeCount: 8,
-      totalBatches: 12,
-    },
-    totalCost: 198500,
-  })
-
-  const generateMockYieldItems = () => {
-    return mockChartData.monthlyYield.map((item) => ({
-      name: item.month,
-      value: item.yield,
-      count: Math.floor(item.yield / 50),
-    }))
-  }
-
-  const generateMockBatchItems = () => [
-    {
-      id: 1,
-      batchCode: 'B20260501',
-      batchName: '番茄批次A',
-      cropName: '番茄',
-      variety: '大红番茄',
-      greenhouse: '1号大棚-A区',
-      plantingArea: '1000㎡',
-      targetYield: 5000,
-      actualQuantity: 3200,
-      harvestQuantity: 2800,
-      completionRate: 64,
-      status: 'in_progress',
-      plantingDate: '2026-03-15',
-      expectedHarvestDate: '2026-06-15',
-      actualHarvestDate: '',
-      taskCount: 24,
-      completedTaskCount: 15,
-      pendingTaskCount: 5,
-      inProgressTaskCount: 4,
-      totalWorkHours: 320,
-      laborCost: 9600,
-      remainingYield: 1800,
-    },
-    {
-      id: 2,
-      batchCode: 'B20260502',
-      batchName: '黄瓜批次A',
-      cropName: '黄瓜',
-      variety: '水果黄瓜',
-      greenhouse: '2号大棚',
-      plantingArea: '800㎡',
-      targetYield: 4000,
-      actualQuantity: 2800,
-      harvestQuantity: 2400,
-      completionRate: 70,
-      status: 'in_progress',
-      plantingDate: '2026-03-10',
-      expectedHarvestDate: '2026-06-10',
-      actualHarvestDate: '',
-      taskCount: 20,
-      completedTaskCount: 14,
-      pendingTaskCount: 3,
-      inProgressTaskCount: 3,
-      totalWorkHours: 280,
-      laborCost: 8400,
-      remainingYield: 1200,
-    },
-    {
-      id: 3,
-      batchCode: 'B20260503',
-      batchName: '辣椒批次A',
-      cropName: '辣椒',
-      variety: '朝天椒',
-      greenhouse: '3号大棚',
-      plantingArea: '600㎡',
-      targetYield: 3000,
-      actualQuantity: 1950,
-      harvestQuantity: 1500,
-      completionRate: 65,
-      status: 'in_progress',
-      plantingDate: '2026-03-20',
-      expectedHarvestDate: '2026-06-20',
-      actualHarvestDate: '',
-      taskCount: 18,
-      completedTaskCount: 10,
-      pendingTaskCount: 4,
-      inProgressTaskCount: 4,
-      totalWorkHours: 200,
-      laborCost: 6000,
-      remainingYield: 1050,
-    },
-    {
-      id: 4,
-      batchCode: 'B20260401',
-      batchName: '茄子批次A',
-      cropName: '茄子',
-      variety: '紫长茄',
-      greenhouse: '1号大棚-B区',
-      plantingArea: '500㎡',
-      targetYield: 3500,
-      actualQuantity: 3150,
-      harvestQuantity: 3150,
-      completionRate: 90,
-      status: 'completed',
-      plantingDate: '2026-02-15',
-      expectedHarvestDate: '2026-05-15',
-      actualHarvestDate: '2026-05-12',
-      taskCount: 22,
-      completedTaskCount: 22,
-      pendingTaskCount: 0,
-      inProgressTaskCount: 0,
-      totalWorkHours: 350,
-      laborCost: 10500,
-      remainingYield: 0,
-    },
-    {
-      id: 5,
-      batchCode: 'B20260402',
-      batchName: '生菜批次A',
-      cropName: '生菜',
-      variety: '奶油生菜',
-      greenhouse: '露天区-1',
-      plantingArea: '400㎡',
-      targetYield: 2000,
-      actualQuantity: 1850,
-      harvestQuantity: 1850,
-      completionRate: 92.5,
-      status: 'completed',
-      plantingDate: '2026-02-20',
-      expectedHarvestDate: '2026-04-25',
-      actualHarvestDate: '2026-04-23',
-      taskCount: 16,
-      completedTaskCount: 16,
-      pendingTaskCount: 0,
-      inProgressTaskCount: 0,
-      totalWorkHours: 180,
-      laborCost: 5400,
-      remainingYield: 0,
-    },
-  ]
-
-  const generateMockCostSummary = () => ({
-    totalLaborCost: 135600,
-    totalMaterialCost: 42800,
-    totalEnergyCost: 20100,
-    totalCost: 198500,
-    totalWorkHours: 4520,
-    avgHourlyRate: 30,
-  })
-
-  const generateMockIndicators = () => ({
-    period: { start: '2026-01-01', end: '2026-05-21' },
-    yield: {
-      totalYield: 45800,
-      harvestCount: 24,
-      avgYieldPerHarvest: 1908,
-    },
-    task: {
-      total: 156,
-      completed: 98,
-      completionRate: 62.8,
-    },
-    problem: {
-      total: 42,
-      resolved: 35,
-      resolutionRate: 83.3,
-    },
-    labor: {
-      totalHours: 4520,
-      totalCost: 135600,
-      workerCount: 28,
-      efficiency: 78.5,
-    },
-    overallScore: 82,
-  })
-
-  const generateMockProblemItems = () => {
-    const items = []
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      const dateStr = date.toISOString().slice(0, 10)
-      items.push({
-        date: dateStr,
-        month: dateStr.slice(0, 7),
-        total: Math.floor(Math.random() * 5) + 1,
-        pending: Math.floor(Math.random() * 2),
-        inProgress: Math.floor(Math.random() * 2),
-        resolved: Math.floor(Math.random() * 3),
-        highPriority: Math.random() > 0.8 ? Math.floor(Math.random() * 2) + 1 : 0,
-        mediumPriority: Math.floor(Math.random() * 3),
-        lowPriority: Math.floor(Math.random() * 2),
-      })
-    }
-    return items
-  }
-
   // 获取生产报表概览
-  const fetchOverview = async () => {
+  const fetchOverview = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      // 模拟 API 延迟
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      overview.value = generateMockOverview()
+      const queryParams = new URLSearchParams()
+      if (params.start_date) queryParams.set('start_date', params.start_date)
+      if (params.end_date) queryParams.set('end_date', params.end_date)
+
+      const query = queryParams.toString()
+      const url = `/summary/overview${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      const data = response?.data || response
+      overview.value = normalizeOverview(data || {})
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, overview: Date.now() }
     } catch (err) {
       error.value = err.message
+      console.error('[SummaryStore] 获取生产报表概览失败:', err)
     } finally {
       isLoading.value = false
     }
   }
 
   // 获取产量统计
-  const fetchYieldStats = async (params) => {
+  const fetchYieldStats = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      const queryParams = new URLSearchParams()
+      if (params.start_date) queryParams.set('start_date', params.start_date)
+      if (params.end_date) queryParams.set('end_date', params.end_date)
+      if (params.group_by) queryParams.set('group_by', params.group_by)
+      else queryParams.set('group_by', 'month')
+      if (params.crop_name) queryParams.set('crop_name', params.crop_name)
+      if (params.greenhouse_name) queryParams.set('greenhouse_name', params.greenhouse_name)
+
       yieldGroupBy.value = params?.groupBy || 'month'
-      yieldItems.value = generateMockYieldItems()
+
+      const query = queryParams.toString()
+      const url = `/summary/yield-stats${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      const data = response?.data || response || []
+      yieldItems.value = Array.isArray(data) ? data.map(item => normalizeYieldItem(item)) : []
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, yieldStats: Date.now() }
     } catch (err) {
       error.value = err.message
+      console.error('[SummaryStore] 获取产量统计失败:', err)
     } finally {
       isLoading.value = false
     }
   }
 
   // 获取成本统计
-  const fetchCostStats = async (params) => {
+  const fetchCostStats = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      costSummary.value = generateMockCostSummary()
+      const queryParams = new URLSearchParams()
+      if (params.start_date) queryParams.set('start_date', params.start_date)
+      if (params.end_date) queryParams.set('end_date', params.end_date)
+      if (params.batch_code) queryParams.set('batch_code', params.batch_code)
+      if (params.cost_type) queryParams.set('cost_type', params.cost_type)
+      if (params.group_by) queryParams.set('group_by', params.group_by)
+
+      const query = queryParams.toString()
+      const url = `/summary/cost-stats${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      const data = response?.data || response || {}
+      costDetailItems.value = data.labor || data.material || data.energy || []
+      costSummary.value = {
+        totalLaborCost: Number(data.summary?.total_labor_cost || data.summary?.totalLaborCost) || 0,
+        totalMaterialCost: Number(data.summary?.total_material_cost || data.summary?.totalMaterialCost) || 0,
+        totalEnergyCost: Number(data.summary?.total_energy_cost || data.summary?.totalEnergyCost) || 0,
+        totalCost: Number(data.summary?.total_cost || data.summary?.totalCost) || 0,
+        totalWorkHours: Number(data.summary?.total_work_hours || data.summary?.totalWorkHours) || 0,
+        avgHourlyRate: Number(data.summary?.avg_hourly_rate || data.summary?.avgHourlyRate) || 0
+      }
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, costStats: Date.now() }
     } catch (err) {
       error.value = err.message
+      console.error('[SummaryStore] 获取成本统计失败:', err)
     } finally {
       isLoading.value = false
     }
   }
 
   // 获取人工统计
-  const fetchLaborStats = async (params) => {
+  const fetchLaborStats = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      const queryParams = new URLSearchParams()
+      if (params.start_date) queryParams.set('start_date', params.start_date)
+      if (params.end_date) queryParams.set('end_date', params.end_date)
+      if (params.group_by) queryParams.set('group_by', params.group_by)
+      else queryParams.set('group_by', 'month')
+      if (params.greenhouse_name) queryParams.set('greenhouse_name', params.greenhouse_name)
+      if (params.worker_name) queryParams.set('worker_name', params.worker_name)
+
       laborGroupBy.value = params?.groupBy || 'month'
-      laborItems.value = []
+
+      const query = queryParams.toString()
+      const url = `/summary/labor-stats${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      const data = response?.data || response || {}
+      laborItems.value = data.details || []
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, laborStats: Date.now() }
     } catch (err) {
       error.value = err.message
+      console.error('[SummaryStore] 获取人工统计失败:', err)
     } finally {
       isLoading.value = false
     }
   }
 
   // 获取批次统计
-  const fetchBatchStats = async (params) => {
+  const fetchBatchStats = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      batchItems.value = generateMockBatchItems()
+      const queryParams = new URLSearchParams()
+      if (params.crop_name) queryParams.set('crop_name', params.crop_name)
+      if (params.status) queryParams.set('status', params.status)
+      if (params.greenhouse_name) queryParams.set('greenhouse_name', params.greenhouse_name)
+      if (params.start_date) queryParams.set('start_date', params.start_date)
+      if (params.end_date) queryParams.set('end_date', params.end_date)
+      if (params.page) queryParams.set('page', String(params.page))
+      else queryParams.set('page', '1')
+      if (params.limit) queryParams.set('limit', String(params.limit))
+      else queryParams.set('limit', '50')
+
+      const query = queryParams.toString()
+      const url = `/summary/batch-stats${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      const data = response?.data || response || []
+      batchItems.value = Array.isArray(data) ? data.map(item => normalizeBatch(item)) : []
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, batchStats: Date.now() }
     } catch (err) {
       error.value = err.message
+      console.error('[SummaryStore] 获取批次统计失败:', err)
     } finally {
       isLoading.value = false
     }
   }
 
   // 获取问题统计
-  const fetchProblems = async (params) => {
+  const fetchProblems = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      problemItems.value = generateMockProblemItems()
+      // 问题统计使用 problems API
+      const queryParams = new URLSearchParams()
+      if (params.start_date) queryParams.set('start_date', params.start_date)
+      if (params.end_date) queryParams.set('end_date', params.end_date)
+      if (params.page) queryParams.set('page', String(params.page))
+      else queryParams.set('page', '1')
+      if (params.limit) queryParams.set('limit', String(params.limit))
+      else queryParams.set('limit', '100')
+
+      const query = queryParams.toString()
+      const url = `/problems/summary${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      const data = response?.data || response || []
+      // 规范化问题数据
+      problemItems.value = Array.isArray(data) ? data.map(item => ({
+        date: item.date,
+        month: item.month,
+        total: Number(item.total) || 0,
+        pending: Number(item.pending) || 0,
+        inProgress: Number(item.inProgress) || 0,
+        resolved: Number(item.resolved) || 0,
+        highPriority: Number(item.highPriority) || 0,
+        mediumPriority: Number(item.mediumPriority) || 0,
+        lowPriority: Number(item.lowPriority) || 0
+      })) : []
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, problems: Date.now() }
     } catch (err) {
       error.value = err.message
+      console.error('[SummaryStore] 获取问题统计失败:', err)
+      // 失败时使用空数组
+      problemItems.value = []
     } finally {
       isLoading.value = false
     }
   }
 
   // 获取生产指标
-  const fetchIndicators = async (params) => {
+  const fetchIndicators = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      indicators.value = [generateMockIndicators()]
+      const queryParams = new URLSearchParams()
+      if (params.start_date) queryParams.set('start_date', params.start_date)
+      if (params.end_date) queryParams.set('end_date', params.end_date)
+
+      const query = queryParams.toString()
+      const url = `/summary/indicators${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      const data = response?.data || response
+
+      if (data) {
+        indicators.value = [{
+          period: data.period || { start: '', end: '' },
+          yield: {
+            totalYield: Number(data.yield?.totalYield || data.yield?.total_yield) || 0,
+            harvestCount: Number(data.yield?.harvestCount || data.yield?.harvest_count) || 0,
+            avgYieldPerHarvest: Number(data.yield?.avgYieldPerHarvest || data.yield?.avg_yield_per_harvest) || 0
+          },
+          task: {
+            total: Number(data.task?.total) || 0,
+            completed: Number(data.task?.completed) || 0,
+            completionRate: Number(data.task?.completionRate || data.task?.completion_rate) || 0
+          },
+          problem: {
+            total: Number(data.problem?.total) || 0,
+            resolved: Number(data.problem?.resolved) || 0,
+            resolutionRate: Number(data.problem?.resolutionRate || data.problem?.resolution_rate) || 0
+          },
+          labor: {
+            totalHours: Number(data.labor?.totalHours || data.labor?.total_hours) || 0,
+            totalCost: Number(data.labor?.totalCost || data.labor?.total_cost) || 0,
+            workerCount: Number(data.labor?.workerCount || data.labor?.worker_count) || 0,
+            efficiency: Number(data.labor?.efficiency) || 0
+          },
+          overallScore: Number(data.overallScore || data.overall_score) || 0
+        }]
+      }
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, indicators: Date.now() }
     } catch (err) {
       error.value = err.message
+      console.error('[SummaryStore] 获取生产指标失败:', err)
     } finally {
       isLoading.value = false
     }
   }
 
   // 一次性获取所有汇总数据
-  const fetchAll = async () => {
+  const fetchAll = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
       await Promise.all([
-        fetchOverview(),
-        fetchYieldStats(),
-        fetchCostStats(),
-        fetchBatchStats(),
-        fetchProblems(),
-        fetchIndicators(),
+        fetchOverview(params),
+        fetchYieldStats(params),
+        fetchCostStats(params),
+        fetchBatchStats(params),
+        fetchProblems(params),
+        fetchIndicators(params)
       ])
     } finally {
       isLoading.value = false
@@ -436,6 +434,6 @@ export const useSummaryStore = defineStore('summary', () => {
     fetchAll,
     invalidateAll,
     isCacheStale,
-    getTaskStatus,
+    getTaskStatus
   }
 })

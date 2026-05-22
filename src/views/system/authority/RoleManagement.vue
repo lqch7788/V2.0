@@ -1,244 +1,325 @@
 <template>
-  <div class="p-6">
-    <h2 class="text-xl font-bold mb-4">角色管理</h2>
-    <el-card>
-      <template #header>
-        <div class="flex justify-between items-center">
-          <span>角色列表</span>
-          <el-button type="primary" @click="openFormModal">添加角色</el-button>
+  <div class="space-y-6">
+    <!-- 页面头部 -->
+    <div class="bg-white rounded-xl p-6 shadow-none">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <a
+            href="/settings"
+            class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
+            title="返回系统设置"
+          >
+            <el-icon :size="20" color="#4b5563">
+              <ArrowLeft />
+            </el-icon>
+          </a>
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+            <el-icon :size="24" color="white"><Lock /></el-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">角色管理</h1>
+            <p class="text-gray-500">管理系统角色和权限配置</p>
+          </div>
         </div>
-      </template>
-      <!-- 筛选栏 -->
-      <div class="mb-4 flex flex-col sm:flex-row gap-4">
-        <el-input
-          v-model="filters.keyword"
-          placeholder="搜索角色名称、编码..."
-          clearable
-          @clear="handleSearch"
-          class="w-full sm:w-64"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-        <el-select v-model="filters.status" placeholder="全部状态" clearable class="w-full sm:w-32">
-          <el-option label="全部状态" value="" />
-          <el-option label="启用" value="active" />
-          <el-option label="禁用" value="inactive" />
-        </el-select>
-        <el-button type="primary" @click="handleSearch">
-          <el-icon><Search /></el-icon> 搜索
-        </el-button>
-        <el-button @click="handleReset">重置</el-button>
       </div>
-      <!-- 数据表格 -->
-      <el-table :data="paginatedData" stripe>
-        <el-table-column prop="name" label="角色名称" min-width="120" />
-        <el-table-column prop="code" label="角色编码" min-width="120" />
-        <el-table-column prop="description" label="描述" min-width="200" />
-        <el-table-column prop="status" label="状态" min-width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'info'" size="small">
-              {{ row.status === 'active' ? '启用' : '禁用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180">
-          <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button link type="primary" size="small" @click="editRecord(row)">编辑</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <!-- 分页 -->
-      <div class="flex items-center justify-between p-4 border-t border-gray-100">
-        <div class="text-sm text-gray-500">
-          共 {{ filteredData.length }} 条记录
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="flex items-center gap-3 flex-wrap">
+      <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+        {{ roles.length }} 个角色
+      </span>
+      <div class="flex items-center gap-2 ml-auto">
+        <div class="relative">
+          <el-icon class="absolute left-2.5 top-1/2 -translate-y-1/2" :size="14" color="#9ca3af">
+            <Search />
+          </el-icon>
+          <el-input
+            v-model="searchTerm"
+            placeholder="搜索..."
+            clearable
+            class="w-40"
+            size="small"
+          />
         </div>
+        <el-button size="small" @click="loadRoles" :loading="loading">
+          <el-icon :size="14"><Refresh /></el-icon>
+          刷新
+        </el-button>
+        <el-button type="primary" size="small" @click="handleAdd">
+          <el-icon :size="14"><Plus /></el-icon>
+          新增角色
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+      {{ error }}
+    </div>
+
+    <!-- 角色列表 -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <tr>
+            <th class="text-left py-3 px-4 text-sm font-semibold">角色编码</th>
+            <th class="text-left py-3 px-4 text-sm font-semibold">角色名称</th>
+            <th class="text-left py-3 px-4 text-sm font-semibold">所属组织</th>
+            <th class="text-left py-3 px-4 text-sm font-semibold">描述</th>
+            <th class="text-left py-3 px-4 text-sm font-semibold">排序</th>
+            <th class="text-left py-3 px-4 text-sm font-semibold">状态</th>
+            <th class="text-left py-3 px-4 text-sm font-semibold">操作</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr v-if="loading && roles.length === 0">
+            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+              <el-icon class="is-loading" :size="24"><Loading /></el-icon>
+            </td>
+          </tr>
+          <tr v-else-if="paginatedRoles.length === 0">
+            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+              暂无角色数据，点击"新增角色"创建
+            </td>
+          </tr>
+          <tr
+            v-for="role in paginatedRoles"
+            :key="role.oid"
+            class="hover:bg-blue-50"
+          >
+            <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ role.aid }}</td>
+            <td class="px-4 py-3 text-sm text-gray-900">{{ role.name }}</td>
+            <td class="px-4 py-3 text-sm text-gray-500">{{ getOrgName(role.orgOid) }}</td>
+            <td class="px-4 py-3 text-sm text-gray-500 max-w-[200px] truncate">
+              {{ role.description || '-' }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-500">{{ role.sortNumber }}</td>
+            <td class="px-4 py-3">
+              <el-tag :type="role.status === 'active' ? 'success' : 'info'" size="small">
+                {{ role.status === 'active' ? '正常' : '停用' }}
+              </el-tag>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-1">
+                <el-button text size="small" @click="handleEdit(role)" title="编辑">
+                  <el-icon :size="16" color="#2563eb"><Edit /></el-icon>
+                </el-button>
+                <el-button text size="small" @click="handleDelete(role.oid)" title="删除">
+                  <el-icon :size="16" color="#dc2626"><Delete /></el-icon>
+                </el-button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 分页 -->
+      <div v-if="totalPages > 1" class="px-4 py-3 border-t border-gray-100 flex justify-end">
         <el-pagination
-          v-model:current-page="pagination.currentPage"
-          :page-size="pagination.pageSize"
-          :total="filteredData.length"
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="filteredRoles.length"
           layout="prev, pager, next"
           background
         />
       </div>
-    </el-card>
+    </div>
 
-    <!-- 详情弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="角色详情" width="500px">
-      <div v-if="currentRecord" class="space-y-4">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="角色名称">{{ currentRecord.name }}</el-descriptions-item>
-          <el-descriptions-item label="角色编码">{{ currentRecord.code }}</el-descriptions-item>
-          <el-descriptions-item label="描述" :span="2">{{ currentRecord.description }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="currentRecord.status === 'active' ? 'success' : 'info'" size="small">
-              {{ currentRecord.status === 'active' ? '启用' : '禁用' }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ currentRecord.createTime }}</el-descriptions-item>
-        </el-descriptions>
-      </div>
-      <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
+    <!-- 弹窗 -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="editingRole?.oid ? '编辑角色' : '新增角色'"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            角色编码 <span class="text-red-500">*</span>
+          </label>
+          <el-input v-model="formData.aid" placeholder="如：ROLE001" />
+        </div>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="formDialogVisible" :title="isEdit ? '编辑角色' : '新增角色'" width="500px">
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-form-item label="角色名称" prop="name">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            角色名称 <span class="text-red-500">*</span>
+          </label>
           <el-input v-model="formData.name" placeholder="请输入角色名称" />
-        </el-form-item>
-        <el-form-item label="角色编码" prop="code">
-          <el-input v-model="formData.code" placeholder="请输入角色编码" />
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入描述" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="formData.status" placeholder="请选择状态">
-            <el-option label="启用" value="active" />
-            <el-option label="禁用" value="inactive" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">所属组织</label>
+          <el-select v-model="formData.orgOid" class="w-full" placeholder="请选择组织">
+            <el-option
+              v-for="org in organizations"
+              :key="org.oid"
+              :label="org.name"
+              :value="org.oid"
+            />
           </el-select>
-        </el-form-item>
-      </el-form>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">描述</label>
+          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入角色描述" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">排序号</label>
+          <el-input-number v-model="formData.sortNumber" :min="0" class="w-full" />
+        </div>
+      </div>
+
       <template #footer>
-        <el-button @click="formDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">确定</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSave" :loading="saving">
+          保存
+        </el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import { Search } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  Lock,
+  Search,
+  Refresh,
+  Plus,
+  Edit,
+  Delete,
+  Loading,
+  ArrowLeft
+} from '@element-plus/icons-vue'
+import { useAuthorityStore } from '@/stores/modules/authority'
 
-// 角色Mock数据
-const mockRoles = [
-  { id: 1, name: '系统管理员', code: 'admin', description: '系统最高权限，拥有所有功能的访问权限', status: 'active', createTime: '2024-01-01 10:00:00' },
-  { id: 2, name: '运营主管', code: 'operator', description: '负责日常运营管理和任务分配', status: 'active', createTime: '2024-01-15 14:30:00' },
-  { id: 3, name: '农技师', code: 'technician', description: '负责农业生产技术指导和问题处理', status: 'active', createTime: '2024-02-01 09:00:00' },
-  { id: 4, name: '数据录入员', code: 'data_entry', description: '负责农业生产数据的录入和管理', status: 'active', createTime: '2024-03-01 11:00:00' },
-  { id: 5, name: '仓库管理员', code: 'warehouse', description: '负责仓库物料管理和库存盘点', status: 'inactive', createTime: '2024-04-10 16:00:00' }
-]
+// Store
+const authorityStore = useAuthorityStore()
+const {
+  roles,
+  loading,
+  error,
+  loadRoles,
+  saveRole,
+  deleteRole,
+  organizations,
+  loadOrganizations
+} = authorityStore
 
-// 筛选条件
-const filters = reactive({
-  keyword: '',
-  status: ''
-})
+// 搜索和分页
+const searchTerm = ref('')
+const currentPage = ref(1)
+const pageSize = 10
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10
-})
+// 弹窗状态
+const dialogVisible = ref(false)
+const editingRole = ref(null)
+const saving = ref(false)
 
-// 详情弹窗
-const detailDialogVisible = ref(false)
-const currentRecord = ref(null)
-
-// 表单弹窗
-const formDialogVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref()
+// 表单数据
 const formData = reactive({
-  id: null,
+  aid: '',
   name: '',
-  code: '',
+  orgOid: '',
   description: '',
-  status: 'active',
-  createTime: ''
+  sortNumber: 0
 })
 
-const formRules = {
-  name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入角色编码', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
-}
-
-// 模拟数据
-const allData = ref([...mockRoles])
-
-// 筛选后的数据
-const filteredData = computed(() => {
-  return allData.value.filter(record => {
-    if (filters.keyword && !record.name.includes(filters.keyword) && !record.code.includes(filters.keyword)) return false
-    if (filters.status && record.status !== filters.status) return false
-    return true
-  })
+// 过滤角色
+const filteredRoles = computed(() => {
+  if (!searchTerm.value) return roles.value
+  const term = searchTerm.value.toLowerCase()
+  return roles.value.filter(role =>
+    role.name?.toLowerCase().includes(term) ||
+    role.aid?.toLowerCase().includes(term) ||
+    role.description?.toLowerCase().includes(term)
+  )
 })
 
-// 分页数据
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return filteredData.value.slice(start, start + pagination.pageSize)
+// 分页
+const totalPages = computed(() => Math.ceil(filteredRoles.value.length / pageSize))
+const paginatedRoles = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredRoles.value.slice(start, start + pageSize)
 })
 
-// 搜索
-const handleSearch = () => {
-  pagination.currentPage = 1
+// 获取组织名称
+const getOrgName = (orgOid) => {
+  const org = organizations.value.find(o => o.oid === orgOid)
+  return org?.name || orgOid || '-'
 }
 
-// 重置
-const handleReset = () => {
-  filters.keyword = ''
-  filters.status = ''
-  pagination.currentPage = 1
-}
-
-// 详情
-const viewDetail = (row) => {
-  currentRecord.value = row
-  detailDialogVisible.value = true
-}
-
-// 编辑
-const editRecord = (row) => {
-  isEdit.value = true
-  Object.assign(formData, row)
-  formDialogVisible.value = true
-}
-
-// 新增
-const openFormModal = () => {
-  isEdit.value = false
+// 打开新增弹窗
+const handleAdd = () => {
+  editingRole.value = null
   Object.assign(formData, {
-    id: null,
+    aid: '',
     name: '',
-    code: '',
+    orgOid: '',
     description: '',
-    status: 'active',
-    createTime: new Date().toLocaleString()
+    sortNumber: 0
   })
-  formDialogVisible.value = true
+  dialogVisible.value = true
 }
 
-// 提交表单
-const submitForm = async () => {
-  if (!formRef.value) return
-  await formRef.value.validate((valid) => {
-    if (valid) {
-      if (isEdit.value) {
-        const index = allData.value.findIndex(r => r.id === formData.id)
-        if (index !== -1) {
-          allData.value[index] = { ...formData }
-        }
-        ElMessage.success('编辑成功')
-      } else {
-        allData.value.unshift({
-          id: Date.now(),
-          ...formData,
-          createTime: new Date().toLocaleString()
-        })
-        ElMessage.success('新增成功')
-      }
-      formDialogVisible.value = false
-    }
+// 打开编辑弹窗
+const handleEdit = (role) => {
+  editingRole.value = role
+  Object.assign(formData, {
+    aid: role.aid,
+    name: role.name,
+    orgOid: role.orgOid || '',
+    description: role.description || '',
+    sortNumber: role.sortNumber || 0
   })
+  dialogVisible.value = true
 }
+
+// 保存
+const handleSave = async () => {
+  if (!formData.aid || !formData.name) {
+    ElMessage.warning('请填写角色编码和名称')
+    return
+  }
+  saving.value = true
+  try {
+    const payload = {
+      ...formData,
+      oid: editingRole.value?.oid || undefined
+    }
+    await saveRole(payload)
+    ElMessage.success('保存成功')
+    dialogVisible.value = false
+  } catch (err) {
+    ElMessage.error('保存失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+// 删除
+const handleDelete = async (oid) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该角色吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await deleteRole(oid)
+    ElMessage.success('删除成功')
+  } catch (err) {
+    if (err !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+// 初始化
+onMounted(async () => {
+  await loadRoles()
+  await loadOrganizations()
+})
 </script>

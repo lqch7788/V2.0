@@ -5,19 +5,34 @@
       <!-- 作物名称 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">作物名称</label>
-        <el-input v-model="localFilters.cropName" placeholder="请输入" clearable />
+        <el-input
+          v-model="localFilters.cropName"
+          placeholder="请输入"
+          clearable
+          @keyup.enter="handleSearch"
+        />
       </div>
 
       <!-- 育苗批号 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">育苗批号</label>
-        <el-input v-model="localFilters.seedlingCode" placeholder="请输入" clearable />
+        <el-input
+          v-model="localFilters.seedlingCode"
+          placeholder="请输入"
+          clearable
+          @keyup.enter="handleSearch"
+        />
       </div>
 
       <!-- 关联种源 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">关联种源</label>
-        <el-input v-model="localFilters.sourceCode" placeholder="请输入" clearable />
+        <el-input
+          v-model="localFilters.sourceCode"
+          placeholder="请输入"
+          clearable
+          @keyup.enter="handleSearch"
+        />
       </div>
 
       <!-- 场地 -->
@@ -25,7 +40,12 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">场地</label>
         <el-select v-model="localFilters.siteName" placeholder="请选择" clearable class="w-full">
           <el-option label="全部" value="__all__" />
-          <el-option v-for="item in sites" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option
+            v-for="item in sites"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
       </div>
 
@@ -34,7 +54,12 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">育苗方式</label>
         <el-select v-model="localFilters.seedlingType" placeholder="请选择" clearable class="w-full">
           <el-option label="全部" value="__all__" />
-          <el-option v-for="item in seedlingTypes" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option
+            v-for="item in seedlingTypes"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
       </div>
 
@@ -47,6 +72,7 @@
           placeholder="选择日期"
           value-format="YYYY-MM-DD"
           class="w-full"
+          @change="handleSearch"
         />
       </div>
 
@@ -59,6 +85,7 @@
           placeholder="选择日期"
           value-format="YYYY-MM-DD"
           class="w-full"
+          @change="handleSearch"
         />
       </div>
 
@@ -77,18 +104,23 @@
       <!-- 记录人 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">记录人</label>
-        <el-input v-model="localFilters.createBy" placeholder="请输入" clearable />
+        <el-input
+          v-model="localFilters.createBy"
+          placeholder="请输入"
+          clearable
+          @keyup.enter="handleSearch"
+        />
       </div>
     </div>
 
     <!-- 按钮行 -->
     <div class="flex justify-end gap-2 mt-4">
       <el-button @click="handleReset">
-        <el-icon><Refresh /></el-icon>
+        <el-icon style="color: inherit;"><Refresh /></el-icon>
         重置
       </el-button>
       <el-button type="primary" @click="handleSearch">
-        <el-icon><Search /></el-icon>
+        <el-icon style="color: inherit;"><Search /></el-icon>
         搜索
       </el-button>
     </div>
@@ -101,6 +133,7 @@ import { Search, Refresh } from '@element-plus/icons-vue'
 
 const props = defineProps({
   filters: Object,
+  seedlingTypes: Array,
   sites: Array,
   statusOptions: Array
 })
@@ -119,11 +152,12 @@ const localFilters = ref({
   status: ''
 })
 
+// 监听 props.filters 变化，同步到本地
 watch(() => props.filters, (newVal) => {
   if (newVal) {
     localFilters.value = { ...newVal }
   }
-}, { deep: true })
+}, { deep: true, immediate: true })
 
 const handleSearch = () => {
   emit('update:filters', localFilters.value)
@@ -142,6 +176,7 @@ const handleReset = () => {
     createBy: '',
     status: ''
   }
+  emit('update:filters', localFilters.value)
   emit('reset')
 }
 </script>

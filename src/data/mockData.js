@@ -150,6 +150,190 @@ export const mockDashboardStats = {
   alerts: { warning: 5, danger: 1 }
 }
 
+// 仓库 Mock 数据
+export const mockWarehouses = [
+  { id: 1, code: 'WH001', name: '原料仓库A', warehouseType: '原料仓库', location: '基地东北角', capacity: 5000, currentStock: 3200, managerName: '张三', status: 'active', description: '主要存储生产原材料' },
+  { id: 2, code: 'WH002', name: '成品仓库B', warehouseType: '成品仓库', location: '基地西南角', capacity: 8000, currentStock: 4500, managerName: '李四', status: 'active', description: '存储各类成品' },
+  { id: 3, code: 'WH003', name: '农药仓库', warehouseType: '农药仓库', location: '基地西北角', capacity: 1000, currentStock: 850, managerName: '王五', status: 'active', description: '专门存放农药' },
+  { id: 4, code: 'WH004', name: '化肥仓库', warehouseType: '化肥仓库', location: '基地东南角', capacity: 3000, currentStock: 1200, managerName: '赵六', status: 'active', description: '存放各类化肥' },
+  { id: 5, code: 'WH005', name: '设备仓库', warehouseType: '设备仓库', location: '基地中部', capacity: 2000, currentStock: 800, managerName: '钱七', status: 'inactive', description: '农业设备存放' },
+  { id: 6, code: 'WH006', name: '耗材仓库', warehouseType: '耗材仓库', location: '基地东区', capacity: 1500, currentStock: 900, managerName: '孙八', status: 'active', description: '日常耗材存储' },
+]
+
+// 系统配置 Mock 数据
+export const mockSystemConfigs = [
+  {
+    id: 'CFG_001',
+    configKey: 'system.site_name',
+    configValue: '智慧种植管理系统',
+    configType: 'string',
+    category: 'system',
+    description: '系统站点名称',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_002',
+    configKey: 'system.maintenance_mode',
+    configValue: 'false',
+    configType: 'boolean',
+    category: 'system',
+    description: '维护模式开关',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_003',
+    configKey: 'system.max_upload_size',
+    configValue: '10',
+    configType: 'number',
+    category: 'system',
+    description: '最大上传文件大小(MB)',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_004',
+    configKey: 'ui.theme',
+    configValue: 'light',
+    configType: 'string',
+    category: 'ui',
+    description: '界面主题',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_005',
+    configKey: 'ui.page_size',
+    configValue: '20',
+    configType: 'number',
+    category: 'ui',
+    description: '默认分页大小',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_006',
+    configKey: 'feature.auto_save',
+    configValue: 'true',
+    configType: 'boolean',
+    category: 'feature',
+    description: '自动保存草稿',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_007',
+    configKey: 'demo.enabled',
+    configValue: 'true',
+    configType: 'boolean',
+    category: 'demo',
+    description: '演示模式开关',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_008',
+    configKey: 'task.accept_warning_hours',
+    configValue: '24',
+    configType: 'number',
+    category: 'task',
+    description: '任务接单预警小时数',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_009',
+    configKey: 'task.overdue_check_interval',
+    configValue: '60',
+    configType: 'number',
+    category: 'task',
+    description: '任务逾期检查间隔(分钟)',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_010',
+    configKey: 'approval.delegation.rules',
+    configValue: JSON.stringify([
+      { fromRole: 'manager', toRole: 'department_head', enabled: true, remark: '经理请假时委托给部门主管' },
+      { fromRole: 'hr', toRole: 'hr_manager', enabled: true, remark: '人事专员委托给人事经理' }
+    ]),
+    configType: 'json',
+    category: 'approval',
+    description: '审批委托规则列表',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_011',
+    configKey: 'business.default_currency',
+    configValue: 'CNY',
+    configType: 'string',
+    category: 'business',
+    description: '默认货币',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_012',
+    configKey: 'business.tax_rate',
+    configValue: '0.13',
+    configType: 'number',
+    category: 'business',
+    description: '默认税率',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_013',
+    configKey: 'crop.growth.crop-configs',
+    configValue: JSON.stringify([
+      {
+        name: '番茄',
+        stages: [
+          { stage: 'seedling', startDay: 1, endDay: 30, tasks: [] },
+          { stage: 'vegetative', startDay: 31, endDay: 75, tasks: [] },
+          { stage: 'flowering', startDay: 76, endDay: 105, tasks: [] },
+          { stage: 'fruiting', startDay: 106, endDay: 145, tasks: [] },
+          { stage: 'harvest', startDay: 146, endDay: 165, tasks: [] }
+        ]
+      }
+    ]),
+    configType: 'json',
+    category: 'crop',
+    description: '作物生长配置',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'CFG_014',
+    configKey: 'crop.pest.alert-rules',
+    configValue: JSON.stringify([
+      { id: 'pest_001', name: '白粉虱', symptom: ['叶片发黄', '虫卵'], cropType: ['番茄', '黄瓜'], severity: 'medium', suggestion: '使用黄板诱杀', priority: 'medium' }
+    ]),
+    configType: 'json',
+    category: 'crop',
+    description: '虫害预警规则',
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  }
+]
+
 // 图表 Mock 数据
 export const mockChartData = {
   weeklyTasks: [

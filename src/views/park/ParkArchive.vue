@@ -3,18 +3,21 @@
     <!-- 背景网格 -->
     <div class="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none" />
 
-    <div class="relative z-10 p-6">
-      <!-- 页面标题 -->
-      <div class="mb-6">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/40">
-            <el-icon :size="24" class="text-white">
-              <MapLocation />
-            </el-icon>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-gray-800">园区导览</h1>
-            <p class="text-sm text-gray-600">地块与园区全景档案管理</p>
+    <div class="relative z-10 px-6 pt-6">
+      <!-- 页面标题卡片 -->
+      <div class="bg-white rounded-xl p-6 shadow-none">
+        <!-- 页面标题 -->
+        <div class="mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/40">
+              <el-icon :size="24" class="text-white">
+                <MapLocation />
+              </el-icon>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold text-gray-800">园区导览</h1>
+              <p class="text-sm text-gray-600">地块与园区全景档案管理</p>
+            </div>
           </div>
         </div>
       </div>

@@ -258,16 +258,20 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { User, Search, Plus, Edit, Delete, Download, Document, CircleCheck, Clock } from '@element-plus/icons-vue'
 import UserDelete from '@/components/icons/UserDelete.vue'
 import { ElMessage } from 'element-plus'
-import { } from 'element-plus'
+import { getWorkers, createWorker, updateWorker, deleteWorker, generateWorkerId } from '@/services/apiLaborService'
+import { getDictionaries } from '@/services/dictionaryService'
 
-// 部门列表
-const departments = ['技术部', '运营部', '市场部', '财务部', '人力资源部']
-// 岗位列表
-const positions = ['经理', '主管', '专员', '技术员', '助理']
+// 部门列表 - 从API获取
+const departments = ref([])
+const departmentOptions = computed(() => departments.value.map(d => d.dictLabel || d.name || d))
+
+// 岗位列表 - 从API获取
+const positions = ref([])
+const positionOptions = computed(() => positions.value.map(p => p.dictLabel || p.name || p))
 
 // 状态映射
 const statusMap = {
@@ -332,14 +336,62 @@ const formRules = {
   joinDate: [{ required: true, message: '请选择入职日期', trigger: 'change' }]
 }
 
-// 模拟数据
-const allData = ref([
-  { id: 1, code: 'EMP001', name: '张三', gender: '男', phone: '13800138001', idCard: '110101199001011234', department: '技术部', position: '经理', joinDate: '2024-01-15', status: 'active', remark: '' },
-  { id: 2, code: 'EMP002', name: '李四', gender: '女', phone: '13800138002', idCard: '110101199002022345', department: '运营部', position: '主管', joinDate: '2024-03-20', status: 'active', remark: '' },
-  { id: 3, code: 'EMP003', name: '王五', gender: '男', phone: '13800138003', idCard: '110101199003033456', department: '市场部', position: '专员', joinDate: '2025-01-10', status: 'trial', remark: '' },
-  { id: 4, code: 'EMP004', name: '赵六', gender: '女', phone: '13800138004', idCard: '110101199004044567', department: '财务部', position: '技术员', joinDate: '2023-06-01', status: 'active', remark: '' },
-  { id: 5, code: 'EMP005', name: '钱七', gender: '男', phone: '13800138005', idCard: '110101199005055678', department: '人力资源部', position: '助理', joinDate: '2025-02-15', status: 'inactive', remark: '已离职' }
-])
+// 员工数据 - 从API获取
+const allData = ref([])
+const loading = ref(false)
+const error = ref(null)
+
+// 加载员工数据
+const loadWorkers = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const data = await getWorkers()
+    allData.value = data.map(w => ({
+      id: w.id || w.oid,
+      oid: w.oid,
+      code: w.code || w.workerId || '',
+      name: w.name || w.workerName || '',
+      gender: w.gender || '男',
+      phone: w.phone || w.mobile || '',
+      idCard: w.idCard || w.id_card || '',
+      department: w.department || w.departmentName || '',
+      position: w.position || w.positionName || '',
+      joinDate: w.joinDate || w.join_date || '',
+      status: w.status || 'active',
+      remark: w.remark || ''
+    }))
+  } catch (err) {
+    error.value = err.message || '加载员工数据失败'
+    console.error('[StaffPanel] 加载员工数据失败:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载部门和岗位选项
+const loadOptions = async () => {
+  try {
+    // 从字典服务获取部门和岗位
+    const dicts = await getDictionaries()
+    // 过滤出部门和岗位分类
+    const deptDicts = dicts.filter(d => d.category === 'department' || d.code === 'department')
+    const posDicts = dicts.filter(d => d.category === 'position' || d.code === 'position')
+    departments.value = deptDicts
+    positions.value = posDicts
+  } catch (err) {
+    console.warn('[StaffPanel] 加载选项失败:', err)
+    // 使用默认选项
+    departments.value = []
+    positions.value = []
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadWorkers()
+  loadOptions()
+})
 
 // 统计
 const totalCount = computed(() => allData.value.length)
@@ -440,24 +492,67 @@ const openFormModal = () => {
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      if (isEdit.value) {
-        const index = allData.value.findIndex(r => r.id === formData.id)
-        if (index !== -1) {
-          allData.value[index] = { ...formData }
+      try {
+        if (isEdit.value) {
+          // 编辑模式 - 调用API更新
+          await updateWorker(formData.id, {
+            name: formData.name,
+            gender: formData.gender,
+            phone: formData.phone,
+            idCard: formData.idCard,
+            department: formData.department,
+            position: formData.position,
+            status: formData.status,
+            remark: formData.remark
+          })
+          // 更新本地数据
+          const index = allData.value.findIndex(r => r.id === formData.id)
+          if (index !== -1) {
+            allData.value[index] = { ...formData }
+          }
+          ElMessage.success('编辑成功')
+        } else {
+          // 新增模式 - 调用API创建
+          const newWorker = await createWorker({
+            name: formData.name,
+            code: formData.code,
+            gender: formData.gender,
+            phone: formData.phone,
+            idCard: formData.idCard,
+            department: formData.department,
+            position: formData.position,
+            joinDate: formData.joinDate,
+            status: formData.status,
+            remark: formData.remark
+          })
+          // 添加到本地数据
+          allData.value.unshift({
+            id: newWorker.id || newWorker.oid || Date.now(),
+            ...formData
+          })
+          ElMessage.success('新增成功')
         }
-        ElMessage.success('编辑成功')
-      } else {
-        allData.value.unshift({
-          id: Date.now(),
-          ...formData
-        })
-        ElMessage.success('新增成功')
+        formDialogVisible.value = false
+      } catch (err) {
+        console.error('[StaffPanel] 保存失败:', err)
+        ElMessage.error('保存失败')
       }
-      formDialogVisible.value = false
     }
   })
+}
+
+// 删除记录
+const handleDelete = async (row) => {
+  try {
+    await deleteWorker(row.id)
+    allData.value = allData.value.filter(r => r.id !== row.id)
+    ElMessage.success('删除成功')
+  } catch (err) {
+    console.error('[StaffPanel] 删除失败:', err)
+    ElMessage.error('删除失败')
+  }
 }
 </script>
 
