@@ -84,7 +84,7 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/production" class="submenu-item" :class="{ active: isActive('/production') }">
+                <router-link to="/production/list" class="submenu-item" :class="{ active: isActive('/production/list') }">
                   <el-icon :size="16"><Document /></el-icon>
                   <span>生产计划</span>
                 </router-link>

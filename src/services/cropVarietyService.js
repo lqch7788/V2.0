@@ -555,3 +555,41 @@ export async function refreshVarieties() {
     return cachedVarieties;
   }
 }
+
+/**
+ * 根据编码获取品种
+ */
+export function getVarietyByCode(cropCode) {
+  if (!cropCode) return null;
+  const varieties = getAllVarieties();
+  return varieties.find(v => v.cropCode === cropCode) || null;
+}
+
+/**
+ * 根据名称查找或创建品种
+ */
+export function findOrCreateVarietyByName(name) {
+  if (!name || !name.trim()) return null;
+  const trimmedName = name.trim();
+  const varieties = getAllVarieties();
+
+  // 精确匹配
+  let variety = varieties.find(v =>
+    v.varietyName === trimmedName ||
+    v.subVariety1Name === trimmedName ||
+    v.detailVarietyName === trimmedName
+  );
+
+  if (variety) {
+    return variety;
+  }
+
+  // 如果没找到，返回第一个匹配的（模糊匹配）
+  variety = varieties.find(v =>
+    v.varietyName.includes(trimmedName) ||
+    (v.subVariety1Name && v.subVariety1Name.includes(trimmedName)) ||
+    (v.detailVarietyName && v.detailVarietyName.includes(trimmedName))
+  );
+
+  return variety || null;
+}

@@ -406,6 +406,12 @@ const routes = [
   },
   // 计划管理子路由
   {
+    path: '/production/list',
+    name: 'ProductionList',
+    component: () => import('@/views/production/Production.vue'),
+    meta: { title: '生产计划' }
+  },
+  {
     path: '/crop/order',
     name: 'CropOrder',
     component: () => import('@/views/production/Order.vue'),
