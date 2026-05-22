@@ -1,54 +1,39 @@
 <template>
-  <!-- 公告删除确认弹窗 -->
-  <el-dialog
-    :model-value="visible"
-    title=""
-    :close-on-click-modal="false"
-    width="400px"
-    class="delete-modal"
-  >
-    <div class="text-center p-4">
-      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <el-icon class="text-3xl text-red-600"><Delete /></el-icon>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">确认删除</h3>
-      <p class="text-gray-600 mb-1">确定要删除公告「{{ item?.title }}」吗？</p>
-      <p class="text-gray-400 text-sm mb-6">删除后无法恢复</p>
-      <div class="flex justify-center gap-3">
-        <el-button size="small" @click="handleClose">取消</el-button>
-        <el-button type="danger" size="small" @click="handleConfirm">确认删除</el-button>
+  <!-- 公告删除确认弹窗组件 - V1.1样式（纯div自定义弹窗） -->
+  <Teleport to="body">
+    <div v-if="isOpen && item" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+      <div class="bg-white rounded-lg w-full max-w-md shadow-2xl">
+        <div class="p-6 text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <el-icon class="text-3xl text-red-600"><Delete /></el-icon>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">确认删除</h3>
+          <p class="text-gray-600 mb-1">确定要删除公告「{{ item.title }}」吗？</p>
+          <p class="text-gray-400 text-sm mb-6">删除后无法恢复</p>
+          <div class="flex justify-center gap-3">
+            <el-button size="small" @click="handleClose">取消</el-button>
+            <el-button type="danger" size="small" @click="handleConfirm">确认删除</el-button>
+          </div>
+        </div>
       </div>
     </div>
-  </el-dialog>
+  </Teleport>
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { Delete } from '@element-plus/icons-vue'
-import {  Notice  } from '@/types/announcement'
 
-// Props 定义
-
-const props = defineProps({})
-
-// Emits 定义
-const emit = defineEmits(['update'])
-
-// 双向绑定
-const visible = computed({
-  get() {
-    return props.modelValue
-  },
-  set: (val) => emit('update:modelValue', val)
+const props = defineProps({
+  isOpen: Boolean,
+  item: Object
 })
 
-// 关闭
+const emit = defineEmits(['close', 'confirm'])
+
 const handleClose = () => {
-  visible.value = false
   emit('close')
 }
 
-// 确认
 const handleConfirm = () => {
   emit('confirm')
   handleClose()
@@ -56,7 +41,5 @@ const handleConfirm = () => {
 </script>
 
 <style scoped>
-.delete-modal :deep(.el-dialog__header) {
-  display: none;
-}
+/* V1.1样式保持 */
 </style>
