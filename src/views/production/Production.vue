@@ -732,10 +732,8 @@ async function handleDeleteConfirm() {
   showDeleteWarning.value = false
   batchDeleteMode.value = false
 
+  // V1.1逻辑：直接删除选中的行，不过滤状态
   const toDelete = selectedRows.value
-    .map(id => batches.value.find(b => b.id === id))
-    .filter(batch => batch && (batch.batchStatus === 'draft' || batch.batchStatus === 'cancelled'))
-    .map(batch => batch.id)
 
   if (toDelete.length === 0) {
     selectedRows.value = []

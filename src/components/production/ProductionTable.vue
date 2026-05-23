@@ -137,15 +137,15 @@
                   >
                     <Pencil class="w-4 h-4" />
                   </button>
-                  <button
-                    class="h-9 w-9 rounded-md flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-gray-100 transition-colors"
-                    title="删除"
-                    @click="handleDelete(batch)"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
                 </template>
-                <span v-else class="text-xs text-gray-400">已归档</span>
+                <button
+                  class="h-9 w-9 rounded-md flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-gray-100 transition-colors"
+                  title="删除"
+                  @click="handleDelete(batch)"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+                <span v-if="batch.batchStatus === 'completed' || batch.batchStatus === 'cancelled'" class="text-xs text-gray-400">已归档</span>
               </div>
             </td>
           </tr>
@@ -174,7 +174,7 @@
           <button class="text-sm text-blue-600 hover:text-blue-800 hover:underline" @click="onBatchDeleteSelectAll">
             {{ allSelectedForBatchDelete ? '全不选' : '全选' }}
           </button>
-          <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项（草稿/已作废可删除）</span>
+          <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
         </div>
       </div>
     </div>
@@ -276,8 +276,8 @@ const allSelectedForBatchEdit = computed(() => {
   const selectable = props.filteredBatches.filter(b => b.batchStatus !== 'completed' && b.batchStatus !== 'cancelled')
   return props.selectedRows.length === selectable.length && selectable.length > 0
 })
-// V1.1逻辑：所有批次都可以删除，不过滤状态
-const deletableBatches = computed(() => props.filteredBatches)
+// V1.1逻辑：草稿和已作废状态可以批量删除
+const deletableBatches = computed(() => props.filteredBatches.filter(b => b.batchStatus === 'draft' || b.batchStatus === 'cancelled'))
 const allSelectedForBatchDelete = computed(() =>
   props.selectedRows.length === deletableBatches.value.length && deletableBatches.value.length > 0
 )
@@ -349,6 +349,7 @@ function onEdit(batch) { emit('edit', batch) }
 </script>
 
 <style scoped>
+/* 表头复选框样式 - 白色边框（蓝底白字风格） */
 .header-checkbox :deep(.el-checkbox__inner) {
   border-color: white;
 }
@@ -358,5 +359,13 @@ function onEdit(batch) { emit('edit', batch) }
 }
 .header-checkbox :deep(.el-checkbox__input.is-checked .el-checkbox__inner::after) {
   border-color: #3b82f6;
+}
+
+/* 表格内容复选框样式 - 默认边框颜色加深 */
+:deep(.el-checkbox__inner) {
+  border-color: #374151;
+}
+:deep(.el-checkbox:hover .el-checkbox__inner) {
+  border-color: #1e3a8a;
 }
 </style>

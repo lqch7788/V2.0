@@ -40,10 +40,7 @@
           <button v-if="canEdit" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="batchEditMode = true">
             批量编辑
           </button>
-          <button v-if="canDelete" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700" @click="deleteMode = true">
-            删除
-          </button>
-          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="handleExportClick">
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="handleExportClick">
             <Download class="w-4 h-4" />
             导出
           </button>

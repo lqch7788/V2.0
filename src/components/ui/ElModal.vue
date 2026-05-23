@@ -167,12 +167,14 @@ function handleCancel() {
   margin: 0 auto !important;
 }
 
-/* 隐藏 Element Plus 默认 header / body / footer 的 padding，由内部自定义 */
+/* 隐藏 Element Plus 默认 header / body / footer 的 padding */
 .el-modal-wrapper :deep(.el-dialog__header) {
   margin: 0 !important;
   padding: 0 !important;
   border-bottom: none;
-  background: linear-gradient(to right, #10b981, #059669, #10b981) !important;
+  background: transparent !important;
+  display: block !important;
+  overflow: visible !important;
 }
 
 .el-modal-wrapper :deep(.el-dialog__body) {
@@ -187,26 +189,26 @@ function handleCancel() {
   background-color: #f9fafb !important;
 }
 
-/* 自定义标题栏：与 V1.1 modal-header 完全一致 */
+/* 自定义标题栏：完全覆盖弹窗顶部宽度 */
 .modal-header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(0.75rem + 3px) calc(1.5rem + 3px); /* px-6 py-3 + 负margin补偿 */
-  padding-bottom: 0.75rem;
+  padding: 0.75rem 1.5rem;
   background: linear-gradient(to right, #10b981, #059669, #10b981);
   flex-shrink: 0;
-  margin: -3px -3px 0 -3px; /* 负margin覆盖圆角间隙 */
+  margin: -3px -6px 0 -6px;
+  width: calc(100% + 12px);
+  box-sizing: border-box;
 }
 
 /* 白色简洁头部模式 */
 .plain-header :deep(.el-dialog__header) {
-  background: #ffffff !important;
+  background: transparent !important;
 }
 .plain-header .modal-header-inner {
   background: #ffffff;
-  border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
-  margin: 0;
+  border-bottom: 1px solid #e5e7eb;
   padding: 0.75rem 1.5rem;
 }
 
@@ -274,11 +276,10 @@ function handleCancel() {
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem; /* gap-3 */
-  padding: calc(1rem + 3px) 1.5rem 1rem; /* 底部padding补偿负margin */
+  padding: 1rem 1.5rem;
   border-top: 1px solid #e5e7eb; /* border-gray-200 */
   background-color: #f9fafb;
   flex-shrink: 0;
-  margin: 0 -3px -3px -3px; /* 负margin覆盖圆角间隙 */
 }
 
 /* 按钮样式：圆角与 V1.1 Button 一致 */

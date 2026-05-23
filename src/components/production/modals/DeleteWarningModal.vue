@@ -19,7 +19,6 @@
       <div class="text-sm text-gray-600 space-y-3 mb-6">
         <p>确定要删除选中的 <strong>{{ selectedCount }}</strong> 个生产计划吗？</p>
         <p>此操作 <strong class="text-red-600">无法恢复</strong>，删除后数据将永久丢失。</p>
-        <p class="text-gray-500">只有草稿状态的生产计划可以被删除。</p>
       </div>
       <div class="flex gap-3">
         <button class="flex-1 h-9 px-4 rounded-md text-sm inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200 transition-colors" @click="handleClose">取消</button>
