@@ -47,15 +47,37 @@
         </el-select>
       </div>
 
-      <!-- 订单日期 -->
+      <!-- 开始日期 -->
       <div class="flex-1 min-w-[150px]">
-        <label class="block text-sm text-gray-700 mb-1">订单日期</label>
+        <label class="block text-sm text-gray-700 mb-1">开始日期</label>
         <el-date-picker
-          v-model="localFilters.orderDate"
+          v-model="localFilters.startDate"
           type="date"
           placeholder="选择日期"
           value-format="YYYY-MM-DD"
           class="w-full"
+        />
+      </div>
+
+      <!-- 结束日期 -->
+      <div class="flex-1 min-w-[150px]">
+        <label class="block text-sm text-gray-700 mb-1">结束日期</label>
+        <el-date-picker
+          v-model="localFilters.endDate"
+          type="date"
+          placeholder="选择日期"
+          value-format="YYYY-MM-DD"
+          class="w-full"
+        />
+      </div>
+
+      <!-- 创建人 -->
+      <div class="flex-1 min-w-[150px]">
+        <label class="block text-sm text-gray-700 mb-1">创建人</label>
+        <el-input
+          v-model="localFilters.createBy"
+          placeholder="请输入创建人"
+          clearable
         />
       </div>
 
@@ -106,7 +128,9 @@ function handleReset() {
     orderName: '',
     cropName: '',
     status: '',
-    orderDate: '',
+    startDate: '',
+    endDate: '',
+    createBy: '',
   }
   emit('update:filters', { ...localFilters.value })
   emit('reset')

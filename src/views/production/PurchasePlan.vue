@@ -82,16 +82,6 @@
             placeholder="请输入"
           />
         </div>
-        <div class="min-w-[70px]">
-          <label class="block text-sm text-gray-700">优先级</label>
-          <el-select v-model="priority" class="w-full">
-            <el-option label="全部" value="全部" />
-            <el-option label="紧急" value="紧急" />
-            <el-option label="高" value="高" />
-            <el-option label="中" value="中" />
-            <el-option label="低" value="低" />
-          </el-select>
-        </div>
         <div class="min-w-[90px]">
           <label class="block text-sm text-gray-700">状态</label>
           <el-select v-model="status" class="w-full">
@@ -102,14 +92,6 @@
             <el-option label="采购中" value="采购中" />
             <el-option label="已完成" value="已完成" />
             <el-option label="已取消" value="已取消" />
-          </el-select>
-        </div>
-        <div class="min-w-[100px]">
-          <label class="block text-sm text-gray-700">预警状态</label>
-          <el-select v-model="alertFilter" class="w-full">
-            <el-option label="全部" value="全部" />
-            <el-option label="已逾期" value="已逾期" />
-            <el-option label="即将到期" value="即将到期" />
           </el-select>
         </div>
         <div class="min-w-[110px]">
@@ -128,15 +110,15 @@
             class="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div class="flex gap-2 items-end ml-auto">
+        <div class="flex gap-2 items-end">
           <button
-            class="h-9 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+            class="h-8 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
             @click="handleReset"
           >
             重置
           </button>
           <button
-            class="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+            class="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
             @click="handleSearch"
           >
             <Search class="w-4 h-4" />
