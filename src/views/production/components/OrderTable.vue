@@ -8,7 +8,7 @@
             <th v-if="exportMode || batchEditMode" class="px-4 py-3 text-left text-sm font-semibold w-12">
               <el-checkbox
                 :model-value="selectedRows.length === data.length && data.length > 0"
-                class="border-white"
+                class="order-checkbox border-white"
                 @change="onExportSelectAll"
               />
             </th>
@@ -37,6 +37,7 @@
             <td v-if="exportMode || batchEditMode" class="px-4 py-3">
               <el-checkbox
                 :model-value="selectedRows.includes(record.id)"
+                class="order-checkbox"
                 @change="() => handleSelectRow(record.id)"
               />
             </td>
@@ -258,3 +259,20 @@ function handlePageSizeChange(size) {
   emit('update:pagination', { ...localPagination.value })
 }
 </script>
+
+<style scoped>
+/* 加深导出模式复选框颜色 */
+:deep(.order-checkbox .el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: #1e3a8a;
+  border-color: #1e3a8a;
+}
+
+:deep(.order-checkbox .el-checkbox__input.is-checked .el-checkbox__inner::after) {
+  border-color: #ffffff;
+}
+
+:deep(.order-checkbox .el-checkbox__input.is-indeterminate .el-checkbox__inner) {
+  background-color: #1e3a8a;
+  border-color: #1e3a8a;
+}
+</style>
