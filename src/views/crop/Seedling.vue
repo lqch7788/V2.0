@@ -410,9 +410,14 @@ const handleEnd = async (record, endType) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    // 模拟结束操作
-    ElMessage.success(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
-    await loadItems()
+    // 调用 store 的 endItem 方法结束育苗
+    const success = await seedlingStore.endItem(record.id, endType)
+    if (success) {
+      ElMessage.success(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
+      await loadItems()
+    } else {
+      ElMessage.error('结束生产计划失败')
+    }
   } catch {
     // 用户取消
   }

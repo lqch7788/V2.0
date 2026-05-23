@@ -25,6 +25,7 @@
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <el-table :data="paginatedData" stripe>
+        <el-table-column prop="employeeCode" label="工号" min-width="140" />
         <el-table-column prop="name" label="姓名" min-width="100" />
         <el-table-column prop="phone" label="手机号" min-width="120" />
         <el-table-column prop="idCard" label="身份证号" min-width="180" />
@@ -71,6 +72,7 @@
     <el-dialog v-model="detailDialogVisible" title="临时工详情" width="600px">
       <div v-if="currentRecord" class="space-y-4">
         <el-descriptions :column="2" border>
+          <el-descriptions-item label="工号">{{ currentRecord.employeeCode }}</el-descriptions-item>
           <el-descriptions-item label="姓名">{{ currentRecord.name }}</el-descriptions-item>
           <el-descriptions-item label="手机号">{{ currentRecord.phone }}</el-descriptions-item>
           <el-descriptions-item label="身份证号" :span="2">{{ currentRecord.idCard }}</el-descriptions-item>
@@ -93,6 +95,9 @@
     <!-- 新增弹窗 -->
     <el-dialog v-model="formDialogVisible" title="登记临时工" width="500px">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
+        <el-form-item label="工号">
+          <el-input v-model="formData.employeeCode" readonly placeholder="系统自动生成" />
+        </el-form-item>
         <el-form-item label="姓名" prop="name">
           <el-input v-model="formData.name" placeholder="请输入姓名" />
         </el-form-item>
@@ -149,6 +154,7 @@ const currentRecord = ref(null)
 const formDialogVisible = ref(false)
 const formRef = ref()
 const formData = reactive({
+  employeeCode: '', // 工号（自动生成）
   name: '',
   phone: '',
   idCard: '',
@@ -168,11 +174,11 @@ const formRules = {
   joinDate: [{ required: true, message: '请选择入职日期', trigger: 'change' }]
 }
 
-// 模拟数据
+// 模拟数据 - 包含工号字段（格式: YG-YYYYMMDD-XXX）
 const allData = ref([
-  { id: 1, name: '临时工A', phone: '13900139001', idCard: '110101199001011234', position: '搬运工', department: '仓储部', dailyWage: 200, joinDate: '2026-05-01', status: 'active' },
-  { id: 2, name: '临时工B', phone: '13900139002', idCard: '110101199002022345', position: '包装工', department: '生产部', dailyWage: 180, joinDate: '2026-05-10', status: 'active' },
-  { id: 3, name: '临时工C', phone: '13900139003', idCard: '110101199003033456', position: '搬运工', department: '仓储部', dailyWage: 200, joinDate: '2026-04-15', status: 'inactive' }
+  { id: 1, employeeCode: 'YG-20260501-001', name: '临时工A', phone: '13900139001', idCard: '110101199001011234', position: '搬运工', department: '仓储部', dailyWage: 200, joinDate: '2026-05-01', status: 'active' },
+  { id: 2, employeeCode: 'YG-20260510-002', name: '临时工B', phone: '13900139002', idCard: '110101199002022345', position: '包装工', department: '生产部', dailyWage: 180, joinDate: '2026-05-10', status: 'active' },
+  { id: 3, employeeCode: 'YG-20260415-003', name: '临时工C', phone: '13900139003', idCard: '110101199003033456', position: '搬运工', department: '仓储部', dailyWage: 200, joinDate: '2026-04-15', status: 'inactive' }
 ])
 
 // 分页数据
@@ -192,9 +198,23 @@ const viewDetail = (row) => {
   detailDialogVisible.value = true
 }
 
+/**
+ * 生成临时工工号
+ * 格式: YG-YYYYMMDD-XXX（当日第几个入职）
+ */
+const generateEmployeeCode = () => {
+  const today = new Date()
+  const dateStr = today.toISOString().split('T')[0].replace(/-/g, '') // YYYYMMDD
+  // 计算当日已入职的临时工数量 + 1作为序号
+  const todayCount = allData.value.filter(r => r.joinDate === today.toISOString().split('T')[0]).length + 1
+  const sequence = String(todayCount).padStart(3, '0')
+  return `YG-${dateStr}-${sequence}`
+}
+
 // 新增
 const openFormModal = () => {
   Object.assign(formData, {
+    employeeCode: generateEmployeeCode(), // 自动生成工号
     name: '',
     phone: '',
     idCard: '',

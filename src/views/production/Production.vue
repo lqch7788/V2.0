@@ -639,10 +639,7 @@ function handleSingleEdit(batch: any) {
 }
 
 async function handleSingleDelete(batch: any) {
-  if (batch.batchStatus !== 'draft' && batch.batchStatus !== 'cancelled') {
-    await showAlert('只有草稿或已作废状态的生产计划才能删除')
-    return
-  }
+  // V1.1逻辑：所有状态都可以删除，不限制
   try {
     await productionPlanStore.deletePlan(batch.id)
     await showAlert('删除成功')

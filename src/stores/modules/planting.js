@@ -270,6 +270,30 @@ export const usePlantingStore = defineStore('planting', () => {
     }
   }
 
+  /**
+   * 结束种植计划（正常结束/异常结束）
+   * @param id 种植记录ID
+   * @param endType 结束类型：'normal' 正常结束，'abnormal' 异常结束
+   * @param remarks 备注
+   */
+  const endPlanting = async (id, endType = 'normal', remarks = '') => {
+    const index = plantings.value.findIndex(item => item.id === id)
+    if (index !== -1) {
+      const planting = plantings.value[index]
+      plantings.value[index] = {
+        ...planting,
+        isFinished: true,
+        endType: endType,
+        endRemarks: remarks,
+        endTime: new Date().toLocaleString(),
+        status: endType === 'normal' ? PlantingStatus.HARVESTED : 'cancelled',
+        updateTime: new Date().toLocaleString()
+      }
+      return true
+    }
+    return false
+  }
+
   return {
     // 状态
     plantings,
@@ -283,6 +307,7 @@ export const usePlantingStore = defineStore('planting', () => {
     updatePlanting,
     deletePlanting,
     deletePlantings,
-    harvestPlanting
+    harvestPlanting,
+    endPlanting
   }
 })

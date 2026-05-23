@@ -97,6 +97,30 @@ export const useSeedlingStore = defineStore('seedling', () => {
     }
   }
 
+  /**
+   * 结束育苗计划（正常结束/异常结束）
+   * @param id 育苗记录ID
+   * @param endType 结束类型：'normal' 正常结束，'abnormal' 异常结束
+   * @param remarks 备注
+   */
+  const endItem = async (id, endType = 'normal', remarks = '') => {
+    const index = items.value.findIndex(item => item.id === id)
+    if (index !== -1) {
+      const item = items.value[index]
+      items.value[index] = {
+        ...item,
+        isFinished: true,
+        endType: endType,
+        endRemarks: remarks,
+        endTime: new Date().toLocaleString(),
+        status: endType === 'normal' ? 'completed' : 'abnormal',
+        updateTime: new Date().toLocaleString()
+      }
+      return true
+    }
+    return false
+  }
+
   // 更新筛选条件
   const setFilters = (newFilters) => {
     filters.value = { ...filters.value, ...newFilters }
@@ -128,6 +152,7 @@ export const useSeedlingStore = defineStore('seedling', () => {
     updateItem,
     deleteItem,
     deleteItems,
+    endItem,
     setFilters,
     resetFilters
   }

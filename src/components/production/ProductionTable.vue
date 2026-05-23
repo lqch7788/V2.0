@@ -69,12 +69,7 @@
             <td v-if="batchDeleteMode" class="px-4 py-3">
               <el-checkbox
                 :model-value="selectedRows.includes(batch.id)"
-                :disabled="batch.batchStatus !== 'draft' && batch.batchStatus !== 'cancelled'"
-                @change="() => {
-                  if (batch.batchStatus === 'draft' || batch.batchStatus === 'cancelled') {
-                    onSelectRow(batch.id)
-                  }
-                }"
+                @change="() => onSelectRow(batch.id)"
               />
             </td>
             <td class="px-4 py-3 text-sm font-medium whitespace-nowrap">
@@ -281,9 +276,8 @@ const allSelectedForBatchEdit = computed(() => {
   const selectable = props.filteredBatches.filter(b => b.batchStatus !== 'completed' && b.batchStatus !== 'cancelled')
   return props.selectedRows.length === selectable.length && selectable.length > 0
 })
-const deletableBatches = computed(() =>
-  props.filteredBatches.filter(b => b.batchStatus === 'draft' || b.batchStatus === 'cancelled')
-)
+// V1.1逻辑：所有批次都可以删除，不过滤状态
+const deletableBatches = computed(() => props.filteredBatches)
 const allSelectedForBatchDelete = computed(() =>
   props.selectedRows.length === deletableBatches.value.length && deletableBatches.value.length > 0
 )
@@ -314,12 +308,11 @@ const localPageSize = computed({
 
 function getRowClassName(batch) {
   let className = 'hover:bg-blue-100 transition-colors '
+  // V1.1逻辑：只有编辑模式下已完成/已作废的行才加灰色背景
   if (props.batchEditMode && (batch.batchStatus === 'completed' || batch.batchStatus === 'cancelled')) {
     className += 'bg-gray-50 '
   }
-  if (props.batchDeleteMode && batch.batchStatus !== 'draft' && batch.batchStatus !== 'cancelled') {
-    className += 'bg-gray-100 '
-  }
+  // V1.1逻辑：批量删除模式下，所有状态都可以删除，不加灰色遮罩
   return className
 }
 

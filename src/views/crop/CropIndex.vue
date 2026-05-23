@@ -57,6 +57,20 @@
           </div>
         </div>
       </el-card>
+
+      <el-card class="cursor-pointer hover:shadow-lg transition-shadow" @click="$router.push('/settings/crop-variety')">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+            <el-icon :size="24" class="text-white">
+              <Sugar />
+            </el-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-gray-900">品种管理</h3>
+            <p class="text-gray-500 text-sm">管理作物品种编码和分类</p>
+          </div>
+        </div>
+      </el-card>
     </div>
 
     <!-- 子路由出口 -->
@@ -67,5 +81,5 @@
 </template>
 
 <script setup>
-import { Goods, Crop, OfficeBuilding } from '@element-plus/icons-vue'
+import { Goods, Crop, OfficeBuilding, Sugar } from '@element-plus/icons-vue'
 </script>

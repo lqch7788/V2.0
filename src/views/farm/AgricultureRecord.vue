@@ -13,24 +13,55 @@
       </div>
     </div>
 
-    <!-- 筛选工具栏 -->
+    <!-- 筛选工具栏 - 与V1.1保持一致 -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap items-center gap-4">
+        <!-- 来源类型筛选 -->
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">日期:</span>
-          <el-date-picker
-            v-model="filters.date"
-            type="date"
-            placeholder="选择日期"
-            class="w-36"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-          />
+          <span class="text-sm text-gray-500">来源:</span>
+          <el-select v-model="filters.sourceType" placeholder="全部" class="w-28" clearable>
+            <el-option label="全部" value="" />
+            <el-option label="任务" value="task" />
+            <el-option label="临时任务" value="tempTask" />
+            <el-option label="手动录入" value="manual" />
+            <el-option label="巡检" value="inspection" />
+          </el-select>
         </div>
 
+        <!-- 操作类型筛选 -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">操作类型:</span>
+          <el-select v-model="filters.operationType" placeholder="全部" class="w-28" clearable>
+            <el-option label="全部" value="" />
+            <el-option label="浇水" value="irrigation" />
+            <el-option label="施肥" value="fertilization" />
+            <el-option label="除草" value="weeding" />
+            <el-option label="修剪" value="pruning" />
+            <el-option label="采收" value="harvest" />
+            <el-option label="打药" value="pest_control" />
+            <el-option label="种植" value="planting" />
+            <el-option label="其他" value="other" />
+          </el-select>
+        </div>
+
+        <!-- 状态筛选 -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">状态:</span>
+          <el-select v-model="filters.status" placeholder="全部" class="w-28" clearable>
+            <el-option label="全部" value="" />
+            <el-option label="待执行" value="pending" />
+            <el-option label="进行中" value="in_progress" />
+            <el-option label="已完成" value="completed" />
+            <el-option label="待验收" value="waiting_acceptance" />
+            <el-option label="已驳回" value="rejected" />
+            <el-option label="已取消" value="cancelled" />
+          </el-select>
+        </div>
+
+        <!-- 区域筛选 -->
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-500">区域:</span>
-          <el-select v-model="filters.zone" placeholder="全部" class="w-28" clearable>
+          <el-select v-model="filters.greenhouseId" placeholder="全部" class="w-28" clearable>
             <el-option label="全部" value="" />
             <el-option label="东区" value="东区" />
             <el-option label="西区" value="西区" />
@@ -39,15 +70,40 @@
           </el-select>
         </div>
 
+        <!-- 操作人员筛选 -->
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">作物:</span>
-          <el-select v-model="filters.crop" placeholder="全部" class="w-28" clearable>
+          <span class="text-sm text-gray-500">操作人员:</span>
+          <el-select v-model="filters.operatorId" placeholder="全部" class="w-28" clearable>
             <el-option label="全部" value="" />
-            <el-option label="番茄" value="番茄" />
-            <el-option label="黄瓜" value="黄瓜" />
-            <el-option label="茄子" value="茄子" />
-            <el-option label="辣椒" value="辣椒" />
+            <el-option label="陆启闯" value="陆启闯" />
+            <el-option label="张三" value="张三" />
+            <el-option label="李四" value="李四" />
           </el-select>
+        </div>
+
+        <!-- 日期范围筛选 -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">日期:</span>
+          <el-date-picker
+            v-model="filters.dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            class="w-56"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+          />
+        </div>
+
+        <!-- 搜索文本 -->
+        <div class="flex items-center gap-2">
+          <el-input
+            v-model="filters.searchText"
+            placeholder="搜索记录编号/作物/区域"
+            class="w-44"
+            clearable
+          />
         </div>
 
         <el-button type="primary" @click="handleSearch">搜索</el-button>
@@ -66,26 +122,52 @@
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <el-table :data="paginatedRecords" style="width: 100%" v-loading="loading">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="recordCode" label="记录编号" width="140" />
-        <el-table-column prop="date" label="日期" width="120" />
-        <el-table-column prop="zone" label="区域" width="100" />
-        <el-table-column prop="greenhouse" label="大棚" width="100" />
-        <el-table-column prop="crop" label="作物" width="80" />
-        <el-table-column prop="activityType" label="活动类型" width="100">
+        <el-table-column prop="recordCode" label="操作单号" width="140" />
+        <el-table-column prop="sourceType" label="来源" width="100">
           <template #default="{ row }">
-            <el-tag :type="getActivityTypeTag(row.activityType)" size="small">
-              {{ row.activityType }}
+            <el-tag :type="getSourceTypeTag(row.sourceType)" size="small">
+              {{ getSourceTypeLabel(row.sourceType) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="workContent" label="工作内容" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="worker" label="作业人员" width="100" />
-        <el-table-column prop="workHours" label="工时" width="80" />
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column prop="sourceCode" label="来源编号" width="140" />
+        <el-table-column prop="operationType" label="操作类型" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getActivityTypeTag(row.operationType)" size="small">
+              {{ row.operationTypeName || row.operationType }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="作物/区域" width="140">
+          <template #default="{ row }">
+            <div class="text-sm">
+              <div class="font-medium text-gray-900">{{ row.cropName }}</div>
+              <div class="text-gray-500 text-xs">{{ row.greenhouseName }}</div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="operatorName" label="操作人员" width="100" />
+        <el-table-column prop="operationDate" label="操作日期" width="120" />
+        <el-table-column prop="progress" label="进度" width="100">
+          <template #default="{ row }">
+            <div class="flex items-center gap-2" v-if="row.progress !== undefined">
+              <el-progress :percentage="row.progress || 0" :width="30" type="circle" />
+            </div>
+            <span v-else class="text-gray-400">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getStatusTag(row.status)" size="small">
+              {{ getStatusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="remarks" label="备注" min-width="120" show-overflow-tooltip />
+        <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
             <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -110,13 +192,48 @@
 import { ref, computed, onMounted } from 'vue'
 import { Folder, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getTasksWithPagination, deleteTask } from '@/services/apiFarmTaskService'
+import { getOperationRecords, deleteOperationRecord } from '@/services/apiOperationRecordService'
 
-// 筛选条件
+// 来源配置（与V1.1保持一致）
+const SOURCE_CONFIG = {
+  task: { label: '任务', color: 'primary' },
+  tempTask: { label: '临时任务', color: 'warning' },
+  manual: { label: '手动录入', color: 'success' },
+  inspection: { label: '巡检', color: 'info' }
+}
+
+// 状态选项
+const STATUS_OPTIONS = [
+  { value: '', label: '全部' },
+  { value: 'pending', label: '待执行' },
+  { value: 'in_progress', label: '进行中' },
+  { value: 'completed', label: '已完成' },
+  { value: 'waiting_acceptance', label: '待验收' },
+  { value: 'rejected', label: '已驳回' },
+  { value: 'cancelled', label: '已取消' }
+]
+
+// 操作类型配置
+const OPERATION_TYPE_CONFIG = {
+  irrigation: { label: '浇水', color: 'primary' },
+  fertilization: { label: '施肥', color: 'success' },
+  weeding: { label: '除草', color: 'warning' },
+  pruning: { label: '修剪', color: 'info' },
+  harvest: { label: '采收', color: 'danger' },
+  pest_control: { label: '打药', color: 'danger' },
+  planting: { label: '种植', color: 'success' },
+  other: { label: '其他', color: 'info' }
+}
+
+// 筛选条件 - 与V1.1保持一致
 const filters = ref({
-  date: '',
-  zone: '',
-  crop: ''
+  sourceType: '',       // 来源类型
+  operationType: '',     // 操作类型
+  status: '',           // 状态
+  greenhouseId: '',     // 区域
+  operatorId: '',       // 操作人员
+  dateRange: [],        // 日期范围 [开始, 结束]
+  searchText: ''        // 搜索文本
 })
 
 // 分页
@@ -128,7 +245,7 @@ const pagination = ref({
 // 加载状态
 const loading = ref(false)
 
-// 记录数据（从真实API获取）
+// 记录数据
 const records = ref([])
 
 // 总数
@@ -143,30 +260,52 @@ const loadRecords = async () => {
       page: pagination.value.currentPage,
       limit: pagination.value.pageSize
     }
-    if (filters.value.date) {
-      params.startDate = filters.value.date
-      params.endDate = filters.value.date
+
+    // 添加筛选条件
+    if (filters.value.sourceType) {
+      params.sourceType = filters.value.sourceType
+    }
+    if (filters.value.operationType) {
+      params.operationType = filters.value.operationType
+    }
+    if (filters.value.status) {
+      params.status = filters.value.status
+    }
+    if (filters.value.greenhouseId) {
+      params.greenhouseId = filters.value.greenhouseId
+    }
+    if (filters.value.operatorId) {
+      params.operatorId = filters.value.operatorId
+    }
+    if (filters.value.dateRange && filters.value.dateRange.length === 2) {
+      params.dateFrom = filters.value.dateRange[0]
+      params.dateTo = filters.value.dateRange[1]
+    }
+    if (filters.value.searchText) {
+      params.search = filters.value.searchText
     }
 
-    const result = await getTasksWithPagination(params)
+    const result = await getOperationRecords(params)
 
-    // 数据映射：将后端任务数据映射为前端记录格式
-    records.value = (result.data || []).map(task => ({
-      id: task.id || task.taskCode || '',
-      recordCode: task.taskCode || task.id || '',
-      date: task.planDate || '',
-      zone: task.greenhouseName || '',
-      greenhouse: task.greenhouseName || '',
-      crop: task.crop || '',
-      activityType: task.taskType || task.typeName || '',
-      workContent: task.content || task.title || '',
-      worker: task.assigneeName || '',
-      workHours: task.estimatedHours || 0,
-      // 保留原始任务数据供其他操作使用
-      _原始数据: task
+    // 数据映射
+    records.value = (result.data || []).map(record => ({
+      id: record.id,
+      recordCode: record.recordCode,
+      sourceType: record.sourceType,
+      sourceCode: record.sourceCode,
+      operationType: record.operationType,
+      operationTypeName: record.operationTypeName,
+      status: record.status,
+      greenhouseName: record.greenhouseName,
+      cropName: record.cropName,
+      operatorName: record.operatorName,
+      operationDate: record.operationDate,
+      progress: record.progress,
+      remarks: record.remarks,
+      children: record.children
     }))
 
-    total.value = result.total || records.value.length
+    total.value = result.meta?.total || records.value.length
   } catch (error) {
     console.error('加载农事记录失败:', error)
     ElMessage.error('加载农事记录失败')
@@ -180,40 +319,45 @@ onMounted(() => {
   loadRecords()
 })
 
-// 过滤后的记录
-const filteredRecords = computed(() => {
-  return records.value.filter(record => {
-    if (filters.value.date && record.date !== filters.value.date) {
-      return false
-    }
-    if (filters.value.zone && record.zone !== filters.value.zone) {
-      return false
-    }
-    if (filters.value.crop && record.crop !== filters.value.crop) {
-      return false
-    }
-    return true
-  })
-})
-
 // 分页后的记录
 const paginatedRecords = computed(() => {
   const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
   const end = start + pagination.value.pageSize
-  return filteredRecords.value.slice(start, end)
+  return records.value.slice(start, end)
 })
+
+// 获取来源类型标签
+const getSourceTypeTag = (type) => {
+  return SOURCE_CONFIG[type]?.color || 'info'
+}
+
+// 获取来源类型标签文字
+const getSourceTypeLabel = (type) => {
+  return SOURCE_CONFIG[type]?.label || type
+}
 
 // 获取活动类型标签颜色
 const getActivityTypeTag = (type) => {
-  const typeMap = {
-    '浇水': 'primary',
-    '施肥': 'success',
-    '除草': 'warning',
-    '修剪': 'info',
-    '采收': 'danger',
-    '打药': 'danger'
+  return OPERATION_TYPE_CONFIG[type]?.color || ''
+}
+
+// 获取状态标签
+const getStatusTag = (status) => {
+  const tagMap = {
+    'completed': 'success',
+    'in_progress': 'primary',
+    'pending': 'warning',
+    'waiting_acceptance': 'warning',
+    'rejected': 'danger',
+    'cancelled': 'info'
   }
-  return typeMap[type] || ''
+  return tagMap[status] || 'info'
+}
+
+// 获取状态标签文字
+const getStatusLabel = (status) => {
+  const found = STATUS_OPTIONS.find(s => s.value === status)
+  return found?.label || status
 }
 
 // 搜索
@@ -225,9 +369,13 @@ const handleSearch = () => {
 // 重置
 const handleReset = () => {
   filters.value = {
-    date: '',
-    zone: '',
-    crop: ''
+    sourceType: '',
+    operationType: '',
+    status: '',
+    greenhouseId: '',
+    operatorId: '',
+    dateRange: [],
+    searchText: ''
   }
   pagination.value.currentPage = 1
   loadRecords()
@@ -251,29 +399,6 @@ const handleView = (row) => {
 // 编辑
 const handleEdit = (row) => {
   ElMessage.info(`编辑记录: ${row.recordCode}`)
-}
-
-// 删除
-const handleDelete = async (row) => {
-  try {
-    await ElMessageBox.confirm(`确定要删除记录 "${row.recordCode}" 吗？`, '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-
-    // 调用真实API删除
-    await deleteTask(row.id)
-    ElMessage.success('删除成功')
-
-    // 重新加载数据
-    loadRecords()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除失败:', error)
-      ElMessage.error('删除失败')
-    }
-  }
 }
 
 // 分页大小改变

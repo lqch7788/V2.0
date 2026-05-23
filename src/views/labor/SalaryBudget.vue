@@ -66,7 +66,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="tableData" border stripe @selection-change="handleSelectionChange">
+      <el-table v-loading="loading" :data="tableData" border stripe @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="department" label="部门" width="120" />
         <el-table-column prop="month" label="月份" width="100" />
@@ -97,7 +97,7 @@
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">{{ row.status }}</el-tag>
+            <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusLabel(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="submitter" label="提交人" width="100" />
@@ -105,8 +105,8 @@
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleViewDetail(row)">查看</el-button>
-            <el-button link type="success" @click="handleApprove(row)" v-if="row.status === '已提交'">审批</el-button>
-            <el-button link type="danger" @click="handleReject(row)" v-if="row.status === '已提交'">驳回</el-button>
+            <el-button link type="success" @click="handleApprove(row)" v-if="row.status === 'submitted'">审批</el-button>
+            <el-button link type="danger" @click="handleReject(row)" v-if="row.status === 'submitted'">驳回</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -187,7 +187,7 @@
             <strong>{{ selectedRecord.totalAmount.toLocaleString() }} 元</strong>
           </el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag :type="getStatusType(selectedRecord.status)" size="small">{{ selectedRecord.status }}</el-tag>
+            <el-tag :type="getStatusType(selectedRecord.status)" size="small">{{ getStatusLabel(selectedRecord.status) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="提交人">{{ selectedRecord.submitter }}</el-descriptions-item>
           <el-descriptions-item label="提交时间">{{ selectedRecord.submitTime }}</el-descriptions-item>
@@ -199,8 +199,8 @@
       </div>
       <template #footer>
         <el-button @click="detailModalVisible = false">关闭</el-button>
-        <el-button type="success" @click="handleApprove(selectedRecord)" v-if="selectedRecord?.status === '已提交'">审批</el-button>
-        <el-button type="danger" @click="handleReject(selectedRecord)" v-if="selectedRecord?.status === '已提交'">驳回</el-button>
+        <el-button type="success" @click="handleApprove(selectedRecord)" v-if="selectedRecord?.status === 'submitted'">审批</el-button>
+        <el-button type="danger" @click="handleReject(selectedRecord)" v-if="selectedRecord?.status === 'submitted'">驳回</el-button>
       </template>
     </el-dialog>
 
@@ -254,10 +254,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Wallet } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { departments } from '@/data/laborData'
+import { getSalaryBudgetRecords, createSalaryBudgetRecord, updateSalaryBudgetRecord, deleteSalaryBudgetRecord } from '@/services/apiSalaryBudgetService'
+
+// 加载状态
+const loading = ref(false)
 
 // 筛选条件
 const filters = reactive({
@@ -273,54 +277,8 @@ const pagination = reactive({
   total: 0
 })
 
-// 表格数据
-const tableData = ref([
-  {
-    id: '1',
-    department: '技术部',
-    month: '2024-03',
-    baseSalary: 80000,
-    overtimePay: 5000,
-    bonus: 10000,
-    deduction: 2000,
-    totalAmount: 93000,
-    status: '已审批',
-    submitter: '张三',
-    submitTime: '2024-03-25 14:30:00',
-    remarks: ''
-  },
-  {
-    id: '2',
-    department: '运营部',
-    month: '2024-03',
-    baseSalary: 60000,
-    overtimePay: 3000,
-    bonus: 5000,
-    deduction: 1000,
-    totalAmount: 67000,
-    status: '已提交',
-    submitter: '李四',
-    submitTime: '2024-03-26 10:15:00',
-    remarks: ''
-  },
-  {
-    id: '3',
-    department: '市场部',
-    month: '2024-03',
-    baseSalary: 50000,
-    overtimePay: 0,
-    bonus: 3000,
-    deduction: 500,
-    totalAmount: 52500,
-    status: '待提交',
-    submitter: '王五',
-    submitTime: '',
-    remarks: ''
-  }
-])
-
-// 设置总数据条数
-pagination.total = tableData.value.length
+// 表格数据 - 从API加载
+const tableData = ref([])
 
 // 选中的行
 const selectedRowKeys = ref([])
@@ -346,9 +304,25 @@ const selectedRecord = ref(null)
 const summaryModalVisible = ref(false)
 const summaryData = ref(null)
 
+// 状态映射 - 英文状态值与中文显示标签的映射
+const statusMap = {
+  'pending': '待提交',
+  'submitted': '已提交',
+  'approved': '已审批',
+  'rejected': '已驳回'
+}
+
+// 英文状态值到el-tag类型的映射
+const statusTypeMap = {
+  'pending': 'info',
+  'submitted': 'warning',
+  'approved': 'success',
+  'rejected': 'danger'
+}
+
 // 计算总金额
 const grandTotal = computed(() => {
-  return tableData.value.reduce((sum, item) => sum + item.totalAmount, 0)
+  return tableData.value.reduce((sum, item) => sum + (item.grandTotal || item.totalAmount || 0), 0)
 })
 
 // 获取状态类型
@@ -357,9 +331,60 @@ const getStatusType = (status) => {
     '待提交': 'info',
     '已提交': 'warning',
     '已审批': 'success',
-    '已驳回': 'danger'
+    '已驳回': 'danger',
+    'pending': 'info',
+    'submitted': 'warning',
+    'approved': 'success',
+    'rejected': 'danger'
   }
   return typeMap[status] || 'info'
+}
+
+// 获取状态显示文本
+const getStatusLabel = (status) => {
+  return statusMap[status] || status || '待提交'
+}
+
+// 加载数据
+const loadData = async () => {
+  loading.value = true
+  try {
+    const filterParams = {}
+    if (filters.department) filterParams.deptId = filters.department
+    if (filters.month) filterParams.budgetMonth = filters.month
+    if (filters.status) filterParams.status = filters.status
+
+    const result = await getSalaryBudgetRecords(filterParams, {
+      page: pagination.current,
+      limit: pagination.pageSize
+    })
+
+    // 转换API数据格式为组件使用格式
+    tableData.value = result.records.map(item => ({
+      id: item.id,
+      department: item.deptName,
+      month: item.budgetMonth,
+      baseSalary: item.totalBaseSalary,
+      overtimePay: item.totalOvertimePay,
+      bonus: item.totalBonus,
+      deduction: 0,
+      totalAmount: item.grandTotal,
+      status: getStatusLabel(item.status),
+      submitter: item.applicantName,
+      submitTime: item.applyDate || '',
+      remarks: item.remark || '',
+      // 保存原始数据用于API操作
+      _original: item
+    }))
+
+    pagination.total = result.pagination.total || result.records.length
+  } catch (error) {
+    console.error('[SalaryBudget] 加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+    tableData.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
 // 处理筛选重置
@@ -367,12 +392,14 @@ const handleReset = () => {
   filters.department = ''
   filters.month = ''
   filters.status = ''
+  pagination.current = 1
+  loadData()
 }
 
 // 处理搜索
 const handleSearch = () => {
   pagination.current = 1
-  ElMessage.success('查询成功')
+  loadData()
 }
 
 // 处理选择变化
@@ -383,11 +410,13 @@ const handleSelectionChange = (selection) => {
 // 处理分页变化
 const handlePageChange = (page) => {
   pagination.current = page
+  loadData()
 }
 
 const handlePageSizeChange = (size) => {
   pagination.pageSize = size
   pagination.current = 1
+  loadData()
 }
 
 // 打开新增表单弹窗
@@ -410,25 +439,36 @@ const handleFormClose = () => {
   formModalVisible.value = false
 }
 
-// 提交表单
-const handleSubmit = () => {
+// 提交表单 - 新增预算
+const handleSubmit = async () => {
   if (!formData.department || !formData.month) {
     ElMessage.warning('请填写完整信息')
     return
   }
-  const totalAmount = formData.baseSalary + formData.overtimePay + formData.bonus - formData.deduction
-  const newRecord = {
-    id: Date.now().toString(),
-    ...formData,
-    totalAmount,
-    status: '待提交',
-    submitter: '',
-    submitTime: ''
+  try {
+    // 查找选中部门的ID
+    const dept = departments.find(d => d.name === formData.department)
+    const deptId = dept?.id || formData.department
+
+    await createSalaryBudgetRecord({
+      deptId: deptId,
+      deptName: formData.department,
+      budgetMonth: formData.month,
+      totalBaseSalary: formData.baseSalary,
+      totalOvertimePay: formData.overtimePay,
+      totalBonus: formData.bonus,
+      remark: formData.remarks,
+      applicantId: '',
+      applicantName: ''
+    })
+
+    ElMessage.success('新增成功')
+    formModalVisible.value = false
+    loadData()
+  } catch (error) {
+    console.error('[SalaryBudget] 创建失败:', error)
+    ElMessage.error('创建失败')
   }
-  tableData.value.unshift(newRecord)
-  pagination.total = tableData.value.length
-  formModalVisible.value = false
-  ElMessage.success('新增成功')
 }
 
 // 查看详情
@@ -445,11 +485,20 @@ const handleApprove = async (row) => {
       cancelButtonText: '取消',
       type: 'success'
     })
-    row.status = '已审批'
+
+    const original = row._original
+    if (original) {
+      await updateSalaryBudgetRecord(original.id, { status: 'approved' })
+    }
+
+    row.status = 'approved'
     ElMessage.success('审批成功')
     detailModalVisible.value = false
-  } catch {
-    // 用户取消
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('[SalaryBudget] 审批失败:', error)
+      ElMessage.error('审批失败')
+    }
   }
 }
 
@@ -461,11 +510,20 @@ const handleReject = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    row.status = '已驳回'
+
+    const original = row._original
+    if (original) {
+      await updateSalaryBudgetRecord(original.id, { status: 'rejected' })
+    }
+
+    row.status = 'rejected'
     ElMessage.success('已驳回')
     detailModalVisible.value = false
-  } catch {
-    // 用户取消
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('[SalaryBudget] 驳回失败:', error)
+      ElMessage.error('驳回失败')
+    }
   }
 }
 
@@ -478,13 +536,13 @@ const handleOpenSummary = () => {
       byDepartment[item.department] = { department: item.department, count: 0, totalAmount: 0 }
     }
     byDepartment[item.department].count++
-    byDepartment[item.department].totalAmount += item.totalAmount
+    byDepartment[item.department].totalAmount += (item.totalAmount || 0)
   })
 
   summaryData.value = {
     deptCount: Object.keys(byDepartment).length,
     recordCount: tableData.value.length,
-    totalAmount: tableData.value.reduce((sum, item) => sum + item.totalAmount, 0),
+    totalAmount: grandTotal.value,
     byDepartment: Object.values(byDepartment)
   }
   summaryModalVisible.value = true
@@ -494,6 +552,11 @@ const handleOpenSummary = () => {
 const handleExport = () => {
   ElMessage.success('导出功能开发中')
 }
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>

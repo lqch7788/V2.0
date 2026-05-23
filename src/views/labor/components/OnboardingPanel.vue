@@ -105,7 +105,7 @@
         </div>
       </div>
 
-      <el-table :data="paginatedData" stripe>
+      <el-table v-loading="loading" :data="paginatedData" stripe>
         <el-table-column prop="name" label="姓名" min-width="120">
           <template #default="{ row }">
             <div>
@@ -227,20 +227,45 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { CirclePlus, Search, Plus, Edit, Delete, Download, Clock, Warning, CircleCheck } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { } from 'element-plus'
+import { getOnboardingRecords, createOnboardingRecord, updateOnboardingRecord, updateOnboardingStatus, deleteOnboardingRecord } from '@/services/apiOnboardingService'
 
-// 状态映射
-const statusMap = {
+// 加载状态
+const loading = ref(false)
+
+// 状态映射 - API使用英文状态码
+const statusCodeMap = {
   pending: { label: '待入职', type: 'warning' },
   processing: { label: '办理中', type: 'primary' },
-  completed: { label: '已入职', type: 'success' }
+  completed: { label: '已入职', type: 'success' },
+  onboarded: { label: '已入职', type: 'success' }
 }
 
-const getStatusLabel = (status) => statusMap[status]?.label || status
-const getStatusType = (status) => statusMap[status]?.type || 'info'
+// 中文状态到API状态的映射
+const statusLabelToCode = {
+  '待入职': 'pending',
+  '办理中': 'processing',
+  '已入职': 'onboarded'
+}
+
+const getStatusLabel = (status) => {
+  // 如果已经是中文，直接返回
+  if (status && ['待入职', '办理中', '已入职'].includes(status)) {
+    return status
+  }
+  return statusCodeMap[status]?.label || status || '待入职'
+}
+
+const getStatusType = (status) => {
+  // 如果已经是中文状态，获取对应的类型
+  if (status && ['待入职', '办理中', '已入职'].includes(status)) {
+    const code = statusLabelToCode[status]
+    return statusCodeMap[code]?.type || 'info'
+  }
+  return statusCodeMap[status]?.type || 'info'
+}
 
 // 筛选条件
 const filters = reactive({
@@ -281,19 +306,60 @@ const formRules = {
   joinDate: [{ required: true, message: '请选择入职日期', trigger: 'change' }]
 }
 
-// 模拟数据
-const allData = ref([
-  { id: 1, name: '新员工A', phone: '13700137001', idCard: '110101199001011234', position: '技术员', department: '技术部', contractType: '劳动合同', joinDate: '2026-05-25', status: 'pending' },
-  { id: 2, name: '新员工B', phone: '13700137002', idCard: '110101199002022345', position: '运营专员', department: '运营部', contractType: '劳动合同', joinDate: '2026-05-20', status: 'processing' },
-  { id: 3, name: '新员工C', phone: '13700137003', idCard: '110101199003033456', position: '市场专员', department: '市场部', contractType: '实习协议', joinDate: '2026-05-15', status: 'completed' }
-])
+// 入职数据 - 从API加载
+const allData = ref([])
 
-// 统计
-const statusCounts = computed(() => ({
-  pending: allData.value.filter(r => r.status === 'pending').length,
-  processing: allData.value.filter(r => r.status === 'processing').length,
-  completed: allData.value.filter(r => r.status === 'completed').length
-}))
+// 加载数据
+const loadData = async () => {
+  loading.value = true
+  try {
+    const filterParams = {}
+    if (filters.keyword) filterParams.keyword = filters.keyword
+    if (filters.status) filterParams.status = filters.status
+
+    const result = await getOnboardingRecords(filterParams, {
+      page: pagination.currentPage,
+      limit: pagination.pageSize
+    })
+
+    // 转换API数据格式为组件使用格式
+    allData.value = result.records.map(item => ({
+      id: item.id,
+      oid: item.oid,
+      name: item.name,
+      phone: item.phone,
+      idCard: item.idCard,
+      position: item.position,
+      department: item.department,
+      contractType: item.contractType,
+      joinDate: item.joinDate,
+      status: item.status,
+      // 保存原始API数据
+      _original: item
+    }))
+
+    // 更新分页总数
+    pagination.total = result.pagination.total || result.records.length
+  } catch (error) {
+    console.error('[OnboardingPanel] 加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+    allData.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// 统计 - 计算各状态数量
+const statusCounts = computed(() => {
+  const counts = { pending: 0, processing: 0, completed: 0 }
+  allData.value.forEach(r => {
+    const status = r.status
+    if (status === 'pending' || status === '待入职') counts.pending++
+    else if (status === 'processing' || status === '办理中') counts.processing++
+    else if (status === 'completed' || status === 'onboarded' || status === '已入职') counts.completed++
+  })
+  return counts
+})
 
 // 筛选后的数据
 const filteredData = computed(() => {
@@ -313,6 +379,7 @@ const paginatedData = computed(() => {
 // 搜索
 const handleSearch = () => {
   pagination.currentPage = 1
+  loadData()
 }
 
 // 重置
@@ -320,11 +387,13 @@ const handleReset = () => {
   filters.keyword = ''
   filters.status = ''
   pagination.currentPage = 1
+  loadData()
 }
 
 // 分页
 const handlePageSizeChange = () => {
   pagination.currentPage = 1
+  loadData()
 }
 
 // 详情
@@ -333,16 +402,31 @@ const viewDetail = (row) => {
   detailDialogVisible.value = true
 }
 
-// 开始办理
-const startProcess = (row) => {
-  const index = allData.value.findIndex(r => r.id === row.id)
-  if (index !== -1) {
-    allData.value[index].status = 'processing'
+// 开始办理 - 调用API更新状态为办理中
+const startProcess = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定开始办理入职流程吗？', '确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info'
+    })
+
+    const original = row._original
+    if (original) {
+      await updateOnboardingStatus(original.id, { status: 'processing' })
+    }
+
+    row.status = 'processing'
     ElMessage.success('已开始办理入职')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('[OnboardingPanel] 开始办理失败:', error)
+      ElMessage.error('操作失败')
+    }
   }
 }
 
-// 完成入职
+// 完成入职 - 调用API更新状态为已入职
 const completeOnboarding = async (row) => {
   try {
     await ElMessageBox.confirm('确定要完成入职办理吗？这将创建员工档案。', '确认完成', {
@@ -350,13 +434,19 @@ const completeOnboarding = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    const index = allData.value.findIndex(r => r.id === row.id)
-    if (index !== -1) {
-      allData.value[index].status = 'completed'
-      ElMessage.success('入职办理已完成')
+
+    const original = row._original
+    if (original) {
+      await updateOnboardingStatus(original.id, { status: 'onboarded' })
     }
-  } catch {
-    // 取消操作
+
+    row.status = 'completed'
+    ElMessage.success('入职办理已完成')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('[OnboardingPanel] 完成入职失败:', error)
+      ElMessage.error('操作失败')
+    }
   }
 }
 
@@ -374,21 +464,51 @@ const openFormModal = () => {
   formDialogVisible.value = true
 }
 
-// 提交表单
+// 提交表单 - 调用API创建入职记录
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      allData.value.unshift({
-        id: Date.now(),
-        ...formData,
-        status: 'pending'
-      })
-      ElMessage.success('入职登记成功')
-      formDialogVisible.value = false
+      try {
+        const newRecord = await createOnboardingRecord({
+          name: formData.name,
+          phone: formData.phone,
+          idCard: formData.idCard,
+          position: formData.position,
+          department: formData.department,
+          contractType: formData.contractType,
+          joinDate: formData.joinDate
+        })
+
+        // 添加到列表
+        allData.value.unshift({
+          id: newRecord.id,
+          oid: newRecord.oid,
+          name: newRecord.name,
+          phone: newRecord.phone,
+          idCard: newRecord.idCard,
+          position: newRecord.position,
+          department: newRecord.department,
+          contractType: newRecord.contractType,
+          joinDate: newRecord.joinDate,
+          status: newRecord.status || 'pending',
+          _original: newRecord
+        })
+
+        ElMessage.success('入职登记成功')
+        formDialogVisible.value = false
+      } catch (error) {
+        console.error('[OnboardingPanel] 创建失败:', error)
+        ElMessage.error('创建失败')
+      }
     }
   })
 }
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>
