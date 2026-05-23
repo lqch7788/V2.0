@@ -261,18 +261,12 @@ function handlePageSizeChange(size) {
 </script>
 
 <style scoped>
-/* 加深导出模式复选框颜色 */
-:deep(.order-checkbox .el-checkbox__input.is-checked .el-checkbox__inner) {
-  background-color: #1e3a8a;
-  border-color: #1e3a8a;
+/* 加深导出模式复选框默认边框颜色 */
+:deep(.order-checkbox .el-checkbox__inner) {
+  border-color: #374151;
 }
 
-:deep(.order-checkbox .el-checkbox__input.is-checked .el-checkbox__inner::after) {
-  border-color: #ffffff;
-}
-
-:deep(.order-checkbox .el-checkbox__input.is-indeterminate .el-checkbox__inner) {
-  background-color: #1e3a8a;
+:deep(.order-checkbox:hover .el-checkbox__inner) {
   border-color: #1e3a8a;
 }
 </style>
