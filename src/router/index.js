@@ -308,6 +308,12 @@ const routes = [
     meta: { title: '采收入库' }
   },
   {
+    path: '/crop/harvest-inbound',
+    name: 'HarvestInbound',
+    component: () => import('@/views/crop/Harvest.vue'),
+    meta: { title: '采收入库' }
+  },
+  {
     path: '/inventory',
     name: 'Inventory',
     component: () => import('@/views/inventory/InventoryIndex.vue'),
@@ -369,28 +375,10 @@ const routes = [
     meta: { title: '公告管理' }
   },
   {
-    path: '/approval/farm',
+    path: '/farm-approval',
     name: 'FarmApproval',
     component: () => import('@/views/approval/FarmApproval.vue'),
     meta: { title: '农事审批' }
-  },
-  {
-    path: '/approval/work-order',
-    name: 'WorkOrderApproval',
-    component: () => import('@/views/approval/WorkOrderApproval.vue'),
-    meta: { title: '工单审批' }
-  },
-  {
-    path: '/approval/work-log',
-    name: 'WorkLogApproval',
-    component: () => import('@/views/approval/WorkLogApproval.vue'),
-    meta: { title: '工作日志审批' }
-  },
-  {
-    path: '/approvals',
-    name: 'Approvals',
-    component: () => import('@/views/approval/Approvals.vue'),
-    meta: { title: '审批中心' }
   },
   {
     path: '/material-approval',
@@ -696,7 +684,7 @@ const routes = [
   },
   {
     path: '/harvest',
-    name: 'Harvest',
+    name: 'HarvestOld',
     component: () => import('@/views/crop/Harvest.vue'),
     meta: { title: '采收管理' }
   },
@@ -775,8 +763,8 @@ const routes = [
   {
     path: '/hr-approval',
     name: 'HrApproval',
-    component: () => import('@/views/labor/HrApproval.vue'),
-    meta: { title: 'HR审批' }
+    component: () => import('@/views/approval/HrApproval.vue'),
+    meta: { title: '人事审批' }
   },
   {
     path: '/messages',
