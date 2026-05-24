@@ -14,59 +14,59 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">待审批</p>
-            <p class="text-2xl font-bold text-gray-900">{{ approvalStore.stats.pending }}</p>
+            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-lg font-bold text-gray-900">{{ approvalStore.stats.pending }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">已通过</p>
-            <p class="text-2xl font-bold text-gray-900">{{ approvalStore.stats.approved }}</p>
+            <p class="text-xs text-gray-500">已通过</p>
+            <p class="text-lg font-bold text-gray-900">{{ approvalStore.stats.approved }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-red-600"><Warning /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-red-600"><Warning /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">已驳回</p>
-            <p class="text-2xl font-bold text-gray-900">{{ approvalStore.stats.rejected }}</p>
+            <p class="text-xs text-gray-500">已驳回</p>
+            <p class="text-lg font-bold text-gray-900">{{ approvalStore.stats.rejected }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-orange-600"><Lightning /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-orange-600"><Lightning /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">加急</p>
-            <p class="text-2xl font-bold text-gray-900">{{ approvalStore.stats.urgent }}</p>
+            <p class="text-xs text-gray-500">加急</p>
+            <p class="text-lg font-bold text-gray-900">{{ approvalStore.stats.urgent }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-purple-600"><Grid /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-purple-600"><Grid /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">全部</p>
-            <p class="text-2xl font-bold text-gray-900">{{ approvalStore.stats.total }}</p>
+            <p class="text-xs text-gray-500">全部</p>
+            <p class="text-lg font-bold text-gray-900">{{ approvalStore.stats.total }}</p>
           </div>
         </div>
       </div>
@@ -79,10 +79,9 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">审批类型</label>
           <el-select v-model="localFilters.type" placeholder="全部" clearable style="width: 100%">
             <el-option label="全部" value="" />
-            <el-option label="领料审批" value="material_request" />
-            <el-option label="采购审批" value="purchase_request" />
-            <el-option label="生产审批" value="production_plan" />
-            <el-option label="农事审批" value="task_dispatch" />
+            <el-option label="领料单" value="领料单" />
+            <el-option label="采购申请" value="采购申请" />
+            <el-option label="退料单" value="退料单" />
           </el-select>
         </div>
         <div class="flex-1 min-w-[150px]">
@@ -146,10 +145,10 @@
       >
         <el-table-column v-if="batchDeleteMode" type="selection" width="50" align="center" />
         <el-table-column prop="code" label="申请单号" min-width="140" align="center" />
-        <el-table-column prop="type" label="审批类型" min-width="120" align="center">
+        <el-table-column prop="typeName" label="审批类型" min-width="120" align="center">
           <template #default="{ row }">
             <el-tag :type="typeColorMap[row.type]" size="small" effect="light">
-              {{ typeLabelMap[row.type] || row.type }}
+              {{ row.typeName }}
             </el-tag>
           </template>
         </el-table-column>
@@ -160,11 +159,16 @@
             {{ formatDate(row.applyDate) }}
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="申请原因" min-width="150" align="center">
+        <el-table-column prop="title" label="标题" min-width="150" align="center">
           <template #default="{ row }">
             <span class="text-sm text-gray-500 truncate block max-w-[150px]" :title="row.title">
               {{ row.title || '-' }}
             </span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="amount" label="金额" min-width="100" align="center">
+          <template #default="{ row }">
+            <span class="text-sm text-gray-900">{{ row.amount ? `¥${row.amount}` : '-' }}</span>
           </template>
         </el-table-column>
         <el-table-column label="状态" min-width="100" align="center">
@@ -174,11 +178,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="120" align="center">
+        <el-table-column label="操作" min-width="150" align="center">
           <template #default="{ row }">
             <div class="flex items-center justify-center gap-1">
               <el-button type="success" size="small" @click="handleApprove(row)" :disabled="row.status !== 'pending'">通过</el-button>
               <el-button type="danger" size="small" @click="handleReject(row)" :disabled="row.status !== 'pending'">驳回</el-button>
+              <el-button type="primary" size="small" @click="showDetail(row)">查看</el-button>
             </div>
           </template>
         </el-table-column>
@@ -215,6 +220,11 @@
         </div>
       </div>
     </div>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="detailDialogVisible" title="审批详情" width="700px" destroy-on-close>
+      <ApprovalDetail v-if="currentApproval" :approval="currentApproval" />
+    </el-dialog>
   </div>
 </template>
 
@@ -234,6 +244,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useApprovalStore } from '@/stores'
 import { getApprovalTypeName } from '@/services/apiApprovalService'
+import ApprovalDetail from '@/components/approval/ApprovalDetail.vue'
 
 // 审批Store
 const approvalStore = useApprovalStore()
@@ -297,6 +308,16 @@ const pageSize = ref(10)
 const selectedRows = ref([])
 const batchDeleteMode = ref(false)
 
+// 详情弹窗
+const detailDialogVisible = ref(false)
+const currentApproval = ref(null)
+
+// 显示详情弹窗
+const showDetail = (row) => {
+  currentApproval.value = row
+  detailDialogVisible.value = true
+}
+
 // 格式化日期
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'
@@ -307,9 +328,9 @@ const formatDate = (dateStr) => {
 
 // 筛选后的记录（使用Store的filteredApprovals）
 const filteredRecords = computed(() => {
-  // 应用本地筛选条件
+  // 应用本地筛选条件，使用typeName匹配中文审批类型
   return approvalStore.approvals.filter(record => {
-    if (localFilters.type && record.type !== localFilters.type) return false
+    if (localFilters.type && record.typeName !== localFilters.type) return false
     if (localFilters.status && record.status !== localFilters.status) return false
     if (localFilters.keyword) {
       const text = localFilters.keyword.toLowerCase()
@@ -388,13 +409,14 @@ const handleApprove = async (row) => {
   }
 }
 
-// 审核驳回
+// 审核驳回 - 默认填写"审批拒绝"
 const handleReject = async (row) => {
   try {
     const { value } = await ElMessageBox.prompt('请输入驳回原因', '驳回确认', {
       confirmButtonText: '确认驳回',
       cancelButtonText: '取消',
       type: 'warning',
+      inputValue: '审批拒绝', // 默认值
     })
     if (value) {
       const success = await approvalStore.reject(row.id, value)

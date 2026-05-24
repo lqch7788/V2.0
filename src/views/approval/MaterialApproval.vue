@@ -3,7 +3,7 @@
     <!-- 页面头部 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <el-icon :size="24" class="text-white"><Box /></el-icon>
         </div>
         <div>
@@ -14,47 +14,47 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-blue-600"><Clipboard /></el-icon>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-blue-600"><Document /></el-icon>
           </div>
           <div>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
             <p class="text-xs text-gray-500">总申请数</p>
           </div>
         </div>
       </div>
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
           </div>
           <div>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
             <p class="text-xs text-gray-500">待审批</p>
           </div>
         </div>
       </div>
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.approved }}</p>
             <p class="text-xs text-gray-500">已通过</p>
           </div>
         </div>
       </div>
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-red-600"><CircleClose /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-red-600"><CircleClose /></el-icon>
           </div>
           <div>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.rejected }}</p>
             <p class="text-xs text-gray-500">已拒绝</p>
           </div>
         </div>
@@ -646,7 +646,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import {
   Box,
   DocumentCopy,
@@ -659,12 +659,19 @@ import {
   ShoppingCart,
   Goods,
   Crop,
+  Document,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useApprovalStore } from '@/stores/modules/approval'
+import { storeToRefs } from 'pinia'
+
+// 审批Store
+const approvalStore = useApprovalStore()
+const { approvals } = storeToRefs(approvalStore)
 
 // Tab配置
 const tabs = [
-  { key: 'material', label: '领料审批', icon: Clipboard },
+  { key: 'material', label: '领料审批', icon: Document },
   { key: 'return', label: '退料审批', icon: RefreshLeft },
   { key: 'purchase', label: '采购审批', icon: ShoppingCart },
 ]
@@ -716,104 +723,16 @@ const currentTabLabel = computed(() => {
   return tabs.find(t => t.key === activeTab.value)?.label || ''
 })
 
-// 模拟数据
-const mockData = ref([
-  {
-    id: '1',
-    code: 'LL202401001',
-    title: '温室A区领料申请',
-    description: '温室A区番茄种植所需肥料和农药',
-    applicantId: 'U001',
-    applicantName: '张三',
-    applicantDepartment: '生产部',
-    applyDate: '2024-03-15',
-    status: 'pending',
-    businessLink: {
-      warehouseLocation: '仓库A区',
-      batchCode: 'B2024001',
-      plantArea: '温室A区',
-    },
-    materials: [
-      { materialCode: 'SP0201', materialName: '有机肥', spec: '50kg/袋', unit: '袋', requestedQuantity: 50, unitPrice: 120, stockQuantity: 100 },
-      { materialCode: 'SP0301', materialName: '杀虫剂', spec: '500ml/瓶', unit: '瓶', requestedQuantity: 20, unitPrice: 45, stockQuantity: 50 },
-    ],
-    approvers: [{ userName: '李主任' }],
-    records: [],
-  },
-  {
-    id: '2',
-    code: 'LL202401002',
-    title: '温室B区领料申请',
-    description: '温室B区黄瓜种植所需肥料',
-    applicantId: 'U002',
-    applicantName: '李四',
-    applicantDepartment: '技术部',
-    applyDate: '2024-03-14',
-    status: 'approved',
-    businessLink: {
-      warehouseLocation: '仓库B区',
-      batchCode: 'B2024002',
-      plantArea: '温室B区',
-    },
-    materials: [
-      { materialCode: 'SP0202', materialName: '复合肥', spec: '40kg/袋', unit: '袋', requestedQuantity: 30, unitPrice: 150, stockQuantity: 80 },
-    ],
-    approvers: [{ userName: '王经理' }],
-    records: [{ approverName: '王经理', action: 'approve', comment: '同意', actionTime: '2024-03-14 15:30:00' }],
-  },
-  {
-    id: '3',
-    code: 'TL202401001',
-    title: '退料申请-生产退料',
-    description: '温室A区多余肥料退料',
-    applicantId: 'U001',
-    applicantName: '张三',
-    applicantDepartment: '生产部',
-    applyDate: '2024-03-13',
-    status: 'pending',
-    businessLink: {
-      warehouseLocation: '仓库A区',
-    },
-    materials: [
-      { materialCode: 'SP0201', materialName: '有机肥', spec: '50kg/袋', unit: '袋', returnQuantity: 10, unitPrice: 120 },
-    ],
-    approvers: [{ userName: '李主任' }],
-    records: [],
-  },
-  {
-    id: '4',
-    code: 'CG202401001',
-    title: '农业生产物资采购计划',
-    description: '春季种植所需种子和肥料采购',
-    applicantId: 'U003',
-    applicantName: '王五',
-    applicantDepartment: '后勤部',
-    applyDate: '2024-03-12',
-    status: 'pending',
-    businessLink: {
-      items: [{ materialName: '种子', supplier: '农业物资公司' }],
-      expectedDeliveryDate: '2024-03-20',
-    },
-    materials: [
-      { materialCode: 'SP0101', materialName: '番茄种子', spec: '100粒/袋', unit: '袋', requestedQuantity: 100, unitPrice: 30 },
-    ],
-    approvers: [{ userName: '赵总' }],
-    records: [],
-    priority: 'high',
-    amount: '15,000.00',
-  },
-])
-
 // 根据Tab类型筛选数据
 const getCurrentData = computed(() => {
   if (activeTab.value === 'material') {
-    return mockData.value
+    return approvals.value.filter(a => a.type === 'material_request')
   } else if (activeTab.value === 'return') {
-    return mockData.value.filter(a => a.code.startsWith('TL'))
+    return approvals.value.filter(a => a.type === 'return_material')
   } else if (activeTab.value === 'purchase') {
-    return mockData.value.filter(a => a.code.startsWith('CG'))
+    return approvals.value.filter(a => a.type === 'purchase_request')
   }
-  return mockData.value
+  return approvals.value
 })
 
 // 筛选数据
@@ -897,17 +816,10 @@ const handleConfirmReject = async () => {
     ElMessage.warning('请输入拒绝原因')
     return
   }
-  // 模拟拒绝操作
   const item = rejectModal.item
   if (item) {
-    const idx = mockData.value.findIndex(a => a.id === item.id)
-    if (idx > -1) {
-      mockData.value[idx].status = 'rejected'
-      mockData.value[idx].records = [
-        ...(mockData.value[idx].records || []),
-        { approverName: '当前用户', action: 'reject', comment: rejectModal.reason, actionTime: new Date().toLocaleString('zh-CN') }
-      ]
-    }
+    await approvalStore.reject(item.id, rejectModal.reason)
+    await approvalStore.fetchApprovals()
     ElMessage.success('已拒绝该申请')
   }
   rejectModal.show = false
@@ -922,15 +834,8 @@ const handleApprove = async (item) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-    // 模拟通过操作
-    const idx = mockData.value.findIndex(a => a.id === item.id)
-    if (idx > -1) {
-      mockData.value[idx].status = 'approved'
-      mockData.value[idx].records = [
-        ...(mockData.value[idx].records || []),
-        { approverName: '当前用户', action: 'approve', actionTime: new Date().toLocaleString('zh-CN') }
-      ]
-    }
+    await approvalStore.approve(item.id)
+    await approvalStore.fetchApprovals()
     ElMessage.success('已通过该申请')
     detailModal.show = false
   } catch {
@@ -1012,5 +917,10 @@ const getReturnType = (item) => {
 // 监听分页变化
 watch(currentPage, () => {
   expandedRows.value = []
+})
+
+// 初始化 - 从API加载数据
+onMounted(async () => {
+  await approvalStore.fetchApprovals()
 })
 </script>

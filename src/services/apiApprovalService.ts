@@ -389,16 +389,9 @@ class ApiApprovalService {
       }
 
       const url = params.toString() ? `${API_BASE}?${params.toString()}` : API_BASE;
-      const response = await enhancedApiClient.get<{ success: boolean; data: unknown[] }>(url);
+      const response = await enhancedApiClient.get<unknown[]>(url);
 
-      if (response && typeof response === 'object' && 'success' in response) {
-        const typedResponse = response as { success: boolean; data: unknown[] };
-        if (typedResponse.success && Array.isArray(typedResponse.data)) {
-          return typedResponse.data.map(item => normalizeApproval(item as Record<string, unknown>));
-        }
-      }
-
-      // 如果返回的是数组（直接数据）
+      // enhancedApiClient.get 返回的是 result.data（数组），直接处理
       if (Array.isArray(response)) {
         return response.map(item => normalizeApproval(item as Record<string, unknown>));
       }
@@ -415,16 +408,10 @@ class ApiApprovalService {
    */
   async getApprovalById(id: string): Promise<Approval | null> {
     try {
-      const response = await enhancedApiClient.get<{ success: boolean; data: unknown }>(`${API_BASE}/${id}`);
+      const response = await enhancedApiClient.get<unknown>(`${API_BASE}/${id}`);
 
-      if (response && typeof response === 'object' && 'success' in response) {
-        const typedResponse = response as { success: boolean; data: unknown };
-        if (typedResponse.success && typedResponse.data) {
-          return normalizeApproval(typedResponse.data as Record<string, unknown>);
-        }
-      }
-
-      if (response && typeof response === 'object' && !('success' in response)) {
+      // enhancedApiClient.get 返回的是 result.data（已经处理过的数据）
+      if (response && typeof response === 'object') {
         return normalizeApproval(response as Record<string, unknown>);
       }
 

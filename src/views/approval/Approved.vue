@@ -14,48 +14,48 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">待审批</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
+            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">已通过</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
+            <p class="text-xs text-gray-500">已通过</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.approved }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-red-600"><Warning /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-red-600"><Warning /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">已驳回</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
+            <p class="text-xs text-gray-500">已驳回</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.rejected }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-purple-600"><Grid /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-purple-600"><Grid /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">全部</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-xs text-gray-500">全部</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
           </div>
         </div>
       </div>
@@ -149,14 +149,14 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="applicant" label="申请人" min-width="100" align="center" />
-        <el-table-column prop="department" label="部门" min-width="100" align="center" />
-        <el-table-column prop="createTime" label="申请时间" min-width="120" align="center" />
-        <el-table-column prop="approveTime" label="审批时间" min-width="120" align="center" />
-        <el-table-column prop="reason" label="申请原因" min-width="150" align="center">
+        <el-table-column prop="applicantName" label="申请人" min-width="100" align="center" />
+        <el-table-column prop="applicantDepartment" label="部门" min-width="100" align="center" />
+        <el-table-column prop="applyDate" label="申请时间" min-width="120" align="center" />
+        <el-table-column prop="applyDate" label="审批时间" min-width="120" align="center" />
+        <el-table-column prop="title" label="申请原因" min-width="150" align="center">
           <template #default="{ row }">
-            <span class="text-sm text-gray-500 truncate block max-w-[150px]" :title="row.reason">
-              {{ row.reason || '-' }}
+            <span class="text-sm text-gray-500 truncate block max-w-[150px]" :title="row.title">
+              {{ row.title || '-' }}
             </span>
           </template>
         </el-table-column>
@@ -205,11 +205,38 @@
         </div>
       </div>
     </div>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="showDetailModal" title="审批详情" width="800px" top="5vh">
+      <div v-if="selectedRecord" class="space-y-4">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="申请单号">{{ selectedRecord.code }}</el-descriptions-item>
+          <el-descriptions-item label="审批类型">
+            <el-tag :type="typeColorMap[selectedRecord.type]" size="small" effect="light">
+              {{ typeLabelMap[selectedRecord.type] }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="申请人">{{ selectedRecord.applicantName }}</el-descriptions-item>
+          <el-descriptions-item label="部门">{{ selectedRecord.applicantDepartment }}</el-descriptions-item>
+          <el-descriptions-item label="申请时间">{{ selectedRecord.applyDate }}</el-descriptions-item>
+          <el-descriptions-item label="审批时间">{{ selectedRecord.applyDate }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="statusColorMap[selectedRecord.status]" size="small" effect="light">
+              {{ statusLabelMap[selectedRecord.status] }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="申请原因" :span="2">{{ selectedRecord.title }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <template #footer>
+        <el-button @click="showDetailModal = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import {
   CircleCheck,
   Clock,
@@ -221,6 +248,12 @@ import {
   ArrowRight
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useApprovalStore } from '@/stores/modules/approval'
+import { storeToRefs } from 'pinia'
+
+// 审批Store
+const approvalStore = useApprovalStore()
+const { approvals } = storeToRefs(approvalStore)
 
 // 审批类型标签映射
 const typeLabelMap = {
@@ -253,12 +286,12 @@ const statusColorMap = {
 }
 
 // 统计数据
-const stats = reactive({
-  pending: 3,
-  approved: 25,
-  rejected: 8,
-  total: 36
-})
+const stats = computed(() => ({
+  pending: approvals.value.filter(a => a.status === 'pending').length,
+  approved: approvals.value.filter(a => a.status === 'approved').length,
+  rejected: approvals.value.filter(a => a.status === 'rejected').length,
+  total: approvals.value.length
+}))
 
 // 筛选条件
 const filters = reactive({
@@ -276,30 +309,16 @@ const pageSize = ref(10)
 const selectedRows = ref([])
 const batchDeleteMode = ref(false)
 
-// 已审批数据
-const records = ref([
-  { id: '1', code: 'AP2024022801', type: 'material', applicant: '张伟民', department: '生产部', createTime: '2024-02-28 09:30', approveTime: '2024-02-28 14:20', reason: '番茄种植所需肥料', status: 'approved' },
-  { id: '2', code: 'AP2024022802', type: 'purchase', applicant: '李明轩', department: '采购部', createTime: '2024-02-28 10:15', approveTime: '2024-02-28 16:30', reason: '采购新型灌溉设备', status: 'approved' },
-  { id: '3', code: 'AP2024022803', type: 'production', applicant: '王建国', department: '生产部', createTime: '2024-02-28 11:00', approveTime: '2024-02-28 15:45', reason: '调整本周生产计划', status: 'approved' },
-  { id: '4', code: 'AP2024022804', type: 'farm', applicant: '赵俊杰', department: '农业部', createTime: '2024-02-28 14:20', approveTime: '2024-02-28 17:00', reason: '巡查发现病虫害需紧急处理', status: 'rejected' },
-  { id: '5', code: 'AP2024022805', type: 'budget', applicant: '钱文涛', department: '财务部', createTime: '2024-02-28 09:00', approveTime: '2024-02-28 11:30', reason: '季度预算调整申请', status: 'approved' },
-  { id: '6', code: 'AP2024022806', type: 'material', applicant: '孙丽华', department: '生产部', createTime: '2024-02-28 10:30', approveTime: '2024-02-28 13:15', reason: '黄瓜种植所需农具', status: 'approved' },
-  { id: '7', code: 'AP2024022807', type: 'purchase', applicant: '周建设', department: '采购部', createTime: '2024-02-28 15:45', approveTime: '2024-02-28 18:00', reason: '采购新型植保无人机', status: 'rejected' },
-  { id: '8', code: 'AP2024022808', type: 'production', applicant: '吴光明', department: '生产部', createTime: '2024-02-28 08:30', approveTime: '2024-02-28 10:00', reason: '新增一条生产线', status: 'approved' },
-  { id: '9', code: 'AP2024022701', type: 'material', applicant: '郑小红', department: '生产部', createTime: '2024-02-27 09:00', approveTime: '2024-02-27 14:00', reason: '茄子种植所需农药', status: 'approved' },
-  { id: '10', code: 'AP2024022702', type: 'farm', applicant: '冯大山', department: '农业部', createTime: '2024-02-27 10:30', approveTime: '2024-02-27 16:00', reason: '辣椒种植基地需要施肥', status: 'approved' },
-])
-
 // 筛选后的记录
 const filteredRecords = computed(() => {
-  return records.value.filter(record => {
+  return approvals.value.filter(record => {
     if (filters.type && record.type !== filters.type) return false
     if (filters.status && record.status !== filters.status) return false
-    if (filters.date && !record.approveTime.startsWith(filters.date)) return false
+    if (filters.date && !record.applyDate.startsWith(filters.date)) return false
     if (filters.searchText) {
       const text = filters.searchText.toLowerCase()
       if (!record.code.toLowerCase().includes(text) &&
-          !record.applicant.toLowerCase().includes(text)) {
+          !record.applicantName.toLowerCase().includes(text)) {
         return false
       }
     }
@@ -356,8 +375,12 @@ const handleSelectionChange = (selection) => {
 }
 
 // 查看详情
+const selectedRecord = ref(null)
+const showDetailModal = ref(false)
+
 const handleView = (row) => {
-  ElMessage.info('查看审批详情：' + row.code)
+  selectedRecord.value = row
+  showDetailModal.value = true
 }
 
 // 分页操作
@@ -376,4 +399,9 @@ const handleNextPage = () => {
 const handlePageSizeChange = () => {
   currentPage.value = 1
 }
+
+// 初始化 - 从API加载数据
+onMounted(async () => {
+  await approvalStore.fetchApprovals()
+})
 </script>

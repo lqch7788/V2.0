@@ -1,498 +1,509 @@
 <template>
   <div class="space-y-6">
-    <!-- 页面标题 -->
+    <!-- 页面头部 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-          <el-icon :size="24" class="text-white"><Edit /></el-icon>
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+          <el-icon :size="24" class="text-white"><Crop /></el-icon>
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">农事审批</h1>
-          <p class="text-gray-500">任务派发、临时任务、手动录入的操作记录统一管理</p>
+          <p class="text-gray-500">任务派发、任务变更、巡查问题、问题整改审批</p>
         </div>
       </div>
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-blue-600"><Document /></el-icon>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-blue-600"><Document /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">总记录</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-xs text-gray-500">全部</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-green-600"><CircleCheck /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">任务来源</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.task }}</p>
+            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">临时任务</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.tempTask }}</p>
+            <p class="text-xs text-gray-500">已通过</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.approved }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-purple-600"><EditPen /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-red-600"><CircleClose /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">手动录入</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.manual }}</p>
+            <p class="text-xs text-gray-500">已拒绝</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.rejected }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 筛选工具栏 -->
+    <!-- Tab切换 -->
+    <div class="bg-white rounded-xl p-1 inline-flex shadow-sm">
+      <el-button
+        v-for="tab in tabs"
+        :key="tab.key"
+        :type="activeTab === tab.key ? 'primary' : ''"
+        :class="['px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors', activeTab === tab.key ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100']"
+        @click="handleTabChange(tab.key)"
+      >
+        <el-icon :size="16"><component :is="tab.icon" /></el-icon>
+        {{ tab.label }}
+      </el-button>
+    </div>
+
+    <!-- 搜索筛选 -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="flex flex-wrap gap-4 items-end">
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">来源类型</label>
-          <el-select v-model="filters.sourceType" placeholder="全部" clearable style="width: 100%">
-            <el-option label="全部" value="" />
-            <el-option label="任务" value="task" />
-            <el-option label="临时任务" value="tempTask" />
-            <el-option label="手动录入" value="manual" />
-          </el-select>
+      <div class="flex gap-4 items-end">
+        <div class="flex-1">
+          <el-input
+            v-model="searchTerm"
+            placeholder="搜索审批单号、标题、申请人..."
+            clearable
+            @keyup.enter="handleSearch"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
         </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">操作类型</label>
-          <el-select v-model="filters.operationType" placeholder="全部" clearable style="width: 100%">
-            <el-option label="全部" value="" />
-            <el-option label="播种" value="planting" />
-            <el-option label="灌溉" value="irrigation" />
-            <el-option label="施肥" value="fertilization" />
-            <el-option label="病虫害防治" value="pest_control" />
-            <el-option label="修剪" value="pruning" />
-            <el-option label="采收" value="harvest" />
-            <el-option label="除草" value="weeding" />
-          </el-select>
-        </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-          <el-select v-model="filters.status" placeholder="全部" clearable style="width: 100%">
-            <el-option label="全部" value="" />
-            <el-option label="待执行" value="pending" />
-            <el-option label="进行中" value="in_progress" />
-            <el-option label="已完成" value="completed" />
-            <el-option label="已取消" value="cancelled" />
-          </el-select>
-        </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">搜索关键词</label>
-          <el-input v-model="filters.searchText" placeholder="操作单号/作物/区域" clearable />
-        </div>
-        <div class="flex gap-2">
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button @click="handleReset">
-            <el-icon><Refresh /></el-icon>
-            重置
-          </el-button>
-          <el-button type="success" @click="handleAdd" v-if="canCreate">
-            <el-icon><Plus /></el-icon>
-            新增
-          </el-button>
-        </div>
+        <el-select v-model="statusFilter" placeholder="全部状态" style="width: 140px" @change="handleSearch">
+          <el-option label="全部状态" value="全部" />
+          <el-option label="待审批" value="待审批" />
+          <el-option label="已通过" value="已通过" />
+          <el-option label="已拒绝" value="已拒绝" />
+        </el-select>
+        <el-button type="primary" @click="handleSearch">
+          <el-icon><Search /></el-icon>
+          搜索
+        </el-button>
       </div>
     </div>
 
-    <!-- 数据表格 -->
+    <!-- 数据列表 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <!-- 表头工具栏 -->
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-900">操作记录列表</h3>
-        <div class="flex gap-2">
+      <!-- 表格标题栏 -->
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">{{ currentTabLabel }}</h3>
+        <!-- 批量操作按钮 -->
+        <div class="flex items-center gap-2">
           <el-button
-            v-if="!batchDeleteMode && canDelete"
-            type="danger"
-            plain
-            size="small"
-            @click="batchDeleteMode = true"
+            :disabled="selectedIds.size === 0"
+            :class="[
+              selectedIds.size === 0
+                ? 'bg-emerald-500 text-white cursor-not-allowed opacity-60'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+            ]"
+            @click="handleBatchApprove"
           >
-            批量删除
+            <el-icon class="mr-1"><CircleCheck /></el-icon>
+            批量通过
           </el-button>
-          <template v-if="batchDeleteMode">
-            <el-button type="danger" size="small" @click="handleBatchDelete" :disabled="selectedRows.length === 0">
-              确认删除 ({{ selectedRows.length }})
-            </el-button>
-            <el-button size="small" @click="cancelBatchDelete">取消</el-button>
-          </template>
           <el-button
-            v-if="canExport"
-            type="default"
-            plain
-            size="small"
+            :disabled="selectedIds.size === 0"
+            :class="[
+              selectedIds.size === 0
+                ? 'bg-red-500 text-white cursor-not-allowed opacity-60'
+                : 'bg-red-600 hover:bg-red-700 text-white shadow-sm'
+            ]"
+            @click="handleBatchReject"
+          >
+            <el-icon class="mr-1"><CircleClose /></el-icon>
+            批量拒绝
+          </el-button>
+          <el-button
+            :disabled="selectedIds.size === 0"
+            :class="[
+              selectedIds.size === 0
+                ? 'bg-blue-500 text-white cursor-not-allowed opacity-60'
+                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+            ]"
             @click="handleExport"
           >
-            <el-icon><Download /></el-icon>
-            导出
+            <el-icon class="mr-1"><Download /></el-icon>
+            批量导出
           </el-button>
         </div>
       </div>
 
       <!-- 表格 -->
-      <el-table
-        :data="paginatedRecords"
-        style="width: 100%"
-        stripe
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column v-if="batchDeleteMode" type="selection" width="50" align="center" />
-        <el-table-column prop="recordCode" label="操作单号" min-width="140" align="center" />
-        <el-table-column prop="sourceType" label="来源" min-width="100" align="center">
+      <el-table :data="paginatedData" style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #6366f1)', color: 'white', fontWeight: '600' }">
+        <el-table-column width="50" align="center">
           <template #default="{ row }">
-            <span :class="sourceColorMap[row.sourceType]">{{ sourceLabelMap[row.sourceType] }}</span>
+            <el-button
+              v-if="row.status === 'pending'"
+              text
+              @click="handleToggleSelect(row.id)"
+            >
+              <el-icon :size="16" :class="selectedIds.has(row.id) ? 'text-emerald-600' : 'text-gray-400'">
+                <component :is="selectedIds.has(row.id) ? 'Check' : 'CirclePlus'" />
+              </el-icon>
+            </el-button>
+            <span v-else class="w-4 h-4 block"></span>
           </template>
         </el-table-column>
-        <el-table-column prop="sourceCode" label="来源编号" min-width="120" align="center">
+        <el-table-column prop="code" label="审批单号" min-width="120" />
+        <el-table-column prop="title" label="标题" min-width="150" />
+        <el-table-column prop="applicantName" label="申请人" min-width="100" />
+        <el-table-column prop="applicantDepartment" label="部门" min-width="100" />
+        <el-table-column prop="applyDate" label="申请时间" min-width="120" />
+        <el-table-column label="状态" min-width="100">
           <template #default="{ row }">
-            <span class="text-blue-600">{{ row.sourceCode || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="operationType" label="操作类型" min-width="120" align="center">
-          <template #default="{ row }">
-            <el-tag :type="typeColorMap[row.operationType]" size="small" effect="light">
-              {{ typeLabelMap[row.operationType] }}
+            <el-tag :type="getStatusBadge(row.status)" size="small">
+              {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="作物/区域" min-width="140" align="center">
+        <el-table-column label="操作" min-width="120">
           <template #default="{ row }">
-            <div class="text-sm">
-              <div class="font-medium text-gray-900">{{ row.cropName }}</div>
-              <div class="text-gray-500 text-xs">{{ row.greenhouseName }}</div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="operatorName" label="操作人员" min-width="100" align="center" />
-        <el-table-column prop="operationDate" label="操作日期" min-width="120" align="center" />
-        <el-table-column label="进度" min-width="100" align="center">
-          <template #default="{ row }">
-            <div v-if="row.progress !== undefined" class="flex items-center justify-center gap-2">
-              <el-progress :percentage="row.progress" :color="row.progress === 100 ? '#67c23a' : '#409eff'" style="width: 60px" />
-            </div>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" min-width="100" align="center">
-          <template #default="{ row }">
-            <el-tag :type="statusTypeMap[row.status]" size="small" effect="light">
-              {{ statusLabelMap[row.status] }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="备注" min-width="150" align="center">
-          <template #default="{ row }">
-            <span class="text-sm text-gray-500 truncate block max-w-[150px]" :title="row.remarks">
-              {{ row.remarks || '-' }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" min-width="120" align="center">
-          <template #default="{ row }">
-            <div v-if="row.status === 'waiting_acceptance'" class="flex items-center justify-center gap-1">
-              <el-button type="success" size="small" @click="handleAccept(row)">通过</el-button>
-              <el-button type="danger" size="small" @click="handleReject(row)">驳回</el-button>
+            <div class="flex gap-2">
+              <el-button type="primary" size="small" @click="handleView(row)">
+                <el-icon><View /></el-icon>
+              </el-button>
+              <el-button
+                v-if="row.status === 'pending'"
+                type="success"
+                size="small"
+                @click="handleApprove(row)"
+              >
+                通过
+              </el-button>
+              <el-button
+                v-if="row.status === 'pending'"
+                type="danger"
+                size="small"
+                @click="handleReject(row)"
+              >
+                拒绝
+              </el-button>
             </div>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页 -->
-      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">每页</span>
-          <el-select v-model="pageSize" @change="handlePageSizeChange" style="width: 80px">
-            <el-option :value="10" label="10" />
-            <el-option :value="20" label="20" />
-            <el-option :value="50" label="50" />
-          </el-select>
-          <span class="text-sm text-gray-500">条</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">共 {{ filteredRecords.length }} 条</span>
-          <el-button
-            :icon="ArrowLeft"
-            circle
-            size="small"
-            :disabled="currentPage === 1"
-            @click="handlePrevPage"
-          />
-          <span class="text-sm">{{ currentPage }} / {{ totalPages }}</span>
-          <el-button
-            :icon="ArrowRight"
-            circle
-            size="small"
-            :disabled="currentPage >= totalPages"
-            @click="handleNextPage"
-          />
-        </div>
+      <div v-if="totalPages > 1" class="px-4 py-3 border-t border-gray-100">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="filteredData.length"
+          layout="prev, pager, next"
+          background
+        />
       </div>
+
+      <!-- 详情弹窗 -->
+      <el-dialog v-model="detailVisible" title="审批详情" width="800px" destroy-on-close>
+        <ApprovalDetail v-if="currentApproval" :approval="currentApproval" />
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import {
-  Edit,
-  Document,
-  CircleCheck,
-  Clock,
-  EditPen,
+  Crop,
   Search,
-  Refresh,
-  Plus,
+  Clock,
+  CircleCheck,
+  CircleClose,
+  Document,
+  Files,
+  Check,
+  CirclePlus,
   Download,
-  ArrowLeft,
-  ArrowRight
+  View,
+  Warning
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import ApprovalDetail from '@/components/approval/ApprovalDetail.vue'
+import { useApprovalStore } from '@/stores/modules/approval'
+import { storeToRefs } from 'pinia'
 
-// 农事记录数据类型
+// 审批Store
+const approvalStore = useApprovalStore()
+const { approvals } = storeToRefs(approvalStore)
 
-// 来源标签映射
-const sourceLabelMap = {
-  'task': '任务',
-  'tempTask': '临时任务',
-  'manual': '手动录入',
-  'inspection': '巡查'
+// 审批类型
+const ApprovalType = {
+  TASK_DISPATCH: 'task_dispatch',
+  TASK_CHANGE: 'task_change',
+  INSPECTION_ISSUE: 'inspection_issue',
+  ISSUE_RESOLVE: 'issue_resolve'
 }
 
-// 来源颜色映射
-const sourceColorMap = {
-  'task': 'text-green-600 font-medium',
-  'tempTask': 'text-amber-600 font-medium',
-  'manual': 'text-blue-600 font-medium',
-  'inspection': 'text-purple-600 font-medium'
+// 审批状态
+const ApprovalStatus = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected'
 }
 
-// 操作类型标签映射
-const typeLabelMap = {
-  'planting': '播种',
-  'irrigation': '灌溉',
-  'fertilization': '施肥',
-  'pest_control': '病虫害防治',
-  'pruning': '修剪',
-  'harvest': '采收',
-  'weeding': '除草',
-  'other': '其他'
-}
+// Tab配置
+const tabs = [
+  { key: 'task_dispatch', label: '任务派发', icon: Files, types: [ApprovalType.TASK_DISPATCH] },
+  { key: 'task_change', label: '任务变更', icon: Warning, types: [ApprovalType.TASK_CHANGE] },
+  { key: 'inspection', label: '巡查问题', icon: Check, types: [ApprovalType.INSPECTION_ISSUE] },
+  { key: 'resolve', label: '问题整改', icon: CircleCheck, types: [ApprovalType.ISSUE_RESOLVE] }
+]
 
-// 操作类型颜色映射
-const typeColorMap = {
-  'planting': 'success',
-  'irrigation': 'primary',
-  'fertilization': 'warning',
-  'pest_control': 'danger',
-  'pruning': 'info',
-  'harvest': 'warning',
-  'weeding': 'success',
-  'other': 'info'
-}
+// 当前Tab
+const activeTab = ref('task_dispatch')
 
-// 状态标签映射
-const statusLabelMap = {
-  'pending': '待执行',
-  'in_progress': '进行中',
-  'completed': '已完成',
-  'waiting_acceptance': '待验收',
-  'rejected': '已驳回',
-  'cancelled': '已取消'
-}
-
-// 状态颜色映射
-const statusTypeMap = {
-  'completed': 'success',
-  'in_progress': 'primary',
-  'pending': 'warning',
-  'waiting_acceptance': 'warning',
-  'rejected': 'danger',
-  'cancelled': 'info'
-}
-
-// 统计数据
-const stats = reactive({
-  total: 12,
-  task: 5,
-  tempTask: 4,
-  manual: 3
-})
-
-// 权限
-const canCreate = true
-const canEdit = true
-const canDelete = true
-const canExport = true
-
-// 筛选条件
-const filters = reactive({
-  sourceType: '',
-  operationType: '',
-  status: '',
-  greenhouseId: '',
-  operatorId: '',
-  dateFrom: '',
-  dateTo: '',
-  searchText: ''
-})
+// 搜索和筛选
+const searchTerm = ref('')
+const statusFilter = ref('全部')
 
 // 分页
 const currentPage = ref(1)
 const pageSize = ref(10)
 
 // 批量选择
-const selectedRows = ref([])
-const batchDeleteMode = ref(false)
+const selectedIds = ref(new Set())
 
-// 农事记录数据
-const records = ref([
-  { id: '1', recordCode: 'AR2024030101', sourceType: 'task', sourceCode: 'T2024030101', operationType: 'planting', cropName: '番茄', greenhouseName: '1号棚', operatorName: '张伟民', operationDate: '2024-03-01', progress: 100, status: 'completed', remarks: '已完成播种' },
-  { id: '2', recordCode: 'AR2024030102', sourceType: 'tempTask', sourceCode: 'TT2024030101', operationType: 'irrigation', cropName: '黄瓜', greenhouseName: '2号棚', operatorName: '李明轩', operationDate: '2024-03-01', progress: 60, status: 'in_progress', remarks: '灌溉进行中' },
-  { id: '3', recordCode: 'AR2024030103', sourceType: 'manual', operationType: 'fertilization', cropName: '茄子', greenhouseName: '3号棚', operatorName: '王建国', operationDate: '2024-03-02', progress: 80, status: 'waiting_acceptance', remarks: '等待验收' },
-  { id: '4', recordCode: 'AR2024030104', sourceType: 'task', sourceCode: 'T2024030102', operationType: 'pest_control', cropName: '辣椒', greenhouseName: '4号棚', operatorName: '赵俊杰', operationDate: '2024-03-02', progress: 40, status: 'in_progress', remarks: '病虫害防治中' },
-])
+// 详情弹窗
+const detailVisible = ref(false)
+const currentApproval = ref(null)
 
-// 筛选后的记录
-const filteredRecords = computed(() => {
-  return records.value.filter(record => {
-    if (filters.sourceType && record.sourceType !== filters.sourceType) return false
-    if (filters.operationType && record.operationType !== filters.operationType) return false
-    if (filters.status && record.status !== filters.status) return false
-    if (filters.searchText) {
-      const text = filters.searchText.toLowerCase()
-      if (!record.recordCode.toLowerCase().includes(text) &&
-          !record.cropName.toLowerCase().includes(text) &&
-          !record.greenhouseName.toLowerCase().includes(text) &&
-          !record.operatorName.toLowerCase().includes(text)) {
-        return false
-      }
-    }
-    return true
+// 当前Tab标签
+const currentTabLabel = computed(() => {
+  const tab = tabs.find(t => t.key === activeTab.value)
+  return tab ? tab.label : ''
+})
+
+// 统计数据
+const stats = reactive({
+  total: 0,
+  pending: 0,
+  approved: 0,
+  rejected: 0
+})
+
+// 根据Tab获取数据
+const getCurrentData = computed(() => {
+  const currentTabConfig = tabs.find(t => t.key === activeTab.value)
+  if (!currentTabConfig) return []
+  return approvals.value.filter(a => currentTabConfig.types.includes(a.type))
+})
+
+// 筛选数据
+const filteredData = computed(() => {
+  return getCurrentData.value.filter(item => {
+    const matchSearch =
+      item.title?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      item.applicantName?.includes(searchTerm.value) ||
+      item.code?.includes(searchTerm.value)
+    const matchStatus =
+      statusFilter.value === '全部' ||
+      (statusFilter.value === '待审批' && item.status === ApprovalStatus.PENDING) ||
+      (statusFilter.value === '已通过' && item.status === ApprovalStatus.APPROVED) ||
+      (statusFilter.value === '已拒绝' && item.status === ApprovalStatus.REJECTED)
+    return matchSearch && matchStatus
   })
 })
 
+// 更新统计
+const updateStats = () => {
+  stats.total = getCurrentData.value.length
+  stats.pending = getCurrentData.value.filter(d => d.status === ApprovalStatus.PENDING).length
+  stats.approved = getCurrentData.value.filter(d => d.status === ApprovalStatus.APPROVED).length
+  stats.rejected = getCurrentData.value.filter(d => d.status === ApprovalStatus.REJECTED).length
+}
+
 // 总页数
-const totalPages = computed(() => Math.ceil(filteredRecords.value.length / pageSize.value) || 1)
+const totalPages = computed(() => Math.ceil(filteredData.value.length / pageSize.value) || 1)
 
 // 分页数据
-const paginatedRecords = computed(() => {
+const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return filteredRecords.value.slice(start, start + pageSize.value)
+  return filteredData.value.slice(start, start + pageSize.value)
 })
+
+// Tab切换
+const handleTabChange = (key) => {
+  activeTab.value = key
+  currentPage.value = 1
+  selectedIds.value = new Set()
+  updateStats()
+}
 
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1
+  updateStats()
 }
 
-// 重置
-const handleReset = () => {
-  Object.assign(filters, {
-    sourceType: '',
-    operationType: '',
-    status: '',
-    greenhouseId: '',
-    operatorId: '',
-    dateFrom: '',
-    dateTo: '',
-    searchText: ''
-  })
-  currentPage.value = 1
+// 状态显示
+const getStatusBadge = (status) => {
+  switch (status) {
+    case ApprovalStatus.APPROVED:
+      return 'success'
+    case ApprovalStatus.REJECTED:
+      return 'danger'
+    case ApprovalStatus.PENDING:
+      return 'warning'
+    default:
+      return 'info'
+  }
 }
 
-// 新增
-const handleAdd = () => {
-  ElMessage.info('新增功能开发中')
+const getStatusText = (status) => {
+  switch (status) {
+    case ApprovalStatus.APPROVED:
+      return '已通过'
+    case ApprovalStatus.REJECTED:
+      return '已拒绝'
+    case ApprovalStatus.PENDING:
+      return '待审批'
+    default:
+      return status
+  }
+}
+
+// 全选
+const handleSelectAll = (selectAll) => {
+  if (selectAll) {
+    const pendingIds = paginatedData.value
+      .filter(d => d.status === ApprovalStatus.PENDING)
+      .map(d => d.id)
+    selectedIds.value = new Set(pendingIds)
+  } else {
+    selectedIds.value = new Set()
+  }
+}
+
+// 切换选择
+const handleToggleSelect = (id) => {
+  const newSelected = new Set(selectedIds.value)
+  if (newSelected.has(id)) {
+    newSelected.delete(id)
+  } else {
+    newSelected.add(id)
+  }
+  selectedIds.value = newSelected
+}
+
+// 批量通过
+const handleBatchApprove = async () => {
+  if (selectedIds.value.size === 0) return
+  try {
+    await ElMessageBox.confirm(`确定要批量通过 ${selectedIds.value.size} 项审批吗？`, '批量审核确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'success'
+    })
+    const ids = Array.from(selectedIds.value)
+    await approvalStore.batchApprove(ids)
+    await approvalStore.fetchApprovals()
+    selectedIds.value = new Set()
+    updateStats()
+    ElMessage.success('批量审批通过成功')
+  } catch {}
+}
+
+// 批量拒绝
+const handleBatchReject = async () => {
+  if (selectedIds.value.size === 0) return
+  try {
+    await ElMessageBox.confirm(`确定要批量拒绝 ${selectedIds.value.size} 项审批吗？`, '批量审核确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    const ids = Array.from(selectedIds.value)
+    await approvalStore.batchReject(ids, '批量拒绝')
+    await approvalStore.fetchApprovals()
+    selectedIds.value = new Set()
+    updateStats()
+    ElMessage.success('批量审批拒绝成功')
+  } catch {}
 }
 
 // 导出
 const handleExport = () => {
-  ElMessage.info('导出功能开发中')
+  if (selectedIds.value.size === 0) return
+  const selectedData = paginatedData.value.filter(d => selectedIds.value.has(d.id))
+  const exportData = selectedData.map(d => ({
+    单号: d.code,
+    标题: d.title,
+    申请人: d.applicantName,
+    部门: d.applicantDepartment,
+    申请时间: d.applyDate,
+    状态: getStatusText(d.status)
+  }))
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `农事审批_${new Date().toISOString().slice(0, 10)}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+  ElMessage.success('导出成功')
 }
 
-// 批量删除
-const handleBatchDelete = () => {
-  ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '删除确认', {
-    confirmButtonText: '确认删除',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    ElMessage.success('删除成功')
-    batchDeleteMode.value = false
-    selectedRows.value = []
-  }).catch(() => {})
+// 查看详情
+const handleView = (row) => {
+  currentApproval.value = row
+  detailVisible.value = true
 }
 
-const cancelBatchDelete = () => {
-  batchDeleteMode.value = false
-  selectedRows.value = []
+// 审批通过
+const handleApprove = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确定要通过该审批申请吗？`, '审核确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'success'
+    })
+    await approvalStore.approve(row.id)
+    await approvalStore.fetchApprovals()
+    updateStats()
+    ElMessage.success('审核已通过')
+  } catch {}
 }
 
-// 表格选择
-const handleSelectionChange = (selection) => {
-  selectedRows.value = selection
+// 审批拒绝
+const handleReject = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确定要拒绝该审批申请吗？`, '审核确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await approvalStore.reject(row.id, '审批拒绝')
+    await approvalStore.fetchApprovals()
+    updateStats()
+    ElMessage.success('已拒绝')
+  } catch {}
 }
 
-// 审核通过
-const handleAccept = (row) => {
-  ElMessageBox.confirm(`确定要通过该操作记录吗？`, '审核确认', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'success'
-  }).then(() => {
-    ElMessage.success('审核通过')
-  }).catch(() => {})
-}
-
-// 审核驳回
-const handleReject = (row) => {
-  ElMessageBox.prompt('请输入驳回原因', '驳回确认', {
-    confirmButtonText: '确认驳回',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(({ value }) => {
-    if (value) {
-      ElMessage.success('已驳回')
-    }
-  }).catch(() => {})
-}
-
-// 分页操作
-const handlePrevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
-
-const handleNextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-const handlePageSizeChange = () => {
-  currentPage.value = 1
-}
+// 初始化 - 从API加载数据
+onMounted(async () => {
+  await approvalStore.fetchApprovals()
+  updateStats()
+})
 </script>
