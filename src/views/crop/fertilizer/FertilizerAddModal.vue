@@ -41,6 +41,16 @@
                     </el-select>
                   </div>
                 </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-1">关联生产计划</label>
+                    <el-input v-model="form.productionPlanCode" placeholder="可选，输入生产计划编号" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-1">关联种植记录</label>
+                    <el-input v-model="form.plantingCode" placeholder="可选，输入种植记录编号" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -174,12 +184,16 @@
 import { ref, reactive, watch, computed } from 'vue'
 import { Plus, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useFertilizerStore } from '@/stores/modules/fertilizer'
 
 const props = defineProps({
   isOpen: Boolean
 })
 
 const emit = defineEmits(['close', 'saved'])
+
+// Store
+const fertilizerStore = useFertilizerStore()
 
 // 提交状态
 const submitting = ref(false)
@@ -199,7 +213,10 @@ const defaultForm = {
   fertilizeTime: '',
   operatorName: '',
   dataSource: 'manual',
-  description: ''
+  description: '',
+  productionPlanCode: '',
+  productionPlanId: '',
+  plantingCode: ''
 }
 
 // 表单数据
@@ -216,9 +233,11 @@ watch([() => form.quantity, () => form.unitPrice], () => {
 })
 
 // 重置表单
-const resetForm = () => {
+const resetForm = async () => {
   Object.assign(form, defaultForm)
-  form.fertilizerCode = `SF${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Date.now() % 1000).padStart(3, '0')}`
+  // 从后端获取施肥编号
+  const code = await fertilizerStore.generateCode()
+  form.fertilizerCode = code || `SF${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Date.now() % 1000).padStart(3, '0')}`
 }
 
 // 监听打开弹窗，重置表单
@@ -252,8 +271,25 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    emit('saved', { ...form })
+    // 调用store创建记录
+    await fertilizerStore.createItem({
+      fertilizerCode: form.fertilizerCode,
+      fertilizerName: form.fertilizerName,
+      fertilizerType: form.fertilizerType,
+      cropName: form.cropName,
+      greenhouseName: form.greenhouseName,
+      dilutionRatio: form.dilutionRatio,
+      quantity: form.quantity,
+      unit: form.unit,
+      unitPrice: form.unitPrice,
+      totalCost: form.totalCost,
+      fertilizeTime: form.fertilizeTime,
+      operatorName: form.operatorName,
+      dataSource: form.dataSource,
+      description: form.description,
+    })
     ElMessage.success('保存成功')
+    emit('saved')
     handleClose()
   } catch (error) {
     console.error('保存失败:', error)

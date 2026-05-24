@@ -268,7 +268,7 @@
                 <td class="px-4 py-3">
                   <el-button link @click="toggleExpand(record.id)">
                     <el-icon class="text-gray-500">
-                      <DArrowRight v-if="expandedRow !== record.id" />
+                      <DArrowRight v-if="!expandedRows.has(record.id)" />
                       <DArrowLeft v-else />
                     </el-icon>
                   </el-button>
@@ -326,8 +326,8 @@
                   </span>
                 </td>
               </tr>
-              <!-- 展开行：产品明细 -->
-              <tr v-if="expandedRow === record.id" class="bg-gray-50">
+              <!-- 展开行：产品明细（支持多行展开）-->
+              <tr v-if="expandedRows.has(record.id)" class="bg-gray-50">
                 <td :colspan="(exportMode || batchEditMode || batchDeleteMode) ? 13 : 12" class="px-4 py-3">
                   <div class="text-sm">
                     <p class="font-medium text-gray-700 mb-2">产品明细：</p>
@@ -476,6 +476,7 @@ import {
   DArrowLeft, DArrowRight, Box, OfficeBuilding,
   Goods
 } from '@element-plus/icons-vue'
+import { getWarehouses } from '@/services/apiBasicDataService'
 
 // 引入弹窗组件
 import AddModal from '@/components/farm/harvest/modals/AddModal.vue'
@@ -533,11 +534,26 @@ const cropBatches = computed(() => {
     })
 })
 
-// 仓库选项（本地定义）
-const warehouseOptions = ref([
-  { value: 'W001', label: '成品仓库' },
-  { value: 'W002', label: '原料仓库' },
-])
+// 仓库选项（从API动态加载）
+const warehouseOptions = ref([])
+
+/**
+ * 加载仓库选项
+ * V1.1兼容：从useWarehouseStore获取仓库列表
+ */
+async function loadWarehouseOptions() {
+  try {
+    const warehouses = await getWarehouses()
+    // 过滤状态为active的仓库，并转换为选项格式
+    warehouseOptions.value = warehouses
+      .filter(w => w.status === 'active')
+      .map(w => ({ value: w.id, label: w.name }))
+  } catch (error) {
+    console.error('加载仓库列表失败:', error)
+    // 降级：使用空数组
+    warehouseOptions.value = []
+  }
+}
 
 // ========== 筛选状态 ==========
 const searchFilters = ref({
@@ -581,8 +597,8 @@ const exportFormat = ref('excel')
 // ========== 详情记录 ==========
 const selectedDetailRecord = ref(null)
 
-// ========== 展开行状态 ==========
-const expandedRow = ref(null)
+// ========== 展开行状态（支持多行展开）==========
+const expandedRows = ref(new Set())
 
 // ========== 统计卡片计算 ==========
 const stats = computed(() => {
@@ -763,10 +779,16 @@ function getGradeBadgeClass(grade) {
 }
 
 /**
- * 切换展开行
+ * 切换展开行（支持多行展开）
  */
 function toggleExpand(id) {
-  expandedRow.value = expandedRow.value === id ? null : id
+  const newExpanded = new Set(expandedRows.value)
+  if (newExpanded.has(id)) {
+    newExpanded.delete(id)
+  } else {
+    newExpanded.add(id)
+  }
+  expandedRows.value = newExpanded
 }
 
 // ========== 事件处理函数 ==========
@@ -1042,6 +1064,7 @@ async function handleDoExport() {
     let extension = ''
 
     if (exportFormat.value === 'csv') {
+      // CSV格式 - V1.1保持一致，使用BOM头确保Excel正确识别中文
       content = '﻿' + headers.join(',') + '\n' + exportData.map(row =>
         headers.map(h => `"${row[h] || ''}"`).join(',')
       ).join('\n')
@@ -1096,6 +1119,8 @@ onMounted(async () => {
   if (productionPlanStore.plans.length === 0) {
     productionPlanStore.fetchPlans()
   }
+  // 加载仓库选项（V1.1兼容：从useWarehouseStore获取）
+  loadWarehouseOptions()
 })
 </script>
 

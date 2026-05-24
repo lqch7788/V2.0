@@ -24,7 +24,7 @@
               <p :class="['text-lg font-bold', isFailed ? 'text-red-700' : 'text-emerald-700']">
                 {{ STAGE_LABELS[currentStage] || currentStage }}
               </p>
-              <p class="text-sm text-gray-600 mt-1">{{ stageDescriptions[currentStage] || '' }}</p>
+              <p class="text-sm text-gray-600 mt-1">{{ currentStageDescriptions[currentStage] || '' }}</p>
             </div>
             <div :class="['w-12 h-12 rounded-full flex items-center justify-center', isFailed ? 'bg-red-100' : 'bg-emerald-100']">
               <el-icon :size="24" :class="isFailed ? 'text-red-600' : 'text-emerald-600'">
@@ -82,7 +82,7 @@
                 推进到「{{ STAGE_LABELS[nextStage] || nextStage }}」
               </p>
               <p class="text-xs text-gray-500 mt-0.5">
-                {{ stageDescriptions[nextStage] || '' }}
+                {{ currentStageDescriptions[nextStage] || '' }}
               </p>
             </div>
             <el-button type="primary" size="small" @click="handleAdvance" :loading="confirming">
@@ -169,15 +169,52 @@ const STAGE_LABELS = {
   'failed': '失败'
 }
 
-// 阶段描述
-const stageDescriptions = {
-  'planned': '繁殖计划已制定',
-  'in_progress': '繁殖过程进行中',
-  'harvested': '已完成采收',
-  'quality_checked': '质量检测已完成',
-  'completed': '已入库完成',
-  'failed': '繁殖过程失败'
+// 阶段描述（根据繁殖途径类型返回不同描述）
+const getStageDescriptions = (propagationType) => {
+  if (propagationType === 'breeding') {
+    return {
+      'planned': '育种计划已制定，亲本已选定',
+      'in_progress': '授粉/杂交/选育进行中',
+      'harvested': '种子已采收，记录采收数据',
+      'quality_checked': '发芽率、净度、水分已检测',
+      'completed': '种子已入库，库存已更新',
+      'failed': '育种过程失败'
+    }
+  }
+  if (propagationType === 'seed_saving') {
+    return {
+      'planned': '留种计划已制定，留种株已标记',
+      'in_progress': '留种株生长观察中',
+      'harvested': '从种植作物上采收种子',
+      'quality_checked': '发芽率、净度、水分已检测',
+      'completed': '种子已入库，库存已更新',
+      'failed': '留种过程失败'
+    }
+  }
+  if (propagationType === 'asexual') {
+    return {
+      'planned': '母株已选定，繁殖计划已制定',
+      'in_progress': '扦插/嫁接/分株/组培培养中',
+      'harvested': '种苗/种球已采收',
+      'quality_checked': '成活率、生根率、嫁接成活率已检测',
+      'completed': '种苗已入库，库存已更新',
+      'failed': '繁殖过程失败'
+    }
+  }
+  return {
+    'planned': '繁殖计划已制定',
+    'in_progress': '繁殖过程进行中',
+    'harvested': '已完成采收',
+    'quality_checked': '质量检测已完成',
+    'completed': '已入库完成',
+    'failed': '繁殖过程失败'
+  }
 }
+
+// 获取当前阶段的描述
+const currentStageDescriptions = computed(() => {
+  return getStageDescriptions(props.record?.propagationType)
+})
 
 const confirming = ref(false)
 const harvestQuantity = ref(0)
@@ -223,10 +260,10 @@ watch(() => props.visible, (val) => {
 
 // 推进阶段
 const handleAdvance = async () => {
-  if (!nextStage.value) return
+  if (!nextStage.value || !props.record) return
   confirming.value = true
   try {
-    // TODO: 调用 store 方法推进阶段
+    await seedSourceStore.updatePropagationStage(props.record.id, nextStage.value)
     ElMessage.success('阶段推进成功')
     emit('success')
     handleClose()
@@ -245,7 +282,8 @@ const handleComplete = async () => {
   }
   confirming.value = true
   try {
-    // TODO: 调用 store 方法完成入库
+    await seedSourceStore.completePropagation(props.record.id, harvestQuantity.value)
+    await seedSourceStore.loadItems()
     ElMessage.success('入库成功')
     emit('success')
     handleClose()

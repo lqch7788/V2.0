@@ -14,48 +14,48 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-emerald-600"><Document /></el-icon>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><Document /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">总日志</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-xs text-gray-500">总日志</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-blue-600"><Calendar /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-blue-600"><Calendar /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">今日</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.today }}</p>
+            <p class="text-xs text-gray-500">今日</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.today }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-purple-600"><Grid /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-purple-600"><Grid /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">本周</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.week }}</p>
+            <p class="text-xs text-gray-500">本周</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.week }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-red-600"><Warning /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-red-600"><Warning /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">异常</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.exception }}</p>
+            <p class="text-xs text-gray-500">异常</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.exception }}</p>
           </div>
         </div>
       </div>

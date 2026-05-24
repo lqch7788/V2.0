@@ -59,8 +59,27 @@ function normalizeYieldItem(db) {
     name: db.name,
     value: Number(db.value) || 0,
     count: Number(db.count) || 0,
+    avgPrice: Number(db.avg_price || db.avgPrice) || 0,
+    totalAmount: Number(db.total_amount || db.totalAmount) || 0,
     year: db.year,
     month: db.month
+  }
+}
+
+/**
+ * 规范化人工统计数据项
+ */
+function normalizeLaborItem(db) {
+  return {
+    name: db.name || '',
+    hours: Number(db.hours) || 0,
+    amount: Number(db.amount) || 0,
+    year: db.year,
+    month: db.month,
+    workerCount: Number(db.worker_count || db.workerCount) || 0,
+    workCount: Number(db.work_count || db.workCount) || 0,
+    taskCount: Number(db.task_count || db.taskCount) || 0,
+    avgDailyHours: Number(db.avg_daily_hours || db.avgDailyHours) || 0
   }
 }
 
@@ -72,7 +91,7 @@ function normalizeOverview(db) {
     yield: {
       monthHarvestCount: Number(db.yield?.monthHarvestCount || db.yield?.month_harvest_count) || 0,
       monthTotalYield: Number(db.yield?.monthTotalYield || db.yield?.month_total_yield) || 0,
-      monthTotalAmount: Number(db.yield?.monthTotalYield || db.yield?.month_total_amount) || 0
+      monthTotalAmount: Number(db.yield?.monthTotalAmount || db.yield?.month_total_amount) || 0
     },
     task: {
       totalTasks: Number(db.task?.totalTasks || db.task?.total_tasks) || 0,
@@ -110,6 +129,7 @@ export const useSummaryStore = defineStore('summary', () => {
   const laborItems = ref([])
   const laborGroupBy = ref('month')
   const batchItems = ref([])
+  const chainStages = ref([])
   const problemItems = ref([])
   const indicators = ref([])
   const isLoading = ref(false)
@@ -187,14 +207,60 @@ export const useSummaryStore = defineStore('summary', () => {
 
       const response = await enhancedApiClient.get(url)
       const data = response?.data || response || {}
-      costDetailItems.value = data.labor || data.material || data.energy || []
+
+      // 提取各类数组并规范化字段（蛇形转驼峰）
+      const laborItems = (data.labor || []).map(item => ({
+        costCategory: item.cost_category || 'labor',
+        costType: item.cost_type || '',
+        costTypeCode: item.cost_type_code || '',
+        costName: item.cost_name || '',
+        month: item.month || '',
+        totalQuantity: Number(item.total_quantity) || 0,
+        totalAmount: Number(item.total_amount) || 0,
+        recordCount: Number(item.record_count) || 0,
+        workHours: Number(item.work_hours) || 0,
+        workerCount: Number(item.worker_count) || 0
+      }))
+      const materialItems = (data.material || []).map(item => ({
+        costCategory: item.cost_category || 'material',
+        costType: item.cost_type || '',
+        costTypeCode: item.cost_type_code || '',
+        costName: item.cost_name || '',
+        month: item.month || '',
+        totalQuantity: Number(item.total_quantity) || 0,
+        totalAmount: Number(item.total_amount) || 0,
+        recordCount: Number(item.record_count) || 0,
+        workHours: Number(item.work_hours) || 0,
+        workerCount: Number(item.worker_count) || 0
+      }))
+      const energyItems = (data.energy || []).map(item => ({
+        costCategory: item.cost_category || 'energy',
+        costType: item.cost_type || '',
+        costTypeCode: item.cost_type_code || '',
+        costName: item.cost_name || '',
+        month: item.month || '',
+        totalQuantity: Number(item.total_quantity) || 0,
+        totalAmount: Number(item.total_amount) || 0,
+        recordCount: Number(item.record_count) || 0,
+        workHours: Number(item.work_hours) || 0,
+        workerCount: Number(item.worker_count) || 0
+      }))
+
+      costDetailItems.value = [...laborItems, ...materialItems, ...energyItems]
+
+      // 客户端计算成本汇总（参考 V1.1 实现）
+      const totalLaborCost = laborItems.reduce((sum, item) => sum + (Number(item.totalAmount) || 0), 0)
+      const totalMaterialCost = materialItems.reduce((sum, item) => sum + (Number(item.totalAmount) || 0), 0)
+      const totalEnergyCost = energyItems.reduce((sum, item) => sum + (Number(item.totalAmount) || 0), 0)
+      const totalWorkHours = laborItems.reduce((sum, item) => sum + (Number(item.workHours) || 0), 0)
+
       costSummary.value = {
-        totalLaborCost: Number(data.summary?.total_labor_cost || data.summary?.totalLaborCost) || 0,
-        totalMaterialCost: Number(data.summary?.total_material_cost || data.summary?.totalMaterialCost) || 0,
-        totalEnergyCost: Number(data.summary?.total_energy_cost || data.summary?.totalEnergyCost) || 0,
-        totalCost: Number(data.summary?.total_cost || data.summary?.totalCost) || 0,
-        totalWorkHours: Number(data.summary?.total_work_hours || data.summary?.totalWorkHours) || 0,
-        avgHourlyRate: Number(data.summary?.avg_hourly_rate || data.summary?.avgHourlyRate) || 0
+        totalLaborCost: Math.round(totalLaborCost * 100) / 100,
+        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+        totalEnergyCost: Math.round(totalEnergyCost * 100) / 100,
+        totalCost: Math.round((totalLaborCost + totalMaterialCost + totalEnergyCost) * 100) / 100,
+        totalWorkHours: Math.round(totalWorkHours * 100) / 100,
+        avgHourlyRate: totalWorkHours > 0 ? Math.round((totalLaborCost / totalWorkHours) * 100) / 100 : 0
       }
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, costStats: Date.now() }
     } catch (err) {
@@ -218,14 +284,14 @@ export const useSummaryStore = defineStore('summary', () => {
       if (params.greenhouse_name) queryParams.set('greenhouse_name', params.greenhouse_name)
       if (params.worker_name) queryParams.set('worker_name', params.worker_name)
 
-      laborGroupBy.value = params?.groupBy || 'month'
+      laborGroupBy.value = params.group_by || 'month'
 
       const query = queryParams.toString()
       const url = `/summary/labor-stats${query ? `?${query}` : ''}`
 
       const response = await enhancedApiClient.get(url)
       const data = response?.data || response || {}
-      laborItems.value = data.details || []
+      laborItems.value = (data.details || []).map(item => normalizeLaborItem(item))
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, laborStats: Date.now() }
     } catch (err) {
       error.value = err.message
@@ -266,22 +332,49 @@ export const useSummaryStore = defineStore('summary', () => {
     }
   }
 
+  // 获取全链条追溯概览
+  const fetchChainOverview = async (params = {}) => {
+    isLoading.value = true
+    error.value = null
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.batch_code) queryParams.set('batch_code', params.batch_code)
+      if (params.stage) queryParams.set('stage', params.stage)
+
+      const query = queryParams.toString()
+      const url = `/summary/chain-overview${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      const data = response?.data || response || []
+      chainStages.value = Array.isArray(data) ? data.map(item => ({
+        key: item.key,
+        count: Number(item.count) || 0,
+        items: item.items || []
+      })) : []
+      lastFetchTimestamps.value = { ...lastFetchTimestamps.value, chainOverview: Date.now() }
+    } catch (err) {
+      error.value = err.message
+      console.error('[SummaryStore] 获取全链条追溯概览失败:', err)
+      chainStages.value = []
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // 获取问题统计
   const fetchProblems = async (params = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      // 问题统计使用 problems API
+      // 问题统计使用 daily-summary API 获取按日期明细的数据
       const queryParams = new URLSearchParams()
       if (params.start_date) queryParams.set('start_date', params.start_date)
       if (params.end_date) queryParams.set('end_date', params.end_date)
-      if (params.page) queryParams.set('page', String(params.page))
-      else queryParams.set('page', '1')
       if (params.limit) queryParams.set('limit', String(params.limit))
-      else queryParams.set('limit', '100')
+      else queryParams.set('limit', '200')
 
       const query = queryParams.toString()
-      const url = `/problems/summary${query ? `?${query}` : ''}`
+      const url = `/problems/daily-summary${query ? `?${query}` : ''}`
 
       const response = await enhancedApiClient.get(url)
       const data = response?.data || response || []
@@ -291,11 +384,11 @@ export const useSummaryStore = defineStore('summary', () => {
         month: item.month,
         total: Number(item.total) || 0,
         pending: Number(item.pending) || 0,
-        inProgress: Number(item.inProgress) || 0,
+        inProgress: Number(item.in_progress || item.inProgress) || 0,
         resolved: Number(item.resolved) || 0,
-        highPriority: Number(item.highPriority) || 0,
-        mediumPriority: Number(item.mediumPriority) || 0,
-        lowPriority: Number(item.lowPriority) || 0
+        highPriority: Number(item.high_priority || item.highPriority) || 0,
+        mediumPriority: Number(item.medium_priority || item.mediumPriority) || 0,
+        lowPriority: Number(item.low_priority || item.lowPriority) || 0
       })) : []
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, problems: Date.now() }
     } catch (err) {
@@ -387,6 +480,7 @@ export const useSummaryStore = defineStore('summary', () => {
     laborItems.value = []
     laborGroupBy.value = 'month'
     batchItems.value = []
+    chainStages.value = []
     problemItems.value = []
     indicators.value = []
     error.value = null
@@ -402,7 +496,7 @@ export const useSummaryStore = defineStore('summary', () => {
 
   // 任务状态判断
   const getTaskStatus = (completionRate) => {
-    if (completionRate >= 80) return 'good'
+    if (completionRate >= 70) return 'normal'
     if (completionRate >= 50) return 'warning'
     return 'critical'
   }
@@ -417,6 +511,7 @@ export const useSummaryStore = defineStore('summary', () => {
     laborItems,
     laborGroupBy,
     batchItems,
+    chainStages,
     problemItems,
     indicators,
     isLoading,
@@ -429,6 +524,7 @@ export const useSummaryStore = defineStore('summary', () => {
     fetchCostStats,
     fetchLaborStats,
     fetchBatchStats,
+    fetchChainOverview,
     fetchProblems,
     fetchIndicators,
     fetchAll,

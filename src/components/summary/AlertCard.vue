@@ -31,7 +31,28 @@
 import { computed } from 'vue'
 import { WarnTriangleFilled, WarningFilled } from '@element-plus/icons-vue'
 
-const props = defineProps({})
+const props = defineProps({
+  // 预警标题
+  title: {
+    type: String,
+    default: ''
+  },
+  // 预警描述
+  description: {
+    type: String,
+    default: ''
+  },
+  // 严重程度：warning | critical
+  severity: {
+    type: String,
+    default: 'warning'
+  },
+  // 点击回调
+  onClick: {
+    type: Function,
+    default: null
+  }
+})
 
 // 严重程度对应的样式配置
 const SEVERITY_STYLES = {

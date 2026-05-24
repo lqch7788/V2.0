@@ -5,7 +5,16 @@
 </template>
 
 <script setup>
-import { computed } from 'vue' className: string }> = {
+import { computed } from 'vue'
+
+const props = defineProps({
+  priority: {
+    type: String,
+    default: 'low'
+  }
+})
+
+const priorityConfig = {
   high: {
     label: '紧急',
     className: 'bg-red-100 text-red-700',

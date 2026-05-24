@@ -14,12 +14,26 @@
 import { ElTabs } from 'element-plus'
 import { computed } from 'vue'
 
-const props = defineProps({"type":"''","tabPosition":"'top'","className":"''"})
+const props = defineProps({
+  modelValue: [String, Number],
+  type: {
+    type: String,
+    default: ''
+  },
+  tabPosition: {
+    type: String,
+    default: 'top'
+  },
+  className: {
+    type: String,
+    default: ''
+  }
+})
 
-const emit = defineEmits(['update'])
+const emit = defineEmits(['update', 'tab-change'])
 
 const activeValue = computed({
-  get) => props.modelValue,
+  get() { return props.modelValue },
   set: (val) => emit('update:modelValue', val)
 })
 

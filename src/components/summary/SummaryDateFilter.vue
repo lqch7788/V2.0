@@ -49,10 +49,21 @@ import { ref, watch } from 'vue'
 import { Calendar } from '@element-plus/icons-vue'
 
 const props = defineProps({
-  modelValue: String
+  mode: {
+    type: String,
+    default: 'month'
+  },
+  startDate: {
+    type: String,
+    default: ''
+  },
+  endDate: {
+    type: String,
+    default: ''
+  }
 })
 
-const emit = defineEmits(['update:modelValue', 'change'])
+const emit = defineEmits(['update:mode', 'update:startDate', 'update:endDate', 'change'])
 
 const MODE_OPTIONS = [
   { value: 'month', label: '本月' },

@@ -318,20 +318,20 @@ import {
 const router = useRouter()
 
 // 数据状态
-const dictionaries = ref<Dictionary[]>([])
-const categories = ref<string[]>([])
+const dictionaries = ref([])
+const categories = ref([])
 const loading = ref(false)
 const saving = ref(false)
-const error = ref<string | null>(null)
+const error = ref(null)
 const searchTerm = ref('')
 
 // 展开状态
-const expandedModules = ref<string[]>([])
-const expandedCategories = ref<string[]>([])
+const expandedModules = ref([])
+const expandedCategories = ref([])
 
 // 弹窗状态
 const isModalOpen = ref(false)
-const editingItem = ref<Dictionary | null>(null)
+const editingItem = ref(null)
 const isNewItem = ref(false)
 
 // 新增分类弹窗状态
@@ -342,7 +342,7 @@ const newCategoryForm = ref({
 })
 
 // 模块图标映射
-const MODULE_ICONS: Record<string, unknown> = {
+const MODULE_ICONS = {
   Users,
   Truck,
   Sprout,
@@ -355,7 +355,7 @@ const MODULE_ICONS: Record<string, unknown> = {
 }
 
 // 获取模块图标组件
-function getModuleIcon(iconName: string) {
+function getModuleIcon(iconName) {
   return MODULE_ICONS[iconName] || List
 }
 
@@ -379,7 +379,7 @@ async function loadData() {
 }
 
 // 模块展开/折叠变化处理
-function onModuleExpandChange(activeNames: string | string[]) {
+function onModuleExpandChange(activeNames) {
   // 当模块展开时，自动展开其第一个分类
   if (Array.isArray(activeNames)) {
     activeNames.forEach((moduleCode) => {
@@ -394,7 +394,7 @@ function onModuleExpandChange(activeNames: string | string[]) {
 }
 
 // 切换分类展开/折叠
-function toggleCategory(category: string) {
+function toggleCategory(category) {
   const index = expandedCategories.value.indexOf(category)
   if (index > -1) {
     expandedCategories.value.splice(index, 1)
@@ -410,7 +410,7 @@ async function expandAll() {
   }
   expandedModules.value = DICTIONARY_MODULES.map((m) => m.code)
   // 展开所有分类
-  const allCategories: string[] = []
+  const allCategories = []
   DICTIONARY_MODULES.forEach((mod) => {
     mod.categories.forEach((cat) => {
       if (categories.value.includes(cat) && !allCategories.includes(cat)) {
@@ -428,20 +428,20 @@ function collapseAll() {
 }
 
 // 获取模块下的分类
-function getCategoriesInModule(moduleCode: string): string[] {
+function getCategoriesInModule(moduleCode) {
   const module = DICTIONARY_MODULES.find((m) => m.code === moduleCode)
   if (!module) return []
   return categories.value.filter((c) => module.categories.includes(c))
 }
 
 // 获取模块下的字典项总数
-function getTotalItemsInModule(moduleCode: string): number {
+function getTotalItemsInModule(moduleCode) {
   const moduleCategories = getCategoriesInModule(moduleCode)
   return moduleCategories.reduce((sum, cat) => sum + getDictionariesByCategory(cat).length, 0)
 }
 
 // 按分类过滤字典项
-function getDictionariesByCategory(category: string): Dictionary[] {
+function getDictionariesByCategory(category) {
   let items = dictionaries.value.filter((d) => d.category === category)
 
   // 如果有搜索词，则过滤
@@ -488,7 +488,7 @@ const filteredModules = computed(() => {
 })
 
 // 打开新增字典项弹窗
-function handleAddItem(category: string) {
+function handleAddItem(category) {
   editingItem.value = {
     category,
     code: '',
@@ -500,7 +500,7 @@ function handleAddItem(category: string) {
 }
 
 // 打开编辑字典项弹窗
-function handleEditItem(item: Dictionary) {
+function handleEditItem(item) {
   editingItem.value = { ...item }
   isNewItem.value = false
   isModalOpen.value = true
@@ -544,7 +544,7 @@ async function handleSave() {
 }
 
 // 删除字典项
-async function handleDelete(item: Dictionary) {
+async function handleDelete(item) {
   try {
     await ElMessageBox.confirm(`确定要删除字典项"${item.name}"吗？`, '提示', {
       confirmButtonText: '确定',
@@ -556,7 +556,7 @@ async function handleDelete(item: Dictionary) {
     await saveDictionaries({
       inserted: [],
       updated: [],
-      deleted: [item.id!],
+      deleted: [item.id],
     })
     ElMessage.success('删除成功')
     await loadData()

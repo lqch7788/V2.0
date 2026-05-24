@@ -1,11 +1,11 @@
 <template>
   <div class="p-6 space-y-4">
     <!-- 标题卡片 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <el-icon :size="24" style="color: white;">
-            <TrendCharts />
+            <Sugar />
           </el-icon>
         </div>
         <div>
@@ -21,6 +21,7 @@
     <!-- 筛选组件 -->
     <SeedlingFilter
       :filters="filters"
+      :crop-names="cropNames"
       :seedling-types="seedlingTypes"
       :sites="sites"
       :status-options="statusOptions"
@@ -36,14 +37,20 @@
         :pagination="pagination"
         :selected-rows="selectedRows"
         :loading="loading"
+        :operation-mode="operationMode"
+        :on-operation-mode-change="handleOperationModeChange"
         :export-mode="exportMode"
+        :on-export-select-all="handleExportSelectAll"
+        :on-export-cancel="handleExportCancel"
+        :print-mode="printMode"
+        :on-print-mode-change="handlePrintModeChange"
+        :on-confirm-print="handleConfirmPrint"
         :can-create="canCreate"
         :can-edit="canEdit"
         :can-delete="canDelete"
         :can-export="canExport"
         :can-print="canPrint"
         @add="handleAdd"
-        @edit="handleEdit"
         @detail="handleDetail"
         @daily-record="handleDailyRecord"
         @transplant="handleTransplant"
@@ -84,7 +91,7 @@
       v-if="currentRecord"
       v-model:visible="dailyRecordModalVisible"
       :record="currentRecord"
-      @success="loadItems"
+      @success="handleDailyRecordSuccess"
     />
 
     <!-- 定植弹窗 -->
@@ -130,7 +137,7 @@
  */
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { TrendCharts } from '@element-plus/icons-vue'
+import { Sugar } from '@element-plus/icons-vue'
 import SeedlingStats from '@/components/farm/seedling/components/SeedlingStats.vue'
 import SeedlingFilter from '@/components/farm/seedling/components/SeedlingFilter.vue'
 import SeedlingTable from '@/components/farm/seedling/components/SeedlingTable.vue'
@@ -144,6 +151,8 @@ import SeedlingLabelManageModal from '@/components/farm/seedling/modals/Seedling
 import ImageLightboxModal from '@/components/common/ImageLightboxModal.vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 import { useSeedlingStore } from '@/stores/modules/seedling'
+import { useSeedSourceStore } from '@/stores/modules/seedSource'
+import * as cropBatchService from '@/services/apiCropBatchService'
 
 // 权限检查 - 已取消，所有人可使用所有功能
 const canCreate = true
@@ -154,12 +163,31 @@ const canPrint = true
 
 // Store
 const seedlingStore = useSeedlingStore()
+const seedSourceStore = useSeedSourceStore()
 
 // 状态
 const loading = computed(() => seedlingStore.isLoading)
 const items = computed(() => seedlingStore.items)
 
-// 筛选条件
+// 种源数据（用于新增弹窗）
+const seedSources = ref([])
+
+// 作物品种选项（从育苗记录中实际存在的品种提取）
+const cropNames = computed(() => {
+  const seen = new Set()
+  const uniqueCrops = []
+  items.value.forEach(item => {
+    if (item.cropName && !seen.has(item.cropName)) {
+      seen.add(item.cropName)
+      uniqueCrops.push({ value: item.cropName, label: item.cropName })
+    }
+  })
+  // 按名称排序
+  uniqueCrops.sort((a, b) => a.label.localeCompare(b.label, 'zh-CN'))
+  return uniqueCrops
+})
+
+// 筛选条件（支持更多筛选字段）
 const filters = ref({
   cropName: '',
   seedlingCode: '',
@@ -169,7 +197,20 @@ const filters = ref({
   siteName: '',
   seedlingType: '',
   createBy: '',
-  status: ''
+  status: '',
+  // 更多筛选条件
+  initialCountMin: undefined,
+  initialCountMax: undefined,
+  survivalCountMin: undefined,
+  survivalCountMax: undefined,
+  lossCountMin: undefined,
+  lossCountMax: undefined,
+  surplusMin: undefined,
+  surplusMax: undefined,
+  survivalRateMin: undefined,
+  survivalRateMax: undefined,
+  lossRateMin: undefined,
+  lossRateMax: undefined
 })
 
 // 分页
@@ -197,6 +238,12 @@ const labelManageRecord = ref(null)
 // 导出状态
 const exportMode = ref(false)
 const exportFormat = ref('excel')
+
+// 操作模式状态
+const operationMode = ref('normal') // 'normal' | 'edit' | 'delete' | 'export' | 'print'
+
+// 打印模式状态
+const printMode = ref(false)
 
 // 育苗方式选项
 const seedlingTypes = ref([
@@ -235,6 +282,21 @@ const filteredData = computed(() => {
     if (filters.value.startDate && item.startDate < filters.value.startDate) return false
     if (filters.value.endDate && item.startDate > filters.value.endDate) return false
     if (filters.value.createBy && !item.createBy?.startsWith(filters.value.createBy)) return false
+    // 更多筛选条件
+    if (filters.value.initialCountMin !== undefined && item.initialCount < filters.value.initialCountMin) return false
+    if (filters.value.initialCountMax !== undefined && item.initialCount > filters.value.initialCountMax) return false
+    if (filters.value.survivalCountMin !== undefined && item.survivalCount < filters.value.survivalCountMin) return false
+    if (filters.value.survivalCountMax !== undefined && item.survivalCount > filters.value.survivalCountMax) return false
+    if (filters.value.lossCountMin !== undefined && item.lossCount < filters.value.lossCountMin) return false
+    if (filters.value.lossCountMax !== undefined && item.lossCount > filters.value.lossCountMax) return false
+    // 剩余数量 = initialCount - lossCount
+    const surplus = item.initialCount - item.lossCount
+    if (filters.value.surplusMin !== undefined && surplus < filters.value.surplusMin) return false
+    if (filters.value.surplusMax !== undefined && surplus > filters.value.surplusMax) return false
+    if (filters.value.survivalRateMin !== undefined && item.survivalRate < filters.value.survivalRateMin) return false
+    if (filters.value.survivalRateMax !== undefined && item.survivalRate > filters.value.survivalRateMax) return false
+    if (filters.value.lossRateMin !== undefined && item.lossRate < filters.value.lossRateMin) return false
+    if (filters.value.lossRateMax !== undefined && item.lossRate > filters.value.lossRateMax) return false
     return true
   })
 })
@@ -255,6 +317,16 @@ const statsData = computed(() => {
 // 加载数据
 const loadItems = async () => {
   await seedlingStore.loadItems()
+}
+
+// 加载种源数据
+const loadSeedSources = async () => {
+  try {
+    await seedSourceStore.loadItems()
+    seedSources.value = seedSourceStore.items
+  } catch (error) {
+    console.error('获取种源数据失败:', error)
+  }
 }
 
 // 处理筛选条件变化
@@ -278,7 +350,20 @@ const handleReset = () => {
     siteName: '',
     seedlingType: '',
     createBy: '',
-    status: ''
+    status: '',
+    // 更多筛选条件
+    initialCountMin: undefined,
+    initialCountMax: undefined,
+    survivalCountMin: undefined,
+    survivalCountMax: undefined,
+    lossCountMin: undefined,
+    lossCountMax: undefined,
+    surplusMin: undefined,
+    surplusMax: undefined,
+    survivalRateMin: undefined,
+    survivalRateMax: undefined,
+    lossRateMin: undefined,
+    lossRateMax: undefined
   }
   pagination.value.current = 1
 }
@@ -305,6 +390,18 @@ const handleDetail = (record) => {
 const handleDailyRecord = (record) => {
   currentRecord.value = record
   dailyRecordModalVisible.value = true
+}
+
+// 每日记录保存成功后刷新数据
+const handleDailyRecordSuccess = async () => {
+  await loadItems()
+  // 从最新 store 数据中找到对应的记录并更新 currentRecord
+  if (currentRecord.value) {
+    const updatedRecord = items.value.find(s => s.id === currentRecord.value.id)
+    if (updatedRecord) {
+      currentRecord.value = updatedRecord
+    }
+  }
 }
 
 // 定植
@@ -339,14 +436,44 @@ const handleDelete = async (ids) => {
   }
 }
 
+// 操作模式变化
+const handleOperationModeChange = (mode) => {
+  operationMode.value = mode
+  if (mode !== 'export') {
+    exportMode.value = false
+  }
+  if (mode !== 'normal') {
+    selectedRows.value = []
+  }
+}
+
+// 打印模式变化
+const handlePrintModeChange = (mode) => {
+  printMode.value = mode
+  if (mode) {
+    selectedRows.value = []
+  }
+}
+
+// 全选/取消全选（导出模式）
+const handleExportSelectAll = () => {
+  if (selectedRows.value.length === filteredData.value.length) {
+    selectedRows.value = []
+  } else {
+    selectedRows.value = filteredData.value.map(item => item.id)
+  }
+}
+
 // 导出点击
 const handleExportClick = () => {
+  operationMode.value = 'export'
   exportMode.value = true
   selectedRows.value = []
 }
 
 // 取消导出
 const handleExportCancel = () => {
+  operationMode.value = 'normal'
   exportMode.value = false
   selectedRows.value = []
 }
@@ -358,6 +485,25 @@ const handleExportClickConfirm = () => {
     return
   }
   showExportModal.value = true
+}
+
+// 确认打印处理
+const handleConfirmPrint = (records) => {
+  if (records.length === 0) {
+    ElMessage.warning('请先选择要打印的记录')
+    return
+  }
+  if (records.length === 1) {
+    // 单条记录直接打印
+    currentRecord.value = records[0]
+    printModalVisible.value = true
+  } else {
+    // 多条记录打开打印弹窗选择
+    currentRecord.value = records[0]
+    printModalVisible.value = true
+  }
+  printMode.value = false
+  selectedRows.value = []
 }
 
 // 选择变化
@@ -390,15 +536,28 @@ const handleImageClick = (images) => {
 
 // 结束计划
 const handleEnd = async (record, endType) => {
+  // 检查是否有关联的生产计划
   const planCode = record.productionPlanCode
   if (!planCode || planCode.trim() === '') {
     ElMessage.warning('该育苗没有关联的生产计划，无法结束')
     return
   }
 
-  const completionRate = record.targetSurvivalCount > 0
-    ? (record.survivalCount || 0) / record.targetSurvivalCount
-    : 0
+  // 获取生产计划batch信息
+  const batch = await cropBatchService.getCropBatchByCode(planCode)
+  if (!batch) {
+    ElMessage.warning('未找到关联的生产计划 [' + planCode + ']，请检查生产计划是否存在')
+    return
+  }
+
+  // 检查batch状态
+  if (batch.batchStatus === 'completed') {
+    ElMessage.warning('该生产计划已完成结束，不能重复结束')
+    return
+  }
+
+  // 计算完成率
+  const completionRate = cropBatchService.getCompletionRate(batch, record.survivalCount || 0)
   const isNormal = endType === 'normal'
   const confirmMsg = isNormal
     ? `确认正常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后禁止一切入库和补录操作`
@@ -410,8 +569,8 @@ const handleEnd = async (record, endType) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    // 调用 store 的 endItem 方法结束育苗
-    const success = await seedlingStore.endItem(record.id, endType)
+    // 调用 cropBatchService 结束生产计划
+    const success = await cropBatchService.endCropBatch(batch.id, endType)
     if (success) {
       ElMessage.success(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
       await loadItems()
@@ -519,5 +678,7 @@ const handleConfirmExport = async () => {
 onMounted(async () => {
   // 加载育苗数据
   await loadItems()
+  // 加载种源数据
+  await loadSeedSources()
 })
 </script>

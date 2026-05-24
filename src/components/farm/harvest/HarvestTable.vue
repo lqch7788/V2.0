@@ -170,8 +170,8 @@ const props = defineProps({
 
 const emit = defineEmits(['view-detail', 'page-change', 'page-size-change'])
 
-// 展开行状态
-const expandedRow = ref(null)
+// 展开行状态（支持多行展开）
+const expandedRows = ref(new Set())
 
 // 分页后的记录
 const paginatedRecords = computed(() => {
@@ -190,9 +190,15 @@ const getProducts = (id) => {
   return rec?.products || []
 }
 
-// 切换展开
+// 切换展开（支持多行展开）
 const toggleExpand = (id) => {
-  expandedRow.value = expandedRow.value === id ? null : id
+  const newExpanded = new Set(expandedRows.value)
+  if (newExpanded.has(id)) {
+    newExpanded.delete(id)
+  } else {
+    newExpanded.add(id)
+  }
+  expandedRows.value = newExpanded
 }
 
 // 格式化日期

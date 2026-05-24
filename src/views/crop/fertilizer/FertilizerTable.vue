@@ -36,6 +36,7 @@
     <!-- 表格 -->
     <div class="overflow-x-auto">
       <el-table
+        v-loading="isLoading"
         :data="currentData"
         :row-class-name="tableRowClassName"
         style="width: 100%"
@@ -45,7 +46,7 @@
         <el-table-column v-if="showCheckbox" width="50" align="center">
           <template #header>
             <el-checkbox
-              :model-value="data.length > 0 && selectedIds.length === data.length"
+              :model-value="currentData.length > 0 && selectedIds.length === currentData.length"
               @change="handleSelectAll"
             />
           </template>

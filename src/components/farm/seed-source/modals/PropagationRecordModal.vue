@@ -186,6 +186,7 @@
                   <span v-if="rec.harvestPlantCount">苗: {{ rec.harvestPlantCount }}</span>
                   <span v-if="rec.germinationRate">发芽率: {{ rec.germinationRate }}%</span>
                   <span v-if="rec.survivalRate">成活率: {{ rec.survivalRate }}%</span>
+                  <span v-if="rec.graftSuccessRate">嫁接成活率: {{ rec.graftSuccessRate }}%</span>
                 </div>
                 <div v-if="rec.operator" class="text-xs text-gray-400 mt-1">操作人: {{ rec.operator }}</div>
                 <div v-if="rec.abnormality" class="text-xs text-amber-600 mt-1 bg-amber-50 px-2 py-1 rounded">
@@ -255,7 +256,7 @@ const records = ref([])
 // 表单数据
 const formData = ref({
   stage: 'in_progress',
-  recordDate: new Date().toISOString().slice(0, 16).replace('T', ' '),
+  recordDate: new Date().toISOString().slice(0, 16),
   temperature: undefined,
   humidity: undefined,
   abnormality: '',
@@ -281,8 +282,8 @@ watch(() => props.visible, async (val) => {
   if (val && props.record) {
     // 加载记录
     try {
-      // TODO: 从 store 获取繁殖记录
-      records.value = []
+      const data = await seedSourceStore.loadPropagationRecords(props.record.id)
+      records.value = data || []
     } catch (error) {
       console.error('加载繁殖记录失败:', error)
     }
@@ -293,7 +294,7 @@ watch(() => props.visible, async (val) => {
 const resetForm = () => {
   formData.value = {
     stage: 'in_progress',
-    recordDate: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    recordDate: new Date().toISOString().slice(0, 16),
     temperature: undefined,
     humidity: undefined,
     abnormality: '',
@@ -323,12 +324,20 @@ const handleSubmit = async () => {
   if (!props.record) return
 
   try {
-    // TODO: 调用 store 方法添加繁殖记录
+    const data = {
+      ...formData.value,
+      seedSourceId: props.record.id,
+      recordDate: formData.value.recordDate || new Date().toISOString()
+    }
+    await seedSourceStore.addPropagationRecord(props.record.id, data)
+    // 重新加载记录
+    const updated = await seedSourceStore.loadPropagationRecords(props.record.id)
+    records.value = updated || []
     ElMessage.success('添加记录成功')
     resetForm()
     emit('success')
-    handleClose()
   } catch (error) {
+    console.error('添加记录失败:', error)
     ElMessage.error('添加记录失败')
   }
 }

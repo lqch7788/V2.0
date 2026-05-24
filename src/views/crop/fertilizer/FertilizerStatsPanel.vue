@@ -202,7 +202,7 @@ const groupByLabel = computed(() => {
 
 // 汇总数据
 const summary = computed(() => {
-  const items = fertilizerStore.items
+  const items = fertilizerStore.items.value || []
   const total = items.length
   const totalQty = items.reduce((s, i) => s + (i.quantity || 0), 0)
   const totalCost = items.reduce((s, i) => s + (i.totalCost || 0), 0)
@@ -213,7 +213,7 @@ const summary = computed(() => {
 
 // 柱状图数据
 const barChartData = computed(() => {
-  const items = fertilizerStore.items
+  const items = fertilizerStore.items.value || []
   const groups = new Map()
 
   items.forEach(item => {
@@ -245,7 +245,7 @@ const barChartData = computed(() => {
 
 // 饼图数据
 const pieChartData = computed(() => {
-  const items = fertilizerStore.items
+  const items = fertilizerStore.items.value || []
   const typeMap = new Map()
 
   items.forEach(item => {

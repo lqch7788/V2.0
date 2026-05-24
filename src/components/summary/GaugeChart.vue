@@ -1,62 +1,149 @@
 <template>
-  <!-- 仪表盘图表组件 -->
-  <div class="relative w-36 h-36">
-    <svg viewBox="0 0 100 100" class="w-full h-full transform -rotate-90">
+  <!-- 270度弧形仪表盘组件 - 与V1.1完全一致 -->
+  <div class="flex flex-col items-center">
+    <svg :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`" class="overflow-visible">
       <!-- 背景圆弧 -->
       <circle
-        cx="50"
-        cy="50"
+        :cx="cx"
+        :cy="cy"
         :r="radius"
         fill="none"
-        :stroke="bgColor"
+        stroke="#e5e7eb"
         :stroke-width="strokeWidth"
+        :stroke-dasharray="`${arcLength} ${gapLength}`"
+        :stroke-dashoffset="0"
+        stroke-linecap="round"
+        :transform="`rotate(135, ${cx}, ${cy})`"
       />
-      <!-- 进度圆弧 -->
+      <!-- 数值圆弧 -->
       <circle
-        cx="50"
-        cy="50"
+        v-if="percentage > 0"
+        :cx="cx"
+        :cy="cy"
         :r="radius"
         fill="none"
-        :stroke="progressColor"
+        :stroke="arcColor"
         :stroke-width="strokeWidth"
-        :stroke-dasharray="circumference"
-        :stroke-dashoffset="dashOffset"
+        :stroke-dasharray="`${valueLength} ${fullCircumference - valueLength}`"
+        :stroke-dashoffset="0"
+        stroke-linecap="round"
+        :transform="`rotate(135, ${cx}, ${cy})`"
+        class="transition-all duration-500"
+      />
+      <!-- 刻度标记 -->
+      <line
+        v-for="tick in tickPositions"
+        :key="tick"
+        :x1="cx + innerR * Math.cos(tickRad(tick))"
+        :y1="cy + innerR * Math.sin(tickRad(tick))"
+        :x2="cx + outerR * Math.cos(tickRad(tick))"
+        :y2="cy + outerR * Math.sin(tickRad(tick))"
+        stroke="#d1d5db"
+        stroke-width="2"
+      />
+      <!-- 指针 -->
+      <line
+        :x1="cx"
+        :y1="cy"
+        :x2="needleX"
+        :y2="needleY"
+        stroke="#374151"
+        stroke-width="2.5"
         stroke-linecap="round"
         class="transition-all duration-500"
       />
+      <!-- 中心圆点 -->
+      <circle :cx="cx" :cy="cy" r="5" fill="#374151" />
+      <circle :cx="cx" :cy="cy" r="2.5" fill="white" />
+      <!-- 中心文字 -->
+      <text
+        :x="cx"
+        :y="cy + 36"
+        text-anchor="middle"
+        class="text-2xl font-bold"
+        fill="#1e293b"
+      >
+        {{ Math.round(percentage) }}%
+      </text>
     </svg>
-    <!-- 中心文字 -->
-    <div class="absolute inset-0 flex flex-col items-center justify-center">
-      <span :class="['text-2xl font-bold', scoreColor]">{{ percentage }}%</span>
-    </div>
+    <span class="text-sm text-gray-500 -mt-2">{{ label }}</span>
   </div>
-  <p v-if="label" class="text-xs text-gray-500 text-center mt-2">{{ label }}</p>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 
-const props = defineProps({"percentage":"0","colorScheme":"'emerald'"})
-
-// 仪表盘尺寸参数
-const strokeWidth = 8
-const radius = 40
-const circumference = 2 * Math.PI * radius
-
-// 进度计算
-const dashOffset = computed(() => {
-  const progress = Math.min(Math.max(props.percentage, 0), 100)
-  return circumference * (1 - progress / 100)
+const props = defineProps({
+  /** 百分比值 (0-100) */
+  percentage: {
+    type: Number,
+    default: 0
+  },
+  /** 底部标签 */
+  label: {
+    type: String,
+    default: ''
+  },
+  /** 颜色主题 */
+  colorScheme: {
+    type: String,
+    default: 'emerald',
+    validator: (v) => ['emerald', 'amber', 'red'].includes(v)
+  },
+  /** 宽高尺寸，默认 200 */
+  size: {
+    type: Number,
+    default: 200
+  }
 })
 
-// 颜色配置
-const COLOR_CONFIG = {
-  emerald: { progress: '#10b981', bg: '#d1fae5', score: 'text-emerald-600' },
-  amber: { progress: '#f59e0b', bg: '#fef3c7', score: 'text-amber-600' },
-  red: { progress: '#ef4444', bg: '#fee2e2', score: 'text-red-600' },
+/** 颜色主题映射 - 与V1.1完全一致 */
+const COLOR_MAP = {
+  emerald: '#10b981',
+  amber: '#f59e0b',
+  red: '#ef4444',
 }
 
-const progressColor = computed(() => COLOR_CONFIG[props.colorScheme].progress)
-const bgColor = computed(() => COLOR_CONFIG[props.colorScheme].bg)
-const scoreColor = computed(() => COLOR_CONFIG[props.colorScheme].score)
+// 仪表盘几何参数 - 与V1.1完全一致
+const cx = computed(() => props.size / 2)
+const cy = computed(() => props.size / 2 + 10)
+const radius = 65
+const strokeWidth = 14
+const fullCircumference = 2 * Math.PI * radius
+const arcRatio = 270 / 360
+const arcLength = fullCircumference * arcRatio
+const gapLength = fullCircumference - arcLength
+const valueLength = computed(() => arcLength * Math.min(props.percentage / 100, 1))
+
+const arcColor = computed(() => COLOR_MAP[props.colorScheme] || COLOR_MAP.emerald)
+
+// 指针计算 - 与V1.1完全一致
+const startAngleDeg = 225
+const totalSweepDeg = 270
+const needleLength = radius - 18
+
+const currentAngleDeg = computed(() => {
+  return startAngleDeg + (Math.min(props.percentage / 100, 1)) * totalSweepDeg
+})
+
+const needleX = computed(() => {
+  const angleRad = (currentAngleDeg.value * Math.PI) / 180
+  return cx.value + needleLength * Math.cos(angleRad)
+})
+
+const needleY = computed(() => {
+  const angleRad = (currentAngleDeg.value * Math.PI) / 180
+  return cy.value + needleLength * Math.sin(angleRad)
+})
+
+// 刻度标记
+const tickPositions = [0, 25, 50, 75, 100]
+
+const tickRad = (tick) => {
+  const tickAngleDeg = startAngleDeg + (tick / 100) * totalSweepDeg
+  return (tickAngleDeg * Math.PI) / 180
+}
+
+const innerR = computed(() => radius - strokeWidth / 2 - 4)
+const outerR = computed(() => radius + strokeWidth / 2 + 4)
 </script>

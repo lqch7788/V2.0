@@ -250,7 +250,8 @@
 </template>
 
 <script setup>
-import { View, Close } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import { View, Close, Document } from '@element-plus/icons-vue'
 
 const props = defineProps({
   visible: Boolean,
@@ -258,6 +259,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:visible'])
+
+// 标签页状态
+const activeTab = ref('info')
 
 const handleClose = () => {
   emit('update:visible', false)

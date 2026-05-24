@@ -1,137 +1,51 @@
 /**
  * 施肥管理 Store 模块
- * 使用 Pinia 管理施肥记录数据状态
+ * 使用 Pinia + enhancedApiClient 与后端 API 交互
  */
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { enhancedApiClient } from '@/lib/apiClient'
 
-// 模拟施肥记录数据
-const mockFertilizerItems = [
-  {
-    id: 'FERT_20260522_001',
-    fertilizerCode: 'SF20260522001',
-    fertilizerName: '有机复合肥',
-    fertilizerType: 'compound',
-    cropName: '番茄',
-    greenhouseName: '1号大棚-A区',
-    dilutionRatio: '1:500',
-    quantity: 150.5,
-    unit: '千克',
-    unitPrice: 12.5,
-    totalCost: 1881.25,
-    fertilizeTime: '2026-05-22 09:30:00',
-    dataSource: 'manual',
-    operatorName: '张三',
-    description: '定植后第一次追肥',
-    productionPlanCode: '',
-    productionPlanId: '',
-    plantingCode: '',
-    farmTaskId: '',
-    createTime: '2026-05-22 09:35:00',
-    updateTime: '2026-05-22 09:35:00'
-  },
-  {
-    id: 'FERT_20260521_002',
-    fertilizerCode: 'SF20260521002',
-    fertilizerName: '水溶性氮肥',
-    fertilizerType: 'inorganic',
-    cropName: '黄瓜',
-    greenhouseName: '2号大棚',
-    dilutionRatio: '1:800',
-    quantity: 80.0,
-    unit: '千克',
-    unitPrice: 8.0,
-    totalCost: 640.0,
-    fertilizeTime: '2026-05-21 14:20:00',
-    dataSource: 'auto_iot',
-    iotDeviceId: 'IOT_DEVICE_001',
-    operatorName: '李四',
-    description: '滴灌施肥',
-    productionPlanCode: '',
-    productionPlanId: '',
-    plantingCode: '',
-    farmTaskId: '',
-    createTime: '2026-05-21 14:25:00',
-    updateTime: '2026-05-21 14:25:00'
-  },
-  {
-    id: 'FERT_20260520_003',
-    fertilizerCode: 'SF20260520003',
-    fertilizerName: '生物有机肥',
-    fertilizerType: 'biological',
-    cropName: '茄子',
-    greenhouseName: '3号大棚',
-    dilutionRatio: '1:200',
-    quantity: 200.0,
-    unit: '千克',
-    unitPrice: 15.0,
-    totalCost: 3000.0,
-    fertilizeTime: '2026-05-20 08:00:00',
-    dataSource: 'manual',
-    operatorName: '王五',
-    description: '基肥深施',
-    productionPlanCode: '',
-    productionPlanId: '',
-    plantingCode: '',
-    farmTaskId: '',
-    createTime: '2026-05-20 08:10:00',
-    updateTime: '2026-05-20 08:10:00'
-  },
-  {
-    id: 'FERT_20260519_004',
-    fertilizerCode: 'SF20260519004',
-    fertilizerName: '磷酸二氢钾',
-    fertilizerType: 'trace',
-    cropName: '辣椒',
-    greenhouseName: '1号大棚-B区',
-    dilutionRatio: '1:1000',
-    quantity: 50.0,
-    unit: '千克',
-    unitPrice: 25.0,
-    totalCost: 1250.0,
-    fertilizeTime: '2026-05-19 16:30:00',
-    dataSource: 'manual',
-    operatorName: '张三',
-    description: '叶面喷施',
-    productionPlanCode: '',
-    productionPlanId: '',
-    plantingCode: '',
-    farmTaskId: '',
-    createTime: '2026-05-19 16:35:00',
-    updateTime: '2026-05-19 16:35:00'
-  },
-  {
-    id: 'FERT_20260518_005',
-    fertilizerCode: 'SF20260518005',
-    fertilizerName: '有机肥（牛粪）',
-    fertilizerType: 'organic',
-    cropName: '生菜',
-    greenhouseName: '4号地块',
-    dilutionRatio: '',
-    quantity: 500.0,
-    unit: '千克',
-    unitPrice: 3.0,
-    totalCost: 1500.0,
-    fertilizeTime: '2026-05-18 07:00:00',
-    dataSource: 'auto_iot',
-    iotDeviceId: 'IOT_DEVICE_002',
-    operatorName: '李四',
-    description: '基肥撒施后翻耕',
-    productionPlanCode: '',
-    productionPlanId: '',
-    plantingCode: '',
-    farmTaskId: '',
-    createTime: '2026-05-18 07:15:00',
-    updateTime: '2026-05-18 07:15:00'
+// API 基础路径
+const API_BASE = '/fertilizer'
+
+/**
+ * 将后端返回的snake_case字段转换为前端camelCase
+ */
+function transformRecord(record) {
+  if (!record) return null
+  return {
+    id: record.id,
+    fertilizerCode: record.fertilizer_code,
+    fertilizerName: record.fertilizer_name,
+    fertilizerType: record.fertilizer_type,
+    cropName: record.crop_name,
+    greenhouseName: record.greenhouse_name,
+    dilutionRatio: record.dilution_ratio,
+    quantity: record.quantity,
+    unit: record.unit,
+    unitPrice: record.unit_price,
+    totalCost: record.total_cost,
+    fertilizeTime: record.fertilize_time,
+    dataSource: record.data_source,
+    iotDeviceId: record.iot_device_id,
+    operatorName: record.operator_name,
+    description: record.description,
+    productionPlanCode: record.production_plan_code,
+    productionPlanId: record.production_plan_id,
+    plantingCode: record.planting_code,
+    farmTaskId: record.farm_task_id,
+    createTime: record.create_time,
+    updateTime: record.update_time
   }
-]
+}
 
 export const useFertilizerStore = defineStore('fertilizer', () => {
   // ========== 状态定义 ==========
 
   // 施肥记录列表
-  const items = ref([...mockFertilizerItems])
+  const items = ref([])
 
   // 加载状态
   const isLoading = ref(false)
@@ -154,17 +68,47 @@ export const useFertilizerStore = defineStore('fertilizer', () => {
 
   /**
    * 获取施肥记录列表
+   * V1.1 兼容：支持筛选参数
    */
   const fetchItems = async (filters = {}) => {
     isLoading.value = true
     error.value = null
     try {
-      // 模拟异步请求
-      await new Promise(resolve => setTimeout(resolve, 300))
-      // 实际项目中这里会根据filters过滤数据
-      items.value = [...mockFertilizerItems]
+      // 构建查询参数
+      const queryParams = new URLSearchParams()
+      if (filters.fertilizerName) queryParams.set('fertilizer_name', filters.fertilizerName)
+      if (filters.fertilizerType) queryParams.set('fertilizer_type', filters.fertilizerType)
+      if (filters.cropName) queryParams.set('crop_name', filters.cropName)
+      if (filters.greenhouseName) queryParams.set('greenhouse_name', filters.greenhouseName)
+      if (filters.dataSource) queryParams.set('data_source', filters.dataSource)
+      if (filters.startDate) queryParams.set('start_date', filters.startDate)
+      if (filters.endDate) queryParams.set('end_date', filters.endDate)
+      if (filters.operatorName) queryParams.set('operator_name', filters.operatorName)
+      if (filters.plantingCode) queryParams.set('planting_code', filters.plantingCode)
+      if (filters.page) queryParams.set('page', filters.page)
+      if (filters.limit) queryParams.set('limit', filters.limit)
+
+      const query = queryParams.toString()
+      const url = `${API_BASE}${query ? `?${query}` : ''}`
+
+      // 调用后端 API
+      const data = await enhancedApiClient.get(url)
+
+      // V1.1 兼容：支持多种响应格式
+      let records = []
+      if (Array.isArray(data)) {
+        records = data
+      } else if (data?.records && Array.isArray(data.records)) {
+        records = data.records
+      } else if (data?.results && Array.isArray(data.results)) {
+        records = data.results
+      }
+
+      // 转换字段名：snake_case -> camelCase
+      items.value = records.map(transformRecord).filter(Boolean)
     } catch (e) {
       error.value = e.message
+      console.error('[FertilizerStore] 获取施肥记录失败:', e)
     } finally {
       isLoading.value = false
     }
@@ -174,44 +118,49 @@ export const useFertilizerStore = defineStore('fertilizer', () => {
    * 创建施肥记录
    */
   const createItem = async (itemData) => {
-    const newItem = {
-      id: `FERT_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}_${String(items.value.length + 1).padStart(3, '0')}`,
-      fertilizerCode: itemData.fertilizerCode || `SF${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(items.value.length + 1).padStart(3, '0')}`,
-      fertilizerName: itemData.fertilizerName || '',
-      fertilizerType: itemData.fertilizerType || '',
-      cropName: itemData.cropName || '',
-      greenhouseName: itemData.greenhouseName || '',
-      dilutionRatio: itemData.dilutionRatio || '',
-      quantity: itemData.quantity || 0,
-      unit: itemData.unit || '千克',
-      unitPrice: itemData.unitPrice || 0,
-      totalCost: itemData.totalCost || 0,
-      fertilizeTime: itemData.fertilizeTime || '',
-      operatorName: itemData.operatorName || '',
-      dataSource: itemData.dataSource || 'manual',
-      description: itemData.description || '',
-      productionPlanCode: itemData.productionPlanCode || '',
-      productionPlanId: itemData.productionPlanId || '',
-      plantingCode: itemData.plantingCode || '',
-      farmTaskId: itemData.farmTaskId || '',
-      createTime: new Date().toLocaleString(),
-      updateTime: new Date().toLocaleString()
+    try {
+      const response = await enhancedApiClient.post(API_BASE, itemData)
+      const newItem = response?.data || response
+
+      if (newItem) {
+        // 转换字段名：snake_case -> camelCase
+        const transformed = transformRecord(newItem)
+        if (transformed) {
+          items.value.unshift(transformed)
+        }
+      }
+
+      return { success: true, data: transformRecord(newItem) }
+    } catch (e) {
+      error.value = e.message
+      console.error('[FertilizerStore] 创建施肥记录失败:', e)
+      return { success: false, error: e.message }
     }
-    items.value.unshift(newItem)
-    return newItem
   }
 
   /**
    * 更新施肥记录
    */
   const updateItem = async (id, itemData) => {
-    const index = items.value.findIndex(item => item.id === id)
-    if (index !== -1) {
-      items.value[index] = {
-        ...items.value[index],
-        ...itemData,
-        updateTime: new Date().toLocaleString()
+    try {
+      const response = await enhancedApiClient.put(`${API_BASE}/${id}`, itemData)
+      const updatedItem = response?.data || response
+
+      if (updatedItem) {
+        const transformed = transformRecord(updatedItem)
+        if (transformed) {
+          const index = items.value.findIndex(item => item.id === id)
+          if (index !== -1) {
+            items.value[index] = { ...items.value[index], ...transformed }
+          }
+        }
       }
+
+      return { success: true, data: transformRecord(updatedItem) }
+    } catch (e) {
+      error.value = e.message
+      console.error('[FertilizerStore] 更新施肥记录失败:', e)
+      return { success: false, error: e.message }
     }
   }
 
@@ -219,9 +168,14 @@ export const useFertilizerStore = defineStore('fertilizer', () => {
    * 删除单条施肥记录
    */
   const deleteItem = async (id) => {
-    const index = items.value.findIndex(item => item.id === id)
-    if (index !== -1) {
-      items.value.splice(index, 1)
+    try {
+      await enhancedApiClient.delete(`${API_BASE}/${id}`)
+      items.value = items.value.filter(item => item.id !== id)
+      return { success: true }
+    } catch (e) {
+      error.value = e.message
+      console.error('[FertilizerStore] 删除施肥记录失败:', e)
+      return { success: false, error: e.message }
     }
   }
 
@@ -229,14 +183,65 @@ export const useFertilizerStore = defineStore('fertilizer', () => {
    * 批量删除施肥记录
    */
   const deleteItems = async (ids) => {
-    items.value = items.value.filter(item => !ids.includes(item.id))
+    try {
+      await enhancedApiClient.post(`${API_BASE}/batch-delete`, { ids })
+      items.value = items.value.filter(item => !ids.includes(item.id))
+      return { success: true }
+    } catch (e) {
+      error.value = e.message
+      console.error('[FertilizerStore] 批量删除施肥记录失败:', e)
+      return { success: false, error: e.message }
+    }
   }
 
   /**
    * 根据ID获取单条记录
    */
-  const getItemById = (id) => {
-    return items.value.find(item => item.id === id) || null
+  const getItemById = async (id) => {
+    try {
+      const response = await enhancedApiClient.get(`${API_BASE}/${id}`)
+      return response?.data || response || null
+    } catch (e) {
+      error.value = e.message
+      console.error('[FertilizerStore] 获取施肥记录详情失败:', e)
+      return null
+    }
+  }
+
+  /**
+   * 获取统计数据
+   */
+  const fetchStats = async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams()
+      if (filters.startDate) queryParams.set('start_date', filters.startDate)
+      if (filters.endDate) queryParams.set('end_date', filters.endDate)
+      if (filters.cropName) queryParams.set('crop_name', filters.cropName)
+      if (filters.greenhouseName) queryParams.set('greenhouse_name', filters.greenhouseName)
+
+      const query = queryParams.toString()
+      const url = `${API_BASE}/stats${query ? `?${query}` : ''}`
+
+      const response = await enhancedApiClient.get(url)
+      return response?.data || response || []
+    } catch (e) {
+      error.value = e.message
+      console.error('[FertilizerStore] 获取统计数据失败:', e)
+      return []
+    }
+  }
+
+  /**
+   * 生成施肥编号
+   */
+  const generateCode = async () => {
+    try {
+      const response = await enhancedApiClient.get(`${API_BASE}/generate-code`)
+      return response?.code || response?.data?.code || ''
+    } catch (e) {
+      console.error('[FertilizerStore] 生成施肥编号失败:', e)
+      return ''
+    }
   }
 
   return {
@@ -251,7 +256,9 @@ export const useFertilizerStore = defineStore('fertilizer', () => {
     updateItem,
     deleteItem,
     deleteItems,
-    getItemById
+    getItemById,
+    fetchStats,
+    generateCode
   }
 })
 

@@ -106,9 +106,14 @@
 import { ref } from 'vue'
 import { Clock, CircleCheck, User, OfficeBuilding, WarningFilled, WarnTriangleFilled, CircleClose } from '@element-plus/icons-vue'
 
-type AlertLevel = 'warning' | 'danger' | 'critical'
+// AlertLevel: 'warning' | 'danger' | 'critical'
 
-const props = defineProps({})
+const props = defineProps({
+  visible: Boolean,
+  alert: Object,
+  users: Array,
+  onClose: Function
+})
 
 const remarks = ref('')
 

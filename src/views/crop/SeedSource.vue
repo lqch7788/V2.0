@@ -15,6 +15,9 @@
       </div>
     </div>
 
+    <!-- 统计卡片 -->
+    <SeedSourceStats :data="statsData" />
+
     <!-- 筛选工具栏 -->
     <SeedSourceFilter
       :filters="filters"
@@ -122,6 +125,7 @@ import { Goods } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import SeedSourceFilter from '@/components/farm/seed-source/components/SeedSourceFilter.vue'
 import SeedSourceTable from '@/components/farm/seed-source/components/SeedSourceTable.vue'
+import SeedSourceStats from '@/components/farm/seed-source/components/SeedSourceStats.vue'
 import AddModal from '@/components/farm/seed-source/modals/AddModal.vue'
 import EditModal from '@/components/farm/seed-source/modals/EditModal.vue'
 import DetailModal from '@/components/farm/seed-source/modals/DetailModal.vue'
@@ -131,6 +135,7 @@ import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 import PropagationRecordModal from '@/components/farm/seed-source/modals/PropagationRecordModal.vue'
 import PropagationStageModal from '@/components/farm/seed-source/modals/PropagationStageModal.vue'
 import { useSeedSourceStore } from '@/stores'
+import { enhancedApiClient } from '@/lib/apiClient'
 import {  SeedSource, SeedSourceFilters  } from '@/types/crop'
 
 // Store
@@ -257,6 +262,26 @@ const filteredData = computed(() => {
   })
 })
 
+// 统计数据
+const statsData = computed(() => {
+  const now = new Date()
+  const thisMonth = now.getMonth()
+  const thisYear = now.getFullYear()
+
+  const total = items.value.length
+  const totalQuantity = items.value.reduce((sum, item) => sum + (item.availableCount || 0), 0)
+  const monthCount = items.value.filter(item => {
+    if (!item.createTime) return false
+    const date = new Date(item.createTime)
+    return date.getMonth() === thisMonth && date.getFullYear() === thisYear
+  }).length
+  const alertCount = items.value.filter(item =>
+    item.status === 'low' || item.status === 'depleted'
+  ).length
+
+  return { total, totalQuantity, monthCount, alertCount }
+})
+
 // 加载数据
 const loadItems = async () => {
   await seedSourceStore.loadItems()
@@ -265,10 +290,15 @@ const loadItems = async () => {
 // 事件处理
 const handleFiltersChange = (newFilters) => {
   filters.value = newFilters
+  // 同步到Store的filters
+  seedSourceStore.setFilters(newFilters)
 }
 
 const handleSearch = () => {
   pagination.value.current = 1
+  // 同步filters到Store并重新加载数据
+  seedSourceStore.setFilters(filters.value)
+  loadItems()
 }
 
 const handleReset = () => {
@@ -313,12 +343,24 @@ const handlePrint = (record) => {
   printModalVisible.value = true
 }
 
+// 处理删除（通过 Store，删除前检查是否有育苗引用）
 const handleDelete = async (ids) => {
-  try {
-    await seedSourceStore.deleteItems(ids)
-    ElMessage.success('删除成功')
+  for (const id of ids) {
+    try {
+      const res = await enhancedApiClient.get(`/seed-sources/${id}/check-deletable`)
+      if (!res?.deletable) {
+        ElMessage.warning(`该种源已被 ${res?.refCount || '多个'} 条育苗记录引用，无法删除。\n请先清理育苗关联后再删除。`)
+        return
+      }
+    } catch {
+      // 降级策略：检查失败时允许继续删除
+    }
+  }
+  const success = await seedSourceStore.deleteItems(ids)
+  if (success) {
     selectedRows.value = []
-  } catch {
+    ElMessage.success('删除成功')
+  } else {
     ElMessage.error('删除失败')
   }
 }
@@ -348,15 +390,62 @@ const handleConfirmPrint = (records) => {
 }
 
 // 处理结束（正常/异常）
-const handleEnd = (record, endType) => {
+const handleEnd = async (record, endType) => {
   // 获取关联的生产计划批次号
   if (!record.productionPlanCode) {
     ElMessage.warning('该种源没有关联的生产计划，无法结束')
     return
   }
-  // 简化处理：直接提示
-  const isNormal = endType === 'normal'
-  ElMessage.info(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
+
+  try {
+    // 查找对应的生产计划
+    const batch = await enhancedApiClient.get(`/crop-batch/code/${record.productionPlanCode}`)
+    if (!batch) {
+      ElMessage.error('未找到关联的生产计划')
+      return
+    }
+
+    // 检查是否已完成
+    if (batch.batchStatus === 'completed') {
+      ElMessage.error('该生产计划已完成结束，不能重复结束')
+      return
+    }
+
+    // 计算完成比例 (availableCount / initialCount)
+    const completionRate = record.initialCount > 0 ? record.availableCount / record.initialCount : 0
+
+    // 确认对话框
+    const isNormal = endType === 'normal'
+    const confirmMsg = isNormal
+      ? `确认正常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后禁止一切入库和补录操作`
+      : `确认异常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后如需补录，需提交审核申请`
+
+    // 使用 ElMessageBox.confirm 显示确认对话框
+    const { ElMessageBox } = await import('element-plus')
+    try {
+      await ElMessageBox.confirm(confirmMsg, '确认结束', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+    } catch {
+      // 用户取消
+      return
+    }
+
+    // 执行结束
+    const result = await enhancedApiClient.put(`/crop-batch/${batch.id}/end`, { endType })
+    if (result) {
+      ElMessage.success(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
+      // 刷新列表
+      await loadItems()
+    } else {
+      ElMessage.error('结束失败')
+    }
+  } catch (error) {
+    console.error('结束生产计划失败:', error)
+    ElMessage.error('结束失败')
+  }
 }
 
 // 处理繁殖过程记录

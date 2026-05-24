@@ -262,10 +262,12 @@
 import { computed } from 'vue'
 import { HotWater, Drizzling, Sunny, WindPower, DataLine, ScaleToOriginal } from '@element-plus/icons-vue'
 
-// 巡查记录类型>
-}
-
-const props = defineProps({})
+// 巡查记录类型定义
+const props = defineProps({
+  visible: Boolean,
+  record: Object,
+  users: Array
+})
 
 // 获取用户名称
 const getUserName = (userId) => {

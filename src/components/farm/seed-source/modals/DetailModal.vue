@@ -133,9 +133,47 @@
                 <span class="text-sm text-gray-500 w-24">具体方法：</span>
                 <span class="text-sm text-gray-900">{{ record.propagationMethod }}</span>
               </div>
+              <div v-if="record.propagationStartDate" class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">开始日期：</span>
+                <span class="text-sm text-gray-900">{{ record.propagationStartDate }}</span>
+              </div>
               <div v-if="record.expectedHarvestDate" class="flex items-center">
                 <span class="text-sm text-gray-500 w-24">预计采收：</span>
                 <span class="text-sm text-gray-900">{{ record.expectedHarvestDate }}</span>
+              </div>
+              <div v-if="record.actualHarvestDate" class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">实际采收：</span>
+                <span class="text-sm text-gray-900">{{ record.actualHarvestDate }}</span>
+              </div>
+              <!-- 亲本信息 -->
+              <div v-if="record.parentMaleCode || record.parentFemaleCode" class="flex items-center col-span-2">
+                <span class="text-sm text-gray-500 w-24 flex-shrink-0">亲本信息：</span>
+                <span class="text-sm text-gray-900">
+                  <span v-if="record.parentMaleCode" class="mr-3">♂{{ record.parentMaleCode }}</span>
+                  <span v-if="record.parentFemaleCode">♀{{ record.parentFemaleCode }}</span>
+                </span>
+              </div>
+              <!-- 母株信息 -->
+              <div v-if="record.motherPlantCode" class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">母株编号：</span>
+                <span class="text-sm text-gray-900">{{ record.motherPlantCode }}</span>
+              </div>
+              <!-- 关联种植记录 -->
+              <div v-if="record.linkedPlantingCode" class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">关联种植：</span>
+                <span class="text-sm text-gray-900">{{ record.linkedPlantingCode }}</span>
+              </div>
+              <div v-if="record.breedingLocation" class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">育种地点：</span>
+                <span class="text-sm text-gray-900">{{ record.breedingLocation }}</span>
+              </div>
+              <div v-if="record.targetTraits" class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">目标性状：</span>
+                <span class="text-sm text-gray-900">{{ record.targetTraits }}</span>
+              </div>
+              <div v-if="record.generation" class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">世代：</span>
+                <span class="text-sm text-gray-900">{{ record.generation }}</span>
               </div>
             </div>
           </div>

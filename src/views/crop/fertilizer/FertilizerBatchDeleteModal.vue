@@ -127,7 +127,6 @@ const handleClose = () => {
 // 确认
 const handleConfirm = () => {
   emit('confirm')
-  handleClose()
 }
 </script>
 

@@ -6,7 +6,7 @@
       description="种植批次全生命周期数据汇总与6环节全链条追溯"
     >
       <template #icon>
-        <el-icon :size="24" color="white"><Guide /></el-icon>
+        <el-icon :size="24" color="white"><ListTree /></el-icon>
       </template>
     </PageHeader>
 
@@ -16,11 +16,11 @@
         <el-tab-pane name="batch">
           <template #label>
             <span class="flex items-center gap-2">
-              <el-icon :size="16"><Box /></el-icon>
+              <el-icon :size="16"><Layers /></el-icon>
               批次汇总
             </span>
           </template>
-          <BatchSummary v-if="activeTab === 'batch'" />
+          <BatchSummary :hide-header="true" />
         </el-tab-pane>
 
         <el-tab-pane name="chain">
@@ -30,7 +30,7 @@
               全链条追溯
             </span>
           </template>
-          <ChainTraceability v-if="activeTab === 'chain'" />
+          <ChainTraceability :hide-header="true" />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -39,7 +39,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Guide, Box, Link } from '@element-plus/icons-vue'
+import { ListTree, Layers, Link } from 'lucide-vue-next'
 import { PageHeader } from '@/components/summary'
 
 import BatchSummary from './sub/BatchSummary.vue'

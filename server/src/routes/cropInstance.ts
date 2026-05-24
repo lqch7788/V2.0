@@ -136,4 +136,85 @@ router.delete('/:id', (req: Request, res: Response) => {
   }
 });
 
+// 获取实例的完整溯源链
+router.get('/:id/trace-chain', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const db = getDatabase();
+
+    // 获取作物实例基本信息
+    let stmt = db.prepare('SELECT * FROM crop_instances WHERE id = ?');
+    stmt.bind([id]);
+    let instance = null;
+    if (stmt.step()) {
+      instance = stmt.getAsObject();
+    }
+    stmt.free();
+
+    if (!instance || Object.keys(instance).length === 0) {
+      return res.status(404).json({ success: false, error: '作物实例不存在' });
+    }
+
+    // 获取关联的种源记录
+    const seedSourcesStmt = db.prepare(`
+      SELECT * FROM seed_sources
+      WHERE id IN (
+        SELECT source_id FROM seedlings WHERE id IN (
+          SELECT source_id FROM plantings WHERE id IN (
+            SELECT source_id FROM harvest_records WHERE id = ?
+          )
+        )
+      )
+      OR id = (SELECT source_id FROM crop_instances WHERE id = ?)
+    `);
+    seedSourcesStmt.bind([id, id]);
+    const seedSources = [];
+    while (seedSourcesStmt.step()) {
+      seedSources.push(seedSourcesStmt.getAsObject());
+    }
+    seedSourcesStmt.free();
+
+    // 获取关联的育苗记录
+    const seedlingsStmt = db.prepare('SELECT * FROM seedlings WHERE id IN (SELECT source_id FROM plantings WHERE id IN (SELECT source_id FROM harvest_records WHERE id = ?)) OR id = (SELECT source_id FROM crop_instances WHERE id = ?)');
+    seedlingsStmt.bind([id, id]);
+    const seedlings = [];
+    while (seedlingsStmt.step()) {
+      seedlings.push(seedlingsStmt.getAsObject());
+    }
+    seedlingsStmt.free();
+
+    // 获取关联的种植记录
+    const plantingsStmt = db.prepare('SELECT * FROM plantings WHERE id IN (SELECT source_id FROM harvest_records WHERE id = ?) OR id = (SELECT source_id FROM crop_instances WHERE id = ?)');
+    plantingsStmt.bind([id, id]);
+    const plantings = [];
+    while (plantingsStmt.step()) {
+      plantings.push(plantingsStmt.getAsObject());
+    }
+    plantingsStmt.free();
+
+    // 获取关联的采收记录
+    const harvestStmt = db.prepare('SELECT * FROM harvest_records WHERE id = ?');
+    harvestStmt.bind([id]);
+    const harvests = [];
+    while (harvestStmt.step()) {
+      harvests.push(harvestStmt.getAsObject());
+    }
+    harvestStmt.free();
+
+    res.json({
+      success: true,
+      data: {
+        instance,
+        seedSources,
+        seedlings,
+        plantings,
+        harvests
+      }
+    });
+  } catch (error) {
+    console.error('获取溯源链失败:', error);
+    res.status(500).json({ success: false, error: '获取溯源链失败' });
+  }
+});
+
 export default router;

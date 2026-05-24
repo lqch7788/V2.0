@@ -75,12 +75,35 @@
 import { computed } from 'vue'
 import { ArrowLeft, ArrowRight, DArrowLeft, DArrowRight } from '@element-plus/icons-vue'
 
-const props = defineProps({"pageSizeOptions":"() => [10","className":"''"})
+const props = defineProps({
+  page: {
+    type: Number,
+    default: 1
+  },
+  total: {
+    type: Number,
+    default: 0
+  },
+  pageSize: {
+    type: Number,
+    default: 20
+  },
+  pageSizeOptions: {
+    type: Array,
+    default: () => [10, 20, 50, 100]
+  },
+  onPageChange: Function,
+  onPageSizeChange: Function,
+  className: {
+    type: String,
+    default: ''
+  }
+})
 
 const totalPages = computed(() => Math.ceil(props.total / props.pageSize))
 
 const pageNumbers = computed(() => {
-  const pages: (number | 'ellipsis')[] = []
+  const pages = []
   if (totalPages.value <= 7) {
     for (let i = 1; i <= totalPages.value; i++) pages.push(i)
   } else {

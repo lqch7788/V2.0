@@ -14,48 +14,48 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">待审批</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
+            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">已通过</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
+            <p class="text-xs text-gray-500">已通过</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.approved }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-red-600"><Warning /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-red-600"><Warning /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">已驳回</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
+            <p class="text-xs text-gray-500">已驳回</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.rejected }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-purple-600"><Grid /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-purple-600"><Grid /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">全部</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-xs text-gray-500">全部</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
           </div>
         </div>
       </div>
@@ -211,6 +211,25 @@
         </div>
       </div>
     </div>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="showDetailModal" title="申请详情" width="800px" top="5vh">
+      <div v-if="selectedApplication" class="space-y-4">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="申请单号">{{ selectedApplication.code }}</el-descriptions-item>
+          <el-descriptions-item label="申请类型">{{ typeLabelMap[selectedApplication.type] }}</el-descriptions-item>
+          <el-descriptions-item label="部门">{{ selectedApplication.department }}</el-descriptions-item>
+          <el-descriptions-item label="申请时间">{{ selectedApplication.createTime }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="statusColorMap[selectedApplication.status]">{{ statusLabelMap[selectedApplication.status] }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="申请原因" :span="2">{{ selectedApplication.reason }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <template #footer>
+        <el-button @click="showDetailModal = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -303,7 +322,8 @@ const filteredRecords = computed(() => {
   return records.value.filter(record => {
     if (filters.type && record.type !== filters.type) return false
     if (filters.status && record.status !== filters.status) return false
-    if (filters.date && !record.createTime.startsWith(filters.date)) return false
+    // 日期筛选：createTime格式为"2024-02-28 11:00"，检查是否以日期字符串开头
+    if (filters.date && !record.createTime?.startsWith(filters.date)) return false
     if (filters.searchText) {
       const text = filters.searchText.toLowerCase()
       if (!record.code.toLowerCase().includes(text)) {
@@ -368,8 +388,12 @@ const handleSelectionChange = (selection) => {
 }
 
 // 查看详情
+const selectedApplication = ref(null)
+const showDetailModal = ref(false)
+
 const handleView = (row) => {
-  ElMessage.info('查看申请详情：' + row.code)
+  selectedApplication.value = row
+  showDetailModal.value = true
 }
 
 // 编辑

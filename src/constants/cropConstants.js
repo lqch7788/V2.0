@@ -24,13 +24,10 @@ export const SOURCE_TYPE_MAP = {
   other: '其他',
 }
 
-// ========== 种源来源途径映射 ==========
+// ========== 种源来源途径映射（与V1.1保持一致） ==========
 export const SOURCE_ORIGIN_MAP = {
   internal_seed: '内部种源',
   external_purchase: '外部采购',
-  self_produced: '自产',
-  commissioned: '委托生产',
-  gift: '赠送/受赠',
   tissue_culture: '组培苗',
   grafting: '嫁接苗',
   seedling_split: '分株繁殖',
@@ -85,14 +82,14 @@ export const PLANTING_STATUS_MAP = {
   cancelled: { label: '已取消', color: 'bg-gray-100 text-gray-500' },
 }
 
-// ========== 作物实例状态映射 ==========
+// ========== 作物实例状态映射（与V1.1 InstancePage.tsx保持一致） ==========
 export const CROP_INSTANCE_STATUS_MAP = {
   seedling: { label: '育苗中', bg: 'bg-blue-100', text: 'text-blue-700' },
   planted: { label: '已定植', bg: 'bg-amber-100', text: 'text-amber-700' },
   growing: { label: '生长期', bg: 'bg-emerald-100', text: 'text-emerald-700' },
-  harvesting: { label: '采收期', bg: 'bg-purple-100', text: 'text-purple-700' },
-  harvested: { label: '已采收', bg: 'bg-indigo-100', text: 'text-indigo-700' },
-  terminated: { label: '已终止', bg: 'bg-gray-100', text: 'text-gray-500' },
+  harvested: { label: '已采收', bg: 'bg-purple-100', text: 'text-purple-700' },
+  outbound: { label: '已出库', bg: 'bg-cyan-100', text: 'text-cyan-700' },
+  cancelled: { label: '已取消', bg: 'bg-red-100', text: 'text-red-700' },
 }
 
 // ========== 入库类型映射 ==========

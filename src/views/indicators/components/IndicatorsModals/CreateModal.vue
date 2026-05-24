@@ -103,6 +103,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Plus, Edit, Close } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { indicatorCategories } from '@/data/indicatorsData'
 
 const props = defineProps({
@@ -174,7 +175,8 @@ const handleClose = () => {
 
 // 提交表单
 const handleSubmit = () => {
-  if (!formData.value.name.trim()) {
+  if (!formData.value.name || !formData.value.name.trim()) {
+    ElMessage.warning('请输入指标名称')
     return
   }
   emit('save', formData.value)

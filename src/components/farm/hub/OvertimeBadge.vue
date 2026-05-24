@@ -57,7 +57,7 @@ const style = computed(() => {
   }
 })
 
-const iconComponent = computed(() => isCritical.value ? Warning )
+const iconComponent = computed(() => isCritical.value ? Warning : Clock)
 const sizeClass = computed(() => props.size === 'sm' ? 'text-xs px-1.5 py-0.5' : 'text-sm px-2 py-1')
-const iconSize = computed(() => props.size === 'sm' ? 12 )
+const iconSize = computed(() => props.size === 'sm' ? 12 : 16)
 </script>

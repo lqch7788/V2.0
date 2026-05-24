@@ -15,12 +15,27 @@
 import { ElForm } from 'element-plus'
 import { ref } from 'vue'
 
-const props = defineProps({"labelWidth":"'120px'","labelPosition":"'right'","className":"''"})
+const props = defineProps({
+  model: Object,
+  rules: Object,
+  labelWidth: {
+    type: String,
+    default: '120px'
+  },
+  labelPosition: {
+    type: String,
+    default: 'right'
+  },
+  className: {
+    type: String,
+    default: ''
+  }
+})
 
 const formRef = ref()
 
 defineExpose({
-  validate) => formRef.value?.validate(),
+  validate: () => formRef.value?.validate(),
   validateField: (prop) => formRef.value?.validateField(prop),
   resetFields: () => formRef.value?.resetFields(),
   clearValidate: (prop) => formRef.value?.clearValidate(prop)

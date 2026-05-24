@@ -22,7 +22,10 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Crop, Sunny, CircleCheck, Top } from '@element-plus/icons-vue'
+// 导入与V1.1一致的图标 - Trees/Sprout/TrendingUp 是 lucide-react 图标
+// V2.0 使用 Element Plus，需要映射为等效图标
+import { Grid, Sunny, CircleCheck, TrendCharts } from '@element-plus/icons-vue'
+// 实际应该使用更接近V1.1的图标，但Element Plus没有完全对应的图标，暂时使用近似图标
 
 const props = defineProps({
   data: {
@@ -40,7 +43,7 @@ const stats = computed(() => [
   {
     label: '总批次数',
     value: props.data.total || 0,
-    icon: Crop,
+    icon: Grid,  // V1.1使用Trees图标，这里用Grid代替
     color: 'bg-emerald-500',
   },
   {
@@ -58,7 +61,7 @@ const stats = computed(() => [
   {
     label: '本月新增',
     value: props.data.monthCount || 0,
-    icon: Top,
+    icon: TrendCharts,  // V1.1使用TrendingUp图标，这里用TrendCharts代替
     color: 'bg-blue-500',
   },
 ])

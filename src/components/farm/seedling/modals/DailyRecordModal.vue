@@ -214,19 +214,26 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
+    // 后端期望 snake_case 格式
     await seedlingStore.addDailyRecord(props.record.id, {
-      recordDate: formData.value.recordDate,
-      temperature: formData.value.temperature,
-      humidity: formData.value.humidity,
-      watering: formData.value.watering,
-      abnormality: formData.value.abnormality || undefined,
-      survivalCountChange: formData.value.survivalCountChange,
-      plantedCountChange: formData.value.plantedCountChange,
-      lossCountChange: formData.value.lossCountChange,
+      record_date: formData.value.recordDate,
+      crop_name: props.record?.cropName,
+      crop_variety: props.record?.cropVariety,
+      greenhouse_name: props.record?.siteName,
+      quantity: formData.value.survivalCountChange || 0,
+      unit: '株',
+      data: JSON.stringify({
+        temperature: formData.value.temperature,
+        humidity: formData.value.humidity,
+        watering: formData.value.watering,
+        ph_value: formData.value.phValue,
+        ec_value: formData.value.ecValue,
+        survival_count_change: formData.value.survivalCountChange,
+        planted_count_change: formData.value.plantedCountChange,
+        loss_count_change: formData.value.lossCountChange
+      }),
       remarks: formData.value.remarks || undefined,
-      phValue: formData.value.phValue,
-      ecValue: formData.value.ecValue,
-      operator: formData.value.operator || undefined
+      create_by: formData.value.operator || localStorage.getItem('username') || '管理员'
     })
 
     ElMessage.success('添加记录成功')

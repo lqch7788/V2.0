@@ -48,6 +48,8 @@
       :can-delete="canDelete"
       :can-export="canExport"
       :can-print="canPrint"
+      :export-mode="exportMode"
+      :print-mode="printMode"
       @add="handleAdd"
       @edit="handleEdit"
       @detail="handleDetail"
@@ -60,6 +62,13 @@
       @move="handleMove"
       @mark="handleMark"
       @seed-saving="handleSeedSaving"
+      @edit-mode="handleEditMode"
+      @delete-mode="handleDeleteMode"
+      @export-select-all="handleExportSelectAll"
+      @export-confirm="handleExportConfirm"
+      @export-cancel="handleExportCancel"
+      @print-mode="handlePrintMode"
+      @print-cancel="handlePrintCancel"
     />
 
     <!-- 弹窗组件 -->
@@ -107,9 +116,9 @@
     />
 
     <ExportModal
+      v-model:export-file-type="exportFormat"
       :is-open="exportModalOpen"
       :selected-count="selectedRows.length"
-      :export-format="exportFormat"
       @close="exportModalOpen = false"
       @confirm="handleConfirmExport"
     />
@@ -141,6 +150,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Goods, Search, Plus, Download, Printer, Edit, Delete, CircleCheck,
@@ -160,10 +170,14 @@ import ExportModal from '@/components/farm/planting/modals/ExportModal.vue'
 import LabelDetailModal from '@/components/farm/planting/modals/LabelDetailModal.vue'
 import MoveModal from '@/components/farm/planting/modals/MoveModal.vue'
 import MarkModal from '@/components/farm/planting/modals/MarkModal.vue'
-import { assignMarkToLabels, getLabels, getLabelResumes } from '@/services/apiPlantLabelService'
+import { assignMarkToLabels, getLabels, getLabelResumes, queryLabelByNumber, addLabelResume } from '@/services/apiPlantLabelService'
+import { getCropBatchByCode, endCropBatch, getCompletionRate } from '@/services/apiCropBatchService'
 
 // 使用 Store
 const plantingStore = usePlantingStore()
+
+// 使用 Router
+const router = useRouter()
 
 // ========== 权限控制 ==========
 const canCreate = ref(true)
@@ -197,22 +211,17 @@ const filters = ref({
 })
 
 // ========== 下拉选项 ==========
-// 作物品种选项 - 从store获取或使用默认值
-const cropOptions = ref([
-  { value: '番茄', label: '番茄' },
-  { value: '黄瓜', label: '黄瓜' },
-  { value: '辣椒', label: '辣椒' },
-  { value: '茄子', label: '茄子' },
-  { value: '草莓', label: '草莓' }
-])
+// 作物品种选项 - 与V1.1一致，从种植数据中提取唯一品种
+const cropOptions = computed(() => {
+  const uniqueCropNames = [...new Set(plantingStore.plantings.map(item => item.cropName).filter(Boolean))]
+  return uniqueCropNames.sort((a, b) => a.localeCompare(b)).map(name => ({ value: name, label: name }))
+})
 
-// 种植区域选项
-const areaOptions = ref([
-  { value: '1号棚', label: '1号棚' },
-  { value: '2号棚', label: '2号棚' },
-  { value: '3号棚', label: '3号棚' },
-  { value: '4号棚', label: '4号棚' }
-])
+// 种植区域选项 - 与V1.1一致，从种植数据中提取唯一区域
+const areaOptions = computed(() => {
+  const uniqueAreas = [...new Set(plantingStore.plantings.map(item => item.areaName).filter(Boolean))]
+  return uniqueAreas.sort((a, b) => a.localeCompare(b)).map(name => ({ value: name, label: name }))
+})
 
 // 来源类型选项
 const sourceTypeOptions = ref([
@@ -242,6 +251,8 @@ const markModalOpen = ref(false)
 
 // 导出格式
 const exportFormat = ref('xlsx')
+const exportMode = ref(false)
+const printMode = ref(false)
 
 // ========== 图片相关 ==========
 const currentImages = ref([])
@@ -308,6 +319,75 @@ const handleReset = () => {
     countMin: undefined,
     countMax: undefined
   }
+}
+
+// ========== 操作模式处理 - V1.1新增 ==========
+
+// 编辑模式
+const handleEditMode = () => {
+  // V1.1在编辑模式下需要用户选择一条记录
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请在表格中选择一条记录')
+    return
+  }
+  const record = plantingStore.plantings.find(p => p.id === selectedRows.value[0])
+  if (record) {
+    currentRecord.value = record
+    editModalOpen.value = true
+  }
+  selectedRows.value = []
+}
+
+// 删除模式
+const handleDeleteMode = async () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要删除的记录')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await plantingStore.deletePlantings(selectedRows.value)
+    ElMessage.success('删除成功')
+    selectedRows.value = []
+  } catch {
+    // 用户取消
+  }
+}
+
+// 导出模式
+const handleExportSelectAll = () => {
+  if (selectedRows.value.length === filteredData.value.length) {
+    selectedRows.value = []
+  } else {
+    selectedRows.value = filteredData.value.map(item => item.id)
+  }
+}
+
+const handleExportConfirm = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要导出的数据')
+    return
+  }
+  exportModalOpen.value = true
+}
+
+const handleExportCancel = () => {
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+// 打印模式
+const handlePrintMode = () => {
+  printMode.value = true
+}
+
+const handlePrintCancel = () => {
+  printMode.value = false
+  selectedRows.value = []
 }
 
 // ========== 操作处理 ==========
@@ -380,67 +460,45 @@ const handleDelete = async (ids) => {
   }
 }
 
-// 导出
+// 导出 - V1.1在exportMode下由handleExportConfirm处理
 const handleExportClick = () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要导出的数据')
-    return
-  }
-  exportModalOpen.value = true
+  // 正常模式下点击导出按钮，进入导出模式
+  exportMode.value = true
+  selectedRows.value = []
 }
 
 const handleConfirmExport = async (format) => {
   // 获取选中的数据
   const selectedData = filteredData.value.filter(item => selectedRows.value.includes(item.id))
 
-  // 导出表头
-  const headers = [
-    '种植批号', '关联生产计划', '作物编码', '作物名称', '作物品种',
-    '品种路径', '种植区域', '种植数量', '种植日期', '土壤PH', '土壤EC',
-    '损耗率', '已采收', '完成比例', '状态', '创建人', '创建时间', '备注'
-  ]
+  // 导出表头 - 与V1.1完全一致
+  const headers = ['种植批号', '来源类型', '来源批号', '作物品种', '品种', '种植区域', '大棚名称', '种植数量', '种植日期', '土壤PH', '土壤EC', '移栽数量', '移栽日期', '是否采收', '采收日期', '损耗率', '溯源码', '状态', '创建人', '创建时间', '备注']
 
-  // 获取状态标签
-  const getStatusLabel = (status) => {
-    const map = {
-      'planted': '已定植',
-      'growing': '生长期',
-      'harvested': '已采收',
-      'cancelled': '已取消'
-    }
-    return map[status] || status
+  // 获取来源类型标签
+  const getSourceTypeLabel = (sourceType) => {
+    return sourceType === SourceType.SEED ? '种子' : '种苗'
   }
 
-  // 计算完成比例
-  const getCompletionRate = (record) => {
-    if (!record.targetYield || record.targetYield === 0) return '-'
-    const rate = (record.harvestQuantity || 0) / record.targetYield
-    return `${Math.round(rate * 100)}%`
-  }
-
-  // 获取品种路径
-  const getVarietyPath = (record) => {
-    if (record.cropVariety) return record.cropVariety
-    return record.cropName || '-'
-  }
-
-  // 生成导出数据
+  // 生成导出数据 - 与V1.1完全一致
   const exportData = selectedData.map(record => ({
     '种植批号': record.plantCode || '',
-    '关联生产计划': record.productionPlanCode || '',
-    '作物编码': record.cropCode || '',
-    '作物名称': record.cropName || '',
-    '作物品种': record.cropVariety || '',
-    '品种路径': getVarietyPath(record),
+    '来源类型': getSourceTypeLabel(record.sourceType),
+    '来源批号': record.sourceCode || '',
+    '作物品种': record.cropName || '',
+    '品种': record.cropVariety || '',
     '种植区域': record.areaName || '',
+    '大棚名称': record.rootName || '',
     '种植数量': record.plantingCount || 0,
     '种植日期': record.plantingDate || '',
-    '土壤PH': record.soilPH != null && record.soilPH > 0 ? record.soilPH.toFixed(1) : '',
-    '土壤EC': record.soilEC != null && record.soilEC > 0 ? record.soilEC.toFixed(1) : '',
-    '损耗率': record.attritionRate != null && record.attritionRate > 0 ? `${record.attritionRate.toFixed(1)}%` : '',
-    '已采收': record.harvestQuantity || 0,
-    '完成比例': getCompletionRate(record),
-    '状态': getStatusLabel(record.status),
+    '土壤PH': record.soilPH || '',
+    '土壤EC': record.soilEC || '',
+    '移栽数量': record.transplantCount || '',
+    '移栽日期': record.transplantDate || '',
+    '是否采收': record.isHarvest ? '是' : '否',
+    '采收日期': record.harvestDate || '',
+    '损耗率': `${record.attritionRate}%`,
+    '溯源码': record.traceabilityCode || '',
+    '状态': record.status === PlantingStatus.PLANTED ? '已定植' : record.status === PlantingStatus.GROWING ? '生长期' : record.status === PlantingStatus.HARVESTED ? '已采收' : '已取消',
     '创建人': record.createBy || '',
     '创建时间': record.createTime || '',
     '备注': record.remarks || ''
@@ -566,17 +624,56 @@ const handleMove = (record) => {
 }
 
 const handleMoveSubmit = async (data) => {
-  ElMessage.success('移动操作成功')
-  moveModalOpen.value = false
+  try {
+    // 通过标签编号查找标签
+    const label = await queryLabelByNumber(data.labelNumber)
+    if (!label) {
+      ElMessage.error('未找到对应标签，请检查标签编号')
+      return false
+    }
+
+    // 构建履历数据
+    const resumeData = {
+      operationType: data.operationType,
+      fromAreaName: data.operationType === 'move_out' ? label.moveInAreaName || '' : '',
+      toAreaName: data.operationType === 'move_in' ? data.targetArea : '',
+      operationDate: data.operationDate || new Date().toISOString().slice(0, 10),
+      remarks: data.remarks || ''
+    }
+
+    // 添加标签履历
+    const success = await addLabelResume(label.id, resumeData)
+    if (success) {
+      ElMessage.success('移动操作成功')
+      moveModalOpen.value = false
+      return true
+    } else {
+      ElMessage.error('移动操作失败')
+      return false
+    }
+  } catch (error) {
+    console.error('移动操作失败:', error)
+    ElMessage.error('移动操作失败')
+    return false
+  }
 }
 
 // 标记
-const handleMark = (record) => {
+const handleMark = async (record) => {
   currentRecord.value = record
-  plantLabels.value = [
-    { id: 1, labelNumber: `${record.plantCode}-0001`, currentMarkName: '' },
-    { id: 2, labelNumber: `${record.plantCode}-0002`, currentMarkName: '优质' }
-  ]
+  // 从API加载该种植的标签数据
+  try {
+    const labelsResult = await getLabels({ plantingId: record.id })
+    if (labelsResult.data && labelsResult.data.length > 0) {
+      plantLabels.value = labelsResult.data
+    } else {
+      // 没有标签时使用空数组
+      plantLabels.value = []
+    }
+  } catch (error) {
+    console.error('获取标签数据失败:', error)
+    plantLabels.value = []
+  }
   markModalOpen.value = true
 }
 
@@ -599,19 +696,35 @@ const handleEnd = async (record, endType) => {
     ElMessage.warning('该种植没有关联的生产计划，无法结束')
     return
   }
+
+  // 获取生产计划信息
+  const batch = await getCropBatchByCode(record.productionPlanCode)
+  if (!batch) {
+    ElMessage.error('未找到关联的生产计划')
+    return
+  }
+
+  if (batch.batchStatus === 'completed') {
+    ElMessage.error('该生产计划已完成结束，不能重复结束')
+    return
+  }
+
+  const completionRate = getCompletionRate(batch, record.harvestQuantity || 0)
   const isNormal = endType === 'normal'
   const confirmMsg = isNormal
-    ? `确认正常结束此生产计划？\n\n结束后禁止一切入库和补录操作`
-    : `确认异常结束此生产计划？\n\n结束后如需补录，需提交审核申请`
+    ? `确认正常结束此生产计划？\n\n采收完成比例：${Math.round(completionRate * 100)}%\n结束后禁止一切入库和补录操作`
+    : `确认异常结束此生产计划？\n\n采收完成比例：${Math.round(completionRate * 100)}%\n结束后如需补录，需提交审核申请`
   try {
     await ElMessageBox.confirm(confirmMsg, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: isNormal ? 'warning' : 'error'
     })
-    // 调用 store 的 endPlanting 方法
-    const success = await plantingStore.endPlanting(record.id, endType)
+    // 调用生产批次的结束API
+    const success = await endCropBatch(batch.id, endType)
     if (success) {
+      // 同时更新本地store
+      await plantingStore.endPlanting(record.id, endType)
       ElMessage.success(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
     } else {
       ElMessage.error('结束生产计划失败')
@@ -623,6 +736,13 @@ const handleEnd = async (record, endType) => {
 
 // 留种
 const handleSeedSaving = (record) => {
-  ElMessage.info('留种功能跳转')
+  // 跳转到种源管理页面，并传递留种相关参数
+  const params = new URLSearchParams({
+    action: 'seed-saving',
+    plantingId: record.id,
+    plantingCode: record.plantCode || '',
+    cropName: record.cropName || ''
+  })
+  router.push(`/crop/seed-source?${params.toString()}`)
 }
 </script>

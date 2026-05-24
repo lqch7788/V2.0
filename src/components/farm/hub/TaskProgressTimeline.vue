@@ -146,15 +146,23 @@
 <script setup>
 import { computed } from 'vue'
 import { Clock, User, Document, Picture, Location, Microphone, Box } from '@element-plus/icons-vue'
-    voiceNote?: string
-    materials?: { name: string; qty: number; unit: string }[]
-    laborCost?: number
-  }
-  comment?: string
-  reason?: string
-}
 
-const props = defineProps({"maxHeight":"'400px'","showTaskInfo":"false"})
+const props = defineProps({
+  records: {
+    type: Array,
+    default: () => []
+  },
+  maxHeight: {
+    type: String,
+    default: '400px'
+  },
+  showTaskInfo: {
+    type: Boolean,
+    default: false
+  },
+  taskCode: String,
+  taskTitle: String
+})
 
 const sortedRecords = computed(() => {
   return [...props.records].sort(

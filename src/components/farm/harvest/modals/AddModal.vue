@@ -193,28 +193,38 @@
                 <table class="min-w-[1000px] w-full">
                   <thead class="bg-emerald-600 text-white">
                     <tr>
-                      <th class="px-2 py-2 text-xs font-semibold w-36">产品编码</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-28">产品名称</th>
-                      <th class="px-2 py-2 text-xs font-semibold">分类信息</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-24">品质等级</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-28">采收量(kg)</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-28">目标产量</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-20">完成率</th>
-                      <th class="px-2 py-2 text-xs font-semibold">备注</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-12">操作</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-36">作物编码</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-32">品种</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-32">作物品种</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-28">种植模式</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-20">品质等级</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-20">采收量</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-14">单位</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-20">目标产量</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-14">完成率</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-10">备注</th>
+                      <th class="px-2 py-2 text-xs font-semibold w-10">操作</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200">
                     <tr v-for="(product, idx) in formData.products" :key="idx">
+                      <!-- 作物编码 -->
                       <td class="px-2 py-2">
-                        <el-input v-model="product.productCode" size="small" placeholder="输入编码" />
+                        <el-input v-model="product.productCode" size="small" placeholder="编码" />
                       </td>
+                      <!-- 品种（类型名） -->
                       <td class="px-2 py-2">
-                        <el-input v-model="product.cropName" size="small" placeholder="输入产品名称" />
+                        <el-input v-model="product.cropName" size="small" placeholder="品种" />
                       </td>
+                      <!-- 作物品种（最细化名） -->
+                      <td class="px-2 py-2">
+                        <el-input v-model="product.variety" size="small" placeholder="作物品种" />
+                      </td>
+                      <!-- 种植模式 -->
                       <td class="px-2 py-2 text-xs text-gray-500 bg-gray-50">
-                        {{ product.cropName || '-' }}
+                        {{ product.plantingMode || '-' }}
                       </td>
+                      <!-- 品质等级 -->
                       <td class="px-2 py-2">
                         <el-select v-model="product.grade" size="small" class="w-full">
                           <el-option label="A级" value="A" />
@@ -222,6 +232,7 @@
                           <el-option label="C级" value="C" />
                         </el-select>
                       </td>
+                      <!-- 采收量 -->
                       <td class="px-2 py-2">
                         <el-input-number
                           v-model="product.harvestQuantity"
@@ -230,6 +241,16 @@
                           class="w-full"
                         />
                       </td>
+                      <!-- 单位 -->
+                      <td class="px-2 py-2">
+                        <el-select v-model="product.unit" size="small" class="w-full">
+                          <el-option label="kg" value="kg" />
+                          <el-option label="公斤" value="公斤" />
+                          <el-option label="斤" value="斤" />
+                          <el-option label="吨" value="吨" />
+                        </el-select>
+                      </td>
+                      <!-- 目标产量 -->
                       <td class="px-2 py-2">
                         <el-input-number
                           v-model="product.targetYield"
@@ -238,12 +259,15 @@
                           class="w-full"
                         />
                       </td>
+                      <!-- 完成率 -->
                       <td class="px-2 py-2 text-xs text-blue-700 bg-gray-50 text-center">
                         {{ product.targetYield > 0 ? Math.round((product.harvestQuantity / product.targetYield) * 100) : 0 }}%
                       </td>
+                      <!-- 备注 -->
                       <td class="px-2 py-2">
                         <el-input v-model="product.remarks" size="small" placeholder="备注" />
                       </td>
+                      <!-- 操作 -->
                       <td class="px-2 py-2">
                         <el-button
                           size="small"
@@ -342,9 +366,9 @@ const workers = computed(() => {
 // 根据入库类型过滤批次
 const filteredBatches = computed(() => {
   return props.cropBatches.filter(batch => {
-    if (addForm.inboundType === 'seed_source') {
+    if (formData.value.inboundType === 'seed_source') {
       return batch.planType === 'seed_breeding'
-    } else if (addForm.inboundType === 'seedling') {
+    } else if (formData.value.inboundType === 'seedling') {
       return batch.planType === 'seedling'
     } else {
       return batch.planType === 'planting'
@@ -407,17 +431,18 @@ const handleGenerateCode = () => {
   formData.value.harvestCode = code
 }
 
-// 添加产品
+// 添加产品（按V1.1字段映射）
 const handleAddProduct = () => {
   formData.value.products.push({
-    productCode: '',
-    cropName: selectedBatch.value?.cropName || '',
-    variety: selectedBatch.value?.variety || '',
-    batchCode: formData.value.batchCode,
+    productCode: '',          // 作物编码
+    variety: selectedBatch.value?.cropName || '',  // 作物品种（最细化名）
+    cropName: selectedBatch.value?.variety || '',   // 品种（类型名）
     plantingMode: selectedBatch.value?.plantingMode || '',
     harvestQuantity: 0,
+    unit: 'kg',              // 单位（V1.1默认公斤）
     targetYield: selectedBatch.value?.targetYield || 0,
     grade: 'A',
+    auditor: formData.value.auditor,
     remarks: ''
   })
 }
@@ -433,8 +458,26 @@ const validateForm = () => {
   if (!formData.value.harvestCode) newErrors.harvestCode = '请生成采收单号'
   if (!formData.value.batchCode) newErrors.batchCode = '请选择采收批次'
   if (!formData.value.greenhouseId) newErrors.greenhouseId = '请选择采收区域'
-  if (!formData.value.harvestDate) newErrors.harvestDate = '请选择采收时间'
   if (!formData.value.warehouseId) newErrors.warehouseId = '请选择入库仓库'
+  if (!formData.value.harvestDate) newErrors.harvestDate = '请选择采收时间'
+  // V1.1 兼容：unitPrice 验证
+  if (formData.value.unitPrice) {
+    if (formData.value.unitPrice < 0) {
+      newErrors.unitPrice = '单价不能为负数'
+    } else if (formData.value.unitPrice > 1000000) {
+      newErrors.unitPrice = '单价不能超过 1,000,000 元/kg'
+    } else if (!/^\d+(\.\d{1,2})?$/.test(String(formData.value.unitPrice))) {
+      newErrors.unitPrice = '单价最多2位小数'
+    }
+  }
+  // V1.1 兼容：harvestDate 不能是未来时间
+  if (formData.value.harvestDate) {
+    const harvestTime = new Date(formData.value.harvestDate).getTime()
+    const now = new Date().getTime()
+    if (harvestTime > now) {
+      newErrors.harvestDate = '采收时间不能超过当前时间'
+    }
+  }
   errors.value = newErrors
   return Object.keys(newErrors).length === 0
 }

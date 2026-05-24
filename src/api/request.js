@@ -38,12 +38,21 @@ request.interceptors.response.use(
     // loadingInstance?.close()
 
     // V1.1/V2.0 后端返回格式: { success: true, data } 或 { success: true, message, data }
+    // 也可能返回没有success字段的格式（如直接返回数组）
+    const hasSuccessField = 'success' in response.data
+
+    if (!hasSuccessField) {
+      // 没有success字段，说明后端返回的不是标准格式，直接返回整个响应数据
+      // 这可能是旧版API或其他格式的数据
+      return response.data
+    }
+
     const { success, message, data } = response.data
 
     // 根据状态处理
     if (success === true) {
       return data
-    } else if (success === false || !success) {
+    } else if (success === false) {
       // 业务层面的失败
       ElMessage.warning(message || '请求失败')
       return Promise.reject(new Error(message))

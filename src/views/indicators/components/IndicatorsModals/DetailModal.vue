@@ -58,7 +58,7 @@
                   <div
                     :class="getProgressColorClass()"
                     class="h-full rounded-full transition-all"
-                    :style="{ width: `${Math.min((indicator.actual / indicator.target) * 100, 100)}%` }"
+                    :style="{ width: `${indicator.target ? Math.min((indicator.actual / indicator.target) * 100, 100) : 0}%` }"
                   />
                 </div>
                 <span class="text-sm font-medium text-gray-900 font-mono">
@@ -174,12 +174,14 @@ const handleClose = () => {
 // 计算达成率
 const calcAchievementRate = () => {
   if (!props.indicator) return '0%'
+  if (!props.indicator.target || props.indicator.target === 0) return '0%'
   return ((props.indicator.actual / props.indicator.target) * 100).toFixed(1) + '%'
 }
 
 // 获取进度条颜色
 const getProgressColorClass = () => {
   if (!props.indicator) return 'bg-emerald-500'
+  if (!props.indicator.target || props.indicator.target === 0) return 'bg-gray-400'
   const ratio = props.indicator.actual / props.indicator.target
   if (ratio >= 1) return 'bg-emerald-500'
   if (ratio >= 0.95) return 'bg-amber-500'

@@ -4477,6 +4477,135 @@ function seedFertilizerAndMarks() {
 }
 
 /**
+ * 施肥记录种子数据（V1.1兼容）
+ */
+function seedFertilizerRecords() {
+  const db = getDatabase();
+
+  // 检查是否已有数据
+  const existing = db.exec('SELECT COUNT(*) FROM fertilizer_records');
+  const count = Number(existing[0]?.values[0]?.[0]) || 0;
+  if (count > 0) {
+    console.log(`施肥记录数据已存在 (${count} 条)，跳过种子导入`);
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const records = [
+    {
+      id: 'FERT_20260522_001',
+      fertilizer_code: 'SF20260522001',
+      fertilizer_name: '有机复合肥',
+      fertilizer_type: 'compound',
+      crop_name: '番茄',
+      greenhouse_name: '1号大棚-A区',
+      dilution_ratio: '1:500',
+      quantity: 150.5,
+      unit: '千克',
+      unit_price: 12.5,
+      total_cost: 1881.25,
+      fertilize_time: '2026-05-22 09:30:00',
+      data_source: 'manual',
+      operator_name: '张三',
+      description: '定植后第一次追肥',
+      status: 'completed',
+    },
+    {
+      id: 'FERT_20260521_002',
+      fertilizer_code: 'SF20260521002',
+      fertilizer_name: '水溶性氮肥',
+      fertilizer_type: 'inorganic',
+      crop_name: '黄瓜',
+      greenhouse_name: '2号大棚',
+      dilution_ratio: '1:800',
+      quantity: 80.0,
+      unit: '千克',
+      unit_price: 8.0,
+      total_cost: 640.0,
+      fertilize_time: '2026-05-21 14:20:00',
+      data_source: 'auto_iot',
+      iot_device_id: 'IOT_DEVICE_001',
+      operator_name: '李四',
+      description: '滴灌施肥',
+      status: 'completed',
+    },
+    {
+      id: 'FERT_20260520_003',
+      fertilizer_code: 'SF20260520003',
+      fertilizer_name: '生物有机肥',
+      fertilizer_type: 'biological',
+      crop_name: '茄子',
+      greenhouse_name: '3号大棚',
+      dilution_ratio: '1:200',
+      quantity: 200.0,
+      unit: '千克',
+      unit_price: 15.0,
+      total_cost: 3000.0,
+      fertilize_time: '2026-05-20 08:00:00',
+      data_source: 'manual',
+      operator_name: '王五',
+      description: '基肥深施',
+      status: 'completed',
+    },
+    {
+      id: 'FERT_20260519_004',
+      fertilizer_code: 'SF20260519004',
+      fertilizer_name: '磷酸二氢钾',
+      fertilizer_type: 'trace',
+      crop_name: '辣椒',
+      greenhouse_name: '1号大棚-B区',
+      dilution_ratio: '1:1000',
+      quantity: 50.0,
+      unit: '千克',
+      unit_price: 25.0,
+      total_cost: 1250.0,
+      fertilize_time: '2026-05-19 16:30:00',
+      data_source: 'manual',
+      operator_name: '张三',
+      description: '叶面喷施',
+      status: 'completed',
+    },
+    {
+      id: 'FERT_20260518_005',
+      fertilizer_code: 'SF20260518005',
+      fertilizer_name: '有机肥（牛粪）',
+      fertilizer_type: 'organic',
+      crop_name: '生菜',
+      greenhouse_name: '4号地块',
+      dilution_ratio: '',
+      quantity: 500.0,
+      unit: '千克',
+      unit_price: 3.0,
+      total_cost: 1500.0,
+      fertilize_time: '2026-05-18 07:00:00',
+      data_source: 'auto_iot',
+      iot_device_id: 'IOT_DEVICE_002',
+      operator_name: '李四',
+      description: '基肥撒施后翻耕',
+      status: 'completed',
+    },
+  ];
+
+  const stmt = db.prepare(`
+    INSERT INTO fertilizer_records (
+      id, fertilizer_code, fertilizer_name, fertilizer_type, crop_name, greenhouse_name,
+      dilution_ratio, quantity, unit, unit_price, total_cost, fertilize_time,
+      data_source, iot_device_id, operator_name, description, status, create_time, update_time
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const r of records) {
+    stmt.run([
+      r.id, r.fertilizer_code, r.fertilizer_name, r.fertilizer_type, r.crop_name, r.greenhouse_name,
+      r.dilution_ratio, r.quantity, r.unit, r.unit_price, r.total_cost, r.fertilize_time,
+      r.data_source, r.iot_device_id || null, r.operator_name, r.description || null, r.status, now, now
+    ]);
+  }
+  stmt.free();
+  console.log(`已导入 ${records.length} 条施肥记录种子数据`);
+}
+
+/**
  * 行政区划种子数据（国家+34省+~340市）
  */
 function seedRegionData() {
@@ -4891,6 +5020,7 @@ export function exportDatabase() {
   seedMaterialCosts();
   seedEnergyCosts();
   seedFertilizerAndMarks();
+  seedFertilizerRecords();
   seedRegionData();
   seedProcessDefinitions();
   seedCostCategories();

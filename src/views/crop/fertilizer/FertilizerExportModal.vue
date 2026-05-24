@@ -94,7 +94,6 @@ const handleClose = () => {
 // 确认
 const handleConfirm = () => {
   emit('confirm', selectedFormat.value)
-  handleClose()
 }
 </script>
 

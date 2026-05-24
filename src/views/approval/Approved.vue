@@ -314,7 +314,8 @@ const filteredRecords = computed(() => {
   return approvals.value.filter(record => {
     if (filters.type && record.type !== filters.type) return false
     if (filters.status && record.status !== filters.status) return false
-    if (filters.date && !record.applyDate.startsWith(filters.date)) return false
+    // 日期筛选：applyDate可能是ISO时间戳格式，需检查是否包含该日期
+    if (filters.date && !record.applyDate?.includes(filters.date)) return false
     if (filters.searchText) {
       const text = filters.searchText.toLowerCase()
       if (!record.code.toLowerCase().includes(text) &&

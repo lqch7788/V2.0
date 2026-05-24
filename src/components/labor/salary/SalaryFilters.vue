@@ -95,10 +95,22 @@
 import { computed, ref, watch } from 'vue'
 import { Search, Close } from '@element-plus/icons-vue'
 
-type SalaryCalcType = '月薪制' | '日薪制' | '时薪制'
-type SalaryStatus = '待确认' | '已确认' | '已发放'
+// SalaryCalcType: '月薪制' | '日薪制' | '时薪制'
+// SalaryStatus: '待确认' | '已确认' | '已发放'
 
-const props = defineProps({})
+const props = defineProps({
+  filters: {
+    type: Object,
+    default: () => ({
+      month: '',
+      staffName: '',
+      calcType: '',
+      status: ''
+    })
+  },
+  onSearch: Function,
+  onReset: Function
+})
 
 const searchValue = ref(props.filters.staffName || '')
 

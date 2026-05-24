@@ -66,10 +66,13 @@
 import { ref, onMounted } from 'vue'
 import { Clock, Box, Right } from '@element-plus/icons-vue'
 
-type StockType = 'seed' | 'seedling' | 'product'
-type BusinessType = 'seed_source' | 'seedling' | 'planting' | 'harvest' | 'purchase'
+// StockType: 'seed' | 'seedling' | 'product'
+// BusinessType: 'seed_source' | 'seedling' | 'planting' | 'harvest' | 'purchase'
 
-const props = defineProps({})
+const props = defineProps({
+  batchCode: String,
+  cropName: String
+})
 
 const loading = ref(true)
 const upstream = ref([])

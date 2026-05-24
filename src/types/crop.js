@@ -176,8 +176,52 @@ export const SeedSourceFilters = {}
 /** 育苗筛选条件 */
 export const SeedlingFilters = {}
 
-/** 种植记录 */
-export const Planting = {}
+/**
+ * 种植记录
+ * 与后端 BackendPlanting 接口和 plantings 表字段对应
+ */
+export const Planting = {
+  id: '',
+  plantCode: '',
+  sourceType: '',
+  sourceId: '',
+  sourceCode: '',
+  cropCode: '',
+  cropName: '',
+  cropVariety: '',
+  areaId: '',
+  areaName: '',
+  rootName: '',
+  plantingCount: 0,
+  plantingDate: '',
+  soilPH: 0,
+  soilEC: 0,
+  transplantCount: 0,
+  transplantDate: '',
+  isHarvest: false,
+  harvestDate: '',
+  attritionRate: 0,
+  printCount: 0,
+  traceabilityCode: '',
+  pictures: [],
+  remarks: '',
+  status: '',
+  productionPlanId: '',
+  productionPlanCode: '',
+  createBy: '',
+  createTime: '',
+  updateTime: '',
+  greenhouseName: '',
+  plantedQuantity: 0,
+  survivalQuantity: 0,
+  survivalRate: 0,
+  growthStatus: '',
+  expectedHarvestDate: '',
+  actualHarvestDate: '',
+  harvestQuantity: 0,
+  targetYield: 0,
+  unit: ''
+}
 
 /** 种植筛选条件 */
 export const PlantingFilters = {}
@@ -196,11 +240,61 @@ export const CropOrderFilters = {}
 /** 作物订单 */
 export const CropOrder = {}
 
-/** 作物实例 */
+/**
+ * 作物实例 - 贯穿整个生命周期的核心实体
+ * @typedef {Object} CropInstance
+ * @property {string} id - 唯一ID
+ * @property {string} instanceCode - 实例编码
+ * @property {string} [orderId] - 关联的订单ID（可选）
+ * @property {string} [orderCode] - 关联的订单编号（可选）
+ * @property {string} cropCategory - 作物类别
+ * @property {string} cropName - 作物名称
+ * @property {string} cropVariety - 作物品种
+ * @property {string} categoryCode - 大类代码
+ * @property {string} typeCode - 类型代码
+ * @property {string} subCode - 品种代码
+ * @property {string} sourceOrigin - 来源类型
+ * @property {string} [sourceDescription] - 来源描述
+ * @property {number} initialQuantity - 初始数量
+ * @property {number} currentQuantity - 当前剩余数量
+ * @property {number} plantedQuantity - 已定植数量
+ * @property {number} harvestedQuantity - 已采收数量
+ * @property {string} status - 状态
+ * @property {string} [seedEntryDate] - 种源入库日期
+ * @property {string} [seedlingStartDate] - 育苗开始日期
+ * @property {string} [plantingDate] - 定植日期
+ * @property {string} [harvestDate] - 首次采收日期
+ * @property {string} [outboundDate] - 出库日期
+ * @property {string} [sourceInstanceId] - 来源实例ID
+ * @property {string} createBy - 创建人
+ * @property {string} createTime - 创建时间
+ * @property {string} updateTime - 更新时间
+ * @property {string} [unit] - 单位
+ */
 export const CropInstance = {}
 
-/** 作物实例状态 */
-export const CropInstanceStatus = {}
+/**
+ * 作物实例状态枚举
+ * @typedef {'seedling'|'planted'|'growing'|'harvested'|'outbound'|'cancelled'} CropInstanceStatus
+ */
+export const CropInstanceStatus = {
+  SEEDLING: 'seedling',    // 育苗中
+  PLANTED: 'planted',     // 已定植
+  GROWING: 'growing',     // 生长期
+  HARVESTED: 'harvested',   // 已采收
+  OUTBOUND: 'outbound',    // 已出库
+  CANCELLED: 'cancelled'  // 已取消
+}
 
-/** 作物溯源链 */
+/**
+ * 作物溯源链
+ * @typedef {Object} CropTraceChain
+ * @property {CropInstance} instance - 作物实例
+ * @property {CropOrder} [order] - 关联订单
+ * @property {SeedSource} [seedSource] - 兼容：保留第一条种源记录
+ * @property {SeedSource[]} [seedSources] - 所有关联的种源记录
+ * @property {Seedling[]} [seedlings] - 关联育苗记录
+ * @property {Planting[]} [plantings] - 关联种植记录
+ * @property {HarvestRecord[]} [harvests] - 关联采收记录
+ */
 export const CropTraceChain = {}

@@ -2,10 +2,10 @@
   <!-- 订单管理主页面 - V1.1样式 -->
   <div class="p-6 bg-[#F2F6FA] min-h-screen">
     <!-- 页面标题卡片 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
-      <div class="flex items-center justify-between">
+    <div class="bg-white rounded-xl p-6 shadow-none">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" class="text-white">
               <ClipboardList />
             </el-icon>
@@ -104,6 +104,22 @@
             class="w-full"
           />
         </div>
+        <!-- 结束日期 -->
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm text-gray-700 mb-1">结束日期</label>
+          <el-date-picker
+            v-model="filters.endDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            class="w-full"
+          />
+        </div>
+        <!-- 创建人 -->
+        <div class="flex-1 min-w-[150px]">
+          <label class="block text-sm text-gray-700 mb-1">创建人</label>
+          <el-input v-model="filters.createBy" placeholder="请输入创建人" clearable />
+        </div>
         <!-- 按钮 -->
         <div class="flex gap-2">
           <el-button size="small" @click="handleReset">
@@ -126,14 +142,29 @@
           <span class="text-xs text-gray-500">（共 {{ filteredData.length }} 条）</span>
         </div>
         <div class="flex items-center gap-2">
+          <!-- 批量编辑模式 -->
+          <template v-if="batchEditMode">
+            <el-button type="primary" size="small" @click="() => {}">
+              确认编辑
+            </el-button>
+            <el-button size="small" @click="() => batchEditMode = false">取消</el-button>
+          </template>
+          <!-- 删除模式 -->
+          <template v-else-if="deleteMode">
+            <el-button type="primary" size="small" @click="() => {}">
+              确认删除
+            </el-button>
+            <el-button size="small" @click="() => deleteMode = false">取消</el-button>
+          </template>
           <!-- 导出模式 -->
-          <template v-if="exportMode">
+          <template v-else-if="exportMode">
             <el-button type="primary" size="small" @click="handleExportConfirm">
               <el-icon><Download /></el-icon>
               确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
             <el-button size="small" @click="handleExportCancel">取消</el-button>
           </template>
+          <!-- 正常模式 -->
           <template v-else>
             <el-button size="small" @click="handleExportClick">
               <el-icon><Download /></el-icon>
@@ -154,7 +185,7 @@
         <table class="w-full">
           <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <tr>
-              <th v-if="exportMode" class="px-4 py-3 text-left text-sm font-semibold w-12">
+              <th v-if="exportMode || batchEditMode" class="px-4 py-3 text-left text-sm font-semibold w-12">
                 <el-checkbox
                   :model-value="selectedRows.length === filteredData.length && filteredData.length > 0"
                   @change="handleSelectAll"
@@ -173,16 +204,16 @@
           </thead>
           <tbody class="divide-y divide-gray-300">
             <tr v-if="paginatedData.length === 0">
-              <td :colspan="exportMode ? 10 : 9" class="px-4 py-8 text-center text-gray-500">
+              <td :colspan="exportMode || batchEditMode ? 10 : 9" class="px-4 py-8 text-center text-gray-500">
                 暂无数据
               </td>
             </tr>
             <tr
-              v-for="record in paginatedData"
+              v-for="(record, index) in paginatedData"
               :key="record.id"
-              class="transition-colors"
+              class="hover:bg-emerald-50 transition-colors"
             >
-              <td v-if="exportMode" class="px-4 py-3">
+              <td v-if="exportMode || batchEditMode" class="px-4 py-3">
                 <el-checkbox
                   :model-value="selectedRows.includes(record.id)"
                   @change="() => handleToggleSelect(record.id)"
@@ -221,11 +252,11 @@
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <template v-if="record.status !== 'completed'">
+                  <template v-if="record.status !== CropOrderStatus.COMPLETED">
                     <el-button link @click="handleEdit(record)" title="编辑">
                       <el-icon><Edit /></el-icon>
                     </el-button>
-                    <el-button link @click="handleDelete(record)" title="删除">
+                    <el-button link @click="() => handleDeleteOne(record)" title="删除">
                       <el-icon><Delete /></el-icon>
                     </el-button>
                   </template>
@@ -347,10 +378,10 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
-import AddModal from './modals/AddModal.vue'
-import DetailModal from './modals/DetailModal.vue'
-import EditModal from './modals/EditModal.vue'
-import ExportModal from './modals/ExportModal.vue'
+import AddModal from '@/views/crop/modals/AddModal.vue'
+import DetailModal from '@/views/crop/modals/DetailModal.vue'
+import EditModal from '@/views/crop/modals/EditModal.vue'
+import ExportModal from '@/views/crop/modals/ExportModal.vue'
 
 // Store
 const orderDataStore = useOrderDataStore()
@@ -372,14 +403,13 @@ const orderTypeOptions = [
   { value: 'other', label: '其他' }
 ]
 
-// 作物品种选项（模拟数据）
-const cropNameOptions = [
-  { value: '番茄', label: '番茄' },
-  { value: '黄瓜', label: '黄瓜' },
-  { value: '辣椒', label: '辣椒' },
-  { value: '茄子', label: '茄子' },
-  { value: '白菜', label: '白菜' }
-]
+// 作物品种选项（从订单数据动态提取唯一品种）
+const cropNameOptions = computed(() => {
+  const uniqueCropVarieties = [...new Set(orderDataStore.orders.map(order => order.cropVariety).filter(Boolean))]
+  return uniqueCropVarieties
+    .sort((a, b) => a.localeCompare(b))
+    .map(name => ({ value: name, label: name }))
+})
 
 // 筛选条件
 const filters = ref({
@@ -406,6 +436,8 @@ const selectedRows = ref([])
 
 // 导出模式
 const exportMode = ref(false)
+const batchEditMode = ref(false)
+const deleteMode = ref(false)
 const exportFormat = ref('xlsx')
 const showExportModal = ref(false)
 
@@ -420,8 +452,13 @@ const currentRecord = ref(null)
 // 加载状态
 const loading = computed(() => orderDataStore.isLoading)
 
-// 统计数据
+// 统计数据（优先使用后端API统计数据，否则回退到本地计算）
 const statsData = computed(() => {
+  // 如果有API统计数据，优先使用
+  if (orderDataStore.stats) {
+    return orderDataStore.stats
+  }
+  // 回退到本地计算
   const orders = orderDataStore.orders
   return {
     total: orders.length,
@@ -435,20 +472,21 @@ const statsData = computed(() => {
   }
 })
 
-// 筛选后的数据
+// 筛选后的数据（与V1.1逻辑完全一致）
 const filteredData = computed(() => {
   return orderDataStore.orders.filter(item => {
-    if (filters.value.orderCode && !item.orderCode.includes(filters.value.orderCode)) return false
-    if (filters.value.orderName && !item.orderName.includes(filters.value.orderName)) return false
-    if (filters.value.cropName && !item.cropVariety.includes(filters.value.cropName)) return false
+    if (filters.value.orderCode && !item.orderCode?.includes(filters.value.orderCode)) return false
+    if (filters.value.orderName && !item.orderName?.includes(filters.value.orderName)) return false
+    if (filters.value.cropName && !item.cropVariety?.includes(filters.value.cropName)) return false
     if (filters.value.status && item.status !== filters.value.status) return false
     if (filters.value.startDate && item.orderDate < filters.value.startDate) return false
     if (filters.value.endDate && item.orderDate > filters.value.endDate) return false
-    if (filters.value.createBy && !item.createBy.includes(filters.value.createBy)) return false
+    if (filters.value.createBy && !item.createBy?.includes(filters.value.createBy)) return false
     return true
   }).sort((a, b) => {
     const timeA = a.createTime || ''
     const timeB = b.createTime || ''
+    // 按创建时间倒序排列（新建的排在前面），与V1.1一致
     return timeB.localeCompare(timeA)
   })
 })
@@ -599,6 +637,11 @@ const handleDelete = async (record) => {
   } catch {
     // 用户取消
   }
+}
+
+// 单条删除（兼容按钮调用）
+const handleDeleteOne = (record) => {
+  handleDelete(record)
 }
 
 // 导出

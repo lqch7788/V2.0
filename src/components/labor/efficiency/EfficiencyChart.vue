@@ -38,9 +38,15 @@
 import { ref } from 'vue'
 import { Histogram, DataLine } from '@element-plus/icons-vue'
 
-type ChartType = 'bar' | 'line'
+// ChartType: 'bar' | 'line'
 
 const chartType = ref('line')
 
-defineProps({})
+defineProps({
+  type: {
+    type: String,
+    default: 'line'
+  },
+  data: Object
+})
 </script>

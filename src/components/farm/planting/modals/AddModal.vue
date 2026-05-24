@@ -1,5 +1,5 @@
 <template>
-  <!-- 新增种植记录弹窗 - 纯div结构 -->
+  <!-- 新增种植记录弹窗 - 与V1.1 AddModal.tsx完全一致 -->
   <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" @click.self="onClose">
     <div class="bg-white rounded-xl w-full max-w-4xl shadow-xl max-h-[90vh] flex flex-col">
       <!-- 标题栏 - 渐变背景 -->
@@ -14,6 +14,15 @@
       <!-- 表单内容 -->
       <div class="flex-1 overflow-y-auto p-6">
         <div class="grid grid-cols-2 gap-6">
+          <!-- 来源类型 - V1.1新增 -->
+          <div class="col-span-2">
+            <label class="block text-gray-700 text-sm mb-2 font-medium">来源类型 *</label>
+            <el-select v-model="formData.sourceType" placeholder="请选择" class="w-full" @change="handleSourceTypeChange">
+              <el-option label="种源" value="seed" />
+              <el-option label="种苗" value="seedling" />
+            </el-select>
+          </div>
+
           <!-- 作物品种 -->
           <div>
             <label class="block text-gray-700 text-sm mb-2 font-medium">作物品种 *</label>
@@ -114,19 +123,20 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'submit'])
 
-// 表单数据
+// 表单数据 - 与V1.1 AddModal一致
 const formData = ref({
+  sourceType: 'seedling',  // 来源类型：seed-种源, seedling-种苗
   cropName: '',
   cropVariety: '',
   areaName: '',
   plantingCount: 0,
   plantingDate: new Date().toISOString().slice(0, 10),
-  soilPH: null,
-  soilEC: null,
+  soilPH: 6.5,  // V1.1默认值
+  soilEC: 1.0,  // V1.1默认值
   remarks: ''
 })
 
-// 作物品种映射
+// 作物品种映射 - V1.1的自动填充逻辑
 const varietyMap = {
   '番茄': '大红番茄',
   '黄瓜': '水果黄瓜',
@@ -140,17 +150,25 @@ const handleCropChange = (cropName) => {
   formData.value.cropVariety = varietyMap[cropName] || ''
 }
 
+// 监听来源类型变化，重置相关字段
+const handleSourceTypeChange = (sourceType) => {
+  formData.value.sourceType = sourceType
+  formData.value.cropName = ''
+  formData.value.cropVariety = ''
+}
+
 // 监听打开状态，重置表单
 watch(() => props.isOpen, (val) => {
   if (val) {
     formData.value = {
+      sourceType: 'seedling',
       cropName: '',
       cropVariety: '',
       areaName: '',
       plantingCount: 0,
       plantingDate: new Date().toISOString().slice(0, 10),
-      soilPH: null,
-      soilEC: null,
+      soilPH: 6.5,
+      soilEC: 1.0,
       remarks: ''
     }
   }

@@ -50,13 +50,23 @@
 
 <script setup>
 import { ref } from 'vue'
-  selectedIds
-  filters: { status: string; type: string; area: string; search: string; assignee: string; batchCode: string }
-  onFilterChange: (key, value) => void
-  onResetFilters: () => void
-}
 
-defineProps({})
+defineProps({
+  selectedIds: Array,
+  filters: {
+    type: Object,
+    default: () => ({
+      status: '',
+      type: '',
+      area: '',
+      search: '',
+      assignee: '',
+      batchCode: ''
+    })
+  },
+  onFilterChange: Function,
+  onResetFilters: Function
+})
 
 const viewMode = ref('list')
 </script>

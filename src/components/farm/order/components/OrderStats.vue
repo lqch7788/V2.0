@@ -24,7 +24,18 @@
 import { computed } from 'vue'
 import { Goods, CaretTop, CircleCheck, Calendar } from '@element-plus/icons-vue'
 
-const props = defineProps({})
+const props = defineProps({
+  data: {
+    type: Object,
+    required: true,
+    default: () => ({
+      total: 0,
+      inProgress: 0,
+      completed: 0,
+      thisMonth: 0
+    })
+  }
+})
 
 const stats = computed(() => [
   {

@@ -2,13 +2,15 @@
   <div class="p-6 space-y-4">
     <!-- 标题卡片 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" color="white"><Collection /></el-icon>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">作物实例追溯</h1>
-          <p class="text-gray-500">追溯作物全生命周期和供应链信息</p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+            <el-icon :size="24" color="white"><Collection /></el-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">作物实例追溯</h1>
+            <p class="text-gray-500">追溯作物全生命周期和供应链信息</p>
+          </div>
         </div>
       </div>
     </div>
@@ -23,11 +25,10 @@
             type="text"
             placeholder="请输入实例编码、作物品种或品种"
             clearable
-            @input="handleSearch"
           />
         </div>
         <div class="flex items-end">
-          <el-button type="primary" @click="handleQuery">
+          <el-button type="primary">
             <el-icon class="mr-1"><Search /></el-icon>
             查询
           </el-button>
@@ -91,7 +92,7 @@
             <!-- 实例基本信息 -->
             <div class="bg-emerald-50 rounded-lg p-4">
               <h4 class="text-sm font-bold text-emerald-700 mb-3 flex items-center gap-2">
-                <el-icon><Goods /></el-icon>
+                <el-icon><Box /></el-icon>
                 实例信息
               </h4>
               <div class="grid grid-cols-2 gap-3 text-sm">
@@ -138,27 +139,27 @@
               </h4>
               <div class="space-y-2 text-sm">
                 <div v-if="selectedInstance.seedEntryDate" class="flex items-center gap-2">
-                  <el-icon color="#10b981"><Check /></el-icon>
+                  <el-icon color="#10b981"><CircleCheck /></el-icon>
                   <span class="text-gray-600">种源入库：</span>
                   <span class="text-gray-900">{{ selectedInstance.seedEntryDate }}</span>
                 </div>
                 <div v-if="selectedInstance.seedlingStartDate" class="flex items-center gap-2">
-                  <el-icon color="#10b981"><Check /></el-icon>
+                  <el-icon color="#10b981"><CircleCheck /></el-icon>
                   <span class="text-gray-600">育苗开始：</span>
                   <span class="text-gray-900">{{ selectedInstance.seedlingStartDate }}</span>
                 </div>
                 <div v-if="selectedInstance.plantingDate" class="flex items-center gap-2">
-                  <el-icon color="#10b981"><Check /></el-icon>
+                  <el-icon color="#10b981"><CircleCheck /></el-icon>
                   <span class="text-gray-600">定植日期：</span>
                   <span class="text-gray-900">{{ selectedInstance.plantingDate }}</span>
                 </div>
                 <div v-if="selectedInstance.harvestDate" class="flex items-center gap-2">
-                  <el-icon color="#10b981"><Check /></el-icon>
+                  <el-icon color="#10b981"><CircleCheck /></el-icon>
                   <span class="text-gray-600">首次采收：</span>
                   <span class="text-gray-900">{{ selectedInstance.harvestDate }}</span>
                 </div>
                 <div v-if="selectedInstance.outboundDate" class="flex items-center gap-2">
-                  <el-icon color="#10b981"><Check /></el-icon>
+                  <el-icon color="#10b981"><CircleCheck /></el-icon>
                   <span class="text-gray-600">出库日期：</span>
                   <span class="text-gray-900">{{ selectedInstance.outboundDate }}</span>
                 </div>
@@ -241,8 +242,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Search, Goods, Calendar, Location, Check } from '@element-plus/icons-vue'
-import { CROP_INSTANCE_STATUS_MAP, SOURCE_ORIGIN_MAP } from '@/constants/cropConstants'
+import { Search, Box, Calendar, Location, CircleCheck, Collection } from '@element-plus/icons-vue'
+import { SOURCE_ORIGIN_MAP } from '@/constants/cropConstants'
 import * as cropInstanceService from '@/services/apiCropInstanceService'
 
 // 搜索关键词
@@ -293,11 +294,6 @@ const filteredInstances = computed(() => {
   ).slice(0, 50)
 })
 
-// 搜索处理
-const handleSearch = () => {
-  // 搜索时会自动通过computed更新
-}
-
 // 选择实例并查询溯源链
 const handleSelect = (inst) => {
   selectedInstance.value = inst
@@ -314,11 +310,6 @@ const queryTraceChain = async (id) => {
 const loadInstances = async () => {
   const data = await cropInstanceService.getInstances()
   instances.value = data
-}
-
-// 查询按钮处理
-const handleQuery = () => {
-  // V1.1中查询按钮点击后刷新列表，这里保持一致
 }
 
 // 页面加载时获取数据

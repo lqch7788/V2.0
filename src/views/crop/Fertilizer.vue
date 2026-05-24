@@ -5,9 +5,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" style="color: white;">
-              <TrendCharts />
-            </el-icon>
+            <Sprout class="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">施肥管理</h1>
@@ -20,7 +18,6 @@
     <!-- 筛选工具栏 -->
     <FertilizerFilter
       :filters="filters"
-      :loading="loading"
       @update:filters="handleFiltersChange"
       @search="handleSearch"
       @reset="handleReset"
@@ -31,7 +28,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <el-icon class="text-white"><DataAnalysis /></el-icon>
+            <Sprout class="w-4 h-4 text-white" />
           </div>
           <div>
             <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
@@ -42,7 +39,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-            <el-icon class="text-white"><DataAnalysis /></el-icon>
+            <Sprout class="w-4 h-4 text-white" />
           </div>
           <div>
             <p class="text-lg font-bold text-gray-900">{{ stats.totalQuantity.toLocaleString() }} kg</p>
@@ -53,7 +50,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-            <el-icon class="text-white"><DataAnalysis /></el-icon>
+            <Sprout class="w-4 h-4 text-white" />
           </div>
           <div>
             <p class="text-lg font-bold text-gray-900">{{ stats.totalCost.toLocaleString() }} 元</p>
@@ -64,7 +61,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
-            <el-icon class="text-white"><DataAnalysis /></el-icon>
+            <Sprout class="w-4 h-4 text-white" />
           </div>
           <div>
             <p class="text-lg font-bold text-gray-900">{{ stats.iotCount }}</p>
@@ -100,7 +97,7 @@
     <!-- 数据表格 -->
     <FertilizerTable
       :data="items"
-      :loading="loading"
+      :isLoading="loading"
       :operation-mode="operationMode"
       :selected-ids="selectedIds"
       :iot-devices="iotDevices"
@@ -119,8 +116,7 @@
     <!-- 统计面板（可折叠） -->
     <FertilizerStatsPanel
       v-if="showStats"
-      :items="items"
-      :loading="loading"
+      :filters="filters"
     />
 
     <!-- 弹窗 -->
@@ -162,7 +158,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { TrendCharts, Delete, DataAnalysis } from '@element-plus/icons-vue'
+import { Delete } from '@element-plus/icons-vue'
+import { Sprout } from 'lucide-vue-next'
 import FertilizerFilter from '@/views/crop/fertilizer/FertilizerFilter.vue'
 import FertilizerTable from '@/views/crop/fertilizer/FertilizerTable.vue'
 import FertilizerStatsPanel from '@/views/crop/fertilizer/FertilizerStatsPanel.vue'
@@ -172,9 +169,11 @@ import FertilizerDetailModal from '@/views/crop/fertilizer/FertilizerDetailModal
 import FertilizerBatchDeleteModal from '@/views/crop/fertilizer/FertilizerBatchDeleteModal.vue'
 import FertilizerExportModal from '@/views/crop/fertilizer/FertilizerExportModal.vue'
 import { useFertilizerStore } from '@/stores/modules/fertilizer'
+import { useIotStore } from '@/stores/modules/iot'
 
 // Store
 const fertilizerStore = useFertilizerStore()
+const iotStore = useIotStore()
 
 // 统计数据
 const stats = computed(() => fertilizerStore.stats)
@@ -208,14 +207,18 @@ const iotDevices = computed(() => {
       if (it.fertilizeTime > existing.lastActive) existing.lastActive = it.fertilizeTime
     } else {
       deviceMap.set(key, {
-        device_id: key,
-        device_name: it.iotDeviceId || '未知IoT设备',
-        record_count: 1,
-        last_active: it.fertilizeTime
+        deviceName: it.iotDeviceId || '未知IoT设备',
+        count: 1,
+        lastActive: it.fertilizeTime
       })
     }
   })
-  return Array.from(deviceMap.values())
+  return Array.from(deviceMap.entries()).map(([id, d]) => ({
+    device_id: id,
+    device_name: d.deviceName,
+    record_count: d.count,
+    last_active: d.lastActive || undefined,
+  }))
 })
 
 // IoT加载状态
@@ -356,11 +359,7 @@ const handleConfirmExport = (format) => {
   const rows = toExport.map((it) => [
     it.fertilizerCode,
     it.fertilizerName,
-    it.fertilizerType === 'organic' ? '有机肥' :
-    it.fertilizerType === 'inorganic' ? '无机肥' :
-    it.fertilizerType === 'biological' ? '生物肥' :
-    it.fertilizerType === 'compound' ? '复合肥' :
-    it.fertilizerType === 'trace' ? '微量元素肥' : it.fertilizerType,
+    it.fertilizerType,
     it.cropName,
     it.greenhouseName,
     it.dilutionRatio,
@@ -409,6 +408,7 @@ const handleToggleStats = () => {
 // 初始化
 onMounted(() => {
   loadItems()
+  iotStore.fetchDevices()
 })
 </script>
 

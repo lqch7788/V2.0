@@ -282,28 +282,27 @@ const handleSubmit = async () => {
     const lossRate = initialCount > 0 ? Math.round((lossCount / initialCount) * 100) : 0
 
     await seedlingStore.updateItem(props.record.id, {
-      sourceId: formData.value.sourceId,
-      sourceCode: formData.value.sourceCode,
-      cropName: formData.value.cropName,
-      cropVariety: formData.value.cropVariety,
-      cropCode: formData.value.cropCode,
-      seedlingType: formData.value.seedlingType,
-      siteId: formData.value.siteId,
-      siteName: formData.value.siteName,
-      startDate: formData.value.startDate,
-      expectedEndDate: formData.value.expectedEndDate,
-      initialCount: formData.value.initialCount,
-      survivalCount: formData.value.survivalCount,
-      plantedCount: formData.value.plantedCount,
-      survivalRate,
-      lossCount,
-      lossRate,
+      // 后端期望 snake_case 格式
+      source_id: formData.value.sourceId,
+      source_name: formData.value.sourceCode,
+      crop_name: formData.value.cropName,
+      crop_variety: formData.value.cropVariety,
+      crop_code: formData.value.cropCode,
+      seedling_type: formData.value.seedlingType,
+      greenhouse_name: formData.value.siteName,
+      area_name: formData.value.siteId,
+      seedling_date: formData.value.startDate,
+      expected_finish_date: formData.value.expectedEndDate,
+      seedling_quantity: formData.value.initialCount,
+      survival_quantity: formData.value.survivalCount,
+      planted_quantity: formData.value.plantedCount,
+      survival_rate: survivalRate,
+      loss_quantity: lossCount,
+      loss_rate: lossRate,
       remarks: formData.value.remarks,
-      qualityGrade: formData.value.qualityGrade,
-      isFinished: formData.value.isFinished,
-      chargePerson: formData.value.chargePerson,
-      targetSurvivalCount: formData.value.targetSurvivalCount,
-      workHours: formData.value.workHours || undefined
+      quality_grade: formData.value.qualityGrade,
+      is_finished: formData.value.isFinished,
+      work_hours: formData.value.workHours || undefined
     })
 
     ElMessage.success('更新成功')

@@ -77,11 +77,11 @@
     </div>
     <template #footer>
       <template v-if="record?.status === '待审批'">
-        <el-button type="danger" @click="() => onReject?.(record!)">
+        <el-button type="danger" @click="() => onReject?.(record)">
           <el-icon><CircleClose /></el-icon>
           驳回
         </el-button>
-        <el-button type="primary" @click="() => onApprove?.(record!)">
+        <el-button type="primary" @click="() => onApprove?.(record)">
           <el-icon><CircleCheck /></el-icon>
           批准
         </el-button>
@@ -94,9 +94,15 @@
 <script setup>
 import { CircleCheck, CircleClose } from '@element-plus/icons-vue'
 
-type OvertimeType = '普通加班' | '周末加班' | '节假日加班'
+// OvertimeType: '普通加班' | '周末加班' | '节假日加班'
 
-defineProps({})
+defineProps({
+  visible: Boolean,
+  record: Object,
+  onClose: Function,
+  onApprove: Function,
+  onReject: Function
+})
 
 // 获取加班类型信息
 const getTypeColor = (type) => {

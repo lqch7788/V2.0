@@ -16,7 +16,14 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     startDate: '',
     endDate: '',
     status: '',
-    createBy: ''
+    createBy: '',
+    cropType: '',
+    orgId: '',
+    recorderId: '',
+    surplusMin: undefined,
+    surplusMax: undefined,
+    propagationType: undefined,
+    propagationStatus: undefined
   })
 
   // 加载数据
@@ -24,7 +31,23 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     isLoading.value = true
     try {
       const res = await api.getSeedSourceList(filters.value)
-      items.value = res.items || []
+      // 兼容后端返回格式：可能是数组，也可能是 { success: true, data: [...] }，也可能是 { items: [...] }，也可能是 { data: [...] }
+      if (Array.isArray(res)) {
+        items.value = res
+      } else if (res && typeof res === 'object') {
+        // 处理 { success: true, data: [...] } 格式（后端实际返回格式）
+        if ('success' in res && res.data !== undefined) {
+          items.value = Array.isArray(res.data) ? res.data : []
+        } else if ('items' in res) {
+          items.value = res.items || []
+        } else if ('data' in res && Array.isArray(res.data)) {
+          items.value = res.data
+        } else {
+          items.value = []
+        }
+      } else {
+        items.value = []
+      }
     } catch (error) {
       console.error('获取种源数据失败:', error)
       // 使用mock数据
@@ -113,7 +136,73 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
       startDate: '',
       endDate: '',
       status: '',
-      createBy: ''
+      createBy: '',
+      cropType: '',
+      orgId: '',
+      recorderId: '',
+      surplusMin: undefined,
+      surplusMax: undefined,
+      propagationType: undefined,
+      propagationStatus: undefined
+    }
+  }
+
+  // 添加繁殖过程记录
+  const addPropagationRecord = async (seedSourceId, data) => {
+    try {
+      const res = await api.addPropagationRecord(seedSourceId, data)
+      return res
+    } catch (error) {
+      console.error('添加繁殖过程记录失败:', error)
+      return null
+    }
+  }
+
+  // 获取繁殖过程记录列表
+  const loadPropagationRecords = async (seedSourceId) => {
+    try {
+      const res = await api.getPropagationRecords(seedSourceId)
+      return res || []
+    } catch (error) {
+      console.error('获取繁殖过程记录失败:', error)
+      return []
+    }
+  }
+
+  // 更新繁殖阶段
+  const updatePropagationStage = async (seedSourceId, newStage) => {
+    try {
+      await api.updatePropagationStage(seedSourceId, newStage)
+      // 更新本地items中的状态
+      const index = items.value.findIndex(item => item.id === seedSourceId)
+      if (index !== -1) {
+        items.value[index] = { ...items.value[index], propagationStatus: newStage }
+      }
+      return true
+    } catch (error) {
+      console.error('更新繁殖阶段失败:', error)
+      return false
+    }
+  }
+
+  // 完成繁殖入库
+  const completePropagation = async (seedSourceId, quantity) => {
+    try {
+      await api.completePropagation(seedSourceId, quantity)
+      // 更新本地items中的状态和数量
+      const index = items.value.findIndex(item => item.id === seedSourceId)
+      if (index !== -1) {
+        items.value[index] = {
+          ...items.value[index],
+          propagationStatus: 'completed',
+          availableCount: items.value[index].availableCount + quantity,
+          quantity: items.value[index].quantity + quantity
+        }
+      }
+      return true
+    } catch (error) {
+      console.error('完成繁殖入库失败:', error)
+      return false
     }
   }
 
@@ -129,7 +218,11 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     deleteItem,
     deleteItems,
     setFilters,
-    resetFilters
+    resetFilters,
+    addPropagationRecord,
+    loadPropagationRecords,
+    updatePropagationStage,
+    completePropagation
   }
 })
 

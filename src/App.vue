@@ -1,8 +1,8 @@
 <template>
-  <router-view v-if="isLoginPage || isHomePage" />
-  <Layout v-else>
+  <Layout v-if="!isLoginPage && !isHomePage">
     <router-view />
   </Layout>
+  <router-view v-else />
 </template>
 
 <script setup>

@@ -203,31 +203,25 @@ const handleSubmit = async () => {
     const areaName = area?.label || ''
     const rootName = area?.parent || ''
 
-    // 创建种植记录
+    // 创建种植记录 - 后端期望 snake_case 格式
     await plantingStore.addItem({
-      plantCode,
-      sourceType: SourceType.SEEDLING,
-      sourceId: props.record.id,
-      sourceCode: props.record.seedlingCode,
-      cropName: props.record.cropName,
-      cropVariety: props.record.cropVariety,
-      areaId: formData.value.areaId,
-      areaName,
-      rootName,
-      plantingCount: formData.value.transplantCount,
-      plantingDate: formData.value.transplantDate,
-      soilPH: formData.value.soilPH,
-      soilEC: formData.value.soilEC,
-      transplantCount: formData.value.transplantCount,
-      transplantDate: formData.value.transplantDate,
-      isHarvest: false,
-      attritionRate: 0,
-      printCount: 0,
-      traceabilityCode,
-      pictures: [],
-      remarks: formData.value.remarks,
-      status: PlantingStatus.PLANTED,
-      createBy: localStorage.getItem('username') || '管理员'
+      plant_code: plantCode,
+      source_type: 'seedling',
+      source_id: props.record.id,
+      source_name: props.record.seedlingCode,
+      crop_name: props.record.cropName,
+      crop_variety: props.record.cropVariety,
+      greenhouse_name: props.record.siteName,
+      area_name: areaName,
+      from_location: '育苗棚',
+      to_location: areaName,
+      transplant_date: formData.value.transplantDate,
+      transplant_quantity: formData.value.transplantCount,
+      survival_quantity: formData.value.transplantCount,
+      survival_rate: 100,
+      operator_name: localStorage.getItem('username') || '管理员',
+      status: 'completed',
+      remarks: formData.value.remarks
     })
 
     // 更新育苗的已定植数量

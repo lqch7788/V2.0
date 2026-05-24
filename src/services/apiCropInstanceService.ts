@@ -12,6 +12,7 @@
 
 import { enhancedApiClient } from '../lib/apiClient';
 import { CropInstance, CropInstanceStatus, SourceOrigin, CropTraceChain } from '../types/crop';
+import { mapFieldsToCamelCase } from './fieldMapping';
 
 /**
  * 初始化数据
@@ -26,7 +27,9 @@ export async function initInstances(): Promise<CropInstance[]> {
  * 降级策略：API → IndexedDB 缓存
  */
 export async function getInstances(): Promise<CropInstance[]> {
-  return await enhancedApiClient.get<CropInstance[]>('/crop-instances');
+  const data = await enhancedApiClient.get<CropInstance[]>('/crop-instances');
+  // 将后端返回的 snake_case 字段转换为前端使用的 camelCase
+  return mapFieldsToCamelCase<CropInstance[]>(data);
 }
 
 /**
@@ -34,7 +37,9 @@ export async function getInstances(): Promise<CropInstance[]> {
  * 降级策略：API → IndexedDB 缓存
  */
 export async function getInstanceById(id: string): Promise<CropInstance | undefined> {
-  return await enhancedApiClient.get<CropInstance>(`/crop-instances/${id}`);
+  const data = await enhancedApiClient.get<CropInstance>(`/crop-instances/${id}`);
+  // 将后端返回的 snake_case 字段转换为前端使用的 camelCase
+  return data ? mapFieldsToCamelCase<CropInstance>(data) : undefined;
 }
 
 /**
@@ -42,7 +47,9 @@ export async function getInstanceById(id: string): Promise<CropInstance | undefi
  * 降级策略：API → IndexedDB 缓存
  */
 export async function getInstancesByIds(ids: string[]): Promise<CropInstance[]> {
-  return await enhancedApiClient.get<CropInstance[]>(`/crop-instances/batch?ids=${ids.join(',')}`);
+  const data = await enhancedApiClient.get<CropInstance[]>(`/crop-instances/batch?ids=${ids.join(',')}`);
+  // 将后端返回的 snake_case 字段转换为前端使用的 camelCase
+  return mapFieldsToCamelCase<CropInstance[]>(data);
 }
 
 /**
@@ -50,7 +57,9 @@ export async function getInstancesByIds(ids: string[]): Promise<CropInstance[]> 
  * 降级策略：API → IndexedDB 缓存
  */
 export async function getInstancesByOrderId(orderId: string): Promise<CropInstance[]> {
-  return await enhancedApiClient.get<CropInstance[]>(`/crop-instances/order/${orderId}`);
+  const data = await enhancedApiClient.get<CropInstance[]>(`/crop-instances/order/${orderId}`);
+  // 将后端返回的 snake_case 字段转换为前端使用的 camelCase
+  return mapFieldsToCamelCase<CropInstance[]>(data);
 }
 
 /**
@@ -131,7 +140,9 @@ export async function updateStatus(id: string, status: CropInstanceStatus): Prom
  */
 export async function getTraceChain(id: string): Promise<CropTraceChain | null> {
   try {
-    return await enhancedApiClient.get<CropTraceChain>(`/crop-instances/${id}/trace-chain`);
+    const data = await enhancedApiClient.get<CropTraceChain>(`/crop-instances/${id}/trace-chain`);
+    // 将后端返回的 snake_case 字段转换为前端使用的 camelCase
+    return mapFieldsToCamelCase<CropTraceChain>(data);
   } catch {
     return null;
   }

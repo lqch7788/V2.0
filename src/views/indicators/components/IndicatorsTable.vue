@@ -75,7 +75,7 @@
                 <div
                   :class="getProgressColor(ind.actual, ind.target)"
                   class="h-full rounded-full transition-all"
-                  :style="{ width: `${Math.min((ind.actual / ind.target) * 100, 100)}%` }"
+                  :style="{ width: `${ind.target ? Math.min((ind.actual / ind.target) * 100, 100) : 0}%` }"
                 />
               </div>
               <span :class="getAchievementColor(ind.actual, ind.target)" class="text-xs font-medium font-mono">
@@ -287,6 +287,7 @@ const visiblePages = computed(() => {
 
 // 获取进度条颜色
 const getProgressColor = (actual, target) => {
+  if (!target || target === 0) return 'bg-gray-400'
   const ratio = actual / target
   if (ratio >= 1) return 'bg-emerald-500'
   if (ratio >= 0.95) return 'bg-amber-500'
@@ -303,6 +304,7 @@ const getAchievementColor = (actual, target) => {
 
 // 计算达成率
 const calcAchievementRate = (actual, target) => {
+  if (!target || target === 0) return '0%'
   return ((actual / target) * 100).toFixed(1) + '%'
 }
 

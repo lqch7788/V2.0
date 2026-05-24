@@ -5,30 +5,7 @@
 import { Database } from 'sql.js';
 
 /**
- * 将下划线命名字段转换为驼峰命名
- */
-function toCamelCase(str: string): string {
-  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-}
-
-/**
- * 将对象的所有下划线字段转换为驼峰命名
- */
-function mapToCamelCase<T>(obj: any): T {
-  if (obj === null || obj === undefined) {
-    return obj;
-  }
-
-  const result: any = {};
-  for (const key of Object.keys(obj)) {
-    const camelKey = toCamelCase(key);
-    result[camelKey] = obj[key];
-  }
-  return result as T;
-}
-
-/**
- * 将 sql.js prepare + step 结果转换为对象数组（字段名自动转为驼峰命名）
+ * 将 sql.js prepare + step 结果转换为对象数组
  */
 export function queryToObjects<T = any>(db: Database, sql: string, params: any[] = []): T[] {
   const stmt = db.prepare(sql);
@@ -40,7 +17,7 @@ export function queryToObjects<T = any>(db: Database, sql: string, params: any[]
   const results: T[] = [];
   while (stmt.step()) {
     const obj = stmt.getAsObject();
-    results.push(mapToCamelCase<T>(obj));
+    results.push(obj as T);
   }
   stmt.free();
 

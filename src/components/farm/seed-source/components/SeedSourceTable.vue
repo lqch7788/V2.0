@@ -128,7 +128,7 @@
                 {{ getPropagationStatusLabel(row.propagationStatus) }}
               </span>
             </template>
-            <span v-else>{{ row.sourceOrigin || '-' }}</span>
+            <span v-else>{{ getSourceOriginLabel(row.sourceOrigin) }}</span>
           </div>
         </template>
       </el-table-column>
@@ -282,6 +282,13 @@ const SOURCE_TYPE_MAP = {
   'other': '其他'
 }
 
+// 来源途径映射
+const SOURCE_ORIGIN_MAP = {
+  'external_purchase': '外部采购',
+  'self_produced': '自产',
+  'other': '其他'
+}
+
 // 库存状态映射
 const STOCK_STATUS_MAP = {
   'sufficient': { label: '充足', type: 'success' },
@@ -324,6 +331,7 @@ const PROPAGATION_STATUS_CLASSES = {
 
 // 方法
 const getSourceTypeLabel = (type) => SOURCE_TYPE_MAP[type] || type || '-'
+const getSourceOriginLabel = (origin) => SOURCE_ORIGIN_MAP[origin] || origin || '-'
 
 const getStatusLabel = (status) => STOCK_STATUS_MAP[status]?.label || status || '-'
 const getStatusType = (status) => STOCK_STATUS_MAP[status]?.type || 'info'

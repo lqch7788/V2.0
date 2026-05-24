@@ -91,9 +91,23 @@
 <script setup>
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 
-type ViewMode = 'month' | 'week' | 'day'
+// ViewMode: 'month' | 'week' | 'day'
 
-const props = defineProps({})
+const props = defineProps({
+  selectedDate: {
+    type: String,
+    default: () => new Date().toISOString().split('T')[0]
+  },
+  viewMode: {
+    type: String,
+    default: 'month'
+  },
+  events: {
+    type: Array,
+    default: () => []
+  },
+  onDateChange: Function
+})
 
 const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 

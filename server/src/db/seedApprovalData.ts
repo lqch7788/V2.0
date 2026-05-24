@@ -139,8 +139,26 @@ const purchaseApprovals = [
   { id: '2', code: 'CG2024022801', type: ApprovalType.PURCHASE_REQUEST, title: '农药采购', applicantName: '吴光明', applicantDepartment: '生产部', applyDate: '2024-02-28', status: ApprovalStatus.APPROVED, amount: '30000' },
 ];
 
+// 审批数据完整类型定义（包含所有可能的字段）
+interface ApprovalItem {
+  id: string;
+  code: string;
+  type: string;
+  title: string;
+  applicantName: string;
+  applicantDepartment: string;
+  applyDate: string;
+  status: string;
+  description?: string;
+  applyTime?: string;
+  approvers?: Array<{ userName: string; role: string; status: string }>;
+  businessLink?: Record<string, unknown>;
+  amount?: string;
+  materials?: Array<{ materialName: string; quantity: number; unit: string }>;
+}
+
 // 合并所有审批数据
-const allApprovals = [
+const allApprovals: ApprovalItem[] = [
   ...farmApprovals,
   ...productionApprovals,
   ...indicatorBudgetApprovals,

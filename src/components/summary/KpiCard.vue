@@ -58,7 +58,36 @@
 import { computed } from 'vue'
 import { Top, Bottom } from '@element-plus/icons-vue'
 
-const props = defineProps({"colorScheme":"'emerald'","compact":"false"})
+const props = defineProps({
+  colorScheme: {
+    type: String,
+    default: 'emerald'
+  },
+  compact: {
+    type: Boolean,
+    default: false
+  },
+  icon: {
+    type: [String, Object],
+    default: null
+  },
+  label: {
+    type: String,
+    default: ''
+  },
+  value: {
+    type: [Number, String],
+    default: 0
+  },
+  trend: {
+    type: Number,
+    default: undefined
+  },
+  onClick: {
+    type: Function,
+    default: null
+  }
+})
 
 const emit = defineEmits(['click'])
 

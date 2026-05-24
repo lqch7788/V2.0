@@ -9,24 +9,33 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Odometer, VideoPlay, CircleCheck, Close } from '@element-plus/icons-vue' label: string; className: string }> = {
+import { Odometer, VideoPlay, CircleCheck, Close } from '@element-plus/icons-vue'
+
+const props = defineProps({
+  status: {
+    type: String,
+    default: 'pending'
+  }
+})
+
+const statusConfig = {
   pending: {
-    icon,
+    icon: Odometer,
     label: '待执行',
     className: 'bg-gray-100 text-gray-700',
   },
   in_progress: {
-    icon,
+    icon: VideoPlay,
     label: '进行中',
     className: 'bg-blue-100 text-blue-700',
   },
   completed: {
-    icon,
+    icon: CircleCheck,
     label: '已完成',
     className: 'bg-emerald-100 text-emerald-700',
   },
   cancelled: {
-    icon,
+    icon: Close,
     label: '已取消',
     className: 'bg-red-100 text-red-700',
   },

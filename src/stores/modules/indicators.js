@@ -77,6 +77,40 @@ export const useIndicatorStore = defineStore('indicators', () => {
     total: 0
   })
 
+  // 评估数据（基地考核排名）
+  const evaluationData = ref([
+    { id: '1', name: '上海松江基地', productionScore: 92, qualityScore: 95, costScore: 88, efficiencyScore: 90, totalScore: 91.25, rank: 1 },
+    { id: '2', name: '上海崇明基地', productionScore: 88, qualityScore: 92, costScore: 85, efficiencyScore: 87, totalScore: 88.0, rank: 2 },
+    { id: '3', name: '上海嘉定基地', productionScore: 85, qualityScore: 90, costScore: 90, efficiencyScore: 85, totalScore: 87.5, rank: 3 },
+    { id: '4', name: '上海奉贤基地', productionScore: 90, qualityScore: 88, costScore: 82, efficiencyScore: 88, totalScore: 87.0, rank: 4 },
+    { id: '5', name: '西安雁塔基地', productionScore: 82, qualityScore: 85, costScore: 88, efficiencyScore: 86, totalScore: 85.25, rank: 5 },
+    { id: '6', name: '西安高新基地', productionScore: 80, qualityScore: 88, costScore: 85, efficiencyScore: 84, totalScore: 84.25, rank: 6 },
+    { id: '7', name: '宁波北仑基地', productionScore: 78, qualityScore: 82, costScore: 86, efficiencyScore: 82, totalScore: 82.0, rank: 7 },
+    { id: '8', name: '宁波镇海基地', productionScore: 75, qualityScore: 80, costScore: 84, efficiencyScore: 80, totalScore: 79.75, rank: 8 }
+  ])
+
+  // 分析数据（月度达成率）
+  const analyzeData = ref([
+    { month: '1月', target: 4800, actual: 4900, 达成率: 102.1 },
+    { month: '2月', target: 4900, actual: 5000, 达成率: 102.0 },
+    { month: '3月', target: 5000, actual: 5100, 达成率: 102.0 },
+    { month: '4月', target: 5100, actual: 5050, 达成率: 99.0 },
+    { month: '5月', target: 5000, actual: 5200, 达成率: 104.0 },
+    { month: '6月', target: 5200, actual: 5300, 达成率: 101.9 }
+  ])
+
+  // 分类汇总数据
+  const categorySummary = ref([
+    { name: '生产指标', count: 12, avgAchievement: 98.5, color: '#06b6d4' },
+    { name: '质量指标', count: 8, avgAchievement: 97.2, color: '#7C3AED' },
+    { name: '成本指标', count: 6, avgAchievement: 95.8, color: '#22c55e' },
+    { name: '效率指标', count: 5, avgAchievement: 96.5, color: '#f59e0b' },
+    { name: '服务指标', count: 3, avgAchievement: 98.0, color: '#ec4899' },
+    { name: '设备指标', count: 5, avgAchievement: 92.5, color: '#0891b2' },
+    { name: '资源指标', count: 4, avgAchievement: 94.2, color: '#3b82f6' },
+    { name: '安全指标', count: 2, avgAchievement: 100.0, color: '#ef4444' }
+  ])
+
   // ========== Actions ==========
 
   /**
@@ -173,6 +207,9 @@ export const useIndicatorStore = defineStore('indicators', () => {
     indicators,
     isLoading,
     pagination,
+    evaluationData,
+    analyzeData,
+    categorySummary,
     // Actions
     fetchIndicators,
     createIndicator,

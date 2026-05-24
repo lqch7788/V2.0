@@ -26,6 +26,12 @@
             <el-input v-model="formData.cropName" disabled />
           </div>
 
+          <!-- 种植区域 - V1.1新增 -->
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">种植区域</label>
+            <el-input v-model="formData.areaName" disabled />
+          </div>
+
           <!-- 种植数量 -->
           <div>
             <label class="block text-gray-700 text-sm mb-2 font-medium">种植数量 *</label>
@@ -43,6 +49,12 @@
               class="w-full"
               disabled
             />
+          </div>
+
+          <!-- 损耗率 - V1.1新增 -->
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">损耗率(%)</label>
+            <el-input-number v-model="formData.attritionRate" :min="0" :max="100" :precision="1" class="w-full" />
           </div>
 
           <!-- 土壤PH -->
@@ -89,8 +101,10 @@ const emit = defineEmits(['close', 'submit'])
 const formData = ref({
   plantCode: '',
   cropName: '',
+  areaName: '',
   plantingCount: 0,
   plantingDate: '',
+  attritionRate: 0,  // V1.1新增
   soilPH: null,
   soilEC: null,
   remarks: ''
@@ -102,8 +116,10 @@ watch(() => [props.isOpen, props.record], ([val, record]) => {
     formData.value = {
       plantCode: record.plantCode || '',
       cropName: record.cropName || '',
+      areaName: record.areaName || '',
       plantingCount: record.plantingCount || 0,
       plantingDate: record.plantingDate || '',
+      attritionRate: record.attritionRate ?? 0,
       soilPH: record.soilPH || null,
       soilEC: record.soilEC || null,
       remarks: record.remarks || ''

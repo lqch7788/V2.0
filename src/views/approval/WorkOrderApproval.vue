@@ -14,48 +14,48 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-emerald-600"><Document /></el-icon>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><Document /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">总工单</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-xs text-gray-500">总工单</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-blue-600"><Clock /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-blue-600"><Clock /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">进行中</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.inProgress }}</p>
+            <p class="text-xs text-gray-500">进行中</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.inProgress }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">已完成</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.completed }}</p>
+            <p class="text-xs text-gray-500">已完成</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.completed }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-amber-600"><RefreshRight /></el-icon>
+      <div class="bg-white rounded-lg p-3 border border-gray-300">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="16" class="text-amber-600"><RefreshRight /></el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">待开始</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
+            <p class="text-xs text-gray-500">待开始</p>
+            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
           </div>
         </div>
       </div>
@@ -168,6 +168,14 @@
                 title="编辑"
                 @click="handleEdit(row)"
               />
+              <el-button
+                type="success"
+                :icon="CircleCheck"
+                circle
+                size="small"
+                title="审批"
+                @click="handleApprove(row)"
+              />
             </div>
           </template>
         </el-table-column>
@@ -208,13 +216,59 @@
         </div>
       </div>
     </div>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="detailVisible" title="工单详情" width="600px" destroy-on-close>
+      <div v-if="currentOrder" class="space-y-4">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="工单编号">{{ currentOrder.code }}</el-descriptions-item>
+          <el-descriptions-item label="工号">{{ currentOrder.workerId }}</el-descriptions-item>
+          <el-descriptions-item label="工人姓名">{{ currentOrder.name }}</el-descriptions-item>
+          <el-descriptions-item label="工作区域">{{ currentOrder.area }}</el-descriptions-item>
+          <el-descriptions-item label="工序">{{ currentOrder.process }}</el-descriptions-item>
+          <el-descriptions-item label="工作量">{{ currentOrder.workload }}</el-descriptions-item>
+          <el-descriptions-item label="工作日期">{{ currentOrder.date }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="statusTypeMap[currentOrder.statusClass] || 'info'" size="small" effect="light">
+              {{ currentOrder.status }}
+            </el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 审批弹窗 -->
+    <el-dialog v-model="approveVisible" title="工单审批" width="500px" destroy-on-close>
+      <div v-if="currentOrder" class="space-y-4">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="工单编号">{{ currentOrder.code }}</el-descriptions-item>
+          <el-descriptions-item label="工人姓名">{{ currentOrder.name }}</el-descriptions-item>
+          <el-descriptions-item label="工作内容">{{ currentOrder.process }} - {{ currentOrder.workload }}</el-descriptions-item>
+        </el-descriptions>
+        <el-form-item label="审批意见">
+          <el-radio-group v-model="approveForm.result">
+            <el-radio label="approve">通过</el-radio>
+            <el-radio label="reject">驳回</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="approveForm.comment" type="textarea" :rows="3" placeholder="请输入审批备注" />
+        </el-form-item>
+      </div>
+      <template #footer>
+        <el-button @click="approveVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmitApprove">确认</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import {
-  DocumentCopy,
   Search,
   Plus,
   View,
@@ -226,6 +280,7 @@ import {
   CircleCheck,
   RefreshRight
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 // 工单数据类型
 
@@ -258,6 +313,15 @@ const workOrderMode = ref('glass')
 const code = ref('')
 const name = ref('')
 const date = ref('')
+
+// 弹窗状态
+const detailVisible = ref(false)
+const approveVisible = ref(false)
+const currentOrder = ref(null)
+const approveForm = reactive({
+  result: 'approve',
+  comment: ''
+})
 
 // 分页
 const currentPage = ref(1)
@@ -300,14 +364,31 @@ const handleAdd = () => {
 
 // 查看
 const handleView = (row) => {
-  // 实际项目中这里打开详情弹窗
-  console.log('查看工单:', row)
+  currentOrder.value = row
+  detailVisible.value = true
 }
 
 // 编辑
 const handleEdit = (row) => {
-  // 实际项目中这里打开编辑弹窗
-  console.log('编辑工单:', row)
+  ElMessage.info('编辑工单功能开发中：' + row.code)
+}
+
+// 审批
+const handleApprove = (row) => {
+  currentOrder.value = row
+  approveForm.result = 'approve'
+  approveForm.comment = ''
+  approveVisible.value = true
+}
+
+// 提交审批
+const handleSubmitApprove = () => {
+  if (approveForm.result === 'approve') {
+    ElMessage.success('工单 ' + currentOrder.value.code + ' 已通过审批')
+  } else {
+    ElMessage.success('工单 ' + currentOrder.value.code + ' 已驳回')
+  }
+  approveVisible.value = false
 }
 
 // 分页操作

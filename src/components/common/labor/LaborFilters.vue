@@ -80,22 +80,23 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Search, Close } from '@element-plus/icons-vue'
-  dateRange?: {
-    startPlaceholder?: string
-    endPlaceholder?: string
-    value?: DateRange
-    onChange?: (range) => void
-  }
-  status?: {
-    placeholder?: string
-    options
-    value?: string
-    onChange?: (value) => void
-  }
-  customFilters?: any
-}
 
-const props = defineProps({"className":"''"})
+const props = defineProps({
+  config: {
+    type: Object,
+    default: () => ({
+      search: { value: '', onChange: null },
+      dateRange: { value: { start: '', end: '' }, onChange: null },
+      status: { value: '', options: [], onChange: null },
+      customFilters: null
+    })
+  },
+  onReset: Function,
+  className: {
+    type: String,
+    default: ''
+  }
+})
 
 const localSearch = ref(props.config.search?.value || '')
 const localStatus = ref(props.config.status?.value || '')
@@ -112,8 +113,8 @@ const handleSearch = (value) => {
 
 const handleDateChange = (type, value) => {
   const newRange = {
-    start === 'start' ? value : startDate.value || null,
-    end === 'end' ? value : endDate.value || null
+    start: type === 'start' ? value : startDate.value || null,
+    end: type === 'end' ? value : endDate.value || null
   }
   props.config.dateRange?.onChange?.(newRange)
 }

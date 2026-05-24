@@ -63,8 +63,7 @@
 import { ref } from 'vue'
 import { Van, Clock, MagicStick } from '@element-plus/icons-vue'
 
-// 派发模式类型
-type DispatchMode = 'farm' | 'tempTask' | 'smart'
+// 派发模式类型: 'farm' | 'tempTask' | 'smart'
 
 // Tab配置
 const tabs = [

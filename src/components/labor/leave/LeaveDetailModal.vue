@@ -75,11 +75,11 @@
     <template #footer>
       <el-button @click="onClose">关闭</el-button>
       <template v-if="record?.status === '待审批'">
-        <el-button type="danger" @click="() => onReject?.(record!)">
+        <el-button type="danger" @click="() => onReject?.(record)">
           <el-icon><CircleClose /></el-icon>
           驳回
         </el-button>
-        <el-button type="primary" @click="() => onApprove?.(record!)">
+        <el-button type="primary" @click="() => onApprove?.(record)">
           <el-icon><CircleCheck /></el-icon>
           批准
         </el-button>

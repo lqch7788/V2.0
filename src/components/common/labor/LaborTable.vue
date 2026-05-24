@@ -64,17 +64,50 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
-  onSort?: (config) => void
-  pagination?: PaginationConfig
-  onPageChange?: (page) => void
-  onPageSizeChange?: (pageSize) => void
-  loading?: boolean
-  emptyText?: string
-  className?: string
-  title?: string
-}
 
-const props = defineProps({"selectable":"false","selectedRows":"() => []","loading":"false","emptyText":"'暂无数据'","className":"''"})
+const props = defineProps({
+  data: {
+    type: Array,
+    default: () => []
+  },
+  columns: {
+    type: Array,
+    default: () => []
+  },
+  rowKey: {
+    type: [String, Function],
+    default: 'id'
+  },
+  selectable: {
+    type: Boolean,
+    default: false
+  },
+  selectedRows: {
+    type: Array,
+    default: () => []
+  },
+  pagination: {
+    type: Object,
+    default: null
+  },
+  onSort: Function,
+  onPageChange: Function,
+  onPageSizeChange: Function,
+  onSelectionChange: Function,
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  emptyText: {
+    type: String,
+    default: '暂无数据'
+  },
+  className: {
+    type: String,
+    default: ''
+  },
+  title: String
+})
 
 const currentPage = ref(props.pagination?.page || 1)
 const currentPageSize = ref(props.pagination?.pageSize || 20)

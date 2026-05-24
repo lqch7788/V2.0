@@ -153,6 +153,30 @@
                 </div>
               </div>
 
+              <!-- 采购日期范围 -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">开始日期</label>
+                  <el-date-picker
+                    v-model="localFilters.startDate"
+                    type="date"
+                    placeholder="选择开始日期"
+                    value-format="YYYY-MM-DD"
+                    class="w-full"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">结束日期</label>
+                  <el-date-picker
+                    v-model="localFilters.endDate"
+                    type="date"
+                    placeholder="选择结束日期"
+                    value-format="YYYY-MM-DD"
+                    class="w-full"
+                  />
+                </div>
+              </div>
+
               <!-- 剩余数量范围 -->
               <div>
                 <label class="block text-xs text-gray-600 mb-1">剩余数量范围</label>
@@ -292,6 +316,8 @@ const clearAdvancedFilters = () => {
   localFilters.value.cropType = ''
   localFilters.value.orgId = ''
   localFilters.value.recorderId = ''
+  localFilters.value.startDate = ''
+  localFilters.value.endDate = ''
   localFilters.value.surplusMin = undefined
   localFilters.value.surplusMax = undefined
 }

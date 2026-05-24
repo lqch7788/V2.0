@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import * as api from '@/api/crop'
+import { enhancedApiClient } from '@/lib/apiClient'
 
 export const useSeedlingStore = defineStore('seedling', () => {
   // 状态
@@ -19,12 +20,59 @@ export const useSeedlingStore = defineStore('seedling', () => {
     status: ''
   })
 
+  // 字段映射函数：将后端返回的snake_case字段转换为前端需要的camelCase
+  const mapFields = (data) => {
+    if (!data || !Array.isArray(data)) return data
+    return data.map(item => ({
+      // 基础字段映射
+      id: item.id,
+      seedlingCode: item.seedlingCode || item.seedling_code || '',
+      sourceId: item.sourceId || item.source_id || '',
+      sourceCode: item.sourceCode || item.source_code || '',
+      cropName: item.cropName || item.crop_name || '',
+      cropVariety: item.cropVariety || item.crop_variety || '',
+      cropCode: item.cropCode || item.crop_code || '',
+      seedlingType: item.seedlingType || item.seedling_type || '',
+      siteId: item.siteId || item.site_id || '',
+      siteName: item.siteName || item.site_name || item.greenhouse_name || '',
+      startDate: item.startDate || item.seedling_date || '',
+      expectedEndDate: item.expectedEndDate || item.expected_finish_date || '',
+      endDate: item.endDate || item.end_date || '',
+      initialCount: item.initialCount || item.seedling_quantity || 0,
+      survivalCount: item.survivalCount || item.survival_quantity || 0,
+      plantedCount: item.plantedCount || item.planted_quantity || 0,
+      lossCount: item.lossCount || item.loss_quantity || 0,
+      survivalRate: item.survivalRate || item.survival_rate || 0,
+      lossRate: item.lossRate || item.loss_rate || 0,
+      isFinished: item.isFinished || item.is_finished || false,
+      status: item.status || 'in_progress',
+      dailyRecords: item.dailyRecords || item.daily_records || [],
+      pictures: item.pictures || [],
+      qualityGrade: item.qualityGrade || item.quality_grade || '',
+      printCount: item.printCount || item.print_count || 0,
+      remarks: item.remarks || '',
+      createBy: item.createBy || item.create_by || '',
+      createTime: item.createTime || item.create_time || '',
+      updateTime: item.updateTime || item.update_time || '',
+      // 品种路径字段（来自关联查询）
+      categoryName: item.categoryName || item.category_name || '',
+      typeName: item.typeName || item.type_name || '',
+      varietyName: item.varietyName || item.variety_name || '',
+      subVarietyName: item.subVarietyName || item.sub_variety1_name || '',
+      // 关联字段
+      productionPlanCode: item.productionPlanCode || item.production_plan_code || ''
+    }))
+  }
+
   // 加载数据
   const loadItems = async () => {
     isLoading.value = true
     try {
       const res = await api.getSeedlingList(filters.value)
-      items.value = res.items || []
+      // 后端返回格式: { success: true, data: [...items数组], meta: {...} }
+      // 响应拦截器会返回 data 字段，即 items 数组
+      const rawData = Array.isArray(res) ? res : (res.items || res.data || [])
+      items.value = mapFields(rawData)
     } catch (error) {
       console.error('获取育苗数据失败:', error)
       // 使用mock数据
@@ -38,8 +86,10 @@ export const useSeedlingStore = defineStore('seedling', () => {
   const loadItem = async (id) => {
     try {
       const res = await api.getSeedlingDetail(id)
-      currentItem.value = res
-      return res
+      // 对详情数据进行字段映射
+      const mapped = Array.isArray(res) ? mapFields(res) : (res ? mapFields([res])[0] : null)
+      currentItem.value = mapped
+      return mapped
     } catch (error) {
       console.error('获取育苗详情失败:', error)
       return null
@@ -104,26 +154,72 @@ export const useSeedlingStore = defineStore('seedling', () => {
    * @param remarks 备注
    */
   const endItem = async (id, endType = 'normal', remarks = '') => {
-    const index = items.value.findIndex(item => item.id === id)
-    if (index !== -1) {
-      const item = items.value[index]
-      items.value[index] = {
-        ...item,
-        isFinished: true,
-        endType: endType,
-        endRemarks: remarks,
-        endTime: new Date().toLocaleString(),
-        status: endType === 'normal' ? 'completed' : 'abnormal',
-        updateTime: new Date().toLocaleString()
-      }
+    try {
+      await api.finishSeedling(id, { endType, remarks })
+      // 刷新列表
+      await loadItems()
       return true
+    } catch (error) {
+      console.error('结束育苗失败:', error)
+      throw error
     }
-    return false
   }
 
   // 更新筛选条件
   const setFilters = (newFilters) => {
     filters.value = { ...filters.value, ...newFilters }
+  }
+
+  // 添加每日记录
+  const addDailyRecord = async (seedlingId, record) => {
+    try {
+      const res = await api.addDailyRecord(seedlingId, record)
+      // 刷新列表
+      await loadItems()
+      return res
+    } catch (error) {
+      console.error('添加每日记录失败:', error)
+      throw error
+    }
+  }
+
+  // 更新每日记录
+  const updateDailyRecord = async (seedlingId, recordId, updates) => {
+    try {
+      await api.updateDailyRecord(seedlingId, recordId, updates)
+      // 刷新列表
+      await loadItems()
+      return true
+    } catch (error) {
+      console.error('更新每日记录失败:', error)
+      return false
+    }
+  }
+
+  // 删除每日记录
+  const deleteDailyRecord = async (seedlingId, recordId) => {
+    try {
+      await api.deleteDailyRecord(seedlingId, recordId)
+      // 刷新列表
+      await loadItems()
+      return true
+    } catch (error) {
+      console.error('删除每日记录失败:', error)
+      return false
+    }
+  }
+
+  // 增加已定植数量
+  const increasePlantedCount = async (id, count) => {
+    try {
+      await api.increasePlantedCount(id, count)
+      // 刷新列表
+      await loadItems()
+      return true
+    } catch (error) {
+      console.error('增加已定植数量失败:', error)
+      return false
+    }
   }
 
   // 重置筛选条件
@@ -154,7 +250,11 @@ export const useSeedlingStore = defineStore('seedling', () => {
     deleteItems,
     endItem,
     setFilters,
-    resetFilters
+    resetFilters,
+    addDailyRecord,
+    updateDailyRecord,
+    deleteDailyRecord,
+    increasePlantedCount
   }
 })
 

@@ -37,6 +37,26 @@ export function checkSeedSourceDeletable(id) {
   return get(`/seed-sources/${id}/check-deletable`)
 }
 
+// 添加繁殖过程记录
+export function addPropagationRecord(seedSourceId, data) {
+  return post(`/seed-sources/${seedSourceId}/propagation-records`, data)
+}
+
+// 获取繁殖过程记录列表
+export function getPropagationRecords(seedSourceId) {
+  return get(`/seed-sources/${seedSourceId}/propagation-records`)
+}
+
+// 更新繁殖阶段
+export function updatePropagationStage(seedSourceId, newStage) {
+  return put(`/seed-sources/${seedSourceId}/propagation-stage`, { stage: newStage })
+}
+
+// 完成繁殖入库
+export function completePropagation(seedSourceId, quantity) {
+  return post(`/seed-sources/${seedSourceId}/complete-propagation`, { quantity })
+}
+
 // ========== 育苗管理 API ==========
 
 // 获取育苗列表
@@ -69,6 +89,31 @@ export function deleteSeedlings(ids) {
   return del('/seedlings/batch', { ids })
 }
 
+// 结束育苗（正常结束/异常结束）
+export function finishSeedling(id, data) {
+  return put(`/seedlings/${id}/finish`, data)
+}
+
+// 添加每日记录
+export function addDailyRecord(seedlingId, record) {
+  return post(`/seedlings/${seedlingId}/daily-records`, record)
+}
+
+// 更新每日记录
+export function updateDailyRecord(seedlingId, recordId, updates) {
+  return put(`/seedlings/${seedlingId}/daily-records/${recordId}`, updates)
+}
+
+// 删除每日记录
+export function deleteDailyRecord(seedlingId, recordId) {
+  return del(`/seedlings/${seedlingId}/daily-records/${recordId}`)
+}
+
+// 增加已定植数量
+export function increasePlantedCount(id, count) {
+  return put(`/seedlings/${id}/increase-planted`, { count })
+}
+
 // 导出 API
 export const cropApi = {
   // 种源管理
@@ -79,13 +124,22 @@ export const cropApi = {
   deleteSeedSource,
   deleteSeedSources,
   checkSeedSourceDeletable,
+  addPropagationRecord,
+  getPropagationRecords,
+  updatePropagationStage,
+  completePropagation,
   // 育苗管理
   getSeedlingList,
   getSeedlingDetail,
   createSeedling,
   updateSeedling,
   deleteSeedling,
-  deleteSeedlings
+  deleteSeedlings,
+  finishSeedling,
+  addDailyRecord,
+  updateDailyRecord,
+  deleteDailyRecord,
+  increasePlantedCount
 }
 
 export default cropApi

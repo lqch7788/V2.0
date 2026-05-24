@@ -124,6 +124,26 @@
             </div>
           </div>
         </div>
+
+        <!-- 图片信息 - V1.1新增 -->
+        <div v-if="images.length > 0">
+          <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">图片信息</h4>
+          <div class="grid grid-cols-4 gap-3">
+            <div
+              v-for="(img, index) in images"
+              :key="index"
+              class="relative aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 border border-gray-200"
+              @click="openImageViewer(index)"
+            >
+              <el-image
+                :src="img"
+                :preview-src-list="images"
+                fit="cover"
+                class="w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 底部按钮 -->
@@ -135,7 +155,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { View, Close } from '@element-plus/icons-vue'
 
 const props = defineProps({
@@ -154,6 +174,24 @@ const statusMap = {
 
 const statusLabel = computed(() => statusMap[props.record?.status]?.label || props.record?.status)
 const statusClass = computed(() => statusMap[props.record?.status]?.class || 'text-gray-600 bg-gray-50')
+
+// 图片处理 - V1.1逻辑
+const images = computed(() => {
+  if (!props.record) return []
+  if (Array.isArray(props.record.pictures)) return props.record.pictures
+  if (typeof props.record.pictures === 'string') {
+    try {
+      return JSON.parse(props.record.pictures)
+    } catch {
+      return []
+    }
+  }
+  return []
+})
+
+const openImageViewer = (index) => {
+  // 使用el-image的preview功能实现放大
+}
 
 const onClose = () => {
   emit('close')

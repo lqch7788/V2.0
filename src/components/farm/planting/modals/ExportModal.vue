@@ -59,17 +59,25 @@ const props = defineProps({
   selectedCount: {
     type: Number,
     default: 0
+  },
+  exportFileType: {  // V1.1新增，用于同步外部状态
+    type: String,
+    default: 'xlsx'
   }
 })
 
-const emit = defineEmits(['close', 'confirm'])
+const emit = defineEmits(['close', 'confirm', 'update:exportFileType'])
 
 const exportFormat = ref('xlsx')
 
 watch(() => props.isOpen, (val) => {
   if (val) {
-    exportFormat.value = 'xlsx'
+    exportFormat.value = props.exportFileType || 'xlsx'
   }
+})
+
+watch(() => props.exportFileType, (val) => {
+  exportFormat.value = val || 'xlsx'
 })
 
 const onClose = () => {
@@ -77,6 +85,7 @@ const onClose = () => {
 }
 
 const handleConfirm = () => {
+  emit('update:exportFileType', exportFormat.value)
   emit('confirm', exportFormat.value)
 }
 </script>

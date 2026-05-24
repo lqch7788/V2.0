@@ -1,6 +1,6 @@
 <template>
   <!-- 汇总看板页面 - 生产汇总表总览 -->
-  <div class="space-y-6">
+  <div class="space-y-6 p-6 rounded-xl">
     <!-- 页面头部 + 日期筛选 -->
     <PageHeader
       title="汇总看板"
@@ -31,7 +31,7 @@
       <!-- 6 个核心 KPI 卡片 -->
       <KpiCardGrid :columns="6" compact>
         <KpiCard
-          :icon="'Box'"
+          :icon="Sprout"
           label="活跃批次"
           :value="activeBatches"
           colorScheme="purple"
@@ -39,7 +39,7 @@
           @click="navigateTo('/summary/batch')"
         />
         <KpiCard
-          :icon="'TrendCharts'"
+          :icon="TrendingUp"
           label="月产量 (kg)"
           :value="monthYield.toLocaleString()"
           colorScheme="emerald"
@@ -47,7 +47,7 @@
           @click="navigateTo('/summary/yield')"
         />
         <KpiCard
-          :icon="'Money'"
+          :icon="DollarSign"
           label="月产值 (元)"
           :value="`¥${monthAmount.toLocaleString()}`"
           colorScheme="emerald"
@@ -55,7 +55,7 @@
           @click="navigateTo('/summary/yield')"
         />
         <KpiCard
-          :icon="'CircleCheckFilled'"
+          :icon="CheckCircle2"
           label="任务完成率"
           :value="`${completionRate}%`"
           :trend="completionRate >= 50 ? completionRate - 50 : completionRate - 50"
@@ -64,7 +64,7 @@
           @click="navigateTo('/summary/indicators')"
         />
         <KpiCard
-          :icon="'Clock'"
+          :icon="Clock"
           label="总工时 (h)"
           :value="totalHours.toLocaleString()"
           colorScheme="blue"
@@ -72,7 +72,7 @@
           @click="navigateTo('/summary/labor')"
         />
         <KpiCard
-          :icon="'Money'"
+          :icon="DollarSign"
           label="总成本 (元)"
           :value="`¥${totalCost.toLocaleString()}`"
           colorScheme="amber"
@@ -89,7 +89,7 @@
             <el-icon :size="14" color="#059669"><LocationInformation /></el-icon>
           </template>
           <div v-if="batchItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-            <el-icon :size="40"><Box /></el-icon>
+            <el-icon :size="40" class="opacity-30"><Box /></el-icon>
             <span class="text-sm mt-2">暂无温室数据</span>
           </div>
           <div v-else class="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2">
@@ -138,25 +138,10 @@
           </template>
           <div class="h-56">
             <div v-if="yieldChartData.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400">
-              <el-icon :size="40"><Histogram /></el-icon>
+              <el-icon :size="40" class="opacity-30"><Histogram /></el-icon>
               <span class="text-sm mt-2">暂无图表数据</span>
             </div>
-            <div v-else class="w-full h-full">
-              <!-- 使用 Element Plus 图表或简单 SVG 柱状图 -->
-              <div class="flex items-end justify-around h-full gap-2">
-                <div
-                  v-for="(item, index) in yieldChartData"
-                  :key="index"
-                  class="flex flex-col items-center flex-1"
-                >
-                  <div
-                    class="w-full bg-emerald-500 rounded-t transition-all duration-300 hover:bg-emerald-600"
-                    :style="{ height: `${(item.value / maxYieldValue) * 100}%`, minHeight: '4px' }"
-                  />
-                  <span class="text-xs text-gray-500 mt-1 truncate">{{ item.name }}</span>
-                </div>
-              </div>
-            </div>
+            <div v-else ref="yieldChartRef" class="w-full h-full"></div>
           </div>
         </CardWrapper>
       </div>
@@ -168,32 +153,18 @@
           <template #icon>
             <el-icon :size="14" color="#f59e0b"><PieChart /></el-icon>
           </template>
-          <div class="h-56 flex items-center justify-center">
+          <div class="h-56">
             <div v-if="costPieData.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400">
-              <el-icon :size="40"><PieChart /></el-icon>
+              <el-icon :size="40" class="opacity-30"><PieChart /></el-icon>
               <span class="text-sm mt-2">暂无图表数据</span>
             </div>
-            <div v-else class="flex items-center gap-8">
-              <!-- 简单饼图 -->
-              <div class="relative">
-                <el-icon :size="120" color="#10b981"><PieChart /></el-icon>
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <div class="text-center">
-                    <div class="text-lg font-bold text-gray-800">
-                      ¥{{ ((costSummary?.totalCost || 0) / 10000).toFixed(1) }}万
-                    </div>
-                    <div class="text-xs text-gray-400">总成本</div>
-                  </div>
-                </div>
-              </div>
-              <!-- 图例 -->
-              <div class="flex flex-col gap-3">
-                <div v-for="item in costPieData" :key="item.name" class="flex items-center gap-2">
-                  <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: item.fill }" />
-                  <span class="text-xs text-gray-500">{{ item.name }}</span>
-                  <span class="text-xs text-gray-700 font-medium">¥{{ item.value.toLocaleString() }}</span>
-                </div>
-              </div>
+            <div v-else ref="costChartRef" class="w-full h-full"></div>
+          </div>
+          <!-- 图例 -->
+          <div v-if="costPieData.length > 0" class="flex items-center justify-center gap-6 mt-3">
+            <div v-for="item in costPieData" :key="item.name" class="flex items-center gap-1.5">
+              <div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: item.fill }" />
+              <span class="text-xs text-gray-500">{{ item.name }}</span>
             </div>
           </div>
         </CardWrapper>
@@ -204,7 +175,7 @@
             <el-icon :size="14" color="#8b5cf6"><Grid /></el-icon>
           </template>
           <div v-if="topBatches.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-            <el-icon :size="40"><Box /></el-icon>
+            <el-icon :size="40" class="opacity-30"><Box /></el-icon>
             <span class="text-sm mt-2">暂无批次数据</span>
           </div>
           <div v-else class="space-y-3">
@@ -252,7 +223,7 @@
             <el-icon :size="14" color="#dc2626"><Warning /></el-icon>
           </template>
           <div v-if="alerts.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-            <el-icon :size="40"><CircleCheck /></el-icon>
+            <el-icon :size="40" class="opacity-30"><Box /></el-icon>
             <span class="text-sm mt-2">暂无预警信息</span>
           </div>
           <div v-else class="space-y-3">
@@ -272,7 +243,7 @@
             <el-icon :size="14" color="#64748b"><Box /></el-icon>
           </template>
           <div v-if="batchItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-            <el-icon :size="40"><Box /></el-icon>
+            <el-icon :size="40" class="opacity-30"><Box /></el-icon>
             <span class="text-sm mt-2">暂无批次数据</span>
           </div>
           <div v-else class="space-y-2">
@@ -309,14 +280,36 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, defineComponent, h } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   DataAnalysis, Loading, Box, TrendCharts, Money, CircleCheckFilled, Clock,
   LocationInformation, Histogram, PieChart, Grid, Warning, CircleCheck, DArrowRight, Location
 } from '@element-plus/icons-vue'
+import { Sprout, TrendingUp, DollarSign, CheckCircle2 } from 'lucide-vue-next'
+import * as echarts from 'echarts'
 import { PageHeader, KpiCard, KpiCardGrid, AlertCard, SummaryDateFilter } from '@/components/summary'
 import { useSummaryStore } from '@/stores/modules/summary'
+
+// ========== 卡片包装组件 ==========
+const CardWrapper = defineComponent({
+  name: 'CardWrapper',
+  props: {
+    title: String,
+    icon: [String, Object],
+  },
+  setup(props, { slots }) {
+    return () => h('div', { class: 'bg-white rounded-xl shadow-sm border border-gray-100 p-5' }, [
+      h('div', { class: 'flex items-center gap-2 mb-4' }, [
+        h('div', { class: 'w-7 h-7 rounded-md bg-gray-50 flex items-center justify-center' }, [
+          slots.icon ? slots.icon() : props.icon ? h(props.icon, { size: 14 }) : null
+        ]),
+        h('h3', { class: 'text-sm font-semibold text-gray-800' }, props.title)
+      ]),
+      slots.default?.()
+    ])
+  }
+})
 
 // ========== 批次状态中文映射 ==========
 const STATUS_LABEL = {
@@ -363,14 +356,14 @@ const startDate = ref('')
 const endDate = ref('')
 
 // KPI 值计算
-const activeBatches = computed(() => overview.value?.batch.activeCount ?? 0)
-const monthYield = computed(() => overview.value?.yield.monthTotalYield ?? 0)
-const monthAmount = computed(() => overview.value?.yield.monthTotalAmount ?? 0)
-const completionRate = computed(() => overview.value?.task.completionRate ?? 0)
-const totalHours = computed(() => overview.value?.labor.totalHours ?? 0)
+const activeBatches = computed(() => overview.value?.batch?.activeCount ?? 0)
+const monthYield = computed(() => overview.value?.yield?.monthTotalYield ?? 0)
+const monthAmount = computed(() => overview.value?.yield?.monthTotalAmount ?? 0)
+const completionRate = computed(() => overview.value?.task?.completionRate ?? 0)
+const totalHours = computed(() => overview.value?.labor?.totalHours ?? 0)
 const totalCost = computed(() => overview.value?.totalCost ?? 0)
 
-// Top5 批次
+// Top5 批次（按完成率排序）
 const topBatches = computed(() => {
   return [...batchItems.value]
     .sort((a, b) => b.completionRate - a.completionRate)
@@ -381,13 +374,8 @@ const topBatches = computed(() => {
 const yieldChartData = computed(() => {
   return yieldItems.value.map((item) => ({
     name: item.name,
-    value: item.value,
+    产量: item.value,
   }))
-})
-
-const maxYieldValue = computed(() => {
-  if (yieldChartData.value.length === 0) return 100
-  return Math.max(...yieldChartData.value.map((d) => d.value), 1)
 })
 
 // 成本饼图数据
@@ -405,6 +393,7 @@ const alerts = computed(() => {
   const result = []
   if (!overview.value) return result
 
+  // 任务完成率预警
   const taskStatus = summaryStore.getTaskStatus(overview.value.task.completionRate)
   if (taskStatus === 'critical') {
     result.push({
@@ -420,6 +409,7 @@ const alerts = computed(() => {
     })
   }
 
+  // 问题解决率预警
   if (overview.value.problem.totalProblems > 0 && overview.value.problem.resolutionRate < 60) {
     result.push({
       title: '问题堆积：解决率不足',
@@ -442,13 +432,170 @@ const navigateTo = (path) => {
   router.push(path)
 }
 
-// 日期变更处理
+// 日期变更处理 - 同步状态，数据获取由 watch 监听触发（避免重复获取）
+// SummaryDateFilter emit顺序: ('change', mode, startDate, endDate)
 const handleDateChange = (mode, start, end) => {
-  if (start && end) {
-    summaryStore.fetchYieldStats({ startDate, endDate: end })
-    summaryStore.fetchCostStats({ startDate, endDate: end })
+  // 只在值确实变化时才更新，避免 watch 重复触发
+  if (mode !== undefined && mode !== filterMode.value) {
+    filterMode.value = mode
+  }
+  if (start !== undefined && start !== startDate.value) {
+    startDate.value = start || ''
+  }
+  if (end !== undefined && end !== endDate.value) {
+    endDate.value = end || ''
+  }
+}
+
+// 监听日期状态变化，当日期变化时重新获取数据（与 V1.1 useEffect 逻辑一致）
+watch([startDate, endDate], ([newStart, newEnd]) => {
+  if (newStart && newEnd) {
+    summaryStore.fetchYieldStats({ start_date: newStart, end_date: newEnd })
+    summaryStore.fetchCostStats({ start_date: newStart, end_date: newEnd })
     summaryStore.fetchBatchStats({})
   }
+}, { immediate: false })
+
+// ========== ECharts 图表 ==========
+const yieldChartRef = ref()
+const costChartRef = ref()
+let yieldChartInstance = null
+let costChartInstance = null
+
+// 初始化产量趋势柱状图
+const initYieldChart = () => {
+  if (!yieldChartRef.value || yieldChartData.value.length === 0) return
+
+  if (yieldChartInstance) {
+    yieldChartInstance.dispose()
+  }
+
+  yieldChartInstance = echarts.init(yieldChartRef.value)
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'white',
+      border: '1px solid #e5e7eb',
+      borderRadius: 8,
+      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+      formatter: (params) => {
+        const item = params[0]
+        return `${item.name}<br/><strong>${item.value} kg</strong>`
+      }
+    },
+    grid: {
+      top: 10,
+      right: 10,
+      left: 0,
+      bottom: 0,
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: yieldChartData.value.map(d => d.name),
+      axisLine: { lineStyle: { color: '#e5e7eb' } },
+      axisTick: { show: false },
+      axisLabel: { fontSize: 11, color: '#9ca3af' }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { fontSize: 11, color: '#9ca3af' },
+      splitLine: { lineStyle: { color: '#f3f4f6' } }
+    },
+    series: [{
+      type: 'bar',
+      data: yieldChartData.value.map(d => d.产量),
+      barSize: 28,
+      itemStyle: {
+        color: '#10b981',
+        borderRadius: [4, 4, 0, 0]
+      }
+    }]
+  }
+
+  yieldChartInstance.setOption(option)
+}
+
+// 初始化成本构成饼图
+const initCostChart = () => {
+  if (!costChartRef.value || costPieData.value.length === 0) return
+
+  if (costChartInstance) {
+    costChartInstance.dispose()
+  }
+
+  costChartInstance = echarts.init(costChartRef.value)
+
+  const total = costPieData.value.reduce((sum, d) => sum + d.value, 0)
+
+  const option = {
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'white',
+      border: '1px solid #e5e7eb',
+      borderRadius: 8,
+      formatter: (params) => {
+        const percent = ((params.value / total) * 100).toFixed(1)
+        return `${params.name}<br/>${percent}% (¥${params.value.toLocaleString()})`
+      }
+    },
+    series: [{
+      type: 'pie',
+      radius: ['52px', '80px'],
+      center: ['50%', '50%'],
+      padding: 3,
+      data: costPieData.value.map(d => ({
+        name: d.name,
+        value: d.value,
+        itemStyle: { color: d.fill }
+      }))
+    }],
+    graphic: [{
+      type: 'text',
+      left: 'center',
+      top: 'center',
+      style: {
+        text: `¥${(total / 10000).toFixed(1)}万`,
+        textAlign: 'center',
+        fill: '#374151',
+        fontSize: 18,
+        fontWeight: 'bold'
+      }
+    }, {
+      type: 'text',
+      left: 'center',
+      top: 26,
+      style: {
+        text: '总成本',
+        textAlign: 'center',
+        fill: '#9ca3af',
+        fontSize: 12
+      }
+    }]
+  }
+
+  costChartInstance.setOption(option)
+}
+
+// 监听数据变化更新图表
+watch([yieldChartData, costPieData], () => {
+  nextTick(() => {
+    if (yieldChartData.value.length > 0) {
+      initYieldChart()
+    }
+    if (costPieData.value.length > 0) {
+      initCostChart()
+    }
+  })
+}, { deep: true })
+
+// 窗口大小变化时重绘图表
+const handleResize = () => {
+  yieldChartInstance?.resize()
+  costChartInstance?.resize()
 }
 
 // 初始化
@@ -456,39 +603,27 @@ onMounted(() => {
   if (summaryStore.isCacheStale('overview', 5 * 60 * 1000)) {
     summaryStore.fetchAll()
   }
+
+  nextTick(() => {
+    if (yieldChartData.value.length > 0) {
+      initYieldChart()
+    }
+    if (costPieData.value.length > 0) {
+      initCostChart()
+    }
+  })
+
+  window.addEventListener('resize', handleResize)
+})
+
+// 组件卸载时销毁图表实例
+onUnmounted(() => {
+  yieldChartInstance?.dispose()
+  costChartInstance?.dispose()
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
-<!-- 卡片包装组件 -->
-<script>
-// 局部组件定义
-const CardWrapper = {
-  name: 'CardWrapper',
-  props: {
-    title,
-    icon,
-  },
-  template: `
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-      <div class="flex items-center gap-2 mb-4">
-        <div class="w-7 h-7 rounded-md bg-gray-50 flex items-center justify-center">
-          <slot name="icon">
-            <el-icon v-if="icon" :size="14"><component :is="icon" /></el-icon>
-          </slot>
-        </div>
-        <h3 class="text-sm font-semibold text-gray-800">{{ title }}</h3>
-      </div>
-      <slot />
-    </div>
-  `,
-}
-
-export default {
-  components: {
-    CardWrapper,
-  },
-}
-</script>
 
 <style scoped>
 .is-loading {

@@ -78,24 +78,40 @@
 </template>
 
 <script setup>
-import { Bell, Clock, Warning, CircleCheck, WarningFilled, WarnTriangleFilled, CircleClose } from '@element-plus/icons-vue' icon: any; color: string; bg: string }> = {
+import { computed } from 'vue'
+import { Bell, Clock, Warning, CircleCheck, WarningFilled, WarnTriangleFilled, CircleClose } from '@element-plus/icons-vue'
+
+const props = defineProps({
+  stats: {
+    type: Object,
+    default: () => ({
+      todayCount: 0,
+      weekCount: 0,
+      pendingCount: 0,
+      totalCount: 0,
+      byLevel: {}
+    })
+  }
+})
+
+const levelConfig = computed(() => ({
   warning: {
     label: '一般提醒',
-    icon,
+    icon: Warning,
     color: 'text-yellow-600',
     bg: 'bg-yellow-50 border-yellow-200',
   },
   danger: {
     label: '需要注意',
-    icon,
+    icon: WarningFilled,
     color: 'text-orange-600',
     bg: 'bg-orange-50 border-orange-200',
   },
   critical: {
     label: '紧急处理',
-    icon,
+    icon: WarnTriangleFilled,
     color: 'text-red-600',
     bg: 'bg-red-50 border-red-200',
   },
-}
+}))
 </script>

@@ -48,6 +48,16 @@
                     />
                   </div>
                 </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-1">关联生产计划</label>
+                    <el-input v-model="form.productionPlanCode" :disabled="isIot" placeholder="可选，输入生产计划编号" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-1">关联种植记录</label>
+                    <el-input v-model="form.plantingCode" :disabled="isIot" placeholder="可选，输入种植记录编号" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -200,6 +210,7 @@
 import { ref, reactive, watch, computed } from 'vue'
 import { Edit, Close, Warning } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useFertilizerStore } from '@/stores/modules/fertilizer'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -207,6 +218,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'saved'])
+
+// Store
+const fertilizerStore = useFertilizerStore()
 
 // 提交状态
 const submitting = ref(false)
@@ -228,7 +242,10 @@ const form = reactive({
   totalCost: 0,
   fertilizeTime: '',
   operatorName: '',
-  description: ''
+  description: '',
+  productionPlanCode: '',
+  productionPlanId: '',
+  plantingCode: ''
 })
 
 // 自动计算总成本
@@ -257,6 +274,9 @@ watch([() => props.isOpen, () => props.record], ([isOpen, record]) => {
     form.fertilizeTime = record.fertilizeTime || ''
     form.operatorName = record.operatorName || ''
     form.description = record.description || ''
+    form.productionPlanCode = record.productionPlanCode || ''
+    form.productionPlanId = record.productionPlanId || ''
+    form.plantingCode = record.plantingCode || ''
   }
 }, { immediate: true })
 
@@ -275,8 +295,24 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    emit('saved', { ...form })
+    // 调用store更新记录
+    await fertilizerStore.updateItem(props.record.id, {
+      fertilizerCode: form.fertilizerCode,
+      fertilizerName: form.fertilizerName,
+      fertilizerType: form.fertilizerType,
+      cropName: form.cropName,
+      greenhouseName: form.greenhouseName,
+      dilutionRatio: form.dilutionRatio,
+      quantity: form.quantity,
+      unit: form.unit,
+      unitPrice: form.unitPrice,
+      totalCost: form.totalCost,
+      fertilizeTime: form.fertilizeTime,
+      operatorName: form.operatorName,
+      description: form.description,
+    })
     ElMessage.success('保存成功')
+    emit('saved')
     handleClose()
   } catch (error) {
     console.error('保存失败:', error)
