@@ -60,6 +60,32 @@ function removeFromPendingOrders(orderId) {
   savePendingOrders(filtered)
 }
 
+/**
+ * 将 snake_case 字段转换为 camelCase
+ * 用于处理后端API返回的snake_case数据
+ */
+function toCamelCase(data) {
+  if (data === null || data === undefined) return data
+  if (Array.isArray(data)) {
+    return data.map(item => toCamelCase(item))
+  }
+  if (typeof data === 'object') {
+    const result = {}
+    for (const [key, value] of Object.entries(data)) {
+      // 跳过 instanceIds 字段（数组类型不需要转换）
+      if (key === 'instanceIds') {
+        result[key] = value
+        continue
+      }
+      // 将 snake_case 转换为 camelCase
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+      result[camelKey] = value
+    }
+    return result
+  }
+  return data
+}
+
 function toSnakeCase(data) {
   const snakeMap = {
     orderCode: 'order_code',
@@ -93,8 +119,10 @@ export async function getOrders() {
   try {
     const data = await enhancedApiClient.get('/crop-orders')
     if (data && Array.isArray(data) && data.length > 0) {
-      saveLocalOrders(data)
-      return data
+      // 将后端返回的snake_case数据转换为camelCase
+      const camelData = toCamelCase(data)
+      saveLocalOrders(camelData)
+      return camelData
     }
   } catch (error) {
     console.warn('[cropOrderService] API获取失败，降级到本地存储:', error)
@@ -115,7 +143,9 @@ export async function getOrderDetail(id) {
 
 export async function getOrderById(id) {
   try {
-    return await enhancedApiClient.get(`/crop-orders/${id}`)
+    const data = await enhancedApiClient.get(`/crop-orders/${id}`)
+    // 将后端返回的snake_case数据转换为camelCase
+    return toCamelCase(data)
   } catch (error) {
     console.warn('[cropOrderService] 获取订单详情失败:', error)
     const localOrders = getLocalOrders()
@@ -138,7 +168,8 @@ export async function createOrder(orderData) {
     const snakeData = toSnakeCase(orderData)
     const result = await enhancedApiClient.post('/crop-orders', snakeData)
     console.log('[cropOrderService] 创建订单成功:', result)
-    return result
+    // 将后端返回的snake_case数据转换为camelCase
+    return toCamelCase(result)
   } catch (error) {
     console.warn('[cropOrderService] API创建失败，降级到localStorage:', error)
     const localOrders = getLocalOrders()
