@@ -174,6 +174,7 @@ import MoveModal from '@/components/farm/planting/modals/MoveModal.vue'
 import MarkModal from '@/components/farm/planting/modals/MarkModal.vue'
 import { assignMarkToLabels, getLabels, getLabelResumes, queryLabelByNumber, addLabelResume } from '@/services/apiPlantLabelService'
 import { getCropBatchByCode, endCropBatch, getCompletionRate } from '@/services/apiCropBatchService'
+import { checkPlantingDeletable } from '@/services/apiPlantingService'
 import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
 
 // 使用 Store
@@ -351,12 +352,26 @@ const handleEditMode = () => {
   selectedRows.value = []
 }
 
-// 删除模式
+// 删除模式 - V1.1新增：删除前检查标签关联
 const handleDeleteMode = async () => {
   if (selectedRows.value.length === 0) {
     ElMessage.warning('请先选择要删除的记录')
     return
   }
+
+  // 删除前检查标签关联 - 与V1.1一致
+  for (const id of selectedRows.value) {
+    try {
+      const checkResult = await checkPlantingDeletable(id)
+      if (!checkResult.deletable) {
+        ElMessage.error(`种植记录已被 ${checkResult.labelCount} 个标签引用，无法删除。\n请先清理标签关联后再删除。`)
+        return
+      }
+    } catch {
+      // 检查失败不阻止删除（降级策略）
+    }
+  }
+
   try {
     await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
       confirmButtonText: '确定',

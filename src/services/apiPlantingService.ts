@@ -202,6 +202,22 @@ export async function deletePlantings(ids: string[]): Promise<boolean> {
 }
 
 /**
+ * 检查种植记录是否可删除（是否被标签引用）
+ * 降级策略：API → 返回可删除
+ */
+export async function checkPlantingDeletable(id: string): Promise<{ deletable: boolean; labelCount: number }> {
+  try {
+    const data = await enhancedApiClient.get<{ success: boolean; data: { deletable: boolean; labelCount: number } }>(
+      `/plantings/${id}/check-deletable`
+    );
+    return data?.data || { deletable: true, labelCount: 0 };
+  } catch {
+    // 检查失败时返回可删除（降级策略）
+    return { deletable: true, labelCount: 0 };
+  }
+}
+
+/**
  * 采收种植记录
  * 降级策略：API → 离线队列
  */

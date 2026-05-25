@@ -151,8 +151,8 @@
           </template>
           <!-- 删除模式 -->
           <template v-else-if="deleteMode">
-            <el-button type="primary" size="small" @click="() => {}">
-              确认删除
+            <el-button type="primary" size="small" @click="handleConfirmDelete">
+              确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
             <el-button size="small" @click="() => deleteMode = false">取消</el-button>
           </template>
@@ -166,6 +166,14 @@
           </template>
           <!-- 正常模式 -->
           <template v-else>
+            <el-button size="small" @click="() => batchEditMode = true">
+              <el-icon><Edit /></el-icon>
+              编辑
+            </el-button>
+            <el-button type="danger" size="small" @click="() => deleteMode = true">
+              <el-icon><Delete /></el-icon>
+              删除
+            </el-button>
             <el-button size="small" @click="handleExportClick">
               <el-icon><Download /></el-icon>
               导出
@@ -633,6 +641,27 @@ const handleDelete = async (record) => {
       type: 'warning'
     })
     await orderDataStore.deleteOrder(record.id)
+    ElMessage.success('删除成功')
+  } catch {
+    // 用户取消
+  }
+}
+
+// 批量删除确认
+const handleConfirmDelete = async () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要删除的数据')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await orderDataStore.deleteOrders(selectedRows.value)
+    selectedRows.value = []
+    deleteMode.value = false
     ElMessage.success('删除成功')
   } catch {
     // 用户取消
