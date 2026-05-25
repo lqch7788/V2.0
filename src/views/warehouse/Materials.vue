@@ -698,7 +698,7 @@ const mockInboundRecords = ref([
 
 // 物料数据（从API加载）
 const warehouseMaterials = ref([])
-const inboundRecords = ref([])
+const inboundRecordsData = ref([])
 const loading = ref(false)
 
 // 从API加载数据
@@ -718,7 +718,7 @@ const loadMaterials = async () => {
 const loadInboundRecords = async () => {
   try {
     const data = await getInboundRecords()
-    inboundRecords.value = Array.isArray(data) ? data : (data.data || [])
+    inboundRecordsData.value = Array.isArray(data) ? data : (data.data || [])
   } catch (error) {
     console.error('加载入库记录失败:', error)
   }
@@ -823,7 +823,7 @@ const uniqueLocations = computed(() => {
 })
 
 const inboundRecords = computed(() => {
-  return inboundRecords.value.length > 0 ? inboundRecords.value : mockInboundRecords.value
+  return inboundRecordsData.value.length > 0 ? inboundRecordsData.value : mockInboundRecords.value
 })
 
 const isFormValid = computed(() => {

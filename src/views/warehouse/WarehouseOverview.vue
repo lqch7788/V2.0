@@ -1,375 +1,615 @@
 <template>
+  <!-- 库存总览页面 - 与V1.1 WarehouseOverviewPage.tsx功能100%一致 -->
   <div class="space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-      <div class="flex items-center justify-between">
+    <div class="bg-white rounded-xl p-6 shadow-none">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white">
-              <OfficeBuilding />
-            </el-icon>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">仓库概览</h1>
-            <p class="text-gray-500">仓库库存总览与统计</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-6 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="28" color="white">
-              <Box />
-            </el-icon>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">仓库总数</p>
-            <p class="text-3xl font-bold text-gray-900">{{ warehouseStats.total }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-6 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-            <el-icon :size="28" color="white">
               <Goods />
             </el-icon>
           </div>
           <div>
-            <p class="text-sm text-gray-500">物料种类</p>
-            <p class="text-3xl font-bold text-gray-900">{{ warehouseStats.materialTypes }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-6 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
-            <el-icon :size="28" color="white">
-              <Warning />
-            </el-icon>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">库存预警</p>
-            <p class="text-3xl font-bold text-gray-900">{{ warehouseStats.alerts }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-6 shadow-sm">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-            <el-icon :size="28" color="white">
-              <PieChart />
-            </el-icon>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">库存利用率</p>
-            <p class="text-3xl font-bold text-gray-900">{{ warehouseStats.utilization }}%</p>
+            <h1 class="text-2xl font-bold text-gray-900">库存总览</h1>
+            <p class="text-gray-500">仓库物料库存总览</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 仓库分布与状态 -->
-    <div class="grid grid-cols-2 gap-6">
-      <!-- 仓库列表 -->
-      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">仓库列表</h3>
-          <router-link to="/warehouse/materials">
-            <el-button type="primary" link>查看详情</el-button>
-          </router-link>
-        </div>
+    <!-- 物料筛选器 -->
+    <MaterialFilters
+      :filters="filters"
+      :low-stock-count="lowStockCount"
+      @filters-change="handleFiltersChange"
+      @low-stock-click="handleLowStockToggle"
+    />
 
-        <el-table :data="warehouseList" stripe>
-          <el-table-column prop="name" label="仓库名称" min-width="120" />
-          <el-table-column prop="type" label="类型" width="100" />
-          <el-table-column prop="capacity" label="容量(㎡)" width="100" />
-          <el-table-column prop="used" label="已用(㎡)" width="100">
-            <template #default="{ row }">
-              <div class="flex items-center gap-2">
-                <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    class="h-full bg-emerald-500 rounded-full"
-                    :style="{ width: `${(row.used / row.capacity) * 100}%` }"
-                  />
-                </div>
-                <span class="text-xs">{{ Math.round((row.used / row.capacity) * 100) }}%</span>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column prop="status" label="状态" width="80">
-            <template #default="{ row }">
-              <el-tag :type="row.status === 'normal' ? 'success' : 'warning'" size="small">
-                {{ row.status === 'normal' ? '正常' : '紧张' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-
-      <!-- 库存预警 -->
-      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">库存预警</h3>
-          <el-button type="primary" link @click="handleViewAllAlerts">查看全部</el-button>
-        </div>
-
-        <el-table :data="alertList" stripe>
-          <el-table-column prop="code" label="物料编号" width="120" />
-          <el-table-column prop="name" label="物料名称" min-width="120" />
-          <el-table-column label="当前库存" width="100">
-            <template #default="{ row }">
-              <span class="text-red-600 font-medium">{{ row.quantity }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="最低库存" width="100">
-            <template #default="{ row }">
-              <span>{{ row.minStock }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="预警等级" width="100">
-            <template #default="{ row }">
-              <el-tag :type="row.level === 'urgent' ? 'danger' : 'warning'" size="small">
-                {{ row.level === 'urgent' ? '紧急' : '预警' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
+    <!-- 操作工具栏 -->
+    <div class="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm">
+      <h2 class="font-semibold text-gray-900 text-lg">物料汇总表</h2>
+      <div class="flex gap-2">
+        <el-button type="primary" @click="handleAdd">
+          <el-icon><Plus /></el-icon>
+          新增
+        </el-button>
+        <el-button type="primary" @click="handleExport">
+          <el-icon><Download /></el-icon>
+          导出
+        </el-button>
       </div>
     </div>
 
-    <!-- 分类库存统计 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div class="p-4 border-b border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-900">分类库存统计</h3>
-      </div>
-
-      <div class="p-4">
-        <div class="grid grid-cols-4 gap-4">
-          <div
-            v-for="category in categoryStats"
-            :key="category.code"
-            class="p-4 rounded-xl border border-gray-200 hover:border-emerald-500 transition-all cursor-pointer"
-            @click="handleCategoryClick(category)"
-          >
-            <div class="flex items-center gap-3 mb-2">
-              <div
-                class="w-10 h-10 rounded-lg flex items-center justify-center"
-                :style="{ backgroundColor: category.color }"
-              >
-                <el-icon :size="20" color="white">
-                  <Goods />
-                </el-icon>
-              </div>
-              <div>
-                <p class="font-medium text-gray-900">{{ category.name }}</p>
-                <p class="text-xs text-gray-500">{{ category.types }} 个分类</p>
-              </div>
-            </div>
-            <div class="flex items-end justify-between">
-              <div>
-                <p class="text-2xl font-bold text-gray-900">{{ category.quantity }}</p>
-                <p class="text-xs text-gray-500">件</p>
-              </div>
-              <div class="text-right">
-                <p class="text-lg font-medium text-emerald-600">{{ category.percentage }}%</p>
-                <p class="text-xs text-gray-500">占比</p>
-              </div>
-            </div>
-            <!-- 进度条 -->
-            <div class="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                class="h-full rounded-full transition-all"
-                :style="{ width: `${category.percentage}%`, backgroundColor: category.color }"
-              />
-            </div>
-          </div>
-        </div>
+    <!-- 旧版工具栏（用于批量操作模式） -->
+    <div v-if="batchEditMode || deleteMode || exportMode" class="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm">
+      <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
+      <div class="flex gap-2">
+        <template v-if="batchEditMode">
+          <el-button type="primary" @click="handleConfirmBatchEdit">确认编辑</el-button>
+          <el-button @click="handleCancelBatchEdit">取消</el-button>
+        </template>
+        <template v-if="deleteMode">
+          <el-button type="danger" @click="handleConfirmBatchDeleteAction">确认删除</el-button>
+          <el-button @click="handleCancelDeleteAction">取消</el-button>
+        </template>
+        <template v-if="exportMode">
+          <el-button type="primary" @click="handleConfirmExportClick">确认导出</el-button>
+          <el-button @click="handleCancelExportAction">取消</el-button>
+        </template>
       </div>
     </div>
 
-    <!-- 库存走势 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900">月度库存走势</h3>
-        <div class="flex gap-2">
-          <el-radio-group v-model="trendPeriod" size="small">
-            <el-radio-button label="week">本周</el-radio-button>
-            <el-radio-button label="month">本月</el-radio-button>
-            <el-radio-button label="year">本年</el-radio-button>
-          </el-radio-group>
-        </div>
-      </div>
+    <!-- 物料表格 -->
+    <MaterialsTable
+      :materials="filteredMaterials"
+      :current-page="currentPage"
+      :page-size="pageSize"
+      :selected-rows="selectedRows"
+      :export-mode="exportMode"
+      :batch-edit-mode="batchEditMode"
+      :delete-mode="deleteMode"
+      @page-change="handlePageChange"
+      @page-size-change="handlePageSizeChange"
+      @select-all="handleSelectAll"
+      @select-row="handleSelectRow"
+      @view="handleView"
+      @edit="handleEdit"
+      @delete="handleDelete"
+      @cancel-selection="handleCancelSelection"
+      @confirm-export="handleConfirmExportClick"
+    />
 
-      <div class="p-4">
-        <div class="h-64 flex items-end justify-around gap-4">
-          <div
-            v-for="(item, index) in trendData"
-            :key="index"
-            class="flex flex-col items-center gap-2"
-          >
-            <div
-              class="w-16 rounded-t-lg transition-all hover:opacity-80"
-              :style="{
-                height: `${(item.value / maxTrendValue) * 200}px`,
-                backgroundColor: item.color
-              }"
-            />
-            <div class="text-center">
-              <p class="text-sm font-medium text-gray-900">{{ item.label }}</p>
-              <p class="text-xs text-gray-500">{{ item.value }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- 物料详情弹窗 -->
+    <MaterialDetailModal
+      :material="selectedMaterial"
+      :is-open="showDetailModal"
+      @close="showDetailModal = false"
+    />
 
-    <!-- 快捷操作 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-      <h3 class="text-lg font-semibold text-gray-900 mb-4">快捷操作</h3>
-      <div class="grid grid-cols-4 gap-4">
-        <router-link
-          to="/warehouse/inbound"
-          class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all"
-        >
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-            <el-icon :size="20" color="white"><Bottom /></el-icon>
-          </div>
-          <div>
-            <p class="font-medium text-gray-900">物料入库</p>
-            <p class="text-xs text-gray-500">入库记录管理</p>
-          </div>
-        </router-link>
+    <!-- 物料编辑弹窗 -->
+    <MaterialEditModal
+      :material="selectedMaterial"
+      :is-open="showEditModal"
+      @close="handleEditModalClose"
+      @save="handleSaveEdit"
+    />
 
-        <router-link
-          to="/warehouse/materials"
-          class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all"
-        >
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="20" color="white"><Goods /></el-icon>
-          </div>
-          <div>
-            <p class="font-medium text-gray-900">仓库物料</p>
-            <p class="text-xs text-gray-500">物料库存管理</p>
-          </div>
-        </router-link>
+    <!-- 物料删除确认弹窗 -->
+    <MaterialDeleteConfirmModal
+      :material="selectedMaterial"
+      :is-open="showDeleteModal"
+      @close="showDeleteModal = false"
+      @confirm="handleConfirmDeleteAction"
+    />
 
-        <router-link
-          to="/material/receiving"
-          class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all"
-        >
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-            <el-icon :size="20" color="white"><Upload /></el-icon>
-          </div>
-          <div>
-            <p class="font-medium text-gray-900">物料接收</p>
-            <p class="text-xs text-gray-500">接收记录管理</p>
-          </div>
-        </router-link>
+    <!-- 删除警告弹窗 -->
+    <DeleteWarningDialog
+      :is-open="showDeleteWarning"
+      @close="showDeleteWarning = false"
+      @confirm="handleDeleteWarningConfirm"
+    />
 
-        <router-link
-          to="/material/category"
-          class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-orange-500 hover:bg-orange-50 transition-all"
-        >
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
-            <el-icon :size="20" color="white"><Collection /></el-icon>
-          </div>
-          <div>
-            <p class="font-medium text-gray-900">物料类别</p>
-            <p class="text-xs text-gray-500">分类管理</p>
-          </div>
-        </router-link>
-      </div>
-    </div>
+    <!-- 批量删除确认弹窗 -->
+    <BatchDeleteConfirmDialog
+      :is-open="showBatchDeleteConfirm"
+      :selected-materials="selectedMaterialsForDelete"
+      @close="handleBatchDeleteConfirmClose"
+      @confirm="handleBatchDeleteConfirm"
+    />
+
+    <!-- 批量编辑弹窗 -->
+    <MaterialBatchEditModal
+      :is-open="showBatchEditModal"
+      :selected-rows="selectedRows"
+      :filtered-materials="filteredMaterials"
+      :batch-edited-materials="batchEditedMaterials"
+      :current-batch-edit-index="currentBatchEditIndex"
+      @close="handleBatchEditModalClose"
+      @material-select="handleBatchMaterialSelect"
+      @field-change="handleBatchFieldChange"
+      @save-all="handleBatchSaveAll"
+      @next="handleBatchNext"
+    />
+
+    <!-- 批量编辑警告弹窗 -->
+    <BatchEditWarningModal
+      :is-open="showBatchEditWarning"
+      :selected-count="selectedRows.length"
+      @close="showBatchEditWarning = false"
+      @confirm="handleBatchEditWarningConfirm"
+    />
+
+    <!-- 导出格式选择弹窗 -->
+    <MaterialExportModal
+      :is-open="showExportModal"
+      :selected-count="selectedRows.length"
+      :export-format="exportFormat"
+      @close="showExportModal = false"
+      @format-change="setExportFormat"
+      @export="handleDoExport"
+    />
+
+    <!-- 新增物料弹窗 -->
+    <el-dialog v-model="showAddModal" title="新增物料" width="600px" :close-on-click-modal="false">
+      <el-form :model="addForm" label-width="100px">
+        <el-form-item label="物料编码" required>
+          <el-input v-model="addForm.code" placeholder="系统自动生成" disabled />
+        </el-form-item>
+        <el-form-item label="物料名称" required>
+          <el-input v-model="addForm.name" placeholder="请输入物料名称" />
+        </el-form-item>
+        <el-form-item label="物料分类">
+          <el-input v-model="addForm.category" placeholder="请输入物料分类" />
+        </el-form-item>
+        <el-form-item label="规格型号">
+          <el-input v-model="addForm.specification" placeholder="请输入规格型号" />
+        </el-form-item>
+        <el-form-item label="单位">
+          <el-input v-model="addForm.unit" placeholder="如：袋、箱、个" />
+        </el-form-item>
+        <el-form-item label="库存数量">
+          <el-input-number v-model="addForm.quantity" :min="0" :precision="2" />
+        </el-form-item>
+        <el-form-item label="最低库存">
+          <el-input-number v-model="addForm.minStock" :min="0" :precision="2" />
+        </el-form-item>
+        <el-form-item label="最高库存">
+          <el-input-number v-model="addForm.maxStock" :min="0" :precision="2" />
+        </el-form-item>
+        <el-form-item label="单价">
+          <el-input v-model="addForm.price" placeholder="请输入单价" />
+        </el-form-item>
+        <el-form-item label="供应商">
+          <el-input v-model="addForm.supplier" placeholder="请输入供应商" />
+        </el-form-item>
+        <el-form-item label="存放位置">
+          <el-input v-model="addForm.location" placeholder="请输入存放位置" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showAddModal = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveAddForm">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { OfficeBuilding, Box, Goods, Warning, PieChart, Bottom, Upload, Collection } from '@element-plus/icons-vue'
+import { ref, computed, reactive, onMounted } from 'vue'
+import { Goods, Plus, Download } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
 
-// 仓库统计数据
-const warehouseStats = ref({
-  total: 4,
-  materialTypes: 156,
-  alerts: 8,
-  utilization: 78
+// 导入V2.0已有的组件
+import MaterialFilters from './components/MaterialFilters.vue'
+import ActionToolbar from './components/ActionToolbar.vue'
+import MaterialsTable from './components/MaterialsTable.vue'
+import MaterialDetailModal from './components/MaterialDetailModal.vue'
+import MaterialEditModal from './components/MaterialEditModal.vue'
+import MaterialDeleteConfirmModal from './components/MaterialDeleteConfirmModal.vue'
+import MaterialBatchEditModal from './components/MaterialBatchEditModal.vue'
+import BatchEditWarningModal from './components/BatchEditWarningModal.vue'
+import DeleteWarningDialog from './components/DeleteWarningDialog.vue'
+import BatchDeleteConfirmDialog from './components/BatchDeleteConfirmDialog.vue'
+import MaterialExportModal from './components/MaterialExportModal.vue'
+
+// 使用Store
+const warehouseMaterialStore = useWarehouseMaterialStore()
+
+// 初始化加载
+onMounted(async () => {
+  await warehouseMaterialStore.loadMaterials()
 })
 
-// 仓库列表数据
-const warehouseList = ref([
-  { id: 1, name: '原料仓库A', type: '原料仓', capacity: 500, used: 380, status: 'normal' },
-  { id: 2, name: '原料仓库B', type: '原料仓', capacity: 400, used: 350, status: 'warning' },
-  { id: 3, name: '成品仓库', type: '成品仓', capacity: 600, used: 420, status: 'normal' },
-  { id: 4, name: '包材仓库', type: '资材仓', capacity: 300, used: 180, status: 'normal' },
-])
-
-// 预警列表数据
-const alertList = ref([
-  { id: 1, code: '010101001', name: '番茄种子', quantity: 5, minStock: 20, level: 'urgent' },
-  { id: 2, code: '010201001', name: '尿素', quantity: 15, minStock: 30, level: 'warning' },
-  { id: 3, code: '010301001', name: '多菌灵', quantity: 8, minStock: 15, level: 'warning' },
-  { id: 4, code: '020101001', name: '纸箱(大)', quantity: 20, minStock: 50, level: 'urgent' },
-  { id: 5, code: '020201001', name: '剪刀', quantity: 3, minStock: 10, level: 'urgent' },
-])
-
-// 分类统计数据
-const categoryStats = ref([
-  { code: '01', name: '种子', color: '#10b981', types: 12, quantity: 1250, percentage: 25 },
-  { code: '02', name: '肥料', color: '#f59e0b', types: 18, quantity: 2100, percentage: 35 },
-  { code: '03', name: '农药', color: '#ef4444', types: 15, quantity: 980, percentage: 20 },
-  { code: '04', name: '资材', color: '#3b82f6', types: 25, quantity: 1200, percentage: 20 },
-])
-
-// 库存走势数据
-const trendPeriod = ref('month')
-
-const trendData = computed(() => {
-  const monthData = [
-    { label: '1月', value: 4200, color: '#10b981' },
-    { label: '2月', value: 3800, color: '#10b981' },
-    { label: '3月', value: 4500, color: '#10b981' },
-    { label: '4月', value: 5200, color: '#10b981' },
-    { label: '5月', value: 4800, color: '#10b981' },
-    { label: '6月', value: 5530, color: '#10b981' },
-  ]
-  const weekData = [
-    { label: '周一', value: 5200, color: '#10b981' },
-    { label: '周二', value: 5350, color: '#10b981' },
-    { label: '周三', value: 5100, color: '#10b981' },
-    { label: '周四', value: 5480, color: '#10b981' },
-    { label: '周五', value: 5530, color: '#10b981' },
-  ]
-  const yearData = [
-    { label: 'Q1', value: 12500, color: '#10b981' },
-    { label: 'Q2', value: 15800, color: '#10b981' },
-    { label: 'Q3', value: 14200, color: '#10b981' },
-    { label: 'Q4', value: 16530, color: '#10b981' },
-  ]
-
-  if (trendPeriod.value === 'week') return weekData
-  if (trendPeriod.value === 'year') return yearData
-  return monthData
+// 筛选状态 - 与V1.1保持一致
+const filters = reactive({
+  code: '',
+  name: '',
+  category: '全部',
+  supplier: '',
+  location: '',
+  searchBigCategory: '',
+  searchMidCategory: '',
+  searchSubCategory: '',
+  showLowStock: false
 })
 
-const maxTrendValue = computed(() => {
-  return Math.max(...trendData.value.map(item => item.value))
-})
+// 分页状态
+const currentPage = ref(1)
+const pageSize = ref(10)
 
-// 方法
-const handleViewAllAlerts = () => {
-  ElMessage.info('查看全部预警')
+// 选择/模式状态
+const selectedRows = ref([])
+const batchEditMode = ref(false)
+const deleteMode = ref(false)
+const exportMode = ref(false)
+
+// UI 状态
+const showExportModal = ref(false)
+const exportFormat = ref('excel')
+const showDetailModal = ref(false)
+const showEditModal = ref(false)
+const showDeleteModal = ref(false)
+const showDeleteWarning = ref(false)
+const showBatchEditModal = ref(false)
+const showBatchEditWarning = ref(false)
+const showBatchDeleteConfirm = ref(false)
+const batchEditedMaterials = ref({})
+const currentBatchEditIndex = ref(0)
+const selectedMaterial = ref(null)
+
+// 筛选数据 - 过滤函数
+const filterMaterials = (materials, filters) => {
+  if (!Array.isArray(materials)) return []
+  return materials.filter((m) => {
+    if (filters.code && !m.code.includes(filters.code)) return false
+    if (filters.name && !m.name.includes(filters.name)) return false
+    if (filters.supplier && m.supplier !== filters.supplier) return false
+    if (filters.location && m.location !== filters.location) return false
+    if (filters.searchBigCategory && !m.code.startsWith(filters.searchBigCategory)) return false
+    if (filters.searchMidCategory && !m.code.slice(2, 4).startsWith(filters.searchMidCategory)) return false
+    if (filters.searchSubCategory && !m.code.slice(4, 6).startsWith(filters.searchSubCategory)) return false
+    if (filters.showLowStock && m.quantity >= m.minStock) return false
+    return true
+  })
 }
 
-const handleCategoryClick = (category) => {
-  ElMessage.info(`查看 ${category.name} 分类详情`)
+// 筛选后的物料
+const filteredMaterials = computed(() => {
+  return filterMaterials(warehouseMaterialStore.materials, filters)
+})
+
+// 低库存数量
+const lowStockCount = computed(() => {
+  return warehouseMaterialStore.materials.filter(m => m.quantity < m.minStock).length
+})
+
+// 用于批量删除的物料列表
+const selectedMaterialsForDelete = computed(() => {
+  return filteredMaterials.value.filter(m => selectedRows.value.includes(m.id))
+})
+
+// 选择操作
+const handleSelectAll = () => {
+  if (selectedRows.value.length === filteredMaterials.value.length) {
+    selectedRows.value = []
+  } else {
+    selectedRows.value = filteredMaterials.value.map(m => m.id)
+  }
+}
+
+const handleSelectRow = (id) => {
+  const idx = selectedRows.value.indexOf(id)
+  if (idx >= 0) {
+    selectedRows.value = selectedRows.value.filter(r => r !== id)
+  } else {
+    selectedRows.value = [...selectedRows.value, id]
+  }
+}
+
+const handleCancelSelection = () => {
+  exportMode.value = false
+  batchEditMode.value = false
+  deleteMode.value = false
+  selectedRows.value = []
+}
+
+// 筛选变化
+const handleFiltersChange = (newFilters) => {
+  Object.assign(filters, newFilters)
+  currentPage.value = 1
+}
+
+const handleLowStockToggle = () => {
+  filters.showLowStock = !filters.showLowStock
+  currentPage.value = 1
+}
+
+// 分页
+const handlePageChange = (page) => {
+  currentPage.value = page
+}
+
+const handlePageSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+}
+
+// 删除操作
+const handleDeleteWarning = () => {
+  showDeleteWarning.value = true
+}
+
+const handleDeleteWarningConfirm = () => {
+  showDeleteWarning.value = false
+  deleteMode.value = true
+}
+
+const handleBatchDeleteConfirmClose = () => {
+  showBatchDeleteConfirm.value = false
+  deleteMode.value = false
+  selectedRows.value = []
+}
+
+const handleBatchDeleteConfirm = () => {
+  handleBatchDelete(selectedRows.value)
+  showBatchDeleteConfirm.value = false
+  deleteMode.value = false
+  selectedRows.value = []
+}
+
+const handleBatchDelete = async (ids) => {
+  try {
+    for (const id of ids) {
+      await warehouseMaterialStore.removeMaterial(id)
+    }
+    await warehouseMaterialStore.loadMaterials()
+    ElMessage.success('删除成功')
+  } catch (error) {
+    ElMessage.error('删除失败')
+  }
+}
+
+// 导出处理
+const handleExport = () => {
+  exportMode.value = true
+  selectedRows.value = []
+}
+
+const handleConfirmExportClick = () => {
+  showExportModal.value = true
+}
+
+const handleCancelExportAction = () => {
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+const setExportFormat = (format) => {
+  exportFormat.value = format
+}
+
+const handleDoExport = () => {
+  const selectedData = filteredMaterials.value.filter(m => selectedRows.value.includes(m.id))
+  const headers = ['物料编码', '物料名称', '分类', '规格', '单位', '库存数量', '最低库存', '最高库存', '单价', '供应商', '存放位置', '数据状态']
+  const rows = selectedData.map(m => [
+    m.code, m.name, m.category, m.specification, m.unit,
+    m.quantity, m.minStock, m.maxStock, m.price, m.supplier, m.location, m.dataStatus
+  ])
+
+  let content = ''
+  let mimeType = ''
+  let extension = ''
+
+  if (exportFormat.value === 'csv') {
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell ?? ''}"`).join(','))
+    ].join('\n')
+    const BOM = '﻿'
+    content = BOM + csvContent
+    mimeType = 'text/csv;charset=utf-8'
+    extension = 'csv'
+  } else if (exportFormat.value === 'excel') {
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(row => `<tr>${row.map(cell => `<td>${cell ?? ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    mimeType = 'application/vnd.ms-excel;charset=utf-8'
+    extension = 'xls'
+  } else if (exportFormat.value === 'word') {
+    content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>物料库存</title></head><body><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse"><tr style="background-color:#f0f0f0">${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(row => `<tr>${row.map(cell => `<td>${cell ?? ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    mimeType = 'application/ms-word;charset=utf-8'
+    extension = 'doc'
+  }
+
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `物料汇总表_${new Date().toISOString().slice(0, 10)}.${extension}`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+
+  showExportModal.value = false
+  exportMode.value = false
+  selectedRows.value = []
+  ElMessage.success('导出成功')
+}
+
+// 查看/编辑/删除操作
+const handleView = (material) => {
+  selectedMaterial.value = material
+  showDetailModal.value = true
+}
+
+const handleEdit = (material) => {
+  selectedMaterial.value = material
+  showEditModal.value = true
+}
+
+const handleDelete = (material) => {
+  selectedMaterial.value = material
+  showDeleteModal.value = true
+}
+
+const handleEditModalClose = () => {
+  showEditModal.value = false
+  selectedMaterial.value = null
+}
+
+const handleConfirmDeleteAction = () => {
+  if (selectedMaterial.value) {
+    handleConfirmDelete(selectedMaterial.value.id)
+  }
+  showDeleteModal.value = false
+  selectedMaterial.value = null
+}
+
+const handleConfirmDelete = async (id) => {
+  await warehouseMaterialStore.removeMaterial(id)
+  await warehouseMaterialStore.loadMaterials()
+}
+
+const handleSaveEdit = async (material) => {
+  await warehouseMaterialStore.editMaterial(material.id, material)
+  await warehouseMaterialStore.loadMaterials()
+  showEditModal.value = false
+  selectedMaterial.value = null
+}
+
+// ActionToolbar callbacks
+const handleBatchEditClick = () => {
+  showBatchEditWarning.value = true
+}
+
+const handleBatchEditWarningConfirm = () => {
+  showBatchEditWarning.value = false
+  batchEditMode.value = true
+}
+
+const handleConfirmBatchEdit = () => {
+  if (selectedRows.value.length === 1) {
+    const material = filteredMaterials.value.find(m => m.id === selectedRows.value[0])
+    if (material) {
+      selectedMaterial.value = material
+      showEditModal.value = true
+      batchEditMode.value = false
+      selectedRows.value = []
+    }
+  } else {
+    showBatchEditModal.value = true
+  }
+}
+
+const handleCancelBatchEdit = () => {
+  batchEditMode.value = false
+  selectedRows.value = []
+}
+
+const handleConfirmBatchDeleteAction = () => {
+  showBatchDeleteConfirm.value = true
+}
+
+const handleCancelDeleteAction = () => {
+  deleteMode.value = false
+  selectedRows.value = []
+}
+
+// 批量编辑弹窗回调
+const handleBatchEditModalClose = () => {
+  showBatchEditModal.value = false
+  batchEditedMaterials.value = {}
+  currentBatchEditIndex.value = 0
+}
+
+const handleBatchMaterialSelect = (idx) => {
+  currentBatchEditIndex.value = idx
+}
+
+const handleBatchFieldChange = (materialId, field, value) => {
+  const currentMaterial = filteredMaterials.value.find(m => m.id === materialId)
+  const currentData = batchEditedMaterials.value[materialId] || currentMaterial || {}
+  batchEditedMaterials.value = {
+    ...batchEditedMaterials.value,
+    [materialId]: { ...currentData, [field]: value }
+  }
+}
+
+const handleBatchSaveAll = () => {
+  showBatchEditModal.value = false
+  batchEditMode.value = false
+  selectedRows.value = []
+  batchEditedMaterials.value = {}
+  currentBatchEditIndex.value = 0
+  warehouseMaterialStore.loadMaterials()
+  ElMessage.success('批量编辑保存成功')
+}
+
+const handleBatchNext = () => {
+  const nextIndex = currentBatchEditIndex.value + 1
+  if (nextIndex < selectedRows.value.length) {
+    currentBatchEditIndex.value = nextIndex
+  } else {
+    currentBatchEditIndex.value = 0
+  }
+}
+
+// 新增物料
+const showAddModal = ref(false)
+
+const addForm = reactive({
+  code: '',
+  name: '',
+  category: '',
+  specification: '',
+  unit: '袋',
+  quantity: 0,
+  minStock: 0,
+  maxStock: 0,
+  price: '',
+  supplier: '',
+  location: ''
+})
+
+const handleAdd = () => {
+  // 重置表单
+  addForm.code = ''
+  addForm.name = ''
+  addForm.category = ''
+  addForm.specification = ''
+  addForm.unit = '袋'
+  addForm.quantity = 0
+  addForm.minStock = 0
+  addForm.maxStock = 0
+  addForm.price = ''
+  addForm.supplier = ''
+  addForm.location = ''
+  showAddModal.value = true
+}
+
+const handleSaveAddForm = async () => {
+  if (!addForm.name) {
+    ElMessage.warning('请输入物料名称')
+    return
+  }
+  try {
+    await warehouseMaterialStore.addMaterial({
+      name: addForm.name,
+      category: addForm.category,
+      specification: addForm.specification,
+      unit: addForm.unit,
+      quantity: addForm.quantity,
+      minStock: addForm.minStock,
+      maxStock: addForm.maxStock,
+      price: addForm.price,
+      supplier: addForm.supplier,
+      location: addForm.location
+    })
+    showAddModal.value = false
+    ElMessage.success('新增物料成功')
+  } catch (error) {
+    ElMessage.error('新增物料失败')
+  }
 }
 </script>

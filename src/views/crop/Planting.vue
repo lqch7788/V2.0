@@ -18,9 +18,6 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <PlantingStats :data="stats" />
-
     <!-- 筛选工具栏 - 使用V1.1结构的PlantingFilter组件 -->
     <PlantingFilter
       :filters="filters"
