@@ -130,6 +130,23 @@
         </el-table-column>
       </el-table>
     </div>
+
+    <!-- 业务关联信息 -->
+    <div v-if="approval.businessLink && Object.keys(approval.businessLink).length > 0">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ getBusinessTitle() }}</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div v-for="(value, key) in approval.businessLink" :key="key" class="flex flex-col">
+          <span class="text-xs text-gray-500">{{ getBizFieldLabel(key) }}</span>
+          <span class="text-sm font-medium text-gray-900">{{ formatBizValue(key, value) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 申请描述 -->
+    <div v-if="approval.description">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">申请描述</h3>
+      <p class="text-sm text-gray-700 bg-blue-50 rounded-lg p-3 whitespace-pre-wrap">{{ approval.description }}</p>
+    </div>
   </div>
 </template>
 
@@ -211,5 +228,102 @@ const formatDateTime = (dateStr) => {
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return dateStr
   return date.toLocaleString()
+}
+
+// 业务信息标题
+const getBusinessTitle = () => {
+  const type = props.approval.businessLink?.type
+  const typeLabels = {
+    production: '生产计划信息',
+    production_batch: '生产批次信息',
+    batch_change: '批次变更信息',
+    batch_void: '批次作废信息',
+    tech_solution: '技术方案信息',
+    harvest: '采收申请信息',
+    material: '领料申请信息',
+    purchase: '采购申请信息',
+    leave: '请假申请信息',
+    overtime: '加班申请信息',
+    transfer: '转岗申请信息',
+    resign: '离职申请信息',
+    task_dispatch: '任务派发信息',
+    task_change: '任务变更信息',
+    inspection_issue: '巡查问题信息',
+    issue_resolve: '问题整改信息',
+    indicator: '指标信息',
+    budget_create: '预算编制信息',
+    budget_adjust: '预算调整信息',
+  }
+  return typeLabels[type] || '业务关联信息'
+}
+
+// 业务字段中文映射
+const getBizFieldLabel = (key) => {
+  const labels = {
+    type: '业务类型',
+    requestId: '请求ID',
+    requestCode: '关联编号',
+    batchCode: '批次编号',
+    cropName: '作物名称',
+    cropCode: '作物编码',
+    variety: '品种',
+    greenhouseName: '温室区域',
+    greenhouseId: '温室ID',
+    startDate: '开始日期',
+    endDate: '结束日期',
+    expectedHarvestDate: '预计采收',
+    expectedDeliveryDate: '预计交货',
+    responsiblePerson: '负责人',
+    targetYield: '目标产量',
+    plantingArea: '种植面积',
+    plantingMode: '种植方式',
+    unit: '单位',
+    quantity: '数量',
+    leaveType: '请假类型',
+    overtimetype: '加班类型',
+    date: '日期',
+    totalDays: '天数',
+    totalHours: '小时数',
+    reason: '原因',
+    supplier: '供应商',
+    fromWarehouse: '源仓库',
+    toWarehouse: '目标仓库',
+    solutionTitle: '方案标题',
+    stage: '阶段',
+    version: '版本号',
+    remarks: '备注',
+    description: '描述',
+  }
+  return labels[key] || key
+}
+
+// 格式化业务值
+const formatBizValue = (key, value) => {
+  if (key === 'type') {
+    const typeMap = {
+      production: '生产计划', production_batch: '生产批次',
+      batch_change: '批次变更', batch_void: '批次作废',
+      tech_solution: '技术方案', harvest: '采收申请',
+      material: '领料申请', purchase: '采购申请',
+      leave: '请假', overtime: '加班', transfer: '转岗', resign: '离职',
+      task_dispatch: '任务派发', task_change: '任务变更',
+      inspection_issue: '巡查问题', issue_resolve: '问题整改',
+      indicator: '指标', budget_create: '预算编制', budget_adjust: '预算调整',
+    }
+    return typeMap[value] || String(value)
+  }
+  if (key === 'targetYield') return `${value} kg`
+  if (key === 'plantingArea') return `${value} m²`
+  if (key === 'plantingMode') {
+    const modes = { internal_seed: '自育苗', external_purchase: '外购苗', open_field: '露天栽培', greenhouse: '温室栽培', hydroponics: '水培', aeroponics: '气雾培', substrate: '基质培', soil: '土培' }
+    return modes[value] || String(value)
+  }
+  if (key === 'stage') {
+    const stages = { seedling: '苗期', vegetative: '营养生长期', flowering: '开花期', fruiting: '结果期', harvest: '采收期', entire: '整个生命周期', whole_lifecycle: '整个生命周期' }
+    return stages[value] || String(value)
+  }
+  if (key === 'totalDays') return `${value}天`
+  if (key === 'totalHours') return `${value}小时`
+  return String(value)
 }
 </script>

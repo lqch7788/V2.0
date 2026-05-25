@@ -217,25 +217,36 @@
 
       <!-- 详情弹窗 -->
       <el-dialog v-model="detailVisible" title="审批详情" width="800px" destroy-on-close>
-        <div v-if="currentApproval" class="space-y-4">
-          <el-descriptions :column="2" border>
-            <el-descriptions-item label="审批单号">{{ currentApproval.code }}</el-descriptions-item>
-            <el-descriptions-item label="标题">{{ currentApproval.title }}</el-descriptions-item>
-            <el-descriptions-item label="申请人">{{ currentApproval.applicantName }}</el-descriptions-item>
-            <el-descriptions-item label="部门">{{ currentApproval.applicantDepartment }}</el-descriptions-item>
-            <el-descriptions-item label="申请时间">{{ currentApproval.applyDate }}</el-descriptions-item>
-            <el-descriptions-item label="状态">
-              <el-tag :type="getStatusBadge(currentApproval.status)" size="small">
-                {{ getStatusText(currentApproval.status) }}
-              </el-tag>
-            </el-descriptions-item>
-          </el-descriptions>
-          <!-- 业务关联信息 -->
-          <div v-if="currentApproval.businessLink" class="border-t pt-4">
-            <h4 class="text-sm font-semibold text-gray-900 mb-3">关联业务数据</h4>
-            <pre class="text-xs text-gray-600 bg-gray-50 rounded p-3 overflow-auto max-h-48">{{ JSON.stringify(currentApproval.businessLink, null, 2) }}</pre>
+        <ApprovalDetail v-if="currentApproval" :approval="currentApproval" />
+      </el-dialog>
+
+      <!-- 审批确认弹窗 -->
+      <el-dialog v-model="approvalModalVisible" :title="approvalModal.action === 'approve' ? '确认通过' : '确认拒绝'" width="500px" destroy-on-close>
+        <div v-if="approvalModal.approval">
+          <div class="mb-4">
+            <label class="block text-sm text-gray-700 mb-1">{{ approvalModal.action === 'approve' ? '通过意见（可选）' : '拒绝原因（可选）' }}</label>
+            <el-input
+              v-model="approvalComment"
+              type="textarea"
+              :rows="3"
+              :placeholder="approvalModal.action === 'approve' ? '请输入通过意见...' : '请输入拒绝原因...'"
+            />
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 mb-4">
+            <p class="text-sm text-gray-600">
+              <span class="font-medium">申请人：</span>{{ approvalModal.approval.applicantName }}
+            </p>
+            <p class="text-sm text-gray-600 mt-1">
+              <span class="font-medium">标题：</span>{{ approvalModal.approval.title }}
+            </p>
           </div>
         </div>
+        <template #footer>
+          <el-button @click="approvalModalVisible = false">取消</el-button>
+          <el-button :type="approvalModal.action === 'approve' ? 'success' : 'danger'" @click="confirmApprovalAction">
+            {{ approvalModal.action === 'approve' ? '确认通过' : '确认拒绝' }}
+          </el-button>
+        </template>
       </el-dialog>
     </div>
   </div>
@@ -259,6 +270,7 @@ import {
   Download
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import ApprovalDetail from '@/components/approval/ApprovalDetail.vue'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
 
@@ -477,34 +489,49 @@ const handleView = (row) => {
   detailVisible.value = true
 }
 
+// 审批确认弹窗
+const approvalModalVisible = ref(false)
+const approvalModal = reactive({
+  approval: null,
+  action: 'approve'
+})
+const approvalComment = ref('')
+
 // 审批通过
-const handleApprove = async (row) => {
-  try {
-    await ElMessageBox.confirm(`确定要通过该审批申请吗？`, '审核确认', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'success'
-    })
-    await approvalStore.approve(row.id)
-    await approvalStore.fetchApprovals()
-    updateStats()
-    ElMessage.success('审核已通过')
-  } catch {}
+const handleApprove = (row) => {
+  approvalModal.approval = row
+  approvalModal.action = 'approve'
+  approvalComment.value = ''
+  approvalModalVisible.value = true
 }
 
 // 审批拒绝
-const handleReject = async (row) => {
+const handleReject = (row) => {
+  approvalModal.approval = row
+  approvalModal.action = 'reject'
+  approvalComment.value = ''
+  approvalModalVisible.value = true
+}
+
+// 确认审批操作
+const confirmApprovalAction = async () => {
+  const item = approvalModal.approval
+  if (!item) return
   try {
-    await ElMessageBox.confirm(`确定要拒绝该审批申请吗？`, '审核确认', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await approvalStore.reject(row.id, '审批拒绝')
+    if (approvalModal.action === 'approve') {
+      await approvalStore.approve(item.id, approvalComment.value)
+      ElMessage.success('审核已通过')
+    } else {
+      await approvalStore.reject(item.id, approvalComment.value || '审批拒绝')
+      ElMessage.success('已拒绝')
+    }
     await approvalStore.fetchApprovals()
     updateStats()
-    ElMessage.success('已拒绝')
-  } catch {}
+    approvalModalVisible.value = false
+    detailVisible.value = false
+  } catch (error) {
+    ElMessage.error('操作失败')
+  }
 }
 
 // 初始化 - 从API加载数据
