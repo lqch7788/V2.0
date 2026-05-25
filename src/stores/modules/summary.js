@@ -135,6 +135,11 @@ export const useSummaryStore = defineStore('summary', () => {
   const isLoading = ref(false)
   const error = ref(null)
   const lastFetchTimestamps = ref({})
+  // Dashboard告警分类统计（匹配AlertsCard UI）
+  const alertsBreakdown = ref({ total: 0, environment: 0, equipment: 0, pest: 0, farming: 0 })
+  // 多维度对比数据（与V1.1 ComparisonPanel一致）
+  const comparisonData = ref(null)
+  const comparisonLoading = ref(false)
 
   // 获取生产报表概览
   const fetchOverview = async (params = {}) => {
@@ -494,6 +499,50 @@ export const useSummaryStore = defineStore('summary', () => {
     return Date.now() - timestamp > maxAgeMs
   }
 
+  // 获取Dashboard告警统计（调用 /api/alerts/stats/summary）
+  const fetchAlerts = async () => {
+    try {
+      const response = await enhancedApiClient.get('/alerts/stats/summary')
+      const data = response?.data || response || {}
+      alertsBreakdown.value = {
+        total: Number(data.total) || 0,
+        environment: Number(data.critical) || 0,
+        equipment: Number(data.warning) || 0,
+        pest: Number(data.info) || 0,
+        farming: Number(data.pending) || 0,
+      }
+    } catch (err) {
+      console.warn('[SummaryStore] 获取告警统计失败:', err)
+    }
+  }
+
+  // 多维度对比统计（与V1.1 ComparisonPanel逻辑完全一致）
+  const fetchComparisonStats = async (params = {}) => {
+    comparisonLoading.value = true
+    error.value = null
+    try {
+      const query = new URLSearchParams()
+      if (params.mainParam) query.set('main_param', params.mainParam)
+      if (params.compareParam1) query.set('compare_param1', params.compareParam1)
+      if (params.compareParam2) query.set('compare_param2', params.compareParam2)
+      if (params.startDate) query.set('start_date', params.startDate)
+      if (params.endDate) query.set('end_date', params.endDate)
+      if (params.sampling) query.set('sampling', params.sampling)
+      if (params.dimensions) query.set('dimensions', params.dimensions)
+
+      const qs = query.toString()
+      const url = `/summary/comparison-stats${qs ? `?${qs}` : ''}`
+      const response = await enhancedApiClient.get(url)
+      comparisonData.value = response?.data || response || []
+    } catch (err) {
+      error.value = err.message
+      console.error('[SummaryStore] 获取多维度对比统计失败:', err)
+      comparisonData.value = null
+    } finally {
+      comparisonLoading.value = false
+    }
+  }
+
   // 任务状态判断
   const getTaskStatus = (completionRate) => {
     if (completionRate >= 70) return 'normal'
@@ -514,6 +563,9 @@ export const useSummaryStore = defineStore('summary', () => {
     chainStages,
     problemItems,
     indicators,
+    alertsBreakdown,
+    comparisonData,
+    comparisonLoading,
     isLoading,
     error,
     lastFetchTimestamps,
@@ -527,6 +579,8 @@ export const useSummaryStore = defineStore('summary', () => {
     fetchChainOverview,
     fetchProblems,
     fetchIndicators,
+    fetchAlerts,
+    fetchComparisonStats,
     fetchAll,
     invalidateAll,
     isCacheStale,
