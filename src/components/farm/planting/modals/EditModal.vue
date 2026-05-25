@@ -1,5 +1,5 @@
 <template>
-  <!-- 编辑种植记录弹窗 -->
+  <!-- 编辑种植记录弹窗 - 与V1.1 EditModal.tsx完全一致 -->
   <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" @click.self="onClose">
     <div class="bg-white rounded-xl w-full max-w-4xl shadow-xl max-h-[90vh] flex flex-col">
       <!-- 标题栏 - 渐变背景 -->
@@ -14,14 +14,8 @@
       <!-- 表单内容 -->
       <div class="flex-1 overflow-y-auto p-6">
         <div class="grid grid-cols-2 gap-6">
-          <!-- 种植批号 -->
-          <div>
-            <label class="block text-gray-700 text-sm mb-2 font-medium">种植批号</label>
-            <el-input v-model="formData.plantCode" disabled />
-          </div>
-
-          <!-- 作物品种选择 - V1.1新增 CropCodeSelector -->
-          <div>
+          <!-- 作物品种选择 -->
+          <div class="col-span-2">
             <label class="block text-gray-700 text-sm mb-2 font-medium">作物品种 *</label>
             <el-select
               v-model="formData.selectedCropCode"
@@ -61,7 +55,7 @@
             <el-input v-model="formData.cropVariety" disabled placeholder="选择品种后自动填充" />
           </div>
 
-          <!-- 种植区域 - V1.1使用areaId(字典编码) -->
+          <!-- 种植区域 -->
           <div>
             <label class="block text-gray-700 text-sm mb-2 font-medium">种植区域 *</label>
             <el-select v-model="formData.areaId" placeholder="请选择" class="w-full">
@@ -153,8 +147,8 @@ const formData = ref({
   selectedCropCode: '',
   cropName: '',
   cropVariety: '',
-  areaId: '',            // V1.1使用areaId(字典编码)
-  areaName: '',          // 显示名
+  areaId: '',
+  areaName: '',
   plantingCount: 0,
   plantingDate: '',
   attritionRate: 0,
@@ -186,7 +180,7 @@ watch(() => [props.isOpen, props.record], ([val, record]) => {
       selectedCropCode: record.cropCode || '',
       cropName: record.cropName || '',
       cropVariety: record.cropVariety || '',
-      areaId: record.areaId || '',      // V1.1使用areaId
+      areaId: record.areaId || '',
       areaName: record.areaName || '',
       plantingCount: record.plantingCount || 0,
       plantingDate: record.plantingDate || '',

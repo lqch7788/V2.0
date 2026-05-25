@@ -1,5 +1,5 @@
 <template>
-  <!-- 种植详情弹窗 - 纯div结构 -->
+  <!-- 种植详情弹窗 - 与V1.1 DetailModal.tsx完全一致 -->
   <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" @click.self="onClose">
     <div class="bg-white rounded-xl w-full max-w-4xl shadow-xl max-h-[90vh] flex flex-col">
       <!-- 标题栏 - 渐变背景 -->
@@ -155,7 +155,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { View, Close } from '@element-plus/icons-vue'
 
 const props = defineProps({

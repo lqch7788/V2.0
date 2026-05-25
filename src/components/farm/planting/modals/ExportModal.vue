@@ -1,5 +1,5 @@
 <template>
-  <!-- 导出格式选择弹窗 - 纯div结构 -->
+  <!-- 导出格式选择弹窗 - 与V1.1 ExportFormatModal.tsx完全一致 -->
   <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" @click.self="onClose">
     <div class="bg-white rounded-xl w-full max-w-md shadow-xl">
       <!-- 标题栏 - 渐变背景 -->
@@ -60,7 +60,7 @@ const props = defineProps({
     type: Number,
     default: 0
   },
-  exportFileType: {  // V1.1新增，用于同步外部状态
+  exportFileType: {
     type: String,
     default: 'xlsx'
   }

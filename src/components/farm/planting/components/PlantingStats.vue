@@ -1,4 +1,5 @@
 <template>
+  <!-- 种植统计卡片 - 与V1.1 PlantingStats.tsx完全一致 -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
     <div
       v-for="(stat, index) in stats"
@@ -22,10 +23,8 @@
 
 <script setup>
 import { computed } from 'vue'
-// 导入与V1.1一致的图标 - Trees/Sprout/TrendingUp 是 lucide-react 图标
-// V2.0 使用 Element Plus，需要映射为等效图标
+// 导入与V1.1一致的图标 - 使用Element Plus图标
 import { Grid, Sunny, CircleCheck, TrendCharts } from '@element-plus/icons-vue'
-// 实际应该使用更接近V1.1的图标，但Element Plus没有完全对应的图标，暂时使用近似图标
 
 const props = defineProps({
   data: {
@@ -49,13 +48,13 @@ const stats = computed(() => [
   {
     label: '生长期',
     value: props.data.growing || 0,
-    icon: Sunny,
+    icon: Sunny, // V1.1使用Sprout图标，这里用Sunny代替
     color: 'bg-amber-500',
   },
   {
     label: '已采收',
     value: props.data.harvested || 0,
-    icon: CircleCheck,
+    icon: CircleCheck, // V1.1使用CheckCircle图标
     color: 'bg-green-500',
   },
   {

@@ -64,7 +64,7 @@
             <el-input v-model="formData.cropVariety" placeholder="选择来源后自动填充" disabled />
           </div>
 
-          <!-- 种植区域 - V1.1使用areaId(字典编码)而非areaName -->
+          <!-- 种植区域 -->
           <div>
             <label class="block text-gray-700 text-sm mb-2 font-medium">种植区域 *</label>
             <el-select v-model="formData.areaId" placeholder="请选择" class="w-full" @change="handleAreaChange">
@@ -169,21 +169,17 @@ const props = defineProps({
   isOpen: Boolean,
   cropOptions: {
     type: Array,
-    default: () => [
-      { value: '番茄', label: '番茄' },
-      { value: '黄瓜', label: '黄瓜' },
-      { value: '辣椒', label: '辣椒' },
-      { value: '茄子', label: '茄子' },
-      { value: '草莓', label: '草莓' }
-    ]
+    default: () => []
   },
   areaOptions: {
     type: Array,
+    default: () => []
+  },
+  sourceTypeOptions: {
+    type: Array,
     default: () => [
-      { value: '1号棚', label: '1号棚' },
-      { value: '2号棚', label: '2号棚' },
-      { value: '3号棚', label: '3号棚' },
-      { value: '4号棚', label: '4号棚' }
+      { value: 'seed', label: '种源' },
+      { value: 'seedling', label: '种苗' }
     ]
   }
 })
@@ -200,7 +196,7 @@ const formData = ref({
   sourceCode: '',          // 来源批号
   cropName: '',
   cropVariety: '',
-  areaId: '',              // 种植区域ID（字典编码）- V1.1使用areaId
+  areaId: '',              // 种植区域ID（字典编码）
   areaName: '',            // 种植区域显示名
   rootName: '',            // 大棚/父级区域名
   plantingCount: 0,
@@ -295,7 +291,7 @@ const handleSourceChange = (sourceId) => {
       formData.value.cropVariety = source.cropVariety
     }
   } else {
-    // 育苗 - V1.1逻辑：育苗关联的种源有instanceId
+    // 育苗
     const seedling = seedlings.value.find(s => s.id === sourceId)
     if (seedling) {
       formData.value.sourceId = sourceId
@@ -312,7 +308,7 @@ const handleAreaChange = (areaId) => {
   if (area) {
     formData.value.areaId = areaId
     formData.value.areaName = area.label || ''
-    formData.value.rootName = area.parent || ''  // V1.1有parent字段
+    formData.value.rootName = area.parent || ''
   }
 }
 
@@ -422,7 +418,7 @@ const handleSubmit = async () => {
     // 生成作物编码
     const cropCode = `${formData.value.cropName.substring(0, 2)}${Date.now().toString().slice(-6)}`
 
-    // 获取区域信息 - V1.1使用areaId(字典编码)查找
+    // 获取区域信息
     const area = props.areaOptions.find(a => a.value === formData.value.areaId)
     const areaName = area?.label || ''
     const rootName = area?.parent || ''
@@ -435,7 +431,7 @@ const handleSubmit = async () => {
       cropName: formData.value.cropName,
       cropVariety: formData.value.cropVariety,
       cropCode,
-      areaId: formData.value.areaId,  // 使用字典编码
+      areaId: formData.value.areaId,
       areaName: areaName,
       rootName: rootName,
       plantingCount: formData.value.plantingCount,

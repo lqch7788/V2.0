@@ -1,5 +1,5 @@
 <template>
-  <!-- 图片放大弹窗 - 纯div结构 -->
+  <!-- 图片放大弹窗 - 与V1.1 ImageLightboxModal.tsx完全一致 -->
   <Teleport to="body">
     <div v-if="isOpen && images.length > 0" class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center">
       <!-- 关闭按钮 -->

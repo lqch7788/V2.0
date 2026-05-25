@@ -1,5 +1,5 @@
 <template>
-  <!-- 移入/移出操作弹窗 - 纯div结构 -->
+  <!-- 移入/移出操作弹窗 - 与V1.1 PlantingMoveModal.tsx完全一致 -->
   <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" @click.self="onClose">
     <div class="bg-white rounded-xl w-full max-w-lg shadow-xl">
       <!-- 标题栏 - 渐变背景 -->
@@ -11,7 +11,7 @@
         <el-icon style="color: white; cursor: pointer;" @click="onClose"><Close /></el-icon>
       </div>
 
-      <!-- 业务规则提示 -->
+      <!-- 业务规则提示 - 已采收植株不能移动 -->
       <div v-if="isHarvested" class="mx-4 mt-3 px-3 py-2 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
         <el-icon><Warning /></el-icon>
         <span>已采收植株不能移动，请先取消采收状态</span>
@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { Rank, Close, Warning } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -83,12 +83,7 @@ const props = defineProps({
   isOpen: Boolean,
   areaOptions: {
     type: Array,
-    default: () => [
-      { value: '1号棚', label: '1号棚' },
-      { value: '2号棚', label: '2号棚' },
-      { value: '3号棚', label: '3号棚' },
-      { value: '4号棚', label: '4号棚' }
-    ]
+    default: () => []
   },
   isHarvested: {
     type: Boolean,

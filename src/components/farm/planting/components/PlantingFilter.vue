@@ -10,6 +10,7 @@
           placeholder="全部"
           clearable
           class="w-full"
+          @change="handleFilterChange('cropName', $event)"
         >
           <el-option
             v-for="crop in cropNames"
@@ -27,6 +28,7 @@
           v-model="localFilters.plantCode"
           placeholder="请输入种植批号"
           clearable
+          @input="handleFilterChange('plantCode', $event)"
         />
       </div>
 
@@ -37,6 +39,7 @@
           v-model="localFilters.sourceCode"
           placeholder="请输入来源批号"
           clearable
+          @input="handleFilterChange('sourceCode', $event)"
         />
       </div>
 
@@ -51,10 +54,11 @@
           placeholder="选择日期"
           clearable
           class="w-full"
+          @change="handleFilterChange('transplantDate', $event)"
         />
       </div>
 
-      <!-- 大棚位置（树形选择） -->
+      <!-- 大棚位置 -->
       <div class="min-w-[160px]">
         <label class="block text-gray-700 text-sm mb-1">大棚位置</label>
         <el-select
@@ -63,6 +67,7 @@
           clearable
           filterable
           class="w-full"
+          @change="handleFilterChange('areaName', $event)"
         >
           <el-option
             v-for="area in areaTreeData"
@@ -81,6 +86,7 @@
           placeholder="全部"
           clearable
           class="w-full"
+          @change="handleFilterChange('isHarvest', $event)"
         >
           <el-option label="未采收" value="false" />
           <el-option label="已采收" value="true" />
@@ -136,6 +142,10 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  statusOptions: {
+    type: Array,
+    default: () => []
+  },
   onAdd: Function
 })
 
@@ -156,6 +166,12 @@ const areaTreeData = computed(() => {
     label: a.label
   }))
 })
+
+// 处理单个字段变化
+const handleFilterChange = (field, value) => {
+  localFilters.value = { ...localFilters.value, [field]: value }
+  emit('update:filters', { ...localFilters.value })
+}
 
 // 搜索
 const handleSearch = () => {
