@@ -1,5 +1,5 @@
 <template>
-  <!-- 施肥数据表格组件 -->
+  <!-- 施肥数据表格组件 - 与种源管理SeedSourceTable.vue结构完全一致 -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     <!-- 表头操作栏 -->
     <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
@@ -13,176 +13,154 @@
         </el-button>
       </div>
       <div class="flex items-center gap-2">
-        <el-button size="small" type="primary" @click="onAdd">
-          <el-icon class="mr-1"><Plus /></el-icon>
+        <button
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          @click="onAdd"
+        >
           新增
-        </el-button>
-        <el-button
-          size="small"
-          type="danger"
-          :class="{ 'bg-red-700': operationMode === 'delete' }"
+        </button>
+        <button
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 text-white hover:bg-red-700"
+          :class="operationMode === 'delete' ? 'bg-red-700' : 'bg-red-600'"
           @click="onBatchDeleteMode"
         >
-          <el-icon class="mr-1"><Delete /></el-icon>
           批量删除
-        </el-button>
-        <el-button size="small" @click="onExportMode">
-          <el-icon class="mr-1"><Download /></el-icon>
+        </button>
+        <button
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          @click="onExportMode"
+        >
           导出
-        </el-button>
+        </button>
       </div>
     </div>
 
-    <!-- 表格 -->
-    <div class="overflow-x-auto">
-      <el-table
-        v-loading="isLoading"
-        :data="currentData"
-        :row-class-name="tableRowClassName"
-        style="width: 100%"
-        empty-text="暂无施肥记录"
-      >
-        <!-- 复选框列 -->
-        <el-table-column v-if="showCheckbox" width="50" align="center">
-          <template #header>
-            <el-checkbox
-              :model-value="currentData.length > 0 && selectedIds.length === currentData.length"
-              @change="handleSelectAll"
-            />
-          </template>
-          <template #default="{ row }">
-            <el-checkbox
-              :model-value="selectedIds.includes(row.id)"
-              @change="handleSelectRow(row.id, $event)"
-            />
-          </template>
-        </el-table-column>
-
-        <!-- 施肥编号 -->
-        <el-table-column prop="fertilizerCode" label="施肥编号" width="160" align="center">
-          <template #default="{ row }">
-            <el-button link type="primary" class="font-mono" @click="onDetail(row)">
-              {{ row.fertilizerCode }}
-            </el-button>
-          </template>
-        </el-table-column>
-
-        <!-- 肥料名称 -->
-        <el-table-column prop="fertilizerName" label="肥料名称" width="140" align="center">
-          <template #default="{ row }">
-            <span class="font-bold text-gray-900">{{ row.fertilizerName }}</span>
-          </template>
-        </el-table-column>
-
-        <!-- 肥料类型 -->
-        <el-table-column prop="fertilizerType" label="肥料类型" width="100" align="center">
-          <template #default="{ row }">
-            <span :class="getTypeBadgeClass(row.fertilizerType)">
-              {{ getFertilizerTypeName(row.fertilizerType) }}
-            </span>
-          </template>
-        </el-table-column>
-
-        <!-- 作物品种 -->
-        <el-table-column prop="cropName" label="作物品种" width="100" align="center">
-          <template #default="{ row }">
-            {{ row.cropName || '-' }}
-          </template>
-        </el-table-column>
-
-        <!-- 温室位置 -->
-        <el-table-column prop="greenhouseName" label="温室位置" width="140" align="center">
-          <template #default="{ row }">
-            {{ row.greenhouseName || '-' }}
-          </template>
-        </el-table-column>
-
-        <!-- 稀释比例 -->
-        <el-table-column prop="dilutionRatio" label="稀释比例" width="100" align="center">
-          <template #default="{ row }">
-            {{ row.dilutionRatio || '-' }}
-          </template>
-        </el-table-column>
-
-        <!-- 施肥量 -->
-        <el-table-column prop="quantity" label="施肥量" width="120" align="center">
-          <template #default="{ row }">
-            <span class="font-bold text-emerald-600">
-              {{ formatNumber(row.quantity) }} {{ row.unit || 'kg' }}
-            </span>
-          </template>
-        </el-table-column>
-
-        <!-- 总成本 -->
-        <el-table-column prop="totalCost" label="总成本" width="120" align="center">
-          <template #default="{ row }">
-            <span class="font-medium text-amber-600">
-              {{ formatNumber(row.totalCost) }} 元
-            </span>
-          </template>
-        </el-table-column>
-
-        <!-- 施肥时间 -->
-        <el-table-column prop="fertilizeTime" label="施肥时间" width="160" align="center">
-          <template #default="{ row }">
-            {{ row.fertilizeTime || '-' }}
-          </template>
-        </el-table-column>
-
-        <!-- 数据来源 -->
-        <el-table-column prop="dataSource" label="数据来源" width="100" align="center">
-          <template #default="{ row }">
-            <span :class="getSourceBadgeClass(row.dataSource)">
-              <span class="w-1.5 h-1.5 rounded-full bg-current mr-1"></span>
-              {{ row.dataSource === 'auto_iot' ? 'IoT自动' : '手动' }}
-            </span>
-          </template>
-        </el-table-column>
-
-        <!-- 操作员 -->
-        <el-table-column prop="operatorName" label="操作员" width="100" align="center">
-          <template #default="{ row }">
-            {{ row.operatorName || '-' }}
-          </template>
-        </el-table-column>
-
-        <!-- 操作 -->
-        <el-table-column label="操作" width="140" align="center" fixed="right">
-          <template #default="{ row }">
-            <div class="flex gap-1 justify-center">
-              <el-button
-                link
-                type="info"
-                class="text-gray-500 hover:text-blue-600"
-                title="查看详情"
-                @click="onDetail(row)"
-              >
-                <el-icon><View /></el-icon>
-              </el-button>
-              <template v-if="row.dataSource !== 'auto_iot'">
-                <el-button
-                  link
-                  type="warning"
-                  class="text-gray-500 hover:text-amber-600"
-                  title="编辑"
-                  @click="onEdit(row)"
+    <!-- 表格 - 使用原生table结构，与种源管理完全一致 -->
+    <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-380px)]">
+      <table class="min-w-[1400px] w-full table-fixed">
+        <colgroup>
+          <col v-if="showCheckbox" class="w-12" />
+          <col class="w-36" />
+          <col class="w-32" />
+          <col class="w-24" />
+          <col class="w-24" />
+          <col class="w-32" />
+          <col class="w-24" />
+          <col class="w-28" />
+          <col class="w-28" />
+          <col class="w-36" />
+          <col class="w-24" />
+          <col class="w-24" />
+          <col class="w-32" />
+        </colgroup>
+        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+          <tr>
+            <th v-if="showCheckbox" class="px-4 py-3 text-center text-sm font-semibold text-white whitespace-nowrap w-12">
+              <el-checkbox
+                :model-value="currentData.length > 0 && selectedIds.length === currentData.length"
+                class="fert-checkbox"
+                @change="handleSelectAll"
+              />
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-36">施肥编号</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-32">肥料名称</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">肥料类型</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">作物品种</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-32">温室位置</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">稀释比例</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-28">施肥量</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-28">总成本</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-36">施肥时间</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">数据来源</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">操作员</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-32">操作</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-300">
+          <tr v-if="currentData.length === 0">
+            <td :colspan="showCheckbox ? 13 : 12" class="px-4 py-8 text-center text-gray-500">
+              暂无施肥记录
+            </td>
+          </tr>
+          <tr
+            v-for="record in currentData"
+            :key="record.id"
+            :class="[
+              'hover:bg-emerald-50 transition-colors',
+              record.dataSource === 'auto_iot' ? 'border-l-4 border-l-green-400 bg-emerald-50/30' : ''
+            ]"
+          >
+            <td v-if="showCheckbox" class="px-4 py-3 text-center w-12">
+              <el-checkbox
+                :model-value="selectedIds.includes(record.id)"
+                class="fert-checkbox"
+                @change="handleSelectRow(record.id, $event)"
+              />
+            </td>
+            <td class="px-4 py-3 text-sm w-36 whitespace-nowrap">
+              <button class="text-sm text-blue-600 hover:text-blue-800 hover:underline font-mono" title="点击查看详情" @click="onDetail(record)">
+                {{ record.fertilizerCode }}
+              </button>
+            </td>
+            <td class="px-4 py-3 text-sm w-32 whitespace-nowrap">
+              <span class="font-bold text-gray-900">{{ record.fertilizerName || '-' }}</span>
+            </td>
+            <td class="px-4 py-3 text-sm w-24 whitespace-nowrap">
+              <span :class="getTypeBadgeClass(record.fertilizerType)">
+                {{ getFertilizerTypeName(record.fertilizerType) }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm w-24 whitespace-nowrap text-gray-700">{{ record.cropName || '-' }}</td>
+            <td class="px-4 py-3 text-sm w-32 whitespace-nowrap text-gray-700">{{ record.greenhouseName || '-' }}</td>
+            <td class="px-4 py-3 text-sm w-24 whitespace-nowrap text-gray-700">{{ record.dilutionRatio || '-' }}</td>
+            <td class="px-4 py-3 text-sm w-28 whitespace-nowrap">
+              <span class="font-bold text-emerald-600">
+                {{ formatNumber(record.quantity) }} {{ record.unit || 'kg' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm w-28 whitespace-nowrap">
+              <span class="font-medium text-amber-600">
+                {{ formatNumber(record.totalCost) }} 元
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm w-36 whitespace-nowrap text-gray-700">{{ record.fertilizeTime || '-' }}</td>
+            <td class="px-4 py-3 text-sm w-24 whitespace-nowrap">
+              <span :class="getSourceBadgeClass(record.dataSource)">
+                <span class="w-1.5 h-1.5 rounded-full bg-current mr-1"></span>
+                {{ record.dataSource === 'auto_iot' ? 'IoT自动' : '手动' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm w-24 whitespace-nowrap text-gray-700">{{ record.operatorName || '-' }}</td>
+            <td class="px-4 py-3 w-32 whitespace-nowrap">
+              <div class="flex items-center gap-1">
+                <button
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  title="查看详情"
+                  @click="onDetail(record)"
                 >
-                  <el-icon><Edit /></el-icon>
-                </el-button>
-                <el-button
-                  link
-                  type="danger"
-                  class="text-gray-500 hover:text-red-600"
-                  title="删除"
-                  @click="onDelete(row.id)"
-                >
-                  <el-icon><Delete /></el-icon>
-                </el-button>
-              </template>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+                  👁️
+                </button>
+                <template v-if="record.dataSource !== 'auto_iot'">
+                  <button
+                    class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                    title="编辑"
+                    @click="onEdit(record)"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+                    title="删除"
+                    @click="onDelete(record.id)"
+                  >
+                    🗑️
+                  </button>
+                </template>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- 分页 -->
@@ -204,7 +182,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Plus, Delete, Download, View, Edit, DataAnalysis, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
+import { DataAnalysis, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
 import IotDataIndicator from './IotDataIndicator.vue'
 
 const props = defineProps({
@@ -286,14 +264,6 @@ const handleSelectRow = (id, checked) => {
   }
 }
 
-// 表格行样式 - IoT记录有绿色左边框
-const tableRowClassName = ({ row }) => {
-  if (row.dataSource === 'auto_iot') {
-    return 'border-l-4 border-l-green-400 bg-emerald-50/30'
-  }
-  return ''
-}
-
 // 获取肥料类型显示名称
 const getFertilizerTypeName = (type) => {
   const typeMap = {
@@ -343,20 +313,12 @@ const onToggleStats = () => emit('toggleStats')
 </script>
 
 <style scoped>
-/* V1.1样式保持 */
-:deep(.el-table th.el-table__cell) {
-  background: linear-gradient(to right, #3b82f6, #2563eb);
-  color: white;
-  font-weight: 600;
-  padding: 10px 8px;
+/* 加深复选框默认边框颜色 - 与种源管理表格一致 */
+:deep(.fert-checkbox .el-checkbox__inner) {
+  border-color: #374151;
 }
-:deep(.el-table th.el-table__cell .cell) {
-  white-space: nowrap;
-}
-:deep(.el-table .el-table__row) {
-  transition: background-color 0.2s;
-}
-:deep(.el-table .el-table__row:hover) {
-  background-color: #f0fdf4;
+
+:deep(.fert-checkbox:hover .el-checkbox__inner) {
+  border-color: #059669;
 }
 </style>

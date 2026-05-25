@@ -15,14 +15,6 @@
       </div>
     </div>
 
-    <!-- 筛选工具栏 -->
-    <FertilizerFilter
-      :filters="filters"
-      @update:filters="handleFiltersChange"
-      @search="handleSearch"
-      @reset="handleReset"
-    />
-
     <!-- 统计卡片 -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
@@ -70,6 +62,14 @@
         </div>
       </div>
     </div>
+
+    <!-- 筛选工具栏 -->
+    <FertilizerFilter
+      :filters="filters"
+      @update:filters="handleFiltersChange"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
     <!-- 批量删除操作栏 -->
     <div
