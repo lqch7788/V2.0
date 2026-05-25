@@ -19,7 +19,9 @@
     "element-plus": "^2.5.0",
     "lucide-vue-next": "^1.0.0",
     "pinia": "^2.1.0",
+    "qrcode": "^1.5.4",
     "vue": "^3.4.0",
+    "vue-qrcode": "^2.2.2",
     "vue-router": "^4.3.0",
     "xlsx": "^0.18.5"
   },

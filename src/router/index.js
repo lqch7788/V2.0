@@ -313,12 +313,6 @@ const routes = [
     component: () => import('@/views/crop/Harvest.vue'),
     meta: { title: '采收入库' }
   },
-  {
-    path: '/inventory',
-    name: 'Inventory',
-    component: () => import('@/views/inventory/InventoryIndex.vue'),
-    meta: { title: '库存管理' }
-  },
   // 仓库物料模块
   {
     path: '/warehouse',
