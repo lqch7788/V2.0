@@ -29,7 +29,7 @@ export const SourceOrigin = {
   GRAFTING: 'grafting',
   SEEDLING_SPLIT: 'seedling_split',
   CUTTING: 'cutting',
-  DIRECT_SEEDLING: 'direct_seeding',
+  DIRECT_SEEDLING: 'direct_seedling',
   DIRECT_PLANTING: 'direct_planting',
   EXTERNAL_HARVEST: 'external_harvest'
 }
