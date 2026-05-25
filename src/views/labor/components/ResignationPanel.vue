@@ -52,9 +52,7 @@
         </div>
         <el-select v-model="filters.status" placeholder="审批状态" clearable class="w-full sm:w-32">
           <el-option label="全部状态" value="" />
-          <el-option label="待审批" value="pending" />
-          <el-option label="已批准" value="approved" />
-          <el-option label="已驳回" value="rejected" />
+          <el-option v-for="item in APPROVAL_STATUS_OPTIONS.filter(o => o.value)" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-button type="primary" @click="handleSearch">
           <el-icon><Search /></el-icon> 搜索
@@ -82,8 +80,8 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button v-if="row.status === 'pending'" link type="success" size="small" @click="approveRecord(row)">批准</el-button>
-            <el-button v-if="row.status === 'pending'" link type="danger" size="small" @click="rejectRecord(row)">驳回</el-button>
+            <el-button v-if="row.status === '待审批'" link type="success" size="small" @click="approveRecord(row)">批准</el-button>
+            <el-button v-if="row.status === '待审批'" link type="danger" size="small" @click="rejectRecord(row)">驳回</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -112,7 +110,7 @@
     <el-dialog v-model="detailDialogVisible" title="离职详情" width="600px">
       <div v-if="currentRecord" class="space-y-4">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="员工姓名">{{ currentRecord.employeeName }}</el-descriptions-item>
+          <el-descriptions-item label="员工姓名">{{ currentRecord.staffName || currentRecord.employeeName }}</el-descriptions-item>
           <el-descriptions-item label="部门">{{ currentRecord.department }}</el-descriptions-item>
           <el-descriptions-item label="岗位">{{ currentRecord.position }}</el-descriptions-item>
           <el-descriptions-item label="入职日期">{{ currentRecord.joinDate }}</el-descriptions-item>
@@ -137,128 +135,101 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Delete, Search } from '@element-plus/icons-vue'
 import UserDelete from '@/components/icons/UserDelete.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { RESIGNATION_TYPE_OPTIONS, APPROVAL_STATUS_OPTIONS } from '@/data/laborData'
 
 // 状态映射
 const statusMap = {
-  pending: { label: '待审批', type: 'warning' },
-  approved: { label: '已批准', type: 'success' },
-  rejected: { label: '已驳回', type: 'danger' }
+  '待审批': { label: '待审批', type: 'warning' },
+  '已通过': { label: '已批准', type: 'success' },
+  '已拒绝': { label: '已驳回', type: 'danger' }
 }
-
 const getStatusLabel = (status) => statusMap[status]?.label || status
 const getStatusType = (status) => statusMap[status]?.type || 'info'
 
+// Labor Store
+const laborStore = useLaborStore()
+
 // 筛选条件
-const filters = reactive({
-  keyword: '',
-  status: ''
-})
+const filters = reactive({ keyword: '', status: '' })
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10
-})
+// 分页
+const pagination = reactive({ currentPage: 1, pageSize: 10, total: 0 })
 
-// 详情弹窗
+// 弹窗
 const detailDialogVisible = ref(false)
 const currentRecord = ref(null)
 
-// 模拟数据
-const allData = ref([
-  { id: 1, employeeName: '张三', department: '技术部', position: '农艺师', joinDate: '2024-01-15', applyDate: '2026-05-18', resignDate: '2026-05-31', reason: '个人发展需要', status: 'pending', approver: '', approvedAt: '', comment: '' },
-  { id: 2, employeeName: '李四', department: '运营部', position: '运营专员', joinDate: '2024-03-20', applyDate: '2026-05-10', resignDate: '2026-05-25', reason: '家庭原因', status: 'approved', approver: '王总', approvedAt: '2026-05-11 10:00', comment: '同意离职' },
-  { id: 3, employeeName: '王五', department: '市场部', position: '市场专员', joinDate: '2023-06-01', applyDate: '2026-05-05', resignDate: '2026-05-20', reason: '薪资问题', status: 'rejected', approver: '王总', approvedAt: '2026-05-06 14:00', comment: '暂不批准，考虑调薪' }
-])
+// 数据
+const allData = ref([])
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.keyword) params.staffName = filters.keyword
+    if (filters.status) params.status = filters.status
+    await laborStore.fetchResignationList(params)
+    allData.value = laborStore.resignationList
+    pagination.total = laborStore.resignationTotal
+  } catch (e) {
+    console.error('加载离职数据失败:', e)
+  }
+}
 
 // 统计
 const statusCounts = computed(() => ({
-  pending: allData.value.filter(r => r.status === 'pending').length,
-  approved: allData.value.filter(r => r.status === 'approved').length,
-  rejected: allData.value.filter(r => r.status === 'rejected').length
+  pending: allData.value.filter(r => r.status === '待审批').length,
+  approved: allData.value.filter(r => r.status === '已通过').length,
+  rejected: allData.value.filter(r => r.status === '已拒绝').length
 }))
 
-// 筛选后的数据
-const filteredData = computed(() => {
-  return allData.value.filter(record => {
-    if (filters.keyword && !record.employeeName.includes(filters.keyword)) return false
-    if (filters.status && record.status !== filters.status) return false
-    return true
-  })
-})
+// 筛选后数据
+const filteredData = computed(() => allData.value)
+const paginatedData = computed(() => allData.value)
 
-// 分页数据
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return filteredData.value.slice(start, start + pagination.pageSize)
-})
-
-// 搜索
-const handleSearch = () => {
-  pagination.currentPage = 1
-}
-
-// 重置
+// 搜索/重置
+const handleSearch = () => { pagination.currentPage = 1; loadData() }
 const handleReset = () => {
-  filters.keyword = ''
-  filters.status = ''
-  pagination.currentPage = 1
+  filters.keyword = ''; filters.status = ''
+  pagination.currentPage = 1; loadData()
 }
 
 // 分页
-const handlePageSizeChange = () => {
-  pagination.currentPage = 1
-}
+const handlePageSizeChange = () => { pagination.currentPage = 1; loadData() }
 
 // 详情
-const viewDetail = (row) => {
-  currentRecord.value = row
-  detailDialogVisible.value = true
-}
+const viewDetail = (row) => { currentRecord.value = row; detailDialogVisible.value = true }
 
 // 批准
 const approveRecord = async (row) => {
   try {
     await ElMessageBox.confirm('确定要批准该离职申请吗？', '确认批准', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
-    const index = allData.value.findIndex(r => r.id === row.id)
-    if (index !== -1) {
-      allData.value[index].status = 'approved'
-      allData.value[index].approver = '当前用户'
-      allData.value[index].approvedAt = new Date().toLocaleString()
-    }
+    await laborStore.approveResignation(row.id, { approver: '当前用户' })
     ElMessage.success('已批准')
-  } catch {
-    // 取消操作
-  }
+    loadData()
+  } catch { /* 取消 */ }
 }
 
 // 驳回
 const rejectRecord = async (row) => {
   try {
     await ElMessageBox.confirm('确定要驳回该离职申请吗？', '确认驳回', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
-    const index = allData.value.findIndex(r => r.id === row.id)
-    if (index !== -1) {
-      allData.value[index].status = 'rejected'
-      allData.value[index].approver = '当前用户'
-      allData.value[index].approvedAt = new Date().toLocaleString()
-    }
+    await laborStore.updateResignation(row.id, { status: '已拒绝', approver: '当前用户' })
     ElMessage.success('已驳回')
-  } catch {
-    // 取消操作
-  }
+    loadData()
+  } catch { /* 取消 */ }
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

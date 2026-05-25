@@ -89,8 +89,9 @@
           class="w-[160px]"
         />
         <el-select v-model="filters.status" placeholder="状态" clearable class="w-[140px]">
-          <el-option label="待评估" value="pending" />
-          <el-option label="已评估" value="evaluated" />
+          <el-option label="全部" value="" />
+          <el-option label="待评估" value="待评估" />
+          <el-option label="已评估" value="已评估" />
         </el-select>
         <el-button @click="handleReset">重置</el-button>
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -286,47 +287,51 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Trophy, Download, Plus, Edit, Delete, User, TrendCharts } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { PERFORMANCE_GRADE_OPTIONS } from '@/data/laborData'
+
+// Labor Store
+const laborStore = useLaborStore()
 
 // 筛选条件
-const filters = reactive({
-  staffName: '',
-  staffId: '',
-  department: '',
-  month: '',
-  status: ''
-})
+const filters = reactive({ staffName: '', staffId: '', department: '', month: '', status: '' })
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10
-})
+// 分页
+const pagination = reactive({ currentPage: 1, pageSize: 10 })
 
-// 统计数据
-const stats = reactive({
-  total: 15,
-  evaluated: 12,
-  avgScore: 85
-})
+// 统计数据（从加载的数据中计算）
+const stats = reactive({ total: 0, evaluated: 0, avgScore: 0 })
 
-// 表格数据
-const data = ref([
-  { id: '1', staffId: 'EMP001', staffName: '张三', department: '技术部', month: '2024-03', taskCompletionRate: 92, attendanceRate: 95, workQuality: 88, safetyCompliance: 96, teamworkAttitude: 90, totalScore: 92, rank: 1, status: '已评估' },
-  { id: '2', staffId: 'EMP002', staffName: '李四', department: '技术部', month: '2024-03', taskCompletionRate: 88, attendanceRate: 90, workQuality: 85, safetyCompliance: 92, teamworkAttitude: 88, totalScore: 88, rank: 2, status: '已评估' },
-  { id: '3', staffId: 'EMP003', staffName: '王五', department: '运营部', month: '2024-03', taskCompletionRate: 85, attendanceRate: 92, workQuality: 90, safetyCompliance: 88, teamworkAttitude: 85, totalScore: 87, rank: 3, status: '已评估' },
-  { id: '4', staffId: 'EMP004', staffName: '赵六', department: '运营部', month: '2024-03', taskCompletionRate: 80, attendanceRate: 88, workQuality: 82, safetyCompliance: 85, teamworkAttitude: 80, totalScore: 82, rank: 4, status: '已评估' },
-  { id: '5', staffId: 'EMP005', staffName: '钱七', department: '市场部', month: '2024-03', taskCompletionRate: 0, attendanceRate: 0, workQuality: 0, safetyCompliance: 0, teamworkAttitude: 0, totalScore: 0, rank: 0, status: '待评估' }
-])
+// 数据
+const allData = ref([])
 
-const total = computed(() => data.value.length)
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.staffName) params.staffName = filters.staffName
+    if (filters.staffId) params.staffId = filters.staffId
+    if (filters.department) params.department = filters.department
+    if (filters.month) params.month = filters.month
+    if (filters.status) params.status = filters.status
+    await laborStore.fetchPerformanceList(params)
+    allData.value = laborStore.performanceList
+    const list = allData.value
+    stats.total = list.length
+    stats.evaluated = list.filter(r => r.status === '已评估').length
+    const evaluated = list.filter(r => r.status === '已评估' && r.totalScore > 0)
+    stats.avgScore = evaluated.length ? Math.round(evaluated.reduce((s, r) => s + Number(r.totalScore), 0) / evaluated.length) : 0
+  } catch (e) {
+    console.error('加载绩效数据失败:', e)
+  }
+}
+
+const total = computed(() => allData.value.length)
 const totalPages = computed(() => Math.ceil(total.value / pagination.pageSize))
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return data.value.slice(start, start + pagination.pageSize)
-})
+const paginatedData = computed(() => allData.value)
 
 // 弹窗状态
 const modalVisible = ref(false)
@@ -337,47 +342,29 @@ const editingRecord = ref(null)
 
 // 表单数据
 const formData = reactive({
-  staffId: '',
-  staffName: '',
-  department: '',
-  month: '',
-  taskCompletionRate: 0,
-  attendanceRate: 0,
-  workQuality: 0,
-  safetyCompliance: 0,
-  teamworkAttitude: 0,
-  status: '待评估'
+  id: null, staffId: '', staffName: '', department: '', month: '',
+  taskCompletionRate: 0, attendanceRate: 0, workQuality: 0,
+  safetyCompliance: 0, teamworkAttitude: 0, status: '待评估'
 })
 
 // 重置
 const handleReset = () => {
-  filters.staffName = ''
-  filters.staffId = ''
-  filters.department = ''
-  filters.month = ''
-  filters.status = ''
+  filters.staffName = ''; filters.staffId = ''; filters.department = ''
+  filters.month = ''; filters.status = ''
+  pagination.currentPage = 1; loadData()
 }
 
 // 查询
-const handleSearch = () => {
-  ElMessage.success('查询成功')
-}
+const handleSearch = () => { pagination.currentPage = 1; loadData() }
 
 // 新增
 const handleAdd = () => {
   modalTitle.value = '新增考核记录'
   editingRecord.value = null
   Object.assign(formData, {
-    staffId: '',
-    staffName: '',
-    department: '',
-    month: '',
-    taskCompletionRate: 0,
-    attendanceRate: 0,
-    workQuality: 0,
-    safetyCompliance: 0,
-    teamworkAttitude: 0,
-    status: '待评估'
+    id: null, staffId: '', staffName: '', department: '', month: '',
+    taskCompletionRate: 0, attendanceRate: 0, workQuality: 0,
+    safetyCompliance: 0, teamworkAttitude: 0, status: '待评估'
   })
   modalVisible.value = true
 }
@@ -386,17 +373,16 @@ const handleAdd = () => {
 const handleEdit = (row) => {
   modalTitle.value = '编辑考核记录'
   editingRecord.value = row
-  Object.assign(formData, row)
+  Object.assign(formData, { ...row, id: row.id })
   modalVisible.value = true
 }
 
-// 确认
-const handleConfirm = () => {
+// 确认（新增/编辑）
+const handleConfirm = async () => {
   if (!formData.staffId || !formData.staffName || !formData.month) {
     ElMessage.warning('请填写完整信息')
     return
   }
-  // 计算综合得分
   const totalScore = Math.round(
     (formData.taskCompletionRate * 0.25 +
     formData.attendanceRate * 0.15 +
@@ -405,60 +391,49 @@ const handleConfirm = () => {
     formData.teamworkAttitude * 0.20)
   )
 
+  const payload = {
+    staffId: formData.staffId, staffName: formData.staffName,
+    department: formData.department, month: formData.month,
+    taskCompletionRate: formData.taskCompletionRate,
+    attendanceRate: formData.attendanceRate,
+    workQuality: formData.workQuality,
+    safetyCompliance: formData.safetyCompliance,
+    teamworkAttitude: formData.teamworkAttitude,
+    totalScore, status: formData.status
+  }
+
   if (editingRecord.value) {
-    Object.assign(editingRecord.value, formData, { totalScore })
+    await laborStore.updatePerformance(formData.id, payload)
     ElMessage.success('更新成功')
   } else {
-    const rank = data.value.length + 1
-    data.value.unshift({
-      id: Date.now().toString(),
-      ...formData,
-      totalScore,
-      rank
-    })
+    await laborStore.createPerformance(payload)
     ElMessage.success('新增成功')
   }
   modalVisible.value = false
+  loadData()
 }
 
 // 查看
-const handleView = (row) => {
-  selectedRecord.value = row
-  detailModalVisible.value = true
-}
+const handleView = (row) => { selectedRecord.value = row; detailModalVisible.value = true }
 
 // 删除
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm(`确定要删除 "${row.staffName} - ${row.month}" 的考核记录吗？`, '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
-    const index = data.value.findIndex(item => item.id === row.id)
-    if (index > -1) {
-      data.value.splice(index, 1)
-      ElMessage.success('删除成功')
-    }
-  } catch {
-    // 用户取消
-  }
+    await laborStore.deletePerformance(row.id)
+    ElMessage.success('删除成功')
+    loadData()
+  } catch { /* 用户取消 */ }
 }
 
-// 批量编辑
-const handleBatchEdit = () => {
-  ElMessage.info('批量编辑功能开发中')
-}
+// 批量编辑/删除/导出（占位）
+const handleBatchEdit = () => { ElMessage.info('批量编辑功能开发中') }
+const handleBatchDelete = () => { ElMessage.info('批量删除功能开发中') }
+const handleExport = () => { ElMessage.success('导出功能开发中') }
 
-// 批量删除
-const handleBatchDelete = () => {
-  ElMessage.info('批量删除功能开发中')
-}
-
-// 导出
-const handleExport = () => {
-  ElMessage.success('导出功能开发中')
-}
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

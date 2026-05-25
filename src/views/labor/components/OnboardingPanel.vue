@@ -36,10 +36,7 @@
           </el-input>
         </div>
         <el-select v-model="filters.status" placeholder="全部状态" clearable class="w-full sm:w-32">
-          <el-option label="全部状态" value="" />
-          <el-option label="待入职" value="pending" />
-          <el-option label="办理中" value="processing" />
-          <el-option label="已入职" value="completed" />
+          <el-option v-for="item in ONBOARDING_STATUS_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-button type="primary" @click="handleSearch">
           <el-icon><Search /></el-icon> 搜索
@@ -134,8 +131,8 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button v-if="row.status === 'pending'" link type="primary" size="small" @click="startProcess(row)">开始办理</el-button>
-            <el-button v-if="row.status === 'processing'" link type="success" size="small" @click="completeOnboarding(row)">完成入职</el-button>
+            <el-button v-if="row.status === '待入职'" link type="primary" size="small" @click="startProcess(row)">开始办理</el-button>
+            <el-button v-if="row.status === '办理中'" link type="success" size="small" @click="completeOnboarding(row)">完成入职</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -230,42 +227,25 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { CirclePlus, Search, Plus, Edit, Delete, Download, Clock, Warning, CircleCheck } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOnboardingRecords, createOnboardingRecord, updateOnboardingRecord, updateOnboardingStatus, deleteOnboardingRecord } from '@/services/apiOnboardingService'
+import { useLaborStore } from '@/stores/modules/labor'
+import { ONBOARDING_STATUS_OPTIONS, DEPT_OPTIONS, CONTRACT_TYPE_OPTIONS } from '@/data/laborData'
+
+const laborStore = useLaborStore()
 
 // 加载状态
 const loading = ref(false)
 
-// 状态映射 - API使用英文状态码
-const statusCodeMap = {
-  pending: { label: '待入职', type: 'warning' },
-  processing: { label: '办理中', type: 'primary' },
-  completed: { label: '已入职', type: 'success' },
-  onboarded: { label: '已入职', type: 'success' }
+// 状态映射
+const statusMap = {
+  '待入职': { label: '待入职', type: 'warning' },
+  '办理中': { label: '办理中', type: 'primary' },
+  '已完成': { label: '已完成', type: 'success' },
+  '已入职': { label: '已入职', type: 'success' },
+  '已取消': { label: '已取消', type: 'info' }
 }
 
-// 中文状态到API状态的映射
-const statusLabelToCode = {
-  '待入职': 'pending',
-  '办理中': 'processing',
-  '已入职': 'onboarded'
-}
-
-const getStatusLabel = (status) => {
-  // 如果已经是中文，直接返回
-  if (status && ['待入职', '办理中', '已入职'].includes(status)) {
-    return status
-  }
-  return statusCodeMap[status]?.label || status || '待入职'
-}
-
-const getStatusType = (status) => {
-  // 如果已经是中文状态，获取对应的类型
-  if (status && ['待入职', '办理中', '已入职'].includes(status)) {
-    const code = statusLabelToCode[status]
-    return statusCodeMap[code]?.type || 'info'
-  }
-  return statusCodeMap[status]?.type || 'info'
-}
+const getStatusLabel = (status) => statusMap[status]?.label || status || '待入职'
+const getStatusType = (status) => statusMap[status]?.type || 'info'
 
 // 筛选条件
 const filters = reactive({
@@ -306,57 +286,33 @@ const formRules = {
   joinDate: [{ required: true, message: '请选择入职日期', trigger: 'change' }]
 }
 
-// 入职数据 - 从API加载
-const allData = ref([])
+// 入职数据 - 从Store获取
+const allData = computed(() => laborStore.onboardingList || [])
 
 // 加载数据
 const loadData = async () => {
   loading.value = true
   try {
-    const filterParams = {}
-    if (filters.keyword) filterParams.keyword = filters.keyword
-    if (filters.status) filterParams.status = filters.status
-
-    const result = await getOnboardingRecords(filterParams, {
-      page: pagination.currentPage,
-      limit: pagination.pageSize
-    })
-
-    // 转换API数据格式为组件使用格式
-    allData.value = result.records.map(item => ({
-      id: item.id,
-      oid: item.oid,
-      name: item.name,
-      phone: item.phone,
-      idCard: item.idCard,
-      position: item.position,
-      department: item.department,
-      contractType: item.contractType,
-      joinDate: item.joinDate,
-      status: item.status,
-      // 保存原始API数据
-      _original: item
-    }))
-
-    // 更新分页总数
-    pagination.total = result.pagination.total || result.records.length
+    const params = {}
+    if (filters.keyword) params.keyword = filters.keyword
+    if (filters.status) params.status = filters.status
+    await laborStore.fetchOnboardingList(params)
   } catch (error) {
     console.error('[OnboardingPanel] 加载数据失败:', error)
     ElMessage.error('加载数据失败')
-    allData.value = []
   } finally {
     loading.value = false
   }
 }
 
-// 统计 - 计算各状态数量
+// 统计
 const statusCounts = computed(() => {
   const counts = { pending: 0, processing: 0, completed: 0 }
   allData.value.forEach(r => {
     const status = r.status
-    if (status === 'pending' || status === '待入职') counts.pending++
-    else if (status === 'processing' || status === '办理中') counts.processing++
-    else if (status === 'completed' || status === 'onboarded' || status === '已入职') counts.completed++
+    if (status === '待入职') counts.pending++
+    else if (status === '办理中') counts.processing++
+    else if (status === '已完成' || status === '已入职') counts.completed++
   })
   return counts
 })
@@ -364,7 +320,7 @@ const statusCounts = computed(() => {
 // 筛选后的数据
 const filteredData = computed(() => {
   return allData.value.filter(record => {
-    if (filters.keyword && !record.name.includes(filters.keyword) && !record.idCard.includes(filters.keyword) && !record.phone.includes(filters.keyword)) return false
+    if (filters.keyword && !record.name?.includes(filters.keyword) && !record.idCard?.includes(filters.keyword) && !record.phone?.includes(filters.keyword)) return false
     if (filters.status && record.status !== filters.status) return false
     return true
   })
@@ -402,22 +358,15 @@ const viewDetail = (row) => {
   detailDialogVisible.value = true
 }
 
-// 开始办理 - 调用API更新状态为办理中
+// 开始办理
 const startProcess = async (row) => {
   try {
     await ElMessageBox.confirm('确定开始办理入职流程吗？', '确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'info'
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'info'
     })
-
-    const original = row._original
-    if (original) {
-      await updateOnboardingStatus(original.id, { status: 'processing' })
-    }
-
-    row.status = 'processing'
+    await laborStore.updateOnboardingStatus(row.id, { status: '办理中' })
     ElMessage.success('已开始办理入职')
+    loadData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('[OnboardingPanel] 开始办理失败:', error)
@@ -426,22 +375,15 @@ const startProcess = async (row) => {
   }
 }
 
-// 完成入职 - 调用API更新状态为已入职
+// 完成入职
 const completeOnboarding = async (row) => {
   try {
     await ElMessageBox.confirm('确定要完成入职办理吗？这将创建员工档案。', '确认完成', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
-
-    const original = row._original
-    if (original) {
-      await updateOnboardingStatus(original.id, { status: 'onboarded' })
-    }
-
-    row.status = 'completed'
+    await laborStore.updateOnboardingStatus(row.id, { status: '已完成' })
     ElMessage.success('入职办理已完成')
+    loadData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('[OnboardingPanel] 完成入职失败:', error)
@@ -453,50 +395,27 @@ const completeOnboarding = async (row) => {
 // 新增
 const openFormModal = () => {
   Object.assign(formData, {
-    name: '',
-    phone: '',
-    idCard: '',
-    position: '',
-    department: '',
+    name: '', phone: '', idCard: '', position: '', department: '',
     contractType: '劳动合同',
     joinDate: new Date().toISOString().split('T')[0]
   })
   formDialogVisible.value = true
 }
 
-// 提交表单 - 调用API创建入职记录
+// 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        const newRecord = await createOnboardingRecord({
-          name: formData.name,
-          phone: formData.phone,
-          idCard: formData.idCard,
-          position: formData.position,
-          department: formData.department,
-          contractType: formData.contractType,
-          joinDate: formData.joinDate
+        await laborStore.createOnboarding({
+          name: formData.name, phone: formData.phone, idCard: formData.idCard,
+          position: formData.position, department: formData.department,
+          contractType: formData.contractType, joinDate: formData.joinDate
         })
-
-        // 添加到列表
-        allData.value.unshift({
-          id: newRecord.id,
-          oid: newRecord.oid,
-          name: newRecord.name,
-          phone: newRecord.phone,
-          idCard: newRecord.idCard,
-          position: newRecord.position,
-          department: newRecord.department,
-          contractType: newRecord.contractType,
-          joinDate: newRecord.joinDate,
-          status: newRecord.status || 'pending',
-          _original: newRecord
-        })
-
         ElMessage.success('入职登记成功')
         formDialogVisible.value = false
+        loadData()
       } catch (error) {
         console.error('[OnboardingPanel] 创建失败:', error)
         ElMessage.error('创建失败')

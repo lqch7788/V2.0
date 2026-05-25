@@ -79,12 +79,11 @@
           </el-input>
         </div>
         <el-select v-model="filters.department" placeholder="全部部门" clearable class="w-full sm:w-36">
-          <el-option label="全部部门" value="" />
-          <el-option v-for="dept in departments" :key="dept" :label="dept" :value="dept" />
+          <el-option v-for="item in DEPT_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-select v-model="filters.position" placeholder="全部岗位" clearable class="w-full sm:w-36">
           <el-option label="全部岗位" value="" />
-          <el-option v-for="pos in positions" :key="pos" :label="pos" :value="pos" />
+          <el-option v-for="pos in POSITIONS" :key="pos" :label="pos" :value="pos" />
         </el-select>
         <el-select v-model="filters.status" placeholder="在职状态" clearable class="w-full sm:w-32">
           <el-option label="全部状态" value="" />
@@ -221,12 +220,12 @@
         </el-form-item>
         <el-form-item label="部门" prop="department">
           <el-select v-model="formData.department" placeholder="请选择部门">
-            <el-option v-for="dept in departments" :key="dept" :label="dept" :value="dept" />
+            <el-option v-for="item in DEPT_OPTIONS.filter(d => d.value)" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="岗位" prop="position">
           <el-select v-model="formData.position" placeholder="请选择岗位">
-            <el-option v-for="pos in positions" :key="pos" :label="pos" :value="pos" />
+            <el-option v-for="pos in POSITIONS" :key="pos" :label="pos" :value="pos" />
           </el-select>
         </el-form-item>
         <el-form-item label="入职日期" prop="joinDate">
@@ -262,16 +261,14 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { User, Search, Plus, Edit, Delete, Download, Document, CircleCheck, Clock } from '@element-plus/icons-vue'
 import UserDelete from '@/components/icons/UserDelete.vue'
 import { ElMessage } from 'element-plus'
-import { getWorkers, createWorker, updateWorker, deleteWorker, generateWorkerId } from '@/services/apiLaborService'
-import { getDictionaries } from '@/services/dictionaryService'
+import { useLaborStore } from '@/stores/modules/labor'
+import { DEPT_OPTIONS, POSITIONS } from '@/data/laborData'
 
-// 部门列表 - 从API获取
-const departments = ref([])
-const departmentOptions = computed(() => departments.value.map(d => d.dictLabel || d.name || d))
+const laborStore = useLaborStore()
 
-// 岗位列表 - 从API获取
-const positions = ref([])
-const positionOptions = computed(() => positions.value.map(p => p.dictLabel || p.name || p))
+// 部门/岗位列表 - 从配置获取
+const departments = computed(() => DEPT_OPTIONS.filter(d => d.value).map(d => ({ dictLabel: d.label, value: d.value })))
+const positionOptions = computed(() => POSITIONS.map(p => ({ dictLabel: p, value: p })))
 
 // 状态映射
 const statusMap = {
@@ -336,8 +333,21 @@ const formRules = {
   joinDate: [{ required: true, message: '请选择入职日期', trigger: 'change' }]
 }
 
-// 员工数据 - 从API获取
-const allData = ref([])
+// 员工数据 - 从Store获取
+const allData = computed(() => (laborStore.workerList || []).map(w => ({
+  id: w.id || w.oid,
+  oid: w.oid,
+  code: w.code || w.workerId || '',
+  name: w.name || w.workerName || '',
+  gender: w.gender || '男',
+  phone: w.phone || w.mobile || '',
+  idCard: w.idCard || w.id_card || '',
+  department: w.department || w.departmentName || '',
+  position: w.position || w.positionName || '',
+  joinDate: w.joinDate || w.join_date || '',
+  status: w.status || 'active',
+  remark: w.remark || ''
+})))
 const loading = ref(false)
 const error = ref(null)
 
@@ -346,21 +356,7 @@ const loadWorkers = async () => {
   loading.value = true
   error.value = null
   try {
-    const data = await getWorkers()
-    allData.value = data.map(w => ({
-      id: w.id || w.oid,
-      oid: w.oid,
-      code: w.code || w.workerId || '',
-      name: w.name || w.workerName || '',
-      gender: w.gender || '男',
-      phone: w.phone || w.mobile || '',
-      idCard: w.idCard || w.id_card || '',
-      department: w.department || w.departmentName || '',
-      position: w.position || w.positionName || '',
-      joinDate: w.joinDate || w.join_date || '',
-      status: w.status || 'active',
-      remark: w.remark || ''
-    }))
+    await laborStore.fetchWorkers()
   } catch (err) {
     error.value = err.message || '加载员工数据失败'
     console.error('[StaffPanel] 加载员工数据失败:', err)
@@ -369,29 +365,8 @@ const loadWorkers = async () => {
   }
 }
 
-// 加载部门和岗位选项
-const loadOptions = async () => {
-  try {
-    // 从字典服务获取部门和岗位
-    const dicts = await getDictionaries()
-    // 过滤出部门和岗位分类
-    const deptDicts = dicts.filter(d => d.category === 'department' || d.code === 'department')
-    const posDicts = dicts.filter(d => d.category === 'position' || d.code === 'position')
-    departments.value = deptDicts
-    positions.value = posDicts
-  } catch (err) {
-    console.warn('[StaffPanel] 加载选项失败:', err)
-    // 使用默认选项
-    departments.value = []
-    positions.value = []
-  }
-}
-
 // 组件挂载时加载数据
-onMounted(() => {
-  loadWorkers()
-  loadOptions()
-})
+onMounted(() => { loadWorkers() })
 
 // 统计
 const totalCount = computed(() => allData.value.length)
@@ -495,46 +470,21 @@ const submitForm = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
+        const payload = {
+          name: formData.name, code: formData.code, gender: formData.gender,
+          phone: formData.phone, idCard: formData.idCard,
+          department: formData.department, position: formData.position,
+          joinDate: formData.joinDate, status: formData.status, remark: formData.remark
+        }
         if (isEdit.value) {
-          // 编辑模式 - 调用API更新
-          await updateWorker(formData.id, {
-            name: formData.name,
-            gender: formData.gender,
-            phone: formData.phone,
-            idCard: formData.idCard,
-            department: formData.department,
-            position: formData.position,
-            status: formData.status,
-            remark: formData.remark
-          })
-          // 更新本地数据
-          const index = allData.value.findIndex(r => r.id === formData.id)
-          if (index !== -1) {
-            allData.value[index] = { ...formData }
-          }
+          await laborStore.updateWorker(formData.id, payload)
           ElMessage.success('编辑成功')
         } else {
-          // 新增模式 - 调用API创建
-          const newWorker = await createWorker({
-            name: formData.name,
-            code: formData.code,
-            gender: formData.gender,
-            phone: formData.phone,
-            idCard: formData.idCard,
-            department: formData.department,
-            position: formData.position,
-            joinDate: formData.joinDate,
-            status: formData.status,
-            remark: formData.remark
-          })
-          // 添加到本地数据
-          allData.value.unshift({
-            id: newWorker.id || newWorker.oid || Date.now(),
-            ...formData
-          })
+          await laborStore.createWorker(payload)
           ElMessage.success('新增成功')
         }
         formDialogVisible.value = false
+        loadWorkers()
       } catch (err) {
         console.error('[StaffPanel] 保存失败:', err)
         ElMessage.error('保存失败')
@@ -546,9 +496,9 @@ const submitForm = async () => {
 // 删除记录
 const handleDelete = async (row) => {
   try {
-    await deleteWorker(row.id)
-    allData.value = allData.value.filter(r => r.id !== row.id)
+    await laborStore.deleteWorker(row.id)
     ElMessage.success('删除成功')
+    loadWorkers()
   } catch (err) {
     console.error('[StaffPanel] 删除失败:', err)
     ElMessage.error('删除失败')

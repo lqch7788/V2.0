@@ -83,19 +83,17 @@
       <div class="p-4 border-b border-gray-200">
         <div class="flex items-center gap-4 flex-wrap">
           <el-select v-model="filters.level" placeholder="预警等级" clearable class="w-[140px]">
-            <el-option label="紧急预警" value="critical" />
-            <el-option label="一般提醒" value="warning" />
-            <el-option label="提示信息" value="info" />
+            <el-option label="全部" value="" />
+            <el-option v-for="item in RISK_LEVEL_OPTIONS.filter(o => o.value)" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
           <el-select v-model="filters.type" placeholder="预警类型" clearable class="w-[160px]">
-            <el-option label="加班异常" value="overtime" />
-            <el-option label="出勤异常" value="attendance" />
-            <el-option label="薪资异常" value="salary" />
-            <el-option label="合同到期" value="contract" />
+            <el-option label="全部" value="" />
+            <el-option v-for="item in RISK_TYPE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
           <el-select v-model="filters.status" placeholder="处理状态" clearable class="w-[140px]">
-            <el-option label="待处理" value="pending" />
-            <el-option label="已处理" value="resolved" />
+            <el-option label="全部" value="" />
+            <el-option label="待处理" value="待处理" />
+            <el-option label="已处理" value="已处理" />
           </el-select>
           <el-button @click="handleReset">重置</el-button>
           <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -113,8 +111,8 @@
             <!-- 预警图标 -->
             <div :class="['w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0', getLevelBgClass(alert.level)]">
               <el-icon :size="20" :color="getLevelColor(alert.level)">
-                <WarningFilled v-if="alert.level === 'critical'" />
-                <Warning v-else-if="alert.level === 'warning'" />
+                <WarningFilled v-if="alert.level === '严重'" />
+                <Warning v-else-if="alert.level === '中' || alert.level === '低'" />
                 <InfoFilled v-else />
               </el-icon>
             </div>
@@ -125,7 +123,7 @@
                 <div class="flex items-center gap-2">
                   <h4 class="text-sm font-medium text-gray-900">{{ alert.title }}</h4>
                   <el-tag :type="getLevelType(alert.level)" size="small">{{ getLevelText(alert.level) }}</el-tag>
-                  <el-tag :type="alert.status === 'pending' ? 'warning' : 'success'" size="small">{{ alert.status === 'pending' ? '待处理' : '已处理' }}</el-tag>
+                  <el-tag :type="alert.status === '待处理' ? 'warning' : 'success'" size="small">{{ alert.status === '待处理' ? '待处理' : '已处理' }}</el-tag>
                 </div>
                 <span class="text-xs text-gray-400">{{ alert.createTime }}</span>
               </div>
@@ -140,7 +138,7 @@
             <!-- 操作 -->
             <div class="flex items-center gap-2 flex-shrink-0">
               <el-button link type="primary" @click="handleView(alert)">详情</el-button>
-              <el-button link type="success" @click="handleResolve(alert)" v-if="alert.status === 'pending'">处理</el-button>
+              <el-button link type="success" @click="handleResolve(alert)" v-if="alert.status === '待处理'">处理</el-button>
             </div>
           </div>
         </div>
@@ -200,17 +198,12 @@
       <el-form :model="formData" label-width="100px">
         <el-form-item label="预警等级">
           <el-select v-model="formData.level" class="w-full">
-            <el-option label="紧急预警" value="critical" />
-            <el-option label="一般提醒" value="warning" />
-            <el-option label="提示信息" value="info" />
+            <el-option v-for="item in RISK_LEVEL_OPTIONS.filter(o => o.value)" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="预警类型">
           <el-select v-model="formData.alertType" class="w-full">
-            <el-option label="加班异常" value="overtime" />
-            <el-option label="出勤异常" value="attendance" />
-            <el-option label="薪资异常" value="salary" />
-            <el-option label="合同到期" value="contract" />
+            <el-option v-for="item in RISK_TYPE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="部门">
@@ -239,46 +232,49 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Warning, Download, Plus, WarningFilled, InfoFilled, CircleCheckFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { RISK_LEVEL_OPTIONS, RISK_TYPE_OPTIONS } from '@/data/laborData'
+
+// Labor Store
+const laborStore = useLaborStore()
 
 // 筛选条件
-const filters = reactive({
-  level: '',
-  type: '',
-  status: ''
-})
+const filters = reactive({ level: '', type: '', status: '' })
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10
-})
+// 分页
+const pagination = reactive({ currentPage: 1, pageSize: 10 })
 
-// 统计数据
-const stats = reactive({
-  critical: 2,
-  warning: 5,
-  pending: 3,
-  resolved: 8
-})
+// 统计数据（从加载的数据计算）
+const stats = reactive({ critical: 0, warning: 0, pending: 0, resolved: 0 })
 
-// 表格数据
-const data = ref([
-  { id: '1', level: 'critical', alertType: 'overtime', alertTypeName: '加班异常', title: '连续加班超限预警', content: '员工张三连续加班超过72小时，已超过公司规定的月度加班上限', department: '技术部', staffName: '张三', status: 'pending', createTime: '2024-03-15 14:30:00', handleRemarks: '' },
-  { id: '2', level: 'warning', alertType: 'attendance', alertTypeName: '出勤异常', title: '出勤率低于阈值', content: '员工李四本月出勤率为75%，低于部门平均出勤率90%', department: '运营部', staffName: '李四', status: 'pending', createTime: '2024-03-14 10:15:00', handleRemarks: '' },
-  { id: '3', level: 'info', alertType: 'contract', alertTypeName: '合同到期', title: '劳动合同即将到期', content: '员工王五的劳动合同将于30天后到期，请及时处理', department: '市场部', staffName: '王五', status: 'resolved', createTime: '2024-03-10 09:00:00', handleRemarks: '已安排续签流程' },
-  { id: '4', level: 'warning', alertType: 'salary', alertTypeName: '薪资异常', title: '工资发放异常', content: '员工赵六本月工资异常，低于正常工资的80%', department: '生产部', staffName: '赵六', status: 'pending', createTime: '2024-03-13 16:45:00', handleRemarks: '' },
-  { id: '5', level: 'critical', alertType: 'attendance', alertTypeName: '出勤异常', title: '旷工预警', content: '员工钱七已连续3天未出勤且未请假', department: '技术部', staffName: '钱七', status: 'pending', createTime: '2024-03-15 08:00:00', handleRemarks: '' }
-])
+// 数据
+const allData = ref([])
 
-const total = computed(() => data.value.length)
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.level) params.level = filters.level
+    if (filters.type) params.alertType = filters.type
+    if (filters.status) params.status = filters.status
+    await laborStore.fetchRiskList(params)
+    allData.value = laborStore.riskList
+    const list = allData.value
+    stats.critical = list.filter(r => r.level === '严重' || r.level === '高').length
+    stats.warning = list.filter(r => r.level === '中' || r.level === '低').length
+    stats.pending = list.filter(r => r.status === '待处理').length
+    stats.resolved = list.filter(r => r.status === '已处理').length
+  } catch (e) {
+    console.error('加载风险数据失败:', e)
+  }
+}
+
+const total = computed(() => allData.value.length)
 const totalPages = computed(() => Math.ceil(total.value / pagination.pageSize))
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return data.value.slice(start, start + pagination.pageSize)
-})
+const paginatedData = computed(() => allData.value)
 
 // 弹窗状态
 const detailModalVisible = ref(false)
@@ -287,130 +283,67 @@ const selectedAlert = ref(null)
 
 // 表单数据
 const formData = reactive({
-  level: 'warning',
-  alertType: 'overtime',
-  department: '',
-  staffName: '',
-  title: '',
-  content: ''
+  level: '中', alertType: '', department: '', staffName: '', title: '', content: ''
 })
 
-// 获取预警等级样式
-const getLevelBgClass = (level) => {
-  const classMap = {
-    critical: 'bg-red-100',
-    warning: 'bg-amber-100',
-    info: 'bg-blue-100'
-  }
-  return classMap[level] || 'bg-gray-100'
+// 风险等级样式映射
+const levelStyleMap = {
+  '严重': { bgClass: 'bg-red-100', color: '#ef4444', type: 'danger', text: '严重' },
+  '高': { bgClass: 'bg-red-100', color: '#ef4444', type: 'danger', text: '高' },
+  '中': { bgClass: 'bg-amber-100', color: '#f59e0b', type: 'warning', text: '中' },
+  '低': { bgClass: 'bg-blue-100', color: '#3b82f6', type: 'info', text: '低' }
 }
-
-const getLevelColor = (level) => {
-  const colorMap = {
-    critical: '#ef4444',
-    warning: '#f59e0b',
-    info: '#3b82f6'
-  }
-  return colorMap[level] || '#6b7280'
-}
-
-const getLevelType = (level) => {
-  const typeMap = {
-    critical: 'danger',
-    warning: 'warning',
-    info: 'info'
-  }
-  return typeMap[level] || 'info'
-}
-
-const getLevelText = (level) => {
-  const textMap = {
-    critical: '紧急预警',
-    warning: '一般提醒',
-    info: '提示信息'
-  }
-  return textMap[level] || level
-}
+const getLevelBgClass = (level) => levelStyleMap[level]?.bgClass || 'bg-gray-100'
+const getLevelColor = (level) => levelStyleMap[level]?.color || '#6b7280'
+const getLevelType = (level) => levelStyleMap[level]?.type || 'info'
+const getLevelText = (level) => levelStyleMap[level]?.text || level
 
 // 重置
 const handleReset = () => {
-  filters.level = ''
-  filters.type = ''
-  filters.status = ''
+  filters.level = ''; filters.type = ''; filters.status = ''
+  pagination.currentPage = 1; loadData()
 }
 
 // 查询
-const handleSearch = () => {
-  ElMessage.success('查询成功')
-}
+const handleSearch = () => { pagination.currentPage = 1; loadData() }
 
 // 查看
-const handleView = (alert) => {
-  selectedAlert.value = alert
-  detailModalVisible.value = true
-}
+const handleView = (alert) => { selectedAlert.value = alert; detailModalVisible.value = true }
 
 // 处理
 const handleResolve = async (alert) => {
   try {
     await ElMessageBox.confirm(`确定处理预警"${alert.title}"吗？`, '处理确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'success'
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'success'
     })
-    alert.status = 'resolved'
-    alert.handleRemarks = '已处理'
-    if (selectedAlert.value?.id === alert.id) {
-      selectedAlert.value = alert
-    }
+    await laborStore.resolveRisk(alert.id, { handleRemarks: '已处理' })
     ElMessage.success('处理成功')
-  } catch {
-    // 用户取消
-  }
+    loadData()
+  } catch { /* 用户取消 */ }
 }
 
 // 新增
 const handleAdd = () => {
-  Object.assign(formData, {
-    level: 'warning',
-    alertType: 'overtime',
-    department: '',
-    staffName: '',
-    title: '',
-    content: ''
-  })
+  Object.assign(formData, { level: '中', alertType: '', department: '', staffName: '', title: '', content: '' })
   addModalVisible.value = true
 }
 
 // 确认新增
-const handleConfirmAdd = () => {
+const handleConfirmAdd = async () => {
   if (!formData.title || !formData.content || !formData.department) {
     ElMessage.warning('请填写完整信息')
     return
   }
-  const alertTypeNameMap = {
-    overtime: '加班异常',
-    attendance: '出勤异常',
-    salary: '薪资异常',
-    contract: '合同到期'
-  }
-  const newAlert = {
-    id: Date.now().toString(),
-    ...formData,
-    alertTypeName: alertTypeNameMap[formData.alertType],
-    status: 'pending',
-    createTime: new Date().toLocaleString(),
-    handleRemarks: ''
-  }
-  data.value.unshift(newAlert)
+  await laborStore.createRisk(formData)
   addModalVisible.value = false
   ElMessage.success('新增成功')
+  loadData()
 }
 
 // 导出
-const handleExport = () => {
-  ElMessage.success('导出功能开发中')
-}
+const handleExport = () => { ElMessage.success('导出功能开发中') }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

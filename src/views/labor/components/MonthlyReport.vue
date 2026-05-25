@@ -27,10 +27,7 @@
           class="w-[160px]"
         />
         <el-select v-model="filters.dept" placeholder="选择部门" clearable class="w-[160px]">
-          <el-option label="技术部" value="技术部" />
-          <el-option label="运营部" value="运营部" />
-          <el-option label="市场部" value="市场部" />
-          <el-option label="生产部" value="生产部" />
+          <el-option v-for="item in DEPT_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-button type="primary" @click="handleSearch">查询</el-button>
         <el-button type="success" @click="handleGenerate">生成月报</el-button>
@@ -180,10 +177,7 @@
         </el-form-item>
         <el-form-item label="部门">
           <el-select v-model="formData.dept" class="w-full">
-            <el-option label="技术部" value="技术部" />
-            <el-option label="运营部" value="运营部" />
-            <el-option label="市场部" value="市场部" />
-            <el-option label="生产部" value="生产部" />
+            <el-option v-for="item in DEPT_OPTIONS.filter(d => d.value)" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="完成任务数">
@@ -217,9 +211,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Document, Calendar, User, TrendCharts, Warning } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { DEPT_OPTIONS } from '@/data/laborData'
+
+const laborStore = useLaborStore()
 
 // 筛选条件
 const filters = reactive({
@@ -235,21 +233,33 @@ const pagination = reactive({
 
 // 当前统计数据
 const currentStats = reactive({
-  completedTasks: 42,
-  onDutyCount: 48,
-  completionRate: 87.5,
-  incidents: 2
+  completedTasks: 0,
+  onDutyCount: 0,
+  completionRate: 0,
+  incidents: 0
 })
 
-// 表格数据
-const reports = ref([
-  { id: '1', month: '2024-03', dept: '技术部', completedTasks: 15, totalTasks: 18, onDutyCount: 12, totalManhours: 960, output: 1200, completionRate: 83, incidents: 1, createTime: '2024-03-31 18:00:00', summary: '本月技术部完成了大部分开发任务，团队协作效率有所提升。' },
-  { id: '2', month: '2024-03', dept: '运营部', completedTasks: 12, totalTasks: 14, onDutyCount: 10, totalManhours: 800, output: 1500, completionRate: 86, incidents: 0, createTime: '2024-03-31 17:30:00', summary: '运营部工作整体顺利，完成了日常运营和客户对接工作。' },
-  { id: '3', month: '2024-03', dept: '生产部', completedTasks: 18, totalTasks: 20, onDutyCount: 15, totalManhours: 1200, output: 3500, completionRate: 90, incidents: 1, createTime: '2024-03-31 17:00:00', summary: '生产部产量稳定，但因设备维修导致部分延误。' },
-  { id: '4', month: '2024-02', dept: '技术部', completedTasks: 14, totalTasks: 18, onDutyCount: 11, totalManhours: 880, output: 1100, completionRate: 78, incidents: 2, createTime: '2024-02-29 18:00:00', summary: '春节假期后团队快速恢复工作状态，效率提升明显。' },
-  { id: '5', month: '2024-02', dept: '运营部', completedTasks: 10, totalTasks: 14, onDutyCount: 8, totalManhours: 640, output: 1200, completionRate: 71, incidents: 1, createTime: '2024-02-29 17:30:00', summary: '受春节假期影响，本月任务完成率略有下降。' }
-])
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = {}
+    if (filters.month) params.month = filters.month
+    if (filters.dept) params.dept = filters.dept
+    await laborStore.fetchMonthlyReportList(params)
+    // 计算汇总统计
+    const list = laborStore.monthlyReportList
+    currentStats.completedTasks = list.reduce((sum, r) => sum + (r.completedTasks || 0), 0)
+    currentStats.onDutyCount = list.reduce((sum, r) => sum + (r.onDutyCount || 0), 0)
+    const totalCompleted = list.reduce((sum, r) => sum + (r.completedTasks || 0), 0)
+    const totalTasks = list.reduce((sum, r) => sum + (r.totalTasks || 0), 0)
+    currentStats.completionRate = totalTasks > 0 ? Math.round((totalCompleted / totalTasks) * 100) : 0
+    currentStats.incidents = list.reduce((sum, r) => sum + (r.incidents || 0), 0)
+  } catch (e) {
+    console.error('加载月报数据失败:', e)
+  }
+}
 
+const reports = computed(() => laborStore.monthlyReportList)
 const total = computed(() => reports.value.length)
 const totalPages = computed(() => Math.ceil(total.value / pagination.pageSize))
 const paginatedData = computed(() => {
@@ -284,14 +294,10 @@ const getRateClass = (rate) => {
 }
 
 // 查询
-const handleSearch = () => {
-  ElMessage.success('查询成功')
-}
+const handleSearch = () => { pagination.currentPage = 1; loadData() }
 
 // 生成月报
-const handleGenerate = () => {
-  ElMessage.success('月报生成中...')
-}
+const handleGenerate = () => { ElMessage.info('月报生成功能开发中') }
 
 // 查看
 const handleView = (report) => {
@@ -312,13 +318,17 @@ const handleConfirmEdit = () => {
     ElMessage.warning('请选择部门')
     return
   }
-  const completionRate = Math.round((formData.completedTasks / formData.totalTasks) * 100)
+  const completionRate = formData.totalTasks > 0
+    ? Math.round((formData.completedTasks / formData.totalTasks) * 100)
+    : 0
   if (editingReport.value) {
     Object.assign(editingReport.value, formData, { completionRate })
     ElMessage.success('更新成功')
   }
   editModalVisible.value = false
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

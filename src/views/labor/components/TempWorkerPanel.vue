@@ -61,7 +61,7 @@
         <el-pagination
           v-model:current-page="pagination.currentPage"
           :page-size="pagination.pageSize"
-          :total="allData.length"
+          :total="pagination.total"
           layout="prev, pager, next"
           background
         />
@@ -135,32 +135,26 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { CirclePlus, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { WORKER_TYPE_OPTIONS } from '@/data/laborData'
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10
-})
+// Labor Store
+const laborStore = useLaborStore()
 
-// 详情弹窗
+// 分页
+const pagination = reactive({ currentPage: 1, pageSize: 10, total: 0 })
+
+// 弹窗
 const detailDialogVisible = ref(false)
 const currentRecord = ref(null)
-
-// 表单弹窗
 const formDialogVisible = ref(false)
 const formRef = ref()
 const formData = reactive({
-  employeeCode: '', // 工号（自动生成）
-  name: '',
-  phone: '',
-  idCard: '',
-  position: '',
-  department: '',
-  dailyWage: 200,
+  id: null, employeeCode: '', name: '', phone: '', idCard: '',
+  position: '', department: '', dailyWage: 200,
   joinDate: new Date().toISOString().split('T')[0]
 })
 
@@ -174,53 +168,35 @@ const formRules = {
   joinDate: [{ required: true, message: '请选择入职日期', trigger: 'change' }]
 }
 
-// 模拟数据 - 包含工号字段（格式: YG-YYYYMMDD-XXX）
-const allData = ref([
-  { id: 1, employeeCode: 'YG-20260501-001', name: '临时工A', phone: '13900139001', idCard: '110101199001011234', position: '搬运工', department: '仓储部', dailyWage: 200, joinDate: '2026-05-01', status: 'active' },
-  { id: 2, employeeCode: 'YG-20260510-002', name: '临时工B', phone: '13900139002', idCard: '110101199002022345', position: '包装工', department: '生产部', dailyWage: 180, joinDate: '2026-05-10', status: 'active' },
-  { id: 3, employeeCode: 'YG-20260415-003', name: '临时工C', phone: '13900139003', idCard: '110101199003033456', position: '搬运工', department: '仓储部', dailyWage: 200, joinDate: '2026-04-15', status: 'inactive' }
-])
+// 数据
+const allData = ref([])
+
+// 加载数据（临时工 type=temporary）
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize, type: 'temporary' }
+    await laborStore.fetchWorkers(params)
+    allData.value = laborStore.workerList
+    pagination.total = laborStore.workerTotal
+  } catch (e) {
+    console.error('加载临时工数据失败:', e)
+  }
+}
 
 // 分页数据
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return allData.value.slice(start, start + pagination.pageSize)
-})
+const paginatedData = computed(() => allData.value)
 
 // 分页
-const handlePageSizeChange = () => {
-  pagination.currentPage = 1
-}
+const handlePageSizeChange = () => { pagination.currentPage = 1; loadData() }
 
 // 详情
-const viewDetail = (row) => {
-  currentRecord.value = row
-  detailDialogVisible.value = true
-}
-
-/**
- * 生成临时工工号
- * 格式: YG-YYYYMMDD-XXX（当日第几个入职）
- */
-const generateEmployeeCode = () => {
-  const today = new Date()
-  const dateStr = today.toISOString().split('T')[0].replace(/-/g, '') // YYYYMMDD
-  // 计算当日已入职的临时工数量 + 1作为序号
-  const todayCount = allData.value.filter(r => r.joinDate === today.toISOString().split('T')[0]).length + 1
-  const sequence = String(todayCount).padStart(3, '0')
-  return `YG-${dateStr}-${sequence}`
-}
+const viewDetail = (row) => { currentRecord.value = row; detailDialogVisible.value = true }
 
 // 新增
 const openFormModal = () => {
   Object.assign(formData, {
-    employeeCode: generateEmployeeCode(), // 自动生成工号
-    name: '',
-    phone: '',
-    idCard: '',
-    position: '',
-    department: '',
-    dailyWage: 200,
+    id: null, employeeCode: '', name: '', phone: '', idCard: '',
+    position: '', department: '', dailyWage: 200,
     joinDate: new Date().toISOString().split('T')[0]
   })
   formDialogVisible.value = true
@@ -229,36 +205,35 @@ const openFormModal = () => {
 // 离职
 const handleLeave = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要让 ${row.name} 离职吗？`, '确认离职', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+    await ElMessageBox.confirm(`确定要让 ${row.staffName || row.name} 离职吗？`, '确认离职', {
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
-    const index = allData.value.findIndex(r => r.id === row.id)
-    if (index !== -1) {
-      allData.value[index].status = 'inactive'
-    }
+    await laborStore.workerLeave(row.id, { leaveDate: new Date().toISOString().split('T')[0] })
     ElMessage.success('已办理离职')
-  } catch {
-    // 取消操作
-  }
+    loadData()
+  } catch { /* 取消 */ }
 }
 
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      allData.value.unshift({
-        id: Date.now(),
-        ...formData,
-        status: 'active'
-      })
+      const payload = {
+        name: formData.name, phone: formData.phone, idCard: formData.idCard,
+        position: formData.position, department: formData.department,
+        dailyWage: formData.dailyWage, joinDate: formData.joinDate,
+        type: 'temporary', status: 'active'
+      }
+      await laborStore.createWorker(payload)
       ElMessage.success('登记成功')
       formDialogVisible.value = false
+      loadData()
     }
   })
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

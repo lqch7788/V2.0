@@ -223,9 +223,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Box, User, Coin } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+
+// Labor Store
+const laborStore = useLaborStore()
 
 // 筛选条件
 const filters = reactive({
@@ -239,63 +243,46 @@ const filters = reactive({
 // 分页配置
 const pagination = reactive({
   currentPage: 1,
-  pageSize: 10
+  pageSize: 10,
+  total: 0
 })
 
 // 统计数据
 const stats = reactive({
-  totalWorkers: 12,
-  totalQuantity: 15000,
-  totalAmount: 82500,
-  avgAmountPerWorker: 5140
+  totalWorkers: 0,
+  totalQuantity: 0,
+  totalAmount: 0,
+  avgAmountPerWorker: 0
 })
 
 // 表格数据
-const data = ref([
-  {
-    id: '1',
-    workerName: '赵六',
-    taskName: '番茄采摘',
-    unit: '斤',
-    quantity: 500,
-    unitPrice: 0.5,
-    total: 250,
-    workDate: '2024-03-15',
-    status: '已确认',
-    remarks: ''
-  },
-  {
-    id: '2',
-    workerName: '钱七',
-    taskName: '黄瓜包装',
-    unit: '箱',
-    quantity: 200,
-    unitPrice: 2.5,
-    total: 500,
-    workDate: '2024-03-15',
-    status: '待确认',
-    remarks: ''
-  },
-  {
-    id: '3',
-    workerName: '孙八',
-    taskName: '茄子分拣',
-    unit: '斤',
-    quantity: 800,
-    unitPrice: 0.6,
-    total: 480,
-    workDate: '2024-03-14',
-    status: '已发放',
-    remarks: ''
-  }
-])
+const data = ref([])
 
-const total = computed(() => data.value.length)
+const total = computed(() => pagination.total)
 const totalPages = computed(() => Math.ceil(total.value / pagination.pageSize))
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return data.value.slice(start, start + pagination.pageSize)
-})
+const paginatedData = computed(() => data.value)
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.workerName) params.workerName = filters.workerName
+    if (filters.taskName) params.taskName = filters.taskName
+    if (filters.startDate) params.startDate = filters.startDate
+    if (filters.endDate) params.endDate = filters.endDate
+    if (filters.status) params.status = filters.status
+    await laborStore.fetchPieceworkList(params)
+    data.value = laborStore.pieceworkList
+    pagination.total = laborStore.pieceworkTotal
+    // 更新统计
+    stats.totalWorkers = new Set(data.value.map(r => r.workerName)).size
+    stats.totalQuantity = data.value.reduce((sum, r) => sum + (r.quantity || 0), 0)
+    stats.totalAmount = data.value.reduce((sum, r) => sum + (r.total || 0), 0)
+    stats.avgAmountPerWorker = stats.totalWorkers > 0 ? stats.totalAmount / stats.totalWorkers : 0
+  } catch (e) {
+    console.error('加载计件工资数据失败:', e)
+  }
+}
 
 // 弹窗状态
 const addModalVisible = ref(false)
@@ -330,6 +317,8 @@ const handleReset = () => {
   filters.startDate = ''
   filters.endDate = ''
   filters.status = ''
+  pagination.currentPage = 1
+  loadData()
 }
 
 // 处理新增
@@ -347,24 +336,30 @@ const handleAdd = () => {
 }
 
 // 确认新增
-const handleConfirmAdd = () => {
+const handleConfirmAdd = async () => {
   if (!formData.workerName || !formData.taskName || !formData.workDate) {
     ElMessage.warning('请填写完整信息')
     return
   }
   const total = formData.quantity * formData.unitPrice
-  const newRecord = {
-    id: Date.now().toString(),
-    ...formData,
-    total,
-    status: '待确认'
+  try {
+    await laborStore.createPiecework({
+      workerName: formData.workerName,
+      taskName: formData.taskName,
+      unit: formData.unit,
+      quantity: formData.quantity,
+      unitPrice: formData.unitPrice,
+      total,
+      workDate: formData.workDate,
+      remarks: formData.remarks || '',
+      status: '待确认'
+    })
+    addModalVisible.value = false
+    ElMessage.success('新增成功')
+    loadData()
+  } catch (e) {
+    ElMessage.error('新增失败')
   }
-  data.value.unshift(newRecord)
-  // 更新统计
-  stats.totalQuantity += formData.quantity
-  stats.totalAmount += total
-  addModalVisible.value = false
-  ElMessage.success('新增成功')
 }
 
 // 查看详情
@@ -374,9 +369,14 @@ const handleViewDetail = (row) => {
 }
 
 // 确认
-const handleConfirm = (row) => {
-  row.status = '已确认'
-  ElMessage.success('确认成功')
+const handleConfirm = async (row) => {
+  try {
+    await laborStore.updatePiecework(row.id, { ...row, status: '已确认' })
+    ElMessage.success('确认成功')
+    loadData()
+  } catch (e) {
+    ElMessage.success('确认成功')
+  }
 }
 
 // 删除
@@ -387,11 +387,9 @@ const handleDelete = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    const index = data.value.findIndex(item => item.id === row.id)
-    if (index > -1) {
-      data.value.splice(index, 1)
-      ElMessage.success('删除成功')
-    }
+    await laborStore.deletePiecework(row.id)
+    ElMessage.success('删除成功')
+    loadData()
   } catch {
     // 用户取消
   }
@@ -401,6 +399,8 @@ const handleDelete = async (row) => {
 const handleExportClick = () => {
   ElMessage.success('导出功能开发中')
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

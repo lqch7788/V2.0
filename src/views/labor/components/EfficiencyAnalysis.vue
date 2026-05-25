@@ -191,9 +191,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { TrendCharts, Download, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+
+const laborStore = useLaborStore()
 
 // 筛选条件
 const filters = reactive({
@@ -202,29 +205,33 @@ const filters = reactive({
   department: ''
 })
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10
-})
+// 分页
+const pagination = reactive({ currentPage: 1, pageSize: 10 })
 
 // 汇总指标
 const summaryMetrics = reactive({
-  totalOutput: 125000,
-  avgOutputPerWorker: 2500,
-  avgEfficiency: 0.92,
-  taskCompletionRate: 0.88,
-  attendanceRate: 0.95
+  totalOutput: 0,
+  avgOutputPerWorker: 0,
+  avgEfficiency: 0,
+  taskCompletionRate: 0,
+  attendanceRate: 0
 })
 
-// 表格数据
-const data = ref([
-  { id: '1', date: '2024-03', department: '技术部', totalWorkers: 15, totalOutput: 42000, avgOutputPerWorker: 2800, totalHours: 3600, avgEfficiency: 0.94, taskCompletionRate: 0.90, attendanceRate: 0.96 },
-  { id: '2', date: '2024-03', department: '运营部', totalWorkers: 12, totalOutput: 30000, avgOutputPerWorker: 2500, totalHours: 2880, avgEfficiency: 0.91, taskCompletionRate: 0.87, attendanceRate: 0.94 },
-  { id: '3', date: '2024-03', department: '生产部', totalWorkers: 25, totalOutput: 53000, avgOutputPerWorker: 2120, totalHours: 6000, avgEfficiency: 0.89, taskCompletionRate: 0.85, attendanceRate: 0.93 },
-  { id: '4', date: '2024-02', department: '技术部', totalWorkers: 15, totalOutput: 40000, avgOutputPerWorker: 2667, totalHours: 3600, avgEfficiency: 0.92, taskCompletionRate: 0.88, attendanceRate: 0.95 },
-  { id: '5', date: '2024-02', department: '运营部', totalWorkers: 12, totalOutput: 28000, avgOutputPerWorker: 2333, totalHours: 2880, avgEfficiency: 0.90, taskCompletionRate: 0.86, attendanceRate: 0.93 }
-])
+// 数据
+const data = ref([])
+
+// 加载数据
+const loadData = async () => {
+  try {
+    await laborStore.fetchEfficiencyList({ startDate: filters.startDate, endDate: filters.endDate, department: filters.department })
+    data.value = laborStore.efficiencyList
+    if (laborStore.efficiencyDashboard) {
+      Object.assign(summaryMetrics, laborStore.efficiencyDashboard)
+    }
+  } catch (e) {
+    console.error('加载人效数据失败:', e)
+  }
+}
 
 const total = computed(() => data.value.length)
 const totalPages = computed(() => Math.ceil(total.value / pagination.pageSize))
@@ -233,107 +240,58 @@ const paginatedData = computed(() => {
   return data.value.slice(start, start + pagination.pageSize)
 })
 
-// 弹窗状态
+// 弹窗
 const modalVisible = ref(false)
 const modalTitle = ref('新增记录')
 const editingRecord = ref(null)
+const formData = reactive({ date: '', department: '', totalWorkers: 0, totalOutput: 0, totalHours: 0 })
 
-// 表单数据
-const formData = reactive({
-  date: '',
-  department: '',
-  totalWorkers: 0,
-  totalOutput: 0,
-  totalHours: 0
-})
-
-// 重置
 const handleReset = () => {
-  filters.startDate = '2024-01'
-  filters.endDate = '2024-03'
-  filters.department = ''
+  filters.startDate = '2024-01'; filters.endDate = '2024-03'; filters.department = ''
+  loadData()
 }
 
-// 查询
-const handleSearch = () => {
-  ElMessage.success('查询成功')
-}
+const handleSearch = () => { loadData() }
 
-// 新增
 const handleAdd = () => {
-  modalTitle.value = '新增记录'
-  editingRecord.value = null
-  Object.assign(formData, {
-    date: '',
-    department: '',
-    totalWorkers: 0,
-    totalOutput: 0,
-    totalHours: 0
-  })
+  modalTitle.value = '新增记录'; editingRecord.value = null
+  Object.assign(formData, { date: '', department: '', totalWorkers: 0, totalOutput: 0, totalHours: 0 })
   modalVisible.value = true
 }
 
-// 编辑
 const handleEdit = (row) => {
-  modalTitle.value = '编辑记录'
-  editingRecord.value = row
+  modalTitle.value = '编辑记录'; editingRecord.value = row
   Object.assign(formData, row)
   modalVisible.value = true
 }
 
-// 确认
-const handleConfirm = () => {
-  if (!formData.date || !formData.department) {
-    ElMessage.warning('请填写完整信息')
-    return
-  }
-  const avgOutputPerWorker = formData.totalOutput / formData.totalWorkers
-  const avgEfficiency = (formData.totalOutput / formData.totalHours) || 0
-
-  if (editingRecord.value) {
-    Object.assign(editingRecord.value, formData, { avgOutputPerWorker, avgEfficiency })
-    ElMessage.success('更新成功')
-  } else {
-    data.value.unshift({
-      id: Date.now().toString(),
-      ...formData,
-      avgOutputPerWorker,
-      avgEfficiency,
-      taskCompletionRate: 0.88,
-      attendanceRate: 0.95
-    })
-    ElMessage.success('新增成功')
-  }
-  modalVisible.value = false
+const handleConfirm = async () => {
+  if (!formData.date || !formData.department) { ElMessage.warning('请填写完整信息'); return }
+  try {
+    if (editingRecord.value) {
+      await laborStore.updatePerformance(editingRecord.value.id, formData)
+      ElMessage.success('更新成功')
+    } else {
+      await laborStore.createPerformance(formData)
+      ElMessage.success('新增成功')
+    }
+    modalVisible.value = false; loadData()
+  } catch (e) { ElMessage.error('操作失败: ' + e.message) }
 }
 
-// 查看
-const handleView = (row) => {
-  ElMessage.info('详情功能开发中')
-}
+const handleView = (row) => { ElMessage.info('详情功能开发中') }
 
-// 删除
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除 "${row.date} - ${row.department}" 的记录吗？`, '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    const index = data.value.findIndex(item => item.id === row.id)
-    if (index > -1) {
-      data.value.splice(index, 1)
-      ElMessage.success('删除成功')
-    }
-  } catch {
-    // 用户取消
-  }
+    await ElMessageBox.confirm(`确定要删除该记录吗？`, '删除确认', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
+    await laborStore.deletePerformance(row.id)
+    ElMessage.success('删除成功'); loadData()
+  } catch { /* 取消 */ }
 }
 
-// 导出
-const handleExport = () => {
-  ElMessage.success('导出功能开发中')
-}
+const handleExport = () => { ElMessage.success('导出功能开发中') }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

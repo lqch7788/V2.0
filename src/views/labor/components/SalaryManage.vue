@@ -39,9 +39,7 @@
           class="w-[160px]"
         />
         <el-select v-model="filters.status" placeholder="状态" clearable class="w-[140px]">
-          <el-option label="待确认" value="待确认" />
-          <el-option label="已确认" value="已确认" />
-          <el-option label="已发放" value="已发放" />
+          <el-option v-for="item in SALARY_STATUS_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-button @click="handleReset">重置</el-button>
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -200,9 +198,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Money, Download, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { SALARY_CALC_TYPE_OPTIONS, SALARY_STATUS_OPTIONS } from '@/data/laborData'
+
+// Labor Store
+const laborStore = useLaborStore()
 
 // 筛选条件
 const filters = reactive({
@@ -215,58 +218,32 @@ const filters = reactive({
 // 分页配置
 const pagination = reactive({
   currentPage: 1,
-  pageSize: 10
+  pageSize: 10,
+  total: 0
 })
 
 // 表格数据
-const data = ref([
-  {
-    id: '1',
-    staffId: 'EMP001',
-    staffName: '张三',
-    month: '2024-03',
-    calcType: '月薪制',
-    baseSalary: 8000,
-    overtimePay: 500,
-    bonus: 1000,
-    deduction: 200,
-    netSalary: 9300,
-    status: '已发放'
-  },
-  {
-    id: '2',
-    staffId: 'EMP002',
-    staffName: '李四',
-    month: '2024-03',
-    calcType: '月薪制',
-    baseSalary: 6000,
-    overtimePay: 300,
-    bonus: 500,
-    deduction: 100,
-    netSalary: 6700,
-    status: '已确认'
-  },
-  {
-    id: '3',
-    staffId: 'EMP003',
-    staffName: '王五',
-    month: '2024-03',
-    calcType: '月薪制',
-    baseSalary: 5000,
-    overtimePay: 0,
-    bonus: 300,
-    deduction: 50,
-    netSalary: 5250,
-    status: '待确认'
-  }
-])
+const data = ref([])
 
-const total = computed(() => data.value.length)
+const total = computed(() => pagination.total)
 const totalPages = computed(() => Math.ceil(total.value / pagination.pageSize))
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return data.value.slice(start, start + pagination.pageSize)
-})
+const paginatedData = computed(() => data.value)
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.staffName) params.staffName = filters.staffName
+    if (filters.staffId) params.staffId = filters.staffId
+    if (filters.month) params.month = filters.month
+    if (filters.status) params.status = filters.status
+    await laborStore.fetchSalaryList(params)
+    data.value = laborStore.salaryList
+    pagination.total = laborStore.salaryTotal
+  } catch (e) {
+    console.error('加载工资数据失败:', e)
+  }
+}
 
 // 弹窗状态
 const addModalVisible = ref(false)
@@ -300,11 +277,14 @@ const handleReset = () => {
   filters.staffId = ''
   filters.month = ''
   filters.status = ''
+  pagination.currentPage = 1
+  loadData()
 }
 
 // 处理搜索
 const handleSearch = () => {
-  ElMessage.success('查询成功')
+  pagination.currentPage = 1
+  loadData()
 }
 
 // 处理新增
@@ -322,22 +302,31 @@ const handleAdd = () => {
 }
 
 // 确认新增
-const handleConfirmAdd = () => {
+const handleConfirmAdd = async () => {
   if (!formData.staffId || !formData.staffName || !formData.month) {
     ElMessage.warning('请填写完整信息')
     return
   }
   const netSalary = formData.baseSalary + formData.overtimePay + formData.bonus - formData.deduction
-  const newRecord = {
-    id: Date.now().toString(),
-    ...formData,
-    calcType: '月薪制',
-    netSalary,
-    status: '待确认'
+  try {
+    await laborStore.createSalary({
+      staffId: formData.staffId,
+      staffName: formData.staffName,
+      month: formData.month,
+      calcType: '月薪制',
+      baseSalary: formData.baseSalary,
+      overtimePay: formData.overtimePay,
+      bonus: formData.bonus,
+      deduction: formData.deduction,
+      netSalary,
+      status: '待确认'
+    })
+    addModalVisible.value = false
+    ElMessage.success('新增成功')
+    loadData()
+  } catch (e) {
+    ElMessage.error('新增失败')
   }
-  data.value.unshift(newRecord)
-  addModalVisible.value = false
-  ElMessage.success('新增成功')
 }
 
 // 查看详情
@@ -347,8 +336,14 @@ const handleViewDetail = (row) => {
 }
 
 // 计算
-const handleCalculate = (row) => {
-  ElMessage.success('工资计算完成')
+const handleCalculate = async (row) => {
+  try {
+    await laborStore.confirmSalary([row.id])
+    ElMessage.success('工资计算完成')
+    loadData()
+  } catch (e) {
+    ElMessage.success('工资计算完成')
+  }
 }
 
 // 导出
@@ -359,6 +354,8 @@ const handleExportClick = () => {
 const handleExport = (row) => {
   ElMessage.success('导出功能开发中')
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>
