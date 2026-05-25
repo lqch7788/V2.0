@@ -351,6 +351,10 @@
 import { ref, computed } from 'vue'
 import { Calendar, List, User, Setting, Plus, Clock, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useScheduleStore } from '@/stores/modules/schedule'
+
+// Pinia store
+const store = useScheduleStore()
 
 // 显示模式
 const displayMode = ref('calendar')
@@ -396,14 +400,7 @@ const swapForm = ref({
 // 选中的排班
 const selectedSchedule = ref(null)
 
-// 班次配置
-const shiftConfigs = ref([
-  { name: '早班', startTime: '06:00', endTime: '14:00', color: 'bg-blue-500' },
-  { name: '中班', startTime: '14:00', endTime: '22:00', color: 'bg-amber-500' },
-  { name: '晚班', startTime: '22:00', endTime: '06:00', color: 'bg-purple-500' }
-])
-
-// 员工列表
+// 员工列表 - 保留本地mock数据（store中无员工数据）
 const staffList = ref([
   { id: '1', name: '张三' },
   { id: '2', name: '李四' },
@@ -411,36 +408,16 @@ const staffList = ref([
   { id: '4', name: '赵六' }
 ])
 
-// 排班列表
-const scheduleList = ref([
-  { id: '1', date: '2024-01-15', staffId: '1', staffName: '张三', shift: '早班', workZone: '1号大棚', startTime: '06:00', endTime: '14:00', status: '已排班', checkIn: '', checkOut: '' },
-  { id: '2', date: '2024-01-15', staffId: '2', staffName: '李四', shift: '中班', workZone: '2号大棚', startTime: '14:00', endTime: '22:00', status: '已执行', checkIn: '14:05', checkOut: '' },
-  { id: '3', date: '2024-01-15', staffId: '3', staffName: '王五', shift: '晚班', workZone: '3号大棚', startTime: '22:00', endTime: '06:00', status: '已排班', checkIn: '', checkOut: '' }
-])
+// 从store映射数据，保持模板变量名不变
+const scheduleList = computed(() => store.schedules)
+const shiftConfigs = computed(() => store.shiftConfigs)
+const swapRequests = computed(() => store.swapRequests)
 
-// 调班申请列表
-const swapRequests = ref([
-  { id: '1', requesterName: '张三', targetName: '李四', originalDate: '2024-01-16', targetDate: '2024-01-17', status: '待审批', reason: '家中有事' },
-  { id: '2', requesterName: '王五', targetName: '赵六', originalDate: '2024-01-18', targetDate: '2024-01-19', status: '待审批', reason: '需要出差' }
-])
-
-// 统计数据
-const todayScheduleCount = computed(() => {
-  const today = new Date().toISOString().split('T')[0]
-  return scheduleList.value.filter(s => s.date === today).length
-})
-
-const weekExecutedCount = computed(() => {
-  return scheduleList.value.filter(s => s.status === '已执行').length
-})
-
-const pendingSwapCount = computed(() => {
-  return swapRequests.value.filter(r => r.status === '待审批').length
-})
-
-const monthScheduleCount = computed(() => {
-  return scheduleList.value.length
-})
+// 统计数据 - 使用store的计算属性
+const todayScheduleCount = computed(() => store.todayCount)
+const weekExecutedCount = computed(() => store.executedCount)
+const pendingSwapCount = computed(() => store.pendingSwapCount)
+const monthScheduleCount = computed(() => store.schedules.length)
 
 // 分页后的排班
 const paginatedSchedules = computed(() => {
@@ -506,11 +483,12 @@ const handleCancel = (row) => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
+    store.cancelSchedule(row.id)
     ElMessage.success('已取消排班')
   }).catch(() => {})
 }
 
-// 新增排班
+// 新增排班 - 调用store.addSchedule
 const handleAddSchedule = () => {
   if (!newSchedule.value.staffId || !newSchedule.value.date) {
     ElMessage.warning('请选择员工和日期')
@@ -518,18 +496,15 @@ const handleAddSchedule = () => {
   }
   const staff = staffList.value.find(s => s.id === newSchedule.value.staffId)
   if (staff) {
-    scheduleList.value.push({
-      id: Date.now().toString(),
+    const shiftConfig = store.shiftConfigs.find(c => c.name === newSchedule.value.shift)
+    store.addSchedule({
       date: newSchedule.value.date,
       staffId: newSchedule.value.staffId,
       staffName: staff.name,
       shift: newSchedule.value.shift,
       workZone: newSchedule.value.workZone,
-      startTime: shiftConfigs.value.find(c => c.name === newSchedule.value.shift)?.startTime || '',
-      endTime: shiftConfigs.value.find(c => c.name === newSchedule.value.shift)?.endTime || '',
-      status: '已排班',
-      checkIn: '',
-      checkOut: ''
+      startTime: shiftConfig?.startTime || '',
+      endTime: shiftConfig?.endTime || '',
     })
     ElMessage.success('排班添加成功')
     showAddModal.value = false
@@ -537,7 +512,7 @@ const handleAddSchedule = () => {
   }
 }
 
-// 提交调班申请
+// 提交调班申请 - 调用store.addSwapRequest
 const handleSwapSubmit = () => {
   if (!swapForm.value.requesterId || !swapForm.value.targetId) {
     ElMessage.warning('请选择申请人和目标员工')
@@ -545,28 +520,26 @@ const handleSwapSubmit = () => {
   }
   const requester = staffList.value.find(s => s.id === swapForm.value.requesterId)
   const target = staffList.value.find(s => s.id === swapForm.value.targetId)
-  swapRequests.value.push({
-    id: Date.now().toString(),
+  store.addSwapRequest({
     requesterName: requester?.name || '',
     targetName: target?.name || '',
     originalDate: swapForm.value.originalDate,
     targetDate: swapForm.value.targetDate,
-    status: '待审批',
     reason: swapForm.value.reason
   })
   ElMessage.success('调班申请已提交')
   showSwapModal.value = false
 }
 
-// 同意调班
+// 同意调班 - 调用store.approveSwap
 const handleSwapApprove = (request) => {
-  request.status = '已同意'
+  store.approveSwap(request.id)
   ElMessage.success('已同意调班申请')
 }
 
-// 拒绝调班
+// 拒绝调班 - 调用store.rejectSwap
 const handleSwapReject = (request) => {
-  request.status = '已拒绝'
+  store.rejectSwap(request.id)
   ElMessage.success('已拒绝调班申请')
 }
 

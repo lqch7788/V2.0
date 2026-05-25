@@ -22,7 +22,7 @@
           </div>
           <div>
             <p class="text-sm text-gray-500">今日待办</p>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.todayTasks }}</p>
+            <p class="text-2xl font-bold text-gray-800">{{ statusStats.pending }}</p>
           </div>
         </div>
       </div>
@@ -34,7 +34,7 @@
           </div>
           <div>
             <p class="text-sm text-gray-500">进行中任务</p>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.inProgressTasks }}</p>
+            <p class="text-2xl font-bold text-gray-800">{{ statusStats.inProgress }}</p>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@
           </div>
           <div>
             <p class="text-sm text-gray-500">超时预警</p>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.overdueTasks }}</p>
+            <p class="text-2xl font-bold text-gray-800">{{ statusStats.overdue }}</p>
           </div>
         </div>
       </div>
@@ -108,44 +108,61 @@
         <el-table-column prop="assigneeName" label="执行人" width="100" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ row.statusText }}</el-tag>
+            <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" width="180" />
+        <el-table-column prop="updatedAt" label="更新时间" width="180" />
       </el-table>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Grape, Clock, CircleCheck, Warning, List, Calendar, Operation, Document } from '@element-plus/icons-vue'
+import { useFarmTaskStore } from '@/stores/modules/farmTask'
 
-// 统计数据
-const stats = ref({
-  todayTasks: 12,
-  inProgressTasks: 5,
-  overdueTasks: 0
+const store = useFarmTaskStore()
+
+/** 统计数据（来自 store 计算属性 statusStats） */
+const statusStats = computed(() => store.statusStats)
+
+/** 最近10条任务（按 updatedAt 倒序排列） */
+const recentTasks = computed(() => {
+  return [...store.filteredTasks]
+    .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
+    .slice(0, 10)
 })
 
-// 最近任务
-const recentTasks = ref([
-  { taskCode: 'TT202401001', title: '番茄浇水任务', typeName: '灌溉', assigneeName: '张三', status: 'in_progress', statusText: '进行中', updateTime: '2024-01-15 14:30' },
-  { taskCode: 'NS202401002', title: '施肥作业', typeName: '施肥', assigneeName: '李四', status: 'pending', statusText: '待执行', updateTime: '2024-01-15 10:00' },
-])
-
-// 获取状态标签类型
+/** 状态 → Element Plus Tag 类型映射 */
 const getStatusType = (status) => {
   const typeMap = {
     pending: 'info',
+    accepted: 'warning',
     in_progress: 'warning',
+    waiting_acceptance: '',
     completed: 'success',
-    overdue: 'danger'
+    cancelled: 'danger',
+    abandoned: 'danger',
   }
   return typeMap[status] || 'info'
 }
 
+/** 状态 → 中文显示文本映射 */
+const getStatusText = (status) => {
+  const textMap = {
+    pending: '待执行',
+    accepted: '已接受',
+    in_progress: '进行中',
+    waiting_acceptance: '待验收',
+    completed: '已完成',
+    cancelled: '已取消',
+    abandoned: '已废弃',
+  }
+  return textMap[status] || status
+}
+
 onMounted(() => {
-  // 加载统计数据
+  store.fetchTasks()
 })
 </script>

@@ -263,7 +263,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   DocumentCopy,
@@ -272,6 +272,10 @@ import {
   View,
   Loading
 } from '@element-plus/icons-vue'
+import { useDailyWorkSummaryStore } from '@/stores/modules/dailyWorkSummary'
+
+// Pinia store
+const store = useDailyWorkSummaryStore()
 
 const exportFormats = [
   { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
@@ -322,13 +326,23 @@ const generateMockSummaries = () => {
 
 // ============ 状态 ============
 
-const loading = ref(false)
-const dateFilter = ref('')
-const greenhouseFilter = ref('')
-const taskTypeFilter = ref('')
+const loading = computed(() => store.loading)
 const currentPage = ref(1)
 const pageSize = ref(10)
-const allSummaries = ref([])
+
+// 筛选条件 - 通过computed get/set与store双向同步
+const dateFilter = computed({
+  get: () => store.filters.date,
+  set: (val) => store.setFilter('date', val || '')
+})
+const greenhouseFilter = computed({
+  get: () => store.filters.greenhouse,
+  set: (val) => store.setFilter('greenhouse', val || '')
+})
+const taskTypeFilter = computed({
+  get: () => store.filters.taskType,
+  set: (val) => store.setFilter('taskType', val || '')
+})
 
 // 导出相关状态
 const exportMode = ref(false)
@@ -338,14 +352,9 @@ const showExportModal = ref(false)
 
 // ============ 计算属性 ============
 
-const filteredSummaries = computed(() => {
-  return allSummaries.value.filter(s => {
-    if (dateFilter.value && s.date !== dateFilter.value) return false
-    if (greenhouseFilter.value && greenhouseFilter.value !== '全部' && !s.greenhouse.includes(greenhouseFilter.value)) return false
-    if (taskTypeFilter.value && taskTypeFilter.value !== '全部' && !s.taskType.includes(taskTypeFilter.value)) return false
-    return true
-  })
-})
+// 从store获取筛选结果和筛选项
+const filteredSummaries = computed(() => store.filteredSummaries)
+const filterOptions = computed(() => store.filterOptions)
 
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
@@ -353,40 +362,15 @@ const paginatedData = computed(() => {
   return filteredSummaries.value.slice(start, end)
 })
 
+// 统计卡片 - 使用store.stats
 const statCards = computed(() => {
-  const total = filteredSummaries.value.length
-  const completed = filteredSummaries.value.filter(s => s.status === '已完成').length
-  const inProgress = filteredSummaries.value.filter(s =>
-    ['已接受', '处理中', '返工中'].includes(s.status)
-  ).length
-  const pending = filteredSummaries.value.filter(s => s.status === '待接受').length
-
+  const s = store.stats
   return [
-    { label: '任务总数', value: total, icon: '📋', iconBgColor: 'bg-blue-500' },
-    { label: '已作业', value: completed, icon: '✓', iconBgColor: 'bg-green-500' },
-    { label: '进行中', value: inProgress, icon: '⟳', iconBgColor: 'bg-amber-500' },
-    { label: '待接受', value: pending, icon: '📨', iconBgColor: 'bg-purple-500' },
+    { label: '任务总数', value: s.total, icon: '📋', iconBgColor: 'bg-blue-500' },
+    { label: '已作业', value: s.completed, icon: '✓', iconBgColor: 'bg-green-500' },
+    { label: '进行中', value: s.inProgress, icon: '⟳', iconBgColor: 'bg-amber-500' },
+    { label: '待接受', value: s.pending, icon: '📨', iconBgColor: 'bg-purple-500' },
   ]
-})
-
-const filterOptions = computed(() => {
-  const greenhouses = [...new Set(allSummaries.value.map(s => s.greenhouse).filter(Boolean))]
-  const taskTypes = [...new Set(allSummaries.value.map(s => s.taskType).filter(Boolean))]
-
-  return {
-    dates: [
-      { value: '', label: '全部' },
-      ...[...new Set(allSummaries.value.map(s => s.date))].map(d => ({ value: d, label: d })),
-    ],
-    greenhouses: [
-      { value: '', label: '全部' },
-      ...greenhouses.map(g => ({ value: g, label: g })),
-    ],
-    taskTypes: [
-      { value: '', label: '全部' },
-      ...taskTypes.map(t => ({ value: t, label: t })),
-    ],
-  }
 })
 
 // ============ 方法 ============
@@ -461,24 +445,10 @@ const handleView = (row) => {
   ElMessage.info(`查看详情: ${row.taskCode}`)
 }
 
-// ============ 监听器 ============
-
-watch([dateFilter, greenhouseFilter, taskTypeFilter], () => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 300)
-})
-
 // ============ 初始化 ============
 
-const initData = () => {
-  loading.value = true
-  setTimeout(() => {
-    allSummaries.value = generateMockSummaries()
-    loading.value = false
-  }, 300)
+// 种子数据写入store（开发阶段，后续对接API替换）
+if (store.summaries.length === 0) {
+  store.summaries = generateMockSummaries()
 }
-
-initData()
 </script>
