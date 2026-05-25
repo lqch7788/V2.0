@@ -6,6 +6,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { enhancedApiClient } from '@/lib/apiClient'
+import { inboundHarvest } from '@/api/inventory/inventoryIntegration'
 
 export const useHarvestStore = defineStore('harvest', () => {
   // 采收记录列表
@@ -147,6 +148,33 @@ export const useHarvestStore = defineStore('harvest', () => {
       if (newRecord) {
         // 将后端蛇形字段转换为前端驼峰字段
         records.value.unshift(convertFields(newRecord))
+
+        // 自动入库：采收记录创建成功后同步到统一库存服务
+        try {
+          const harvestRecord = {
+            id: newRecord.id || newRecord.harvest_code,
+            harvestType: data.harvest_type || data.harvestType || 'product',
+            targetInventory: data.target_inventory || data.targetInventory || 'product',
+            cropCode: data.crop_code || data.cropCode,
+            cropName: data.crop_name || data.cropName,
+            variety: data.variety_name || data.variety || data.varietyName,
+            harvestQuantity: data.harvest_quantity || data.harvestQuantity,
+            unit: data.unit || 'kg',
+            productionPlanId: data.production_plan_id || data.productionPlanId,
+            productionPlanCode: data.production_plan_code || data.productionPlanCode,
+            plantingInstanceId: data.planting_instance_id || data.plantingInstanceId || data.source_id || data.sourceId,
+            harvestCode: data.harvest_code || data.harvestCode,
+            batchCode: data.batch_code || data.batchCode,
+            greenhouseName: data.greenhouse_name || data.greenhouseName,
+            plantingMode: data.planting_mode || data.plantingMode,
+            quality: data.quality || 'good',
+            grade: data.grade || data.quality_grade || 'A',
+          }
+          await inboundHarvest(harvestRecord, data.operator_id || data.operatorId || '', data.operator_name || data.operatorName || '')
+        } catch (integrationErr) {
+          // 入库集成失败不影响采收记录创建
+          console.warn('[HarvestStore] 自动入库失败（采收记录已创建）:', integrationErr.message)
+        }
       }
 
       return { success: true, data: newRecord }
