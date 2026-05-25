@@ -4,7 +4,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getMaterials, getMaterialById, createMaterial, updateMaterial, deleteMaterial, searchMaterials } from '@/api/material/apiWarehouseMaterialService'
+import { getMaterials, getMaterialById, createMaterial, updateMaterial, deleteMaterial, deleteMaterialsBatch, searchMaterials } from '@/api/material/apiWarehouseMaterialService'
 
 export const useWarehouseMaterialStore = defineStore('warehouseMaterial', () => {
   // 状态
@@ -95,6 +95,26 @@ export const useWarehouseMaterialStore = defineStore('warehouseMaterial', () => 
   }
 
   /**
+   * 批量删除物料（使用批量API，并行删除）
+   * @param {number[]} ids - ID列表
+   */
+  const removeMaterialsBatch = async (ids) => {
+    loading.value = true
+    error.value = null
+    try {
+      await deleteMaterialsBatch(ids)
+      await loadMaterials()
+      return true
+    } catch (err) {
+      error.value = err.message || '批量删除物料失败'
+      console.error('removeMaterialsBatch error:', err)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
    * 删除物料
    * @param {number} id - 物料ID
    */
@@ -162,6 +182,7 @@ export const useWarehouseMaterialStore = defineStore('warehouseMaterial', () => 
     addMaterial,
     editMaterial,
     removeMaterial,
+    removeMaterialsBatch,
     searchMaterial,
     clearSearchResults,
     clearCurrentMaterial

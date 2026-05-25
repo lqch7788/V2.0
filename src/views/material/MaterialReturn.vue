@@ -491,6 +491,7 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { RefreshLeft, Plus, Edit, Delete, Download, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useMaterialReturnStore } from '@/stores/modules/inventory/useMaterialReturnStore'
+import { getMaterialRequests } from '@/services/apiMaterialRequestService'
 
 // 状态类型映射
 const statusMap = {
@@ -523,12 +524,9 @@ const exportFormats = [
 
 // 退料单类型
 
-// 源单物料数据
-const sourceMaterials = ref([
-  { code: '010101001', name: '番茄种子', spec: '优等品', unit: '袋', quantity: 10, reason: '' },
-  { code: '010201001', name: '尿素', spec: '50kg/袋', unit: '袋', quantity: 5, reason: '' },
-  { code: '010301001', name: '多菌灵', spec: '500ml/瓶', unit: '瓶', quantity: 20, reason: '' }
-])
+// 源单物料数据（从API加载）
+const sourceMaterials = ref([])
+const selectedMaterialIndices = ref(new Set())
 
 // Store
 const returnStore = useMaterialReturnStore()
@@ -725,21 +723,79 @@ const handleRemoveMaterial = (index) => {
   form.materials.splice(index, 1)
 }
 
-const handleSelectFromSource = () => {
+const handleSelectFromSource = async () => {
   if (!form.sourceAppCode) {
     ElMessage.warning('请先输入源单据号')
     return
   }
   selectedSourceAppCode.value = form.sourceAppCode
+  // 从API加载源单据物料
+  try {
+    const result = await getMaterialRequests({ approval_status: 'approved' })
+    const matched = result.data?.find(r => r.requestCode === form.sourceAppCode)
+    if (matched?.materials) {
+      sourceMaterials.value = matched.materials.map(m => ({
+        code: m.materialCode || '',
+        name: m.materialName || '',
+        spec: m.spec || '',
+        unit: m.unit || '',
+        quantity: 0
+      }))
+    }
+  } catch {
+    // 加载失败时使用空列表
+    sourceMaterials.value = []
+  }
   showMaterialSelectModal.value = true
 }
 
-const handleSelectSource = () => {
-  ElMessage.info('选择源单据功能开发中')
+const handleSelectSource = async () => {
+  if (!form.sourceAppCode) {
+    ElMessage.warning('请先输入源单据号')
+    return
+  }
+  try {
+    // 从物料申请中查找匹配的源单据
+    const result = await getMaterialRequests({ approval_status: 'approved' })
+    const matched = result.data?.find(r => r.requestCode === form.sourceAppCode)
+    if (matched) {
+      // 自动填充源单据信息
+      form.sourceAppType = matched.requestType || '生产领料单'
+      form.returner = matched.applicantId || ''
+      form.warehouse = matched.warehouseId || ''
+      // 将源单据物料加载到物料选择弹窗
+      sourceMaterials.value = (matched.materials || []).map(m => ({
+        code: m.materialCode || '',
+        name: m.materialName || '',
+        spec: m.spec || '',
+        unit: m.unit || '',
+        quantity: 0
+      }))
+      showMaterialSelectModal.value = true
+    } else {
+      ElMessage.warning('未找到该源单据，请检查单号')
+    }
+  } catch (error) {
+    ElMessage.error('查找源单据失败: ' + (error.message || '未知错误'))
+  }
 }
 
 const handleConfirmMaterialSelect = () => {
-  ElMessage.success('物料选择功能开发中')
+  // 将选中的物料添加到退料表单
+  const selected = sourceMaterials.value.filter((_, i) => selectedMaterialIndices.value.has(i))
+  if (selected.length === 0) {
+    ElMessage.warning('请选择至少一种物料')
+    return
+  }
+  form.materials.push(...selected.map(m => ({
+    code: m.code || '',
+    name: m.name || '',
+    spec: m.spec || '',
+    unit: m.unit || '',
+    quantity: m.quantity || 0,
+    reason: ''
+  })))
+  selectedMaterialIndices.value = new Set()
   showMaterialSelectModal.value = false
 }
 
@@ -773,7 +829,18 @@ const handleBatchEdit = () => {
 }
 
 const handleConfirmBatchEdit = () => {
-  ElMessage.success(`批量编辑了 ${selectedRows.value.length} 条退料记录`)
+  if (selectedRows.value.length === 0) return
+  if (selectedRows.value.length === 1) {
+    // 单选时打开编辑弹窗
+    const record = returnStore.returnRecords.find(r => r.id === selectedRows.value[0])
+    if (record) {
+      isEdit.value = true
+      Object.assign(form, record)
+      showFormModal.value = true
+    }
+  } else {
+    ElMessage.info(`批量编辑功能（${selectedRows.value.length}项）待后续开发，请使用单条编辑`)
+  }
   batchEditMode.value = false
   selectedRows.value = []
 }

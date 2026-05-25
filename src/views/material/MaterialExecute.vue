@@ -135,7 +135,6 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Upload } from '@element-plus/icons-vue'
 import { useExecuteStore } from '@/stores/modules/inventory/useExecuteStore'
-import { getMaterialExecutes } from '@/api/material/apiMaterialExecuteService'
 import ExecuteTabFilters from '@/components/materialReceiving/ExecuteTabFilters.vue'
 import ExecuteTabTable from '@/components/materialReceiving/ExecuteTabTable.vue'
 import {
@@ -224,29 +223,13 @@ const materialActualQuantities = ref({})
 const materialPool = ref([])
 const materialReceivingDetails = ref([])
 
-// 出库数据（从 API 加载）
-const executeData = ref([])
+// 出库数据（从 store 获取）
+const executeData = computed(() => executeStore.items)
 
 // 加载出库数据
 const loadExecuteData = async () => {
   try {
-    // request 拦截器已经提取了 response.data，所以直接是数组
-    const items = await getMaterialExecutes()
-    // 转换后端数据格式为前端所需格式
-    executeData.value = (Array.isArray(items) ? items : []).map(item => ({
-      id: item.id,
-      code: item.code,
-      date: item.date,
-      applicant: item.applicant,
-      warehouseLocation: item.warehouse_location,
-      reviewer: item.reviewer,
-      operator: item.operator,
-      productionBatchCode: item.production_batch_code,
-      executeStatus: item.execute_status,
-      executeStatusClass: item.execute_status_class,
-      sourceApplicationCodes: item.source_application_codes || [],
-      materials: item.materials || []
-    }))
+    await executeStore.fetchItems()
   } catch (error) {
     console.error('加载出库数据失败:', error)
     ElMessage.error('加载数据失败，请刷新重试')
@@ -293,9 +276,45 @@ const setExportFileType = (type) => {
 }
 
 const handleConfirmExport = () => {
-  ElMessage.success(`已选择导出格式：${exportFileType.value}`)
+  const exportData = selectedRows.value.length > 0
+    ? filteredData.value.filter(item => selectedRows.value.includes(item.id))
+    : filteredData.value
+  const headers = ['出库单号', '日期', '申领人', '仓库', '审核人', '操作人', '生产批次号', '执行状态']
+  const rows = exportData.map(item => [
+    item.code, item.date, item.applicant, item.warehouseLocation,
+    item.reviewer, item.operator, item.productionBatchCode, item.executeStatus
+  ])
+
+  let content, mimeType, extension
+  if (exportFileType.value === 'csv') {
+    const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell ?? ''}"`).join(','))].join('\n')
+    content = '﻿' + csvContent
+    mimeType = 'text/csv;charset=utf-8'
+    extension = 'csv'
+  } else if (exportFileType.value === 'excel') {
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(row => `<tr>${row.map(cell => `<td>${cell ?? ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    mimeType = 'application/vnd.ms-excel;charset=utf-8'
+    extension = 'xls'
+  } else {
+    content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>领料出库</title></head><body><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse"><tr style="background-color:#f0f0f0">${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(row => `<tr>${row.map(cell => `<td>${cell ?? ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    mimeType = 'application/ms-word;charset=utf-8'
+    extension = 'doc'
+  }
+
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `领料出库_${new Date().toISOString().slice(0, 10)}.${extension}`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+
   showExportModal.value = false
   exportMode.value = false
+  selectedRows.value = []
+  ElMessage.success('导出成功')
 }
 
 // 批量编辑
@@ -389,9 +408,25 @@ const handleEditMaterialChange = (index, field, value) => {
   editForm.materials[index][field] = value
 }
 
-const handleSaveEdit = () => {
-  ElMessage.success('保存成功')
-  showEditModal.value = false
+const handleSaveEdit = async () => {
+  if (!selectedRecord.value) return
+  try {
+    await executeStore.updateItem(selectedRecord.value.id, {
+      code: editForm.code,
+      date: editForm.date,
+      applicant: editForm.applicant,
+      warehouseLocation: editForm.warehouseLocation,
+      reviewer: editForm.reviewer,
+      operator: editForm.operator,
+      productionBatchCode: editForm.productionBatchCode,
+      executeStatus: editForm.executeStatus,
+      materials: editForm.materials
+    })
+    ElMessage.success('保存成功')
+    showEditModal.value = false
+  } catch (error) {
+    ElMessage.error('保存失败: ' + (error.message || '未知错误'))
+  }
 }
 
 // 删除
@@ -400,16 +435,28 @@ const handleDelete = (row) => {
   showDeleteModal.value = true
 }
 
-const handleConfirmDelete = () => {
-  ElMessage.success('删除成功')
-  showDeleteModal.value = false
+const handleConfirmDelete = async () => {
+  if (!selectedIdForDelete.value) return
+  try {
+    await executeStore.deleteItem(selectedIdForDelete.value)
+    ElMessage.success('删除成功')
+    showDeleteModal.value = false
+    selectedIdForDelete.value = null
+  } catch (error) {
+    ElMessage.error('删除失败: ' + (error.message || '未知错误'))
+  }
 }
 
-const handleConfirmBatchDelete = () => {
-  ElMessage.success(`已删除 ${selectedRows.value.length} 项领料出库记录`)
-  showBatchDeleteModal.value = false
-  batchEditMode.value = null
-  selectedRows.value = []
+const handleConfirmBatchDelete = async () => {
+  try {
+    await executeStore.deleteItems(selectedRows.value)
+    ElMessage.success(`已删除 ${selectedRows.value.length} 项领料出库记录`)
+    showBatchDeleteModal.value = false
+    batchEditMode.value = null
+    selectedRows.value = []
+  } catch (error) {
+    ElMessage.error('批量删除失败: ' + (error.message || '未知错误'))
+  }
 }
 
 // 新增
@@ -419,12 +466,13 @@ const handleAdd = () => {
 }
 
 const resetAddForm = () => {
-  addForm.code = ''
+  addForm.code = executeStore.generateCode()
   addForm.date = new Date().toISOString().slice(0, 10)
   addForm.warehouseLocation = ''
   addForm.reviewer = ''
   addForm.operator = ''
   addForm.productionBatchCode = ''
+  addForm.applicant = ''
   selectedApplicationCode.value = ''
   selectedMaterialIndices.value = new Set()
   materialActualQuantities.value = {}
@@ -466,17 +514,56 @@ const handleUpdateMaterialPoolQuantity = (index, quantity) => {
   materialPool.value[index].actualQuantity = quantity
 }
 
-const handleSaveAdd = () => {
-  ElMessage.success('新增成功')
-  showAddModal.value = false
+const handleSaveAdd = async () => {
+  if (!addForm.code || !addForm.applicant) {
+    ElMessage.warning('请填写必要的出库信息')
+    return
+  }
+  try {
+    await executeStore.createItem({
+      code: addForm.code,
+      date: addForm.date,
+      applicant: addForm.applicant,
+      warehouseLocation: addForm.warehouseLocation,
+      reviewer: addForm.reviewer,
+      operator: addForm.operator,
+      productionBatchCode: addForm.productionBatchCode,
+      executeStatus: '已出库',
+      executeStatusClass: 'completed',
+      sourceApplicationCodes: selectedApplicationCode.value ? [selectedApplicationCode.value] : [],
+      materials: materialPool.value.map(m => ({
+        applicationCode: m.applicationCode || '',
+        materialCode: m.materialCode || '',
+        materialName: m.materialName || '',
+        spec: m.spec || '',
+        unit: m.unit || '',
+        requestedQuantity: m.requestedQuantity || 0,
+        actualQuantity: m.actualQuantity || 0,
+        warehousePosition: m.warehousePosition || '',
+        remark: m.remark || ''
+      }))
+    })
+    ElMessage.success('新增成功')
+    showAddModal.value = false
+  } catch (error) {
+    ElMessage.error('新增失败: ' + (error.message || '未知错误'))
+  }
 }
 
-// 批量保存
-const handleBatchSaveAll = () => {
-  ElMessage.success('批量编辑保存成功')
-  showBatchEditModal.value = false
-  batchEditMode.value = null
-  selectedRows.value = []
+// 批量保存（从ExecuteBatchEditModal传入编辑后的数据）
+const handleBatchSaveAll = async (editedData) => {
+  try {
+    const updates = editedData || {}
+    for (const [id, data] of Object.entries(updates)) {
+      await executeStore.updateItem(id, data)
+    }
+    ElMessage.success('批量编辑保存成功')
+    showBatchEditModal.value = false
+    batchEditMode.value = null
+    selectedRows.value = []
+  } catch (error) {
+    ElMessage.error('批量保存失败: ' + (error.message || '未知错误'))
+  }
 }
 
 // 展开行
