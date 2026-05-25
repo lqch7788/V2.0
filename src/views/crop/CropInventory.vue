@@ -941,6 +941,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import {
   Goods, Warning, Search, Refresh, Plus, Download, Close, View, Edit,
@@ -956,6 +957,10 @@ import {
 } from '@/api/inventory/apiInventoryService'
 import { useCropInventoryStore } from '@/stores/modules/inventory/useCropInventoryStore'
 import { useCropVarietyStore } from '@/stores/modules/cropVariety'
+
+// 初始化Store
+const cropInventoryStore = useCropInventoryStore()
+const { inventoryData, alerts } = storeToRefs(cropInventoryStore)
 
 // 仓库数据
 const warehouses = ref([
@@ -1072,26 +1077,9 @@ function mapLocalToApi(localData) {
   }
 }
 
-// 库存数据（从API加载）
-const inventoryData = ref([])
-
-// 加载库存数据
+// 加载库存数据（委托给Store）
 async function loadInventoryData() {
-  try {
-    const response = await getInventoryList({
-      stock_type: 'product',
-      crop_name: filters.cropName || undefined,
-      status: filters.status || undefined,
-    })
-    if (response && response.data) {
-      inventoryData.value = response.data.map(mapApiToLocal)
-    } else if (Array.isArray(response)) {
-      inventoryData.value = response.map(mapApiToLocal)
-    }
-  } catch (error) {
-    console.error('加载库存数据失败:', error)
-    ElMessage.error('加载库存数据失败')
-  }
+  await cropInventoryStore.loadInventoryData()
 }
 
 // 页面加载时获取数据
@@ -1179,43 +1167,6 @@ const newInventory = reactive({
     minStock: 0,
     maxStock: 0,
   },
-})
-
-// 计算预警统计
-const alerts = computed(() => {
-  const today = new Date()
-  let storageTime = 0
-  let lowStock = 0
-  let highStock = 0
-  let expiration = 0
-
-  inventoryData.value.forEach(item => {
-    const storageDays = getStorageDays(item.storageDate)
-    const remainingDays = getRemainingDaysValue(item.expirationDate)
-
-    if (item.alertSettings.enableStorageTimeAlert && storageDays > item.alertSettings.storageTimeThreshold) {
-      storageTime++
-    }
-    if (item.alertSettings.enableQuantityAlert && item.quantity < item.alertSettings.minQuantityThreshold) {
-      lowStock++
-    }
-    if (item.alertSettings.enableQuantityAlert && item.quantity > item.alertSettings.maxQuantityThreshold) {
-      highStock++
-    }
-    if (remainingDays < 0) {
-      expiration++
-    } else if (remainingDays < 7) {
-      expiration++
-    }
-  })
-
-  return {
-    total: storageTime + lowStock + highStock + expiration,
-    storageTime,
-    lowStock,
-    highStock,
-    expiration,
-  }
 })
 
 // 低库存数量

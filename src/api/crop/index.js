@@ -86,7 +86,7 @@ export function deleteSeedling(id) {
 
 // 批量删除育苗
 export function deleteSeedlings(ids) {
-  return del('/seedlings/batch', { ids })
+  return del(`/seedlings/batch?ids=${Array.isArray(ids) ? ids.join(',') : ids}`)
 }
 
 // 结束育苗（正常结束/异常结束）
