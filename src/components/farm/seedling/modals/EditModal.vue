@@ -20,29 +20,66 @@
       <!-- 内容区域 -->
       <div class="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
         <div class="grid grid-cols-2 gap-4">
-          <!-- 关联种源 -->
+          <!-- 关联种源 - 可搜索下拉表格 -->
           <div class="col-span-2">
             <label class="block text-sm font-medium text-gray-900 mb-1">关联种源</label>
-            <el-select
-              v-model="formData.sourceId"
-              placeholder="请选择"
-              filterable
-              class="w-full"
-              @change="handleSourceChange"
-            >
-              <el-option
-                v-for="source in seedSources"
-                :key="source.id"
-                :label="`${source.seedCode} - ${source.cropName}`"
-                :value="source.id"
-              />
-            </el-select>
+            <div class="relative">
+              <el-select
+                v-model="formData.sourceId"
+                placeholder="搜索种源批号或作物名称..."
+                filterable
+                :filter-method="filterSeedSources"
+                class="w-full"
+                @change="handleSourceChange"
+                ref="sourceSelectRef"
+                @focus="sourceSearch = ''"
+              >
+                <template #empty>
+                  <div class="p-2">
+                    <!-- 表头 -->
+                    <div class="grid grid-cols-4 gap-2 px-3 py-2 bg-gray-50 text-xs font-semibold text-gray-600 border-b">
+                      <div>作物名称</div>
+                      <div>种源批号</div>
+                      <div>采购数量</div>
+                      <div>可用数量</div>
+                    </div>
+                    <!-- 选项列表 -->
+                    <div class="max-h-48 overflow-y-auto">
+                      <div v-if="filteredSeedSources.length === 0" class="px-3 py-4 text-sm text-gray-400 text-center">
+                        无匹配种源
+                      </div>
+                      <div
+                        v-for="source in filteredSeedSources"
+                        :key="source.id"
+                        @click="handleSourceSelect(source)"
+                        class="grid grid-cols-4 gap-2 px-3 py-2 text-sm border-b border-gray-100 cursor-pointer hover:bg-emerald-50 transition-colors"
+                        :class="{ 'bg-emerald-100': formData.sourceId === source.id }"
+                      >
+                        <div class="truncate font-medium text-gray-800">{{ source.cropName }}</div>
+                        <div class="truncate text-emerald-700">{{ source.seedCode }}</div>
+                        <div class="text-gray-600">{{ source.quantity }} {{ source.unit }}</div>
+                        <div class="font-medium" :class="getAvailableCountClass(source.availableCount)">
+                          {{ source.availableCount }} {{ source.unit }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="px-3 py-1.5 bg-gray-50 border-t border-gray-200 text-xs text-gray-400">
+                      共 {{ filteredSeedSources.length }} 条 | 点击行选择
+                    </div>
+                  </div>
+                </template>
+              </el-select>
+            </div>
           </div>
 
-          <!-- 作物品种 -->
+          <!-- 作物品种 - 使用CropCodeSelector组件 -->
           <div class="col-span-2">
             <label class="block text-sm font-medium text-gray-900 mb-1">作物品种</label>
-            <el-input v-model="formData.cropName" placeholder="请选择作物品种" class="w-full" />
+            <CropCodeSelector
+              v-model="formData.selectedCropCode"
+              size="md"
+              @change="handleCropCodeChange"
+            />
           </div>
 
           <!-- 育苗方式 -->
@@ -158,6 +195,7 @@ import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Edit, Close } from '@element-plus/icons-vue'
 import { useSeedlingStore, useSeedSourceStore } from '@/stores'
+import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 
 const props = defineProps({
   visible: Boolean,
@@ -171,6 +209,9 @@ const seedSourceStore = useSeedSourceStore()
 
 const submitting = ref(false)
 const seedSources = ref([])
+const filteredSeedSources = ref([])
+const sourceSearch = ref('')
+const sourceSelectRef = ref(null)
 
 const seedlingTypes = [
   { value: '穴盘育苗', label: '穴盘育苗' },
@@ -186,10 +227,11 @@ const sites = [
   { value: '露天场地', label: '露天场地' }
 ]
 
-// 表单数据
+// 表单数据 - 与V1.1保持一致
 const formData = ref({
   sourceId: '',
   sourceCode: '',
+  selectedCropCode: '', // 作物编码
   cropName: '',
   cropVariety: '',
   cropCode: '',
@@ -198,6 +240,7 @@ const formData = ref({
   siteName: '',
   startDate: '',
   expectedEndDate: '',
+  endDate: '', // V1.1有此字段
   initialCount: 0,
   survivalCount: 0,
   plantedCount: 0,
@@ -213,6 +256,67 @@ const formData = ref({
 const loadSeedSources = async () => {
   await seedSourceStore.loadItems()
   seedSources.value = seedSourceStore.items
+  filteredSeedSources.value = seedSourceStore.items
+}
+
+// 过滤种源搜索（el-select filterable回调）
+const filterSeedSources = (val) => {
+  sourceSearch.value = val
+  if (!val) {
+    filteredSeedSources.value = seedSources.value
+    return
+  }
+  const q = val.toLowerCase()
+  filteredSeedSources.value = seedSources.value.filter(s =>
+    s.seedCode?.toLowerCase().includes(q) ||
+    s.cropName?.toLowerCase().includes(q) ||
+    s.cropVariety?.toLowerCase().includes(q)
+  )
+}
+
+// 获取可用数量样式类
+const getAvailableCountClass = (count) => {
+  if (count <= 0) return 'text-red-500'
+  if (count < 10) return 'text-amber-500'
+  return 'text-gray-700'
+}
+
+// 选择种源
+const handleSourceSelect = (source) => {
+  formData.value.sourceId = source.id
+  formData.value.sourceCode = source.seedCode
+  formData.value.cropName = source.cropName
+  formData.value.cropVariety = source.cropVariety
+  formData.value.cropCode = source.cropCode
+  // 关闭下拉
+  sourceSelectRef.value?.blur()
+}
+
+// 兼容原来的handleSourceChange
+const handleSourceChange = (sourceId) => {
+  const source = seedSources.value.find(s => s.id === sourceId)
+  if (source) {
+    formData.value.sourceCode = source.seedCode
+    formData.value.cropName = source.cropName
+    formData.value.cropVariety = source.cropVariety
+    formData.value.cropCode = source.cropCode
+  }
+}
+
+// 选择作物品种 - 适配CropCodeSelector的change事件(cropCode, varietyInfo)
+const handleCropCodeChange = (cropCode, varietyInfo) => {
+  formData.value.selectedCropCode = cropCode
+  formData.value.cropCode = cropCode
+  if (varietyInfo) {
+    formData.value.cropName = varietyInfo.varietyName || ''
+    formData.value.cropVariety = varietyInfo.subVariety1Name || varietyInfo.varietyName || ''
+  }
+}
+
+// 选择场地
+const handleSiteChange = (siteId) => {
+  const site = sites.find(s => s.value === siteId)
+  formData.value.siteName = site?.label || ''
 }
 
 // 监听弹窗打开和记录变化
@@ -227,6 +331,7 @@ watch(() => props.record, (record) => {
     formData.value = {
       sourceId: record.sourceId || '',
       sourceCode: record.sourceCode || '',
+      selectedCropCode: record.cropCode || '',
       cropName: record.cropName || '',
       cropVariety: record.cropVariety || '',
       cropCode: record.cropCode || '',
@@ -235,6 +340,7 @@ watch(() => props.record, (record) => {
       siteName: record.siteName || '',
       startDate: record.startDate || '',
       expectedEndDate: record.expectedEndDate || '',
+      endDate: record.endDate || '', // V1.1有此字段
       initialCount: record.initialCount || 0,
       survivalCount: record.survivalCount || 0,
       plantedCount: record.plantedCount || 0,
@@ -247,23 +353,6 @@ watch(() => props.record, (record) => {
     }
   }
 }, { immediate: true, deep: true })
-
-// 选择种源
-const handleSourceChange = (sourceId) => {
-  const source = seedSources.value.find(s => s.id === sourceId)
-  if (source) {
-    formData.value.sourceCode = source.seedCode
-    formData.value.cropName = source.cropName
-    formData.value.cropVariety = source.cropVariety
-    formData.value.cropCode = source.cropCode
-  }
-}
-
-// 选择场地
-const handleSiteChange = (siteId) => {
-  const site = sites.find(s => s.value === siteId)
-  formData.value.siteName = site?.label || ''
-}
 
 // 关闭弹窗
 const handleClose = () => {
@@ -293,6 +382,7 @@ const handleSubmit = async () => {
       area_name: formData.value.siteId,
       seedling_date: formData.value.startDate,
       expected_finish_date: formData.value.expectedEndDate,
+      end_date: formData.value.endDate || undefined,
       seedling_quantity: formData.value.initialCount,
       survival_quantity: formData.value.survivalCount,
       planted_quantity: formData.value.plantedCount,
@@ -302,6 +392,8 @@ const handleSubmit = async () => {
       remarks: formData.value.remarks,
       quality_grade: formData.value.qualityGrade,
       is_finished: formData.value.isFinished,
+      charge_person: formData.value.chargePerson || undefined,
+      target_survival_count: formData.value.targetSurvivalCount || undefined,
       work_hours: formData.value.workHours || undefined
     })
 

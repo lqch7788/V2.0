@@ -203,24 +203,25 @@ const handleSubmit = async () => {
     const areaName = area?.label || ''
     const rootName = area?.parent || ''
 
-    // 创建种植记录 - 后端期望 snake_case 格式
-    await plantingStore.addItem({
-      plant_code: plantCode,
-      source_type: 'seedling',
-      source_id: props.record.id,
-      source_name: props.record.seedlingCode,
-      crop_name: props.record.cropName,
-      crop_variety: props.record.cropVariety,
-      greenhouse_name: props.record.siteName,
-      area_name: areaName,
-      from_location: '育苗棚',
-      to_location: areaName,
-      transplant_date: formData.value.transplantDate,
-      transplant_quantity: formData.value.transplantCount,
-      survival_quantity: formData.value.transplantCount,
-      survival_rate: 100,
-      operator_name: localStorage.getItem('username') || '管理员',
-      status: 'completed',
+    // 创建种植记录 - 使用 camelCase 格式与 planting store 一致
+    await plantingStore.addPlanting({
+      plantCode: plantCode,
+      sourceType: 'seedling',
+      sourceId: props.record.id,
+      sourceCode: props.record.seedlingCode,
+      cropName: props.record.cropName,
+      cropVariety: props.record.cropVariety,
+      greenhouseName: props.record.siteName,
+      areaName: areaName,
+      fromLocation: '育苗棚',
+      toLocation: areaName,
+      transplantDate: formData.value.transplantDate,
+      transplantQuantity: formData.value.transplantCount,
+      plantingCount: formData.value.transplantCount,
+      plantingDate: formData.value.transplantDate,
+      soilPH: formData.value.soilPH,
+      soilEC: formData.value.soilEC,
+      operatorName: localStorage.getItem('username') || '管理员',
       remarks: formData.value.remarks
     })
 

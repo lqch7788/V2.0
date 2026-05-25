@@ -439,12 +439,26 @@ const handleDelete = async (ids) => {
 // 操作模式变化
 const handleOperationModeChange = (mode) => {
   operationMode.value = mode
+
+  // 导出模式
+  if (mode === 'export') {
+    exportMode.value = true
+    selectedRows.value = []
+    return
+  }
+
+  // 取消导出模式
   if (mode !== 'export') {
     exportMode.value = false
   }
-  if (mode !== 'normal') {
-    selectedRows.value = []
+
+  // 编辑/删除模式不清空选择
+  if (mode === 'edit' || mode === 'delete') {
+    return
   }
+
+  // 其他模式清空选择
+  selectedRows.value = []
 }
 
 // 打印模式变化

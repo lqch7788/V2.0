@@ -35,17 +35,12 @@
             <el-option
               v-for="record in selectedRecordsList"
               :key="record.id"
-              :label="`${record.seedCode} - ${record.cropName}`"
+              :label="`${record.seedCode} - ${record.cropName || record.varietyName || ''}`"
               :value="record.id"
             >
-              <div class="py-1">
-                <div class="text-sm font-medium">{{ record.seedCode }} - {{ record.cropName }}</div>
-                <div class="text-xs text-gray-500">
-                  {{ record.supplierName || '无供应商' }} |
-                  数量: {{ record.quantity }}{{ record.unit }} |
-                  <span :class="getStatusClass(record.status)">{{ getStatusText(record.status) }}</span>
-                  <span v-if="batchEditedRecords[record.id]" class="text-emerald-600 ml-2">✅ 已编辑</span>
-                </div>
+              <div class="flex items-center justify-between py-1">
+                <span class="text-sm">{{ record.seedCode }} - {{ record.cropName || record.varietyName || '' }}</span>
+                <span v-if="batchEditedRecords[record.id]" class="text-emerald-600 ml-2">✅ 已编辑</span>
               </div>
             </el-option>
           </el-select>
@@ -97,7 +92,7 @@
 
             <!-- 种源类型 -->
             <el-form-item label="种源类型">
-              <el-select v-model="currentForm.sourceType" placeholder="请选择" class="w-full">
+              <el-select v-model="currentForm.sourceType" placeholder="请选择" class="w-full" @change="markAsEdited">
                 <el-option label="种子" value="seed" />
                 <el-option label="种苗/实生苗" value="seedling" />
                 <el-option label="扦插苗" value="cutting" />
@@ -111,7 +106,7 @@
 
             <!-- 来源途径 -->
             <el-form-item label="来源途径">
-              <el-select v-model="currentForm.sourceOrigin" placeholder="请选择" class="w-full">
+              <el-select v-model="currentForm.sourceOrigin" placeholder="请选择" class="w-full" @change="markAsEdited">
                 <el-option label="外部采购" value="external_purchase" />
                 <el-option label="自产" value="self_produced" />
                 <el-option label="其他" value="other" />
@@ -149,14 +144,15 @@
                 placeholder="选择日期"
                 value-format="YYYY-MM-DD"
                 class="w-full"
+                @change="markAsEdited"
               />
             </el-form-item>
 
             <!-- 登记数量 -->
             <el-form-item label="登记数量">
               <div class="flex gap-2 w-full">
-                <el-input-number v-model="currentForm.quantity" :min="0" class="flex-1" />
-                <el-select v-model="currentForm.unit" placeholder="单位" class="w-32">
+                <el-input-number v-model="currentForm.quantity" :min="0" class="flex-1" @change="markAsEdited" />
+                <el-select v-model="currentForm.unit" placeholder="单位" class="w-32" @change="markAsEdited">
                   <el-option label="粒" value="粒" />
                   <el-option label="株" value="株" />
                   <el-option label="kg" value="kg" />
@@ -168,12 +164,12 @@
 
             <!-- 单价 -->
             <el-form-item label="单价（元）">
-              <el-input-number v-model="currentForm.unitPrice" :min="0" :precision="2" class="w-full" />
+              <el-input-number v-model="currentForm.unitPrice" :min="0" :precision="2" class="w-full" @change="markAsEdited" />
             </el-form-item>
 
             <!-- 备注 -->
             <el-form-item label="备注">
-              <el-input v-model="currentForm.remarks" type="textarea" :rows="2" placeholder="请输入备注信息" />
+              <el-input v-model="currentForm.remarks" type="textarea" :rows="2" placeholder="请输入备注信息" @change="markAsEdited" />
             </el-form-item>
           </el-form>
         </div>
@@ -464,8 +460,6 @@ const handleSaveAll = async () => {
 
   saving.value = true
   try {
-    const seedSourceStore = useSeedSourceStore()
-
     for (const [recordId, formData] of Object.entries(batchEditedRecords.value)) {
       const record = props.allRecords.find(r => r.id == recordId)
       if (!record) continue
@@ -483,26 +477,30 @@ const handleSaveAll = async () => {
         status = 'sufficient'
       }
 
-      await seedSourceStore.updateItem(recordId, {
-        sourceType: formData.sourceType,
-        sourceOrigin: formData.sourceOrigin,
-        supplierId: formData.supplierId,
-        supplierName: formData.supplierName,
-        purchaseDate: formData.purchaseDate,
+      // 构建符合后端期望的snake_case格式
+      const backendData = {
+        source_type: formData.sourceType,
+        source_origin: formData.sourceOrigin,
+        supplier_id: formData.supplierId,
+        supplier_name: formData.supplierName,
+        purchase_date: formData.purchaseDate,
         quantity: formData.quantity,
         unit: formData.unit,
-        unitPrice: formData.unitPrice,
-        totalAmount,
+        purchase_price: formData.unitPrice,
+        total_amount: totalAmount,
         remarks: formData.remarks,
         status,
         // 作物信息
-        cropCode: formData.cropCode,
-        cropCategory: formData.cropCategory,
-        typeName: formData.typeName,
-        varietyName: formData.varietyName,
-        cropName: formData.cropName,
-        cropVariety: formData.cropVariety
-      })
+        crop_code: formData.cropCode,
+        crop_category: formData.cropCategory,
+        type_name: formData.typeName,
+        variety_name: formData.varietyName,
+        crop_name: formData.cropName,
+        crop_variety: formData.cropVariety
+      }
+
+      // 直接调用API
+      await enhancedApiClient.put(`/seed-sources/${recordId}`, backendData)
     }
 
     ElMessage.success(`成功保存 ${editedCount.value} 个种源记录`)
@@ -510,7 +508,7 @@ const handleSaveAll = async () => {
     handleClose()
   } catch (error) {
     console.error('批量保存失败:', error)
-    ElMessage.error('保存失败')
+    ElMessage.error('保存失败: ' + (error?.message || '服务器错误'))
   } finally {
     saving.value = false
   }

@@ -58,8 +58,9 @@ import { ref, watch } from 'vue'
 import { Close } from '@element-plus/icons-vue'
 
 const exportFormats = [
-  { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
-  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' }
+  { value: 'excel', label: 'Excel (.xls)', desc: '适用于数据分析和处理' },
+  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
+  { value: 'word', label: 'Word (.doc)', desc: '适用于文档编辑' }
 ]
 
 const props = defineProps({

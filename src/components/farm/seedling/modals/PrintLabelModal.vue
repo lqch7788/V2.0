@@ -38,7 +38,7 @@
             <div v-if="printMode === 'single'" class="flex items-center gap-4">
               <div>
                 <label class="block text-xs text-gray-600 mb-1">选择标签编号</label>
-                <el-select v-model="previewLabel" placeholder="选择标签" class="w-48">
+                <el-select v-model="previewLabel" placeholder="选择标签" class="w-48" @change="generatePreviewQrCode">
                   <el-option
                     v-for="label in allLabelNumbers"
                     :key="label"
@@ -102,7 +102,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">模板选择</label>
-              <el-select v-model="template" class="w-full">
+              <el-select v-model="template" class="w-full" @change="generatePreviewQrCode">
                 <el-option label="小标签" value="small" />
                 <el-option label="大标签" value="large" />
                 <el-option label="详情标签" value="detail" />
@@ -119,9 +119,9 @@
               <!-- 小标签 -->
               <div v-if="template === 'small'" class="flex flex-col items-center print-label">
                 <div class="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
-                  <!-- 二维码占位 -->
-                  <div class="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
-                    QR
+                  <img v-if="previewQrCodeUrl" :src="previewQrCodeUrl" class="w-20 h-20" alt="QR Code" />
+                  <div v-else class="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                    加载中...
                   </div>
                 </div>
                 <div class="mt-2 text-center">
@@ -133,8 +133,9 @@
               <!-- 大标签 -->
               <div v-else-if="template === 'large'" class="flex flex-col items-center print-label">
                 <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
-                  <div class="w-24 h-24 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
-                    QR
+                  <img v-if="previewQrCodeUrl" :src="previewQrCodeUrl" class="w-24 h-24" alt="QR Code" />
+                  <div v-else class="w-24 h-24 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                    加载中...
                   </div>
                 </div>
                 <div class="mt-3 text-center">
@@ -146,8 +147,9 @@
               <!-- 详情标签 -->
               <div v-else class="flex print-label bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
                 <div class="flex-shrink-0">
-                  <div class="w-24 h-24 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
-                    QR
+                  <img v-if="previewQrCodeUrl" :src="previewQrCodeUrl" class="w-24 h-24" alt="QR Code" />
+                  <div v-else class="w-24 h-24 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                    加载中...
                   </div>
                 </div>
                 <div class="ml-4 flex flex-col justify-center">
@@ -195,12 +197,26 @@
       </div>
     </div>
   </div>
+
+  <!-- 打印容器（隐藏，仅用于打印） -->
+  <div v-if="showPrintContainer" class="print-container">
+    <div v-for="item in printItems" :key="item.label" class="print-label-card">
+      <div class="bg-white p-3 border border-gray-400 rounded-lg">
+        <img :src="item.qrCodeUrl" alt="QR Code" />
+      </div>
+      <div style="text-align: center; margin-top: 4px;">
+        <div style="font-size: 11px; font-weight: bold; font-family: monospace;">{{ item.label }}</div>
+        <div style="font-size: 9px; color: #666;">{{ record?.cropName }}</div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Printer, Close, Download } from '@element-plus/icons-vue'
+import QRCode from 'qrcode'
 
 const props = defineProps({
   visible: Boolean,
@@ -217,6 +233,18 @@ const previewLabel = ref('')
 const allLabelNumbers = ref([])
 const template = ref('detail')
 const currentOperator = ref(localStorage.getItem('username') || '系统管理员')
+const previewQrCodeUrl = ref('')
+const showPrintContainer = ref(false)
+const printItems = ref([])
+
+const QR_CODE_OPTIONS = {
+  width: 100,
+  margin: 1,
+  color: {
+    dark: '#000000',
+    light: '#ffffff'
+  }
+}
 
 // 剩余数量
 const remainingCount = computed(() => {
@@ -224,8 +252,38 @@ const remainingCount = computed(() => {
   return (props.record.initialCount || 0) - (props.record.lossCount || 0)
 })
 
+// 生成二维码内容
+const getQrCodeValue = (label) => {
+  if (!props.record) return ''
+  return JSON.stringify({
+    type: 'seedling',
+    code: label,
+    cropName: props.record.cropName,
+    cropVariety: props.record.cropVariety,
+    siteName: props.record.siteName,
+    startDate: props.record.startDate
+  })
+}
+
+// 生成预览二维码
+const generatePreviewQrCode = async () => {
+  if (!previewLabel.value) {
+    previewQrCodeUrl.value = ''
+    return
+  }
+  try {
+    const value = getQrCodeValue(previewLabel.value)
+    const size = template.value === 'small' ? 80 : template.value === 'large' ? 100 : 100
+    const url = await QRCode.toDataURL(value, { ...QR_CODE_OPTIONS, width: size })
+    previewQrCodeUrl.value = url
+  } catch (error) {
+    console.error('生成二维码失败:', error)
+    previewQrCodeUrl.value = ''
+  }
+}
+
 // 初始化标签编号
-watch(() => props.visible, (val) => {
+watch(() => props.visible, async (val) => {
   if (val && props.record) {
     // 生成标签编号列表
     const labels = []
@@ -238,6 +296,10 @@ watch(() => props.visible, (val) => {
     selectedLabels.value = []
     printMode.value = 'single'
     printCount.value = 1
+
+    // 生成预览二维码
+    await nextTick()
+    generatePreviewQrCode()
   }
 }, { immediate: true })
 
@@ -259,18 +321,63 @@ const handleClose = () => {
 const handlePrint = async () => {
   loading.value = true
   try {
-    if (printMode.value === 'single' && !previewLabel.value) {
-      ElMessage.warning('请选择要打印的标签')
-      return
+    let labelsToPrint = []
+
+    if (printMode.value === 'single') {
+      if (!previewLabel.value) {
+        ElMessage.warning('请选择要打印的标签')
+        return
+      }
+      labelsToPrint = [previewLabel.value]
+    } else if (printMode.value === 'multi') {
+      if (selectedLabels.value.length === 0) {
+        ElMessage.warning('请选择要打印的标签')
+        return
+      }
+      labelsToPrint = [...selectedLabels.value]
+    } else {
+      // 批量生成模式
+      const startIdx = allLabelNumbers.value.length
+      for (let i = 0; i < printCount.value; i++) {
+        labelsToPrint.push(`${props.record.seedlingCode}-${String(startIdx + i + 1).padStart(4, '0')}`)
+      }
+      // 刷新标签列表
+      const totalCount = allLabelNumbers.value.length + printCount.value
+      const refreshed = []
+      const maxShow = Math.min(totalCount, 100)
+      for (let i = 0; i < maxShow; i++) {
+        refreshed.push(`${props.record.seedlingCode}-${String(i + 1).padStart(4, '0')}`)
+      }
+      allLabelNumbers.value = refreshed
     }
-    if (printMode.value === 'multi' && selectedLabels.value.length === 0) {
-      ElMessage.warning('请选择要打印的标签')
+
+    if (labelsToPrint.length === 0) {
+      ElMessage.warning('没有可打印的标签')
       return
     }
 
-    // TODO: 调用实际的打印服务
-    ElMessage.success('打印任务已发送')
-    handleClose()
+    // 生成所有标签的二维码
+    const items = []
+    for (const label of labelsToPrint) {
+      const value = getQrCodeValue(label)
+      const qrCodeUrl = await QRCode.toDataURL(value, QR_CODE_OPTIONS)
+      items.push({ label, qrCodeUrl })
+    }
+    printItems.value = items
+    showPrintContainer.value = true
+
+    // 等待 DOM 更新后触发打印
+    await nextTick()
+    setTimeout(() => {
+      window.print()
+      showPrintContainer.value = false
+      printItems.value = []
+      ElMessage.success('打印任务已发送')
+      handleClose()
+    }, 200)
+  } catch (error) {
+    console.error('打印失败:', error)
+    ElMessage.error('打印失败')
   } finally {
     loading.value = false
   }
@@ -366,3 +473,43 @@ const handleExportExcel = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* 打印样式 */
+@media print {
+  @page {
+    margin: 10mm;
+  }
+
+  /* 隐藏非打印内容 */
+  body * {
+    visibility: hidden;
+  }
+
+  /* 只显示打印容器 */
+  .print-container,
+  .print-container * {
+    visibility: visible;
+  }
+
+  .print-container {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    align-content: flex-start;
+    gap: 16px;
+    padding: 20px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .print-label-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    text-align: center;
+  }
+}
+</style>

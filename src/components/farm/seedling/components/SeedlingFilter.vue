@@ -81,11 +81,11 @@
       <!-- 按钮行 -->
       <div class="flex gap-2">
         <el-button @click="handleReset">
-          <el-icon style="color: inherit;"><Refresh /></el-icon>
+          <el-icon><Refresh /></el-icon>
           重置
         </el-button>
         <el-button type="primary" @click="handleSearch">
-          <el-icon style="color: inherit;"><Search /></el-icon>
+          <el-icon><Search /></el-icon>
           搜索
         </el-button>
       </div>

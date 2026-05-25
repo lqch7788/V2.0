@@ -13,7 +13,7 @@
         </div>
         <div>
           <p class="text-xl font-bold text-gray-900">{{ stat.value }}</p>
-          <p class="text-sm text-gray-500">{{ stat.label }}</p>
+          <p class="text-xs text-gray-500">{{ stat.label }}</p>
         </div>
       </div>
     </div>

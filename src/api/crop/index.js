@@ -29,7 +29,7 @@ export function deleteSeedSource(id) {
 
 // 批量删除种源
 export function deleteSeedSources(ids) {
-  return del('/seed-sources/batch', { ids })
+  return del(`/seed-sources/batch?ids=${ids.join(',')}`)
 }
 
 // 检查种源是否可删除
@@ -114,6 +114,43 @@ export function increasePlantedCount(id, count) {
   return put(`/seedlings/${id}/increase-planted`, { count })
 }
 
+// ========== 标签管理 API ==========
+
+// 获取标签列表
+export function getPlantLabelList(params) {
+  return get('/plant-labels', params)
+}
+
+// 获取标签详情
+export function getPlantLabelDetail(id) {
+  return get(`/plant-labels/${id}`)
+}
+
+// 获取标签履历
+export function getPlantLabelResumes(labelId) {
+  return get(`/plant-labels/${labelId}/resumes`)
+}
+
+// 批量生成标签
+export function generateBatchLabels(data) {
+  return post('/plant-labels/generate-batch', data)
+}
+
+// 新增标签履历（移入/移出/标记）
+export function addPlantLabelResume(labelId, data) {
+  return post(`/plant-labels/${labelId}/resumes`, data)
+}
+
+// 分配标记给标签
+export function assignLabelMark(markId, labelIds) {
+  return post('/plant-labels/marks/assign', { mark_id: markId, label_ids: labelIds })
+}
+
+// 获取所有标记
+export function getAllMarks() {
+  return get('/plant-labels/marks/all')
+}
+
 // 导出 API
 export const cropApi = {
   // 种源管理
@@ -139,7 +176,15 @@ export const cropApi = {
   addDailyRecord,
   updateDailyRecord,
   deleteDailyRecord,
-  increasePlantedCount
+  increasePlantedCount,
+  // 标签管理
+  getPlantLabelList,
+  getPlantLabelDetail,
+  getPlantLabelResumes,
+  generateBatchLabels,
+  addPlantLabelResume,
+  assignLabelMark,
+  getAllMarks
 }
 
 export default cropApi

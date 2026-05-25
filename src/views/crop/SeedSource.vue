@@ -356,17 +356,33 @@ const handleDelete = async (ids) => {
 // 操作模式变更
 const handleOperationModeChange = (mode) => {
   operationMode.value = mode
+
+  // 导出模式
+  if (mode === 'export') {
+    exportMode.value = true
+    selectedRows.value = []
+    return
+  }
+
+  // 取消导出模式
   if (mode !== 'export') {
     exportMode.value = false
   }
+
+  // 批量编辑模式：多选时打开批量编辑弹窗
   if (mode === 'edit' && selectedRows.value.length > 1) {
-    // 批量编辑模式：多选时打开批量编辑弹窗
     batchEditModalVisible.value = true
     operationMode.value = 'normal'
+    selectedRows.value = []
+    return
   }
-  if (mode !== 'edit' && mode !== 'delete') {
-    // 只在非编辑/删除模式时清空选择
+
+  // 编辑/删除模式不清空选择
+  if (mode === 'edit' || mode === 'delete') {
+    return
   }
+
+  // 其他模式清空选择
   selectedRows.value = []
 }
 
@@ -532,12 +548,32 @@ const handleExportClickConfirm = () => {
   showExportModal.value = true
 }
 
+// 种源类型中英文映射
+const sourceTypeMap = {
+  'seed': '种子',
+  'seedling': '种苗/实生苗',
+  'cutting': '扦插苗',
+  'grafting': '嫁接苗',
+  'tissue_culture': '组培苗',
+  'split': '分株苗',
+  'bulb': '种球/球根',
+  'other': '其他'
+}
+
+// 来源途径中英文映射
+const sourceOriginMap = {
+  'external_purchase': '外部采购',
+  'self_produced': '自产',
+  'other': '其他'
+}
+
 const handleConfirmExport = () => {
   const selectedData = filteredData.value.filter(item => selectedRows.value.includes(item.id))
-  const headers = ['种源批号', '种源类型', '作物类别', '作物品种', '供应商', '采购日期', '采购数量', '单位', '单价(元)', '总金额(元)', '初始数量', '可用数量', '库存状态', '创建人', '创建时间', '备注']
+  const headers = ['种源批号', '种源类型', '来源途径', '作物类别', '作物品种', '供应商', '采购日期', '采购数量', '单位', '单价(元)', '总金额(元)', '初始数量', '可用数量', '库存状态', '创建人', '创建时间', '备注']
   const exportData = selectedData.map(record => ({
     '种源批号': record.seedCode,
-    '种源类型': record.sourceType,
+    '种源类型': sourceTypeMap[record.sourceType] || record.sourceType || '',
+    '来源途径': sourceOriginMap[record.sourceOrigin] || record.sourceOrigin || '',
     '作物类别': record.cropCategory,
     '作物品种': record.cropVariety,
     '供应商': record.supplierName,

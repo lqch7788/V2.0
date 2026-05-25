@@ -3,11 +3,11 @@
   <div v-if="visible" class="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center">
     <div class="bg-white rounded-xl w-full max-w-6xl shadow-xl max-h-[85vh] flex flex-col">
       <!-- 标题栏 -->
-      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-t-xl flex-shrink-0">
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl flex-shrink-0">
         <h3 class="text-lg font-semibold text-white">
           育苗标签管理 - {{ seedlingCode }}
         </h3>
-        <el-button circle text @click="handleClose" class="!text-white hover:!bg-emerald-700">
+        <el-button circle text @click="handleClose" class="!text-white hover:!bg-white/20">
           <el-icon :size="20"><Close /></el-icon>
         </el-button>
       </div>
@@ -48,11 +48,10 @@
         <div class="w-2/5 border-r border-gray-200 overflow-y-auto">
           <el-table
             :data="paginatedLabels"
-            :loading="labelsLoading"
-            highlight-current-row
+            :loading="plantLabelStore.labelsLoading"
             @row-click="handleSelectLabel"
             :header-cell-style="{ background: '#f5f5f5', color: '#333', fontWeight: '600' }"
-            stripe
+            :row-class-name="getRowClassName"
             class="cursor-pointer"
           >
             <el-table-column prop="label_number" label="标签编号" min-width="120">
@@ -90,7 +89,7 @@
             <el-icon :size="48" class="mb-3 text-gray-300"><PriceTag /></el-icon>
             <p>请在左侧选择一个标签查看履历</p>
           </div>
-          <div v-else-if="resumeLoading" class="flex items-center justify-center py-12">
+          <div v-else-if="plantLabelStore.resumeLoading" class="flex items-center justify-center py-12">
             <el-icon class="is-loading text-emerald-500" :size="32"><Loading /></el-icon>
           </div>
           <div v-else class="space-y-3">
@@ -144,6 +143,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Close, Search, Download, PriceTag, Loading } from '@element-plus/icons-vue'
+import { usePlantLabelStore } from '@/stores'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   visible: Boolean,
@@ -153,19 +154,18 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible'])
 
+// 引入 Store
+const plantLabelStore = usePlantLabelStore()
+
 const searchText = ref('')
 const labelPage = ref(1)
 const selectedLabelId = ref(null)
-const labelsLoading = ref(false)
-const resumeLoading = ref(false)
-const labels = ref([])
-const resumeMap = ref({})
 
 const PAGE_SIZE = 20
 
-// 筛选与该育苗相关的标签
+// 筛选与该育苗相关的标签（使用 store 中的数据）
 const filteredLabels = computed(() => {
-  let result = labels.value.filter(l => String(l.seedling_id) === String(props.seedlingId))
+  let result = plantLabelStore.labels.filter(l => String(l.seedling_id) === String(props.seedlingId))
   if (searchText.value) {
     result = result.filter(l =>
       l.label_number.toLowerCase().includes(searchText.value.toLowerCase())
@@ -185,37 +185,15 @@ const totalPages = computed(() => Math.max(1, Math.ceil(filteredLabels.value.len
 // 选中标签的履历
 const selectedResumes = computed(() => {
   if (selectedLabelId.value === null) return []
-  return resumeMap.value[selectedLabelId.value] || []
+  return plantLabelStore.resumeMap[selectedLabelId.value] || []
 })
-
-// 加载标签数据
-const loadLabels = async () => {
-  labelsLoading.value = true
-  try {
-    // 使用 mock 数据
-    labels.value = getMockLabels()
-  } catch (error) {
-    console.error('获取标签数据失败:', error)
-  } finally {
-    labelsLoading.value = false
-  }
-}
-
-// 加载履历
-const loadResumes = async (labelId) => {
-  resumeLoading.value = true
-  try {
-    resumeMap.value[labelId] = getMockResumes()
-  } catch (error) {
-    console.error('获取履历数据失败:', error)
-  } finally {
-    resumeLoading.value = false
-  }
-}
 
 // 获取操作类型名称
 const getOperationTypeName = (type) => {
   const map = {
+    'move_in': '移入',
+    'move_out': '移出',
+    'mark': '标记',
     'seedling_in': '育苗入场',
     'transplant': '定植',
     'batch_change': '批次变更',
@@ -224,10 +202,24 @@ const getOperationTypeName = (type) => {
   return map[type] || type || '未知操作'
 }
 
-// 选择标签
-const handleSelectLabel = (row) => {
+// 加载标签数据
+const loadLabels = async () => {
+  try {
+    await plantLabelStore.loadLabels({ seedling_id: props.seedlingId })
+  } catch (error) {
+    console.error('获取标签数据失败:', error)
+  }
+}
+
+// 选择标签时加载履历
+const handleSelectLabel = async (row) => {
   selectedLabelId.value = row.id
-  loadResumes(row.id)
+  await plantLabelStore.loadResumesForLabels([row.id])
+}
+
+// 获取表格行类名（选中高亮）
+const getRowClassName = ({ row }) => {
+  return selectedLabelId.value === row.id ? 'bg-emerald-50 border-l-2 border-l-emerald-500' : ''
 }
 
 // 搜索
@@ -284,51 +276,4 @@ watch(() => props.visible, (val) => {
     labelPage.value = 1
   }
 })
-
-// Mock数据
-function getMockLabels() {
-  return [
-    {
-      id: 1,
-      seedling_id: props.seedlingId,
-      label_number: 'LAB20260301001',
-      move_in_area_name: '1号大棚-A区',
-      move_in_date: '2026-03-01',
-      move_out_area_name: '',
-      move_out_date: '',
-      create_time: '2026-03-01 08:00:00'
-    },
-    {
-      id: 2,
-      seedling_id: props.seedlingId,
-      label_number: 'LAB20260301002',
-      move_in_area_name: '1号大棚-A区',
-      move_in_date: '2026-03-01',
-      move_out_area_name: '2号大棚-B区',
-      move_out_date: '2026-03-15',
-      create_time: '2026-03-01 08:05:00'
-    }
-  ]
-}
-
-function getMockResumes() {
-  return [
-    {
-      id: 1,
-      operation_type: 'seedling_in',
-      from_area_name: '',
-      to_area_name: '1号大棚-A区',
-      operation_date: '2026-03-01 08:00:00',
-      operator_name: '管理员'
-    },
-    {
-      id: 2,
-      operation_type: 'transplant',
-      from_area_name: '1号大棚-A区',
-      to_area_name: '2号大棚-B区',
-      operation_date: '2026-03-15 10:30:00',
-      operator_name: '操作员A'
-    }
-  ]
-}
 </script>
