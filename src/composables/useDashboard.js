@@ -6,6 +6,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useFarmTaskStore } from '@/stores'
 import { useIotStore } from '@/stores/modules/iot'
 import { useSummaryStore } from '@/stores'
+import { yieldStats, costAnalysis } from '@/data/farmData'
 
 export function useDashboard() {
   // ==================== Pinia Store 数据 ====================
@@ -25,7 +26,7 @@ export function useDashboard() {
   // ==================== 状态定义 ====================
   const activeTab = ref('overview')
   const greenhousePage = ref(1)
-  const greenhousePageSize = ref(10)
+  const greenhousePageSize = ref(5)
   const selectedRegion = ref('')
   const isDetailModalOpen = ref(false)
   const selectedGreenhouse = ref(null)
@@ -43,6 +44,25 @@ export function useDashboard() {
   const costPeriod = ref('month')
   const costCrop = ref('')
   const costAreaType = ref('')
+
+  // 筛选后的月度产量统计（与V1.1 useMemo逻辑一致）
+  const filteredYieldStats = computed(() =>
+    yieldStats.filter(stat => {
+      const regionMatch = !yieldRegion.value || stat.region === yieldRegion.value
+      const cropMatch = !yieldCrop.value || stat.crop === yieldCrop.value
+      return regionMatch && cropMatch
+    })
+  )
+
+  // 筛选后的成本构成分析（与V1.1 useMemo逻辑一致）
+  const filteredCostAnalysis = computed(() =>
+    costAnalysis.filter(cost => {
+      const periodMatch = !costPeriod.value || cost.period === costPeriod.value
+      const cropMatch = !costCrop.value || cost.crop === costCrop.value
+      const areaMatch = !costAreaType.value || cost.areaType === costAreaType.value
+      return periodMatch && cropMatch && areaMatch
+    })
+  )
 
   // ==================== useMemo 计算 ====================
   // 状态 → 生长阶段映射
@@ -187,6 +207,8 @@ export function useDashboard() {
     totalGreenhousePages,
     paginatedGreenhouseData,
     mappedBatches,
+    filteredYieldStats,
+    filteredCostAnalysis,
 
     // 函数
     handleDetailClick,

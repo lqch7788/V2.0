@@ -219,6 +219,8 @@ const {
   totalGreenhousePages,
   paginatedGreenhouseData,
   mappedBatches,
+  filteredYieldStats,
+  filteredCostAnalysis,
   // 函数
   handleDetailClick,
   getDetailSensorData,
@@ -231,25 +233,6 @@ const showEnvDetailModal = ref(false)
 const selectedEnv = ref(null)
 const showBaseDetailModal = ref(false)
 const showGreenhouseDetailModal = ref(false)
-
-// 产量统计数据（V1.1使用farmData静态数据）
-const filteredYieldStats = ref([
-  { month: '1月', yield: 1200 },
-  { month: '2月', yield: 1500 },
-  { month: '3月', yield: 1800 },
-  { month: '4月', yield: 2200 },
-  { month: '5月', yield: 2600 },
-  { month: '6月', yield: 2400 },
-])
-
-// 成本分析数据（V1.1使用farmData静态数据）
-const filteredCostAnalysis = ref([
-  { name: '人工成本', value: 35 },
-  { name: '肥料成本', value: 25 },
-  { name: '水电成本', value: 15 },
-  { name: '设备折旧', value: 15 },
-  { name: '其他成本', value: 10 },
-])
 
 // 处理温室详情
 const handleGreenhouseDetail = (data) => {

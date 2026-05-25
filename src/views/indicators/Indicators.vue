@@ -180,10 +180,10 @@ const indicatorStore = useIndicatorStore()
 
 // ========== 标签页配置 ==========
 const tabs = [
-  { value: 'list', label: '指标列表', icon: 'DataAnalysis' },
-  { value: 'category', label: '分类管理', icon: 'PieChart' },
-  { value: 'analyze', label: '达成分析', icon: 'Odometer' },
-  { value: 'evaluate', label: '考核评价', icon: 'Medal' }
+  { value: 'list', label: '指标列表', icon: DataAnalysis },
+  { value: 'category', label: '分类管理', icon: PieChart },
+  { value: 'analyze', label: '达成分析', icon: Odometer },
+  { value: 'evaluate', label: '考核评价', icon: Medal }
 ]
 
 // ========== 数据 ==========

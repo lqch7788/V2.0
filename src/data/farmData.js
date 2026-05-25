@@ -58,3 +58,24 @@ export const priorityConfig = {
   high: { label: '高', color: '#f97316' },
   urgent: { label: '紧急', color: '#ef4444' }
 }
+
+// 产量统计（与V1.1 farmData.ts 完全一致）
+export const yieldStats = [
+  { month: '1月', yield: 1250, region: 'G001', crop: 'C001' },
+  { month: '2月', yield: 1580, region: 'G001', crop: 'C001' },
+  { month: '3月', yield: 2100, region: 'G002', crop: 'C002' },
+  { month: '4月', yield: 1850, region: 'G002', crop: 'C002' },
+  { month: '5月', yield: 2200, region: 'G003', crop: 'C003' },
+  { month: '6月', yield: 1950, region: 'G004', crop: 'C004' },
+]
+
+// 成本分析（与V1.1 farmData.ts 完全一致）
+export const costAnalysis = [
+  { name: '人工成本', value: 45000, period: 'month', crop: '', areaType: '' },
+  { name: '化肥成本', value: 28000, period: 'month', crop: 'C001', areaType: 'greenhouse' },
+  { name: '农药成本', value: 15000, period: 'month', crop: 'C002', areaType: 'greenhouse' },
+  { name: '种子种苗', value: 22000, period: 'quarter', crop: '', areaType: '' },
+  { name: '基质农膜', value: 18000, period: 'quarter', crop: 'C001', areaType: 'field' },
+  { name: '能源成本', value: 15000, period: 'year', crop: '', areaType: '' },
+  { name: '其他成本', value: 13800, period: 'month', crop: 'C003', areaType: 'field' },
+]
