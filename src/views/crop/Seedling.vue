@@ -153,6 +153,7 @@ import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 import { useSeedlingStore } from '@/stores/modules/seedling'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import * as cropBatchService from '@/services/apiCropBatchService'
+import * as cropVarietyService from '@/services/cropVarietyService'
 
 // 权限检查 - 已取消，所有人可使用所有功能
 const canCreate = true
@@ -185,6 +186,12 @@ const cropNames = computed(() => {
   // 按名称排序
   uniqueCrops.sort((a, b) => a.label.localeCompare(b.label, 'zh-CN'))
   return uniqueCrops
+})
+
+// 作物品种选项（从品种库服务获取，供弹窗使用）
+const cropVarietyOptions = computed(() => {
+  cropVarietyService.initVarieties()
+  return cropVarietyService.getVarietyOptions()
 })
 
 // 筛选条件（支持更多筛选字段）
@@ -692,7 +699,7 @@ const handleConfirmExport = async () => {
 onMounted(async () => {
   // 加载育苗数据
   await loadItems()
-  // 加载种源数据
+  // 加载种源数据（用于新增弹窗的关联种源选择）
   await loadSeedSources()
 })
 </script>

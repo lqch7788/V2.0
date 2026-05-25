@@ -207,7 +207,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { View, Close, Clock } from '@element-plus/icons-vue'
-import TraceChain from '../trace/TraceChain.vue'
+import TraceChain from '../../trace/TraceChain.vue'
 
 const props = defineProps({
   isOpen: Boolean,

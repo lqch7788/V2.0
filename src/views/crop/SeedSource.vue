@@ -289,13 +289,22 @@ const handleSearch = () => {
 
 const handleReset = () => {
   filters.value = {
+    cropCategory: '',
     cropName: '',
     seedCode: '',
     sourceType: '',
     supplierName: '',
-    status: '',
     startDate: '',
-    endDate: ''
+    endDate: '',
+    status: '',
+    createBy: '',
+    cropType: '',
+    orgId: '',
+    recorderId: '',
+    surplusMin: undefined,
+    surplusMax: undefined,
+    propagationType: undefined,
+    propagationStatus: undefined
   }
   pagination.value.current = 1
 }

@@ -92,7 +92,7 @@
               />
             </div>
 
-            <!-- 作物品种 - 使用 CropCodeSelector 选择器 -->
+            <!-- 作物品种 - 使用 CropCodeSelector 选择器（与V1.1一致） -->
             <div class="col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">作物品种 <span class="text-red-500">*</span></label>
               <CropCodeSelector
@@ -102,7 +102,7 @@
                 show-full-path
                 @change="handleCropChange"
               />
-              <!-- 显示选中作物的详细信息 -->
+              <!-- 显示选中作物的详细信息（与V1.1一致） -->
               <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
                 <div class="text-emerald-700 flex items-center gap-1">
                   <el-icon class="w-3 h-3 flex-shrink-0"><Leaf /></el-icon>

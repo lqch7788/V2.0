@@ -121,22 +121,34 @@
                 <el-input v-model="formData.auditor" placeholder="请输入审核人员" />
               </div>
 
-              <!-- 单价 -->
-              <div>
-                <label class="block text-sm font-medium text-gray-900 mb-1">
-                  单价 (元/kg) <span class="text-xs text-gray-400">(可选)</span>
-                </label>
-                <el-input-number
-                  v-model="formData.unitPrice"
-                  :min="0"
-                  :precision="2"
-                  class="w-full"
-                  placeholder="输入单价自动计算收入"
-                />
-                <p v-if="formData.unitPrice > 0" class="text-xs text-emerald-600 mt-1">
-                  预计收入: {{ calculatedAmount }} 元
-                </p>
+              <!-- 单价和单位（同一行，V1.1布局） -->
+              <div class="flex gap-2">
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-900 mb-1">
+                    单价 (元) <span class="text-xs text-gray-400">(可选)</span>
+                  </label>
+                  <el-input-number
+                    v-model="formData.unitPrice"
+                    :min="0"
+                    :precision="2"
+                    class="w-full"
+                    placeholder="输入单价"
+                  />
+                </div>
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-900 mb-1">单位</label>
+                  <el-select v-model="formData.unit" class="w-full" placeholder="选择单位">
+                    <el-option label="公斤" value="公斤" />
+                    <el-option label="千克" value="千克" />
+                    <el-option label="斤" value="斤" />
+                    <el-option label="吨" value="吨" />
+                  </el-select>
+                </div>
               </div>
+            </div>
+            <!-- 预计收入提示（V1.1逻辑） -->
+            <div v-if="formData.products.length > 0 && formData.products.some(p => p.harvestQuantity > 0)" class="text-sm text-emerald-600 font-medium">
+              预计收入: {{ calculatedAmount }} 元
             </div>
 
             <!-- P0 新增字段：采收类型、目标库存、是否补录 -->
@@ -144,7 +156,7 @@
               <!-- 采收类型 -->
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-1">采收类型</label>
-                <el-select v-model="formData.harvestType" class="w-full" placeholder="请选择采收类型">
+                <el-select v-model="formData.harvestType" class="w-full" placeholder="请选择采收类型" @change="handleHarvestTypeChange">
                   <el-option label="种子采收" value="seed" />
                   <el-option label="种苗采收" value="seedling" />
                   <el-option label="成品采收" value="product" />
@@ -374,20 +386,23 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'save', 'generate-code'])
 
-// 表单数据
+// 表单数据 - 与V1.1 AddModal.tsx的addForm完全一致
 const formData = ref({
   harvestCode: '',
   batchCode: '',
   greenhouseId: '',
   harvestDate: new Date().toISOString().slice(0, 16).replace('T', ' '),
   warehouseId: '',
+  // V1.1 采收人员同时有ids和names两个字段
   harvesterIds: [],
+  harvesterNames: [],  // V1.1有harvesterNames字段
   auditor: localStorage.getItem('username') || '管理员',
   remarks: '',
   inboundType: 'planting_harvest',
   unitPrice: 0,
+  unit: '公斤',  // V1.1有unit字段
   products: [],
-  // P0 补录字段
+  // P0 补录字段 - V1.1完整字段
   harvestType: 'product', // 采收类型：seed/seedling/product
   targetInventory: 'product', // 目标库存：seed/seedling/product
   isSupplementary: false, // 是否补录
@@ -437,7 +452,7 @@ watch(() => props.isOpen, (val) => {
   }
 })
 
-// 初始化表单
+// 初始化表单 - 与V1.1 initForm逻辑完全一致
 const initForm = () => {
   formData.value = {
     harvestCode: '',
@@ -446,11 +461,18 @@ const initForm = () => {
     harvestDate: new Date().toISOString().slice(0, 16).replace('T', ' '),
     warehouseId: '',
     harvesterIds: [],
+    harvesterNames: [],  // V1.1有harvesterNames字段
     auditor: localStorage.getItem('username') || '管理员',
     remarks: '',
     inboundType: 'planting_harvest',
     unitPrice: 0,
-    products: []
+    unit: '公斤',  // V1.1有unit字段，默认公斤
+    products: [],
+    // V1.1 补录字段
+    harvestType: 'product',
+    targetInventory: 'product',
+    isSupplementary: false,
+    supplementaryReason: ''
   }
   errors.value = {}
 }
@@ -459,6 +481,20 @@ const initForm = () => {
 const handleInboundTypeChange = () => {
   formData.value.batchCode = ''
 }
+
+// 采收类型变化 - 联动更新目标库存（V1.1逻辑）
+const handleHarvestTypeChange = (val) => {
+  formData.value.harvestType = val
+  // V1.1: 联动更新目标库存
+  formData.value.targetInventory = val
+}
+
+// 监听harvesterIds变化，同步更新harvesterNames（V1.1逻辑）
+watch(() => formData.value.harvesterIds, (newIds) => {
+  formData.value.harvesterNames = props.users
+    .filter(u => newIds.includes(u.id))
+    .map(u => u.name)
+})
 
 // 批次变化
 const handleBatchChange = () => {
@@ -478,11 +514,12 @@ const handleGenerateCode = () => {
 const handleAddProduct = () => {
   formData.value.products.push({
     productCode: '',          // 作物编码
-    variety: selectedBatch.value?.cropName || '',  // 作物品种（最细化名）
-    cropName: selectedBatch.value?.variety || '',   // 品种（类型名）
+    // V1.1: cropName是品种（类型名，如"黄瓜"），variety是作物品种（最细化名，如"水果黄瓜"）
+    cropName: selectedBatch.value?.cropName || '',   // 品种（类型名）
+    variety: selectedBatch.value?.variety || '',     // 作物品种（最细化名）
     plantingMode: selectedBatch.value?.plantingMode || '',
     harvestQuantity: 0,
-    unit: 'kg',              // 单位（V1.1默认公斤）
+    unit: formData.value.unit || '公斤',  // 单位（V1.1默认公斤）
     targetYield: selectedBatch.value?.targetYield || 0,
     grade: 'A',
     auditor: formData.value.auditor,
@@ -531,15 +568,15 @@ const handleSave = () => {
 
   const totalQuantity = formData.value.products.reduce((sum, p) => sum + (p.harvestQuantity || 0), 0)
 
+  // V1.1: harvesterNames已经通过watch同步更新，直接使用formData中的值
   const record = {
     ...formData.value,
     harvestQuantity: totalQuantity,
-    harvesterNames: props.users.filter(u => formData.value.harvesterIds.includes(u.id)).map(u => u.name),
     cropName: selectedBatch.value?.cropName || '',
     variety: selectedBatch.value?.variety || '',
     plantingMode: selectedBatch.value?.plantingMode || '',
     targetYield: selectedBatch.value?.targetYield || 0,
-    unit: 'kg',
+    unit: formData.value.unit || '公斤',  // 使用formData中的unit字段
     totalAmount: totalQuantity * formData.value.unitPrice,
     status: 'harvested'
   }

@@ -64,10 +64,10 @@
             <el-input v-model="formData.cropVariety" placeholder="选择来源后自动填充" disabled />
           </div>
 
-          <!-- 种植区域 -->
+          <!-- 种植区域 - V1.1使用areaId(字典编码)而非areaName -->
           <div>
             <label class="block text-gray-700 text-sm mb-2 font-medium">种植区域 *</label>
-            <el-select v-model="formData.areaName" placeholder="请选择" class="w-full">
+            <el-select v-model="formData.areaId" placeholder="请选择" class="w-full" @change="handleAreaChange">
               <el-option v-for="a in areaOptions" :key="a.value" :label="a.label" :value="a.value" />
             </el-select>
           </div>
@@ -193,14 +193,16 @@ const emit = defineEmits(['close', 'submit'])
 // 生产计划 Store
 const productionPlanStore = useProductionPlanStore()
 
-// 表单数据 - 与V1.1 AddModal一致
+// 表单数据 - 与V1.1 AddModal完全一致
 const formData = ref({
   sourceType: 'seedling',  // 来源类型：seed-种源, seedling-种苗
   sourceId: '',            // 来源ID
   sourceCode: '',          // 来源批号
   cropName: '',
   cropVariety: '',
-  areaName: '',
+  areaId: '',              // 种植区域ID（字典编码）- V1.1使用areaId
+  areaName: '',            // 种植区域显示名
+  rootName: '',            // 大棚/父级区域名
   plantingCount: 0,
   plantingDate: new Date().toISOString().slice(0, 10),
   soilPH: 6.5,            // V1.1默认值
@@ -293,7 +295,7 @@ const handleSourceChange = (sourceId) => {
       formData.value.cropVariety = source.cropVariety
     }
   } else {
-    // 育苗
+    // 育苗 - V1.1逻辑：育苗关联的种源有instanceId
     const seedling = seedlings.value.find(s => s.id === sourceId)
     if (seedling) {
       formData.value.sourceId = sourceId
@@ -301,6 +303,16 @@ const handleSourceChange = (sourceId) => {
       formData.value.cropName = seedling.cropName
       formData.value.cropVariety = seedling.cropVariety
     }
+  }
+}
+
+// 处理区域选择变化 - V1.1逻辑
+const handleAreaChange = (areaId) => {
+  const area = props.areaOptions.find(a => a.value === areaId)
+  if (area) {
+    formData.value.areaId = areaId
+    formData.value.areaName = area.label || ''
+    formData.value.rootName = area.parent || ''  // V1.1有parent字段
   }
 }
 
@@ -345,14 +357,16 @@ const removePicture = (index) => {
 // 监听打开状态，重置表单
 watch(() => props.isOpen, async (val) => {
   if (val) {
-    // 重置表单
+    // 重置表单 - V1.1完全一致
     formData.value = {
       sourceType: 'seedling',
       sourceId: '',
       sourceCode: '',
       cropName: '',
       cropVariety: '',
+      areaId: '',
       areaName: '',
+      rootName: '',
       plantingCount: 0,
       plantingDate: new Date().toISOString().slice(0, 10),
       soilPH: 6.5,
@@ -384,7 +398,7 @@ const handleSubmit = async () => {
     ElMessage.warning('请选择作物品种')
     return
   }
-  if (!formData.value.areaName) {
+  if (!formData.value.areaId) {
     ElMessage.warning('请选择种植区域')
     return
   }
@@ -408,8 +422,9 @@ const handleSubmit = async () => {
     // 生成作物编码
     const cropCode = `${formData.value.cropName.substring(0, 2)}${Date.now().toString().slice(-6)}`
 
-    // 获取区域信息
-    const area = props.areaOptions.find(a => a.value === formData.value.areaName)
+    // 获取区域信息 - V1.1使用areaId(字典编码)查找
+    const area = props.areaOptions.find(a => a.value === formData.value.areaId)
+    const areaName = area?.label || ''
     const rootName = area?.parent || ''
 
     const submitData = {
@@ -420,9 +435,9 @@ const handleSubmit = async () => {
       cropName: formData.value.cropName,
       cropVariety: formData.value.cropVariety,
       cropCode,
-      areaId: formData.value.areaName,
-      areaName: formData.value.areaName,
-      rootName,
+      areaId: formData.value.areaId,  // 使用字典编码
+      areaName: areaName,
+      rootName: rootName,
       plantingCount: formData.value.plantingCount,
       plantingDate: formData.value.plantingDate,
       soilPH: formData.value.soilPH,

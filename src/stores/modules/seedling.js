@@ -17,7 +17,20 @@ export const useSeedlingStore = defineStore('seedling', () => {
     siteName: '',
     seedlingType: '',
     createBy: '',
-    status: ''
+    status: '',
+    // 更多筛选条件
+    initialCountMin: undefined,
+    initialCountMax: undefined,
+    survivalCountMin: undefined,
+    survivalCountMax: undefined,
+    lossCountMin: undefined,
+    lossCountMax: undefined,
+    surplusMin: undefined,
+    surplusMax: undefined,
+    survivalRateMin: undefined,
+    survivalRateMax: undefined,
+    lossRateMin: undefined,
+    lossRateMax: undefined
   })
 
   // 字段映射函数：将后端返回的snake_case字段转换为前端需要的camelCase
@@ -233,7 +246,20 @@ export const useSeedlingStore = defineStore('seedling', () => {
       siteName: '',
       seedlingType: '',
       createBy: '',
-      status: ''
+      status: '',
+      // 更多筛选条件
+      initialCountMin: undefined,
+      initialCountMax: undefined,
+      survivalCountMin: undefined,
+      survivalCountMax: undefined,
+      lossCountMin: undefined,
+      lossCountMax: undefined,
+      surplusMin: undefined,
+      surplusMax: undefined,
+      survivalRateMin: undefined,
+      survivalRateMax: undefined,
+      lossRateMin: undefined,
+      lossRateMax: undefined
     }
   }
 

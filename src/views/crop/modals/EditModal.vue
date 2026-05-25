@@ -88,10 +88,43 @@
               />
             </div>
 
-            <!-- 作物品种 -->
+            <!-- 作物品种 - 搜索下拉选择（与V1.1一致） -->
             <div class="col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">作物品种 <span class="text-red-500">*</span></label>
-              <el-input v-model="form.cropVariety" placeholder="请输入作物品种" />
+              <div class="relative">
+                <div class="relative">
+                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+                  <el-input
+                    v-model="searchKeyword"
+                    placeholder="搜索作物品种..."
+                    :class="errors.cropVariety ? 'border-red-500' : ''"
+                    class="pl-10"
+                    @focus="showDropdown = true"
+                  />
+                  <button
+                    v-if="searchKeyword"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    @click.stop="clearSearch"
+                  >
+                    <X class="w-4 h-4" />
+                  </button>
+                </div>
+                <!-- 下拉选择列表 -->
+                <div
+                  v-if="showDropdown && filteredVarieties.length > 0"
+                  class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                >
+                  <div
+                    v-for="(variety, index) in filteredVarieties"
+                    :key="`${variety.value}-${index}`"
+                    class="px-3 py-2 hover:bg-emerald-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    @click="handleSelectVariety(variety)"
+                  >
+                    <div class="text-sm font-medium text-gray-900">{{ variety.label }}</div>
+                    <div class="text-xs text-gray-500 truncate">{{ variety.fullPath }}</div>
+                  </div>
+                </div>
+              </div>
               <p v-if="errors.cropVariety" class="text-xs text-red-500 mt-1">{{ errors.cropVariety }}</p>
             </div>
 
@@ -173,11 +206,13 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { Edit, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
+import { Search, X } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
+import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -219,6 +254,56 @@ const form = ref({
 // 错误信息
 const errors = ref({})
 
+// 搜索相关状态（与V1.1一致）
+const searchKeyword = ref('')
+const showDropdown = ref(false)
+
+// 初始化品种数据
+initVarieties()
+const varietyOptions = computed(() => getVarietyOptions())
+
+// 过滤品种选项
+const filteredVarieties = computed(() => {
+  if (!searchKeyword.value.trim()) {
+    return varietyOptions.value.slice(0, 20)
+  }
+  const keyword = searchKeyword.value.toLowerCase()
+  return varietyOptions.value.filter(opt =>
+    opt.label.toLowerCase().includes(keyword) ||
+    opt.fullPath.toLowerCase().includes(keyword) ||
+    opt.varietyCode.toLowerCase().includes(keyword)
+  ).slice(0, 20)
+})
+
+// 选择品种
+const handleSelectVariety = (variety) => {
+  form.value.cropVariety = variety.label
+  form.value.cropCategory = variety.fullPath
+  searchKeyword.value = variety.label
+  showDropdown.value = false
+  errors.value = { ...errors.value, cropVariety: '' }
+}
+
+// 清除搜索
+const clearSearch = () => {
+  searchKeyword.value = ''
+  form.value.cropVariety = ''
+  form.value.cropCategory = ''
+}
+
+// 监听下拉框显示状态
+watch(showDropdown, (val) => {
+  if (val) {
+    document.addEventListener('click', handleClickOutside)
+  } else {
+    document.removeEventListener('click', handleClickOutside)
+  }
+})
+
+function handleClickOutside() {
+  showDropdown.value = false
+}
+
 // 监听打开和记录变化
 watch(() => props.isOpen, (val) => {
   if (val && props.record) {
@@ -244,6 +329,7 @@ watch(() => props.isOpen, (val) => {
       remarks: props.record.remarks || '',
       isCompleted: props.record.status === CropOrderStatus.COMPLETED
     }
+    searchKeyword.value = props.record.cropVariety || ''
     errors.value = {}
     isMaximized.value = false
   }

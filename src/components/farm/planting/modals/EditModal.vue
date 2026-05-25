@@ -61,10 +61,10 @@
             <el-input v-model="formData.cropVariety" disabled placeholder="选择品种后自动填充" />
           </div>
 
-          <!-- 种植区域 -->
+          <!-- 种植区域 - V1.1使用areaId(字典编码) -->
           <div>
             <label class="block text-gray-700 text-sm mb-2 font-medium">种植区域 *</label>
-            <el-select v-model="formData.areaName" placeholder="请选择" class="w-full">
+            <el-select v-model="formData.areaId" placeholder="请选择" class="w-full">
               <el-option v-for="a in areaOptions" :key="a.value" :label="a.label" :value="a.value" />
             </el-select>
           </div>
@@ -153,7 +153,8 @@ const formData = ref({
   selectedCropCode: '',
   cropName: '',
   cropVariety: '',
-  areaName: '',
+  areaId: '',            // V1.1使用areaId(字典编码)
+  areaName: '',          // 显示名
   plantingCount: 0,
   plantingDate: '',
   attritionRate: 0,
@@ -185,6 +186,7 @@ watch(() => [props.isOpen, props.record], ([val, record]) => {
       selectedCropCode: record.cropCode || '',
       cropName: record.cropName || '',
       cropVariety: record.cropVariety || '',
+      areaId: record.areaId || '',      // V1.1使用areaId
       areaName: record.areaName || '',
       plantingCount: record.plantingCount || 0,
       plantingDate: record.plantingDate || '',
@@ -205,7 +207,7 @@ const handleSubmit = () => {
     ElMessage.warning('请选择作物品种')
     return
   }
-  if (!formData.value.areaName) {
+  if (!formData.value.areaId) {
     ElMessage.warning('请选择种植区域')
     return
   }
@@ -214,6 +216,21 @@ const handleSubmit = () => {
     return
   }
 
-  emit('submit', { ...formData.value })
+  // 构建提交数据 - V1.1一致的结构
+  const submitData = {
+    cropCode: formData.value.selectedCropCode,
+    cropName: formData.value.cropName,
+    cropVariety: formData.value.cropVariety,
+    areaId: formData.value.areaId,
+    areaName: formData.value.areaName,
+    plantingCount: formData.value.plantingCount,
+    plantingDate: formData.value.plantingDate,
+    soilPH: formData.value.soilPH,
+    soilEC: formData.value.soilEC,
+    attritionRate: formData.value.attritionRate,
+    remarks: formData.value.remarks
+  }
+
+  emit('submit', submitData)
 }
 </script>

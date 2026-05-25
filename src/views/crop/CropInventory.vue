@@ -234,6 +234,7 @@
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-20">存储时间</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">预警状态</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作人</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">备注</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
             </tr>
           </thead>
@@ -254,8 +255,8 @@
               >
                 {{ generateCropCode(item.cropName, item.variety) || item.productCode }}
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ item.cropName }}</td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ item.variety }}</td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ item.cropName }}</td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <span :class="getGradeBadgeClass(item.grade)">{{ item.grade }}级</span>
               </td>
@@ -280,6 +281,9 @@
               </td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                 {{ item.inboundRecords && item.inboundRecords.length > 0 ? item.inboundRecords[item.inboundRecords.length - 1].operator : '-' }}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                {{ item.remarks || '-' }}
               </td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <el-button
@@ -566,12 +570,12 @@
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">作物名称</label>
-              <el-input v-model="newInventory.cropName" placeholder="请输入" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">作物名称 <span class="text-red-500">*</span></label>
+              <el-input v-model="newInventory.cropName" placeholder="如：草莓、番茄、黄瓜" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">品种</label>
-              <el-input v-model="newInventory.variety" placeholder="请输入" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">品种 <span class="text-red-500">*</span></label>
+              <el-input v-model="newInventory.variety" placeholder="如：红颜、千禧果" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">品质等级</label>
@@ -582,26 +586,59 @@
               </el-select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">数量</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">品质评定</label>
+              <el-select v-model="newInventory.quality" placeholder="请选择">
+                <el-option label="优秀" value="excellent" />
+                <el-option label="良好" value="good" />
+                <el-option label="一般" value="average" />
+                <el-option label="较差" value="poor" />
+              </el-select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">数量 <span class="text-red-500">*</span></label>
               <el-input v-model.number="newInventory.quantity" placeholder="请输入" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">单位</label>
-              <el-input v-model="newInventory.unit" placeholder="如：kg、个" />
+              <el-select v-model="newInventory.unit" placeholder="请选择">
+                <el-option label="公斤" value="公斤" />
+                <el-option label="kg" value="kg" />
+                <el-option label="个" value="个" />
+                <el-option label="株" value="株" />
+                <el-option label="粒" value="粒" />
+              </el-select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">仓库</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">仓库 <span class="text-red-500">*</span></label>
               <el-select v-model="newInventory.warehouseId" placeholder="请选择">
                 <el-option v-for="w in warehouses" :key="w.id" :label="w.name" :value="w.id" />
               </el-select>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">存放位置</label>
-              <el-input v-model="newInventory.storageLocation" placeholder="如：A-01" />
+              <el-input v-model="newInventory.storageLocation" placeholder="如：A区-01-01" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">入库日期</label>
+              <el-date-picker
+                v-model="newInventory.storageDate"
+                type="date"
+                placeholder="选择日期"
+                style="width: 100%"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">采收日期</label>
+              <el-date-picker
+                v-model="newInventory.harvestDate"
+                type="date"
+                placeholder="选择日期"
+                style="width: 100%"
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">批次号</label>
-              <el-input v-model="newInventory.batchCode" placeholder="请输入" />
+              <el-input v-model="newInventory.batchCode" placeholder="系统自动生成" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">保质期(天)</label>
@@ -623,6 +660,22 @@
                 placeholder="选择日期"
                 style="width: 100%"
               />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">种植区域</label>
+              <el-input v-model="newInventory.greenhouseName" placeholder="如：日光温室1号" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">种植模式</label>
+              <el-input v-model="newInventory.plantingMode" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">操作人</label>
+              <el-input v-model="newInventory.operator" placeholder="默认为系统管理员" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+              <el-input v-model="newInventory.remarks" type="textarea" :rows="2" placeholder="可选填写备注信息" />
             </div>
           </div>
         </div>
@@ -649,12 +702,12 @@
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">作物名称</label>
-              <el-input v-model="editingInventory.cropName" placeholder="请输入" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">作物名称 <span class="text-red-500">*</span></label>
+              <el-input v-model="editingInventory.cropName" placeholder="如：草莓、番茄、黄瓜" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">品种</label>
-              <el-input v-model="editingInventory.variety" placeholder="请输入" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">品种 <span class="text-red-500">*</span></label>
+              <el-input v-model="editingInventory.variety" placeholder="如：红颜、千禧果" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">品质等级</label>
@@ -665,26 +718,59 @@
               </el-select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">数量</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">品质评定</label>
+              <el-select v-model="editingInventory.quality" placeholder="请选择">
+                <el-option label="优秀" value="excellent" />
+                <el-option label="良好" value="good" />
+                <el-option label="一般" value="average" />
+                <el-option label="较差" value="poor" />
+              </el-select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">数量 <span class="text-red-500">*</span></label>
               <el-input v-model.number="editingInventory.quantity" placeholder="请输入" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">单位</label>
-              <el-input v-model="editingInventory.unit" placeholder="如：kg、个" />
+              <el-select v-model="editingInventory.unit" placeholder="请选择">
+                <el-option label="公斤" value="公斤" />
+                <el-option label="kg" value="kg" />
+                <el-option label="个" value="个" />
+                <el-option label="株" value="株" />
+                <el-option label="粒" value="粒" />
+              </el-select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">仓库</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">仓库 <span class="text-red-500">*</span></label>
               <el-select v-model="editingInventory.warehouseId" placeholder="请选择">
                 <el-option v-for="w in warehouses" :key="w.id" :label="w.name" :value="w.id" />
               </el-select>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">存放位置</label>
-              <el-input v-model="editingInventory.storageLocation" placeholder="如：A-01" />
+              <el-input v-model="editingInventory.storageLocation" placeholder="如：A区-01-01" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">入库日期</label>
+              <el-date-picker
+                v-model="editingInventory.storageDate"
+                type="date"
+                placeholder="选择日期"
+                style="width: 100%"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">采收日期</label>
+              <el-date-picker
+                v-model="editingInventory.harvestDate"
+                type="date"
+                placeholder="选择日期"
+                style="width: 100%"
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">批次号</label>
-              <el-input v-model="editingInventory.batchCode" placeholder="请输入" />
+              <el-input v-model="editingInventory.batchCode" placeholder="系统自动生成" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">保质期(天)</label>
@@ -706,6 +792,22 @@
                 placeholder="选择日期"
                 style="width: 100%"
               />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">种植区域</label>
+              <el-input v-model="editingInventory.greenhouseName" placeholder="如：日光温室1号" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">种植模式</label>
+              <el-input v-model="editingInventory.plantingMode" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">操作人</label>
+              <el-input v-model="editingInventory.operator" placeholder="默认为系统管理员" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+              <el-input v-model="editingInventory.remarks" type="textarea" :rows="2" placeholder="可选填写备注信息" />
             </div>
           </div>
         </div>
@@ -744,10 +846,12 @@ const warehouses = ref([
 const produceInventory = {
   id: '',
   instanceId: '',
+  stockType: 'product',
   productCode: '',
   cropName: '',
   variety: '',
   grade: 'A',
+  quality: 'good',
   quantity: 0,
   unit: 'kg',
   warehouseId: '',
@@ -759,6 +863,7 @@ const produceInventory = {
   batchCode: '',
   greenhouseName: '',
   plantingMode: '',
+  remarks: '',
   alertSettings: {
     enableStorageTimeAlert: false,
     storageTimeThreshold: 0,
@@ -783,10 +888,12 @@ function mapApiToLocal(apiData) {
   return {
     id: apiData.instance_id || apiData.id || '',
     instanceId: apiData.instance_id || '',
+    stockType: apiData.stock_type || 'product',
     productCode: apiData.business_id || '',
     cropName: apiData.crop_name || '',
     variety: apiData.variety_name || '',
     grade: apiData.grade || 'A',
+    quality: apiData.quality || 'good',
     quantity: apiData.current_quantity || 0,
     unit: apiData.unit || 'kg',
     warehouseId: apiData.warehouse_id || '',
@@ -798,6 +905,7 @@ function mapApiToLocal(apiData) {
     batchCode: apiData.batch_code || '',
     greenhouseName: apiData.greenhouse_name || '',
     plantingMode: apiData.planting_mode || '',
+    remarks: apiData.remarks || '',
     alertSettings: {
       enableStorageTimeAlert: apiData.alert_settings?.enable_storage_time_alert || false,
       storageTimeThreshold: apiData.alert_settings?.storage_time_threshold || 0,
@@ -850,6 +958,7 @@ const inventoryData = ref([])
 async function loadInventoryData() {
   try {
     const response = await getInventoryList({
+      stock_type: 'product',
       crop_name: filters.cropName || undefined,
       status: filters.status || undefined,
     })
@@ -897,16 +1006,25 @@ const exportFormat = ref('xlsx')
 const editingInventory = reactive({
   id: '',
   instanceId: '',
+  stockType: 'product',
+  productCode: '',
   cropName: '',
   variety: '',
   grade: 'A',
+  quality: 'good',
   quantity: 0,
   unit: 'kg',
   warehouseId: '',
   warehouseName: '',
   storageLocation: '',
+  storageDate: '',
+  harvestDate: '',
   batchCode: '',
   expirationDate: '',
+  greenhouseName: '',
+  plantingMode: '',
+  remarks: '',
+  operator: '',
   alertSettings: {
     expirationDays: 30,
     minStock: 0,
@@ -915,15 +1033,24 @@ const editingInventory = reactive({
 })
 
 const newInventory = reactive({
+  stockType: 'product',
   cropName: '',
   variety: '',
+  productCode: '',
   grade: 'A',
+  quality: 'good',
   quantity: 0,
   unit: 'kg',
   warehouseId: '',
   storageLocation: '',
+  storageDate: new Date().toISOString().split('T')[0],
+  harvestDate: new Date().toISOString().split('T')[0],
   batchCode: '',
   expirationDate: '',
+  greenhouseName: '',
+  plantingMode: '',
+  remarks: '',
+  operator: '系统管理员',
   alertSettings: {
     expirationDays: 30,
     minStock: 0,
@@ -1261,17 +1388,23 @@ async function handleSaveAdd() {
 
   try {
     const apiData = {
-      stock_type: 'product',
+      stock_type: newInventory.stockType || 'product',
       business_type: 'harvest',
       crop_name: newInventory.cropName,
       variety_name: newInventory.variety,
       grade: newInventory.grade,
+      quality: newInventory.quality,
       current_quantity: newInventory.quantity,
       unit: newInventory.unit,
       warehouse_id: newInventory.warehouseId,
       storage_location: newInventory.storageLocation,
+      inbound_date: newInventory.storageDate,
+      harvest_date: newInventory.harvestDate,
       batch_code: newInventory.batchCode,
       expiration_date: newInventory.expirationDate,
+      greenhouse_name: newInventory.greenhouseName,
+      planting_mode: newInventory.plantingMode,
+      remarks: newInventory.remarks,
       alert_settings: {
         expiration_days: newInventory.alertSettings.expirationDays || 0,
         min_stock: newInventory.alertSettings.minStock || 0,
@@ -1284,15 +1417,24 @@ async function handleSaveAdd() {
 
     // 关闭弹窗并重置表单
     showAddModal.value = false
+    newInventory.stockType = 'product'
     newInventory.cropName = ''
     newInventory.variety = ''
+    newInventory.productCode = ''
     newInventory.grade = 'A'
+    newInventory.quality = 'good'
     newInventory.quantity = 0
     newInventory.unit = 'kg'
     newInventory.warehouseId = ''
     newInventory.storageLocation = ''
+    newInventory.storageDate = new Date().toISOString().split('T')[0]
+    newInventory.harvestDate = new Date().toISOString().split('T')[0]
     newInventory.batchCode = ''
     newInventory.expirationDate = ''
+    newInventory.greenhouseName = ''
+    newInventory.plantingMode = ''
+    newInventory.remarks = ''
+    newInventory.operator = '系统管理员'
     newInventory.alertSettings = {
       expirationDays: 30,
       minStock: 0,
@@ -1312,16 +1454,27 @@ function handleEditItem(item) {
   // 填充编辑表单
   editingInventory.id = item.id
   editingInventory.instanceId = item.instanceId || item.id
+  editingInventory.stockType = item.stockType || 'product'
+  editingInventory.productCode = item.productCode || ''
   editingInventory.cropName = item.cropName
   editingInventory.variety = item.variety
   editingInventory.grade = item.grade
+  editingInventory.quality = item.quality || 'good'
   editingInventory.quantity = item.quantity
   editingInventory.unit = item.unit
   editingInventory.warehouseId = item.warehouseId
   editingInventory.warehouseName = item.warehouseName
   editingInventory.storageLocation = item.storageLocation
+  editingInventory.storageDate = item.storageDate || ''
+  editingInventory.harvestDate = item.harvestDate || ''
   editingInventory.batchCode = item.batchCode
   editingInventory.expirationDate = item.expirationDate
+  editingInventory.greenhouseName = item.greenhouseName || ''
+  editingInventory.plantingMode = item.plantingMode || ''
+  editingInventory.remarks = item.remarks || ''
+  editingInventory.operator = item.inboundRecords && item.inboundRecords.length > 0
+    ? item.inboundRecords[item.inboundRecords.length - 1].operator || ''
+    : ''
   editingInventory.alertSettings = {
     expirationDays: item.alertSettings?.expirationDays || 0,
     minStock: item.alertSettings?.minStock || 0,
@@ -1347,12 +1500,18 @@ async function handleSaveEdit() {
       crop_name: editingInventory.cropName,
       variety_name: editingInventory.variety,
       grade: editingInventory.grade,
+      quality: editingInventory.quality,
       current_quantity: editingInventory.quantity,
       unit: editingInventory.unit,
       warehouse_id: editingInventory.warehouseId,
       storage_location: editingInventory.storageLocation,
+      inbound_date: editingInventory.storageDate,
+      harvest_date: editingInventory.harvestDate,
       batch_code: editingInventory.batchCode,
       expiration_date: editingInventory.expirationDate,
+      greenhouse_name: editingInventory.greenhouseName,
+      planting_mode: editingInventory.plantingMode,
+      remarks: editingInventory.remarks,
       alert_settings: {
         expiration_days: editingInventory.alertSettings.expirationDays || 0,
         min_stock: editingInventory.alertSettings.minStock || 0,

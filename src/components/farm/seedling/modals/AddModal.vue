@@ -272,6 +272,7 @@ import {
   Plus, Close, Refresh, Link, Location, DataAnalysis, Document
 } from '@element-plus/icons-vue'
 import { useSeedlingStore, useSeedSourceStore, useProductionPlanStore } from '@/stores'
+import * as cropVarietyService from '@/services/cropVarietyService'
 
 const props = defineProps({
   visible: Boolean
@@ -304,14 +305,27 @@ const siteOptions = [
   { value: '露天场地', label: '露天场地' }
 ]
 
-// 作物品种选项（可从store或mockData获取）
-const cropOptions = ref([
-  { cropCode: 'C001', cropName: '番茄' },
-  { cropCode: 'C002', cropName: '黄瓜' },
-  { cropCode: 'C003', cropName: '辣椒' },
-  { cropCode: 'C004', cropName: '茄子' },
-  { cropCode: 'C005', cropName: '西瓜' }
-])
+// 作物品种选项（从品种库服务获取）
+const cropOptions = ref([])
+
+// 加载作物品种数据
+const loadCropOptions = async () => {
+  try {
+    // 使用 cropVarietyService 获取作物品种
+    // getVarietyOptions 返回格式: { value: cropCode, label: varietyName, categoryName, typeName, ... }
+    const varieties = cropVarietyService.getVarietyOptions() || []
+    cropOptions.value = varieties.map(v => ({
+      cropCode: v.value || '',
+      cropName: v.label || '',
+      categoryName: v.categoryName || '',
+      typeName: v.typeName || '',
+      varietyName: v.varietyName || '',
+      subVariety1Name: v.subVariety1Name || ''
+    }))
+  } catch {
+    cropOptions.value = []
+  }
+}
 
 // 表单数据 - 与V1.1保持一致
 const formData = ref({
@@ -364,6 +378,8 @@ const loadData = async () => {
     (p.batchStatus === 'published' || p.batchStatus === 'in_progress') &&
     p.planType === 'seedling'
   )
+  // 加载作物品种数据
+  await loadCropOptions()
 }
 
 // 监听弹窗打开
@@ -473,6 +489,7 @@ const handleSubmit = async () => {
     // 构建提交数据 - snake_case格式（与V1.1一致）
     const submitData = {
       seedling_code: formData.value.seedlingCode,
+      source_id: formData.value.sourceId,
       source_code: sourceCode,
       crop_name: formData.value.cropName,
       crop_variety: formData.value.cropVariety,
