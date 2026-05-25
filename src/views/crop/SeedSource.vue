@@ -4,9 +4,7 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" class="text-white">
-            <Goods />
-          </el-icon>
+          <Package class="w-6 h-6 text-white" />
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">种源管理</h1>
@@ -21,48 +19,50 @@
     <!-- 筛选工具栏 -->
     <SeedSourceFilter
       :filters="filters"
-      :crop-categories="cropCategories"
-      :suppliers="suppliers"
-      :status-options="statusOptions"
       @update:filters="handleFiltersChange"
       @search="handleSearch"
       @reset="handleReset"
     />
 
-    <!-- 数据表格 -->
-    <div v-loading="loading">
-      <SeedSourceTable
-        :data="filteredData"
-        :pagination="pagination"
-        :selected-rows="selectedRows"
-        :loading="loading"
-        :export-mode="exportMode"
-        :operation-mode="operationMode"
-        :print-mode="printMode"
-        :can-create="canCreate"
-        :can-edit="canEdit"
-        :can-delete="canDelete"
-        :can-export="canExport"
-        :can-print="canPrint"
-        @add="handleAdd"
-        @edit="handleEdit"
-        @detail="handleDetail"
-        @print="handlePrint"
-        @delete="handleDelete"
-        @export="handleExportClick"
-        @confirm-export="handleExportClickConfirm"
-        @cancel-export="handleExportCancel"
-        @selection-change="handleSelectionChange"
-        @page-change="handlePageChange"
-        @size-change="handleSizeChange"
-        @operation-mode-change="handleOperationModeChange"
-        @print-mode-change="handlePrintModeChange"
-        @confirm-print="handleConfirmPrint"
-        @end="handleEnd"
-        @propagation-record="handlePropagationRecord"
-        @propagation-stage="handlePropagationStage"
-      />
+    <!-- 数据表格 (操作按钮已移入表格内部) -->
+    <div v-if="loading" class="flex items-center justify-center py-12">
+      <div class="flex items-center gap-3">
+        <div class="w-6 h-6 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-gray-500">加载中...</span>
+      </div>
     </div>
+    <SeedSourceTable
+      v-show="!loading"
+      :data="filteredData"
+      v-model:pagination="pagination"
+      v-model:selected-rows="selectedRows"
+      :export-mode="exportMode"
+      :operation-mode="operationMode"
+      :print-mode="printMode"
+      :can-create="canCreate"
+      :can-edit="canEdit"
+      :can-delete="canDelete"
+      :can-export="canExport"
+      :can-print="canPrint"
+      @selection-change="handleSelectionChange"
+      @add="handleAdd"
+      @edit="handleEdit"
+      @batch-edit="handleBatchEdit"
+      @delete="handleDelete"
+      @detail="handleDetail"
+      @export="handleExportClick"
+      @print="handlePrint"
+      @confirm-export="handleExportClickConfirm"
+      @export-cancel="handleExportCancel"
+      @operation-mode-change="handleOperationModeChange"
+      @print-mode-change="handlePrintModeChange"
+      @confirm-print="handlePrintConfirm"
+      @end="handleEnd"
+      @propagation-record="handlePropagationRecord"
+      @propagation-stage="handlePropagationStage"
+      @page-change="handlePageChange"
+      @size-change="handleSizeChange"
+    />
 
     <!-- 弹窗 -->
     <AddModal
@@ -75,6 +75,13 @@
       v-model:visible="editModalVisible"
       :record="currentRecord"
       @success="loadItems"
+    />
+
+    <BatchEditModal
+      v-model:visible="batchEditModalVisible"
+      :selected-rows="batchSelectedIds"
+      :all-records="items"
+      @success="handleBatchEditSuccess"
     />
 
     <DetailModal
@@ -121,13 +128,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Goods } from '@element-plus/icons-vue'
+import { Package } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import SeedSourceFilter from '@/components/farm/seed-source/components/SeedSourceFilter.vue'
 import SeedSourceTable from '@/components/farm/seed-source/components/SeedSourceTable.vue'
 import SeedSourceStats from '@/components/farm/seed-source/components/SeedSourceStats.vue'
 import AddModal from '@/components/farm/seed-source/modals/AddModal.vue'
 import EditModal from '@/components/farm/seed-source/modals/EditModal.vue'
+import BatchEditModal from '@/components/farm/seed-source/modals/BatchEditModal.vue'
 import DetailModal from '@/components/farm/seed-source/modals/DetailModal.vue'
 import PrintLabelModal from '@/components/farm/seed-source/modals/PrintLabelModal.vue'
 import ImageLightboxModal from '@/components/common/ImageLightboxModal.vue'
@@ -136,7 +144,7 @@ import PropagationRecordModal from '@/components/farm/seed-source/modals/Propaga
 import PropagationStageModal from '@/components/farm/seed-source/modals/PropagationStageModal.vue'
 import { useSeedSourceStore } from '@/stores'
 import { enhancedApiClient } from '@/lib/apiClient'
-import {  SeedSource, SeedSourceFilters  } from '@/types/crop'
+import { SeedSource } from '@/types/crop'
 
 // Store
 const seedSourceStore = useSeedSourceStore()
@@ -180,12 +188,13 @@ const selectedRows = ref([])
 
 // 导出模式
 const exportMode = ref(false)
-const exportFormat = ref('xlsx')
+const exportFormat = ref('excel')
 const showExportModal = ref(false)
 
 // 弹窗状态
 const addModalVisible = ref(false)
 const editModalVisible = ref(false)
+const batchEditModalVisible = ref(false)
 const detailModalVisible = ref(false)
 const printModalVisible = ref(false)
 const lightboxVisible = ref(false)
@@ -195,6 +204,10 @@ const operationMode = ref('normal')
 
 // 打印模式状态
 const printMode = ref(false)
+const printRecords = ref([])
+
+// 批量编辑选中的ID
+const batchSelectedIds = ref([])
 
 // 繁殖途径弹窗状态
 const propagationRecordVisible = ref(false)
@@ -206,34 +219,11 @@ const propagationStageRecord = ref(null)
 const currentRecord = ref(null)
 const currentImages = ref([])
 
-// 静态选项数据
-const cropCategories = [
-  { value: '蔬菜类', label: '蔬菜类' },
-  { value: '茄果类', label: '茄果类' },
-  { value: '瓜类', label: '瓜类' },
-  { value: '叶菜类', label: '叶菜类' },
-  { value: '豆类', label: '豆类' },
-  { value: '根茎类', label: '根茎类' }
-]
-
-const suppliers = [
-  { value: '寿光种业', label: '寿光种业' },
-  { value: '农科院种业', label: '农科院种业' },
-  { value: '山东蔬菜研究所', label: '山东蔬菜研究所' }
-]
-
-const statusOptions = [
-  { value: 'sufficient', label: '充足' },
-  { value: 'low', label: '不足' },
-  { value: 'depleted', label: '耗尽' }
-]
-
 // 筛选后的数据
 const filteredData = computed(() => {
   return items.value.filter(item => {
     if (filters.value.cropCategory && filters.value.cropCategory !== '__all__' && item.cropCategory !== filters.value.cropCategory) return false
     if (filters.value.cropName && !item.cropName.includes(filters.value.cropName)) return false
-    // 作物类型筛选（按cropCategory匹配）
     if (filters.value.cropType && filters.value.cropType !== '__all__' && item.cropCategory !== filters.value.cropType) return false
     if (filters.value.seedCode && !item.seedCode.includes(filters.value.seedCode)) return false
     if (filters.value.sourceType && filters.value.sourceType !== '__all__' && item.sourceType !== filters.value.sourceType) return false
@@ -242,10 +232,8 @@ const filteredData = computed(() => {
     if (filters.value.startDate && item.purchaseDate < filters.value.startDate) return false
     if (filters.value.endDate && item.purchaseDate > filters.value.endDate) return false
     if (filters.value.createBy && !item.createBy.includes(filters.value.createBy)) return false
-    // 剩余数量范围筛选
     if (filters.value.surplusMin !== undefined && item.availableCount < filters.value.surplusMin) return false
     if (filters.value.surplusMax !== undefined && item.availableCount > filters.value.surplusMax) return false
-    // 繁殖途径筛选
     if (filters.value.propagationType) {
       const itemPropType = item.propagationType || 'external'
       if (itemPropType !== filters.value.propagationType) return false
@@ -290,35 +278,24 @@ const loadItems = async () => {
 // 事件处理
 const handleFiltersChange = (newFilters) => {
   filters.value = newFilters
-  // 同步到Store的filters
   seedSourceStore.setFilters(newFilters)
 }
 
 const handleSearch = () => {
   pagination.value.current = 1
-  // 同步filters到Store并重新加载数据
   seedSourceStore.setFilters(filters.value)
   loadItems()
 }
 
 const handleReset = () => {
   filters.value = {
-    cropCategory: '',
     cropName: '',
     seedCode: '',
     sourceType: '',
     supplierName: '',
-    startDate: '',
-    endDate: '',
     status: '',
-    createBy: '',
-    cropType: '',
-    orgId: '',
-    recorderId: '',
-    surplusMin: undefined,
-    surplusMax: undefined,
-    propagationType: undefined,
-    propagationStatus: undefined
+    startDate: '',
+    endDate: ''
   }
   pagination.value.current = 1
 }
@@ -331,6 +308,14 @@ const handleAdd = () => {
 const handleEdit = (record) => {
   currentRecord.value = record
   editModalVisible.value = true
+}
+
+// 处理批量编辑
+const handleBatchEdit = (selectedIds) => {
+  // 保存选中的ID到临时变量，防止被后续的selection-change事件清空
+  batchSelectedIds.value = selectedIds
+  selectedRows.value = selectedIds
+  batchEditModalVisible.value = true
 }
 
 const handleDetail = (record) => {
@@ -350,7 +335,7 @@ const handleDelete = async (ids) => {
       const res = await enhancedApiClient.get(`/seed-sources/${id}/check-deletable`)
       if (!res?.deletable) {
         ElMessage.warning(`该种源已被 ${res?.refCount || '多个'} 条育苗记录引用，无法删除。\n请先清理育苗关联后再删除。`)
-        return
+        return false
       }
     } catch {
       // 降级策略：检查失败时允许继续删除
@@ -360,14 +345,28 @@ const handleDelete = async (ids) => {
   if (success) {
     selectedRows.value = []
     ElMessage.success('删除成功')
+    await loadItems()
+    return true
   } else {
     ElMessage.error('删除失败')
+    return false
   }
 }
 
 // 操作模式变更
 const handleOperationModeChange = (mode) => {
   operationMode.value = mode
+  if (mode !== 'export') {
+    exportMode.value = false
+  }
+  if (mode === 'edit' && selectedRows.value.length > 1) {
+    // 批量编辑模式：多选时打开批量编辑弹窗
+    batchEditModalVisible.value = true
+    operationMode.value = 'normal'
+  }
+  if (mode !== 'edit' && mode !== 'delete') {
+    // 只在非编辑/删除模式时清空选择
+  }
   selectedRows.value = []
 }
 
@@ -378,11 +377,12 @@ const handlePrintModeChange = (mode) => {
 }
 
 // 确认打印
-const handleConfirmPrint = (records) => {
+const handlePrintConfirm = (records) => {
   if (records.length === 0) {
     ElMessage.warning('请先选择要打印的记录')
     return
   }
+  printRecords.value = records
   currentRecord.value = records[0]
   printModalVisible.value = true
   printMode.value = false
@@ -391,36 +391,30 @@ const handleConfirmPrint = (records) => {
 
 // 处理结束（正常/异常）
 const handleEnd = async (record, endType) => {
-  // 获取关联的生产计划批次号
   if (!record.productionPlanCode) {
     ElMessage.warning('该种源没有关联的生产计划，无法结束')
     return
   }
 
   try {
-    // 查找对应的生产计划
     const batch = await enhancedApiClient.get(`/crop-batch/code/${record.productionPlanCode}`)
     if (!batch) {
       ElMessage.error('未找到关联的生产计划')
       return
     }
 
-    // 检查是否已完成
     if (batch.batchStatus === 'completed') {
       ElMessage.error('该生产计划已完成结束，不能重复结束')
       return
     }
 
-    // 计算完成比例 (availableCount / initialCount)
     const completionRate = record.initialCount > 0 ? record.availableCount / record.initialCount : 0
 
-    // 确认对话框
     const isNormal = endType === 'normal'
     const confirmMsg = isNormal
       ? `确认正常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后禁止一切入库和补录操作`
       : `确认异常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后如需补录，需提交审核申请`
 
-    // 使用 ElMessageBox.confirm 显示确认对话框
     const { ElMessageBox } = await import('element-plus')
     try {
       await ElMessageBox.confirm(confirmMsg, '确认结束', {
@@ -429,15 +423,12 @@ const handleEnd = async (record, endType) => {
         type: 'warning'
       })
     } catch {
-      // 用户取消
       return
     }
 
-    // 执行结束
     const result = await enhancedApiClient.put(`/crop-batch/${batch.id}/end`, { endType })
     if (result) {
       ElMessage.success(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
-      // 刷新列表
       await loadItems()
     } else {
       ElMessage.error('结束失败')
@@ -446,6 +437,66 @@ const handleEnd = async (record, endType) => {
     console.error('结束生产计划失败:', error)
     ElMessage.error('结束失败')
   }
+}
+
+// 批量编辑（V1.1逻辑：选择一条记录进行编辑）
+const handleConfirmBatchEdit = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要编辑的数据')
+    return
+  }
+  const firstSelectedId = selectedRows.value[0]
+  const record = items.value.find(item => item.id === firstSelectedId)
+
+  if (record) {
+    const editRecord = {
+      id: record.id,
+      seedCode: record.seedCode || record.sourceCode || '',
+      sourceType: record.sourceType || 'seed',
+      sourceOrigin: record.sourceOrigin || 'external_purchase',
+      cropCategory: record.cropCategory || '',
+      typeName: record.typeName || '',
+      varietyName: record.varietyName || '',
+      cropName: record.cropName || '',
+      cropVariety: record.cropVariety || '',
+      cropCode: record.cropCode || '',
+      supplierId: record.supplierId || '',
+      supplierName: record.supplierName || '',
+      purchaseDate: record.purchaseDate || '',
+      quantity: record.quantity || 0,
+      unit: record.unit || '',
+      unitPrice: record.unitPrice || 0,
+      initialCount: record.initialCount || 0,
+      availableCount: record.availableCount || 0,
+      pictures: record.pictures || [],
+      remarks: record.remarks || '',
+      status: record.status || 'sufficient'
+    }
+    handleEdit(editRecord)
+  } else {
+    ElMessage.warning('未找到选中的记录')
+  }
+  handleOperationModeChange('normal')
+  selectedRows.value = []
+}
+
+// 批量删除确认
+const handleConfirmDelete = async () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要删除的数据')
+    return
+  }
+  const result = await handleDelete(selectedRows.value)
+  if (result !== false) {
+    handleOperationModeChange('normal')
+  }
+}
+
+// 批量编辑成功
+const handleBatchEditSuccess = () => {
+  handleOperationModeChange('normal')
+  selectedRows.value = []
+  loadItems()
 }
 
 // 处理繁殖过程记录
@@ -460,13 +511,16 @@ const handlePropagationStage = (record) => {
   propagationStageVisible.value = true
 }
 
+// 导出相关
 const handleExportClick = () => {
   exportMode.value = true
+  operationMode.value = 'export'
   selectedRows.value = []
 }
 
 const handleExportCancel = () => {
   exportMode.value = false
+  operationMode.value = 'normal'
   selectedRows.value = []
 }
 
@@ -480,7 +534,6 @@ const handleExportClickConfirm = () => {
 
 const handleConfirmExport = () => {
   const selectedData = filteredData.value.filter(item => selectedRows.value.includes(item.id))
-  // 导出逻辑
   const headers = ['种源批号', '种源类型', '作物类别', '作物品种', '供应商', '采购日期', '采购数量', '单位', '单价(元)', '总金额(元)', '初始数量', '可用数量', '库存状态', '创建人', '创建时间', '备注']
   const exportData = selectedData.map(record => ({
     '种源批号': record.seedCode,
@@ -504,13 +557,22 @@ const handleConfirmExport = () => {
   let content = ''
   if (exportFormat.value === 'csv') {
     content = headers.join(',') + '\n' + exportData.map(row =>
-      headers.map(h => `"${row[h] || ''}"`).join(',')
+      headers.map(h => `"${typeof row[h] === 'string' ? row[h].replace(/"/g, '""') : row[h] || ''}"`).join(',')
     ).join('\n')
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
+    const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
     a.download = `种源管理_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  } else if (exportFormat.value === 'word') {
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th style="background-color: #E0E0E0; font-weight: bold;">${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    const blob = new Blob([content], { type: 'application/msword;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `种源管理_${new Date().toISOString().slice(0, 10)}.doc`
     a.click()
     URL.revokeObjectURL(url)
   } else {
@@ -525,13 +587,10 @@ const handleConfirmExport = () => {
   }
 
   exportMode.value = false
+  operationMode.value = 'normal'
   selectedRows.value = []
   showExportModal.value = false
   ElMessage.success('导出成功')
-}
-
-const handleSelectionChange = (rows) => {
-  selectedRows.value = rows
 }
 
 const handlePageChange = (page) => {
@@ -541,6 +600,10 @@ const handlePageChange = (page) => {
 const handleSizeChange = (size) => {
   pagination.value.pageSize = size
   pagination.value.current = 1
+}
+
+const handleSelectionChange = (rows) => {
+  selectedRows.value = rows
 }
 
 // 初始化

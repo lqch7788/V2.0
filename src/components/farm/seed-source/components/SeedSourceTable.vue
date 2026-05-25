@@ -370,7 +370,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits([
-  'selection-change', 'page-change', 'size-change', 'add', 'edit', 'delete',
+  'selection-change', 'page-change', 'size-change', 'add', 'edit', 'delete', 'batch-edit',
   'detail', 'export', 'print', 'confirm-export', 'export-cancel',
   'operation-mode-change', 'print-mode-change', 'confirm-print',
   'image-click', 'end', 'propagation-record', 'propagation-stage',
@@ -445,13 +445,21 @@ const getFirstSelectedRecord = () => {
 
 // 执行业务操作
 const executeOperation = (op) => {
-  const record = getFirstSelectedRecord()
-  if (!record) {
-    ElMessage.warning('请先在表格中选择一条记录')
+  if (props.selectedRows.length === 0) {
+    ElMessage.warning('请先在表格中选择记录')
     return
   }
   if (op === 'edit') {
-    emit('edit', record)
+    if (props.selectedRows.length > 1) {
+      // 批量编辑模式
+      emit('batch-edit', props.selectedRows)
+    } else {
+      // 单条编辑模式
+      const record = getFirstSelectedRecord()
+      if (record) {
+        emit('edit', record)
+      }
+    }
   } else if (op === 'delete') {
     emit('delete', props.selectedRows)
   }

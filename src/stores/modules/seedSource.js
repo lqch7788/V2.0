@@ -32,22 +32,74 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     try {
       const res = await api.getSeedSourceList(filters.value)
       // 兼容后端返回格式：可能是数组，也可能是 { success: true, data: [...] }，也可能是 { items: [...] }，也可能是 { data: [...] }
+      let rawItems = []
       if (Array.isArray(res)) {
-        items.value = res
+        rawItems = res
       } else if (res && typeof res === 'object') {
         // 处理 { success: true, data: [...] } 格式（后端实际返回格式）
         if ('success' in res && res.data !== undefined) {
-          items.value = Array.isArray(res.data) ? res.data : []
+          rawItems = Array.isArray(res.data) ? res.data : []
         } else if ('items' in res) {
-          items.value = res.items || []
+          rawItems = res.items || []
         } else if ('data' in res && Array.isArray(res.data)) {
-          items.value = res.data
+          rawItems = res.data
+        } else if (Array.isArray(res)) {
+          rawItems = res
         } else {
-          items.value = []
+          rawItems = []
         }
       } else {
-        items.value = []
+        rawItems = []
       }
+
+      // 将后端返回的 snake_case 字段映射为前端需要的 camelCase 格式
+      items.value = rawItems.map(item => ({
+        id: item.id,
+        // 种源批号
+        seedCode: item.seedCode || item.source_code || '',
+        // 源名称
+        sourceName: item.sourceName || item.source_name || '',
+        // 种源类型
+        sourceType: item.sourceType || item.source_type || '',
+        // 来源途径
+        sourceOrigin: item.sourceOrigin || item.source_origin || 'external_purchase',
+        // 作物类别
+        cropCategory: item.cropCategory || item.crop_category || '',
+        // 作物名称
+        cropName: item.cropName || item.crop_name || '',
+        // 作物品种
+        cropVariety: item.cropVariety || item.crop_variety || '',
+        // 作物编码
+        cropCode: item.cropCode || item.crop_code || '',
+        // 供应商ID
+        supplierId: item.supplierId || item.supplier_id || '',
+        // 供应商名称
+        supplierName: item.supplierName || item.supplier_name || '',
+        // 采购日期
+        purchaseDate: item.purchaseDate || item.purchase_date || '',
+        // 数量相关
+        quantity: item.quantity || 0,
+        unit: item.unit || '',
+        unitPrice: item.unitPrice || item.purchase_price || 0,
+        totalAmount: item.totalAmount || item.total_amount || 0,
+        initialCount: item.initialCount || item.initial_quantity || item.quantity || 0,
+        availableCount: item.availableCount || item.remaining_quantity || 0,
+        // 状态
+        status: item.status || 'active',
+        // 备注
+        remarks: item.remarks || '',
+        // 关联生产计划
+        productionPlanCode: item.productionPlanCode || item.production_plan_code || '',
+        // 创建信息
+        createBy: item.createBy || item.create_by || '',
+        createTime: item.createTime || item.create_time || '',
+        updateTime: item.updateTime || item.update_time || '',
+        // 繁殖相关
+        propagationType: item.propagationType || item.propagation_type || '',
+        propagationStatus: item.propagationStatus || item.propagation_status || '',
+        // 图片
+        pictures: item.pictures || []
+      }))
     } catch (error) {
       console.error('获取种源数据失败:', error)
       // 使用mock数据
