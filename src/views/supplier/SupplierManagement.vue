@@ -587,9 +587,9 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Shop, Plus, Edit, Delete, Download, CopyDocument, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { } from 'element-plus'
 import { useSupplierStore } from '@/stores/modules/inventory/useSupplierStore'
 
 // 供应商类型配置
@@ -603,6 +603,7 @@ const supplierTypeMap = {
 const getSupplierTypeName = (type) => supplierTypeMap[type] || type
 
 // 供应商Store
+const router = useRouter()
 const supplierStore = useSupplierStore()
 
 // 页面挂载时加载供应商数据
@@ -827,7 +828,7 @@ const handleResetCodeGen = () => {
 }
 
 const handleShowCodeRule = () => {
-  ElMessage.info('编码规则页面开发中')
+  router.push('/supplier-code-rule')
 }
 
 // 表格操作
@@ -877,7 +878,17 @@ const handleBatchEdit = () => {
 }
 
 const handleConfirmBatchEdit = () => {
-  ElMessage.success(`批量编辑了 ${selectedRows.value.length} 个供应商`)
+  if (selectedRows.value.length === 0) return
+  if (selectedRows.value.length === 1) {
+    // 单选时打开编辑弹窗
+    const supplier = filteredSuppliers.value.find(s => s.id === selectedRows.value[0])
+    if (supplier) {
+      handleEdit(supplier)
+    }
+  } else {
+    // 批量编辑弹窗待开发，提示用户
+    ElMessage.info(`批量编辑功能（${selectedRows.value.length}项）待后续开发，请使用单条编辑`)
+  }
   batchEditMode.value = false
   selectedRows.value = []
 }
