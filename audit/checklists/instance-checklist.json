@@ -1,0 +1,42 @@
+{
+  "module": "Instance",
+  "v1Path": "D:\\TMcrop\\yuanxingtu\\V1.1\\src\\views\\crop\\Instance.vue",
+  "v1ComponentsPath": "D:\\TMcrop\\yuanxingtu\\V1.1\\src\\components\\farm\\instance",
+  "v2Path": "D:\\TMcrop\\yuanxingtu\\V2.0\\src\\views\\crop\\Instance.vue",
+  "v2ComponentsPath": "D:\\TMcrop\\yuanxingtu\\V2.0\\src\\components\\farm\\instance",
+  "componentChecks": [
+    {
+      "name": "InstanceStats",
+      "checks": [
+        {"id": "IN-SC001", "item": "统计卡片数量", "expected": 4}
+      ]
+    },
+    {
+      "name": "InstanceFilter",
+      "checks": [
+        {"id": "IN-FC001", "item": "筛选字段完整性"}
+      ]
+    },
+    {
+      "name": "InstanceTable",
+      "checks": [
+        {"id": "IN-TC001", "item": "表格列定义"},
+        {"id": "IN-TC002", "item": "操作按钮组"},
+        {"id": "IN-TC003", "item": "追溯链展示"}
+      ]
+    },
+    {
+      "name": "DetailModal",
+      "checks": [
+        {"id": "IN-DM001", "item": "实例详情展示"},
+        {"id": "IN-DM002", "item": "追溯链路"}
+      ]
+    }
+  ],
+  "functionalityChecks": [
+    {"id": "IN-F001", "item": "实例查询"},
+    {"id": "IN-F002", "item": "实例详情查看"},
+    {"id": "IN-F003", "item": "追溯链路展示"},
+    {"id": "IN-F004", "item": "导出功能"}
+  ]
+}

@@ -25,9 +25,35 @@
           </div>
         </div>
 
+        <!-- P0 标签页切换：基本信息 | 追溯链路 -->
+        <div class="flex border-b border-gray-200 px-6 pt-4">
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+            :class="activeTab === 'info'
+              ? 'border-emerald-500 text-emerald-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'"
+            @click="activeTab = 'info'"
+          >
+            基本信息
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px flex items-center gap-1"
+            :class="activeTab === 'trace'
+              ? 'border-emerald-500 text-emerald-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'"
+            @click="activeTab = 'trace'"
+          >
+            <el-icon><Clock /></el-icon>
+            追溯链路
+          </button>
+        </div>
+
         <!-- 内容区域 -->
         <div class="p-6 overflow-y-auto flex-1">
-          <div class="space-y-4">
+          <!-- 基本信息标签页 -->
+          <div v-if="activeTab === 'info'" class="space-y-4">
             <!-- 基本信息卡片 -->
             <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -158,6 +184,15 @@
               </div>
             </div>
           </div>
+          <!-- 追溯链路标签页 -->
+          <div v-else class="py-2">
+            <TraceChain v-if="record.instanceId" type="harvest" :business-id="record.instanceId" />
+            <div v-else class="text-center py-12 text-gray-500">
+              <el-icon :size="48" class="mx-auto mb-3 text-gray-300"><Clock /></el-icon>
+              <p>暂无库存实例</p>
+              <p class="text-xs mt-1">该采收记录尚未接入库存服务</p>
+            </div>
+          </div>
         </div>
 
         <!-- 底部按钮 -->
@@ -171,7 +206,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { View, Close } from '@element-plus/icons-vue'
+import { View, Close, Clock } from '@element-plus/icons-vue'
+import TraceChain from '../trace/TraceChain.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -179,6 +215,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+// P0 标签页状态：info | trace
+const activeTab = ref('info')
 
 // 拖动状态
 const isDragging = ref(false)

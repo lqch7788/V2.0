@@ -1,0 +1,48 @@
+{
+  "module": "Order",
+  "v1Path": "D:\\TMcrop\\yuanxingtu\\V1.1\\src\\views\\crop\\Order.vue",
+  "v1ComponentsPath": "D:\\TMcrop\\yuanxingtu\\V1.1\\src\\components\\farm\\order",
+  "v2Path": "D:\\TMcrop\\yuanxingtu\\V2.0\\src\\views\\crop\\Order.vue",
+  "v2ComponentsPath": "D:\\TMcrop\\yuanxingtu\\V2.0\\src\\components\\farm\\order",
+  "componentChecks": [
+    {
+      "name": "OrderStats",
+      "checks": [
+        {"id": "OR-SC001", "item": "统计卡片数量", "expected": 4}
+      ]
+    },
+    {
+      "name": "OrderFilter",
+      "checks": [
+        {"id": "OR-FC001", "item": "筛选字段完整性"}
+      ]
+    },
+    {
+      "name": "OrderTable",
+      "checks": [
+        {"id": "OR-TC001", "item": "表格列定义"},
+        {"id": "OR-TC002", "item": "操作按钮组"},
+        {"id": "OR-TC003", "item": "状态流转"}
+      ]
+    },
+    {
+      "name": "AddModal",
+      "checks": [
+        {"id": "OR-AM001", "item": "新增订单表单"}
+      ]
+    },
+    {
+      "name": "DetailModal",
+      "checks": [
+        {"id": "OR-DM001", "item": "订单详情展示"}
+      ]
+    }
+  ],
+  "functionalityChecks": [
+    {"id": "OR-F001", "item": "新增订单"},
+    {"id": "OR-F002", "item": "编辑订单"},
+    {"id": "OR-F003", "item": "删除订单"},
+    {"id": "OR-F004", "item": "订单状态流转"},
+    {"id": "OR-F005", "item": "导出功能"}
+  ]
+}

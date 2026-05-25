@@ -84,6 +84,8 @@
     <EditModal
       :is-open="editModalOpen"
       :record="currentRecord"
+      :crop-variety-options="cropVarietyOptions"
+      :area-options="areaOptions"
       @close="editModalOpen = false"
       @submit="handleEditSubmit"
     />
@@ -172,6 +174,7 @@ import MoveModal from '@/components/farm/planting/modals/MoveModal.vue'
 import MarkModal from '@/components/farm/planting/modals/MarkModal.vue'
 import { assignMarkToLabels, getLabels, getLabelResumes, queryLabelByNumber, addLabelResume } from '@/services/apiPlantLabelService'
 import { getCropBatchByCode, endCropBatch, getCompletionRate } from '@/services/apiCropBatchService'
+import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
 
 // 使用 Store
 const plantingStore = usePlantingStore()
@@ -228,6 +231,9 @@ const sourceTypeOptions = ref([
   { value: 'seed', label: '种子' },
   { value: 'seedling', label: '种苗' }
 ])
+
+// 作物品种选项（用于EditModal的作物品种选择器）
+const cropVarietyOptions = ref([])
 
 // 种植状态选项
 const plantingStatusOptions = ref([
@@ -288,8 +294,15 @@ const filteredData = computed(() => {
 })
 
 // ========== 生命周期 ==========
-onMounted(() => {
+onMounted(async () => {
   loading.value = true
+  // 初始化品种库
+  try {
+    await initVarieties()
+    cropVarietyOptions.value = getVarietyOptions()
+  } catch (error) {
+    console.error('初始化品种库失败:', error)
+  }
   plantingStore.fetchPlantings().finally(() => {
     loading.value = false
   })

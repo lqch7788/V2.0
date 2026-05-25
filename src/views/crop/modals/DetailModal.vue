@@ -148,6 +148,25 @@
               </div>
             </div>
 
+            <!-- 关联作物实例 -->
+            <div v-if="record.instanceIds && record.instanceIds.length > 0">
+              <h3 class="text-sm font-bold text-gray-700 mb-3">关联作物实例</h3>
+              <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-sm text-gray-900 mb-2">
+                  已关联 {{ record.instanceIds.length }} 个作物实例
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="id in record.instanceIds"
+                    :key="id"
+                    class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded"
+                  >
+                    {{ id }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <!-- 创建信息 -->
             <div class="flex items-center gap-4 text-xs text-gray-500 pt-4 border-t border-gray-100">
               <span>创建人：{{ record.createBy }}</span>

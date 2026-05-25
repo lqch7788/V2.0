@@ -1,0 +1,47 @@
+{
+  "module": "Planting",
+  "v1Path": "D:\\TMcrop\\yuanxingtu\\V1.1\\src\\views\\crop\\Planting.vue",
+  "v1ComponentsPath": "D:\\TMcrop\\yuanxingtu\\V1.1\\src\\components\\farm\\planting",
+  "v2Path": "D:\\TMcrop\\yuanxingtu\\V2.0\\src\\views\\crop\\Planting.vue",
+  "v2ComponentsPath": "D:\\TMcrop\\yuanxingtu\\V2.0\\src\\components\\farm\\planting",
+  "componentChecks": [
+    {
+      "name": "PlantingStats",
+      "checks": [
+        {"id": "PL-SC001", "item": "统计卡片数量", "expected": 4}
+      ]
+    },
+    {
+      "name": "PlantingFilter",
+      "checks": [
+        {"id": "PL-FC001", "item": "筛选字段完整性"}
+      ]
+    },
+    {
+      "name": "PlantingTable",
+      "checks": [
+        {"id": "PL-TC001", "item": "表格列定义"},
+        {"id": "PL-TC002", "item": "操作按钮组"}
+      ]
+    },
+    {
+      "name": "AddModal",
+      "checks": [
+        {"id": "PL-AM001", "item": "新增表单"}
+      ]
+    },
+    {
+      "name": "TransplantModal",
+      "checks": [
+        {"id": "PL-TM001", "item": "定植表单"}
+      ]
+    }
+  ],
+  "functionalityChecks": [
+    {"id": "PL-F001", "item": "新增种植计划"},
+    {"id": "PL-F002", "item": "编辑种植计划"},
+    {"id": "PL-F003", "item": "删除种植计划"},
+    {"id": "PL-F004", "item": "定植操作"},
+    {"id": "PL-F005", "item": "导出功能"}
+  ]
+}

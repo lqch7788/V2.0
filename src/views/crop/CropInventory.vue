@@ -234,12 +234,12 @@
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-20">存储时间</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">预警状态</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-32">备注</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-300">
             <tr v-if="displayedData.length === 0">
-              <td :colspan="exportMode || batchEditMode || deleteMode ? 16 : 15" class="px-4 py-12 text-center text-gray-500">
+              <td :colspan="exportMode || batchEditMode || deleteMode ? 17 : 16" class="px-4 py-12 text-center text-gray-500">
                 <el-icon :size="48" class="mx-auto mb-3 text-gray-300"><Goods /></el-icon>
                 <p>暂无数据</p>
               </td>
@@ -281,7 +281,17 @@
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                 {{ item.inboundRecords && item.inboundRecords.length > 0 ? item.inboundRecords[item.inboundRecords.length - 1].operator : '-' }}
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">-</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <el-button
+                  type="primary"
+                  size="small"
+                  link
+                  @click="handleEditItem(item)"
+                >
+                  <el-icon><Edit /></el-icon>
+                  编辑
+                </el-button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -622,16 +632,107 @@
         </div>
       </div>
     </div>
+
+    <!-- 编辑库存弹窗 - 纯div自定义 -->
+    <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="fixed inset-0 bg-black bg-opacity-50" @click="showEditModal = false"></div>
+      <div class="relative bg-white rounded-lg shadow-xl" style="width: 600px; max-height: 90vh; overflow-y: auto;">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 flex items-center justify-between rounded-t-lg">
+          <div class="flex items-center gap-2">
+            <el-icon :size="20" style="color: white;"><Edit /></el-icon>
+            <h3 class="text-lg font-semibold text-white">编辑库存</h3>
+          </div>
+          <el-button circle text @click="showEditModal = false">
+            <el-icon :size="18" style="color: white;"><Close /></el-icon>
+          </el-button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">作物名称</label>
+              <el-input v-model="editingInventory.cropName" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">品种</label>
+              <el-input v-model="editingInventory.variety" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">品质等级</label>
+              <el-select v-model="editingInventory.grade" placeholder="请选择">
+                <el-option label="A级" value="A" />
+                <el-option label="B级" value="B" />
+                <el-option label="C级" value="C" />
+              </el-select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">数量</label>
+              <el-input v-model.number="editingInventory.quantity" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">单位</label>
+              <el-input v-model="editingInventory.unit" placeholder="如：kg、个" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">仓库</label>
+              <el-select v-model="editingInventory.warehouseId" placeholder="请选择">
+                <el-option v-for="w in warehouses" :key="w.id" :label="w.name" :value="w.id" />
+              </el-select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">存放位置</label>
+              <el-input v-model="editingInventory.storageLocation" placeholder="如：A-01" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">批次号</label>
+              <el-input v-model="editingInventory.batchCode" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">保质期(天)</label>
+              <el-input v-model.number="editingInventory.alertSettings.expirationDays" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">最低库存</label>
+              <el-input v-model.number="editingInventory.alertSettings.minStock" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">最高库存</label>
+              <el-input v-model.number="editingInventory.alertSettings.maxStock" placeholder="请输入" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">过期日期</label>
+              <el-date-picker
+                v-model="editingInventory.expirationDate"
+                type="date"
+                placeholder="选择日期"
+                style="width: 100%"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+          <el-button @click="showEditModal = false">取消</el-button>
+          <el-button type="primary" @click="handleSaveEdit">保存</el-button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  Goods, Warning, Search, Refresh, Plus, Download, Close, View,
+  Goods, Warning, Search, Refresh, Plus, Download, Close, View, Edit,
   WarningFilled, Clock, Bottom, Top, InfoFilled
 } from '@element-plus/icons-vue'
+import {
+  getInventoryList,
+  createInventory,
+  updateInventory,
+  deleteInventory,
+  deleteInventoryBatch,
+  getInventoryStats
+} from '@/api/inventory/apiInventoryService'
 
 // 仓库数据
 const warehouses = ref([
@@ -642,6 +743,7 @@ const warehouses = ref([
 // 库存数据类型
 const produceInventory = {
   id: '',
+  instanceId: '',
   productCode: '',
   cropName: '',
   variety: '',
@@ -672,110 +774,100 @@ const produceInventory = {
   status: 'in_stock',
 }
 
-// 模拟库存数据
-const inventoryData = ref([
-  {
-    id: 'PI001',
-    productCode: 'CP20260501001',
-    cropName: '番茄',
-    variety: '红果番茄',
-    grade: 'A',
-    quantity: 150,
-    unit: 'kg',
-    warehouseId: 'W001',
-    warehouseName: '主仓库',
-    storageLocation: 'A-01',
-    harvestDate: '2026-04-15',
-    storageDate: '2026-04-16',
-    expirationDate: '2026-05-16',
-    batchCode: 'PC20260415',
-    greenhouseName: '1号大棚',
-    plantingMode: '标准种植',
+/**
+ * 将API响应数据映射为本地库存格式
+ * @param {Object} apiData - API返回的库存数据
+ * @returns {Object} 本地格式的库存数据
+ */
+function mapApiToLocal(apiData) {
+  return {
+    id: apiData.instance_id || apiData.id || '',
+    instanceId: apiData.instance_id || '',
+    productCode: apiData.business_id || '',
+    cropName: apiData.crop_name || '',
+    variety: apiData.variety_name || '',
+    grade: apiData.grade || 'A',
+    quantity: apiData.current_quantity || 0,
+    unit: apiData.unit || 'kg',
+    warehouseId: apiData.warehouse_id || '',
+    warehouseName: apiData.warehouse_name || '',
+    storageLocation: apiData.storage_location || '',
+    harvestDate: apiData.harvest_date || '',
+    storageDate: apiData.inbound_date || '',
+    expirationDate: apiData.expiration_date || '',
+    batchCode: apiData.batch_code || '',
+    greenhouseName: apiData.greenhouse_name || '',
+    plantingMode: apiData.planting_mode || '',
     alertSettings: {
-      enableStorageTimeAlert: true,
-      storageTimeThreshold: 30,
-      enableQuantityAlert: true,
-      minQuantityThreshold: 50,
-      maxQuantityThreshold: 200,
-      minStock: 50,
-      maxStock: 200,
-      expirationDays: 30,
+      enableStorageTimeAlert: apiData.alert_settings?.enable_storage_time_alert || false,
+      storageTimeThreshold: apiData.alert_settings?.storage_time_threshold || 0,
+      enableQuantityAlert: apiData.alert_settings?.enable_quantity_alert || false,
+      minQuantityThreshold: apiData.alert_settings?.min_quantity_threshold || 0,
+      maxQuantityThreshold: apiData.alert_settings?.max_quantity_threshold || 0,
+      minStock: apiData.alert_settings?.min_stock || 0,
+      maxStock: apiData.alert_settings?.max_stock || 0,
+      expirationDays: apiData.alert_settings?.expiration_days || 0,
     },
-    inboundRecords: [
-      { id: 1, quantity: 150, operatorName: '张三', operateDate: '2026-04-16', remarks: '' },
-    ],
-    outboundRecords: [],
-    status: 'in_stock',
-  },
-  {
-    id: 'PI002',
-    productCode: 'CP20260502001',
-    cropName: '草莓',
-    variety: '红颜',
-    grade: 'A',
-    quantity: 30,
-    unit: 'kg',
-    warehouseId: 'W001',
-    warehouseName: '主仓库',
-    storageLocation: 'A-02',
-    harvestDate: '2026-04-20',
-    storageDate: '2026-04-21',
-    expirationDate: '2026-04-28',
-    batchCode: 'PC20260420',
-    greenhouseName: '2号大棚',
-    plantingMode: '有机种植',
-    alertSettings: {
-      enableStorageTimeAlert: true,
-      storageTimeThreshold: 7,
-      enableQuantityAlert: true,
-      minQuantityThreshold: 50,
-      maxQuantityThreshold: 150,
-      minStock: 50,
-      maxStock: 150,
-      expirationDays: 7,
+    inboundRecords: apiData.inbound_records || [],
+    outboundRecords: apiData.outbound_records || [],
+    status: apiData.status || 'in_stock',
+  }
+}
+
+/**
+ * 将本地库存数据映射为API请求格式
+ * @param {Object} localData - 本地格式的库存数据
+ * @returns {Object} API格式的请求数据
+ */
+function mapLocalToApi(localData) {
+  return {
+    crop_name: localData.cropName,
+    variety_name: localData.variety,
+    grade: localData.grade,
+    current_quantity: localData.quantity,
+    unit: localData.unit,
+    warehouse_id: localData.warehouseId,
+    storage_location: localData.storageLocation,
+    batch_code: localData.batchCode,
+    expiration_date: localData.expirationDate,
+    alert_settings: {
+      enable_storage_time_alert: localData.alertSettings?.enableStorageTimeAlert || false,
+      storage_time_threshold: localData.alertSettings?.storageTimeThreshold || 0,
+      enable_quantity_alert: localData.alertSettings?.enableQuantityAlert || false,
+      min_quantity_threshold: localData.alertSettings?.minQuantityThreshold || 0,
+      max_quantity_threshold: localData.alertSettings?.maxQuantityThreshold || 0,
+      min_stock: localData.alertSettings?.minStock || 0,
+      max_stock: localData.alertSettings?.maxStock || 0,
+      expiration_days: localData.alertSettings?.expirationDays || 0,
     },
-    inboundRecords: [
-      { id: 2, quantity: 80, operatorName: '李四', operateDate: '2026-04-21', remarks: '' },
-    ],
-    outboundRecords: [
-      { id: 1, quantity: 50, operatorName: '王五', operateDate: '2026-04-25', remarks: '销售出库' },
-    ],
-    status: 'low_stock',
-  },
-  {
-    id: 'PI003',
-    productCode: 'CP20260503001',
-    cropName: '黄瓜',
-    variety: '水果黄瓜',
-    grade: 'B',
-    quantity: 200,
-    unit: 'kg',
-    warehouseId: 'W002',
-    warehouseName: '副仓库',
-    storageLocation: 'B-01',
-    harvestDate: '2026-04-10',
-    storageDate: '2026-04-11',
-    expirationDate: '2026-04-25',
-    batchCode: 'PC20260410',
-    greenhouseName: '3号大棚',
-    plantingMode: '标准种植',
-    alertSettings: {
-      enableStorageTimeAlert: false,
-      storageTimeThreshold: 0,
-      enableQuantityAlert: true,
-      minQuantityThreshold: 100,
-      maxQuantityThreshold: 300,
-      minStock: 100,
-      maxStock: 300,
-      expirationDays: 14,
-    },
-    inboundRecords: [
-      { id: 3, quantity: 200, operatorName: '赵六', operateDate: '2026-04-11', remarks: '' },
-    ],
-    outboundRecords: [],
-    status: 'expired',
-  },
-])
+  }
+}
+
+// 库存数据（从API加载）
+const inventoryData = ref([])
+
+// 加载库存数据
+async function loadInventoryData() {
+  try {
+    const response = await getInventoryList({
+      crop_name: filters.cropName || undefined,
+      status: filters.status || undefined,
+    })
+    if (response && response.data) {
+      inventoryData.value = response.data.map(mapApiToLocal)
+    } else if (Array.isArray(response)) {
+      inventoryData.value = response.map(mapApiToLocal)
+    }
+  } catch (error) {
+    console.error('加载库存数据失败:', error)
+    ElMessage.error('加载库存数据失败')
+  }
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  loadInventoryData()
+})
 
 // 状态
 const filters = reactive({
@@ -797,8 +889,30 @@ const showDetailModal = ref(false)
 const showDeleteWarning = ref(false)
 const showExportModal = ref(false)
 const showAddModal = ref(false)
+const showEditModal = ref(false)
 const selectedInventory = ref(null)
 const exportFormat = ref('xlsx')
+
+// 编辑中的库存记录
+const editingInventory = reactive({
+  id: '',
+  instanceId: '',
+  cropName: '',
+  variety: '',
+  grade: 'A',
+  quantity: 0,
+  unit: 'kg',
+  warehouseId: '',
+  warehouseName: '',
+  storageLocation: '',
+  batchCode: '',
+  expirationDate: '',
+  alertSettings: {
+    expirationDays: 30,
+    minStock: 0,
+    maxStock: 0,
+  },
+})
 
 const newInventory = reactive({
   cropName: '',
@@ -1077,18 +1191,44 @@ function handleCancelSelection() {
 // 确认批量编辑
 function handleConfirmBatchEdit() {
   if (selectedRows.value.length > 0) {
-    ElMessage.info(`已选择 ${selectedRows.value.length} 条记录进行编辑`)
+    // 找到第一个选中的记录并打开编辑弹窗
+    const firstSelectedId = selectedRows.value[0]
+    const item = inventoryData.value.find(i => i.id === firstSelectedId)
+    if (item) {
+      handleEditItem(item)
+    }
   }
   batchEditMode.value = false
 }
 
 // 确认删除
-function handleConfirmDelete() {
-  inventoryData.value = inventoryData.value.filter(item => !selectedRows.value.includes(item.id))
-  showDeleteWarning.value = false
-  deleteMode.value = false
-  selectedRows.value = []
-  ElMessage.success('删除成功')
+async function handleConfirmDelete() {
+  try {
+    // 获取选中行的 instanceId
+    const idsToDelete = selectedRows.value.length > 0
+      ? selectedRows.value
+      : []
+
+    if (idsToDelete.length === 0) {
+      ElMessage.warning('请选择要删除的记录')
+      return
+    }
+
+    // 调用批量删除API
+    await deleteInventoryBatch(idsToDelete)
+    ElMessage.success('删除成功')
+
+    // 关闭弹窗并重置选择
+    showDeleteWarning.value = false
+    deleteMode.value = false
+    selectedRows.value = []
+
+    // 重新加载数据
+    await loadInventoryData()
+  } catch (error) {
+    console.error('删除库存失败:', error)
+    ElMessage.error('删除库存失败')
+  }
 }
 
 // 导出处理
@@ -1113,46 +1253,125 @@ function handleAdd() {
 }
 
 // 保存新增
-function handleSaveAdd() {
+async function handleSaveAdd() {
   if (!newInventory.cropName || !newInventory.variety) {
     ElMessage.warning('请填写必填项')
     return
   }
 
-  const newRecord = {
-    id: `PI${String(inventoryData.value.length + 1).padStart(3, '0')}`,
-    productCode: `CP${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${String(inventoryData.value.length + 1).padStart(3, '0')}`,
-    ...newInventory,
-    warehouseName: warehouses.value.find(w => w.id === newInventory.warehouseId)?.name || '',
-    storageDate: new Date().toISOString().slice(0, 10),
-    harvestDate: new Date().toISOString().slice(0, 10),
-    greenhouseName: '',
-    plantingMode: '',
-    inboundRecords: [],
-    outboundRecords: [],
-    status: 'in_stock',
+  try {
+    const apiData = {
+      stock_type: 'product',
+      business_type: 'harvest',
+      crop_name: newInventory.cropName,
+      variety_name: newInventory.variety,
+      grade: newInventory.grade,
+      current_quantity: newInventory.quantity,
+      unit: newInventory.unit,
+      warehouse_id: newInventory.warehouseId,
+      storage_location: newInventory.storageLocation,
+      batch_code: newInventory.batchCode,
+      expiration_date: newInventory.expirationDate,
+      alert_settings: {
+        expiration_days: newInventory.alertSettings.expirationDays || 0,
+        min_stock: newInventory.alertSettings.minStock || 0,
+        max_stock: newInventory.alertSettings.maxStock || 0,
+      },
+    }
+
+    await createInventory(apiData)
+    ElMessage.success('新增成功')
+
+    // 关闭弹窗并重置表单
+    showAddModal.value = false
+    newInventory.cropName = ''
+    newInventory.variety = ''
+    newInventory.grade = 'A'
+    newInventory.quantity = 0
+    newInventory.unit = 'kg'
+    newInventory.warehouseId = ''
+    newInventory.storageLocation = ''
+    newInventory.batchCode = ''
+    newInventory.expirationDate = ''
+    newInventory.alertSettings = {
+      expirationDays: 30,
+      minStock: 0,
+      maxStock: 0,
+    }
+
+    // 重新加载数据
+    await loadInventoryData()
+  } catch (error) {
+    console.error('新增库存失败:', error)
+    ElMessage.error('新增库存失败')
+  }
+}
+
+// 编辑库存记录
+function handleEditItem(item) {
+  // 填充编辑表单
+  editingInventory.id = item.id
+  editingInventory.instanceId = item.instanceId || item.id
+  editingInventory.cropName = item.cropName
+  editingInventory.variety = item.variety
+  editingInventory.grade = item.grade
+  editingInventory.quantity = item.quantity
+  editingInventory.unit = item.unit
+  editingInventory.warehouseId = item.warehouseId
+  editingInventory.warehouseName = item.warehouseName
+  editingInventory.storageLocation = item.storageLocation
+  editingInventory.batchCode = item.batchCode
+  editingInventory.expirationDate = item.expirationDate
+  editingInventory.alertSettings = {
+    expirationDays: item.alertSettings?.expirationDays || 0,
+    minStock: item.alertSettings?.minStock || 0,
+    maxStock: item.alertSettings?.maxStock || 0,
+  }
+  showEditModal.value = true
+}
+
+// 保存编辑
+async function handleSaveEdit() {
+  if (!editingInventory.instanceId) {
+    ElMessage.warning('缺少库存记录ID')
+    return
   }
 
-  inventoryData.value.unshift(newRecord)
-  showAddModal.value = false
-
-  // 重置表单
-  newInventory.cropName = ''
-  newInventory.variety = ''
-  newInventory.grade = 'A'
-  newInventory.quantity = 0
-  newInventory.unit = 'kg'
-  newInventory.warehouseId = ''
-  newInventory.storageLocation = ''
-  newInventory.batchCode = ''
-  newInventory.expirationDate = ''
-  newInventory.alertSettings = {
-    expirationDays: 30,
-    minStock: 0,
-    maxStock: 0,
+  if (!editingInventory.cropName || !editingInventory.variety) {
+    ElMessage.warning('请填写必填项')
+    return
   }
 
-  ElMessage.success('新增成功')
+  try {
+    const apiData = {
+      crop_name: editingInventory.cropName,
+      variety_name: editingInventory.variety,
+      grade: editingInventory.grade,
+      current_quantity: editingInventory.quantity,
+      unit: editingInventory.unit,
+      warehouse_id: editingInventory.warehouseId,
+      storage_location: editingInventory.storageLocation,
+      batch_code: editingInventory.batchCode,
+      expiration_date: editingInventory.expirationDate,
+      alert_settings: {
+        expiration_days: editingInventory.alertSettings.expirationDays || 0,
+        min_stock: editingInventory.alertSettings.minStock || 0,
+        max_stock: editingInventory.alertSettings.maxStock || 0,
+      },
+    }
+
+    await updateInventory(editingInventory.instanceId, apiData)
+    ElMessage.success('编辑成功')
+
+    // 关闭弹窗
+    showEditModal.value = false
+
+    // 重新加载数据
+    await loadInventoryData()
+  } catch (error) {
+    console.error('编辑库存失败:', error)
+    ElMessage.error('编辑库存失败')
+  }
 }
 </script>
 

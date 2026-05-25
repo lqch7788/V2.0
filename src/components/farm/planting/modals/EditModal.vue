@@ -1,5 +1,5 @@
 <template>
-  <!-- 编辑种植记录弹窗 - 纯div结构 -->
+  <!-- 编辑种植记录弹窗 -->
   <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" @click.self="onClose">
     <div class="bg-white rounded-xl w-full max-w-4xl shadow-xl max-h-[90vh] flex flex-col">
       <!-- 标题栏 - 渐变背景 -->
@@ -20,16 +20,53 @@
             <el-input v-model="formData.plantCode" disabled />
           </div>
 
-          <!-- 作物品种 -->
+          <!-- 作物品种选择 - V1.1新增 CropCodeSelector -->
           <div>
-            <label class="block text-gray-700 text-sm mb-2 font-medium">作物品种</label>
-            <el-input v-model="formData.cropName" disabled />
+            <label class="block text-gray-700 text-sm mb-2 font-medium">作物品种 *</label>
+            <el-select
+              v-model="formData.selectedCropCode"
+              placeholder="搜索或选择作物品种"
+              filterable
+              clearable
+              class="w-full"
+              @change="handleCropCodeChange"
+            >
+              <el-option
+                v-for="crop in cropVarietyOptions"
+                :key="crop.value"
+                :label="`${crop.category || ''} > ${crop.typeName || ''} > ${crop.label}`"
+                :value="crop.value"
+              >
+                <div class="flex items-center gap-2">
+                  <span>{{ crop.category }}</span>
+                  <span class="text-gray-400">></span>
+                  <span>{{ crop.typeName }}</span>
+                  <span class="text-gray-400">></span>
+                  <span>{{ crop.label }}</span>
+                  <span class="text-xs text-gray-400 font-mono">{{ crop.value }}</span>
+                </div>
+              </el-option>
+            </el-select>
           </div>
 
-          <!-- 种植区域 - V1.1新增 -->
+          <!-- 作物名称（自动填充） -->
           <div>
-            <label class="block text-gray-700 text-sm mb-2 font-medium">种植区域</label>
-            <el-input v-model="formData.areaName" disabled />
+            <label class="block text-gray-700 text-sm mb-2 font-medium">作物名称</label>
+            <el-input v-model="formData.cropName" disabled placeholder="选择品种后自动填充" />
+          </div>
+
+          <!-- 品种（自动填充） -->
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">品种</label>
+            <el-input v-model="formData.cropVariety" disabled placeholder="选择品种后自动填充" />
+          </div>
+
+          <!-- 种植区域 -->
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">种植区域 *</label>
+            <el-select v-model="formData.areaName" placeholder="请选择" class="w-full">
+              <el-option v-for="a in areaOptions" :key="a.value" :label="a.label" :value="a.value" />
+            </el-select>
           </div>
 
           <!-- 种植数量 -->
@@ -51,7 +88,7 @@
             />
           </div>
 
-          <!-- 损耗率 - V1.1新增 -->
+          <!-- 损耗率 -->
           <div>
             <label class="block text-gray-700 text-sm mb-2 font-medium">损耗率(%)</label>
             <el-input-number v-model="formData.attritionRate" :min="0" :max="100" :precision="1" class="w-full" />
@@ -93,29 +130,61 @@ import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   isOpen: Boolean,
-  record: Object
+  record: Object,
+  cropVarietyOptions: {
+    type: Array,
+    default: () => []
+  },
+  areaOptions: {
+    type: Array,
+    default: () => [
+      { value: '1号棚', label: '1号棚' },
+      { value: '2号棚', label: '2号棚' },
+      { value: '3号棚', label: '3号棚' },
+      { value: '4号棚', label: '4号棚' }
+    ]
+  }
 })
 
 const emit = defineEmits(['close', 'submit'])
 
 const formData = ref({
   plantCode: '',
+  selectedCropCode: '',
   cropName: '',
+  cropVariety: '',
   areaName: '',
   plantingCount: 0,
   plantingDate: '',
-  attritionRate: 0,  // V1.1新增
+  attritionRate: 0,
   soilPH: null,
   soilEC: null,
   remarks: ''
 })
+
+// 处理作物品种选择变化
+const handleCropCodeChange = (cropCode) => {
+  if (cropCode) {
+    const crop = props.cropVarietyOptions.find(c => c.value === cropCode)
+    if (crop) {
+      // cropName 使用 category，cropVariety 使用 label (即 varietyName)
+      formData.value.cropName = crop.category || ''
+      formData.value.cropVariety = crop.label || ''
+    }
+  } else {
+    formData.value.cropName = ''
+    formData.value.cropVariety = ''
+  }
+}
 
 // 监听打开状态和记录数据
 watch(() => [props.isOpen, props.record], ([val, record]) => {
   if (val && record) {
     formData.value = {
       plantCode: record.plantCode || '',
+      selectedCropCode: record.cropCode || '',
       cropName: record.cropName || '',
+      cropVariety: record.cropVariety || '',
       areaName: record.areaName || '',
       plantingCount: record.plantingCount || 0,
       plantingDate: record.plantingDate || '',
@@ -132,10 +201,19 @@ const onClose = () => {
 }
 
 const handleSubmit = () => {
+  if (!formData.value.selectedCropCode) {
+    ElMessage.warning('请选择作物品种')
+    return
+  }
+  if (!formData.value.areaName) {
+    ElMessage.warning('请选择种植区域')
+    return
+  }
   if (!formData.value.plantingCount || formData.value.plantingCount <= 0) {
     ElMessage.warning('请输入正确的种植数量')
     return
   }
+
   emit('submit', { ...formData.value })
 }
 </script>

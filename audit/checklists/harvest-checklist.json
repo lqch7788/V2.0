@@ -1,0 +1,65 @@
+{
+  "module": "Harvest",
+  "v1Path": "D:\\TMcrop\\yuanxingtu\\V1.1\\src\\views\\crop\\Harvest.vue",
+  "v1ComponentsPath": "D:\\TMcrop\\yuanxingtu\\V1.1\\src\\components\\farm\\harvest",
+  "v2Path": "D:\\TMcrop\\yuanxingtu\\V2.0\\src\\views\\crop\\Harvest.vue",
+  "v2ComponentsPath": "D:\\TMcrop\\yuanxingtu\\V2.0\\src\\components\\farm\\harvest",
+  "componentChecks": [
+    {
+      "name": "HarvestStats",
+      "v1Files": ["components/Stats.vue"],
+      "checks": [
+        {"id": "HV-SC001", "item": "统计卡片数量", "expected": 4},
+        {"id": "HV-SC002", "item": "图标颜色配置"}
+      ]
+    },
+    {
+      "name": "HarvestFilter",
+      "v1Files": ["components/Filter.vue"],
+      "checks": [
+        {"id": "HV-FC001", "item": "筛选字段完整性"},
+        {"id": "HV-FC002", "item": "日期范围选择"}
+      ]
+    },
+    {
+      "name": "HarvestTable",
+      "v1Files": ["components/Table.vue"],
+      "checks": [
+        {"id": "HV-TC001", "item": "表格列定义"},
+        {"id": "HV-TC002", "item": "操作按钮组"},
+        {"id": "HV-TC003", "item": "状态显示"}
+      ]
+    },
+    {
+      "name": "AddModal",
+      "v1Files": ["modals/AddModal.vue"],
+      "checks": [
+        {"id": "HV-AM001", "item": "弹窗标题"},
+        {"id": "HV-AM002", "item": "表单字段"},
+        {"id": "HV-AM003", "item": "提交格式"}
+      ]
+    },
+    {
+      "name": "HarvestingModal",
+      "v1Files": ["modals/HarvestingModal.vue"],
+      "checks": [
+        {"id": "HV-HM001", "item": "采收记录表单"}
+      ]
+    },
+    {
+      "name": "InboundModal",
+      "v1Files": ["modals/InboundModal.vue"],
+      "checks": [
+        {"id": "HV-IM001", "item": "入库记录表单"}
+      ]
+    }
+  ],
+  "functionalityChecks": [
+    {"id": "HV-F001", "item": "新增采收记录"},
+    {"id": "HV-F002", "item": "编辑采收记录"},
+    {"id": "HV-F003", "item": "删除采收记录"},
+    {"id": "HV-F004", "item": "采收入库"},
+    {"id": "HV-F005", "item": "导出功能"},
+    {"id": "HV-F006", "item": "筛选查询"}
+  ]
+}

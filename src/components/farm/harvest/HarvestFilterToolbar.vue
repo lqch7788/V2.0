@@ -68,6 +68,17 @@
         </el-select>
       </div>
 
+      <!-- P1 采收人员筛选 -->
+      <div class="flex-1 min-w-[150px]">
+        <label class="block text-gray-700 text-sm mb-1">采收人员</label>
+        <el-input
+          v-model="localFilters.harvesterName"
+          placeholder="请输入采收人员"
+          clearable
+          class="w-full"
+        />
+      </div>
+
       <!-- 入库仓库 -->
       <div class="min-w-[150px]">
         <label class="block text-gray-700 text-sm mb-1">入库仓库</label>

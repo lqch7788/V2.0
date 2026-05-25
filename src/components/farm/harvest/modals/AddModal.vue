@@ -139,6 +139,44 @@
               </div>
             </div>
 
+            <!-- P0 新增字段：采收类型、目标库存、是否补录 -->
+            <div class="grid grid-cols-3 gap-4">
+              <!-- 采收类型 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-1">采收类型</label>
+                <el-select v-model="formData.harvestType" class="w-full" placeholder="请选择采收类型">
+                  <el-option label="种子采收" value="seed" />
+                  <el-option label="种苗采收" value="seedling" />
+                  <el-option label="成品采收" value="product" />
+                </el-select>
+              </div>
+              <!-- 目标库存 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-1">目标库存</label>
+                <el-select v-model="formData.targetInventory" class="w-full" placeholder="请选择目标库存">
+                  <el-option label="种源库存" value="seed" />
+                  <el-option label="种苗库存" value="seedling" />
+                  <el-option label="成品库存" value="product" />
+                </el-select>
+              </div>
+              <!-- 是否补录 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-1">是否补录</label>
+                <el-select v-model="formData.isSupplementary" class="w-full" placeholder="请选择">
+                  <el-option label="是" :value="true" />
+                  <el-option label="否" :value="false" />
+                </el-select>
+              </div>
+            </div>
+            <!-- 补录原因（仅在补录时显示） -->
+            <div v-if="formData.isSupplementary">
+              <label class="block text-sm font-medium text-gray-900 mb-1">补录原因 <span class="text-red-500">*</span></label>
+              <el-input
+                v-model="formData.supplementaryReason"
+                placeholder="请输入补录原因"
+              />
+            </div>
+
             <!-- 采收人员选择 -->
             <div>
               <label class="block text-sm font-medium text-gray-900 mb-1">采收人员</label>
@@ -348,7 +386,12 @@ const formData = ref({
   remarks: '',
   inboundType: 'planting_harvest',
   unitPrice: 0,
-  products: []
+  products: [],
+  // P0 补录字段
+  harvestType: 'product', // 采收类型：seed/seedling/product
+  targetInventory: 'product', // 目标库存：seed/seedling/product
+  isSupplementary: false, // 是否补录
+  supplementaryReason: '' // 补录原因
 })
 
 // 错误信息

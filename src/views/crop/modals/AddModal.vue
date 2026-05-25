@@ -92,17 +92,34 @@
               />
             </div>
 
-            <!-- 作物品种 -->
+            <!-- 作物品种 - 使用 CropCodeSelector 选择器 -->
             <div class="col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">作物品种 <span class="text-red-500">*</span></label>
-              <el-input v-model="form.cropVariety" placeholder="请输入作物品种" />
+              <CropCodeSelector
+                v-model="form.cropCode"
+                placeholder="搜索或选择作物品种..."
+                size="md"
+                show-full-path
+                @change="handleCropChange"
+              />
+              <!-- 显示选中作物的详细信息 -->
+              <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
+                <div class="text-emerald-700 flex items-center gap-1">
+                  <el-icon class="w-3 h-3 flex-shrink-0"><Leaf /></el-icon>
+                  {{ selectedCrop.categoryName }} > {{ selectedCrop.typeName }} > {{ selectedCrop.varietyName }}
+                  <template v-if="selectedCrop.subVariety1Name"> > {{ selectedCrop.subVariety1Name }}</template>
+                </div>
+                <div class="text-emerald-600 mt-0.5">
+                  编码：{{ selectedCrop.cropCode }}
+                </div>
+              </div>
               <p v-if="errors.cropVariety" class="text-xs text-red-500 mt-1">{{ errors.cropVariety }}</p>
             </div>
 
-            <!-- 品种路径 -->
+            <!-- 品种路径（自动填充） -->
             <div class="col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">品种路径</label>
-              <el-input v-model="form.cropCategory" placeholder="请输入品种路径" />
+              <el-input v-model="form.cropCategory" placeholder="选择作物后自动填充" readonly />
             </div>
 
             <!-- 单位 -->
@@ -171,6 +188,8 @@ import { ref, watch } from 'vue'
 import { Plus, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
+import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
+import { Leaf } from '@element-plus/icons-vue'
 
 const props = defineProps({
   isOpen: Boolean
@@ -196,6 +215,7 @@ const form = ref({
   orderCode: '',
   orderName: '',
   orderType: 'production',
+  cropCode: '',
   cropCategory: '',
   cropVariety: '',
   plannedQuantity: 0,
@@ -206,6 +226,31 @@ const form = ref({
   expectedHarvestDate: '',
   remarks: ''
 })
+
+// 选中的作物品种详情
+const selectedCrop = ref(null)
+
+// 作物品种选择回调
+const handleCropChange = (code, varietyInfo) => {
+  form.value.cropCode = code
+  selectedCrop.value = varietyInfo
+  if (varietyInfo) {
+    // 构建完整路径
+    const fullPath = [
+      varietyInfo.categoryName,
+      varietyInfo.typeName,
+      varietyInfo.varietyName,
+      varietyInfo.subVariety1Name,
+    ].filter(Boolean).join(' > ')
+    // 取最细化的品种名称
+    const cropName = varietyInfo.subVariety1Name || varietyInfo.varietyName
+    form.value.cropVariety = cropName
+    form.value.cropCategory = fullPath
+  } else {
+    form.value.cropVariety = ''
+    form.value.cropCategory = ''
+  }
+}
 
 // 错误信息
 const errors = ref({})
@@ -228,6 +273,7 @@ watch(() => props.isOpen, (val) => {
       orderCode: '',
       orderName: '',
       orderType: 'production',
+      cropCode: '',
       cropCategory: '',
       cropVariety: '',
       plannedQuantity: 0,
@@ -238,6 +284,7 @@ watch(() => props.isOpen, (val) => {
       expectedHarvestDate: '',
       remarks: ''
     }
+    selectedCrop.value = null
     errors.value = {}
     isMaximized.value = false
   }

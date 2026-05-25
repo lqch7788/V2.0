@@ -5,6 +5,14 @@
       <!-- 表头 -->
       <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
         <tr>
+          <!-- 复选框列 -->
+          <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-10">
+            <el-checkbox
+              :model-value="isAllSelected"
+              :indeterminate="isIndeterminate"
+              @change="handleSelectAll"
+            />
+          </th>
           <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-10"></th>
           <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">采收单号</th>
           <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">入库类型</th>
@@ -26,6 +34,13 @@
           :key="record.id"
           class="hover:bg-blue-100 transition-colors"
         >
+          <!-- 复选框 -->
+          <td class="px-4 py-3">
+            <el-checkbox
+              :model-value="selectedIds.includes(record.id)"
+              @change="handleSelectOne(record.id)"
+            />
+          </td>
           <!-- 展开按钮 -->
           <td class="px-4 py-3">
             <el-button link @click="toggleExpand(record.id)">
@@ -165,13 +180,53 @@ const props = defineProps({
   pageSize: {
     type: Number,
     default: 10
+  },
+  // 选中的行ID列表
+  selectedIds: {
+    type: Array,
+    default: () => []
   }
 })
 
-const emit = defineEmits(['view-detail', 'page-change', 'page-size-change'])
+const emit = defineEmits(['view-detail', 'page-change', 'page-size-change', 'selection-change'])
 
 // 展开行状态（支持多行展开）
 const expandedRows = ref(new Set())
+
+// 全选状态计算
+const isAllSelected = computed(() => {
+  return paginatedRecords.value.length > 0 && paginatedRecords.value.every(r => props.selectedIds.includes(r.id))
+})
+
+// 不确定状态（部分选中）
+const isIndeterminate = computed(() => {
+  const selectedCount = paginatedRecords.value.filter(r => props.selectedIds.includes(r.id)).length
+  return selectedCount > 0 && selectedCount < paginatedRecords.value.length
+})
+
+// 全选/取消全选
+const handleSelectAll = (val) => {
+  if (val) {
+    // 选中当前页所有
+    const allIds = paginatedRecords.value.map(r => r.id)
+    emit('selection-change', [...new Set([...props.selectedIds, ...allIds])])
+  } else {
+    // 取消当前页所有
+    const currentIds = new Set(paginatedRecords.value.map(r => r.id))
+    emit('selection-change', props.selectedIds.filter(id => !currentIds.has(id)))
+  }
+}
+
+// 单行选中/取消
+const handleSelectOne = (id) => {
+  let newSelectedIds
+  if (props.selectedIds.includes(id)) {
+    newSelectedIds = props.selectedIds.filter(i => i !== id)
+  } else {
+    newSelectedIds = [...props.selectedIds, id]
+  }
+  emit('selection-change', newSelectedIds)
+}
 
 // 分页后的记录
 const paginatedRecords = computed(() => {
