@@ -487,10 +487,10 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { RefreshLeft, Plus, Edit, Delete, Download, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { } from 'element-plus'
+import { useMaterialReturnStore } from '@/stores/modules/inventory/useMaterialReturnStore'
 
 // 状态类型映射
 const statusMap = {
@@ -523,60 +523,19 @@ const exportFormats = [
 
 // 退料单类型
 
-// Mock数据
-const mockReturns = ref([
-  {
-    id: 1,
-    code: 'RT20260121-001',
-    sourceAppCode: 'LL20260120-001',
-    sourceAppType: '生产领料单',
-    returnDate: '2026-01-21',
-    returner: '张三',
-    warehouse: '原料仓库A',
-    status: 'submitted',
-    createTime: '2026-01-21 10:30:00',
-    remarks: '多余物料退回',
-    materials: [
-      { code: '010101001', name: '番茄种子', spec: '优等品', unit: '袋', quantity: 10, reason: '多余物料' },
-      { code: '010201001', name: '尿素', spec: '50kg/袋', unit: '袋', quantity: 5, reason: '未使用完' }
-    ]
-  },
-  {
-    id: 2,
-    code: 'RT20260120-001',
-    sourceAppCode: 'LL20260119-001',
-    sourceAppType: '生产领料单',
-    returnDate: '2026-01-20',
-    returner: '李四',
-    warehouse: '原料仓库B',
-    status: 'approved',
-    createTime: '2026-01-20 14:20:00',
-    materials: [
-      { code: '010301001', name: '多菌灵', spec: '500ml/瓶', unit: '瓶', quantity: 20, reason: '病虫害已消除' }
-    ]
-  },
-  {
-    id: 3,
-    code: 'RT20260119-001',
-    sourceAppCode: 'CG20260118-001',
-    sourceAppType: '采购退料单',
-    returnDate: '2026-01-19',
-    returner: '王五',
-    warehouse: '原料仓库A',
-    status: 'inbound',
-    createTime: '2026-01-19 09:15:00',
-    materials: [
-      { code: '020101001', name: '纸箱(大)', spec: '50*40*30', unit: '个', quantity: 15, reason: '规格不符' }
-    ]
-  }
-])
-
 // 源单物料数据
 const sourceMaterials = ref([
   { code: '010101001', name: '番茄种子', spec: '优等品', unit: '袋', quantity: 10, reason: '' },
   { code: '010201001', name: '尿素', spec: '50kg/袋', unit: '袋', quantity: 5, reason: '' },
   { code: '010301001', name: '多菌灵', spec: '500ml/瓶', unit: '瓶', quantity: 20, reason: '' }
 ])
+
+// Store
+const returnStore = useMaterialReturnStore()
+
+onMounted(async () => {
+  await returnStore.loadReturnRecords()
+})
 
 // 状态
 const currentPage = ref(1)
@@ -638,7 +597,7 @@ const rules = {
 
 // 计算属性
 const filteredReturns = computed(() => {
-  return mockReturns.value.filter(r => {
+  return returnStore.returnRecords.filter(r => {
     if (searchForm.code && !r.code.includes(searchForm.code)) return false
     if (searchForm.sourceAppCode && !r.sourceAppCode.includes(searchForm.sourceAppCode)) return false
     if (searchForm.returnDate && r.returnDate !== searchForm.returnDate) return false
@@ -715,7 +674,7 @@ const handleEdit = (row) => {
 const generateCode = () => {
   const today = new Date()
   const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
-  const todayRecords = mockReturns.value.filter(r => r.code.startsWith(`RT${dateStr}`))
+  const todayRecords = returnStore.returnRecords.filter(r => r.code.startsWith(`RT${dateStr}`))
   let maxSeq = 0
   if (todayRecords.length > 0) {
     const sequences = todayRecords.map(r => parseInt(r.code.split('-')[1] || '0'))
@@ -727,17 +686,13 @@ const generateCode = () => {
 
 const handleSave = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
       if (isEdit.value) {
-        const index = mockReturns.value.findIndex(r => r.id === form.id)
-        if (index !== -1) {
-          mockReturns.value[index] = { ...form }
-        }
+        await returnStore.editReturn(form.id, { ...form })
         ElMessage.success('编辑成功')
       } else {
-        const newReturn = {
-          id: Math.max(...mockReturns.value.map(r => r.id)) + 1,
+        await returnStore.addReturn({
           code: form.code,
           sourceAppCode: form.sourceAppCode,
           sourceAppType: form.sourceAppType,
@@ -745,11 +700,9 @@ const handleSave = async () => {
           returner: form.returner,
           warehouse: form.warehouse,
           status: 'submitted',
-          createTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
           remarks: form.remarks,
           materials: [...form.materials]
-        }
-        mockReturns.value.unshift(newReturn)
+        })
         ElMessage.success('新增成功')
       }
       showFormModal.value = false
@@ -796,14 +749,14 @@ const handleVoid = (row) => {
   showVoidModal.value = true
 }
 
-const handleSubmitVoid = () => {
+const handleSubmitVoid = async () => {
   if (!voidForm.reason) {
     ElMessage.warning('请输入作废原因')
     return
   }
-  const returnRecord = mockReturns.value.find(r => r.code === voidForm.code)
+  const returnRecord = returnStore.returnRecords.find(r => r.code === voidForm.code)
   if (returnRecord) {
-    returnRecord.status = 'voided'
+    await returnStore.voidReturn(returnRecord.id)
   }
   ElMessage.success('作废申请已提交')
   showVoidModal.value = false
@@ -846,9 +799,9 @@ const handleConfirmBatchDelete = () => {
   handleDoDelete()
 }
 
-const handleDoDelete = () => {
+const handleDoDelete = async () => {
   const ids = selectedRows.value.map(r => r.id)
-  mockReturns.value = mockReturns.value.filter(r => !ids.includes(r.id))
+  await returnStore.removeReturnsBatch(ids)
   ElMessage.success(`删除了 ${ids.length} 条退料记录`)
   selectedRows.value = []
   deleteMode.value = false

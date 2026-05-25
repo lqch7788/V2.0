@@ -586,10 +586,11 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Shop, Plus, Edit, Delete, Download, CopyDocument, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { } from 'element-plus'
+import { useSupplierStore } from '@/stores/modules/inventory/useSupplierStore'
 
 // 供应商类型配置
 const supplierTypeMap = {
@@ -600,6 +601,14 @@ const supplierTypeMap = {
 }
 
 const getSupplierTypeName = (type) => supplierTypeMap[type] || type
+
+// 供应商Store
+const supplierStore = useSupplierStore()
+
+// 页面挂载时加载供应商数据
+onMounted(async () => {
+  await supplierStore.loadSuppliers()
+})
 
 // 供应商大类配置
 const supplierBigCategories = [
@@ -638,81 +647,6 @@ const exportFormats = [
 ]
 
 // 供应商类型
-
-// Mock数据
-const mockSuppliers = ref([
-  {
-    id: 1,
-    code: 'YS01001',
-    organization: '总公司',
-    name: '种子公司A',
-    supplierType: '1',
-    supplierAttribute: '直接材料',
-    contact: '张经理',
-    mobilePhone: '13800138001',
-    workPhone: '010-12345678',
-    fax: '010-12345679',
-    country: '中国',
-    province: '北京市',
-    city: '北京市',
-    address: '朝阳区XX路XX号',
-    status: '启用',
-    bankName: '中国银行北京分行',
-    bankCardNumber: '6222123456789012345',
-    createDate: '2025-01-15',
-    remarks: '长期合作伙伴'
-  },
-  {
-    id: 2,
-    code: 'YS02001',
-    organization: '总公司',
-    name: '肥料公司B',
-    supplierType: '1',
-    supplierAttribute: '直接材料',
-    contact: '李经理',
-    mobilePhone: '13800138002',
-    workPhone: '021-87654321',
-    country: '中国',
-    province: '上海市',
-    city: '上海市',
-    address: '浦东新区XX路XX号',
-    status: '启用',
-    bankName: '工商银行上海分行',
-    createDate: '2025-02-20'
-  },
-  {
-    id: 3,
-    code: 'ZC01001',
-    organization: '分公司A',
-    name: '包装材料公司C',
-    supplierType: '2',
-    supplierAttribute: '间接材料',
-    contact: '王经理',
-    mobilePhone: '13900139003',
-    country: '中国',
-    province: '广东省',
-    city: '广州市',
-    address: '天河区XX路XX号',
-    status: '启用',
-    createDate: '2025-03-10'
-  },
-  {
-    id: 4,
-    code: 'FW01001',
-    organization: '分公司B',
-    name: '物流服务公司D',
-    supplierType: '4',
-    supplierAttribute: '服务',
-    contact: '赵经理',
-    mobilePhone: '13700137004',
-    country: '中国',
-    province: '浙江省',
-    city: '杭州市',
-    address: '西湖区XX路XX号',
-    status: '禁用',
-    createDate: '2025-04-05'
-  }
-])
 
 // 状态
 const currentPage = ref(1)
@@ -787,7 +721,7 @@ const rules = {
 
 // 计算属性
 const filteredSuppliers = computed(() => {
-  return mockSuppliers.value.filter(s => {
+  return supplierStore.suppliers.filter(s => {
     if (filters.code && !s.code.includes(filters.code)) return false
     if (filters.name && !s.name.includes(filters.name)) return false
     if (filters.contact && !s.contact.includes(filters.contact)) return false
@@ -917,25 +851,19 @@ const handleEdit = (row) => {
 
 const handleSave = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
-    if (valid) {
-      if (isEdit.value) {
-        const index = mockSuppliers.value.findIndex(s => s.id === form.id)
-        if (index !== -1) {
-          mockSuppliers.value[index] = { ...form }
-        }
-        ElMessage.success('编辑成功')
-      } else {
-        const newSupplier = {
-          ...form,
-          id: Math.max(...mockSuppliers.value.map(s => s.id)) + 1
-        }
-        mockSuppliers.value.unshift(newSupplier)
-        ElMessage.success('新增成功')
-      }
-      showFormModal.value = false
+  try {
+    await formRef.value.validate()
+    if (isEdit.value) {
+      await supplierStore.editSupplier(form.id, { ...form })
+      ElMessage.success('编辑成功')
+    } else {
+      await supplierStore.addSupplier({ ...form })
+      ElMessage.success('新增成功')
     }
-  })
+    showFormModal.value = false
+  } catch {
+    // 表单校验失败或操作失败，不做额外处理
+  }
 }
 
 const handleBatchEdit = () => {
@@ -975,9 +903,9 @@ const handleConfirmDelete = () => {
   handleDoDelete()
 }
 
-const handleDoDelete = () => {
+const handleDoDelete = async () => {
   const ids = selectedRows.value.map(s => s.id)
-  mockSuppliers.value = mockSuppliers.value.filter(s => !ids.includes(s.id))
+  await supplierStore.removeSuppliersBatch(ids)
   ElMessage.success(`删除了 ${ids.length} 个供应商`)
   selectedRows.value = []
   deleteMode.value = false

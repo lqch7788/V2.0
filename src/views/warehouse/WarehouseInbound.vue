@@ -400,45 +400,15 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Upload, Download, Search, Plus, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { } from 'element-plus'
+import { useInboundStore } from '@/stores/modules/inventory/useInboundStore'
+import { useMaterialTypeStore } from '@/stores/modules/inventory/useMaterialTypeStore'
 
-// 分类配置
-const categoryConfig = {
-  '01': { name: '原料', categories: {
-    '01': { name: '种子', subCategories: {
-      '01': { name: '蔬菜种子', prefix: '010101' },
-      '02': { name: '水果种子', prefix: '010102' }
-    }},
-    '02': { name: '肥料', subCategories: {
-      '01': { name: '氮肥', prefix: '010201' },
-      '02': { name: '磷肥', prefix: '010202' },
-      '03': { name: '钾肥', prefix: '010203' }
-    }},
-    '03': { name: '农药', subCategories: {
-      '01': { name: '杀虫剂', prefix: '010301' },
-      '02': { name: '杀菌剂', prefix: '010302' }
-    }}
-  }},
-  '02': { name: '资材', categories: {
-    '01': { name: '包装材料', subCategories: {
-      '01': { name: '纸箱', prefix: '020101' },
-      '02': { name: '塑料袋', prefix: '020102' }
-    }},
-    '02': { name: '工具', subCategories: {
-      '01': { name: '剪刀', prefix: '020201' },
-      '02': { name: '铲子', prefix: '020202' }
-    }}
-  }}
-}
-
-// 大类选项
-const bigCategories = Object.entries(categoryConfig).map(([code, data]) => ({
-  code,
-  name: (data).name
-}))
+// 状态管理
+const inboundStore = useInboundStore()
+const materialTypeStore = useMaterialTypeStore()
 
 // 单位选项
 const unitOptions = ['袋', '箱', '个', '公斤', '升', '平方米']
@@ -449,15 +419,6 @@ const exportFormats = [
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
-
-// 入库记录类型
-
-// Mock数据
-const mockRecords = ref([
-  { id: 1, code: 'RK20260121-001', materialCode: '010101001', materialName: '番茄种子', quantity: 50, unit: '袋', supplier: '种子公司A', inboundDate: '2026-01-21', operator: '张三', status: 'completed' },
-  { id: 2, code: 'RK20260120-001', materialCode: '010201001', materialName: '尿素', quantity: 100, unit: '袋', supplier: '肥料公司B', inboundDate: '2026-01-20', operator: '李四', status: 'pending' },
-  { id: 3, code: 'RK20260119-001', materialCode: '010301001', materialName: '多菌灵', quantity: 30, unit: '瓶', supplier: '农药公司C', inboundDate: '2026-01-19', operator: '王五', status: 'completed' },
-])
 
 // 状态
 const currentPage = ref(1)
@@ -507,8 +468,17 @@ const rules = {
   supplier: [{ required: true, message: '请输入供应商', trigger: 'blur' }]
 }
 
-// 计算属性
-const filteredRecords = computed(() => mockRecords.value)
+// 大类选项从 store 获取
+const bigCategories = computed(() => materialTypeStore.bigCategories)
+
+// 代码生成器中类/小类选项（弹窗共用同一 store 数据源）
+const codeGenMidCategories = computed(() => materialTypeStore.midCategories)
+const codeGenSubCategories = computed(() => materialTypeStore.subCategories)
+const modalMidCategories = computed(() => materialTypeStore.midCategories)
+const modalSubCategories = computed(() => materialTypeStore.subCategories)
+
+// 筛选和分页
+const filteredRecords = computed(() => inboundStore.inboundRecords)
 
 const paginatedRecords = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
@@ -517,44 +487,6 @@ const paginatedRecords = computed(() => {
 })
 
 const totalPages = computed(() => Math.ceil(filteredRecords.value.length / pageSize.value) || 1)
-
-const codeGenMidCategories = computed(() => {
-  if (!codeGen.bigCategory) return []
-  const bigCat = categoryConfig[codeGen.bigCategory ]
-  if (!bigCat) return []
-  return Object.entries((bigCat).categories).map(([code, data]) => ({
-    code,
-    name: data.name
-  }))
-})
-
-const codeGenSubCategories = computed(() => {
-  if (!codeGen.bigCategory || !codeGen.midCategory) return []
-  const bigCat = categoryConfig[codeGen.bigCategory ]
-  if (!bigCat) return []
-  const midCat = (bigCat).categories[codeGen.midCategory]
-  if (!midCat) return []
-  return Object.entries(midCat.subCategories).map(([code, data]) => ({
-    code,
-    name: data.name,
-    prefix: data.prefix
-  }))
-})
-
-const modalMidCategories = computed(() => codeGenMidCategories.value)
-
-const modalSubCategories = computed(() => {
-  if (!form.bigCategory || !form.midCategory) return []
-  const bigCat = categoryConfig[form.bigCategory ]
-  if (!bigCat) return []
-  const midCat = (bigCat).categories[form.midCategory]
-  if (!midCat) return []
-  return Object.entries(midCat.subCategories).map(([code, data]) => ({
-    code,
-    name: data.name,
-    prefix: data.prefix
-  }))
-})
 
 // 方法
 const handlePageChange = (page) => {
@@ -566,19 +498,31 @@ const handlePageSizeChange = () => {
 }
 
 // 编码生成器方法
-const handleCodeGenBigCategoryChange = () => {
+const handleCodeGenBigCategoryChange = async () => {
   codeGen.midCategory = ''
   codeGen.subCategory = ''
   codeGen.generatedCode = ''
+  codeGenError.value = ''
+  codeGenSuccess.value = ''
+  if (codeGen.bigCategory) {
+    await materialTypeStore.loadMidCategories(codeGen.bigCategory)
+  }
 }
 
-const handleCodeGenMidCategoryChange = () => {
+const handleCodeGenMidCategoryChange = async () => {
   codeGen.subCategory = ''
   codeGen.generatedCode = ''
+  codeGenError.value = ''
+  codeGenSuccess.value = ''
+  if (codeGen.bigCategory && codeGen.midCategory) {
+    await materialTypeStore.loadSubCategories(codeGen.bigCategory, codeGen.midCategory)
+  }
 }
 
 const handleCodeGenSubCategoryChange = () => {
   codeGen.generatedCode = ''
+  codeGenError.value = ''
+  codeGenSuccess.value = ''
 }
 
 const handleCodeGen = () => {
@@ -589,12 +533,10 @@ const handleCodeGen = () => {
     return
   }
 
-  const subCat = codeGenSubCategories.value.find(s => s.code === codeGen.subCategory)
-  if (!subCat) return
-
-  const prefix = (subCat).prefix
-  const existingCodes = mockRecords.value
-    .map(m => m.materialCode.startsWith(prefix) ? parseInt(m.materialCode.slice(-3)) : 0)
+  // 前缀由三级编码拼接组成（规则：大类(2位) + 中类(2位) + 小类(2位)）
+  const prefix = `${codeGen.bigCategory}${codeGen.midCategory}${codeGen.subCategory}`
+  const existingCodes = inboundStore.inboundRecords
+    .map(m => m.materialCode && m.materialCode.startsWith(prefix) ? parseInt(m.materialCode.slice(-3)) : 0)
 
   let maxSeq = 0
   if (existingCodes.length > 0) {
@@ -606,19 +548,29 @@ const handleCodeGen = () => {
   codeGenSuccess.value = '编码已生成！'
 }
 
-const handleVerifyCode = () => {
+const handleVerifyCode = async () => {
+  codeGenError.value = ''
+  codeGenSuccess.value = ''
   if (!codeGen.generatedCode) {
     codeGenError.value = '请先生成编码'
     return
   }
 
-  const exists = mockRecords.value.some(m => m.materialCode === codeGen.generatedCode)
-  if (exists) {
-    codeGenError.value = '警告：该编码已在记录中存在！'
-    codeGenSuccess.value = ''
-  } else {
-    codeGenError.value = ''
-    codeGenSuccess.value = '验证通过：该编码可以使用！'
+  try {
+    const exists = await materialTypeStore.checkCodeExists(codeGen.generatedCode)
+    if (exists) {
+      codeGenError.value = '警告：该编码已在记录中存在！'
+    } else {
+      codeGenSuccess.value = '验证通过：该编码可以使用！'
+    }
+  } catch {
+    // API 调用失败时回退到本地检查
+    const exists = inboundStore.inboundRecords.some(m => m.materialCode === codeGen.generatedCode)
+    if (exists) {
+      codeGenError.value = '警告：该编码已在记录中存在！'
+    } else {
+      codeGenSuccess.value = '验证通过：该编码可以使用！'
+    }
   }
 }
 
@@ -650,7 +602,7 @@ const handleEdit = (row) => {
 const generateCode = () => {
   const today = new Date()
   const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
-  const todayRecords = mockRecords.value.filter(r => r.code.startsWith(`RK${dateStr}`))
+  const todayRecords = inboundStore.inboundRecords.filter(r => r.code && r.code.startsWith(`RK${dateStr}`))
   let maxSeq = 0
   if (todayRecords.length > 0) {
     const sequences = todayRecords.map(r => parseInt(r.code.split('-')[1] || '0'))
@@ -666,12 +618,10 @@ const handleGenerateCodeInModal = () => {
     return
   }
 
-  const subCat = modalSubCategories.value.find(s => s.code === form.subCategory)
-  if (!subCat) return
-
-  const prefix = (subCat).prefix
-  const existingCodes = mockRecords.value
-    .map(m => m.materialCode.startsWith(prefix) ? parseInt(m.materialCode.slice(-3)) : 0)
+  // 前缀由三级编码拼接组成
+  const prefix = `${form.bigCategory}${form.midCategory}${form.subCategory}`
+  const existingCodes = inboundStore.inboundRecords
+    .map(m => m.materialCode && m.materialCode.startsWith(prefix) ? parseInt(m.materialCode.slice(-3)) : 0)
 
   let maxSeq = 0
   if (existingCodes.length > 0) {
@@ -682,49 +632,55 @@ const handleGenerateCodeInModal = () => {
   form.materialCode = prefix + newSeq
 }
 
-const handleModalBigCategoryChange = () => {
+const handleModalBigCategoryChange = async () => {
   form.midCategory = ''
   form.subCategory = ''
   form.materialCode = ''
+  if (form.bigCategory) {
+    await materialTypeStore.loadMidCategories(form.bigCategory)
+  }
 }
 
-const handleModalMidCategoryChange = () => {
+const handleModalMidCategoryChange = async () => {
   form.subCategory = ''
   form.materialCode = ''
+  if (form.bigCategory && form.midCategory) {
+    await materialTypeStore.loadSubCategories(form.bigCategory, form.midCategory)
+  }
 }
 
 const handleSave = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
-    if (valid) {
-      if (isEdit.value) {
-        // 编辑模式
-        const index = mockRecords.value.findIndex(r => r.id === form.id)
-        if (index !== -1) {
-          mockRecords.value[index] = { ...form, quantity: Number(form.quantity) }
-        }
-        ElMessage.success('编辑成功')
-      } else {
-        // 新增模式
-        const newRecord = {
-          id: Math.max(...mockRecords.value.map(r => r.id)) + 1,
-          code: form.code,
-          materialCode: form.materialCode,
-          materialName: form.materialName,
-          quantity: Number(form.quantity),
-          unit: form.unit,
-          supplier: form.supplier,
-          inboundDate: form.inboundDate,
-          operator: form.operator,
-          status: 'pending',
-          remarks: form.remarks
-        }
-        mockRecords.value.unshift(newRecord)
-        ElMessage.success('新增成功')
-      }
-      handleCloseModal()
+  try {
+    await formRef.value.validate()
+    if (isEdit.value) {
+      // 编辑模式：调用 store 更新
+      await inboundStore.editInbound(form.id, { ...form, quantity: Number(form.quantity) })
+      ElMessage.success('编辑成功')
+    } else {
+      // 新增模式：调用 store 创建
+      await inboundStore.addInbound({
+        code: form.code,
+        materialCode: form.materialCode,
+        materialName: form.materialName,
+        quantity: Number(form.quantity),
+        unit: form.unit,
+        supplier: form.supplier,
+        inboundDate: form.inboundDate,
+        operator: form.operator,
+        status: 'pending',
+        remarks: form.remarks
+      })
+      ElMessage.success('新增成功')
     }
-  })
+    handleCloseModal()
+  } catch (err) {
+    // Element Plus 表单验证失败时 showModal 保持打开
+    // API 错误已在 store 中处理，此处仅对可见异常做提示
+    if (err && typeof err === 'object' && 'message' in err) {
+      ElMessage.error(err.message)
+    }
+  }
 }
 
 const handleCloseModal = () => {
@@ -807,4 +763,10 @@ const handleDoExport = () => {
   showExportModal.value = false
   ElMessage.success('导出成功')
 }
+
+// 初始化：加载物料大类及入库记录
+onMounted(async () => {
+  await materialTypeStore.loadBigCategories()
+  await inboundStore.loadInboundRecords()
+})
 </script>
