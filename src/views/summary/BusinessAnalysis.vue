@@ -313,7 +313,6 @@ import * as echarts from 'echarts'
 import { DataAnalysis, TrendCharts, Money, User, Connection, Loading, Histogram, PieChart as PieChartIcon, Grid } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useSummaryStore } from '@/stores/modules/summary'
-import { enhancedApiClient } from '@/lib/apiClient'
 
 // 子组件
 import YieldAnalysis from './sub/YieldAnalysis.vue'
@@ -373,11 +372,28 @@ const comparisonMetrics = ref({
   laborCost: false,
   unitPrice: false
 })
-const isLoadingComparison = ref(false)
+const isLoadingComparison = computed(() => summaryStore.comparisonLoading)
 
-// 对比数据 - 支持原始数据和汇总数据
-const comparisonData = ref([])
-const rawComparisonData = ref([])
+// 对比数据 - 从 Store 获取（与V1.1逻辑完全一致）
+const rawComparisonData = computed(() => {
+  const data = summaryStore.comparisonData
+  if (!data || !Array.isArray(data)) return []
+  // 规范化数据（snake_case → camelCase）
+  return data.map(item => ({
+    cropName: item.cropName || item.crop_name || '',
+    greenhouse: item.greenhouse || item.greenhouse_name || '',
+    period: item.period || item.month || '',
+    worker: item.worker || item.worker_name || '',
+    yield: Number(item.yield || item.total_yield || 0),
+    amount: Number(item.amount || item.total_amount || 0),
+    cost: Number(item.cost || item.total_cost || 0),
+    profit: Number(item.profit || 0),
+    yieldRate: Number(item.yieldRate || item.yield_rate || 0),
+    laborHours: Number(item.laborHours || item.labor_hours || 0),
+    laborCost: Number(item.laborCost || item.labor_cost || 0),
+    unitPrice: Number(item.unitPrice || item.unit_price || 0)
+  }))
+})
 
 // 图表数据计算 - 根据选中维度动态汇总
 const chartData = computed(() => {
@@ -501,63 +517,18 @@ const tableData = computed(() => {
   })
 })
 
-// 加载对比数据
+// 加载对比数据（通过Store，与V1.1逻辑完全一致）
 const loadComparisonData = async () => {
-  isLoadingComparison.value = true
-  try {
-    // 构建查询参数
-    const params = new URLSearchParams()
-    if (dateRange.value && dateRange.value.length === 2) {
-      params.set('start_date', dateRange.value[0])
-      params.set('end_date', dateRange.value[1])
-    }
-    // 添加维度参数
-    params.set('dimensions', selectedDimensions.value.join(','))
-    params.set('sampling', sampling.value)
-
-    const query = params.toString()
-    const url = `/summary/comparison-stats${query ? `?${query}` : ''}`
-
-    const response = await enhancedApiClient.get(url)
-    const data = response?.data || response || []
-
-    // 规范化数据
-    rawComparisonData.value = data.map(item => ({
-      cropName: item.cropName || item.crop_name || '',
-      greenhouse: item.greenhouse || item.greenhouse_name || '',
-      period: item.period || item.month || '',
-      worker: item.worker || item.worker_name || '',
-      yield: Number(item.yield || item.total_yield || 0),
-      amount: Number(item.amount || item.total_amount || 0),
-      cost: Number(item.cost || item.total_cost || 0),
-      profit: Number(item.profit || 0),
-      yieldRate: Number(item.yieldRate || item.yield_rate || 0),
-      laborHours: Number(item.laborHours || item.labor_hours || 0),
-      laborCost: Number(item.laborCost || item.labor_cost || 0),
-      unitPrice: Number(item.unitPrice || item.unit_price || 0)
-    }))
-
-    ElMessage.success('数据加载成功')
-  } catch (err) {
-    console.error('加载对比数据失败:', err)
-    ElMessage.error('加载数据失败，使用演示数据')
-
-    // 使用演示数据
-    rawComparisonData.value = [
-      { cropName: '番茄', greenhouse: '1号棚', period: '2026年5月', worker: '张伟民', yield: 5200, amount: 33800, cost: 18500, profit: 15300, yieldRate: 5200, laborHours: 120, laborCost: 3600, unitPrice: 6.5 },
-      { cropName: '番茄', greenhouse: '2号棚', period: '2026年5月', worker: '李明轩', yield: 4800, amount: 31200, cost: 17200, profit: 14000, yieldRate: 4800, laborHours: 115, laborCost: 3450, unitPrice: 6.5 },
-      { cropName: '黄瓜', greenhouse: '2号棚', period: '2026年5月', worker: '李明轩', yield: 3800, amount: 19000, cost: 12800, profit: 6200, yieldRate: 4750, laborHours: 95, laborCost: 2850, unitPrice: 5.0 },
-      { cropName: '黄瓜', greenhouse: '3号棚', period: '2026年5月', worker: '王建国', yield: 3500, amount: 17500, cost: 13500, profit: 4000, yieldRate: 4375, laborHours: 100, laborCost: 3000, unitPrice: 5.0 },
-      { cropName: '辣椒', greenhouse: '3号棚', period: '2026年5月', worker: '王建国', yield: 2100, amount: 16800, cost: 9800, profit: 7000, yieldRate: 3500, laborHours: 80, laborCost: 2400, unitPrice: 8.0 },
-      { cropName: '茄子', greenhouse: '1号棚-B区', period: '2026年5月', worker: '赵俊杰', yield: 1480, amount: 10360, cost: 7200, profit: 3160, yieldRate: 2960, laborHours: 60, laborCost: 1800, unitPrice: 7.0 }
-    ]
-  } finally {
-    isLoadingComparison.value = false
-    // 图表数据更新后重新渲染
-    nextTick(() => {
-      initCharts()
-    })
-  }
+  await summaryStore.fetchComparisonStats({
+    mainParam: selectedDimensions.value[0] || 'crop',
+    startDate: dateRange.value?.[0] || undefined,
+    endDate: dateRange.value?.[1] || undefined,
+    sampling: sampling.value,
+    dimensions: selectedDimensions.value.join(',')
+  })
+  nextTick(() => {
+    initCharts()
+  })
 }
 
 // 图表颜色配置
