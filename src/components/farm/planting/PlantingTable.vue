@@ -83,14 +83,14 @@
         :data="currentData"
         style="min-width: 1900px"
         :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #3b82f6)', color: 'white', padding: '12px 16px', fontWeight: '600', whiteSpace: 'nowrap' }"
-        :cell-style="{ padding: '12px 16px', whiteSpace: 'nowrap' }"
+        :cell-style="{ padding: '12px 16px', whiteSpace: 'nowrap', overflow: 'visible' }"
         @selection-change="handleSelectionChange"
       >
         <!-- 选择列 -->
         <el-table-column v-if="showCheckbox" type="selection" width="50" align="center" />
 
         <!-- 种植批号 -->
-        <el-table-column prop="plantCode" label="种植批号" width="140">
+        <el-table-column prop="plantCode" label="种植批号" min-width="140" show-overflow-tooltip>
           <template #default="{ row }">
             <span
               class="font-mono text-blue-600 font-semibold cursor-pointer hover:text-blue-800 hover:underline"
@@ -103,7 +103,7 @@
         </el-table-column>
 
         <!-- 关联生产计划 -->
-        <el-table-column prop="productionPlanCode" label="关联生产计划" width="140">
+        <el-table-column prop="productionPlanCode" label="关联生产计划" min-width="160" show-overflow-tooltip>
           <template #default="{ row }">
             <span v-if="row.productionPlanCode" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">
               {{ row.productionPlanCode }}
@@ -113,41 +113,41 @@
         </el-table-column>
 
         <!-- 作物编码 -->
-        <el-table-column prop="cropCode" label="作物编码" width="120">
+        <el-table-column prop="cropCode" label="作物编码" min-width="120" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="font-mono text-orange-600">{{ row.cropCode || '-' }}</span>
           </template>
         </el-table-column>
 
         <!-- 作物品种 -->
-        <el-table-column prop="cropName" label="作物品种" width="100">
+        <el-table-column prop="cropName" label="作物品种" min-width="120" show-overflow-tooltip>
           <template #default="{ row }">
             {{ row.cropName || '-' }}
           </template>
         </el-table-column>
 
         <!-- 品种路径 -->
-        <el-table-column prop="cropVariety" label="品种路径" width="180">
+        <el-table-column prop="cropVariety" label="品种路径" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">
             {{ row.cropVariety || '-' }}
           </template>
         </el-table-column>
 
         <!-- 种植区域 -->
-        <el-table-column prop="areaName" label="种植区域" width="140" />
+        <el-table-column prop="areaName" label="种植区域" min-width="120" show-overflow-tooltip />
 
         <!-- 种植数量 -->
-        <el-table-column prop="plantingCount" label="种植数量" width="100">
+        <el-table-column prop="plantingCount" label="种植数量" min-width="100" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="text-emerald-600 font-medium">{{ (row.plantingCount || 0).toLocaleString() }}</span>
           </template>
         </el-table-column>
 
         <!-- 种植日期 -->
-        <el-table-column prop="plantingDate" label="种植日期" width="120" />
+        <el-table-column prop="plantingDate" label="种植日期" min-width="120" show-overflow-tooltip />
 
         <!-- 土壤PH -->
-        <el-table-column prop="soilPH" label="土壤PH" width="90">
+        <el-table-column prop="soilPH" label="土壤PH" min-width="80" show-overflow-tooltip>
           <template #default="{ row }">
             <span :class="row.soilPH != null && row.soilPH > 0 ? 'text-gray-700 font-mono' : 'text-gray-400'">
               {{ row.soilPH != null && row.soilPH > 0 ? row.soilPH.toFixed(1) : '-' }}
@@ -156,7 +156,7 @@
         </el-table-column>
 
         <!-- 土壤EC -->
-        <el-table-column prop="soilEC" label="土壤EC" width="90">
+        <el-table-column prop="soilEC" label="土壤EC" min-width="80" show-overflow-tooltip>
           <template #default="{ row }">
             <span :class="row.soilEC != null && row.soilEC > 0 ? 'text-gray-700 font-mono' : 'text-gray-400'">
               {{ row.soilEC != null && row.soilEC > 0 ? row.soilEC.toFixed(1) : '-' }}
@@ -165,7 +165,7 @@
         </el-table-column>
 
         <!-- 损耗率 -->
-        <el-table-column prop="attritionRate" label="损耗率" width="85">
+        <el-table-column prop="attritionRate" label="损耗率" min-width="80" show-overflow-tooltip>
           <template #default="{ row }">
             <span v-if="row.attritionRate != null && row.attritionRate > 0" class="text-amber-600 font-medium">
               {{ row.attritionRate.toFixed(1) }}%
@@ -175,7 +175,7 @@
         </el-table-column>
 
         <!-- 已采收 -->
-        <el-table-column prop="harvestQuantity" label="已采收" width="100">
+        <el-table-column prop="harvestQuantity" label="已采收" min-width="100" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="text-blue-600 font-medium">
               {{ (row.harvestQuantity || 0).toLocaleString() }}{{ row.unit || '' }}
@@ -184,7 +184,7 @@
         </el-table-column>
 
         <!-- 完成比例 -->
-        <el-table-column prop="targetYield" label="完成比例" width="100">
+        <el-table-column prop="targetYield" label="完成比例" min-width="100" show-overflow-tooltip>
           <template #default="{ row }">
             <template v-if="row.targetYield && row.targetYield !== 0">
               <span
@@ -203,7 +203,7 @@
         </el-table-column>
 
         <!-- 状态 -->
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="状态" min-width="100" show-overflow-tooltip>
           <template #default="{ row }">
             <span :class="statusMap[row.status]?.class || ''" class="px-2 py-1 rounded text-xs font-medium">
               {{ statusMap[row.status]?.label || row.status }}
@@ -212,7 +212,7 @@
         </el-table-column>
 
         <!-- 操作列 -->
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" min-width="320" fixed="right">
           <template #default="{ row }">
             <div class="flex gap-1">
               <!-- 采收登记 - 未采收显示 -->
