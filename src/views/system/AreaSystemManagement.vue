@@ -4,13 +4,13 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <a
-            href="/settings"
+          <router-link
+            to="/settings"
             class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
             title="返回系统设置"
           >
             <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
-          </a>
+          </router-link>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="#fff"><MapLocation /></el-icon>
           </div>
@@ -176,11 +176,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ArrowLeft, MapLocation, Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useAreaSystemStore } from '@/stores/modules/areaSystem'
 import { useFarmPartitionStore } from '@/stores/modules/farmPartition'
 import MappingModal from './MappingModal.vue'
+
+// 路由实例
+const router = useRouter()
 
 // Store
 const areaSystemStore = useAreaSystemStore()

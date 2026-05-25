@@ -426,10 +426,8 @@ const loadData = async () => {
     ])
     dictionaries.value = dictData
     categories.value = catData
-    console.log('[DictionaryManagement] 加载数据完成:', dictData.length, '条字典,', catData.length, '个分类')
   } catch (err) {
     error.value = err instanceof Error ? err.message : '加载数据失败'
-    console.error('[DictionaryManagement] 加载数据失败:', err)
   } finally {
     loading.value = false
   }

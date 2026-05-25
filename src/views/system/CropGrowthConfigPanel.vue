@@ -388,7 +388,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Edit,
   Delete,
@@ -591,13 +591,22 @@ const addTask = (cropIdx, stageIdx) => {
 }
 
 /** 删除任务 */
-const removeTask = (cropIdx, stageIdx, taskIdx) => {
-  const configs = [...editingConfigs.value]
-  const stages = [...configs[cropIdx].stages]
-  stages[stageIdx].tasks = stages[stageIdx].tasks.filter((_, i) => i !== taskIdx)
-  configs[cropIdx] = { ...configs[cropIdx], stages }
-  editingConfigs.value = configs
-  dirty.value = true
+const removeTask = async (cropIdx, stageIdx, taskIdx) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该任务吗？', '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    const configs = [...editingConfigs.value]
+    const stages = [...configs[cropIdx].stages]
+    stages[stageIdx].tasks = stages[stageIdx].tasks.filter((_, i) => i !== taskIdx)
+    configs[cropIdx] = { ...configs[cropIdx], stages }
+    editingConfigs.value = configs
+    dirty.value = true
+  } catch {
+    // 用户取消
+  }
 }
 
 /** 添加作物 */
@@ -615,9 +624,18 @@ const addCrop = () => {
 
 /** 删除作物 */
 const removeCrop = async (idx) => {
-  editingConfigs.value = editingConfigs.value.filter((_, i) => i !== idx)
-  activeCropIdx.value = Math.max(0, idx - 1)
-  dirty.value = true
+  try {
+    await ElMessageBox.confirm('确定要删除该作物吗？删除后无法恢复。', '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    editingConfigs.value = editingConfigs.value.filter((_, i) => i !== idx)
+    activeCropIdx.value = Math.max(0, idx - 1)
+    dirty.value = true
+  } catch {
+    // 用户取消
+  }
 }
 
 /** 更新虫害规则 */
@@ -676,6 +694,9 @@ const handleSave = async () => {
     dirty.value = false
     isEditing.value = false
     ElMessage.success('保存成功')
+    // 保存成功后重新加载数据确保一致性
+    await store.loadConfigs()
+    loadData()
   } catch (err) {
     ElMessage.error('保存失败')
   } finally {

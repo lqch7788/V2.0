@@ -187,9 +187,21 @@
           <div v-if="formData.image" class="relative w-16 h-16 rounded-lg overflow-hidden border border-amber-200 flex-shrink-0">
             <img :src="formData.image" alt="预览" class="w-full h-full object-cover" />
           </div>
-          <el-button v-if="formData.image" size="small" type="danger" @click="formData.image = ''">
-            删除
-          </el-button>
+          <div class="flex flex-col gap-1">
+            <el-button size="small" @click="triggerImageUpload">
+              {{ formData.image ? '更换图片' : '上传图片' }}
+            </el-button>
+            <input
+              ref="imageInputRef"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="handleImageUpload"
+            />
+            <el-button v-if="formData.image" size="small" type="danger" @click="formData.image = ''">
+              删除
+            </el-button>
+          </div>
         </div>
       </div>
 
@@ -347,6 +359,29 @@ const visible = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
 })
+
+// 图片上传相关
+const imageInputRef = ref(null)
+
+const triggerImageUpload = () => {
+  imageInputRef.value?.click()
+}
+
+const handleImageUpload = (event) => {
+  const target = event.target
+  const file = target.files?.[0]
+  if (!file) return
+
+  // 使用 FileReader 将图片转为 base64
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    formData.image = e.target?.result
+  }
+  reader.readAsDataURL(file)
+
+  // 清空input以便重复选择同一文件
+  target.value = ''
+}
 
 // 表单数据
 const formData = reactive({

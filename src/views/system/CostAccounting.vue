@@ -4,13 +4,13 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <a
-            href="/settings"
+          <router-link
+            to="/settings"
             class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
             title="返回系统设置"
           >
             <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
-          </a>
+          </router-link>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="#fff"><Coin /></el-icon>
           </div>
@@ -332,7 +332,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCostStore, COST_CATEGORY_TYPE_MAP, COST_CATEGORY_STATUS_MAP, BUDGET_STATUS_MAP } from '@/stores/modules/cost'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -346,6 +347,9 @@ import {
   TrendCharts as Trendings,
   Refresh
 } from '@element-plus/icons-vue'
+
+// 路由实例
+const router = useRouter()
 
 // Store
 const costStore = useCostStore()
@@ -562,7 +566,6 @@ onMounted(async () => {
 })
 
 // 监听Tab变化，加载分析数据
-import { watch } from 'vue'
 watch(activeTab, async (newTab) => {
   if (newTab === 'analysis') {
     await loadStats()

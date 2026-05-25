@@ -239,26 +239,21 @@ const getGreenhouseTypeLabel = (typeCode) => {
 
 // 加载数据
 const loadData = async () => {
-  console.log('[FacilityTab] loadData 开始')
   loading.value = true
   try {
     await Promise.all([
       greenhouseStore.loadGreenhouses(),
       baseStore.loadBases()
     ])
-    console.log('[FacilityTab] loadGreenhouses 完成, greenhouses:', greenhouseStore.greenhouses.length)
-    console.log('[FacilityTab] loadBases 完成, bases:', baseStore.bases.length)
     greenhouses.value = greenhouseStore.greenhouses.map(gh => ({
       ...gh,
       greenhouseType: getGreenhouseTypeLabel(gh.greenhouseType)
     }))
     bases.value = baseStore.bases
-    console.log('[FacilityTab] loadData 成功完成')
   } catch (err) {
-    console.error('[FacilityTab] loadData 失败:', err)
+    ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
-    console.log('[FacilityTab] loadData 结束, loading=false')
   }
 }
 
@@ -347,29 +342,22 @@ const handleDelete = async () => {
 
 // 生命周期
 onMounted(async () => {
-  console.log('[FacilityTab] onMounted 开始')
   // 加载设施类型字典 - 即使失败也继续加载设施数据
   try {
-    console.log('[FacilityTab] 正在加载设施类型字典...')
     const dicts = await getDictionaries('greenhouse_type')
-    console.log('[FacilityTab] 设施类型字典加载完成:', dicts.length, '条')
     greenhouseTypes.value = dicts.map(d => ({
       dictCode: d.code,
       dictLabel: d.name
     }))
   } catch (err) {
-    console.error('[FacilityTab] 加载设施类型字典失败:', err)
+    // 忽略字典加载错误，继续加载设施数据
   }
 
   // 确保 loadData 完成后 loading 始终被设置为 false
   try {
-    console.log('[FacilityTab] 开始加载设施数据...')
     await loadData()
-    console.log('[FacilityTab] loadData 成功返回')
   } catch (err) {
-    console.error('[FacilityTab] loadData 抛出异常:', err)
     loading.value = false
   }
-  console.log('[FacilityTab] onMounted 完成')
 })
 </script>
