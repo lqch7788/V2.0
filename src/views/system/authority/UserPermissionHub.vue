@@ -13,7 +13,7 @@
           </el-icon>
         </router-link>
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" color="white"><Shield /></el-icon>
+          <el-icon :size="24" color="white"><Lock /></el-icon>
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">用户权限管理</h1>
@@ -55,11 +55,10 @@
 <script setup>
 import { ref } from 'vue'
 import {
-  Shield,
+  Lock,
   OfficeBuilding,
-  Key,
   User,
-  GitBranch,
+  Share,
   ArrowLeft
 } from '@element-plus/icons-vue'
 
@@ -73,10 +72,10 @@ import UserAuthorityConfig from './UserAuthorityConfig.vue'
 // Tab配置
 const TABS = [
   { key: 'organizations', label: '组织管理', icon: OfficeBuilding },
-  { key: 'roles', label: '角色管理', icon: Shield },
-  { key: 'authority', label: '权限配置', icon: Key },
+  { key: 'roles', label: '角色管理', icon: Lock },
+  { key: 'authority', label: '权限配置', icon: Lock },
   { key: 'users', label: '用户管理', icon: User },
-  { key: 'user-authority', label: '用户权限覆盖', icon: GitBranch }
+  { key: 'user-authority', label: '用户权限覆盖', icon: Share }
 ]
 
 // 当前激活的Tab

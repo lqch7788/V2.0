@@ -178,9 +178,9 @@ const hasChanges = ref(false)
 
 // 筛选用户
 const filteredUsers = computed(() => {
-  if (!searchUserTerm.value) return users.value.slice(0, 30)
+  if (!searchUserTerm.value) return (users.value || []).slice(0, 30)
   const term = searchUserTerm.value.toLowerCase()
-  return users.value.filter(u => {
+  return (users.value || []).filter(u => {
     const name = (u.real_name || u.name || '').toLowerCase()
     const uname = (u.username || u.aid || '').toLowerCase()
     return name.includes(term) || uname.includes(term)
@@ -190,13 +190,13 @@ const filteredUsers = computed(() => {
 // 展平工序
 const allProcesses = computed(() => {
   const flatten = (nodes) => {
-    return nodes.reduce((acc, n) => {
+    return (nodes || []).reduce((acc, n) => {
       acc.push(n)
       if (n.children?.length) acc.push(...flatten(n.children))
       return acc
     }, [])
   }
-  return flatten(processes.value)
+  return flatten(processes.value || [])
 })
 
 // 获取权限值

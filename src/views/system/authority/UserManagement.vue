@@ -299,7 +299,7 @@ const saving = ref(false)
 
 // 筛选
 const filteredUsers = computed(() => {
-  return users.value.filter(u => {
+  return (users.value || []).filter(u => {
     if (statusFilter.value !== 'all' && u.status !== statusFilter.value) return false
     if (searchTerm.value) {
       const term = searchTerm.value.toLowerCase()

@@ -230,9 +230,9 @@ const formData = reactive({
 
 // 过滤角色
 const filteredRoles = computed(() => {
-  if (!searchTerm.value) return roles.value
+  if (!searchTerm.value) return roles.value || []
   const term = searchTerm.value.toLowerCase()
-  return roles.value.filter(role =>
+  return (roles.value || []).filter(role =>
     role.name?.toLowerCase().includes(term) ||
     role.aid?.toLowerCase().includes(term) ||
     role.description?.toLowerCase().includes(term)

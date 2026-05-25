@@ -368,7 +368,7 @@ const dataAuthorities = ref([])
 const flatProcessList = computed(() => {
   const result = []
   const flatten = (nodes, depth = 0) => {
-    for (const node of nodes) {
+    for (const node of nodes || []) {
       const hasChildren = node.children && node.children.length > 0
       result.push({
         ...node,
@@ -380,15 +380,15 @@ const flatProcessList = computed(() => {
       }
     }
   }
-  flatten(processes.value)
+  flatten(processes.value || [])
   return result
 })
 
 // 筛选工序
 const filteredProcesses = computed(() => {
-  if (!searchTerm.value) return flatProcessList.value
+  if (!searchTerm.value) return flatProcessList.value || []
   const term = searchTerm.value.toLowerCase()
-  return flatProcessList.value.filter(p =>
+  return (flatProcessList.value || []).filter(p =>
     p.process_name?.toLowerCase().includes(term) ||
     p.process_code?.toLowerCase().includes(term)
   )

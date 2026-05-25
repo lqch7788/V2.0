@@ -334,10 +334,29 @@ const routes = [
       }
     ]
   },
+  // 库存管理模块路由（与侧边栏菜单对应）
+  {
+    path: '/warehouse-inbound',
+    name: 'WarehouseInboundDirect',
+    component: () => import('@/views/warehouse/WarehouseInbound.vue'),
+    meta: { title: '物料入库' }
+  },
+  {
+    path: '/warehouse-overview',
+    name: 'WarehouseOverview',
+    component: () => import('@/views/warehouse/WarehouseOverview.vue'),
+    meta: { title: '库存总览' }
+  },
   // 供应商管理
   {
     path: '/supplier',
     name: 'Supplier',
+    component: () => import('@/views/supplier/SupplierManagement.vue'),
+    meta: { title: '供应商管理' }
+  },
+  {
+    path: '/supplier-management',
+    name: 'SupplierManagementDirect',
     component: () => import('@/views/supplier/SupplierManagement.vue'),
     meta: { title: '供应商管理' }
   },
@@ -355,6 +374,18 @@ const routes = [
         meta: { title: '生产退料' }
       }
     ]
+  },
+  {
+    path: '/material-return',
+    name: 'MaterialReturnDirect',
+    component: () => import('@/views/material/MaterialReturn.vue'),
+    meta: { title: '生产退料' }
+  },
+  {
+    path: '/material-receiving',
+    name: 'MaterialReceiving',
+    component: () => import('@/views/material/MaterialReceiving.vue'),
+    meta: { title: '生产领料' }
   },
   {
     path: '/approval',
@@ -537,18 +568,6 @@ const routes = [
     name: 'MaterialCategory',
     component: () => import('@/views/material/MaterialCategory.vue'),
     meta: { title: '物料类别' }
-  },
-  {
-    path: '/material-receiving',
-    name: 'MaterialReceiving',
-    component: () => import('@/views/material/MaterialReceiving.vue'),
-    meta: { title: '物料接收' }
-  },
-  {
-    path: '/warehouse-overview',
-    name: 'WarehouseOverview',
-    component: () => import('@/views/warehouse/WarehouseOverview.vue'),
-    meta: { title: '仓库概览' }
   },
   {
     path: '/tasks',

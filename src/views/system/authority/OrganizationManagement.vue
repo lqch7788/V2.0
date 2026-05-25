@@ -284,9 +284,9 @@ const formData = reactive({
 
 // 过滤组织
 const filteredOrganizations = computed(() => {
-  if (!searchTerm.value) return organizations.value
+  if (!searchTerm.value) return organizations.value || []
   const term = searchTerm.value.toLowerCase()
-  return organizations.value.filter(org =>
+  return (organizations.value || []).filter(org =>
     org.name?.toLowerCase().includes(term) ||
     org.aid?.toLowerCase().includes(term) ||
     org.description?.toLowerCase().includes(term)
@@ -301,10 +301,10 @@ const paginatedOrganizations = computed(() => {
 })
 
 // 计算组织层级深度
-const getLevel = (org, orgList = organizations.value) => {
+const getLevel = (org, orgList = organizations.value || []) => {
   // 递归查找组织在树中的层级
   const findLevel = (targetOid, nodes, currentLevel = 0) => {
-    for (const node of nodes) {
+    for (const node of nodes || []) {
       if (node.oid === targetOid) {
         return currentLevel
       }
