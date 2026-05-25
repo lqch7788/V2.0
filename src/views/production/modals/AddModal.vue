@@ -119,7 +119,7 @@ const form = reactive({
   expectedHarvestDate: '',
   remarks: '',
   status: 'planned',
-  createBy: localStorage.getItem('username') || '陆启闯'
+  createBy: localStorage.getItem('username') || ''
 })
 
 const rules = {

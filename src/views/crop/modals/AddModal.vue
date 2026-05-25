@@ -419,7 +419,7 @@ const handleSubmit = async () => {
       orderDate: form.value.orderDate,
       expectedHarvestDate: form.value.expectedHarvestDate,
       status: 'planned',
-      createBy: localStorage.getItem('username') || '陆启闯',
+      createBy: localStorage.getItem('username') || '',
       remarks: form.value.remarks
     }
 

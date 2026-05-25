@@ -795,6 +795,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTechSolutionStore } from '@/stores/modules/techSolution'
+import { useApprovalStore } from '@/stores/modules/approval'
 import { enhancedApiClient } from '@/lib/apiClient'
 import { showAlert } from '@/lib/dialogService'
 import { FileCode, Plus, Search, Download, Edit, Trash2, Delete, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Upload, Leaf } from 'lucide-vue-next'
@@ -828,6 +829,7 @@ const canExport = true
 
 // ==================== Store ====================
 const techSolutionStore = useTechSolutionStore()
+const approvalStore = useApprovalStore()
 const { solutions: techSolutions, isLoading } = storeToRefs(techSolutionStore)
 const { fetchSolutions, addSolution, updateSolution, deleteSolutions } = techSolutionStore
 
@@ -991,7 +993,7 @@ const newPlanForm = ref({
   cropCode: '',
   plantingMode: '水培',
   stage: '',
-  author: localStorage.getItem('username') || '陆启闯',
+  author: localStorage.getItem('username') || '',
   version: 'V1.0',
   content: '',
   planDetailFileName: '',
@@ -1085,7 +1087,7 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
     stage: newPlanForm.value.stage,
     version: newPlanForm.value.version || 'V1.0',
     content: newPlanForm.value.content,
-    author: newPlanForm.value.author || localStorage.getItem('username') || '陆启闯',
+    author: newPlanForm.value.author || localStorage.getItem('username') || '',
     authorId: localStorage.getItem('userId') || '',
     relatedBatchCode: newPlanForm.value.relatedBatchCode || '',
     planDetailFileName: newPlanForm.value.planDetailFileName || '',
@@ -1102,7 +1104,7 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
         title: `技术方案审批：${newPlanForm.value.title}`,
         description: `作物：${newPlanForm.value.crop}\n种植模式：${newPlanForm.value.plantingMode}\n适用范围：${newPlanForm.value.stage}`,
         applicantId: localStorage.getItem('userId') || '',
-        applicantName: localStorage.getItem('username') || '陆启闯',
+        applicantName: localStorage.getItem('username') || '',
         applicantDepartment: localStorage.getItem('department') || '',
         applyDate: today,
         status: 'pending',
@@ -1119,6 +1121,7 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
         },
       }
       await enhancedApiClient.post('/approvals', approvalData)
+      await approvalStore.refreshApprovals()
     }
     createModalOpen.value = false
     newPlanForm.value = {
@@ -1128,7 +1131,7 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
       cropCode: '',
       plantingMode: '水培',
       stage: '',
-      author: localStorage.getItem('username') || '陆启闯',
+      author: localStorage.getItem('username') || '',
       version: 'V1.0',
       content: '',
       planDetailFileName: '',
@@ -1283,7 +1286,7 @@ const handleOpenCreateModal = () => {
     cropCode: '',
     plantingMode: '水培',
     stage: '',
-    author: localStorage.getItem('username') || '陆启闯',
+    author: localStorage.getItem('username') || '',
     version: 'V1.0',
     content: '',
     planDetailFileName: '',
@@ -1320,7 +1323,7 @@ const saveBatchEdit = async () => {
           version: edited.version ?? tech.version,
           content: edited.content ?? tech.content,
           relatedBatchCode: tech.relatedBatchCode || '',
-          planDetailFileName: tech.planDetailFileName || '',
+          planDetailFileName: (edited.planDetailFileName ?? tech.planDetailFileName) || '',
           priority: tech.priority || 'normal',
           remarks: '',
         })
