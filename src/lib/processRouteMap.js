@@ -14,6 +14,7 @@
  */
 const processRouteMap = {
   // ========== 一级菜单 ==========
+  '/park-archive': 'PROC_PARK',
   '/park': 'PROC_PARK',
   '/dashboard': 'PROC_DASHBOARD',
   '/indicators': 'PROC_INDICATORS',
@@ -38,7 +39,7 @@ const processRouteMap = {
 
   // ========== 计划管理子菜单 ==========
   '/crop/order': 'PROC_ORDER',
-  '/production/list': 'PROC_ORDER',
+  '/production': 'PROC_PRODUCTION',
   '/tech-solution': 'PROC_TECH',
   '/purchase-plan': 'PROC_PURCHASE',
 
@@ -73,6 +74,7 @@ const processRouteMap = {
   '/personnel/staff': 'PROC_LABOR_PERSONNEL',
 
   // ========== 生产汇总表子菜单 ==========
+  '/summary/business-analysis': 'PROC_SUM_YIELD',
   '/summary/business': 'PROC_SUM_YIELD',
   '/summary/batch-management': 'PROC_SUM_BATCH',
   '/summary/problems': 'PROC_SUM_PROBLEMS',
@@ -88,7 +90,6 @@ const processRouteMap = {
 
   // ========== V2.0 特有路由 ==========
   '/crop/fertilizer': 'PROC_CROP',        // 施肥管理
-  '/crop/order': 'PROC_ORDER',            // 订单管理
   '/material-category': 'PROC_MATERIALS', // 物料类别
   '/dispatch': 'PROC_TASK_CENTER',        // 智能调度
   '/smart-dispatch': 'PROC_TASK_CENTER',  // 智能调度
@@ -97,9 +98,13 @@ const processRouteMap = {
   '/work-log': 'PROC_FARM',               // 工作日志
   '/inspection': 'PROC_FARM',             // 巡检管理
   '/problem-dispatch': 'PROC_FARM',       // 问题调度
-  '/production/list': 'PROC_PRODUCTION',   // 生产计划
   '/daily-planning': 'PROC_PRODUCTION',   // 日计划
   '/monthly-planning': 'PROC_PRODUCTION', // 月计划
+
+  // ========== 个人中心/用户菜单路由 ==========
+  '/profile': 'PROC_SETTINGS',
+  '/my-tasks': 'PROC_TASK_CENTER',
+  '/messages': 'PROC_ANNOUNCE',
 }
 
 /**

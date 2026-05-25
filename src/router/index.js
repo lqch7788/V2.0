@@ -230,10 +230,14 @@ const routes = [
     meta: { title: '基地总览' }
   },
   {
-    path: '/park',
+    path: '/park-archive',
     name: 'ParkArchive',
     component: () => import('@/views/park/ParkArchive.vue'),
     meta: { title: '园区导览' }
+  },
+  {
+    path: '/park',
+    redirect: '/park-archive'
   },
   {
     path: '/farm',
@@ -414,15 +418,19 @@ const routes = [
   {
     path: '/production',
     name: 'Production',
-    component: () => import('@/views/production/ProductionIndex.vue'),
-    meta: { title: '生产管理' }
-  },
-  // 计划管理子路由
-  {
-    path: '/production/list',
-    name: 'ProductionList',
     component: () => import('@/views/production/Production.vue'),
     meta: { title: '生产计划' }
+  },
+  // 计划管理子路由（/production/list 重定向到 /production，与V1.1对齐）
+  {
+    path: '/production/list',
+    redirect: '/production'
+  },
+  {
+    path: '/production/index',
+    name: 'ProductionIndex',
+    component: () => import('@/views/production/ProductionIndex.vue'),
+    meta: { title: '生产管理' }
   },
   {
     path: '/crop/order',
@@ -516,10 +524,14 @@ const routes = [
         meta: { title: '汇总看板' }
       },
       {
-        path: 'business',
+        path: 'business-analysis',
         name: 'BusinessAnalysis',
         component: () => import('@/views/summary/BusinessAnalysis.vue'),
         meta: { title: '经营分析' }
+      },
+      {
+        path: 'business',
+        redirect: '/summary/business-analysis'
       },
       {
         path: 'batch-management',
@@ -808,6 +820,18 @@ const routes = [
     name: 'Login',
     component: () => import('@/views/login/Login.vue'),
     meta: { title: '登录', hidden: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/views/profile/Profile.vue'),
+    meta: { title: '个人中心' }
+  },
+  {
+    path: '/my-tasks',
+    name: 'MyTasks',
+    component: () => import('@/views/farm/MyTasks.vue'),
+    meta: { title: '我的任务' }
   },
   {
     path: '/:pathMatch(.*)*',

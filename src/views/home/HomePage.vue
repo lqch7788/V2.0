@@ -56,6 +56,27 @@
                     个人中心
                   </button>
                   <button
+                    @click="goToMyTasks"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full"
+                  >
+                    <el-icon><List /></el-icon>
+                    我的任务
+                  </button>
+                  <button
+                    @click="goToMessages"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full"
+                  >
+                    <el-icon><Bell /></el-icon>
+                    消息中心
+                  </button>
+                  <button
+                    @click="goToMyApplications"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full"
+                  >
+                    <el-icon><Document /></el-icon>
+                    我的申请
+                  </button>
+                  <button
                     @click="goToSettings"
                     class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full"
                   >
@@ -471,7 +492,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowDown, Setting, User, SwitchButton, InfoFilled } from '@element-plus/icons-vue'
+import { ArrowDown, Setting, User, SwitchButton, InfoFilled, List, Bell, Document } from '@element-plus/icons-vue'
 
 const router = useRouter()
 
@@ -723,9 +744,24 @@ const goToProfile = () => {
   router.push('/profile')
 }
 
+const goToMyTasks = () => {
+  showUserMenu.value = false
+  router.push('/my-tasks')
+}
+
+const goToMessages = () => {
+  showUserMenu.value = false
+  router.push('/messages')
+}
+
+const goToMyApplications = () => {
+  showUserMenu.value = false
+  router.push('/my-applications')
+}
+
 const goToSettings = () => {
   showUserMenu.value = false
-  router.push('/system')
+  router.push('/settings')
 }
 
 const handleLogout = () => {

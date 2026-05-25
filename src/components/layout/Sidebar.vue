@@ -17,9 +17,9 @@
         <!-- 园区导览 -->
         <li>
           <router-link
-            to="/park"
+            to="/park-archive"
             class="menu-item"
-            :class="{ active: isActive('/park') }"
+            :class="{ active: isActive('/park-archive') }"
           >
             <el-icon :size="20"><MapLocation /></el-icon>
             <span v-if="!collapsed" class="menu-text">园区导览</span>
@@ -66,7 +66,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/production') }"
+            :class="{ active: isProductionActive }"
             @click="toggleProduction"
           >
             <el-icon :size="20"><Memo /></el-icon>
@@ -84,7 +84,7 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/production/list" class="submenu-item" :class="{ active: isActive('/production/list') }">
+                <router-link to="/production" class="submenu-item" :class="{ active: isActive('/production') }">
                   <el-icon :size="16"><Document /></el-icon>
                   <span>生产计划</span>
                 </router-link>
@@ -109,7 +109,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/crop') }"
+            :class="{ active: isCropActive }"
             @click="toggleCrop"
           >
             <el-icon :size="20"><Grape /></el-icon>
@@ -170,7 +170,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/farm') }"
+            :class="{ active: isFarmActive }"
             @click="toggleFarm"
           >
             <el-icon :size="20"><List /></el-icon>
@@ -190,7 +190,7 @@
               <li>
                 <router-link to="/task-center" class="submenu-item" :class="{ active: isActive('/task-center') }">
                   <el-icon :size="16"><List /></el-icon>
-                  <span>任务中心</span>
+                  <span>智能任务中心</span>
                 </router-link>
               </li>
               <li>
@@ -219,7 +219,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/inventory') }"
+            :class="{ active: isInventoryActive }"
             @click="toggleInventory"
           >
             <el-icon :size="20"><Box /></el-icon>
@@ -268,7 +268,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/labor') }"
+            :class="{ active: isLaborActive }"
             @click="toggleLabor"
           >
             <el-icon :size="20"><User /></el-icon>
@@ -311,7 +311,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/summary') }"
+            :class="{ active: isSummaryActive }"
             @click="toggleSummary"
           >
             <el-icon :size="20"><DataLine /></el-icon>
@@ -329,7 +329,7 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/summary/business" class="submenu-item" :class="{ active: isActive('/summary/business') }">
+                <router-link to="/summary/business-analysis" class="submenu-item" :class="{ active: isActive('/summary/business-analysis') }">
                   <el-icon :size="16"><TrendCharts /></el-icon>
                   <span>经营分析</span>
                 </router-link>
@@ -360,7 +360,7 @@
         <li>
           <button
             class="menu-item menu-item-submenu"
-            :class="{ active: isActive('/approval') }"
+            :class="{ active: isApprovalActive }"
             @click="toggleApproval"
           >
             <el-icon :size="20"><CircleCheck /></el-icon>
@@ -410,7 +410,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   CaretLeft,
@@ -465,6 +465,35 @@ const props = defineProps({ collapsed: false })
 const emit = defineEmits(['update:collapsed', 'menu-select'])
 
 const route = useRoute()
+
+// 各分组高亮判断（与V1.1逻辑一致：检查任意子菜单项是否激活）
+const isProductionActive = computed(() => {
+  return ['/crop/order', '/production', '/tech-solution', '/purchase-plan'].some(p => route.path.startsWith(p))
+})
+
+const isCropActive = computed(() => {
+  return ['/crop/seed-source', '/crop/seedling', '/crop/planting', '/crop/harvest', '/crop/fertilizer', '/crop-inventory', '/crop/instance'].some(p => route.path.startsWith(p))
+})
+
+const isFarmActive = computed(() => {
+  return ['/farm-hub', '/task-center', '/schedule', '/team', '/daily-work-summary'].some(p => route.path.startsWith(p))
+})
+
+const isInventoryActive = computed(() => {
+  return ['/warehouse-overview', '/warehouse-inbound', '/supplier-management', '/material-receiving', '/material-return'].some(p => route.path.startsWith(p))
+})
+
+const isLaborActive = computed(() => {
+  return ['/labor/attendance', '/labor/personnel', '/labor/compensation', '/labor/analytics'].some(p => route.path.startsWith(p))
+})
+
+const isSummaryActive = computed(() => {
+  return ['/summary/overview', '/summary/business-analysis', '/summary/batch-management', '/summary/problems', '/summary/indicators'].some(p => route.path.startsWith(p))
+})
+
+const isApprovalActive = computed(() => {
+  return ['/material-approval', '/production-approval', '/farm-approval', '/indicator-budget-approval', '/hr-approval'].some(p => route.path.startsWith(p))
+})
 
 // 子菜单展开状态
 const productionExpanded = ref(true)

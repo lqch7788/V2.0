@@ -68,7 +68,15 @@
           </span>
           <template #dropdown>
             <el-dropdown-menu>
+              <!-- 用户信息头部（与V1.1一致） -->
+              <div class="user-info-header">
+                <p class="user-info-name">陆启闯</p>
+                <p class="user-info-detail">经理 · 生产部 · 宁波帮帮忙公司</p>
+                </div>
               <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+              <el-dropdown-item command="my-tasks">我的任务</el-dropdown-item>
+              <el-dropdown-item command="messages">消息中心</el-dropdown-item>
+              <el-dropdown-item command="my-applications">我的申请</el-dropdown-item>
               <el-dropdown-item command="settings">系统设置</el-dropdown-item>
               <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
             </el-dropdown-menu>
@@ -345,5 +353,25 @@ const handleUserCommand = (command) => {
 
 .notification-footer a:hover {
   color: #047857;
+}
+
+/* 用户下拉菜单头部信息 */
+.user-info-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  min-width: 200px;
+}
+
+.user-info-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.user-info-detail {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
 }
 </style>

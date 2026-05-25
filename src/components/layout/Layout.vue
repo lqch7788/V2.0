@@ -41,11 +41,20 @@ const handleMenuSelect = (index) => {
 
 const handleUserCommand = (command) => {
   if (command === 'logout') {
+    // 清理登录状态（与V1.1一致）
+    localStorage.removeItem('isLoggedIn')
+    localStorage.removeItem('username')
     router.push('/login')
   } else if (command === 'settings') {
     router.push('/settings')
   } else if (command === 'profile') {
     router.push('/profile')
+  } else if (command === 'my-tasks') {
+    router.push('/my-tasks')
+  } else if (command === 'messages') {
+    router.push('/messages')
+  } else if (command === 'my-applications') {
+    router.push('/my-applications')
   }
 }
 </script>
