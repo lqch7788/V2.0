@@ -186,10 +186,12 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { User, Plus, Search, CirclePlus, Setting, Delete } from '@element-plus/icons-vue'
 import TeamAssignModal from '@/components/labor/team/TeamAssignModal.vue'
+import { useTeamStore } from '@/stores/modules/team'
 
-// ============ 类型定义 ============
+// Pinia store
+const store = useTeamStore()
 
-// ============ 状态 ============
+// ============ 模拟数据生成函数（种子数据） ============
 
 // 模拟数据（与V1.1一致）
 const generateTeams = () => [
@@ -237,8 +239,11 @@ const generateUnassignedWorkers = () => [
   { id: 'uw003', name: '孙八', phone: '13900139003', skillTags: ['拖拉机', '旋耕机'], workerType: '临时工' },
 ]
 
-const allTeams = ref([])
-const allUnassignedWorkers = ref([])
+// ============ 状态 ============
+
+// 从store映射数据，保持模板变量名不变
+const allTeams = computed(() => store.teams)
+const allUnassignedWorkers = computed(() => store.unassignedWorkers)
 const filters = ref({ keyword: '' })
 const pagination = ref({
   currentPage: 1,
@@ -320,51 +325,27 @@ const openEditModal = (team) => {
   isFormOpen.value = true
 }
 
+// 分配工人 - 调用store.assignWorkers
 const handleAssign = (teamId, workerIds) => {
-  const team = allTeams.value.find(t => t.id === teamId)
-  if (team) {
-    team.memberIds = [...new Set([...team.memberIds, ...workerIds])]
-    team.memberCount = team.memberIds.length
-    team.updatedAt = new Date().toISOString().split('T')[0]
-    allUnassignedWorkers.value = allUnassignedWorkers.value.filter(
-      w => !workerIds.includes(w.id)
-    )
-    ElMessage.success('分配成功')
-  }
+  store.assignWorkers(teamId, workerIds)
+  ElMessage.success('分配成功')
 }
 
+// 提交表单 - 调用store.addTeam 或 store.updateTeam
 const handleSubmit = () => {
   if (editingTeam.value) {
-    // 编辑
-    const index = allTeams.value.findIndex(t => t.id === editingTeam.value.id)
-    if (index !== -1) {
-      allTeams.value[index] = {
-        ...allTeams.value[index],
-        ...formData.value,
-        updatedAt: new Date().toISOString().split('T')[0],
-      }
-    }
+    // 编辑班组
+    store.updateTeam(editingTeam.value.id, formData.value)
     ElMessage.success('更新成功')
   } else {
-    // 新建
-    const newTeam = {
-      id: `team${Date.now()}`,
-      name: formData.value.name,
-      leaderId: 'new',
-      leaderName: formData.value.leaderName,
-      memberIds: [],
-      memberCount: 0,
-      description: formData.value.description,
-      workZone: formData.value.workZone,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-    }
-    allTeams.value.unshift(newTeam)
+    // 新建班组
+    store.addTeam(formData.value)
     ElMessage.success('创建成功')
   }
   isFormOpen.value = false
 }
 
+// 删除班组 - 调用store.removeTeam
 const handleDelete = async (team) => {
   try {
     await ElMessageBox.confirm(`确定删除班组 "${team.name}" 吗？`, '提示', {
@@ -372,7 +353,7 @@ const handleDelete = async (team) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-    allTeams.value = allTeams.value.filter(t => t.id !== team.id)
+    store.removeTeam(team.id)
     ElMessage.success('删除成功')
   } catch {
     // 用户取消
@@ -387,10 +368,10 @@ const handleFormClose = () => {
 // ============ 初始化 ============
 
 onMounted(() => {
-  // 初始化种子数据
-  if (allTeams.value.length === 0) {
-    allTeams.value = generateTeams()
-    allUnassignedWorkers.value = generateUnassignedWorkers()
+  // 种子数据：写入store
+  if (store.teams.length === 0) {
+    generateTeams().forEach(team => store.teams.push(team))
+    generateUnassignedWorkers().forEach(worker => store.unassignedWorkers.push(worker))
   }
   pagination.value.total = filteredTeams.value.length
 })

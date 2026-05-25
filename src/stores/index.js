@@ -46,6 +46,11 @@ export { useAuthorityStore } from './modules/authority'
 export { useApprovalWorkflowStore } from './modules/approvalWorkflow'
 export { useApprovalStore } from './modules/approval'
 export { usePlantLabelStore } from './modules/plantLabel'
+// 农事管理模块
+export { useScheduleStore } from './modules/schedule'
+export { useTeamStore } from './modules/team'
+export { useDailyWorkSummaryStore } from './modules/dailyWorkSummary'
+
 // 库存模块
 export { useInboundStore } from './modules/inventory'
 export { useMaterialReturnStore } from './modules/inventory'
