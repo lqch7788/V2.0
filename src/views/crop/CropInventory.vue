@@ -417,22 +417,50 @@
               </div>
 
               <div class="bg-gray-50 rounded-lg p-4">
-                <h4 class="text-sm font-semibold text-gray-700 mb-3">预警设置</h4>
-                <div class="space-y-2">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center justify-between">
+                  <span>预警设置</span>
+                  <el-button size="small" type="primary" link @click="showAlertEdit = !showAlertEdit">
+                    {{ showAlertEdit ? '取消编辑' : '编辑' }}
+                  </el-button>
+                </h4>
+                <!-- 只读显示 -->
+                <div v-if="!showAlertEdit" class="space-y-2">
                   <div class="flex justify-between">
                     <span class="text-xs text-gray-500">存储时间预警</span>
                     <span class="text-sm text-gray-900">
-                      {{ selectedInventory.alertSettings.enableStorageTimeAlert ? `>${selectedInventory.alertSettings.storageTimeThreshold}天` : '未启用' }}
+                      {{ selectedInventory.alertSettings?.enableStorageTimeAlert ? `>${selectedInventory.alertSettings.storageTimeThreshold}天` : '未启用' }}
                     </span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-xs text-gray-500">库存量预警</span>
                     <span class="text-sm text-gray-900">
-                      {{ selectedInventory.alertSettings.enableQuantityAlert
+                      {{ selectedInventory.alertSettings?.enableQuantityAlert
                         ? `${selectedInventory.alertSettings.minQuantityThreshold}-${selectedInventory.alertSettings.maxQuantityThreshold}${selectedInventory.unit}`
                         : '未启用' }}
                     </span>
                   </div>
+                </div>
+                <!-- 编辑模式 -->
+                <div v-else class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">存储时间预警</span>
+                    <el-switch v-model="selectedInventory.alertSettings.enableStorageTimeAlert" size="small" />
+                  </div>
+                  <div v-if="selectedInventory.alertSettings.enableStorageTimeAlert" class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500">阈值(天)</span>
+                    <el-input-number v-model="selectedInventory.alertSettings.storageTimeThreshold" :min="1" :max="365" size="small" style="width:120px" />
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">库存量预警</span>
+                    <el-switch v-model="selectedInventory.alertSettings.enableQuantityAlert" size="small" />
+                  </div>
+                  <div v-if="selectedInventory.alertSettings.enableQuantityAlert" class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500">下限</span>
+                    <el-input-number v-model="selectedInventory.alertSettings.minQuantityThreshold" :min="0" size="small" style="width:120px" />
+                    <span class="text-xs text-gray-500">上限</span>
+                    <el-input-number v-model="selectedInventory.alertSettings.maxQuantityThreshold" :min="0" size="small" style="width:120px" />
+                  </div>
+                  <el-button type="primary" size="small" @click="handleSaveAlertSettings">保存预警设置</el-button>
                 </div>
               </div>
             </div>
@@ -489,7 +517,8 @@
           </div>
         </div>
         <!-- 底部 -->
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-between">
+          <span class="text-xs text-gray-400 self-center">修改预警设置后请点击保存按钮</span>
           <el-button @click="showDetailModal = false">关闭</el-button>
         </div>
       </div>
@@ -817,6 +846,96 @@
         </div>
       </div>
     </div>
+
+    <!-- 批量编辑弹窗 - 逐条切换编辑 -->
+    <div v-if="showBatchEditModal" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="fixed inset-0 bg-black bg-opacity-50" @click="showBatchEditModal = false"></div>
+      <div class="relative bg-white rounded-lg shadow-xl" style="width: 700px; max-height: 90vh; overflow-y: auto;">
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4 flex items-center justify-between rounded-t-lg">
+          <div class="flex items-center gap-2">
+            <el-icon :size="20" style="color: white;"><Edit /></el-icon>
+            <h3 class="text-lg font-semibold text-white">
+              批量编辑 ({{ batchEditIndex + 1 }}/{{ batchEditData.length }})
+            </h3>
+          </div>
+          <el-button circle text @click="showBatchEditModal = false">
+            <el-icon :size="18" style="color: white;"><Close /></el-icon>
+          </el-button>
+        </div>
+        <div class="p-6" v-if="batchEditData.length > 0">
+          <!-- 导航 -->
+          <div class="flex items-center justify-between mb-4">
+            <el-button :disabled="batchEditIndex === 0" @click="handleBatchEditPrev">上一条</el-button>
+            <span class="text-sm text-gray-500">{{ batchEditIndex + 1 }} / {{ batchEditData.length }}</span>
+            <el-button :disabled="batchEditIndex >= batchEditData.length - 1" @click="handleBatchEditNext">下一条</el-button>
+          </div>
+          <!-- 当前编辑项 -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">作物名称</label>
+              <el-input v-model="batchEditData[batchEditIndex].cropName" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">品种</label>
+              <el-input v-model="batchEditData[batchEditIndex].variety" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">品质等级</label>
+              <el-select v-model="batchEditData[batchEditIndex].grade" style="width: 100%">
+                <el-option label="A级" value="A" />
+                <el-option label="B级" value="B" />
+                <el-option label="C级" value="C" />
+              </el-select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">品质</label>
+              <el-select v-model="batchEditData[batchEditIndex].quality" style="width: 100%">
+                <el-option label="优质" value="good" />
+                <el-option label="一般" value="normal" />
+                <el-option label="较差" value="poor" />
+              </el-select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">数量</label>
+              <el-input-number v-model="batchEditData[batchEditIndex].quantity" :min="0" style="width: 100%" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">单位</label>
+              <el-select v-model="batchEditData[batchEditIndex].unit" style="width: 100%">
+                <el-option label="kg" value="kg" />
+                <el-option label="个" value="个" />
+                <el-option label="箱" value="箱" />
+                <el-option label="株" value="株" />
+              </el-select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">存放位置</label>
+              <el-input v-model="batchEditData[batchEditIndex].storageLocation" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">批次号</label>
+              <el-input v-model="batchEditData[batchEditIndex].batchCode" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">保质期</label>
+              <el-date-picker
+                v-model="batchEditData[batchEditIndex].expirationDate"
+                type="date"
+                style="width: 100%"
+              />
+            </div>
+          </div>
+        </div>
+        <!-- 底部操作 -->
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-between">
+          <div class="flex gap-2">
+            <el-button type="success" @click="handleBatchEditSaveCurrent">保存当前</el-button>
+            <el-button type="primary" @click="handleBatchEditSaveAll">全部保存</el-button>
+          </div>
+          <el-button @click="showBatchEditModal = false">关闭</el-button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -835,6 +954,8 @@ import {
   deleteInventoryBatch,
   getInventoryStats
 } from '@/api/inventory/apiInventoryService'
+import { useCropInventoryStore } from '@/stores/modules/inventory/useCropInventoryStore'
+import { useCropVarietyStore } from '@/stores/modules/cropVariety'
 
 // 仓库数据
 const warehouses = ref([
@@ -995,10 +1116,12 @@ const batchEditMode = ref(false)
 const deleteMode = ref(false)
 const exportMode = ref(false)
 const showDetailModal = ref(false)
+const showAlertEdit = ref(false)
 const showDeleteWarning = ref(false)
 const showExportModal = ref(false)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showBatchEditModal = ref(false)
 const selectedInventory = ref(null)
 const exportFormat = ref('xlsx')
 
@@ -1167,20 +1290,43 @@ const isAllSelected = computed(() => {
   return filteredData.value.length > 0 && selectedRows.value.length === filteredData.value.length
 })
 
-// 生成作物编码
+// 生成作物编码 - 从品种数据库获取编码
 function generateCropCode(cropName, variety) {
-  const varietyMap = {
-    '番茄': { code: 'TO', varieties: { '红果番茄': '01', '粉果番茄': '02' } },
-    '草莓': { code: 'ST', varieties: { '红颜': '01', '章姬': '02' } },
-    '黄瓜': { code: 'CU', varieties: { '水果黄瓜': '01', '刺黄瓜': '02' } },
+  try {
+    const varietyStore = useCropVarietyStore()
+    const allVarieties = varietyStore.allItems || []
+    if (allVarieties.length === 0) return ''
+
+    // 精确匹配
+    let match = allVarieties.find(v =>
+      (v.subVariety1Name || v.sub_variety1_name) === variety &&
+      (v.varietyName || v.variety_name) === cropName
+    )
+    // 模糊匹配
+    if (!match) {
+      match = allVarieties.find(v =>
+        (v.varietyName || v.variety_name) === cropName ||
+        (v.subVariety1Name || v.sub_variety1_name) === variety
+      )
+    }
+    // 最宽泛匹配
+    if (!match) {
+      match = allVarieties.find(v =>
+        (v.cropName || v.crop_name) === cropName ||
+        (v.varietyName || v.variety_name)?.includes(cropName)
+      )
+    }
+    if (match) {
+      const code = match.varietyCode || match.variety_code || match.code || ''
+      const seq = Math.floor(Math.random() * 999) + 1
+      return code ? `${code}${String(seq).padStart(4, '0')}` : ''
+    }
+  } catch (e) {
+    // 降级到简单生成
   }
-
-  const varietyInfo = varietyMap[cropName]
-  if (!varietyInfo) return ''
-
-  const subCode = varietyInfo.varieties[variety] || '00'
-  const seq = Math.floor(Math.random() * 999) + 1
-  return `${varietyInfo.code}${subCode}${String(seq).padStart(3, '0')}`
+  // fallback
+  const prefix = cropName ? cropName.substring(0, 2).toUpperCase() : 'OT'
+  return `${prefix}${String(Math.floor(Math.random() * 99999999)).padStart(8, '0')}`
 }
 
 // 获取存储天数
@@ -1315,17 +1461,89 @@ function handleCancelSelection() {
   selectedRows.value = []
 }
 
-// 确认批量编辑
+// 批量编辑索引和编辑数据
+const batchEditIndex = ref(0)
+const batchEditData = ref([])
+
+// 确认批量编辑 - 逐条切换编辑
 function handleConfirmBatchEdit() {
-  if (selectedRows.value.length > 0) {
-    // 找到第一个选中的记录并打开编辑弹窗
-    const firstSelectedId = selectedRows.value[0]
-    const item = inventoryData.value.find(i => i.id === firstSelectedId)
-    if (item) {
-      handleEditItem(item)
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请选择要批量编辑的记录')
+    return
+  }
+  // 获取所有选中的记录
+  batchEditData.value = inventoryData.value
+    .filter(item => selectedRows.value.includes(item.id))
+    .map(item => ({ ...item }))
+  batchEditIndex.value = 0
+  batchEditMode.value = false
+  showBatchEditModal.value = true
+}
+
+// 批量编辑：上一条
+function handleBatchEditPrev() {
+  if (batchEditIndex.value > 0) {
+    batchEditIndex.value--
+  }
+}
+
+// 批量编辑：下一条
+function handleBatchEditNext() {
+  if (batchEditIndex.value < batchEditData.value.length - 1) {
+    batchEditIndex.value++
+  }
+}
+
+// 批量编辑：保存当前条
+async function handleBatchEditSaveCurrent() {
+  const item = batchEditData.value[batchEditIndex.value]
+  if (!item) return
+  try {
+    const apiData = {
+      crop_name: item.cropName,
+      variety_name: item.variety,
+      grade: item.grade,
+      quality: item.quality,
+      current_quantity: item.quantity,
+      unit: item.unit,
+      warehouse_id: item.warehouseId,
+      storage_location: item.storageLocation,
+      batch_code: item.batchCode,
+      expiration_date: item.expirationDate,
+    }
+    await updateInventory(item.id, apiData)
+    ElMessage.success(`已保存 (${batchEditIndex.value + 1}/${batchEditData.value.length})`)
+  } catch (error) {
+    console.error('批量编辑保存失败:', error)
+    ElMessage.error('批量编辑保存失败')
+  }
+}
+
+// 批量编辑：全部保存
+async function handleBatchEditSaveAll() {
+  for (let i = 0; i < batchEditData.value.length; i++) {
+    const item = batchEditData.value[i]
+    try {
+      const apiData = {
+        crop_name: item.cropName,
+        variety_name: item.variety,
+        grade: item.grade,
+        quality: item.quality,
+        current_quantity: item.quantity,
+        unit: item.unit,
+        warehouse_id: item.warehouseId,
+        storage_location: item.storageLocation,
+        batch_code: item.batchCode,
+        expiration_date: item.expirationDate,
+      }
+      await updateInventory(item.id, apiData)
+    } catch (error) {
+      console.error(`批量编辑保存失败 (第${i + 1}条):`, error)
     }
   }
-  batchEditMode.value = false
+  ElMessage.success('批量编辑全部保存完成')
+  showBatchEditModal.value = false
+  await loadInventoryData()
 }
 
 // 确认删除
@@ -1372,6 +1590,31 @@ function handleDoExport() {
 function handleViewDetail(item) {
   selectedInventory.value = item
   showDetailModal.value = true
+}
+
+// 保存预警设置
+async function handleSaveAlertSettings() {
+  if (!selectedInventory.value) return
+  try {
+    const apiData = {
+      alert_settings: {
+        enable_storage_time_alert: selectedInventory.value.alertSettings?.enableStorageTimeAlert || false,
+        storage_time_threshold: selectedInventory.value.alertSettings?.storageTimeThreshold || 0,
+        enable_quantity_alert: selectedInventory.value.alertSettings?.enableQuantityAlert || false,
+        min_quantity_threshold: selectedInventory.value.alertSettings?.minQuantityThreshold || 0,
+        max_quantity_threshold: selectedInventory.value.alertSettings?.maxQuantityThreshold || 0,
+        min_stock: selectedInventory.value.alertSettings?.minStock || 0,
+        max_stock: selectedInventory.value.alertSettings?.maxStock || 0,
+        expiration_days: selectedInventory.value.alertSettings?.expirationDays || 0,
+      }
+    }
+    await updateInventory(selectedInventory.value.id, apiData)
+    ElMessage.success('预警设置保存成功')
+    showAlertEdit.value = false
+  } catch (error) {
+    console.error('保存预警设置失败:', error)
+    ElMessage.error('保存预警设置失败')
+  }
 }
 
 // 新增

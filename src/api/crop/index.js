@@ -49,7 +49,7 @@ export function getPropagationRecords(seedSourceId) {
 
 // 更新繁殖阶段
 export function updatePropagationStage(seedSourceId, newStage) {
-  return put(`/seed-sources/${seedSourceId}/propagation-stage`, { stage: newStage })
+  return put(`/seed-sources/${seedSourceId}/propagation-stage`, { new_stage: newStage })
 }
 
 // 完成繁殖入库
@@ -111,7 +111,7 @@ export function deleteDailyRecord(seedlingId, recordId) {
 
 // 增加已定植数量
 export function increasePlantedCount(id, count) {
-  return put(`/seedlings/${id}/increase-planted`, { count })
+  return post(`/seedlings/${id}/increase-planted`, { count })
 }
 
 // ========== 标签管理 API ==========

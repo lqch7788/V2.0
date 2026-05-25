@@ -107,7 +107,7 @@
                   </span>
                 </div>
                 <div>
-                  <p class="text-xs text-gray-500">作物品种</p>
+                  <p class="text-xs text-gray-500">作物名称</p>
                   <p class="font-medium">{{ selectedInstance.cropName }}</p>
                 </div>
                 <div>
