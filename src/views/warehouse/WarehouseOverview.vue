@@ -27,38 +27,26 @@
     />
 
     <!-- 操作工具栏 -->
-    <div class="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm">
-      <h2 class="font-semibold text-gray-900 text-lg">物料汇总表</h2>
-      <div class="flex gap-2">
-        <el-button type="primary" @click="handleAdd">
-          <el-icon><Plus /></el-icon>
-          新增
-        </el-button>
-        <el-button type="primary" @click="handleExport">
-          <el-icon><Download /></el-icon>
-          导出
-        </el-button>
-      </div>
-    </div>
-
-    <!-- 旧版工具栏（用于批量操作模式） -->
-    <div v-if="batchEditMode || deleteMode || exportMode" class="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm">
-      <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
-      <div class="flex gap-2">
-        <template v-if="batchEditMode">
-          <el-button type="primary" @click="handleConfirmBatchEdit">确认编辑</el-button>
-          <el-button @click="handleCancelBatchEdit">取消</el-button>
-        </template>
-        <template v-if="deleteMode">
-          <el-button type="danger" @click="handleConfirmBatchDeleteAction">确认删除</el-button>
-          <el-button @click="handleCancelDeleteAction">取消</el-button>
-        </template>
-        <template v-if="exportMode">
-          <el-button type="primary" @click="handleConfirmExportClick">确认导出</el-button>
-          <el-button @click="handleCancelExportAction">取消</el-button>
-        </template>
-      </div>
-    </div>
+    <ActionToolbar
+      title="物料汇总表"
+      :batch-edit-mode="batchEditMode"
+      :delete-mode="deleteMode"
+      :export-mode="exportMode"
+      :selected-rows="selectedRows"
+      :low-stock-count="lowStockCount"
+      :filters="filters"
+      @add="handleAdd"
+      @low-stock-toggle="handleLowStockToggle"
+      @batch-edit="handleBatchEditClick"
+      @delete="handleDeleteWarning"
+      @export="handleExport"
+      @confirm-batch-edit="handleConfirmBatchEdit"
+      @cancel-batch-edit="handleCancelBatchEdit"
+      @confirm-delete="handleConfirmBatchDeleteAction"
+      @cancel-delete="handleCancelDeleteAction"
+      @confirm-export="handleConfirmExportClick"
+      @cancel-export="handleCancelExportAction"
+    />
 
     <!-- 物料表格 -->
     <MaterialsTable
@@ -197,11 +185,12 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { Goods, Plus, Download } from '@element-plus/icons-vue'
+import { Goods } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
 
 // 导入V2.0已有的组件
+import ActionToolbar from './components/ActionToolbar.vue'
 import MaterialFilters from './components/MaterialFilters.vue'
 import MaterialsTable from './components/MaterialsTable.vue'
 import MaterialDetailModal from './components/MaterialDetailModal.vue'
@@ -360,10 +349,7 @@ const handleBatchDeleteConfirm = () => {
 
 const handleBatchDelete = async (ids) => {
   try {
-    for (const id of ids) {
-      await warehouseMaterialStore.removeMaterial(id)
-    }
-    await warehouseMaterialStore.loadMaterials()
+    await warehouseMaterialStore.removeMaterialsBatch(ids)
     ElMessage.success('删除成功')
   } catch (error) {
     ElMessage.error('删除失败')
