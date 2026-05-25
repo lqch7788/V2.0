@@ -101,17 +101,25 @@
                 <p v-if="errors.greenhouseId" class="text-red-500 text-xs mt-1">{{ errors.greenhouseId }}</p>
               </div>
 
-              <!-- 入库仓库 -->
+              <!-- 目标仓库（根据目标库存类型联动过滤，V1.1布局） -->
               <div>
-                <label class="block text-sm font-medium text-gray-900 mb-1">入库仓库</label>
-                <el-select v-model="formData.warehouseId" class="w-full" placeholder="请选择仓库">
+                <label class="block text-sm font-medium text-gray-900 mb-1">目标仓库</label>
+                <el-select
+                  v-model="formData.warehouseId"
+                  class="w-full"
+                  placeholder="请选择目标仓库"
+                  @change="handleWarehouseChange"
+                >
                   <el-option
-                    v-for="w in warehouseOptions"
-                    :key="w.value"
-                    :label="w.label"
-                    :value="w.value"
+                    v-for="w in filteredWarehouses"
+                    :key="w.id || w.value"
+                    :label="w.name || w.label"
+                    :value="w.id || w.value"
                   />
                 </el-select>
+                <p class="mt-1 text-xs text-gray-400">
+                  {{ warehouseTypeHint }}
+                </p>
                 <p v-if="errors.warehouseId" class="text-red-500 text-xs mt-1">{{ errors.warehouseId }}</p>
               </div>
 
@@ -239,21 +247,22 @@
                 </el-button>
               </div>
 
-              <div v-if="formData.products.length > 0" class="overflow-x-auto border border-gray-200 rounded-lg">
+              <div v-if="formData.products.length > 0" class="overflow-x-auto border border-gray-400 rounded-lg">
                 <table class="min-w-[1000px] w-full">
-                  <thead class="bg-emerald-600 text-white">
-                    <tr>
-                      <th class="px-2 py-2 text-xs font-semibold w-36">作物编码</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-32">品种</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-32">作物品种</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-28">种植模式</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-20">品质等级</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-20">采收量</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-14">单位</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-20">目标产量</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-14">完成率</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-10">备注</th>
-                      <th class="px-2 py-2 text-xs font-semibold w-10">操作</th>
+                  <!-- 产品明细表头 - V1.1样式：内联背景色#059669 -->
+                  <thead style="background-color: #059669">
+                    <tr style="background-color: #059669">
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-36 text-left">作物编码</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-32 text-left">品种</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-32 text-left">作物品种</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-28 text-left">种植模式</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-20 text-left">品质等级</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-20 text-left">采收量</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-14 text-left">单位</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-20 text-left">目标产量</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-14 text-left">完成率</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-10 text-left">备注</th>
+                      <th class="px-2 py-2 text-white text-sm font-semibold w-10 text-left">操作</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200">
@@ -332,7 +341,7 @@
                   </tbody>
                 </table>
               </div>
-              <div v-else class="text-sm text-gray-500 italic border border-gray-200 rounded-lg p-4 text-center">
+              <div v-else class="text-sm text-gray-500 italic border border-gray-400 rounded-lg p-4 text-center">
                 暂无产品明细，请点击"添加产品"按钮添加
               </div>
             </div>
@@ -439,6 +448,48 @@ const selectedBatch = computed(() => {
   return props.cropBatches.find(b => b.batchCode === formData.value.batchCode)
 })
 
+// 仓库类型映射（V1.1逻辑）
+const warehouseTypeMap = {
+  'seed': 'seed_storage',       // 种子库
+  'seedling': 'seedling',      // 种苗库
+  'product': 'cold_storage'    // 成品冷库
+}
+
+// 仓库类型提示（V1.1布局）
+const warehouseTypeHint = computed(() => {
+  if (formData.value.targetInventory === 'seed') return '（筛选：种子库）'
+  if (formData.value.targetInventory === 'seedling') return '（筛选：种苗库）'
+  if (formData.value.targetInventory === 'product') return '（筛选：成品冷库）'
+  return ''
+})
+
+// 根据目标库存类型过滤仓库（V1.1逻辑）
+// 注意：props.warehouseOptions可能是{ value, label }格式（来自Harvest.vue）或{ id, name, warehouseType }格式
+const filteredWarehouses = computed(() => {
+  const targetType = warehouseTypeMap[formData.value.targetInventory] || 'cold_storage'
+  return props.warehouseOptions.filter(w => {
+    // 获取仓库名称和ID（兼容两种格式）
+    const name = w.name || w.label || ''
+    const warehouseType = w.warehouseType
+
+    // 如果仓库有warehouseType属性，则根据它过滤
+    if (warehouseType) {
+      return warehouseType === targetType
+    }
+    // 否则根据name关键字匹配（兼容旧数据）
+    if (targetType === 'seed_storage') {
+      return name.includes('种子') || name.includes('种源')
+    }
+    if (targetType === 'seedling') {
+      return name.includes('种苗') || name.includes('育苗')
+    }
+    if (targetType === 'cold_storage') {
+      return name.includes('成品') || name.includes('冷库')
+    }
+    return true
+  })
+})
+
 // 计算收入
 const calculatedAmount = computed(() => {
   const totalQuantity = formData.value.products.reduce((sum, p) => sum + (p.harvestQuantity || 0), 0)
@@ -487,7 +538,21 @@ const handleHarvestTypeChange = (val) => {
   formData.value.harvestType = val
   // V1.1: 联动更新目标库存
   formData.value.targetInventory = val
+  // 目标库存变化时清空已选仓库
+  formData.value.warehouseId = ''
 }
+
+// 仓库变化
+const handleWarehouseChange = (val) => {
+  formData.value.warehouseId = val
+}
+
+// 监听targetInventory变化，清空已选仓库（V1.1逻辑）
+watch(() => formData.value.targetInventory, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    formData.value.warehouseId = ''
+  }
+})
 
 // 监听harvesterIds变化，同步更新harvesterNames（V1.1逻辑）
 watch(() => formData.value.harvesterIds, (newIds) => {

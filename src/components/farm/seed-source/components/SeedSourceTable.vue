@@ -148,9 +148,9 @@
             <th class="px-4 py-3 text-left text-sm font-semibold w-24 whitespace-nowrap">剩余数量</th>
             <th class="px-4 py-3 text-left text-sm font-semibold w-20 whitespace-nowrap">完成比例</th>
             <th class="px-4 py-3 text-left text-sm font-semibold w-20 whitespace-nowrap">状态</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold w-32 whitespace-nowrap">操作</th>
             <th class="px-4 py-3 text-left text-sm font-semibold w-32 whitespace-nowrap">备注</th>
             <th class="px-4 py-3 text-left text-sm font-semibold w-20 whitespace-nowrap">创建人</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold w-32 whitespace-nowrap">操作</th>
           </tr>
         </thead>
         <!-- 表体 -->
@@ -234,12 +234,6 @@
                 {{ getStatusLabel(record.status) }}
               </span>
             </td>
-            <!-- 备注 -->
-            <td class="px-4 py-3 text-sm text-gray-500 w-32 whitespace-nowrap overflow-hidden text-ellipsis" :title="record.remarks">
-              {{ record.remarks || '-' }}
-            </td>
-            <!-- 创建人 -->
-            <td class="px-4 py-3 text-sm text-gray-600 w-20 whitespace-nowrap">{{ record.createBy || '-' }}</td>
             <!-- 操作 (V1.1: 查看详情、繁殖记录、阶段推进、正常结束、异常结束 - 无行内编辑) -->
             <td class="px-4 py-3 w-32 whitespace-nowrap">
               <div class="flex items-center gap-1">
@@ -262,6 +256,12 @@
                 </button>
               </div>
             </td>
+            <!-- 备注 -->
+            <td class="px-4 py-3 text-sm text-gray-500 w-32 whitespace-nowrap overflow-hidden text-ellipsis" :title="record.remarks">
+              {{ record.remarks || '-' }}
+            </td>
+            <!-- 创建人 -->
+            <td class="px-4 py-3 text-sm text-gray-600 w-20 whitespace-nowrap">{{ record.createBy || '-' }}</td>
           </tr>
         </tbody>
       </table>

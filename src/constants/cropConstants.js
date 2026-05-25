@@ -122,13 +122,33 @@ export const INVENTORY_STATUS_MAP = {
   out_of_stock: { label: '缺货', bg: 'bg-gray-100', text: 'text-gray-700' },
 }
 
-// ========== 采收状态映射 ==========
+// ========== 采收状态映射（与V1.1 HarvestTable.tsx statusBadgeUtils.tsx保持一致） ==========
 export const HARVEST_STATUS_MAP = {
   pending: { label: '待采收', color: 'bg-amber-100 text-amber-700' },
+  harvesting: { label: '采收中', color: 'bg-blue-100 text-blue-700' },  // V1.1有采收中状态
   harvested: { label: '已采收', color: 'bg-emerald-100 text-emerald-700' },
-  graded: { label: '已分级', color: 'bg-blue-100 text-blue-700' },
-  stored: { label: '已入库', color: 'bg-purple-100 text-purple-700' },
+  graded: { label: '已分级', color: 'bg-purple-100 text-purple-700' },
+  stored: { label: '已入库', color: 'bg-cyan-100 text-cyan-700' },
+  completed: { label: '已完成', color: 'bg-emerald-100 text-emerald-700' },  // V1.1有已完成状态
   cancelled: { label: '已取消', color: 'bg-gray-100 text-gray-500' },
+}
+
+// ========== V1.1 采收状态颜色映射（内联hex颜色，用于getStatusBadge） ==========
+export const HARVEST_STATUS_COLORS = {
+  pending: '#FAAD14',       // 待采收 - 黄色
+  harvesting: '#1677FF',   // 采收中 - 蓝色
+  harvested: '#52C41A',    // 已采收 - 绿色
+  completed: '#52C41A',    // 已完成 - 绿色
+  graded: '#722ED1',       // 已分级 - 紫色
+  stored: '#13C2C2',       // 已入库 - 青色
+  cancelled: '#D9D9D9',   // 已取消 - 灰色
+}
+
+// ========== V1.1 品质等级颜色映射（内联hex颜色） ==========
+export const QUALITY_GRADE_COLORS = {
+  A: '#52C41A',  // 绿色
+  B: '#FAAD14',  // 黄色
+  C: '#FF4D4F',  // 红色
 }
 
 // ========== 库存预警默认值 ==========

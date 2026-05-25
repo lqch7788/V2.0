@@ -1,5 +1,5 @@
 <template>
-  <!-- 订单管理主页面 - V1.1样式 -->
+  <!-- 订单管理主页面 - V1.1样式完全重构 -->
   <div class="p-6 bg-[#F2F6FA] min-h-screen">
     <!-- 页面标题卡片 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
+    <!-- 统计卡片（与V1.1完全一致） -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
@@ -66,7 +66,7 @@
       </div>
     </div>
 
-    <!-- 筛选工具栏 -->
+    <!-- 筛选工具栏（与V1.1完全一致） -->
     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
       <div class="flex items-end gap-4 flex-wrap">
         <!-- 订单编号 -->
@@ -134,7 +134,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮 -->
+    <!-- 操作按钮行（与V1.1完全一致） -->
     <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -147,14 +147,14 @@
             <el-button type="primary" size="small" @click="() => {}">
               确认编辑
             </el-button>
-            <el-button size="small" @click="() => batchEditMode = false">取消</el-button>
+            <el-button size="small" @click="batchEditMode = false">取消</el-button>
           </template>
           <!-- 删除模式 -->
           <template v-else-if="deleteMode">
             <el-button type="primary" size="small" @click="handleConfirmDelete">
               确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
-            <el-button size="small" @click="() => deleteMode = false">取消</el-button>
+            <el-button size="small" @click="deleteMode = false">取消</el-button>
           </template>
           <!-- 导出模式 -->
           <template v-else-if="exportMode">
@@ -166,11 +166,11 @@
           </template>
           <!-- 正常模式 -->
           <template v-else>
-            <el-button size="small" @click="() => batchEditMode = true">
+            <el-button size="small" @click="batchEditMode = true">
               <el-icon><Edit /></el-icon>
               编辑
             </el-button>
-            <el-button type="danger" size="small" @click="() => deleteMode = true">
+            <el-button type="danger" size="small" @click="deleteMode = true">
               <el-icon><Delete /></el-icon>
               删除
             </el-button>
@@ -187,7 +187,7 @@
       </div>
     </div>
 
-    <!-- 数据表格 -->
+    <!-- 数据表格（与V1.1完全一致） -->
     <div v-loading="loading" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
@@ -217,7 +217,7 @@
               </td>
             </tr>
             <tr
-              v-for="(record, index) in paginatedData"
+              v-for="record in paginatedData"
               :key="record.id"
               class="hover:bg-emerald-50 transition-colors"
             >
@@ -264,7 +264,7 @@
                     <el-button link @click="handleEdit(record)" title="编辑">
                       <el-icon><Edit /></el-icon>
                     </el-button>
-                    <el-button link @click="() => handleDeleteOne(record)" title="删除">
+                    <el-button link @click="handleDeleteOne(record)" title="删除">
                       <el-icon><Delete /></el-icon>
                     </el-button>
                   </template>
@@ -278,7 +278,7 @@
         </table>
       </div>
 
-      <!-- 分页 -->
+      <!-- 分页（与V1.1完全一致） -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
         <div class="flex items-center gap-4">
           <span class="text-sm text-gray-600">
@@ -288,7 +288,7 @@
             <span class="text-sm text-gray-600">每页</span>
             <el-select
               :model-value="pagination.pageSize"
-              @change="(val) => handlePageSizeChange(val)"
+              @change="handlePageSizeChange"
               style="width: 80px"
             >
               <el-option v-for="opt in pageSizeOptions" :key="opt" :label="opt" :value="opt" />
@@ -299,10 +299,10 @@
 
         <!-- 分页按钮组 -->
         <div class="flex items-center gap-2">
-          <el-button variant="text" size="small" @click="() => handlePageChange(1)" :disabled="pagination.current === 1" class="text-gray-600">
+          <el-button variant="text" size="small" @click="handlePageChange(1)" :disabled="pagination.current === 1" class="text-gray-600">
             <el-icon><DArrowLeft /></el-icon>
           </el-button>
-          <el-button variant="text" size="small" @click="() => handlePageChange(pagination.current - 1)" :disabled="pagination.current === 1" class="text-gray-600">
+          <el-button variant="text" size="small" @click="handlePageChange(pagination.current - 1)" :disabled="pagination.current === 1" class="text-gray-600">
             <el-icon><ArrowLeft /></el-icon>
           </el-button>
           <template v-for="page in visiblePages" :key="page">
@@ -313,15 +313,15 @@
                   ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-none'
                   : 'text-gray-700 hover:bg-blue-50 border-gray-300'
               ]"
-              @click="() => handlePageChange(page)"
+              @click="handlePageChange(page)"
             >
               {{ page }}
             </el-button>
           </template>
-          <el-button variant="text" size="small" @click="() => handlePageChange(pagination.current + 1)" :disabled="pagination.current === totalPages" class="text-gray-600">
+          <el-button variant="text" size="small" @click="handlePageChange(pagination.current + 1)" :disabled="pagination.current === totalPages" class="text-gray-600">
             <el-icon><ArrowRight /></el-icon>
           </el-button>
-          <el-button variant="text" size="small" @click="() => handlePageChange(totalPages)" :disabled="pagination.current === totalPages" class="text-gray-600">
+          <el-button variant="text" size="small" @click="handlePageChange(totalPages)" :disabled="pagination.current === totalPages" class="text-gray-600">
             <el-icon><DArrowRight /></el-icon>
           </el-button>
           <span class="text-sm text-gray-600 ml-2">
@@ -353,6 +353,7 @@
       @success="handleEditSuccess"
     />
 
+    <!-- 导出格式选择弹窗 -->
     <ExportModal
       :is-open="showExportModal"
       :export-format="exportFormat"
@@ -411,7 +412,7 @@ const orderTypeOptions = [
   { value: 'other', label: '其他' }
 ]
 
-// 作物品种选项（从订单数据动态提取唯一品种）
+// 作物品种选项（从订单数据动态提取唯一品种，与V1.1一致）
 const cropNameOptions = computed(() => {
   const uniqueCropVarieties = [...new Set(orderDataStore.orders.map(order => order.cropVariety).filter(Boolean))]
   return uniqueCropVarieties
@@ -419,7 +420,7 @@ const cropNameOptions = computed(() => {
     .map(name => ({ value: name, label: name }))
 })
 
-// 筛选条件
+// 筛选条件（与V1.1完全一致）
 const filters = ref({
   orderCode: '',
   orderName: '',
@@ -460,13 +461,11 @@ const currentRecord = ref(null)
 // 加载状态
 const loading = computed(() => orderDataStore.isLoading)
 
-// 统计数据（优先使用后端API统计数据，否则回退到本地计算）
+// 统计数据（优先使用后端API统计数据，否则回退到本地计算，与V1.1一致）
 const statsData = computed(() => {
-  // 如果有API统计数据，优先使用
   if (orderDataStore.stats) {
     return orderDataStore.stats
   }
-  // 回退到本地计算
   const orders = orderDataStore.orders
   return {
     total: orders.length,
@@ -509,7 +508,7 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(start, end)
 })
 
-// 计算可见的页码（最多显示5页）
+// 计算可见的页码（最多显示5页，与V1.1一致）
 const visiblePages = computed(() => {
   const pages = []
   const maxVisible = 5
@@ -709,6 +708,7 @@ const handleExportConfirm = () => {
   showExportModal.value = true
 }
 
+// 执行导出（与V1.1完全一致）
 const handleDoExport = () => {
   const dataToExport = selectedRows.value.length > 0
     ? filteredData.value.filter(o => selectedRows.value.includes(o.id))

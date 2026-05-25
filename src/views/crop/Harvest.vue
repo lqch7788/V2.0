@@ -333,19 +333,19 @@
                     <p class="font-medium text-gray-700 mb-2">产品明细：</p>
                     <div class="overflow-x-auto rounded border">
                       <table class="bg-white w-full">
-                        <!-- 产品明细表头 -->
-                        <thead class="bg-emerald-600 text-white">
-                          <tr>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">产品编码</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">作物名称</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">品种</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">生产计划批次号</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">种植模式</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">采收量</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">目标产量</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">完成率</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">品质等级</th>
-                            <th class="px-2 py-2 text-xs font-medium whitespace-nowrap">备注</th>
+                        <!-- 产品明细表头 - V1.1样式：内联背景色#059669 -->
+                        <thead style="background-color: #059669">
+                          <tr style="background-color: #059669">
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">产品编码</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">作物名称</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">品种</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">生产计划批次号</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">种植模式</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">采收量</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">目标产量</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">完成率</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">品质等级</th>
+                            <th class="px-2 py-2 text-white text-xs font-medium whitespace-nowrap text-left">备注</th>
                           </tr>
                         </thead>
                         <!-- 产品明细表体 -->
@@ -756,12 +756,14 @@ function getStatusLabel(status) {
 }
 
 function getStatusBadgeClass(status) {
+  // V1.1状态映射：harvesting(采收中-蓝色), completed(已完成-绿色), harvested(已采收-绿色)
   const map = {
     'pending': 'px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full',
     'harvesting': 'px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full',
     'harvested': 'px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full',
     'graded': 'px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full',
-    'stored': 'px-2 py-1 bg-cyan-100 text-cyan-700 text-xs rounded-full'
+    'stored': 'px-2 py-1 bg-cyan-100 text-cyan-700 text-xs rounded-full',
+    'completed': 'px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full'  // V1.1有已完成状态
   }
   return map[status] || 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
 }
