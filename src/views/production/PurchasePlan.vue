@@ -94,6 +94,14 @@
             <el-option label="已取消" value="已取消" />
           </el-select>
         </div>
+        <div class="min-w-[90px]">
+          <label class="block text-sm text-gray-700">预警状态</label>
+          <el-select v-model="alertFilter" class="w-full">
+            <el-option label="全部" value="全部" />
+            <el-option label="已逾期" value="已逾期" />
+            <el-option label="即将到期" value="即将到期" />
+          </el-select>
+        </div>
         <div class="min-w-[110px]">
           <label class="block text-sm text-gray-700">需求开始日期</label>
           <input
@@ -1105,7 +1113,7 @@ const createForm = ref({
   purchaseApplicationCode: '',
   relatedBatchCode: '',
   purchaseType: '生产物资采购',
-  applicant: localStorage.getItem('username') || '陆启闯',
+  applicant: localStorage.getItem('username') || '',
   applicantDepartment: '生产部',
   applyDate: new Date().toISOString().split('T')[0],
   requiredDate: '',
@@ -1284,7 +1292,7 @@ function handleOpenCreateModal() {
     purchaseApplicationCode: generateCode(),
     relatedBatchCode: '',
     purchaseType: '生产物资采购',
-    applicant: localStorage.getItem('username') || '陆启闯',
+    applicant: localStorage.getItem('username') || '',
     applicantDepartment: '生产部',
     applyDate: new Date().toISOString().split('T')[0],
     requiredDate: '',

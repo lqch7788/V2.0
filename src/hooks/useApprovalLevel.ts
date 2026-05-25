@@ -14,16 +14,18 @@ export interface LevelResult {
   threshold: number;
 }
 
-// 审批级别配置
+// 审批级别配置（与V1.1金额阈值完全对齐）
 const LEVEL_THRESHOLDS = {
   // 金额阈值配置（单位：元）
-  HIGH_VALUE_THRESHOLD: 10000,    // 高金额阈值
-  MEDIUM_VALUE_THRESHOLD: 5000,   // 中金额阈值
+  // V1.1: <1000免审批, 1000-10000快速(1人), 10000-50000标准(2人), >=50000严格(3人)
+  QUICK_VALUE_THRESHOLD: 1000,     // 免审批上限
+  STANDARD_VALUE_THRESHOLD: 10000,  // 快速审批上限（1人→2人分界线）
+  STRICT_VALUE_THRESHOLD: 50000,    // 标准审批上限（2人→3人分界线）
 
   // 审批人数量配置
-  HIGH_VALUE_APPROVERS: 3,       // 高金额需要3人审批
-  MEDIUM_VALUE_APPROVERS: 2,      // 中金额需要2人审批
-  DEFAULT_APPROVERS: 1,           // 默认1人审批
+  STRICT_VALUE_APPROVERS: 3,       // 严格审批3人
+  STANDARD_VALUE_APPROVERS: 2,      // 标准审批2人
+  QUICK_VALUE_APPROVERS: 1,        // 快速审批1人
 };
 
 // 自动通过阈值（低于此金额自动通过）
@@ -51,23 +53,26 @@ export function createApprovalWithLevel(params: {
   let threshold = 0;
 
   if (amount <= AUTO_APPROVE_THRESHOLD) {
-    // 小金额自动通过
+    // 小金额自动通过（<1000元，与V1.1 EXEMPT对齐）
     level = 'auto';
     approverCount = 0;
     autoApprove = true;
     threshold = AUTO_APPROVE_THRESHOLD;
-  } else if (amount > LEVEL_THRESHOLDS.HIGH_VALUE_THRESHOLD) {
+  } else if (amount >= LEVEL_THRESHOLDS.STRICT_VALUE_THRESHOLD) {
+    // 严格审批（>=50000元，3人审批，与V1.1 STRICT对齐）
     level = 'high';
-    approverCount = LEVEL_THRESHOLDS.HIGH_VALUE_APPROVERS;
-    threshold = LEVEL_THRESHOLDS.HIGH_VALUE_THRESHOLD;
-  } else if (amount > LEVEL_THRESHOLDS.MEDIUM_VALUE_THRESHOLD) {
+    approverCount = LEVEL_THRESHOLDS.STRICT_VALUE_APPROVERS;
+    threshold = LEVEL_THRESHOLDS.STRICT_VALUE_THRESHOLD;
+  } else if (amount >= LEVEL_THRESHOLDS.STANDARD_VALUE_THRESHOLD) {
+    // 标准审批（10000-50000元，2人审批，与V1.1 STANDARD对齐）
     level = 'medium';
-    approverCount = LEVEL_THRESHOLDS.MEDIUM_VALUE_APPROVERS;
-    threshold = LEVEL_THRESHOLDS.MEDIUM_VALUE_THRESHOLD;
+    approverCount = LEVEL_THRESHOLDS.STANDARD_VALUE_APPROVERS;
+    threshold = LEVEL_THRESHOLDS.STANDARD_VALUE_THRESHOLD;
   } else {
+    // 快速审批（1000-10000元，1人审批，与V1.1 QUICK对齐）
     level = 'normal';
-    approverCount = LEVEL_THRESHOLDS.DEFAULT_APPROVERS;
-    threshold = LEVEL_THRESHOLDS.MEDIUM_VALUE_THRESHOLD;
+    approverCount = LEVEL_THRESHOLDS.QUICK_VALUE_APPROVERS;
+    threshold = LEVEL_THRESHOLDS.QUICK_VALUE_THRESHOLD;
   }
 
   const levelResult: LevelResult = {

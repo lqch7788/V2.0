@@ -144,8 +144,8 @@
         <div class="flex items-center gap-2">
           <!-- 批量编辑模式 -->
           <template v-if="batchEditMode">
-            <el-button type="primary" size="small" @click="() => {}">
-              确认编辑
+            <el-button type="primary" size="small" @click="handleBatchEditConfirm">
+              确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
             <el-button size="small" @click="batchEditMode = false">取消</el-button>
           </template>
@@ -166,19 +166,19 @@
           </template>
           <!-- 正常模式 -->
           <template v-else>
-            <el-button size="small" @click="batchEditMode = true">
+            <el-button v-if="canEdit" size="small" @click="batchEditMode = true">
               <el-icon><Edit /></el-icon>
               编辑
             </el-button>
-            <el-button type="danger" size="small" @click="deleteMode = true">
+            <el-button v-if="canDelete" type="danger" size="small" @click="deleteMode = true">
               <el-icon><Delete /></el-icon>
               删除
             </el-button>
-            <el-button size="small" @click="handleExportClick">
+            <el-button v-if="canExport" size="small" @click="handleExportClick">
               <el-icon><Download /></el-icon>
               导出
             </el-button>
-            <el-button type="primary" size="small" @click="handleAdd">
+            <el-button v-if="canCreate" type="primary" size="small" @click="handleAdd">
               <el-icon><Plus /></el-icon>
               新增订单
             </el-button>
@@ -443,6 +443,12 @@ const pageSizeOptions = [10, 20, 50]
 // 选中行
 const selectedRows = ref([])
 
+// 权限控制（与V1.1保持一致）
+const canCreate = ref(true)
+const canEdit = ref(false)   // 批量编辑功能禁用（与V1.1一致: canEdit={false}）
+const canDelete = ref(true)
+const canExport = ref(true)
+
 // 导出模式
 const exportMode = ref(false)
 const batchEditMode = ref(false)
@@ -644,6 +650,15 @@ const handleDelete = async (record) => {
   } catch {
     // 用户取消
   }
+}
+
+// 批量编辑确认（批量编辑功能暂未实现，与V1.1一致）
+const handleBatchEditConfirm = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要编辑的数据')
+    return
+  }
+  ElMessage.info('批量编辑功能开发中')
 }
 
 // 批量删除确认

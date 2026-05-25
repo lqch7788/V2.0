@@ -119,7 +119,7 @@ const form = reactive({
   stage: '',
   version: 'V1.0',
   content: '',
-  author: localStorage.getItem('username') || '陆启闯',
+  author: localStorage.getItem('username') || '',
   relatedBatchCode: '',
   planDetailFileName: ''
 })

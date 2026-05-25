@@ -282,7 +282,7 @@ const formData = ref({
   targetYield: '',
   plantingMode: '',
   responsiblePerson: '',
-  publisher: localStorage.getItem('username') || '陆启闯',
+  publisher: localStorage.getItem('username') || '',
   description: '',
   planDetail: '',
 })
@@ -308,7 +308,7 @@ function resetForm() {
     targetYield: '',
     plantingMode: '',
     responsiblePerson: '',
-    publisher: localStorage.getItem('username') || '陆启闯',
+    publisher: localStorage.getItem('username') || '',
     description: '',
     planDetail: '',
   }
@@ -438,8 +438,8 @@ async function handleSaveDraft() {
     stageName: '苗期',
     priority: 'normal',
     remarks: formData.value.description || '',
-    publisher: formData.value.publisher || localStorage.getItem('username') || '陆启闯',
-    createBy: formData.value.publisher || localStorage.getItem('username') || '陆启闯',
+    publisher: formData.value.publisher || localStorage.getItem('username') || '',
+    createBy: formData.value.publisher || localStorage.getItem('username') || '',
     responsiblePerson: formData.value.responsiblePerson,
     unit: 'kg',
     publishDate: '',
@@ -501,8 +501,8 @@ async function handleSubmitForApproval() {
     stageName: '苗期',
     priority: 'normal',
     remarks: formData.value.description || '',
-    publisher: formData.value.publisher || localStorage.getItem('username') || '陆启闯',
-    createBy: formData.value.publisher || localStorage.getItem('username') || '陆启闯',
+    publisher: formData.value.publisher || localStorage.getItem('username') || '',
+    createBy: formData.value.publisher || localStorage.getItem('username') || '',
     responsiblePerson: formData.value.responsiblePerson,
     unit: 'kg',
     publishDate: today,
@@ -528,7 +528,7 @@ async function handleSubmitForApproval() {
       title: `生产计划审批：${formData.value.batchCode}`,
       description: `作物：${formData.value.cropName} ${formData.value.variety}\n种植区域：${greenhouse?.name || ''}\n目标产量：${formData.value.targetYield}kg`,
       applicantId: localStorage.getItem('userId') || '',
-      applicantName: formData.value.publisher || localStorage.getItem('username') || '陆启闯',
+      applicantName: formData.value.publisher || localStorage.getItem('username') || '',
       applicantDepartment: localStorage.getItem('department') || '',
       applyDate: today,
       status: 'pending',
@@ -668,7 +668,7 @@ function handleConfirmNext() {
 
 async function handleVoidConfirm() {
   const currentUserId = localStorage.getItem('userId') || ''
-  const currentUserName = localStorage.getItem('username') || '陆启闯'
+  const currentUserName = localStorage.getItem('username') || ''
   const currentDepartment = localStorage.getItem('department') || ''
   const today = new Date().toISOString().slice(0, 10)
 
@@ -773,7 +773,7 @@ async function handlePublish() {
 
     try {
       const currentUserId = localStorage.getItem('userId') || ''
-      const currentUserName = localStorage.getItem('username') || '陆启闯'
+      const currentUserName = localStorage.getItem('username') || ''
       const currentDepartment = localStorage.getItem('department') || ''
 
       for (const batch of batches.value) {
