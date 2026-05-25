@@ -1,310 +1,341 @@
 <template>
-  <!-- 种植数据表格组件 - 与V1.1 PlantingTable.tsx完全一致 -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+  <!-- 种植数据表格组件 - 与育苗管理SeedlingTable.vue结构完全一致 -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     <!-- 标题和操作按钮栏 -->
-    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50">
       <h3 class="text-lg font-semibold text-gray-900">种植作物列表</h3>
+
       <div class="flex items-center gap-2">
         <!-- 导出模式 -->
         <template v-if="exportMode">
           <span class="text-sm text-gray-500 mr-2">已选择 {{ selectedRows.length }} 项</span>
-          <el-button size="small" @click="onExportSelectAll">
-            {{ selectedRows.length === data.length ? '全不选' : '全选' }}
-          </el-button>
-          <el-button type="primary" size="small" :disabled="selectedRows.length === 0" @click="$emit('export-confirm')">
-            <el-icon><Download /></el-icon>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+            :disabled="selectedRows.length === 0"
+            @click="$emit('export-confirm')"
+          >
             确认导出
-          </el-button>
-          <el-button size="small" @click="$emit('export-cancel')">取消</el-button>
+          </button>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
+            @click="$emit('export-cancel')"
+          >
+            取消
+          </button>
         </template>
 
         <!-- 打印模式 -->
         <template v-else-if="printMode">
           <span class="text-sm text-gray-500 mr-2">已选择 {{ selectedRows.length }} 项</span>
-          <el-button size="small" @click="onExportSelectAll">
-            {{ selectedRows.length === data.length ? '全不选' : '全选' }}
-          </el-button>
-          <el-button type="primary" size="small" :disabled="selectedRows.length === 0" @click="confirmPrint" class="!bg-purple-600 !border-purple-600 hover:!bg-purple-700">
-            <el-icon><Printer /></el-icon>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+            :disabled="selectedRows.length === 0"
+            @click="confirmPrint"
+          >
             确认打印
-          </el-button>
-          <el-button size="small" @click="$emit('print-cancel')">取消</el-button>
+          </button>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
+            @click="$emit('print-cancel')"
+          >
+            取消
+          </button>
         </template>
 
         <!-- 编辑模式 -->
         <template v-else-if="operationMode === 'edit'">
           <span class="text-sm text-gray-500 mr-2">请在表格中选择一条记录</span>
-          <el-button type="primary" size="small" :disabled="selectedRows.length === 0" @click="executeOperation('edit')">
-            <el-icon><Edit /></el-icon>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            :disabled="selectedRows.length === 0"
+            @click="executeOperation('edit')"
+          >
             确认编辑
-          </el-button>
-          <el-button size="small" @click="cancelOperation">取消</el-button>
+          </button>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
+            @click="cancelOperation"
+          >
+            取消
+          </button>
         </template>
 
         <!-- 删除模式 -->
         <template v-else-if="operationMode === 'delete'">
           <span class="text-sm text-gray-500 mr-2">已选择 {{ selectedRows.length }} 项</span>
-          <el-button type="danger" size="small" :disabled="selectedRows.length === 0" @click="executeOperation('delete')">
-            <el-icon><Delete /></el-icon>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+            :disabled="selectedRows.length === 0"
+            @click="executeOperation('delete')"
+          >
             确认删除
-          </el-button>
-          <el-button size="small" @click="cancelOperation">取消</el-button>
+          </button>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
+            @click="cancelOperation"
+          >
+            取消
+          </button>
         </template>
 
         <!-- 正常模式 -->
         <template v-else>
-          <el-button v-if="canCreate && onAdd" type="primary" size="small" @click="$emit('add')">
-            <el-icon><Plus /></el-icon>
+          <button
+            v-if="canCreate"
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+            @click="$emit('add')"
+          >
             新增
-          </el-button>
-          <el-button v-if="canEdit" type="primary" size="small" @click="() => $emit('operation-mode-change', 'edit')">
-            <el-icon><Edit /></el-icon>
+          </button>
+          <button
+            v-if="canEdit"
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
+            @click="() => $emit('operation-mode-change', 'edit')"
+          >
             编辑
-          </el-button>
-          <el-button v-if="canDelete" type="danger" size="small" @click="() => $emit('operation-mode-change', 'delete')">
-            <el-icon><Delete /></el-icon>
+          </button>
+          <button
+            v-if="canDelete"
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700"
+            @click="() => $emit('operation-mode-change', 'delete')"
+          >
             删除
-          </el-button>
-          <el-button v-if="canExport && onExportClick" type="primary" size="small" @click="$emit('export-click')">
-            <el-icon><Download /></el-icon>
+          </button>
+          <button
+            v-if="canExport"
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+            @click="$emit('export-click')"
+          >
             导出
-          </el-button>
-          <el-button v-if="canPrint" type="primary" size="small" @click="() => $emit('print-mode-change', true)" class="!bg-purple-600 !border-purple-600 hover:!bg-purple-700">
-            <el-icon><Printer /></el-icon>
+          </button>
+          <button
+            v-if="canPrint"
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-purple-600 text-white hover:bg-purple-700"
+            @click="() => $emit('print-mode-change', true)"
+          >
             标签打印
-          </el-button>
+          </button>
         </template>
       </div>
     </div>
 
-    <!-- 表格区域 -->
-    <div class="overflow-auto max-h-[calc(100vh-380px)]">
-      <el-table
-        :data="currentData"
-        style="min-width: 1900px"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #3b82f6)', color: 'white', padding: '12px 16px', fontWeight: '600', whiteSpace: 'nowrap' }"
-        :cell-style="{ padding: '12px 16px', whiteSpace: 'nowrap', overflow: 'visible' }"
-        @selection-change="handleSelectionChange"
-      >
-        <!-- 选择列 -->
-        <el-table-column v-if="showCheckbox" type="selection" width="50" align="center" />
-
-        <!-- 种植批号 -->
-        <el-table-column prop="plantCode" label="种植批号" min-width="140" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span
-              class="font-mono text-blue-600 font-semibold cursor-pointer hover:text-blue-800 hover:underline"
-              @click="$emit('detail', row)"
-              title="点击查看详情"
-            >
-              {{ row.plantCode }}
-            </span>
-          </template>
-        </el-table-column>
-
-        <!-- 关联生产计划 -->
-        <el-table-column prop="productionPlanCode" label="关联生产计划" min-width="160" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span v-if="row.productionPlanCode" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">
-              {{ row.productionPlanCode }}
-            </span>
-            <span v-else>-</span>
-          </template>
-        </el-table-column>
-
-        <!-- 作物编码 -->
-        <el-table-column prop="cropCode" label="作物编码" min-width="120" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="font-mono text-orange-600">{{ row.cropCode || '-' }}</span>
-          </template>
-        </el-table-column>
-
-        <!-- 作物品种 -->
-        <el-table-column prop="cropName" label="作物品种" min-width="120" show-overflow-tooltip>
-          <template #default="{ row }">
-            {{ row.cropName || '-' }}
-          </template>
-        </el-table-column>
-
-        <!-- 品种路径 -->
-        <el-table-column prop="cropVariety" label="品种路径" min-width="180" show-overflow-tooltip>
-          <template #default="{ row }">
-            {{ row.cropVariety || '-' }}
-          </template>
-        </el-table-column>
-
-        <!-- 种植区域 -->
-        <el-table-column prop="areaName" label="种植区域" min-width="120" show-overflow-tooltip />
-
-        <!-- 种植数量 -->
-        <el-table-column prop="plantingCount" label="种植数量" min-width="100" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="text-emerald-600 font-medium">{{ (row.plantingCount || 0).toLocaleString() }}</span>
-          </template>
-        </el-table-column>
-
-        <!-- 种植日期 -->
-        <el-table-column prop="plantingDate" label="种植日期" min-width="120" show-overflow-tooltip />
-
-        <!-- 土壤PH -->
-        <el-table-column prop="soilPH" label="土壤PH" min-width="80" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span :class="row.soilPH != null && row.soilPH > 0 ? 'text-gray-700 font-mono' : 'text-gray-400'">
-              {{ row.soilPH != null && row.soilPH > 0 ? row.soilPH.toFixed(1) : '-' }}
-            </span>
-          </template>
-        </el-table-column>
-
-        <!-- 土壤EC -->
-        <el-table-column prop="soilEC" label="土壤EC" min-width="80" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span :class="row.soilEC != null && row.soilEC > 0 ? 'text-gray-700 font-mono' : 'text-gray-400'">
-              {{ row.soilEC != null && row.soilEC > 0 ? row.soilEC.toFixed(1) : '-' }}
-            </span>
-          </template>
-        </el-table-column>
-
-        <!-- 损耗率 -->
-        <el-table-column prop="attritionRate" label="损耗率" min-width="80" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span v-if="row.attritionRate != null && row.attritionRate > 0" class="text-amber-600 font-medium">
-              {{ row.attritionRate.toFixed(1) }}%
-            </span>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-        </el-table-column>
-
-        <!-- 已采收 -->
-        <el-table-column prop="harvestQuantity" label="已采收" min-width="100" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="text-blue-600 font-medium">
-              {{ (row.harvestQuantity || 0).toLocaleString() }}{{ row.unit || '' }}
-            </span>
-          </template>
-        </el-table-column>
-
-        <!-- 完成比例 -->
-        <el-table-column prop="targetYield" label="完成比例" min-width="100" show-overflow-tooltip>
-          <template #default="{ row }">
-            <template v-if="row.targetYield && row.targetYield !== 0">
-              <span
+    <!-- 表格 - 使用原生table结构，与育苗管理完全一致 -->
+    <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-380px)]">
+      <table class="min-w-[1900px] w-full table-fixed">
+        <colgroup>
+          <col v-if="showCheckbox" class="w-12" />
+          <col class="w-36" />
+          <col class="w-36" />
+          <col class="w-32" />
+          <col class="w-28" />
+          <col class="w-40" />
+          <col class="w-28" />
+          <col class="w-24" />
+          <col class="w-20" />
+          <col class="w-20" />
+          <col class="w-20" />
+          <col class="w-24" />
+          <col class="w-24" />
+          <col class="w-16" />
+          <col class="w-80" />
+        </colgroup>
+        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+          <tr>
+            <th v-if="showCheckbox" class="px-4 py-3 text-center text-sm font-semibold text-white whitespace-nowrap w-12">
+              <el-checkbox
+                :model-value="currentData.length > 0 && selectedRows.length === currentData.length"
+                class="plant-checkbox"
+                @change="onSelectAllChange"
+              />
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-36">种植批号</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-36">关联生产计划</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-32">作物编码</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-28">作物品种</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-40">品种路径</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-28">种植区域</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">种植数量</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-20">种植日期</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-20">土壤PH</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-20">土壤EC</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-16">损耗率</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">已采收</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">完成比例</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-16">状态</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-80">操作</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-300">
+          <tr v-if="currentData.length === 0">
+            <td :colspan="showCheckbox ? 16 : 15" class="px-4 py-8 text-center text-gray-500">
+              暂无数据
+            </td>
+          </tr>
+          <tr
+            v-for="record in currentData"
+            :key="record.id"
+            class="hover:bg-emerald-50 transition-colors"
+          >
+            <td v-if="showCheckbox" class="px-4 py-3 text-center w-12">
+              <el-checkbox
+                :model-value="selectedRows.includes(record.id)"
+                class="plant-checkbox"
+                @change="handleSelectChange(record.id, $event)"
+              />
+            </td>
+            <td class="px-4 py-3 text-sm w-36 whitespace-nowrap">
+              <button class="text-sm text-blue-600 hover:text-blue-800 hover:underline" title="点击查看详情" @click="$emit('detail', record)">
+                {{ record.plantCode }}
+              </button>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap w-36 truncate">
+              <span v-if="record.productionPlanCode" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">
+                {{ record.productionPlanCode }}
+              </span>
+              <span v-else>-</span>
+            </td>
+            <td class="px-4 py-3 text-sm w-32 whitespace-nowrap">
+              <span class="font-mono text-orange-600">{{ record.cropCode || '-' }}</span>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-900 truncate w-28" :title="record.cropName">
+              {{ record.cropName || '-' }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis w-40">{{ record.cropVariety || '-' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap w-28">{{ record.areaName }}</td>
+            <td class="px-4 py-3 text-sm text-emerald-600 font-medium w-24">{{ (record.plantingCount || 0).toLocaleString() }}</td>
+            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap w-20">{{ record.plantingDate || '-' }}</td>
+            <td class="px-4 py-3 text-sm w-20">
+              <span :class="record.soilPH != null && record.soilPH > 0 ? 'text-gray-700 font-mono' : 'text-gray-400'">
+                {{ record.soilPH != null && record.soilPH > 0 ? record.soilPH.toFixed(1) : '-' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm w-20">
+              <span :class="record.soilEC != null && record.soilEC > 0 ? 'text-gray-700 font-mono' : 'text-gray-400'">
+                {{ record.soilEC != null && record.soilEC > 0 ? record.soilEC.toFixed(1) : '-' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm w-16">
+              <span v-if="record.attritionRate != null && record.attritionRate > 0" class="text-amber-600 font-medium">
+                {{ record.attritionRate.toFixed(1) }}%
+              </span>
+              <span v-else class="text-gray-400">-</span>
+            </td>
+            <td class="px-4 py-3 text-sm text-blue-600 font-medium w-24">
+              {{ (record.harvestQuantity || 0).toLocaleString() }}{{ record.unit || '' }}
+            </td>
+            <td class="px-4 py-3 text-sm whitespace-nowrap w-24">
+              <span v-if="record.targetYield && record.targetYield !== 0"
                 :class="{
                   'font-medium': true,
-                  'text-green-600': (row.harvestQuantity || 0) / row.targetYield >= 0.8,
-                  'text-amber-600': (row.harvestQuantity || 0) / row.targetYield >= 0.5 && (row.harvestQuantity || 0) / row.targetYield < 0.8,
-                  'text-red-600': (row.harvestQuantity || 0) / row.targetYield < 0.5
-                }"
-              >
-                {{ Math.round((row.harvestQuantity || 0) / row.targetYield * 100) }}%
+                  'text-green-600': (record.harvestQuantity || 0) / record.targetYield >= 0.8,
+                  'text-amber-600': (record.harvestQuantity || 0) / record.targetYield >= 0.5 && (record.harvestQuantity || 0) / record.targetYield < 0.8,
+                  'text-red-600': (record.harvestQuantity || 0) / record.targetYield < 0.5
+                }">
+                {{ Math.round((record.harvestQuantity || 0) / record.targetYield * 100) }}%
               </span>
-            </template>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-        </el-table-column>
+              <span v-else class="text-gray-400">-</span>
+            </td>
+            <td class="px-4 py-3 text-sm w-16">
+              <span :class="statusMap[record.status]?.class || ''" class="px-2 py-1 rounded text-xs font-medium">
+                {{ statusMap[record.status]?.label || record.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3 w-80 whitespace-nowrap">
+              <div class="flex items-center gap-1">
+                <!-- 采收登记 - 未采收显示 -->
+                <button
+                  v-if="!record.isHarvest"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                  title="采收登记"
+                  @click="$emit('harvest', record)"
+                >
+                  ✓
+                </button>
 
-        <!-- 状态 -->
-        <el-table-column prop="status" label="状态" min-width="100" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span :class="statusMap[row.status]?.class || ''" class="px-2 py-1 rounded text-xs font-medium">
-              {{ statusMap[row.status]?.label || row.status }}
-            </span>
-          </template>
-        </el-table-column>
+                <!-- 查看图片 -->
+                <button
+                  v-if="record.pictures && record.pictures.length > 0"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  title="查看图片"
+                  @click="handleImageClick(record)"
+                >
+                  📷
+                </button>
 
-        <!-- 操作列 -->
-        <el-table-column label="操作" min-width="320" fixed="right">
-          <template #default="{ row }">
-            <div class="flex gap-1">
-              <!-- 采收登记 - 未采收显示 -->
-              <el-button
-                v-if="!row.isHarvest"
-                type="primary"
-                link
-                :icon="CircleCheck"
-                @click="$emit('harvest', row)"
-                title="采收登记"
-              />
+                <!-- 正常结束 -->
+                <button
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors"
+                  title="正常结束"
+                  @click="$emit('end', record, 'normal')"
+                >
+                  ✓
+                </button>
 
-              <!-- 查看图片 -->
-              <el-button
-                v-if="row.pictures && row.pictures.length > 0"
-                type="primary"
-                link
-                :icon="Picture"
-                @click="handleImageClick(row)"
-                title="查看图片"
-              />
+                <!-- 异常结束 -->
+                <button
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  title="异常结束"
+                  @click="$emit('end', record, 'abnormal')"
+                >
+                  ✗
+                </button>
 
-              <!-- 正常结束 -->
-              <el-button
-                type="primary"
-                link
-                :icon="CircleCheck"
-                @click="$emit('end', row, 'normal')"
-                title="正常结束"
-              />
+                <!-- 标签详情 -->
+                <button
+                  v-if="$attrs.onLabelDetail"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                  title="标签详情"
+                  @click="$emit('label-detail', record)"
+                >
+                  🏷️
+                </button>
 
-              <!-- 异常结束 -->
-              <el-button
-                type="danger"
-                link
-                :icon="Close"
-                @click="$emit('end', row, 'abnormal')"
-                title="异常结束"
-              />
+                <!-- 移入/移出 - 未采收显示 -->
+                <button
+                  v-if="$attrs.onMove && !record.isHarvest"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  title="移入/移出"
+                  @click="$emit('move', record)"
+                >
+                  →
+                </button>
 
-              <!-- 标签详情 -->
-              <el-button
-                v-if="$attrs.onLabelDetail"
-                type="primary"
-                link
-                :icon="PriceTag"
-                @click="$emit('label-detail', row)"
-                title="标签详情"
-              />
+                <!-- 标记管理 -->
+                <button
+                  v-if="$attrs.onMark"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                  title="标记管理"
+                  @click="$emit('mark', record)"
+                >
+                  ⭐
+                </button>
 
-              <!-- 移入/移出 - 未采收显示 -->
-              <el-button
-                v-if="$attrs.onMove && !row.isHarvest"
-                type="primary"
-                link
-                :icon="Right"
-                @click="$emit('move', row)"
-                title="移入/移出"
-              />
-
-              <!-- 标记管理 -->
-              <el-button
-                v-if="$attrs.onMark"
-                type="primary"
-                link
-                :icon="Star"
-                @click="$emit('mark', row)"
-                title="标记管理"
-              />
-
-              <!-- 留种 - 已采收显示 -->
-              <el-button
-                v-if="$attrs.onSeedSaving && row.status === 'harvested'"
-                type="primary"
-                link
-                :icon="Sunny"
-                @click="$emit('seed-saving', row)"
-                title="留种"
-              />
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+                <!-- 留种 - 已采收显示 -->
+                <button
+                  v-if="$attrs.onSeedSaving && record.status === 'harvested'"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-yellow-600 hover:bg-yellow-50 transition-colors"
+                  title="留种"
+                  @click="$emit('seed-saving', record)"
+                >
+                  🌱
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- 分页 -->
     <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-100 rounded-b-xl">
-      <!-- 编辑/删除/导出/打印模式下显示选择状态和全选按钮 -->
-      <div v-if="operationMode === 'edit' || operationMode === 'delete' || exportMode || printMode" class="flex items-center gap-4">
-        <el-button link size="small" @click="onExportSelectAll">
-          {{ selectedRows.length === data.length ? '全不选' : '全选' }}
-        </el-button>
+      <!-- 操作模式下显示选择状态和全选按钮 -->
+      <div class="flex items-center gap-4" v-if="showCheckbox">
+        <button
+          class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+          @click="onSelectAll"
+        >
+          {{ selectedRows.length === currentData.length ? '全不选' : '全选' }}
+        </button>
         <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
       </div>
       <div v-else></div>
@@ -313,7 +344,7 @@
         v-model:page-size="localPagination.pageSize"
         :page-sizes="[10, 20, 50]"
         :total="data.length"
-        layout="sizes, prev, pager, next"
+        layout="total, sizes, prev, pager, next, jumper"
         @size-change="handleSizeChange"
         @current-change="handlePageChange"
       />
@@ -337,14 +368,8 @@
 </template>
 
 <script setup>
-import { ref, computed, useAttrs } from 'vue'
-import {
-  Plus, Edit, Delete, Download, Printer, CircleCheck, Close,
-  Picture, PriceTag, Right, Star, Sunny
-} from '@element-plus/icons-vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-
-const attrs = useAttrs()
 
 const props = defineProps({
   data: {
@@ -369,25 +394,22 @@ const props = defineProps({
     default: 'normal'
   },
   exportMode: Boolean,
-  printMode: Boolean,
-  onAdd: Function,
-  onExportClick: Function
+  printMode: Boolean
 })
 
 const emit = defineEmits([
-  'add', 'edit', 'detail', 'harvest', 'delete', 'image-click', 'end',
+  'add', 'edit', 'detail', 'harvest', 'delete', 'end',
   'label-detail', 'move', 'mark', 'seed-saving',
-  'selection-change', 'operation-mode-change', 'export-click', 'export-select-all',
-  'export-cancel', 'export-confirm', 'print-mode-change', 'confirm-print',
-  'page-change', 'page-size-change'
+  'selection-change', 'operation-mode-change', 'export-click', 'export-confirm', 'export-cancel',
+  'print-mode-change', 'confirm-print', 'page-change', 'page-size-change'
 ])
 
 // 状态映射 - 与V1.1完全一致
 const statusMap = {
-  planted: { label: '已定植', class: 'text-blue-600 bg-blue-50' },
-  growing: { label: '生长期', class: 'text-amber-600 bg-amber-50' },
-  harvested: { label: '已采收', class: 'text-green-600 bg-green-50' },
-  cancelled: { label: '已取消', class: 'text-gray-600 bg-gray-50' }
+  planted: { label: '已定植', class: 'text-emerald-700 bg-emerald-100' },
+  growing: { label: '生长期', class: 'text-yellow-700 bg-yellow-100' },
+  harvested: { label: '已采收', class: 'text-emerald-700 bg-emerald-100' },
+  cancelled: { label: '已取消', class: 'text-gray-400 bg-gray-100' }
 }
 
 // 本地分页状态
@@ -414,9 +436,9 @@ const showCheckbox = computed(() =>
 const imagePreviewVisible = ref(false)
 const previewImages = ref([])
 
-const handleImageClick = (row) => {
-  if (row.pictures && row.pictures.length > 0) {
-    previewImages.value = row.pictures
+const handleImageClick = (record) => {
+  if (record.pictures && record.pictures.length > 0) {
+    previewImages.value = record.pictures
     imagePreviewVisible.value = true
   }
 }
@@ -424,26 +446,44 @@ const handleImageClick = (row) => {
 // 获取选中的第一条记录
 const getFirstSelectedRecord = () => {
   if (props.selectedRows.length === 0) return null
-  return props.data.find(r => r.id === props.selectedRows[0]) || null
+  return props.data.find(r => props.selectedRows.includes(r.id)) || null
 }
 
-// 选择操作
-const handleSelectionChange = (selection) => {
-  emit('selection-change', selection.map(item => item.id))
+// 选择变化处理
+const handleSelectChange = (id, checked) => {
+  let newSelectedRows = [...props.selectedRows]
+  if (checked) {
+    if (!newSelectedRows.includes(id)) {
+      newSelectedRows.push(id)
+    }
+  } else {
+    newSelectedRows = newSelectedRows.filter(rowId => rowId !== id)
+  }
+  emit('selection-change', newSelectedRows)
 }
 
-const onExportSelectAll = () => {
-  if (props.selectedRows.length === props.data.length) {
+// 全选/取消全选
+const onSelectAll = () => {
+  if (props.selectedRows.length === currentData.value.length) {
     emit('selection-change', [])
   } else {
-    emit('selection-change', props.data.map(item => item.id))
+    emit('selection-change', currentData.value.map(item => item.id))
   }
 }
 
-// 分页
+// 同步全选状态变化（用于表头复选框）
+const onSelectAllChange = (checked) => {
+  if (checked) {
+    emit('selection-change', currentData.value.map(item => item.id))
+  } else {
+    emit('selection-change', [])
+  }
+}
+
+// 分页处理
 const handlePageChange = (page) => {
   localPagination.value.current = page
-  emit('page-change', { current: page, pageSize: localPagination.value.pageSize })
+  emit('page-change', page)
 }
 
 const handleSizeChange = (size) => {
@@ -471,30 +511,8 @@ const executeOperation = async (op) => {
     return
   }
   switch (op) {
-    case 'detail':
-      emit('detail', record)
-      break
     case 'edit':
       emit('edit', record)
-      break
-    case 'harvest':
-      if (!record.isHarvest) {
-        emit('harvest', record)
-      } else {
-        ElMessage.warning('该记录已采收或无法进行采收操作')
-        return
-      }
-      break
-    case 'print':
-      emit('print', record)
-      break
-    case 'image':
-      if (record.pictures?.length > 0) {
-        emit('image-click', record.pictures)
-      } else {
-        ElMessage.warning('该记录没有图片')
-        return
-      }
       break
     case 'delete':
       emit('delete', props.selectedRows)
@@ -512,3 +530,14 @@ const cancelOperation = () => {
   emit('selection-change', [])
 }
 </script>
+
+<style scoped>
+/* 加深复选框默认边框颜色 - 与育苗管理表格一致 */
+:deep(.plant-checkbox .el-checkbox__inner) {
+  border-color: #374151;
+}
+
+:deep(.plant-checkbox:hover .el-checkbox__inner) {
+  border-color: #059669;
+}
+</style>

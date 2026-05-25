@@ -82,19 +82,46 @@
   --el-button-hover-border-color: var(--error-color-hover);
 }
 
-/* 表格样式 */
+/* 表格样式 - 与V1.1保持一致：蓝色渐变表头 */
 .el-table {
   --el-table-border-color: var(--table-border-color);
-  --el-table-header-bg-color: var(--table-header-bg);
+  --el-table-header-bg-color: #2563eb;
+  --el-table-row-hover-bg-color: #dbeafe;
+  --el-table-header-text-color: #ffffff;
 }
 
+/* 表头样式 - 蓝色渐变（V1.1样式） */
 .el-table th.el-table__cell {
-  background-color: var(--table-header-bg);
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
   font-weight: 600;
+  border: none !important;
+}
+
+.el-table th.el-table__cell:first-child {
+  border-top-left-radius: 8px !important;
+}
+
+.el-table th.el-table__cell:last-child {
+  border-top-right-radius: 8px !important;
+}
+
+/* 表体行样式 */
+.el-table td.el-table__cell {
+  border-bottom: 1px solid var(--table-border-color) !important;
 }
 
 .el-table tr:hover > td.el-table__cell {
-  background-color: var(--table-row-hover-bg) !important;
+  background-color: #dbeafe !important;
+}
+
+/* 斑马纹样式调整 */
+.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+  background: #f9fafb;
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped:hover > td.el-table__cell {
+  background-color: #dbeafe !important;
 }
 
 /* 表单样式 */

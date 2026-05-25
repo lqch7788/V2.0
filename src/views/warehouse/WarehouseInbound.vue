@@ -483,14 +483,14 @@ const codeGenSuccess = ref('')
 
 // 表单状态
 const form = reactive({
-  id,
+  id: 0,
   code: '',
   materialCode: '',
   materialName: '',
   bigCategory: '',
   midCategory: '',
   subCategory: '',
-  quantity: '' | string,
+  quantity: '',
   unit: '袋',
   supplier: '',
   inboundDate: '',
@@ -501,10 +501,10 @@ const form = reactive({
 const formRef = ref()
 
 const rules = {
-  materialCode: [{ required, message: '请输入物料编码', trigger: 'blur' }],
-  materialName: [{ required, message: '请输入物料名称', trigger: 'blur' }],
-  quantity: [{ required, message: '请输入入库数量', trigger: 'blur' }],
-  supplier: [{ required, message: '请输入供应商', trigger: 'blur' }]
+  materialCode: [{ required: true, message: '请输入物料编码', trigger: 'blur' }],
+  materialName: [{ required: true, message: '请输入物料名称', trigger: 'blur' }],
+  quantity: [{ required: true, message: '请输入入库数量', trigger: 'blur' }],
+  supplier: [{ required: true, message: '请输入供应商', trigger: 'blur' }]
 }
 
 // 计算属性

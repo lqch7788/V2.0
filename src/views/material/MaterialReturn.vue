@@ -526,7 +526,7 @@ const exportFormats = [
 // Mock数据
 const mockReturns = ref([
   {
-    id,
+    id: 1,
     code: 'RT20260121-001',
     sourceAppCode: 'LL20260120-001',
     sourceAppType: '生产领料单',
@@ -537,12 +537,12 @@ const mockReturns = ref([
     createTime: '2026-01-21 10:30:00',
     remarks: '多余物料退回',
     materials: [
-      { code: '010101001', name: '番茄种子', spec: '优等品', unit: '袋', quantity, reason: '多余物料' },
-      { code: '010201001', name: '尿素', spec: '50kg/袋', unit: '袋', quantity, reason: '未使用完' }
+      { code: '010101001', name: '番茄种子', spec: '优等品', unit: '袋', quantity: 10, reason: '多余物料' },
+      { code: '010201001', name: '尿素', spec: '50kg/袋', unit: '袋', quantity: 5, reason: '未使用完' }
     ]
   },
   {
-    id,
+    id: 2,
     code: 'RT20260120-001',
     sourceAppCode: 'LL20260119-001',
     sourceAppType: '生产领料单',
@@ -552,11 +552,11 @@ const mockReturns = ref([
     status: 'approved',
     createTime: '2026-01-20 14:20:00',
     materials: [
-      { code: '010301001', name: '多菌灵', spec: '500ml/瓶', unit: '瓶', quantity, reason: '病虫害已消除' }
+      { code: '010301001', name: '多菌灵', spec: '500ml/瓶', unit: '瓶', quantity: 20, reason: '病虫害已消除' }
     ]
   },
   {
-    id,
+    id: 3,
     code: 'RT20260119-001',
     sourceAppCode: 'CG20260118-001',
     sourceAppType: '采购退料单',
@@ -566,16 +566,16 @@ const mockReturns = ref([
     status: 'inbound',
     createTime: '2026-01-19 09:15:00',
     materials: [
-      { code: '020101001', name: '纸箱(大)', spec: '50*40*30', unit: '个', quantity, reason: '规格不符' }
+      { code: '020101001', name: '纸箱(大)', spec: '50*40*30', unit: '个', quantity: 15, reason: '规格不符' }
     ]
   }
 ])
 
 // 源单物料数据
 const sourceMaterials = ref([
-  { code: '010101001', name: '番茄种子', spec: '优等品', unit: '袋', quantity, reason: '' },
-  { code: '010201001', name: '尿素', spec: '50kg/袋', unit: '袋', quantity, reason: '' },
-  { code: '010301001', name: '多菌灵', spec: '500ml/瓶', unit: '瓶', quantity, reason: '' }
+  { code: '010101001', name: '番茄种子', spec: '优等品', unit: '袋', quantity: 10, reason: '' },
+  { code: '010201001', name: '尿素', spec: '50kg/袋', unit: '袋', quantity: 5, reason: '' },
+  { code: '010301001', name: '多菌灵', spec: '500ml/瓶', unit: '瓶', quantity: 20, reason: '' }
 ])
 
 // 状态
@@ -629,11 +629,11 @@ const voidForm = reactive({
 const formRef = ref()
 
 const rules = {
-  sourceAppCode: [{ required, message: '请输入源单据号', trigger: 'blur' }],
-  sourceAppType: [{ required, message: '请选择源单据类型', trigger: 'change' }],
-  returnDate: [{ required, message: '请选择退料日期', trigger: 'change' }],
-  returner: [{ required, message: '请输入退料人', trigger: 'blur' }],
-  warehouse: [{ required, message: '请选择退料仓库', trigger: 'change' }]
+  sourceAppCode: [{ required: true, message: '请输入源单据号', trigger: 'blur' }],
+  sourceAppType: [{ required: true, message: '请选择源单据类型', trigger: 'change' }],
+  returnDate: [{ required: true, message: '请选择退料日期', trigger: 'change' }],
+  returner: [{ required: true, message: '请输入退料人', trigger: 'blur' }],
+  warehouse: [{ required: true, message: '请选择退料仓库', trigger: 'change' }]
 }
 
 // 计算属性
@@ -763,7 +763,7 @@ const handleAddMaterial = () => {
     name: '',
     spec: '',
     unit: '',
-    quantity,
+    quantity: 0,
     reason: ''
   })
 }

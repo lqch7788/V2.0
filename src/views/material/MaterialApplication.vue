@@ -1,0 +1,519 @@
+<template>
+  <div class="space-y-4">
+    <!-- 页面头部 -->
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+          <el-icon :size="24" color="white">
+            <Upload />
+          </el-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">物料领用申请</h1>
+          <p class="text-gray-500">领料申请单管理</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 筛选器 -->
+    <ApplicationFilters
+      v-model:searchCode="searchCode"
+      v-model:searchApplicant="searchApplicant"
+      v-model:searchBatchCode="searchBatchCode"
+      v-model:searchWarehouse="searchWarehouse"
+      v-model:statusFilter="statusFilter"
+      @reset="handleReset"
+      @page-change="setCurrentPage"
+    />
+
+    <!-- 数据表格 -->
+    <ApplicationTable
+      :filteredData="filteredData"
+      :current-page="currentPage"
+      :page-size="pageSize"
+      :export-mode="exportMode"
+      :selected-rows="selectedRows"
+      :batch-edit-mode="batchEditMode"
+      :expanded-rows="expandedRows"
+      @update:currentPage="setCurrentPage"
+      @update:pageSize="setPageSize"
+      @page-change="setCurrentPage"
+      @page-size-change="handlePageSizeChange"
+      @export-mode-change="setExportMode"
+      @export-click="handleExportClick"
+      @cancel-export="handleCancelExport"
+      @batch-edit="handleBatchEdit"
+      @batch-delete="handleBatchDelete"
+      @batch-delete-confirm="handleBatchDeleteConfirm"
+      @batch-cancel="handleBatchCancel"
+      @select-all="handleSelectAll"
+      @view="handleView"
+      @edit="handleEdit"
+      @add-modal-open="handleAddModalOpen"
+      @expand-change="handleExpandChange"
+    />
+
+    <!-- 查看详情弹窗 -->
+    <DetailModal
+      :show="showDetailModal"
+      :record="selectedRecord"
+      @close="showDetailModal = false"
+    />
+
+    <!-- 编辑弹窗 -->
+    <EditModal
+      :show="showEditModal"
+      :record="selectedRecord"
+      :edit-form="editForm"
+      @close="handleCancelEdit"
+      @form-change="setEditForm"
+      @add-material="handleEditAddMaterial"
+      @remove-material="handleEditRemoveMaterial"
+      @material-change="handleEditMaterialChange"
+      @save="handleSaveEdit"
+      @void-apply="handleVoidApply"
+    />
+
+    <!-- 新增弹窗 -->
+    <AddModal
+      :show="showAddModal"
+      :add-form="addForm"
+      @close="handleCancelAdd"
+      @form-change="setAddForm"
+      @add-material="handleAddMaterial"
+      @remove-material="handleRemoveMaterial"
+      @material-change="handleMaterialChange"
+      @generate-code="handleGenerateAddCode"
+      @save="handleSaveAdd"
+    />
+
+    <!-- 删除确认弹窗 -->
+    <DeleteConfirm
+      :show="showDeleteConfirm"
+      @close="showDeleteConfirm = false"
+      @confirm="handleConfirmDelete"
+    />
+
+    <!-- 作废弹窗 -->
+    <VoidModal
+      :show="showVoidModal"
+      :record="selectedRecord"
+      :reason="voidReason"
+      @close="showVoidModal = false"
+      @confirm="handleSubmitVoid"
+    />
+
+    <!-- 批量编辑弹窗 -->
+    <BatchEditModal
+      :show="showBatchEditModal"
+      :selected-rows="selectedRows"
+      :records-list="materialData"
+      @close="showBatchEditModal = false"
+      @save-all="handleBatchSaveAll"
+    />
+
+    <!-- 批量删除确认弹窗 -->
+    <BatchDeleteConfirmModal
+      :show="showBatchDeleteConfirm"
+      :count="selectedRows.length"
+      @close="showBatchDeleteConfirm = false"
+      @confirm="handleBatchDeleteConfirm"
+    />
+
+    <!-- 导出格式选择弹窗 -->
+    <ExportTypeModal
+      :show="showExportTypeModal"
+      :export-file-type="exportFileType"
+      @close="showExportTypeModal = false"
+      @change="setExportFileType"
+      @confirm="handleConfirmExport"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, reactive, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Upload } from '@element-plus/icons-vue'
+import { useMaterialRequestStore } from '@/stores/modules/inventory/useMaterialRequestStore'
+import { getMaterialRequests } from '@/services/apiMaterialRequestService'
+import ApplicationFilters from '@/components/materialReceiving/ApplicationFilters.vue'
+import ApplicationTable from '@/components/materialReceiving/ApplicationTable.vue'
+import {
+  DetailModal,
+  AddModal,
+  EditModal,
+  BatchEditModal,
+  VoidModal,
+  DeleteConfirm,
+  ExportTypeModal,
+  BatchDeleteConfirmModal
+} from '@/components/materialReceiving/modals'
+
+// Store
+const materialRequestStore = useMaterialRequestStore()
+
+// 搜索状态
+const searchCode = ref('')
+const searchApplicant = ref('')
+const searchBatchCode = ref('')
+const searchWarehouse = ref('')
+const statusFilter = ref('')
+
+// 分页状态
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const setCurrentPage = (page) => {
+  currentPage.value = page
+}
+
+const setPageSize = (size) => {
+  pageSize.value = size
+}
+
+const handlePageSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+}
+
+// 模式状态
+const exportMode = ref(false)
+const batchEditMode = ref(null) // 'edit' | 'delete' | null
+const selectedRows = ref([])
+const expandedRows = ref([])
+
+// 弹窗状态
+const showDetailModal = ref(false)
+const showEditModal = ref(false)
+const showAddModal = ref(false)
+const showDeleteConfirm = ref(false)
+const showVoidModal = ref(false)
+const showBatchEditModal = ref(false)
+const showBatchDeleteConfirm = ref(false)
+const showExportTypeModal = ref(false)
+const showEditAlert = ref(false)
+
+// 当前选中记录
+const selectedRecord = ref(null)
+
+// 表单数据
+const editForm = reactive({
+  code: '',
+  date: '',
+  applicant: '',
+  department: '',
+  warehouseLocation: '',
+  plantArea: '',
+  reviewer: '',
+  productionBatchCode: '',
+  materials: []
+})
+
+const addForm = reactive({
+  code: '',
+  date: new Date().toISOString().slice(0, 10),
+  applicant: '',
+  department: '',
+  warehouseLocation: '',
+  plantArea: '',
+  reviewer: '',
+  productionBatchCode: '',
+  materials: []
+})
+
+// 作废原因
+const voidReason = ref('')
+
+// 导出相关
+const exportFileType = ref('excel')
+
+// 物料申请数据（从 API 加载）
+const materialData = ref([])
+
+// 加载物料申请数据
+const loadMaterialData = async () => {
+  try {
+    const result = await getMaterialRequests()
+    // 转换后端数据格式为前端所需格式
+    materialData.value = result.data.map(item => ({
+      id: item.id,
+      code: item.requestCode,
+      date: item.applyDate,
+      applicant: item.applicantName,
+      department: item.departmentName,
+      warehouseLocation: item.warehouseName,
+      plantArea: item.plantArea,
+      reviewer: item.reviewer,
+      productionBatchCode: item.productionBatchCode,
+      status: getStatusText(item.approvalStatus),
+      statusClass: getStatusClass(item.approvalStatus),
+      materials: item.materials || []
+    }))
+  } catch (error) {
+    console.error('加载物料申请数据失败:', error)
+    ElMessage.error('加载数据失败，请刷新重试')
+  }
+}
+
+// 根据审批状态获取状态文本
+const getStatusText = (status) => {
+  const statusMap = {
+    'pending': '待审批',
+    'approved': '已审批',
+    'rejected': '已拒绝',
+    'voided': '已作废'
+  }
+  return statusMap[status] || status || '待审批'
+}
+
+// 根据审批状态获取样式类名
+const getStatusClass = (status) => {
+  const classMap = {
+    'pending': 'pending',
+    'approved': 'approved',
+    'rejected': 'rejected',
+    'voided': 'voided'
+  }
+  return classMap[status] || 'pending'
+}
+
+// 过滤后的数据
+const filteredData = computed(() => {
+  return materialData.value.filter(item => {
+    if (searchCode.value && !item.code.includes(searchCode.value)) return false
+    if (searchApplicant.value && !item.applicant.includes(searchApplicant.value)) return false
+    if (searchBatchCode.value && !item.productionBatchCode.includes(searchBatchCode.value)) return false
+    if (searchWarehouse.value && item.warehouseLocation !== searchWarehouse.value) return false
+    if (statusFilter.value && item.status !== statusFilter.value) return false
+    return true
+  })
+})
+
+// 重置搜索
+const handleReset = () => {
+  searchCode.value = ''
+  searchApplicant.value = ''
+  searchBatchCode.value = ''
+  searchWarehouse.value = ''
+  statusFilter.value = ''
+}
+
+// 导出相关
+const setExportMode = (val) => {
+  exportMode.value = val
+  if (!val) {
+    selectedRows.value = []
+  }
+}
+
+const handleExportClick = () => {
+  showExportTypeModal.value = true
+}
+
+const handleCancelExport = () => {
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+const setExportFileType = (type) => {
+  exportFileType.value = type
+}
+
+const handleConfirmExport = () => {
+  ElMessage.success(`已选择导出格式：${exportFileType.value}`)
+  showExportTypeModal.value = false
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+// 批量编辑
+const handleBatchEdit = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要编辑的记录')
+    return
+  }
+  batchEditMode.value = 'edit'
+}
+
+const handleBatchDelete = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要删除的记录')
+    return
+  }
+  batchEditMode.value = 'delete'
+}
+
+const handleBatchDeleteConfirm = () => {
+  showBatchDeleteConfirm.value = true
+}
+
+const handleBatchCancel = () => {
+  batchEditMode.value = null
+  selectedRows.value = []
+}
+
+const handleSelectAll = () => {
+  if (selectedRows.value.length === filteredData.value.length) {
+    selectedRows.value = []
+  } else {
+    selectedRows.value = filteredData.value.map(item => item.id)
+  }
+}
+
+// 查看详情
+const handleView = (row) => {
+  selectedRecord.value = row
+  showDetailModal.value = true
+}
+
+// 编辑
+const handleEdit = (row) => {
+  selectedRecord.value = row
+  Object.assign(editForm, {
+    code: row.code,
+    date: row.date,
+    applicant: row.applicant,
+    department: row.department,
+    warehouseLocation: row.warehouseLocation,
+    plantArea: row.plantArea,
+    reviewer: row.reviewer,
+    productionBatchCode: row.productionBatchCode,
+    materials: [...row.materials]
+  })
+  showEditModal.value = true
+}
+
+const handleCancelEdit = () => {
+  showEditModal.value = false
+}
+
+const setEditForm = (field, value) => {
+  editForm[field] = value
+}
+
+const handleEditAddMaterial = () => {
+  editForm.materials.push({
+    materialCode: '',
+    materialName: '',
+    spec: '',
+    unit: '',
+    requestedQuantity: 0,
+    stockQuantity: 0,
+    unitPrice: 0,
+    warehousePosition: '',
+    remark: ''
+  })
+}
+
+const handleEditRemoveMaterial = (index) => {
+  editForm.materials.splice(index, 1)
+}
+
+const handleEditMaterialChange = (index, field, value) => {
+  editForm.materials[index][field] = value
+}
+
+const handleSaveEdit = () => {
+  ElMessage.success('保存成功')
+  showEditModal.value = false
+}
+
+const handleVoidApply = () => {
+  showVoidModal.value = true
+}
+
+const handleSubmitVoid = () => {
+  ElMessage.success('作废申请已提交')
+  showVoidModal.value = false
+}
+
+// 新增
+const handleAddModalOpen = () => {
+  resetAddForm()
+  handleGenerateAddCode()
+  showAddModal.value = true
+}
+
+const handleCancelAdd = () => {
+  showAddModal.value = false
+}
+
+const resetAddForm = () => {
+  addForm.code = ''
+  addForm.date = new Date().toISOString().slice(0, 10)
+  addForm.applicant = ''
+  addForm.department = ''
+  addForm.warehouseLocation = ''
+  addForm.plantArea = ''
+  addForm.reviewer = ''
+  addForm.productionBatchCode = ''
+  addForm.materials = []
+}
+
+const setAddForm = (field, value) => {
+  addForm[field] = value
+}
+
+const handleGenerateAddCode = () => {
+  const today = new Date()
+  const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
+  addForm.code = `LL${dateStr}-001`
+}
+
+const handleAddMaterial = () => {
+  addForm.materials.push({
+    materialCode: '',
+    materialName: '',
+    spec: '',
+    unit: '',
+    requestedQuantity: 0,
+    stockQuantity: 0,
+    unitPrice: 0,
+    warehousePosition: '',
+    remark: ''
+  })
+}
+
+const handleRemoveMaterial = (index) => {
+  addForm.materials.splice(index, 1)
+}
+
+const handleMaterialChange = (index, field, value) => {
+  addForm.materials[index][field] = value
+}
+
+const handleSaveAdd = () => {
+  ElMessage.success('新增成功')
+  showAddModal.value = false
+}
+
+// 删除
+const handleConfirmDelete = () => {
+  ElMessage.success('删除成功')
+  showDeleteConfirm.value = false
+}
+
+// 批量保存
+const handleBatchSaveAll = () => {
+  ElMessage.success('批量编辑保存成功')
+  showBatchEditModal.value = false
+  batchEditMode.value = null
+  selectedRows.value = []
+}
+
+// 展开行
+const handleExpandChange = (row, expanded) => {
+  const index = expandedRows.value.indexOf(row.id)
+  if (expanded && index === -1) {
+    expandedRows.value.push(row.id)
+  } else if (!expanded && index > -1) {
+    expandedRows.value.splice(index, 1)
+  }
+}
+
+// 加载数据
+onMounted(() => {
+  loadMaterialData()
+})
+</script>

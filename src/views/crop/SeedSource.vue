@@ -13,9 +13,6 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <SeedSourceStats :data="statsData" />
-
     <!-- 筛选工具栏 -->
     <SeedSourceFilter
       :filters="filters"

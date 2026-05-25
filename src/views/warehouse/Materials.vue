@@ -632,10 +632,11 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Goods, Warning, Download, Search, Plus, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { } from 'element-plus'
+import { getMaterials, getInboundRecords } from '@/api/material/apiWarehouseMaterialService'
 
 // 分类配置（来自V1.1的categoryConfig）
 const categoryConfig = {
@@ -682,7 +683,7 @@ const exportFormats = [
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
 
-// Mock数据
+// Mock数据（仅用于初始化）
 const mockWarehouseMaterials = ref([
   { id: 1, code: '010101001', name: '番茄种子', category: '种子', unit: '袋', quantity: 100, minStock: 20, price: '25.00', supplier: '种子公司A', location: 'A区-01' },
   { id: 2, code: '010201001', name: '尿素', category: '肥料', unit: '袋', quantity: 200, minStock: 50, price: '120.00', supplier: '肥料公司B', location: 'B区-02' },
@@ -694,6 +695,40 @@ const mockInboundRecords = ref([
   { id: 1, code: 'RK20260121-001', materialCode: '010101001', materialName: '番茄种子', quantity: 50, unit: '袋', supplier: '种子公司A', inboundDate: '2026-01-21', operator: '张三', status: 'completed' },
   { id: 2, code: 'RK20260120-001', materialCode: '010201001', materialName: '尿素', quantity: 100, unit: '袋', supplier: '肥料公司B', inboundDate: '2026-01-20', operator: '李四', status: 'pending' },
 ])
+
+// 物料数据（从API加载）
+const warehouseMaterials = ref([])
+const inboundRecords = ref([])
+const loading = ref(false)
+
+// 从API加载数据
+const loadMaterials = async () => {
+  loading.value = true
+  try {
+    const data = await getMaterials()
+    warehouseMaterials.value = Array.isArray(data) ? data : (data.data || [])
+  } catch (error) {
+    console.error('加载物料数据失败:', error)
+    ElMessage.error('加载物料数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadInboundRecords = async () => {
+  try {
+    const data = await getInboundRecords()
+    inboundRecords.value = Array.isArray(data) ? data : (data.data || [])
+  } catch (error) {
+    console.error('加载入库记录失败:', error)
+  }
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  loadMaterials()
+  loadInboundRecords()
+})
 
 // 状态
 const activeTab = ref('overview')
@@ -740,7 +775,7 @@ const newInbound = reactive({
   subCategory: '',
   materialCode: '',
   materialName: '',
-  quantity: '' | string,
+  quantity: '',
   unit: '袋',
   supplier: '',
   inboundDate: '',
@@ -750,7 +785,8 @@ const newInbound = reactive({
 
 // 计算属性
 const filteredMaterials = computed(() => {
-  return mockWarehouseMaterials.value.filter(m => {
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  return source.filter(m => {
     if (filters.code && !m.code.includes(filters.code)) return false
     if (filters.name && !m.name.includes(filters.name)) return false
     if (filters.supplier && m.supplier !== filters.supplier) return false
@@ -772,18 +808,23 @@ const paginatedMaterials = computed(() => {
 const totalPages = computed(() => Math.ceil(filteredMaterials.value.length / pageSize.value) || 1)
 
 const lowStockCount = computed(() => {
-  return mockWarehouseMaterials.value.filter(m => m.quantity < m.minStock).length
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  return source.filter(m => m.quantity < m.minStock).length
 })
 
 const uniqueSuppliers = computed(() => {
-  return [...new Set(mockWarehouseMaterials.value.map(m => m.supplier))]
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  return [...new Set(source.map(m => m.supplier))]
 })
 
 const uniqueLocations = computed(() => {
-  return [...new Set(mockWarehouseMaterials.value.map(m => m.location))]
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  return [...new Set(source.map(m => m.location))]
 })
 
-const inboundRecords = computed(() => mockInboundRecords.value)
+const inboundRecords = computed(() => {
+  return inboundRecords.value.length > 0 ? inboundRecords.value : mockInboundRecords.value
+})
 
 const isFormValid = computed(() => {
   return !codeError.value && !nameError.value && newInbound.materialCode && newInbound.materialName && newInbound.quantity
@@ -1001,7 +1042,8 @@ const handleCodeGen = () => {
   if (!subCat) return
 
   const prefix = (subCat).prefix
-  const existingCodes = mockWarehouseMaterials.value
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  const existingCodes = source
     .filter(m => m.code.startsWith(prefix))
     .map(m => parseInt(m.code.slice(-3)))
 
@@ -1021,7 +1063,8 @@ const handleVerifyCode = () => {
     return
   }
 
-  const exists = mockWarehouseMaterials.value.some(m => m.code === codeGen.generatedCode)
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  const exists = source.some(m => m.code === codeGen.generatedCode)
   if (exists) {
     codeGenError.value = '警告：该编码已在库存中存在！'
     codeGenSuccess.value = ''
@@ -1046,7 +1089,8 @@ const handleAddInbound = () => {
 const generateOrderCode = () => {
   const today = new Date()
   const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
-  const todayRecords = mockInboundRecords.value.filter(r => r.code.startsWith(`RK${dateStr}`))
+  const sourceRecords = inboundRecords.value.length > 0 ? inboundRecords.value : mockInboundRecords.value
+  const todayRecords = sourceRecords.filter(r => r.code.startsWith(`RK${dateStr}`))
   let maxSeq = 0
   if (todayRecords.length > 0) {
     const sequences = todayRecords.map(r => parseInt(r.code.split('-')[1] || '0'))
@@ -1066,7 +1110,8 @@ const handleGenerateCodeInModal = () => {
   if (!subCat) return
 
   const prefix = (subCat).prefix
-  const existingCodes = mockWarehouseMaterials.value
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  const existingCodes = source
     .filter(m => m.code.startsWith(prefix))
     .map(m => parseInt(m.code.slice(-3)))
 
@@ -1093,7 +1138,8 @@ const handleModalMidCategoryChange = () => {
 
 const checkCodeDuplicate = () => {
   if (!newInbound.materialCode) return
-  const exists = mockWarehouseMaterials.value.some(m => m.code === newInbound.materialCode)
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  const exists = source.some(m => m.code === newInbound.materialCode)
   if (exists) {
     codeError.value = '该物料编码已存在，请重新选择分类'
   } else {
@@ -1103,7 +1149,8 @@ const checkCodeDuplicate = () => {
 
 const checkNameDuplicate = () => {
   if (!newInbound.materialName) return
-  const exists = mockWarehouseMaterials.value.some(m => m.name === newInbound.materialName)
+  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
+  const exists = source.some(m => m.name === newInbound.materialName)
   if (exists) {
     nameError.value = '该物料名称已存在'
   } else {

@@ -15,9 +15,6 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <SeedlingStats :data="statsData" />
-
     <!-- 筛选组件 -->
     <SeedlingFilter
       :filters="filters"

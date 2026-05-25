@@ -262,7 +262,7 @@
         </div>
       </div>
 
-      <!-- 表格 -->
+      <!-- 表格 - 与V1.1保持一致 -->
       <el-table
         :data="paginatedSuppliers"
         stripe
@@ -273,25 +273,58 @@
           type="selection"
           width="55"
         />
-        <el-table-column prop="code" label="供应商编号" width="150" />
-        <el-table-column prop="organization" label="所属组织" width="120" />
-        <el-table-column prop="name" label="供应商名称" min-width="180" />
-        <el-table-column prop="supplierType" label="供应物资类型" width="120">
+        <!-- 供应商编号 - 蓝色可点击下划线 -->
+        <el-table-column prop="code" label="供应商编号" width="140">
+          <template #default="{ row }">
+            <span
+              class="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline whitespace-nowrap"
+              @click="handleView(row)"
+            >
+              {{ row.code }}
+            </span>
+          </template>
+        </el-table-column>
+        <!-- 供应商名称 -->
+        <el-table-column prop="name" label="供应商名称" width="180" />
+        <!-- 供应类型 -->
+        <el-table-column prop="supplierType" label="供应类型" width="100">
           <template #default="{ row }">
             {{ getSupplierTypeName(row.supplierType) }}
           </template>
         </el-table-column>
-        <el-table-column prop="supplierAttribute" label="供应商属性" width="120" />
-        <el-table-column prop="contact" label="联系人" width="100" />
+        <!-- 供应商属性 -->
+        <el-table-column prop="supplierAttribute" label="供应商属性" width="100" />
+        <!-- 联系人 -->
+        <el-table-column prop="contact" label="联系人" width="80" />
+        <!-- 移动电话 -->
         <el-table-column prop="mobilePhone" label="移动电话" width="120" />
-        <el-table-column prop="status" label="状态" width="80">
+        <!-- 所属组织 -->
+        <el-table-column prop="organization" label="所属组织" width="120" />
+        <!-- 状态 - 圆角胶囊样式 -->
+        <el-table-column prop="status" label="状态" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.status === '启用' ? 'success' : 'danger'" size="small">
+            <span
+              class="inline-flex px-2 py-1 rounded-full text-xs font-medium"
+              :class="{
+                'bg-green-100 text-green-700': row.status === '合作中',
+                'bg-yellow-100 text-yellow-700': row.status === '暂停',
+                'bg-red-100 text-red-700': row.status !== '合作中' && row.status !== '暂停'
+              }"
+            >
               {{ row.status }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <!-- 所在地区 -->
+        <el-table-column label="所在地区" width="140">
+          <template #default="{ row }">
+            {{ row.province }} {{ row.city }}
+          </template>
+        </el-table-column>
+        <!-- 创建时间 -->
+        <el-table-column prop="createDate" label="创建时间" width="110" />
+        <!-- 操作 -->
+        <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleView(row)">查看</el-button>
             <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
@@ -609,7 +642,7 @@ const exportFormats = [
 // Mock数据
 const mockSuppliers = ref([
   {
-    id,
+    id: 1,
     code: 'YS01001',
     organization: '总公司',
     name: '种子公司A',
@@ -630,7 +663,7 @@ const mockSuppliers = ref([
     remarks: '长期合作伙伴'
   },
   {
-    id,
+    id: 2,
     code: 'YS02001',
     organization: '总公司',
     name: '肥料公司B',
@@ -648,7 +681,7 @@ const mockSuppliers = ref([
     createDate: '2025-02-20'
   },
   {
-    id,
+    id: 3,
     code: 'ZC01001',
     organization: '分公司A',
     name: '包装材料公司C',
@@ -664,7 +697,7 @@ const mockSuppliers = ref([
     createDate: '2025-03-10'
   },
   {
-    id,
+    id: 4,
     code: 'FW01001',
     organization: '分公司B',
     name: '物流服务公司D',
@@ -744,12 +777,12 @@ const form = reactive({
 const formRef = ref()
 
 const rules = {
-  code: [{ required, message: '请输入供应商编号', trigger: 'blur' }],
-  organization: [{ required, message: '请选择所属组织', trigger: 'change' }],
-  name: [{ required, message: '请输入供应商名称', trigger: 'blur' }],
-  supplierType: [{ required, message: '请选择供应物资类型', trigger: 'change' }],
-  contact: [{ required, message: '请输入联系人', trigger: 'blur' }],
-  mobilePhone: [{ required, message: '请输入移动电话', trigger: 'blur' }]
+  code: [{ required: true, message: '请输入供应商编号', trigger: 'blur' }],
+  organization: [{ required: true, message: '请选择所属组织', trigger: 'change' }],
+  name: [{ required: true, message: '请输入供应商名称', trigger: 'blur' }],
+  supplierType: [{ required: true, message: '请选择供应物资类型', trigger: 'change' }],
+  contact: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
+  mobilePhone: [{ required: true, message: '请输入移动电话', trigger: 'blur' }]
 }
 
 // 计算属性

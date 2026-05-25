@@ -265,12 +265,12 @@ const form = reactive({
 })
 
 const rules = {
-  name: [{ required, message: '请输入姓名', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   email: [
-    { required, message: '请输入邮箱', trigger: 'blur' },
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
   ],
-  department: [{ required, message: '请选择部门', trigger: 'change' }]
+  department: [{ required: true, message: '请选择部门', trigger: 'change' }]
 }
 
 const submitForm = async () => {
