@@ -32,3 +32,9 @@ export { default as ApprovalDetail } from './ApprovalDetail.vue'
 
 // 业务预览组件
 export { default as BusinessPreview } from './BusinessPreview.vue'
+
+// 审批提交面板组件
+export { default as ApprovalSubmitPanel } from './ApprovalSubmitPanel.vue'
+
+// 物料审批表单组件
+export { default as MaterialApprovalForm } from './MaterialApprovalForm.vue'

@@ -218,19 +218,114 @@
       <!-- 详情弹窗 -->
       <el-dialog v-model="detailVisible" title="审批详情" width="800px" destroy-on-close>
         <div v-if="currentApproval" class="space-y-4">
-          <el-descriptions :column="2" border>
-            <el-descriptions-item label="审批单号">{{ currentApproval.code }}</el-descriptions-item>
-            <el-descriptions-item label="标题">{{ currentApproval.title }}</el-descriptions-item>
-            <el-descriptions-item label="申请人">{{ currentApproval.applicantName }}</el-descriptions-item>
-            <el-descriptions-item label="部门">{{ currentApproval.applicantDepartment }}</el-descriptions-item>
-            <el-descriptions-item label="申请时间">{{ currentApproval.applyDate }}</el-descriptions-item>
-            <el-descriptions-item label="状态">
-              <el-tag :type="getStatusBadge(currentApproval.status)" size="small">
-                {{ getStatusText(currentApproval.status) }}
-              </el-tag>
-            </el-descriptions-item>
-          </el-descriptions>
+          <!-- 状态标签 -->
+          <div>
+            <el-tag :type="getStatusBadge(currentApproval.status)" size="small">
+              {{ getStatusText(currentApproval.status) }}
+            </el-tag>
+          </div>
+
+          <!-- 申请信息卡片 -->
+          <div class="bg-gray-50 rounded-xl p-4">
+            <h4 class="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+              <el-icon><Document /></el-icon> 申请信息
+            </h4>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs text-gray-400">申请标题</span>
+                <p class="text-sm font-medium text-gray-900">{{ currentApproval.title }}</p>
+              </div>
+              <div>
+                <span class="text-xs text-gray-400">申请人</span>
+                <p class="text-sm font-medium text-gray-900">{{ currentApproval.applicantName || '-' }}</p>
+              </div>
+              <div>
+                <span class="text-xs text-gray-400">申请部门</span>
+                <p class="text-sm font-medium text-gray-900">{{ currentApproval.applicantDepartment || '-' }}</p>
+              </div>
+              <div>
+                <span class="text-xs text-gray-400">申请时间</span>
+                <p class="text-sm font-medium text-gray-900">{{ currentApproval.applyDate }} {{ currentApproval.applyTime }}</p>
+              </div>
+              <div v-if="currentApproval.amount">
+                <span class="text-xs text-gray-400">申请金额</span>
+                <p class="text-sm font-medium text-emerald-600 text-lg">¥{{ Number(currentApproval.amount).toLocaleString() }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 业务关联信息卡片 -->
+          <div v-if="currentApproval.businessLink" class="bg-emerald-50 rounded-xl p-4">
+            <h4 class="text-sm font-medium text-emerald-600 mb-3 flex items-center gap-2">
+              <el-icon><Grape /></el-icon> {{ getBusinessTypeLabel(currentApproval.businessLink.type) }}
+            </h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div v-for="(value, key) in currentApproval.businessLink" :key="key" class="flex flex-col">
+                <span class="text-xs text-gray-500">{{ getFieldLabel(key) }}</span>
+                <span class="text-sm font-medium text-gray-900">{{ formatBusinessValue(key, value) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 申请描述卡片 -->
+          <div v-if="currentApproval.description" class="bg-blue-50 rounded-xl p-4">
+            <h4 class="text-sm font-medium text-blue-600 mb-3 flex items-center gap-2">
+              <el-icon><Document /></el-icon> 申请描述
+            </h4>
+            <p class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{{ currentApproval.description }}</p>
+          </div>
+
+          <!-- 审批记录卡片 -->
+          <div v-if="currentApproval.records && currentApproval.records.length > 0" class="bg-purple-50 rounded-xl p-4">
+            <h4 class="text-sm font-medium text-purple-600 mb-3 flex items-center gap-2">
+              <el-icon><Clock /></el-icon> 审批记录
+            </h4>
+            <div class="space-y-3">
+              <div v-for="(record, index) in currentApproval.records" :key="index" class="flex items-start gap-3 p-2 bg-white rounded-lg">
+                <div :class="['w-2 h-2 rounded-full mt-2', record.action === 'approve' ? 'bg-emerald-500' : record.action === 'reject' ? 'bg-red-500' : 'bg-gray-400']" />
+                <div class="flex-1">
+                  <p class="text-sm text-gray-900">
+                    <span class="font-medium">{{ record.approverName }}</span>
+                    <span class="text-gray-500 mx-1">
+                      {{ record.action === 'approve' ? '通过了申请' : record.action === 'reject' ? '拒绝了申请' : record.action === 'partially_approve' ? '部分通过了' : '操作了' }}
+                    </span>
+                  </p>
+                  <p v-if="record.comment" class="text-xs text-gray-500 mt-1">备注：{{ record.comment }}</p>
+                  <p class="text-xs text-gray-400 mt-1">{{ record.actionTime }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </el-dialog>
+
+      <!-- 审批确认弹窗 -->
+      <el-dialog v-model="approvalModalVisible" :title="approvalModal.action === 'approve' ? '确认通过' : '确认拒绝'" width="500px" destroy-on-close>
+        <div v-if="approvalModal.approval">
+          <div class="mb-4">
+            <label class="block text-sm text-gray-700 mb-1">{{ approvalModal.action === 'approve' ? '通过意见（可选）' : '拒绝原因（可选）' }}</label>
+            <el-input
+              v-model="approvalComment"
+              type="textarea"
+              :rows="3"
+              :placeholder="approvalModal.action === 'approve' ? '请输入通过意见...' : '请输入拒绝原因...'"
+            />
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 mb-4">
+            <p class="text-sm text-gray-600">
+              <span class="font-medium">申请标题：</span>{{ approvalModal.approval.title }}
+            </p>
+            <p class="text-sm text-gray-600 mt-1">
+              <span class="font-medium">申请人：</span>{{ approvalModal.approval.applicantName }}
+            </p>
+          </div>
+        </div>
+        <template #footer>
+          <el-button @click="approvalModalVisible = false">取消</el-button>
+          <el-button :type="approvalModal.action === 'approve' ? 'success' : 'danger'" @click="confirmApprovalAction">
+            {{ approvalModal.action === 'approve' ? '确认通过' : '确认拒绝' }}
+          </el-button>
+        </template>
       </el-dialog>
     </div>
   </div>
@@ -310,6 +405,15 @@ const selectedIds = ref(new Set())
 // 详情弹窗
 const detailVisible = ref(false)
 const currentApproval = ref(null)
+
+// 审批确认弹窗
+const approvalModalVisible = ref(false)
+const approvalModal = reactive({
+  show: false,
+  approval: null,
+  action: 'approve'
+})
+const approvalComment = ref('')
 
 // 当前Tab标签
 const currentTabLabel = computed(() => {
@@ -493,34 +597,118 @@ const handleView = (row) => {
   detailVisible.value = true
 }
 
-// 审批通过
-const handleApprove = async (row) => {
-  try {
-    await ElMessageBox.confirm(`确定要通过该审批申请吗？`, '审核确认', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'success'
-    })
-    await approvalStore.approve(row.id)
-    await approvalStore.fetchApprovals()
-    updateStats()
-    ElMessage.success('审核已通过')
-  } catch {}
+// 审批通过（使用确认弹窗）
+const handleApprove = (row) => {
+  approvalModal.approval = row
+  approvalModal.action = 'approve'
+  approvalComment.value = ''
+  approvalModalVisible.value = true
 }
 
-// 审批拒绝
-const handleReject = async (row) => {
+// 审批拒绝（使用确认弹窗）
+const handleReject = (row) => {
+  approvalModal.approval = row
+  approvalModal.action = 'reject'
+  approvalComment.value = ''
+  approvalModalVisible.value = true
+}
+
+// 确认审批操作
+const confirmApprovalAction = async () => {
+  const item = approvalModal.approval
+  if (!item) return
   try {
-    await ElMessageBox.confirm(`确定要拒绝该审批申请吗？`, '审核确认', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await approvalStore.reject(row.id, '审批拒绝')
+    if (approvalModal.action === 'approve') {
+      await approvalStore.approve(item.id, approvalComment.value)
+      ElMessage.success('审核已通过')
+    } else {
+      await approvalStore.reject(item.id, approvalComment.value || '审批拒绝')
+      ElMessage.success('已拒绝')
+    }
     await approvalStore.fetchApprovals()
     updateStats()
-    ElMessage.success('已拒绝')
-  } catch {}
+    approvalModalVisible.value = false
+    detailVisible.value = false
+  } catch (error) {
+    ElMessage.error('操作失败')
+  }
+}
+
+// 业务类型标签
+const getBusinessTypeLabel = (type) => {
+  const labels = {
+    production: '生产计划信息',
+    production_batch: '生产批次信息',
+    batch_change: '批次变更信息',
+    batch_void: '批次作废信息',
+    tech_solution: '技术方案信息',
+    harvest: '采收申请信息',
+    material: '领料申请信息',
+    purchase: '采购申请信息',
+  }
+  return labels[type] || '业务信息'
+}
+
+// 字段中文映射
+const getFieldLabel = (key) => {
+  const labels = {
+    type: '业务类型',
+    requestId: '请求ID',
+    requestCode: '计划编号',
+    batchCode: '批次编号',
+    cropName: '作物名称',
+    cropCode: '作物编码',
+    variety: '品种',
+    greenhouseName: '温室区域',
+    greenhouseId: '温室ID',
+    startDate: '开始日期',
+    expectedHarvestDate: '预计采收',
+    responsiblePerson: '负责人',
+    targetYield: '目标产量',
+    plantingArea: '种植面积',
+    plantingMode: '种植方式',
+    unit: '单位',
+    quantity: '数量',
+    solutionTitle: '方案标题',
+    stage: '阶段',
+    version: '版本号',
+    remarks: '备注',
+    description: '描述',
+  }
+  return labels[key] || key
+}
+
+// 格式化业务数据值
+const formatBusinessValue = (key, value) => {
+  if (key === 'type') {
+    const typeMap = {
+      production: '生产计划', production_batch: '生产批次',
+      batch_change: '批次变更', batch_void: '批次作废',
+      tech_solution: '技术方案', harvest: '采收申请',
+      material: '领料申请', purchase: '采购申请',
+    }
+    return typeMap[value] || value
+  }
+  if (key === 'targetYield') return `${value} kg`
+  if (key === 'plantingArea') return `${value} m²`
+  if (key === 'plantingMode') {
+    const modeMap = {
+      internal_seed: '自育苗', external_purchase: '外购苗',
+      open_field: '露天栽培', greenhouse: '温室栽培',
+      hydroponics: '水培', aeroponics: '气雾培',
+      substrate: '基质培', soil: '土培',
+    }
+    return modeMap[value] || value
+  }
+  if (key === 'stage') {
+    const stageMap = {
+      seedling: '苗期', vegetative: '营养生长期',
+      flowering: '开花期', fruiting: '结果期',
+      harvest: '采收期', entire: '整个生命周期', whole_lifecycle: '整个生命周期',
+    }
+    return stageMap[value] || value
+  }
+  return String(value)
 }
 
 // 初始化 - 从API加载数据

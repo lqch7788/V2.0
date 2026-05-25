@@ -161,7 +161,48 @@
       <!-- 表格标题栏 -->
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900">{{ currentTabLabel }}</h3>
-        <el-link type="primary" :underline="false">查看全部 →</el-link>
+        <!-- 批量操作按钮 -->
+        <div class="flex items-center gap-2">
+          <el-button
+            :disabled="selectedIds.size === 0"
+            :class="[
+              selectedIds.size === 0
+                ? 'bg-emerald-500 text-white cursor-not-allowed opacity-60'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+            ]"
+            size="small"
+            @click="handleBatchApprove"
+          >
+            <el-icon class="mr-1"><CircleCheck /></el-icon>
+            批量通过
+          </el-button>
+          <el-button
+            :disabled="selectedIds.size === 0"
+            :class="[
+              selectedIds.size === 0
+                ? 'bg-red-500 text-white cursor-not-allowed opacity-60'
+                : 'bg-red-600 hover:bg-red-700 text-white shadow-sm'
+            ]"
+            size="small"
+            @click="handleBatchReject"
+          >
+            <el-icon class="mr-1"><CircleClose /></el-icon>
+            批量拒绝
+          </el-button>
+          <el-button
+            :disabled="selectedIds.size === 0"
+            :class="[
+              selectedIds.size === 0
+                ? 'bg-blue-500 text-white cursor-not-allowed opacity-60'
+                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+            ]"
+            size="small"
+            @click="handleExport"
+          >
+            <el-icon class="mr-1"><Download /></el-icon>
+            批量导出
+          </el-button>
+        </div>
       </div>
 
       <!-- 表格内容 -->
@@ -170,13 +211,27 @@
         :data="paginatedData"
         :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #6366f1)', color: 'white', fontWeight: '600' }"
         row-class-name="hover:bg-blue-50"
-        @expand-change="handleExpandChange"
-        :expand-row-keys="expandedRows"
+        :expand-row-keys="hasSpecialTable(activeTab) ? expandedRows : []"
         row-key="id"
         class="w-full"
+        @expand-change="hasSpecialTable(activeTab) && handleExpandChange($event)"
       >
         <!-- 领料审批表格 -->
         <template v-if="activeTab === 'material'">
+          <el-table-column width="50" align="center">
+            <template #default="{ row }">
+              <el-button
+                v-if="row.status === 'pending'"
+                text
+                @click="handleToggleSelect(row.id)"
+              >
+                <el-icon :size="16" :class="selectedIds.has(row.id) ? 'text-emerald-600' : 'text-gray-400'">
+                  <component :is="selectedIds.has(row.id) ? 'Check' : 'CirclePlus'" />
+                </el-icon>
+              </el-button>
+              <span v-else class="w-4 h-4 block"></span>
+            </template>
+          </el-table-column>
           <el-table-column type="expand" width="50">
             <template #default="props">
               <div class="p-4 bg-gray-50">
@@ -275,6 +330,20 @@
 
         <!-- 退料审批表格 -->
         <template v-else-if="activeTab === 'return'">
+          <el-table-column width="50" align="center">
+            <template #default="{ row }">
+              <el-button
+                v-if="row.status === 'pending'"
+                text
+                @click="handleToggleSelect(row.id)"
+              >
+                <el-icon :size="16" :class="selectedIds.has(row.id) ? 'text-emerald-600' : 'text-gray-400'">
+                  <component :is="selectedIds.has(row.id) ? 'Check' : 'CirclePlus'" />
+                </el-icon>
+              </el-button>
+              <span v-else class="w-4 h-4 block"></span>
+            </template>
+          </el-table-column>
           <el-table-column type="expand" width="50">
             <template #default="props">
               <div class="p-4 bg-gray-50">
@@ -376,6 +445,20 @@
 
         <!-- 采购审批表格 -->
         <template v-else-if="activeTab === 'purchase'">
+          <el-table-column width="50" align="center">
+            <template #default="{ row }">
+              <el-button
+                v-if="row.status === 'pending'"
+                text
+                @click="handleToggleSelect(row.id)"
+              >
+                <el-icon :size="16" :class="selectedIds.has(row.id) ? 'text-emerald-600' : 'text-gray-400'">
+                  <component :is="selectedIds.has(row.id) ? 'Check' : 'CirclePlus'" />
+                </el-icon>
+              </el-button>
+              <span v-else class="w-4 h-4 block"></span>
+            </template>
+          </el-table-column>
           <el-table-column prop="code" label="计划编号" width="150" />
           <el-table-column prop="title" label="计划名称" />
           <el-table-column label="类型" width="100">
@@ -410,6 +493,75 @@
               </el-tag>
             </template>
           </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="scope">
+              <el-tag :type="getStatusTagType(scope.row.status)" size="small">
+                {{ getStatusText(scope.row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="scope">
+              <div class="flex items-center gap-1">
+                <el-button
+                  v-if="scope.row.status === 'pending' && canApprove"
+                  text
+                  type="success"
+                  size="small"
+                  @click="handleApprove(scope.row)"
+                  title="通过"
+                >
+                  <el-icon><CircleCheck /></el-icon>
+                </el-button>
+                <el-button
+                  v-if="scope.row.status === 'pending' && canApprove"
+                  text
+                  type="danger"
+                  size="small"
+                  @click="handleRejectClick(scope.row)"
+                  title="拒绝"
+                >
+                  <el-icon><CircleClose /></el-icon>
+                </el-button>
+                <el-button
+                  text
+                  type="primary"
+                  size="small"
+                  @click="handleViewDetail(scope.row)"
+                  title="查看详情"
+                >
+                  <el-icon><View /></el-icon>
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </template>
+
+        <!-- 通用表格（物料入库/库存调拨/种源入库/育苗计划/种植计划/订单管理/补录审批） -->
+        <template v-else>
+          <el-table-column width="50" align="center">
+            <template #default="{ row }">
+              <el-button
+                v-if="row.status === 'pending'"
+                text
+                @click="handleToggleSelect(row.id)"
+              >
+                <el-icon :size="16" :class="selectedIds.has(row.id) ? 'text-emerald-600' : 'text-gray-400'">
+                  <component :is="selectedIds.has(row.id) ? 'Check' : 'CirclePlus'" />
+                </el-icon>
+              </el-button>
+              <span v-else class="w-4 h-4 block"></span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="code" label="审批单号" width="150">
+            <template #default="scope">
+              <el-link type="primary" :underline="false" class="font-medium">{{ scope.row.code }}</el-link>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="标题" min-width="150" />
+          <el-table-column prop="applicantName" label="申请人" width="100" />
+          <el-table-column prop="applicantDepartment" label="部门" width="100" />
+          <el-table-column prop="applyDate" label="申请时间" width="120" />
           <el-table-column label="状态" width="100">
             <template #default="scope">
               <el-tag :type="getStatusTagType(scope.row.status)" size="small">
@@ -660,6 +812,12 @@ import {
   Goods,
   Crop,
   Document,
+  Tickets,
+  EditPen,
+  Orange,
+  Download,
+  Check,
+  CirclePlus,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useApprovalStore } from '@/stores/modules/approval'
@@ -669,19 +827,46 @@ import { storeToRefs } from 'pinia'
 const approvalStore = useApprovalStore()
 const { approvals } = storeToRefs(approvalStore)
 
-// Tab配置
+// 审批类型常量（与V1.1对齐）
+const ApprovalType = {
+  MATERIAL_REQUEST: 'material_request',
+  RETURN_MATERIAL: 'return_material',
+  PURCHASE_REQUEST: 'purchase_request',
+  MATERIAL_INBOUND: 'material_inbound',
+  MATERIAL_TRANSFER: 'material_transfer',
+  SEED_SOURCE_INBOUND: 'seed_source_inbound',
+  SEEDLING_PLAN: 'seedling_plan',
+  PLANTING_PLAN: 'planting_plan',
+  ORDER_CREATE: 'order_create',
+  ORDER_CHANGE: 'order_change',
+  SEED_SOURCE_SUPPLEMENTARY: 'seed_source_supplementary',
+  SEEDLING_SUPPLEMENTARY: 'seedling_supplementary',
+  CROP_STORAGE_SUPPLEMENTARY: 'crop_storage_supplementary',
+}
+
+// Tab配置（10个Tab与V1.1完全对齐）
 const tabs = [
-  { key: 'material', label: '领料审批', icon: Document },
-  { key: 'return', label: '退料审批', icon: RefreshLeft },
-  { key: 'purchase', label: '采购审批', icon: ShoppingCart },
+  { key: 'material', label: '领料审批', icon: Document, types: [ApprovalType.MATERIAL_REQUEST] },
+  { key: 'return', label: '退料审批', icon: RefreshLeft, types: [ApprovalType.RETURN_MATERIAL] },
+  { key: 'purchase', label: '采购审批', icon: ShoppingCart, types: [ApprovalType.PURCHASE_REQUEST] },
+  { key: 'material_inbound', label: '物料入库', icon: Goods, types: [ApprovalType.MATERIAL_INBOUND] },
+  { key: 'material_transfer', label: '库存调拨', icon: RefreshRight, types: [ApprovalType.MATERIAL_TRANSFER] },
+  { key: 'seed_inbound', label: '种源入库', icon: Box, types: [ApprovalType.SEED_SOURCE_INBOUND] },
+  { key: 'seedling', label: '育苗计划', icon: Orange, types: [ApprovalType.SEEDLING_PLAN] },
+  { key: 'planting', label: '种植计划', icon: Crop, types: [ApprovalType.PLANTING_PLAN] },
+  { key: 'order', label: '订单管理', icon: Tickets, types: [ApprovalType.ORDER_CREATE, ApprovalType.ORDER_CHANGE] },
+  { key: 'supplementary', label: '补录审批', icon: EditPen, types: [ApprovalType.SEED_SOURCE_SUPPLEMENTARY, ApprovalType.SEEDLING_SUPPLEMENTARY, ApprovalType.CROP_STORAGE_SUPPLEMENTARY] },
 ]
+
+// 仅前3个Tab有专用表格列
+const hasSpecialTable = (tab) => ['material', 'return', 'purchase'].includes(tab)
 
 // 统计数据
 const stats = reactive({
-  total: 15,
-  pending: 5,
-  approved: 8,
-  rejected: 2,
+  total: 0,
+  pending: 0,
+  approved: 0,
+  rejected: 0,
 })
 
 // 筛选状态
@@ -718,6 +903,86 @@ const rejectModal = reactive({
 const canApprove = true
 const loading = ref(false)
 
+// 批量选择
+const selectedIds = ref(new Set())
+
+// 切换选择
+const handleToggleSelect = (id) => {
+  const newSelected = new Set(selectedIds.value)
+  if (newSelected.has(id)) {
+    newSelected.delete(id)
+  } else {
+    newSelected.add(id)
+  }
+  selectedIds.value = newSelected
+}
+
+// 更新统计数据
+const updateStats = () => {
+  stats.total = getCurrentData.value.length
+  stats.pending = getCurrentData.value.filter(d => d.status === 'pending').length
+  stats.approved = getCurrentData.value.filter(d => d.status === 'approved').length
+  stats.rejected = getCurrentData.value.filter(d => d.status === 'rejected').length
+}
+
+// 批量通过
+const handleBatchApprove = async () => {
+  if (selectedIds.value.size === 0) return
+  try {
+    await ElMessageBox.confirm(`确定要批量通过 ${selectedIds.value.size} 项审批吗？`, '批量审核确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'success',
+    })
+    const ids = Array.from(selectedIds.value)
+    await approvalStore.batchApprove(ids)
+    await approvalStore.fetchApprovals()
+    selectedIds.value = new Set()
+    updateStats()
+    ElMessage.success('批量审批通过成功')
+  } catch {}
+}
+
+// 批量拒绝
+const handleBatchReject = async () => {
+  if (selectedIds.value.size === 0) return
+  try {
+    await ElMessageBox.confirm(`确定要批量拒绝 ${selectedIds.value.size} 项审批吗？`, '批量审核确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+    const ids = Array.from(selectedIds.value)
+    await approvalStore.batchReject(ids, '批量拒绝')
+    await approvalStore.fetchApprovals()
+    selectedIds.value = new Set()
+    updateStats()
+    ElMessage.success('批量审批拒绝成功')
+  } catch {}
+}
+
+// 批量导出
+const handleExport = () => {
+  if (selectedIds.value.size === 0) return
+  const selectedData = paginatedData.value.filter(d => selectedIds.value.has(d.id))
+  const exportData = selectedData.map(d => ({
+    单号: d.code,
+    标题: d.title,
+    申请人: d.applicantName,
+    部门: d.applicantDepartment,
+    申请时间: d.applyDate,
+    状态: getStatusText(d.status),
+  }))
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `物料审批_${new Date().toISOString().slice(0, 10)}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+  ElMessage.success('导出成功')
+}
+
 // 当前Tab标签
 const currentTabLabel = computed(() => {
   return tabs.find(t => t.key === activeTab.value)?.label || ''
@@ -725,14 +990,9 @@ const currentTabLabel = computed(() => {
 
 // 根据Tab类型筛选数据
 const getCurrentData = computed(() => {
-  if (activeTab.value === 'material') {
-    return approvals.value.filter(a => a.type === 'material_request')
-  } else if (activeTab.value === 'return') {
-    return approvals.value.filter(a => a.type === 'return_material')
-  } else if (activeTab.value === 'purchase') {
-    return approvals.value.filter(a => a.type === 'purchase_request')
-  }
-  return approvals.value
+  const currentTab = tabs.find(t => t.key === activeTab.value)
+  if (!currentTab || !currentTab.types) return []
+  return approvals.value.filter(a => currentTab.types.includes(a.type))
 })
 
 // 筛选数据
@@ -773,6 +1033,8 @@ const handleTabChange = (tab) => {
   activeTab.value = tab
   currentPage.value = 1
   expandedRows.value = []
+  selectedIds.value = new Set()
+  updateStats()
 }
 
 // 展开行
@@ -922,5 +1184,6 @@ watch(currentPage, () => {
 // 初始化 - 从API加载数据
 onMounted(async () => {
   await approvalStore.fetchApprovals()
+  updateStats()
 })
 </script>

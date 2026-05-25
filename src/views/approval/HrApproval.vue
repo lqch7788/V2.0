@@ -616,7 +616,7 @@ const handleApprove = (record) => {
 const handleConfirmApprove = async () => {
   if (currentRecord.value) {
     try {
-      await approvalStore.approve(currentRecord.value.id)
+      await approvalStore.approve(currentRecord.value.id, approveComment.value)
       await approvalStore.fetchApprovals()
       ElMessage.success('审批已通过')
       approveModalOpen.value = false
