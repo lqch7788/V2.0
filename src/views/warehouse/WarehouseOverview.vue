@@ -203,7 +203,6 @@ import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehou
 
 // 导入V2.0已有的组件
 import MaterialFilters from './components/MaterialFilters.vue'
-import ActionToolbar from './components/ActionToolbar.vue'
 import MaterialsTable from './components/MaterialsTable.vue'
 import MaterialDetailModal from './components/MaterialDetailModal.vue'
 import MaterialEditModal from './components/MaterialEditModal.vue'

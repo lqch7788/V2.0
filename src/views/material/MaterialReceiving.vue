@@ -421,9 +421,10 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Upload, Plus, Edit, Delete, Download, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { getApplicationList, createApplication, updateApplication, deleteApplicationsBatch, approveApplication } from '@/api/material/apiMaterialRequestService'
 
 // 状态类型映射
 const statusMap = {
@@ -452,71 +453,32 @@ const exportFormats = [
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
 
-// Mock数据
-const mockRecords = ref([
-  {
-    id: 1,
-    code: 'JS20260522-001',
-    supplier: '种子公司A',
-    receiveDate: '2026-05-22',
-    receiver: '张三',
-    warehouse: '原料仓库A',
-    status: 'pending',
-    createTime: '2026-05-22 09:30:00',
-    remarks: '正常接收',
-    qualityCheck: 'pending',
-    materials: [
-      { code: '010101001', name: '番茄种子', spec: '优等品', unit: '袋', quantity: 50, qualityStatus: 'qualified', remarks: '' },
-      { code: '010102001', name: '黄瓜种子', spec: '优等品', unit: '袋', quantity: 30, qualityStatus: 'qualified', remarks: '' }
-    ]
-  },
-  {
-    id: 2,
-    code: 'JS20260521-001',
-    supplier: '肥料公司B',
-    receiveDate: '2026-05-21',
-    receiver: '李四',
-    warehouse: '原料仓库B',
-    status: 'confirmed',
-    createTime: '2026-05-21 14:20:00',
-    remarks: '',
-    qualityCheck: 'passed',
-    materials: [
-      { code: '010201001', name: '尿素', spec: '50kg/袋', unit: '袋', quantity: 100, qualityStatus: 'qualified', remarks: '' }
-    ]
-  },
-  {
-    id: 3,
-    code: 'JS20260520-001',
-    supplier: '农药公司C',
-    receiveDate: '2026-05-20',
-    receiver: '王五',
-    warehouse: '原料仓库A',
-    status: 'inbound',
-    createTime: '2026-05-20 10:15:00',
-    remarks: '已入库',
-    qualityCheck: 'passed',
-    materials: [
-      { code: '010301001', name: '多菌灵', spec: '500ml/瓶', unit: '瓶', quantity: 50, qualityStatus: 'qualified', remarks: '' },
-      { code: '010302001', name: '百菌清', spec: '500ml/瓶', unit: '瓶', quantity: 30, qualityStatus: 'qualified', remarks: '' }
-    ]
-  },
-  {
-    id: 4,
-    code: 'JS20260519-001',
-    supplier: '资材公司D',
-    receiveDate: '2026-05-19',
-    receiver: '赵六',
-    warehouse: '成品仓库',
-    status: 'rejected',
-    createTime: '2026-05-19 16:45:00',
-    remarks: '部分物料不合格',
-    qualityCheck: 'failed',
-    materials: [
-      { code: '020101001', name: '纸箱(大)', spec: '50*40*30', unit: '个', quantity: 200, qualityStatus: 'unqualified', remarks: '规格不符' }
-    ]
+// 数据状态
+const records = ref([])
+const loading = ref(false)
+
+// 加载接收记录
+const loadRecords = async () => {
+  loading.value = true
+  try {
+    const res = await getApplicationList({
+      page: currentPage.value,
+      limit: pageSize.value,
+      code: searchForm.code,
+      status: searchForm.status
+    })
+    records.value = res.data || []
+  } catch (err) {
+    console.error('加载接收记录失败:', err)
+    ElMessage.error('加载接收记录失败')
+  } finally {
+    loading.value = false
   }
-])
+}
+
+onMounted(() => {
+  loadRecords()
+})
 
 // 状态
 const currentPage = ref(1)
@@ -567,7 +529,7 @@ const rules = {
 
 // 计算属性
 const filteredRecords = computed(() => {
-  return mockRecords.value.filter(r => {
+  return records.value.filter(r => {
     if (searchForm.code && !r.code.includes(searchForm.code)) return false
     if (searchForm.supplier && !r.supplier.includes(searchForm.supplier)) return false
     if (searchForm.receiveDate && r.receiveDate !== searchForm.receiveDate) return false
@@ -593,6 +555,7 @@ const updateSearchField = (field, value) => {
 
 const handleSearch = () => {
   currentPage.value = 1
+  loadRecords()
 }
 
 const handleReset = () => {
@@ -602,6 +565,7 @@ const handleReset = () => {
   searchForm.receiver = ''
   searchForm.status = ''
   currentPage.value = 1
+  loadRecords()
 }
 
 const handlePageChange = (page) => {
@@ -643,15 +607,21 @@ const handleEdit = (row) => {
   showFormModal.value = true
 }
 
-const handleConfirm = (row) => {
-  row.status = 'confirmed'
-  ElMessage.success('确认成功')
+const handleConfirm = async (row) => {
+  try {
+    await approveApplication(row.id, 'approve')
+    ElMessage.success('确认成功')
+    loadRecords()
+  } catch (err) {
+    console.error('确认失败:', err)
+    ElMessage.error('确认失败')
+  }
 }
 
 const generateCode = () => {
   const today = new Date()
   const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
-  const todayRecords = mockRecords.value.filter(r => r.code.startsWith(`JS${dateStr}`))
+  const todayRecords = records.value.filter(r => r.code.startsWith(`JS${dateStr}`))
   let maxSeq = 0
   if (todayRecords.length > 0) {
     const sequences = todayRecords.map(r => parseInt(r.code.split('-')[1] || '0'))
@@ -679,32 +649,32 @@ const handleRemoveMaterial = (index) => {
 
 const handleSave = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      if (isEdit.value) {
-        const index = mockRecords.value.findIndex(r => r.id === form.id)
-        if (index !== -1) {
-          mockRecords.value[index] = { ...form }
+      try {
+        if (isEdit.value) {
+          await updateApplication(form.id, { ...form })
+          ElMessage.success('编辑成功')
+        } else {
+          await createApplication({
+            code: form.code,
+            supplier: form.supplier,
+            receiveDate: form.receiveDate,
+            receiver: form.receiver,
+            warehouse: form.warehouse,
+            status: 'pending',
+            remarks: form.remarks,
+            qualityCheck: form.qualityCheck,
+            materials: [...form.materials]
+          })
+          ElMessage.success('新增成功')
         }
-        ElMessage.success('编辑成功')
-      } else {
-        const newRecord = {
-          id: Math.max(...mockRecords.value.map(r => r.id)) + 1,
-          code: form.code,
-          supplier: form.supplier,
-          receiveDate: form.receiveDate,
-          receiver: form.receiver,
-          warehouse: form.warehouse,
-          status: 'pending',
-          createTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          remarks: form.remarks,
-          qualityCheck: form.qualityCheck,
-          materials: [...form.materials]
-        }
-        mockRecords.value.unshift(newRecord)
-        ElMessage.success('新增成功')
+        showFormModal.value = false
+        loadRecords()
+      } catch (err) {
+        console.error('保存失败:', err)
+        ElMessage.error('保存失败')
       }
-      showFormModal.value = false
     }
   })
 }
@@ -725,12 +695,18 @@ const handleBatchDelete = () => {
   showDeleteConfirm.value = true
 }
 
-const handleDoDelete = () => {
+const handleDoDelete = async () => {
   const ids = selectedRows.value.map(r => r.id)
-  mockRecords.value = mockRecords.value.filter(r => !ids.includes(r.id))
-  ElMessage.success(`删除了 ${ids.length} 条接收记录`)
-  showDeleteConfirm.value = false
-  selectedRows.value = []
+  try {
+    await deleteApplicationsBatch(ids)
+    ElMessage.success(`删除了 ${ids.length} 条接收记录`)
+    showDeleteConfirm.value = false
+    selectedRows.value = []
+    loadRecords()
+  } catch (err) {
+    console.error('删除失败:', err)
+    ElMessage.error('删除失败')
+  }
 }
 
 const handleExport = () => {
