@@ -32,13 +32,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { DataLine } from '@element-plus/icons-vue'
+import { useDeviceStore } from '@/stores/modules/device'
 
-const stats = ref({
-  autoMode: 8,
-  manualMode: 3,
-  faults: 1,
-  offlineSensors: 2
+const deviceStore = useDeviceStore()
+
+onMounted(() => {
+  if (deviceStore.devices.length === 0) {
+    deviceStore.loadDevices()
+  }
+})
+
+const stats = computed(() => {
+  const devices = deviceStore.devices || []
+  return {
+    autoMode: devices.filter(d => d.status === 'normal' || d.status === 'active' || d.status === 'running').length,
+    manualMode: devices.filter(d => d.status === 'manual' || d.status === 'standby').length,
+    faults: devices.filter(d => d.status === 'fault' || d.status === 'error' || d.status === 'faulty' || d.status === 'repair').length,
+    offlineSensors: devices.filter(d => d.status === 'offline' || d.status === 'inactive' || d.status === 'disabled').length
+  }
 })
 </script>

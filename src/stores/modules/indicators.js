@@ -2,10 +2,13 @@
  * 指标数据 Store 模块
  * 使用 Pinia 管理指标数据状态
  * 对接后端: /api/indicators
+ *
+ * 对应 V1.1: useIndicatorDataStore + useIndicatorStore
+ * 数据流：Store → 组件
  */
 
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { enhancedApiClient } from '@/lib/apiClient'
 
 // ============================================
@@ -24,13 +27,13 @@ function normalizeIndicator(db) {
     unit: db.unit,
     target: Number(db.target) || 0,
     actual: Number(db.actual) || 0,
-    trend: db.trend,
-    frequency: db.frequency,
-    source: db.source,
+    trend: db.trend || 'stable',
+    frequency: db.frequency || '月度',
+    source: db.source || '人工录入',
     warning: Number(db.warning) || 0,
     weight: Number(db.weight) || 0,
-    createTime: db.create_time,
-    updateTime: db.update_time
+    createTime: db.create_time || db.createTime,
+    updateTime: db.update_time || db.updateTime
   }
 }
 
@@ -40,18 +43,9 @@ function normalizeIndicator(db) {
 function denormalizeIndicator(data) {
   const result = {}
   const fieldMap = {
-    id: 'id',
-    code: 'code',
-    name: 'name',
-    category: 'category',
-    unit: 'unit',
-    target: 'target',
-    actual: 'actual',
-    trend: 'trend',
-    frequency: 'frequency',
-    source: 'source',
-    warning: 'warning',
-    weight: 'weight'
+    id: 'id', code: 'code', name: 'name', category: 'category',
+    unit: 'unit', target: 'target', actual: 'actual', trend: 'trend',
+    frequency: 'frequency', source: 'source', warning: 'warning', weight: 'weight'
   }
   for (const [camel, snake] of Object.entries(fieldMap)) {
     if (data[camel] !== undefined) {
@@ -61,64 +55,97 @@ function denormalizeIndicator(data) {
   return result
 }
 
+/** 生成临时ID */
+function generateLocalId() {
+  return `KPI_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+}
+
+// ============================================
+// 计算函数（与V1.1 computeCategorySummary / computeAnalyzeData 一致）
+// ============================================
+
+/** 分类颜色映射 */
+const CATEGORY_COLORS = {
+  '生产指标': '#06b6d4',
+  '质量指标': '#7C3AED',
+  '成本指标': '#22c55e',
+  '效率指标': '#f59e0b',
+  '服务指标': '#ec4899',
+  '设备指标': '#0891b2',
+  '资源指标': '#3b82f6',
+  '效益指标': '#10b981',
+  '安全指标': '#ef4444',
+}
+
+/** 从指标列表计算分类汇总 */
+function computeCategorySummary(indicators) {
+  const groups = {}
+  for (const ind of indicators) {
+    if (!groups[ind.category]) {
+      groups[ind.category] = { count: 0, totalAchievement: 0 }
+    }
+    groups[ind.category].count++
+    if (ind.target > 0) {
+      groups[ind.category].totalAchievement += (ind.actual / ind.target) * 100
+    }
+  }
+  return Object.entries(groups).map(([name, data]) => ({
+    name,
+    count: data.count,
+    avgAchievement: data.count > 0 ? Math.round(data.totalAchievement / data.count * 10) / 10 : 0,
+    color: CATEGORY_COLORS[name] || '#6b7280',
+  }))
+}
+
+/** 从指标列表计算分析数据 */
+function computeAnalyzeData(indicators) {
+  return indicators.map(ind => ({
+    month: ind.name,
+    target: ind.target,
+    actual: ind.actual,
+    达成率: ind.target > 0 ? Math.round((ind.actual / ind.target) * 1000) / 10 : 0,
+  }))
+}
+
+/** 默认评估数据 */
+const DEFAULT_EVALUATION_DATA = [
+  { id: '1', name: '上海松江基地', productionScore: 92, qualityScore: 95, costScore: 88, efficiencyScore: 90, totalScore: 91.25, rank: 1 },
+  { id: '2', name: '上海崇明基地', productionScore: 88, qualityScore: 92, costScore: 85, efficiencyScore: 87, totalScore: 88.0, rank: 2 },
+  { id: '3', name: '上海嘉定基地', productionScore: 85, qualityScore: 90, costScore: 90, efficiencyScore: 85, totalScore: 87.5, rank: 3 },
+  { id: '4', name: '上海奉贤基地', productionScore: 90, qualityScore: 88, costScore: 82, efficiencyScore: 88, totalScore: 87.0, rank: 4 },
+  { id: '5', name: '西安雁塔基地', productionScore: 82, qualityScore: 85, costScore: 88, efficiencyScore: 86, totalScore: 85.25, rank: 5 },
+  { id: '6', name: '西安高新基地', productionScore: 80, qualityScore: 88, costScore: 85, efficiencyScore: 84, totalScore: 84.25, rank: 6 },
+  { id: '7', name: '宁波北仑基地', productionScore: 78, qualityScore: 82, costScore: 86, efficiencyScore: 82, totalScore: 82.0, rank: 7 },
+  { id: '8', name: '宁波镇海基地', productionScore: 75, qualityScore: 80, costScore: 84, efficiencyScore: 80, totalScore: 79.75, rank: 8 }
+]
+
 export const useIndicatorStore = defineStore('indicators', () => {
   // ========== 状态定义 ==========
 
-  // 指标列表数据
   const indicators = ref([])
-
-  // 加载状态
   const isLoading = ref(false)
+  const error = ref(null)
 
   // 分页信息
-  const pagination = ref({
-    page: 1,
-    limit: 50,
-    total: 0
-  })
+  const pagination = ref({ page: 1, limit: 50, total: 0 })
 
-  // 评估数据（基地考核排名）
-  const evaluationData = ref([
-    { id: '1', name: '上海松江基地', productionScore: 92, qualityScore: 95, costScore: 88, efficiencyScore: 90, totalScore: 91.25, rank: 1 },
-    { id: '2', name: '上海崇明基地', productionScore: 88, qualityScore: 92, costScore: 85, efficiencyScore: 87, totalScore: 88.0, rank: 2 },
-    { id: '3', name: '上海嘉定基地', productionScore: 85, qualityScore: 90, costScore: 90, efficiencyScore: 85, totalScore: 87.5, rank: 3 },
-    { id: '4', name: '上海奉贤基地', productionScore: 90, qualityScore: 88, costScore: 82, efficiencyScore: 88, totalScore: 87.0, rank: 4 },
-    { id: '5', name: '西安雁塔基地', productionScore: 82, qualityScore: 85, costScore: 88, efficiencyScore: 86, totalScore: 85.25, rank: 5 },
-    { id: '6', name: '西安高新基地', productionScore: 80, qualityScore: 88, costScore: 85, efficiencyScore: 84, totalScore: 84.25, rank: 6 },
-    { id: '7', name: '宁波北仑基地', productionScore: 78, qualityScore: 82, costScore: 86, efficiencyScore: 82, totalScore: 82.0, rank: 7 },
-    { id: '8', name: '宁波镇海基地', productionScore: 75, qualityScore: 80, costScore: 84, efficiencyScore: 80, totalScore: 79.75, rank: 8 }
-  ])
+  // 评估数据
+  const evaluationData = ref(DEFAULT_EVALUATION_DATA)
 
-  // 分析数据（月度达成率）
-  const analyzeData = ref([
-    { month: '1月', target: 4800, actual: 4900, 达成率: 102.1 },
-    { month: '2月', target: 4900, actual: 5000, 达成率: 102.0 },
-    { month: '3月', target: 5000, actual: 5100, 达成率: 102.0 },
-    { month: '4月', target: 5100, actual: 5050, 达成率: 99.0 },
-    { month: '5月', target: 5000, actual: 5200, 达成率: 104.0 },
-    { month: '6月', target: 5200, actual: 5300, 达成率: 101.9 }
-  ])
+  // 指标状态更新记录（审批联动，对应V1.1 useIndicatorStore）
+  const statusUpdates = ref({})
 
-  // 分类汇总数据
-  const categorySummary = ref([
-    { name: '生产指标', count: 12, avgAchievement: 98.5, color: '#06b6d4' },
-    { name: '质量指标', count: 8, avgAchievement: 97.2, color: '#7C3AED' },
-    { name: '成本指标', count: 6, avgAchievement: 95.8, color: '#22c55e' },
-    { name: '效率指标', count: 5, avgAchievement: 96.5, color: '#f59e0b' },
-    { name: '服务指标', count: 3, avgAchievement: 98.0, color: '#ec4899' },
-    { name: '设备指标', count: 5, avgAchievement: 92.5, color: '#0891b2' },
-    { name: '资源指标', count: 4, avgAchievement: 94.2, color: '#3b82f6' },
-    { name: '安全指标', count: 2, avgAchievement: 100.0, color: '#ef4444' }
-  ])
+  // ========== 计算属性（从indicators动态派生，与V1.1一致）==========
+
+  const categorySummary = computed(() => computeCategorySummary(indicators.value))
+
+  const analyzeData = computed(() => computeAnalyzeData(indicators.value))
 
   // ========== Actions ==========
 
-  /**
-   * 获取指标列表
-   * @param {Object} filters - 筛选条件 { category, keyword }
-   */
   const fetchIndicators = async (filters = {}) => {
     isLoading.value = true
+    error.value = null
     try {
       const params = new URLSearchParams()
       if (filters.category && filters.category !== '全部') params.set('category', filters.category)
@@ -135,86 +162,176 @@ export const useIndicatorStore = defineStore('indicators', () => {
 
       indicators.value = Array.isArray(data) ? data.map(item => normalizeIndicator(item)) : []
       pagination.value.total = meta.total || indicators.value.length
-    } catch (error) {
-      console.error('[IndicatorStore] 获取指标列表失败:', error)
-      indicators.value = []
+    } catch (err) {
+      console.warn('[IndicatorStore] 获取指标列表失败:', err)
+      error.value = err.message
+      // 保持现有indicators不变（从localStorage恢复或空数组）
     } finally {
       isLoading.value = false
     }
   }
 
-  /**
-   * 创建指标
-   */
   const createIndicator = async (indicatorData) => {
+    const localId = generateLocalId()
+    const optimisticItem = {
+      id: localId,
+      code: indicatorData.code || '',
+      name: indicatorData.name || '',
+      category: indicatorData.category || '生产指标',
+      unit: indicatorData.unit || '',
+      target: indicatorData.target ?? 0,
+      actual: indicatorData.actual ?? 0,
+      trend: indicatorData.trend || 'stable',
+      frequency: indicatorData.frequency || '月度',
+      source: indicatorData.source || '人工录入',
+      warning: indicatorData.warning ?? 0,
+      weight: indicatorData.weight ?? 0,
+    }
+    // 乐观更新
+    indicators.value = [optimisticItem, ...indicators.value]
     try {
-      const body = denormalizeIndicator(indicatorData)
+      const body = { ...denormalizeIndicator(indicatorData), id: localId }
       const response = await enhancedApiClient.post('/indicators', body)
       const saved = response?.data || response
-      const newIndicator = normalizeIndicator({ ...indicatorData, ...saved })
-      indicators.value.unshift(newIndicator)
-      return newIndicator
-    } catch (error) {
-      console.error('[IndicatorStore] 创建指标失败:', error)
-      throw error
+      if (saved && saved.id) {
+        const normalized = normalizeIndicator({ ...indicatorData, ...saved })
+        indicators.value = indicators.value.map(item =>
+          item.id === localId ? { ...normalized, id: saved.id || localId } : item
+        )
+      }
+      return saved || optimisticItem
+    } catch (err) {
+      console.warn('[IndicatorStore] 创建指标失败，回滚:', err)
+      indicators.value = indicators.value.filter(item => item.id !== localId)
+      throw err
     }
   }
 
-  /**
-   * 更新指标
-   */
   const updateIndicator = async (id, indicatorData) => {
+    const prev = indicators.value.find(item => item.id === id)
+    // 乐观更新
+    indicators.value = indicators.value.map(item =>
+      item.id === id ? { ...item, ...indicatorData, updateTime: new Date().toLocaleString() } : item
+    )
     try {
       const body = denormalizeIndicator(indicatorData)
       await enhancedApiClient.put(`/indicators/${id}`, body)
-      const index = indicators.value.findIndex(item => item.id === id)
-      if (index !== -1) {
-        indicators.value[index] = {
-          ...indicators.value[index],
-          ...indicatorData,
-          updateTime: new Date().toLocaleString()
-        }
+    } catch (err) {
+      console.warn('[IndicatorStore] 更新指标失败，回滚:', err)
+      if (prev) {
+        indicators.value = indicators.value.map(item =>
+          item.id === id ? prev : item
+        )
       }
-    } catch (error) {
-      console.error('[IndicatorStore] 更新指标失败:', error)
-      throw error
+      throw err
     }
   }
 
-  /**
-   * 删除指标
-   */
   const deleteIndicator = async (id) => {
+    const prev = indicators.value.find(item => item.id === id)
+    indicators.value = indicators.value.filter(item => item.id !== id)
     try {
       await enhancedApiClient.delete(`/indicators/${id}`)
-      indicators.value = indicators.value.filter(item => item.id !== id)
-    } catch (error) {
-      console.error('[IndicatorStore] 删除指标失败:', error)
-      throw error
+      return true
+    } catch (err) {
+      console.warn('[IndicatorStore] 删除指标失败，回滚:', err)
+      if (prev) {
+        indicators.value = [...indicators.value, prev]
+      }
+      return false
     }
   }
 
   /**
-   * 获取评估数据（占位方法）
+   * 批量删除指标（对应V1.1 deleteIndicators）
+   */
+  const deleteIndicators = async (ids) => {
+    const prevItems = indicators.value.filter(item => ids.includes(item.id))
+    indicators.value = indicators.value.filter(item => !ids.includes(item.id))
+    try {
+      await Promise.all(ids.map(id =>
+        enhancedApiClient.delete(`/indicators/${id}`).catch(() => {})
+      ))
+      return true
+    } catch {
+      console.warn('[IndicatorStore] 批量删除失败，回滚')
+      if (prevItems.length > 0) {
+        indicators.value = [...indicators.value, ...prevItems]
+      }
+      return false
+    }
+  }
+
+  /**
+   * 获取评估数据
    */
   const fetchEvaluations = async () => {
-    // 评估功能暂未实现
-    console.log('[IndicatorStore] fetchEvaluations 暂未实现')
+    try {
+      const response = await enhancedApiClient.get('/indicator-evaluations')
+      const rawData = Array.isArray(response) ? response : (response?.data || [])
+      const normalized = rawData.map(item => ({
+        id: item.id,
+        name: item.name,
+        productionScore: Number(item.productionScore ?? item.production_score ?? 0),
+        qualityScore: Number(item.qualityScore ?? item.quality_score ?? 0),
+        costScore: Number(item.costScore ?? item.cost_score ?? 0),
+        efficiencyScore: Number(item.efficiencyScore ?? item.efficiency_score ?? 0),
+        totalScore: Number(item.totalScore ?? item.total_score ?? 0),
+        rank: Number(item.rank ?? 0),
+      }))
+      if (normalized.length > 0) {
+        evaluationData.value = normalized
+      }
+    } catch (err) {
+      console.warn('[IndicatorStore] 评估数据API获取失败:', err)
+    }
+  }
+
+  /**
+   * 更新指标状态（审批联动，对应V1.1 useIndicatorStore）
+   */
+  const updateIndicatorStatus = (indicatorId, status, updatedBy) => {
+    statusUpdates.value = {
+      ...statusUpdates.value,
+      [indicatorId]: {
+        indicatorId,
+        status,
+        updatedAt: new Date().toISOString(),
+        updatedBy,
+      }
+    }
+    // 同时更新indicators中的状态
+    const idx = indicators.value.findIndex(item => item.id === indicatorId)
+    if (idx !== -1) {
+      indicators.value[idx] = { ...indicators.value[idx], status }
+    }
+  }
+
+  const clearStatusUpdates = () => {
+    statusUpdates.value = {}
   }
 
   return {
     // 状态
     indicators,
     isLoading,
+    error,
     pagination,
     evaluationData,
-    analyzeData,
+    statusUpdates,
+    // 计算属性（动态派生）
     categorySummary,
-    // Actions
+    analyzeData,
+    // CRUD
     fetchIndicators,
     createIndicator,
     updateIndicator,
     deleteIndicator,
-    fetchEvaluations
+    deleteIndicators,
+    // 评估
+    fetchEvaluations,
+    // 状态联动
+    updateIndicatorStatus,
+    clearStatusUpdates,
   }
 })

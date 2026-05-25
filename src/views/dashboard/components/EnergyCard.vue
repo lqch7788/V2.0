@@ -13,15 +13,15 @@
     <div class="space-y-2">
       <div class="flex items-center justify-between text-sm">
         <span class="text-gray-500">水</span>
-        <span class="font-medium">120m³ <span class="text-red-500">↑10%</span></span>
+        <span class="font-medium">{{ defaultEnergy.water }}m³ <span :class="getTrendIcon(defaultEnergy.waterTrend).cls">{{ getTrendIcon(defaultEnergy.waterTrend).text }}</span></span>
       </div>
       <div class="flex items-center justify-between text-sm">
         <span class="text-gray-500">电</span>
-        <span class="font-medium">380kWh <span class="text-emerald-500">↓5%</span></span>
+        <span class="font-medium">{{ defaultEnergy.electricity }}kWh <span :class="getTrendIcon(defaultEnergy.electricityTrend).cls">{{ getTrendIcon(defaultEnergy.electricityTrend).text }}</span></span>
       </div>
       <div class="flex items-center justify-between text-sm">
         <span class="text-gray-500">气</span>
-        <span class="font-medium">25m³ <span class="text-gray-400">→0%</span></span>
+        <span class="font-medium">{{ defaultEnergy.gas }}m³ <span :class="getTrendIcon(defaultEnergy.gasTrend).cls">{{ getTrendIcon(defaultEnergy.gasTrend).text }}</span></span>
       </div>
     </div>
   </div>
@@ -29,4 +29,13 @@
 
 <script setup>
 import { Lightning } from '@element-plus/icons-vue'
+
+// 能耗数据使用默认值（V1.1也是硬编码，后续迁移到独立API）
+const defaultEnergy = { water: 120, electricity: 380, gas: 25, waterTrend: 10, electricityTrend: -5, gasTrend: 0 }
+
+const getTrendIcon = (trend) => {
+  if (trend > 0) return { cls: 'text-red-500', text: `↑${trend}%` }
+  if (trend < 0) return { cls: 'text-emerald-500', text: `↓${Math.abs(trend)}%` }
+  return { cls: 'text-gray-400', text: '→' }
+}
 </script>

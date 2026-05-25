@@ -26,15 +26,34 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { TrendCharts } from '@element-plus/icons-vue'
+import { useSummaryStore } from '@/stores'
 
-const stats = ref({
-  harvestReady: 4,
-  batches: [
-    { name: '番茄', daysLeft: 5 },
-    { name: '黄瓜', daysLeft: 12 },
-    { name: '辣椒', daysLeft: 20 }
-  ]
+const summaryStore = useSummaryStore()
+
+onMounted(() => {
+  if (summaryStore.batchItems.length === 0) {
+    summaryStore.fetchBatchStats({ limit: 50 })
+  }
+})
+
+// 从批次统计数据中计算生产进度（采收期批次和剩余天数）
+const stats = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const nearHarvest = (summaryStore.batchItems || [])
+    .filter(b => b.expectedHarvestDate && (b.status === 'in_progress' || b.status === 'planted'))
+    .map(b => {
+      const harvestDate = new Date(b.expectedHarvestDate)
+      const daysLeft = Math.max(0, Math.ceil((harvestDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))
+      return { name: b.cropName, daysLeft }
+    })
+    .filter(b => b.daysLeft <= 30)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
+    .slice(0, 5)
+
+  return { harvestReady: nearHarvest.length, batches: nearHarvest }
 })
 </script>

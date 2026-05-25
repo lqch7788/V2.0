@@ -45,14 +45,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted } from 'vue'
 import { WarnTriangleFilled, HotWater, Setting, View, Grape } from '@element-plus/icons-vue'
+import { useSummaryStore } from '@/stores'
 
-const stats = ref({
-  total: 5,
-  environment: 2,
-  equipment: 1,
-  pest: 1,
-  farming: 1
+const summaryStore = useSummaryStore()
+
+onMounted(() => {
+  summaryStore.fetchAlerts()
 })
+
+// 使用store中的alertsBreakdown，有默认值做兜底
+const stats = summaryStore.alertsBreakdown
 </script>

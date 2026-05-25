@@ -45,14 +45,38 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Memo, Grape, Setting, Calendar, CircleCheck } from '@element-plus/icons-vue'
+import { useFarmTaskStore } from '@/stores'
 
-const stats = ref({
-  total: 12,
-  farming: 5,
-  equipment: 3,
-  harvest: 2,
-  approval: 1
+const farmTaskStore = useFarmTaskStore()
+
+onMounted(() => {
+  if (farmTaskStore.tasks.length === 0) {
+    farmTaskStore.fetchTasks()
+  }
+})
+
+// 根据任务 type/typeName 计算今日待办分类统计
+const stats = computed(() => {
+  const tasks = farmTaskStore.tasks || []
+  const pendingTasks = tasks.filter(t =>
+    t.status !== 'completed' && t.status !== 'cancelled' && t.status !== 'abandoned'
+  )
+  const equipment = pendingTasks.filter(t =>
+    (t.typeName && (t.typeName.includes('设备') || t.typeName.includes('维护'))) ||
+    (t.type && (t.type.includes('equipment') || t.type.includes('maintenance')))
+  ).length
+  const harvest = pendingTasks.filter(t =>
+    (t.typeName && t.typeName.includes('采收')) ||
+    (t.type && t.type.includes('harvest'))
+  ).length
+  const approval = pendingTasks.filter(t =>
+    (t.typeName && (t.typeName.includes('审批') || t.typeName.includes('审核'))) ||
+    (t.type && (t.type.includes('approval') || t.type.includes('review')))
+  ).length
+  const farming = pendingTasks.length - equipment - harvest - approval
+
+  return { total: pendingTasks.length, farming, harvest, equipment, approval }
 })
 </script>

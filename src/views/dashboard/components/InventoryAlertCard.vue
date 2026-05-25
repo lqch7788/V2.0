@@ -21,21 +21,27 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { Goods } from '@element-plus/icons-vue'
-import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
+import { useWarehouseMaterialStore } from '@/stores/modules/inventory'
 
 const warehouseMaterialStore = useWarehouseMaterialStore()
 
 onMounted(() => {
-  warehouseMaterialStore.loadItems()
+  if (warehouseMaterialStore.materials.length === 0) {
+    warehouseMaterialStore.loadMaterials()
+  }
 })
 
 // 统计库存不足的物料数量（当前库存 < 最低安全库存）
 const safeItems = computed(() => {
-  const items = warehouseMaterialStore.items
+  const items = warehouseMaterialStore.materials
   return Array.isArray(items) ? items : []
 })
 
 const lowStockCount = computed(() => {
-  return safeItems.value.filter(item => item.quantity < item.minStock).length
+  return safeItems.value.filter(item => {
+    const qty = Number(item.quantity) || 0
+    const min = Number(item.minStock || item.min_stock || item.safetyStock || item.safety_stock) || 0
+    return qty < min
+  }).length
 })
 </script>

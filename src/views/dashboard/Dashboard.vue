@@ -91,7 +91,7 @@
         <TodayTasksTable :tasks="todayTasks" />
 
         <!-- 活跃种植批次 -->
-        <ActiveBatchesTable :batches="activeBatches" />
+        <ActiveBatchesTable :batches="mappedBatches" />
       </div>
 
       <!-- Right Column - 右侧列 -->
@@ -169,7 +169,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { DataAnalysis, LocationInformation } from '@element-plus/icons-vue'
 import TodayTasksCard from './components/TodayTasksCard.vue'
 import AlertsCard from './components/AlertsCard.vue'
@@ -189,108 +189,50 @@ import CostChart from './components/CostChart.vue'
 import BaseDetailModal from './components/BaseDetailModal.vue'
 import GreenhouseDetailModal from './components/GreenhouseDetailModal.vue'
 import ImageEnlargementModal from '@/components/dashboard/ImageEnlargementModal.vue'
+import { useDashboard } from '@/composables/useDashboard'
 
-// 展开状态
-const overviewExpanded = ref(true)
-const greenhouseTableExpanded = ref(true)
-const fieldTableExpanded = ref(true)
+// 使用Dashboard composable（对应V1.1 useDashboard Hook）
+const {
+  // 状态
+  activeTab,
+  greenhousePage,
+  greenhousePageSize,
+  selectedRegion,
+  isDetailModalOpen,
+  selectedGreenhouse,
+  greenhouseTableExpanded,
+  overviewExpanded,
+  fieldTableExpanded,
+  selectedDetail,
+  enlargedImageIndex,
+  yieldRegion,
+  yieldCrop,
+  costPeriod,
+  costCrop,
+  costAreaType,
+  // 计算数据
+  todayTasks,
+  criticalSensors,
+  filteredSensors,
+  greenhouseList,
+  greenhouseEnvData,
+  totalGreenhousePages,
+  paginatedGreenhouseData,
+  mappedBatches,
+  // 函数
+  handleDetailClick,
+  getDetailSensorData,
+  getCropInfo,
+  handleDetailClickWrapper,
+} = useDashboard()
 
-// 环境参数相关状态
-const selectedRegion = ref('')
-const greenhousePage = ref(1)
-const greenhousePageSize = ref(10)
+// 弹窗状态
 const showEnvDetailModal = ref(false)
 const selectedEnv = ref(null)
-
-// 详情弹窗状态
 const showBaseDetailModal = ref(false)
-const selectedDetail = ref(null)
-const enlargedImageIndex = ref(null)
-
-// 温室详情弹窗
 const showGreenhouseDetailModal = ref(false)
-const selectedGreenhouse = ref(null)
 
-// 产量统计筛选
-const yieldRegion = ref('')
-const yieldCrop = ref('')
-
-// 成本分析筛选
-const costPeriod = ref('month')
-const costCrop = ref('')
-const costAreaType = ref('')
-
-// 温室列表
-const greenhouseList = ref([
-  { id: 'G001', name: '1号棚' },
-  { id: 'G002', name: '2号棚' },
-  { id: 'G003', name: '3号棚' },
-  { id: 'G004', name: '4号棚' },
-  { id: 'G005', name: '5号棚' },
-  { id: 'G006', name: '6号棚' },
-])
-
-// 环境参数数据
-
-const greenhouseEnvData = ref([
-  { id: 'G001', name: '1号棚', airTemp: { value: '25.3', unit: '°C', status: 'normal' }, airHumidity: { value: '65', unit: '%', status: 'normal' }, light: { value: '12000', unit: 'Lux', status: 'normal' }, co2: { value: '450', unit: 'ppm', status: 'normal' }, soilTemp: { value: '22.1', unit: '°C', status: 'normal' }, soilMoisture: { value: '58', unit: '%', status: 'normal' }, soilEc: { value: '2.5', unit: 'ms/cm', status: 'normal' }, soilPh: { value: '6.8', unit: '', status: 'normal' } },
-  { id: 'G002', name: '2号棚', airTemp: { value: '24.8', unit: '°C', status: 'normal' }, airHumidity: { value: '68', unit: '%', status: 'normal' }, light: { value: '11500', unit: 'Lux', status: 'normal' }, co2: { value: '420', unit: 'ppm', status: 'normal' }, soilTemp: { value: '21.5', unit: '°C', status: 'normal' }, soilMoisture: { value: '62', unit: '%', status: 'normal' }, soilEc: { value: '2.3', unit: 'ms/cm', status: 'normal' }, soilPh: { value: '6.5', unit: '', status: 'normal' } },
-  { id: 'G003', name: '3号棚', airTemp: { value: '26.2', unit: '°C', status: 'warning' }, airHumidity: { value: '75', unit: '%', status: 'warning' }, light: { value: '15000', unit: 'Lux', status: 'warning' }, co2: { value: '520', unit: 'ppm', status: 'warning' }, soilTemp: { value: '23.5', unit: '°C', status: 'normal' }, soilMoisture: { value: '70', unit: '%', status: 'warning' }, soilEc: { value: '2.8', unit: 'ms/cm', status: 'normal' }, soilPh: { value: '7.0', unit: '', status: 'normal' } },
-])
-
-const totalGreenhousePages = computed(() => Math.ceil(greenhouseEnvData.value.length / greenhousePageSize.value))
-
-const paginatedGreenhouseData = computed(() => {
-  let data = greenhouseEnvData.value
-  if (selectedRegion.value) {
-    data = data.filter(g => g.id === selectedRegion.value)
-  }
-  const start = (greenhousePage.value - 1) * greenhousePageSize.value
-  return data.slice(start, start + greenhousePageSize.value)
-})
-
-const handlePageSizeChange = (size) => {
-  greenhousePageSize.value = size
-  greenhousePage.value = 1
-}
-
-const handleEnvDetail = (greenhouseId) => {
-  selectedGreenhouse.value = greenhouseId
-  showGreenhouseDetailModal.value = true
-}
-
-// 获取作物信息（根据温室ID）
-const getCropInfo = (greenhouseId) => {
-  // 根据温室ID返回作物信息mock数据
-  const cropInfoMap = {
-    'G001': { cropName: '番茄', variety: '红富士樱桃番茄', stageName: '结果期', greenhouseName: '1号棚', plantingArea: '6500', startDate: '2024-01-15', expectedHarvestDate: '2024-04-20', batchCode: 'B2024001', responsiblePerson: '张伟民' },
-    'G002': { cropName: '番茄', variety: '红富士樱桃番茄', stageName: '结果期', greenhouseName: '2号棚', plantingArea: '6500', startDate: '2024-01-15', expectedHarvestDate: '2024-04-20', batchCode: 'B2024002', responsiblePerson: '张伟民' },
-    'G003': { cropName: '番茄', variety: '红富士樱桃番茄', stageName: '开花期', greenhouseName: '3号棚', plantingArea: '6500', startDate: '2024-01-15', expectedHarvestDate: '2024-04-20', batchCode: 'B2024003', responsiblePerson: '张伟民' },
-  }
-  return cropInfoMap[greenhouseId] || null
-}
-
-// 今日任务数据
-const workDuration = '2小时'
-
-const todayTasks = ref([
-  { id: '1', title: '温室A1浇水', greenhouseName: '1号棚', priority: 'normal', status: 'in_progress', assigneeName: '张伟民', workDuration, dueDate: '2024-03-18' },
-  { id: '2', title: '温室B2施肥', greenhouseName: '2号棚', priority: 'high', status: 'pending', assigneeName: '李明轩', workDuration, dueDate: '2024-03-18' },
-  { id: '3', title: '温室C1巡查', greenhouseName: '3号棚', priority: 'normal', status: 'completed', assigneeName: '王建国', workDuration, dueDate: '2024-03-18' },
-  { id: '4', title: '大田A区除草', greenhouseName: 'A区', priority: 'urgent', status: 'pending', assigneeName: '赵俊杰', workDuration, dueDate: '2024-03-18' },
-])
-
-// 活跃种植批次数据
-
-const activeBatches = ref([
-  { id: '1', batchCode: 'B2024001', cropName: '番茄', greenhouseName: '1号棚', stage: 'fruiting', stageName: '结果期' },
-  { id: '2', batchCode: 'B2024002', cropName: '黄瓜', greenhouseName: '2号棚', stage: 'vegetative', stageName: '生长期' },
-  { id: '3', batchCode: 'B2024003', cropName: '辣椒', greenhouseName: '3号棚', stage: 'flowering', stageName: '开花期' },
-  { id: '4', batchCode: 'B2024004', cropName: '草莓', greenhouseName: '4号棚', stage: 'harvest', stageName: '采收期' },
-  { id: '5', batchCode: 'B2024005', cropName: '生菜', greenhouseName: '5号棚', stage: 'seedling', stageName: '育苗期' },
-])
-
-// 产量统计数据
+// 产量统计数据（V1.1使用farmData静态数据）
 const filteredYieldStats = ref([
   { month: '1月', yield: 1200 },
   { month: '2月', yield: 1500 },
@@ -300,7 +242,7 @@ const filteredYieldStats = ref([
   { month: '6月', yield: 2400 },
 ])
 
-// 成本分析数据
+// 成本分析数据（V1.1使用farmData静态数据）
 const filteredCostAnalysis = ref([
   { name: '人工成本', value: 35 },
   { name: '肥料成本', value: 25 },
@@ -309,25 +251,34 @@ const filteredCostAnalysis = ref([
   { name: '其他成本', value: 10 },
 ])
 
-// 处理详情点击
+// 处理温室详情
 const handleGreenhouseDetail = (data) => {
-  selectedDetail.value = data
+  handleDetailClickWrapper(data)
   showBaseDetailModal.value = true
 }
 
 const handleFieldDetail = (data) => {
-  selectedDetail.value = data
+  handleDetailClickWrapper(data)
   showBaseDetailModal.value = true
 }
 
-// 处理进入按钮点击
+const handleEnvDetail = (greenhouseId) => {
+  selectedGreenhouse.value = greenhouseId
+  // 从greenhouseEnvData中查找对应的环境数据
+  selectedEnv.value = greenhouseEnvData.value.find(g => g.id === greenhouseId) || null
+  showGreenhouseDetailModal.value = true
+}
+
+const handlePageSizeChange = (size) => {
+  greenhousePageSize.value = size
+  greenhousePage.value = 1
+}
+
 const handleEnterClick = () => {
   showBaseDetailModal.value = false
   selectedDetail.value = null
-  // 导航到详情页
 }
 
-// 处理图片点击
 const handleImageClick = (index) => {
   enlargedImageIndex.value = index
 }
