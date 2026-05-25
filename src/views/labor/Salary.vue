@@ -12,12 +12,12 @@
       </div>
     </div>
     <div class="bg-white rounded-xl p-6 shadow-sm">
-      <SalaryBudget />
+      <SalaryManage />
     </div>
   </div>
 </template>
 
 <script setup>
 import { Coin } from '@element-plus/icons-vue'
-import SalaryBudget from './SalaryBudget.vue'
+import SalaryManage from './components/SalaryManage.vue'
 </script>

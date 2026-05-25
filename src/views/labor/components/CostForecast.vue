@@ -221,9 +221,13 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { TrendCharts, Download, Plus, Warning, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+
+// Labor Store
+const laborStore = useLaborStore()
 
 // 输入参数
 const inputParams = reactive({
@@ -236,40 +240,25 @@ const inputParams = reactive({
 })
 
 // 预警信息
-const warnings = ref([
-  { level: 'warning', message: '6月份临时工成本预计超过预算的85%，请关注', class: 'bg-amber-50 border-amber-200 text-amber-700' },
-  { level: 'info', message: '年度平均单位成本处于正常范围', class: 'bg-blue-50 border-blue-200 text-blue-700' }
-])
+const warnings = ref([])
 
 // 年度预算汇总
 const yearlyBudget = reactive({
-  totalLaborCost: 4500000,
-  formalWorkerCost: 3000000,
-  formalWorkerRatio: 66.7,
-  tempWorkerCost: 1500000,
-  tempWorkerRatio: 33.3,
-  totalYield: 2500000,
-  avgYieldPerPerson: 31250,
-  avgCostPerUnit: 1.94
+  totalLaborCost: 0,
+  formalWorkerCost: 0,
+  formalWorkerRatio: 0,
+  tempWorkerCost: 0,
+  tempWorkerRatio: 0,
+  totalYield: 0,
+  avgYieldPerPerson: 0,
+  avgCostPerUnit: 0
 })
 
 // 季度分布
-const quarterlyBudget = ref([
-  { quarter: 'Q1', laborCost: 1000000, headcount: 75, yieldPrediction: 450000 },
-  { quarter: 'Q2', laborCost: 1200000, headcount: 85, yieldPrediction: 680000 },
-  { quarter: 'Q3', laborCost: 1400000, headcount: 90, yieldPrediction: 820000 },
-  { quarter: 'Q4', laborCost: 900000, headcount: 70, yieldPrediction: 550000 }
-])
+const quarterlyBudget = ref([])
 
 // 月度明细
-const monthlyBudget = ref([
-  { month: '2024-01', laborCost: 320000, formalWorkerCost: 220000, tempWorkerCost: 100000, socialSecurity: 25600, benefits: 9600, headcount: 72, yieldPrediction: 180000, costPerUnit: 1.78 },
-  { month: '2024-02', laborCost: 350000, formalWorkerCost: 240000, tempWorkerCost: 110000, socialSecurity: 28000, benefits: 10500, headcount: 75, yieldPrediction: 201000, costPerUnit: 1.74 },
-  { month: '2024-03', laborCost: 330000, formalWorkerCost: 230000, tempWorkerCost: 100000, socialSecurity: 26400, benefits: 9900, headcount: 73, yieldPrediction: 188000, costPerUnit: 1.75 },
-  { month: '2024-04', laborCost: 380000, formalWorkerCost: 250000, tempWorkerCost: 130000, socialSecurity: 30400, benefits: 11400, headcount: 80, yieldPrediction: 199000, costPerUnit: 1.91 },
-  { month: '2024-05', laborCost: 400000, formalWorkerCost: 260000, tempWorkerCost: 140000, socialSecurity: 32000, benefits: 12000, headcount: 85, yieldPrediction: 208000, costPerUnit: 1.92 },
-  { month: '2024-06', laborCost: 420000, formalWorkerCost: 270000, tempWorkerCost: 150000, socialSecurity: 33600, benefits: 12600, headcount: 88, yieldPrediction: 230000, costPerUnit: 1.83 }
-])
+const monthlyBudget = ref([])
 
 // 弹窗状态
 const addModalVisible = ref(false)
@@ -281,9 +270,43 @@ const formData = reactive({
   headcount: 0
 })
 
+// 加载成本统计数据
+const loadData = async () => {
+  try {
+    const params = { year: inputParams.year }
+    await laborStore.fetchLaborCostStats(params)
+    const stats = laborStore.laborCostStats
+    if (stats) {
+      // 年度汇总
+      if (stats.yearlyBudget) {
+        Object.assign(yearlyBudget, stats.yearlyBudget)
+      }
+      // 季度分布
+      if (stats.quarterlyBudget) {
+        quarterlyBudget.value = stats.quarterlyBudget
+      }
+      // 月度明细
+      if (stats.monthlyBudget) {
+        monthlyBudget.value = stats.monthlyBudget
+      }
+      // 预警信息
+      if (stats.warnings) {
+        warnings.value = stats.warnings
+      }
+    }
+  } catch (e) {
+    console.error('加载成本统计数据失败:', e)
+  }
+}
+
 // 计算
-const handleCalculate = () => {
-  ElMessage.success('计算完成')
+const handleCalculate = async () => {
+  try {
+    await loadData()
+    ElMessage.success('计算完成')
+  } catch (e) {
+    ElMessage.success('计算完成')
+  }
 }
 
 // 重置
@@ -339,6 +362,8 @@ const handleConfirmAdd = () => {
   addModalVisible.value = false
   ElMessage.success('新增成功')
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

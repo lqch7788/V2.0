@@ -36,10 +36,11 @@
           class="w-[160px]"
         />
         <el-select v-model="filters.status" placeholder="状态" clearable class="w-[140px]">
-          <el-option label="待提交" value="pending" />
-          <el-option label="已提交" value="submitted" />
-          <el-option label="已审批" value="approved" />
-          <el-option label="已驳回" value="rejected" />
+          <el-option label="全部状态" value="" />
+          <el-option label="待提交" value="待提交" />
+          <el-option label="已提交" value="已提交" />
+          <el-option label="已审批" value="已审批" />
+          <el-option label="已驳回" value="已驳回" />
         </el-select>
         <el-button @click="handleReset">重置</el-button>
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -101,7 +102,7 @@
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">{{ row.statusText }}</el-tag>
+            <el-tag :type="getStatusType(row.status)" size="small">{{ row.status }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="applicant" label="申请人" width="100" />
@@ -109,8 +110,8 @@
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleView(row)">查看</el-button>
-            <el-button link type="success" @click="handleApprove(row)" v-if="row.status === 'submitted'">审批</el-button>
-            <el-button link type="danger" @click="handleReject(row)" v-if="row.status === 'submitted'">驳回</el-button>
+            <el-button link type="success" @click="handleApprove(row)" v-if="row.status === '已提交'">审批</el-button>
+            <el-button link type="danger" @click="handleReject(row)" v-if="row.status === '已提交'">驳回</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -181,7 +182,7 @@
             <strong>{{ selectedRecord.totalAmount.toLocaleString() }} 元</strong>
           </el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag :type="getStatusType(selectedRecord.status)" size="small">{{ selectedRecord.statusText }}</el-tag>
+            <el-tag :type="getStatusType(selectedRecord.status)" size="small">{{ selectedRecord.status }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="申请人">{{ selectedRecord.applicant }}</el-descriptions-item>
           <el-descriptions-item label="申请时间">{{ selectedRecord.applyTime }}</el-descriptions-item>
@@ -193,17 +194,29 @@
       </div>
       <template #footer>
         <el-button @click="detailModalVisible = false">关闭</el-button>
-        <el-button type="success" @click="handleApprove(selectedRecord)" v-if="selectedRecord?.status === 'submitted'">审批</el-button>
-        <el-button type="danger" @click="handleReject(selectedRecord)" v-if="selectedRecord?.status === 'submitted'">驳回</el-button>
+        <el-button type="success" @click="handleApprove(selectedRecord)" v-if="selectedRecord?.status === '已提交'">审批</el-button>
+        <el-button type="danger" @click="handleReject(selectedRecord)" v-if="selectedRecord?.status === '已提交'">驳回</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { Wallet } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+
+// Labor Store
+const laborStore = useLaborStore()
+
+// 状态映射（中文状态值）
+const statusMap = {
+  '待提交': { label: '待提交', type: 'info' },
+  '已提交': { label: '已提交', type: 'warning' },
+  '已审批': { label: '已审批', type: 'success' },
+  '已驳回': { label: '已驳回', type: 'danger' }
+}
 
 // 筛选条件
 const filters = reactive({
@@ -215,75 +228,31 @@ const filters = reactive({
 // 分页配置
 const pagination = reactive({
   currentPage: 1,
-  pageSize: 10
+  pageSize: 10,
+  total: 0
 })
 
 // 表格数据
-const data = ref([
-  {
-    id: '1',
-    department: '技术部',
-    month: '2024-03',
-    baseAmount: 80000,
-    bonus: 10000,
-    overtime: 5000,
-    totalAmount: 95000,
-    status: 'approved',
-    statusText: '已审批',
-    applicant: '张三',
-    applyTime: '2024-03-20 14:30:00',
-    remarks: ''
-  },
-  {
-    id: '2',
-    department: '运营部',
-    month: '2024-03',
-    baseAmount: 60000,
-    bonus: 5000,
-    overtime: 3000,
-    totalAmount: 68000,
-    status: 'submitted',
-    statusText: '已提交',
-    applicant: '李四',
-    applyTime: '2024-03-21 10:15:00',
-    remarks: ''
-  },
-  {
-    id: '3',
-    department: '市场部',
-    month: '2024-03',
-    baseAmount: 50000,
-    bonus: 3000,
-    overtime: 0,
-    totalAmount: 53000,
-    status: 'pending',
-    statusText: '待提交',
-    applicant: '王五',
-    applyTime: '',
-    remarks: ''
-  },
-  {
-    id: '4',
-    department: '技术部',
-    month: '2024-02',
-    baseAmount: 75000,
-    bonus: 8000,
-    overtime: 4000,
-    totalAmount: 87000,
-    status: 'rejected',
-    statusText: '已驳回',
-    applicant: '张三',
-    applyTime: '2024-02-22 09:00:00',
-    remarks: '预算超支，需调整'
-  }
-])
+const data = ref([])
 
-const total = computed(() => data.value.length)
+const total = computed(() => pagination.total)
 const totalPages = computed(() => Math.ceil(total.value / pagination.pageSize))
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return data.value.slice(start, start + pagination.pageSize)
-})
+const paginatedData = computed(() => data.value)
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.department) params.department = filters.department
+    if (filters.month) params.month = filters.month
+    if (filters.status) params.status = filters.status
+    await laborStore.fetchBudgetList(params)
+    data.value = laborStore.budgetList
+    pagination.total = laborStore.budgetTotal
+  } catch (e) {
+    console.error('加载预算数据失败:', e)
+  }
+}
 
 // 弹窗状态
 const addModalVisible = ref(false)
@@ -302,13 +271,7 @@ const formData = reactive({
 
 // 获取状态类型
 const getStatusType = (status) => {
-  const typeMap = {
-    'pending': 'info',
-    'submitted': 'warning',
-    'approved': 'success',
-    'rejected': 'danger'
-  }
-  return typeMap[status] || 'info'
+  return statusMap[status]?.type || 'info'
 }
 
 // 重置
@@ -316,11 +279,14 @@ const handleReset = () => {
   filters.department = ''
   filters.month = ''
   filters.status = ''
+  pagination.currentPage = 1
+  loadData()
 }
 
 // 查询
 const handleSearch = () => {
-  ElMessage.success('查询成功')
+  pagination.currentPage = 1
+  loadData()
 }
 
 // 新增
@@ -337,24 +303,31 @@ const handleAdd = () => {
 }
 
 // 提交
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!formData.department || !formData.month) {
     ElMessage.warning('请填写完整信息')
     return
   }
   const totalAmount = formData.baseAmount + formData.bonus + formData.overtime
-  const newRecord = {
-    id: Date.now().toString(),
-    ...formData,
-    totalAmount,
-    status: 'pending',
-    statusText: '待提交',
-    applicant: '当前用户',
-    applyTime: ''
+  try {
+    await laborStore.createBudget({
+      department: formData.department,
+      month: formData.month,
+      baseAmount: formData.baseAmount,
+      bonus: formData.bonus,
+      overtime: formData.overtime,
+      totalAmount,
+      remarks: formData.remarks,
+      status: '待提交',
+      applicant: '当前用户',
+      applyTime: ''
+    })
+    addModalVisible.value = false
+    ElMessage.success('提交成功')
+    loadData()
+  } catch (e) {
+    ElMessage.error('提交失败')
   }
-  data.value.unshift(newRecord)
-  addModalVisible.value = false
-  ElMessage.success('提交成功')
 }
 
 // 查看
@@ -371,10 +344,10 @@ const handleApprove = async (row) => {
       cancelButtonText: '取消',
       type: 'success'
     })
-    row.status = 'approved'
-    row.statusText = '已审批'
+    await laborStore.updateBudget(row.id, { ...row, status: '已审批' })
     ElMessage.success('审批成功')
     detailModalVisible.value = false
+    loadData()
   } catch {
     // 用户取消
   }
@@ -388,10 +361,10 @@ const handleReject = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    row.status = 'rejected'
-    row.statusText = '已驳回'
+    await laborStore.updateBudget(row.id, { ...row, status: '已驳回' })
     ElMessage.success('已驳回')
     detailModalVisible.value = false
+    loadData()
   } catch {
     // 用户取消
   }
@@ -401,6 +374,8 @@ const handleReject = async (row) => {
 const handleExport = () => {
   ElMessage.success('导出功能开发中')
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

@@ -52,16 +52,16 @@
         </div>
         <el-select v-model="filters.skillType" placeholder="技能类别" clearable class="w-full sm:w-36">
           <el-option label="全部类别" value="" />
-          <el-option label="农业技能" value="agriculture" />
-          <el-option label="安全证书" value="safety" />
-          <el-option label="操作证书" value="operation" />
-          <el-option label="管理证书" value="management" />
+          <el-option label="农业技能" value="农业技能" />
+          <el-option label="安全证书" value="安全证书" />
+          <el-option label="操作证书" value="操作证书" />
+          <el-option label="管理证书" value="管理证书" />
         </el-select>
         <el-select v-model="filters.status" placeholder="证书状态" clearable class="w-full sm:w-32">
           <el-option label="全部状态" value="" />
-          <el-option label="有效" value="valid" />
-          <el-option label="即将过期" value="expiring" />
-          <el-option label="已过期" value="expired" />
+          <el-option label="有效" value="有效" />
+          <el-option label="即将过期" value="即将过期" />
+          <el-option label="已过期" value="已过期" />
         </el-select>
         <el-button type="primary" @click="handleSearch">
           <el-icon><Search /></el-icon> 搜索
@@ -165,10 +165,10 @@
         </el-form-item>
         <el-form-item label="技能类别" prop="skillType">
           <el-select v-model="formData.skillType" placeholder="请选择技能类别">
-            <el-option label="农业技能" value="agriculture" />
-            <el-option label="安全证书" value="safety" />
-            <el-option label="操作证书" value="operation" />
-            <el-option label="管理证书" value="management" />
+            <el-option label="农业技能" value="农业技能" />
+            <el-option label="安全证书" value="安全证书" />
+            <el-option label="操作证书" value="操作证书" />
+            <el-option label="管理证书" value="管理证书" />
           </el-select>
         </el-form-item>
         <el-form-item label="证书编号" prop="certNo">
@@ -208,26 +208,29 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Medal, Search, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
 
-// 技能类别映射
+// Labor Store
+const laborStore = useLaborStore()
+
+// 技能类别映射（中文键值）
 const skillTypeMap = {
-  agriculture: '农业技能',
-  safety: '安全证书',
-  operation: '操作证书',
-  management: '管理证书'
+  '农业技能': '农业技能',
+  '安全证书': '安全证书',
+  '操作证书': '操作证书',
+  '管理证书': '管理证书'
 }
 
 const getSkillTypeLabel = (type) => skillTypeMap[type] || type
 
-// 状态映射
+// 状态映射（中文状态值）
 const statusMap = {
-  valid: { label: '有效', type: 'success' },
-  expiring: { label: '即将过期', type: 'warning' },
-  expired: { label: '已过期', type: 'danger' }
+  '有效': { label: '有效', type: 'success' },
+  '即将过期': { label: '即将过期', type: 'warning' },
+  '已过期': { label: '已过期', type: 'danger' }
 }
 
 const getStatusLabel = (status) => statusMap[status]?.label || status
@@ -243,7 +246,8 @@ const filters = reactive({
 // 分页配置
 const pagination = reactive({
   currentPage: 1,
-  pageSize: 10
+  pageSize: 10,
+  total: 0
 })
 
 // 详情弹窗
@@ -257,7 +261,7 @@ const formData = reactive({
   employeeName: '',
   department: '',
   skillName: '',
-  skillType: 'agriculture',
+  skillType: '农业技能',
   certNo: '',
   issuer: '',
   issueDate: '',
@@ -276,19 +280,41 @@ const formRules = {
   expireDate: [{ required: true, message: '请选择到期日期', trigger: 'change' }]
 }
 
-// 模拟数据
-const allData = ref([
-  { id: 1, employeeName: '张三', department: '技术部', skillName: '农艺师资格证', skillType: 'agriculture', certNo: 'NY-2024-001', issuer: '农业部', issueDate: '2024-01-15', expireDate: '2027-01-14', status: 'valid', remark: '' },
-  { id: 2, employeeName: '李四', department: '运营部', skillName: '安全生产证书', skillType: 'safety', certNo: 'AQ-2024-002', issuer: '安监局', issueDate: '2024-03-20', expireDate: '2026-06-19', status: 'expiring', remark: '即将到期' },
-  { id: 3, employeeName: '王五', department: '生产部', skillName: '特种作业操作证', skillType: 'operation', certNo: 'TS-2023-003', issuer: '人社局', issueDate: '2023-06-01', expireDate: '2026-05-31', status: 'expired', remark: '已过期' },
-  { id: 4, employeeName: '赵六', department: '技术部', skillName: '农业技术员证', skillType: 'agriculture', certNo: 'NY-2025-001', issuer: '农业部', issueDate: '2025-01-10', expireDate: '2028-01-09', status: 'valid', remark: '' }
-])
+// 数据
+const allData = ref([])
+
+// 加载数据（通过员工数据获取技能信息）
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.keyword) params.name = filters.keyword
+    await laborStore.fetchWorkers(params)
+    // 将员工数据映射为技能展示格式
+    const workers = laborStore.workerList || []
+    allData.value = workers.map(w => ({
+      id: w.id,
+      employeeName: w.name || w.staffName || '',
+      department: w.department || w.deptName || '',
+      skillName: w.skillName || w.skills?.[0] || '',
+      skillType: w.skillType || '农业技能',
+      certNo: w.certNo || '',
+      issuer: w.issuer || '',
+      issueDate: w.issueDate || '',
+      expireDate: w.expireDate || '',
+      status: w.skillStatus || w.status || '有效',
+      remark: w.remark || ''
+    }))
+    pagination.total = laborStore.workerTotal
+  } catch (e) {
+    console.error('加载技能数据失败:', e)
+  }
+}
 
 // 统计
-const totalCount = computed(() => allData.value.length)
-const validCount = computed(() => allData.value.filter(r => r.status === 'valid').length)
-const expiringCount = computed(() => allData.value.filter(r => r.status === 'expiring').length)
-const expiredCount = computed(() => allData.value.filter(r => r.status === 'expired').length)
+const totalCount = computed(() => pagination.total)
+const validCount = computed(() => allData.value.filter(r => r.status === '有效').length)
+const expiringCount = computed(() => allData.value.filter(r => r.status === '即将过期').length)
+const expiredCount = computed(() => allData.value.filter(r => r.status === '已过期').length)
 
 // 筛选后的数据
 const filteredData = computed(() => {
@@ -309,6 +335,7 @@ const paginatedData = computed(() => {
 // 搜索
 const handleSearch = () => {
   pagination.currentPage = 1
+  loadData()
 }
 
 // 重置
@@ -317,11 +344,13 @@ const handleReset = () => {
   filters.skillType = ''
   filters.status = ''
   pagination.currentPage = 1
+  loadData()
 }
 
 // 分页
 const handlePageSizeChange = () => {
   pagination.currentPage = 1
+  loadData()
 }
 
 // 详情
@@ -346,7 +375,7 @@ const openFormModal = () => {
     employeeName: '',
     department: '',
     skillName: '',
-    skillType: 'agriculture',
+    skillType: '农业技能',
     certNo: '',
     issuer: '',
     issueDate: '',
@@ -359,18 +388,20 @@ const openFormModal = () => {
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
       allData.value.unshift({
         id: Date.now(),
         ...formData,
-        status: 'valid'
+        status: '有效'
       })
       ElMessage.success('添加成功')
       formDialogVisible.value = false
     }
   })
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

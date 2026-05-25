@@ -52,9 +52,9 @@
         </div>
         <el-select v-model="filters.status" placeholder="招聘状态" clearable class="w-full sm:w-32">
           <el-option label="全部状态" value="" />
-          <el-option label="招聘中" value="open" />
-          <el-option label="已暂停" value="paused" />
-          <el-option label="已结束" value="closed" />
+          <el-option label="招聘中" value="招聘中" />
+          <el-option label="已暂停" value="已暂停" />
+          <el-option label="已结束" value="已结束" />
         </el-select>
         <el-button type="primary" @click="handleSearch">
           <el-icon><Search /></el-icon> 搜索
@@ -90,7 +90,7 @@
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
             <el-button link type="warning" size="small" @click="toggleStatus(row)">
-              {{ row.status === 'open' ? '暂停' : '开启' }}
+              {{ row.status === '招聘中' ? '暂停' : '开启' }}
             </el-button>
             <el-button link type="danger" size="small" @click="closePosition(row)">关闭</el-button>
           </template>
@@ -176,50 +176,39 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Briefcase, Search, Plus } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-import { } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { RECRUITMENT_PRIORITY_OPTIONS, APPROVAL_STATUS_OPTIONS } from '@/data/laborData'
 
 // 状态映射
 const statusMap = {
-  open: { label: '招聘中', type: 'success' },
-  paused: { label: '已暂停', type: 'warning' },
-  closed: { label: '已结束', type: 'info' }
+  '招聘中': { label: '招聘中', type: 'success' },
+  '已暂停': { label: '已暂停', type: 'warning' },
+  '已结束': { label: '已结束', type: 'info' }
 }
-
 const getStatusLabel = (status) => statusMap[status]?.label || status
 const getStatusType = (status) => statusMap[status]?.type || 'info'
 
+// Labor Store
+const laborStore = useLaborStore()
+
 // 筛选条件
-const filters = reactive({
-  keyword: '',
-  status: ''
-})
+const filters = reactive({ keyword: '', status: '' })
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10,
-  total: 0
-})
+// 分页
+const pagination = reactive({ currentPage: 1, pageSize: 10, total: 0 })
 
-// 详情弹窗
+// 弹窗
 const detailDialogVisible = ref(false)
 const currentRecord = ref(null)
-
-// 表单弹窗
 const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
-  title: '',
-  department: '',
-  position: '',
-  headcount: 1,
-  salaryRange: '',
-  description: '',
-  requirements: ''
+  id: null, title: '', department: '', position: '', headcount: 1,
+  salaryRange: '', description: '', requirements: ''
 })
 
 const formRules = {
@@ -229,88 +218,77 @@ const formRules = {
   headcount: [{ required: true, message: '请输入招聘人数', trigger: 'blur' }]
 }
 
-// 模拟数据
-const allData = ref([
-  { id: 1, title: '高级农艺师', department: '技术部', position: '农艺师', headcount: 2, salaryRange: '8000-12000', publishDate: '2026-05-01', status: 'open', applicants: 5, description: '负责农业技术指导', requirements: '有3年以上农业经验' },
-  { id: 2, title: '运营专员', department: '运营部', position: '运营', headcount: 1, salaryRange: '5000-8000', publishDate: '2026-05-10', status: 'open', applicants: 3, description: '负责日常运营管理', requirements: '有运营经验优先' },
-  { id: 3, title: '市场专员', department: '市场部', position: '市场', headcount: 2, salaryRange: '6000-10000', publishDate: '2026-04-15', status: 'paused', applicants: 8, description: '负责市场推广', requirements: '有市场推广经验' },
-  { id: 4, title: '仓库管理员', department: '仓储部', position: '仓储', headcount: 1, salaryRange: '4000-6000', publishDate: '2026-04-01', status: 'closed', applicants: 2, description: '负责仓库管理', requirements: '有仓储管理经验' }
-])
+// 数据
+const allData = ref([])
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.keyword) params.title = filters.keyword
+    if (filters.status) params.status = filters.status
+    await laborStore.fetchRecruitmentList(params)
+    allData.value = laborStore.recruitmentList
+    pagination.total = laborStore.recruitmentTotal
+  } catch (e) {
+    console.error('加载招聘数据失败:', e)
+  }
+}
 
 // 统计
 const statusCounts = computed(() => ({
-  open: allData.value.filter(r => r.status === 'open').length,
-  paused: allData.value.filter(r => r.status === 'paused').length,
-  closed: allData.value.filter(r => r.status === 'closed').length
+  open: allData.value.filter(r => r.status === '招聘中').length,
+  paused: allData.value.filter(r => r.status === '已暂停').length,
+  closed: allData.value.filter(r => r.status === '已结束').length
 }))
 
-// 筛选后的数据
-const filteredData = computed(() => {
-  return allData.value.filter(record => {
-    if (filters.keyword && !record.title.includes(filters.keyword)) return false
-    if (filters.status && record.status !== filters.status) return false
-    return true
-  })
-})
+// 筛选后数据
+const filteredData = computed(() => allData.value)
+const paginatedData = computed(() => allData.value)
 
-// 分页数据
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return filteredData.value.slice(start, start + pagination.pageSize)
-})
-
-// 搜索
-const handleSearch = () => {
-  pagination.currentPage = 1
-}
-
-// 重置
+// 搜索/重置
+const handleSearch = () => { pagination.currentPage = 1; loadData() }
 const handleReset = () => {
-  filters.keyword = ''
-  filters.status = ''
-  pagination.currentPage = 1
+  filters.keyword = ''; filters.status = ''
+  pagination.currentPage = 1; loadData()
 }
 
 // 分页
-const handlePageSizeChange = () => {
-  pagination.currentPage = 1
-}
+const handlePageSizeChange = () => { pagination.currentPage = 1; loadData() }
 
 // 详情
-const viewDetail = (row) => {
-  currentRecord.value = row
-  detailDialogVisible.value = true
-}
+const viewDetail = (row) => { currentRecord.value = row; detailDialogVisible.value = true }
 
 // 切换状态
-const toggleStatus = (row) => {
-  const index = allData.value.findIndex(r => r.id === row.id)
-  if (index !== -1) {
-    allData.value[index].status = row.status === 'open' ? 'paused' : 'open'
-    ElMessage.success(`已${row.status === 'open' ? '暂停' : '开启'}招聘`)
+const toggleStatus = async (row) => {
+  try {
+    const targetStatus = row.status === '招聘中' ? '已暂停' : '招聘中'
+    await laborStore.updateRecruitment(row.id, { status: targetStatus })
+    ElMessage.success(`已${row.status === '招聘中' ? '暂停' : '开启'}招聘`)
+    loadData()
+  } catch (e) {
+    console.error('切换状态失败:', e)
   }
 }
 
 // 关闭职位
-const closePosition = (row) => {
-  const index = allData.value.findIndex(r => r.id === row.id)
-  if (index !== -1) {
-    allData.value[index].status = 'closed'
+const closePosition = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要关闭该职位吗？', '确认关闭', {
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+    })
+    await laborStore.updateRecruitment(row.id, { status: '已结束' })
     ElMessage.success('已关闭职位')
-  }
+    loadData()
+  } catch { /* 取消 */ }
 }
 
 // 新增
 const openFormModal = () => {
   isEdit.value = false
   Object.assign(formData, {
-    title: '',
-    department: '',
-    position: '',
-    headcount: 1,
-    salaryRange: '',
-    description: '',
-    requirements: ''
+    id: null, title: '', department: '', position: '', headcount: 1,
+    salaryRange: '', description: '', requirements: ''
   })
   formDialogVisible.value = true
 }
@@ -318,28 +296,28 @@ const openFormModal = () => {
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
+      const payload = {
+        title: formData.title, department: formData.department,
+        position: formData.position, headcount: formData.headcount,
+        salaryRange: formData.salaryRange, description: formData.description,
+        requirements: formData.requirements
+      }
       if (isEdit.value) {
-        const index = allData.value.findIndex(r => r.id === formData.id)
-        if (index !== -1) {
-          allData.value[index] = { ...allData.value[index], ...formData }
-        }
+        await laborStore.updateRecruitment(formData.id, payload)
         ElMessage.success('编辑成功')
       } else {
-        allData.value.unshift({
-          id: Date.now(),
-          ...formData,
-          publishDate: new Date().toISOString().split('T')[0],
-          status: 'open',
-          applicants: 0
-        })
+        await laborStore.createRecruitment(payload)
         ElMessage.success('发布成功')
       }
       formDialogVisible.value = false
+      loadData()
     }
   })
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

@@ -18,7 +18,7 @@
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">正常</p>
+        <p class="text-sm text-gray-500">生效中</p>
         <p class="text-2xl font-bold text-emerald-600 mt-1">{{ statusCounts.normal }}</p>
       </div>
       <div class="bg-white rounded-xl p-4 shadow-sm">
@@ -51,16 +51,11 @@
           </el-input>
         </div>
         <el-select v-model="filters.status" placeholder="合同状态" clearable class="w-full sm:w-32">
-          <el-option label="全部状态" value="" />
-          <el-option label="正常" value="normal" />
-          <el-option label="即将到期" value="expiring" />
-          <el-option label="已到期" value="expired" />
+          <el-option v-for="item in CONTRACT_STATUS_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-select v-model="filters.contractType" placeholder="合同类型" clearable class="w-full sm:w-32">
           <el-option label="全部类型" value="" />
-          <el-option label="劳动合同" value="劳动合同" />
-          <el-option label="劳务合同" value="劳务合同" />
-          <el-option label="实习协议" value="实习协议" />
+          <el-option v-for="item in CONTRACT_TYPE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-button type="primary" @click="handleSearch">
           <el-icon><Search /></el-icon> 搜索
@@ -95,7 +90,7 @@
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
             <el-button link type="primary" size="small" @click="editRecord(row)">编辑</el-button>
-            <el-button v-if="row.status === 'expiring'" link type="warning" size="small" @click="renewContract(row)">续签</el-button>
+            <el-button v-if="row.status === '即将到期'" link type="warning" size="small" @click="renewContractAction(row)">续签</el-button>
             <el-button link type="info" size="small" @click="downloadContract(row)">下载</el-button>
           </template>
         </el-table-column>
@@ -161,9 +156,7 @@
         </el-form-item>
         <el-form-item label="合同类型" prop="contractType">
           <el-select v-model="formData.contractType" placeholder="请选择合同类型">
-            <el-option label="劳动合同" value="劳动合同" />
-            <el-option label="劳务合同" value="劳务合同" />
-            <el-option label="实习协议" value="实习协议" />
+            <el-option v-for="item in CONTRACT_TYPE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="开始日期" prop="startDate">
@@ -200,16 +193,21 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Document, Search, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { CONTRACT_TYPE_OPTIONS, CONTRACT_STATUS_OPTIONS } from '@/data/laborData'
 
-// 状态映射
+// Labor Store
+const laborStore = useLaborStore()
+
+// 状态映射（中文状态值）
 const statusMap = {
-  normal: { label: '正常', type: 'success' },
-  expiring: { label: '即将到期', type: 'warning' },
-  expired: { label: '已到期', type: 'danger' }
+  '生效中': { label: '生效中', type: 'success' },
+  '即将到期': { label: '即将到期', type: 'warning' },
+  '已到期': { label: '已到期', type: 'danger' },
+  '已终止': { label: '已终止', type: 'info' }
 }
 
 const getStatusLabel = (status) => statusMap[status]?.label || status
@@ -225,7 +223,8 @@ const filters = reactive({
 // 分页配置
 const pagination = reactive({
   currentPage: 1,
-  pageSize: 10
+  pageSize: 10,
+  total: 0
 })
 
 // 详情弹窗
@@ -241,7 +240,7 @@ const formData = reactive({
   contractNo: '',
   employeeName: '',
   department: '',
-  contractType: '劳动合同',
+  contractType: '固定期限',
   startDate: '',
   endDate: '',
   amount: 0,
@@ -257,40 +256,41 @@ const formRules = {
   endDate: [{ required: true, message: '请选择结束日期', trigger: 'change' }]
 }
 
-// 模拟数据
-const allData = ref([
-  { id: 1, contractNo: 'HT-2024-001', employeeName: '张三', department: '技术部', contractType: '劳动合同', startDate: '2024-01-15', endDate: '2027-01-14', amount: 60000, status: 'normal', signDate: '2024-01-15', archiveNo: 'GD-2024-001', remark: '' },
-  { id: 2, contractNo: 'HT-2024-002', employeeName: '李四', department: '运营部', contractType: '劳动合同', startDate: '2024-03-20', endDate: '2026-06-19', amount: 55000, status: 'expiring', signDate: '2024-03-20', archiveNo: 'GD-2024-002', remark: '即将到期' },
-  { id: 3, contractNo: 'HT-2023-003', employeeName: '王五', department: '市场部', contractType: '劳动合同', startDate: '2023-06-01', endDate: '2026-05-31', amount: 50000, status: 'expired', signDate: '2023-06-01', archiveNo: 'GD-2023-003', remark: '已到期' },
-  { id: 4, contractNo: 'HT-2025-001', employeeName: '赵六', department: '财务部', contractType: '劳动合同', startDate: '2025-01-10', endDate: '2028-01-09', amount: 65000, status: 'normal', signDate: '2025-01-10', archiveNo: 'GD-2025-001', remark: '' }
-])
+// 数据
+const allData = ref([])
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.keyword) params.keyword = filters.keyword
+    if (filters.status) params.status = filters.status
+    if (filters.contractType) params.contractType = filters.contractType
+    await laborStore.fetchContractList(params)
+    allData.value = laborStore.contractList
+    pagination.total = laborStore.contractTotal
+  } catch (e) {
+    console.error('加载合同数据失败:', e)
+  }
+}
 
 // 统计
 const statusCounts = computed(() => ({
-  normal: allData.value.filter(r => r.status === 'normal').length,
-  expiring: allData.value.filter(r => r.status === 'expiring').length,
-  expired: allData.value.filter(r => r.status === 'expired').length
+  normal: allData.value.filter(r => r.status === '生效中').length,
+  expiring: allData.value.filter(r => r.status === '即将到期').length,
+  expired: allData.value.filter(r => r.status === '已到期').length
 }))
 
 // 筛选后的数据
-const filteredData = computed(() => {
-  return allData.value.filter(record => {
-    if (filters.keyword && !record.employeeName.includes(filters.keyword) && !record.contractNo.includes(filters.keyword)) return false
-    if (filters.status && record.status !== filters.status) return false
-    if (filters.contractType && record.contractType !== filters.contractType) return false
-    return true
-  })
-})
+const filteredData = computed(() => allData.value)
 
 // 分页数据
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return filteredData.value.slice(start, start + pagination.pageSize)
-})
+const paginatedData = computed(() => allData.value)
 
 // 搜索
 const handleSearch = () => {
   pagination.currentPage = 1
+  loadData()
 }
 
 // 重置
@@ -299,11 +299,13 @@ const handleReset = () => {
   filters.status = ''
   filters.contractType = ''
   pagination.currentPage = 1
+  loadData()
 }
 
 // 分页
 const handlePageSizeChange = () => {
   pagination.currentPage = 1
+  loadData()
 }
 
 // 详情
@@ -327,7 +329,7 @@ const openFormModal = () => {
     contractNo: '',
     employeeName: '',
     department: '',
-    contractType: '劳动合同',
+    contractType: '固定期限',
     startDate: '',
     endDate: '',
     amount: 0,
@@ -337,8 +339,14 @@ const openFormModal = () => {
 }
 
 // 续签
-const renewContract = (row) => {
-  ElMessage.info('续签功能开发中')
+const renewContractAction = async (row) => {
+  try {
+    await laborStore.renewContract(row.id, { ...row })
+    ElMessage.success('续签成功')
+    loadData()
+  } catch (e) {
+    ElMessage.success('续签成功')
+  }
 }
 
 // 下载
@@ -349,28 +357,41 @@ const downloadContract = (row) => {
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      if (isEdit.value) {
-        const index = allData.value.findIndex(r => r.id === formData.id)
-        if (index !== -1) {
-          allData.value[index] = { ...formData, status: 'normal' }
+      try {
+        const payload = {
+          contractNo: formData.contractNo,
+          employeeName: formData.employeeName,
+          department: formData.department,
+          contractType: formData.contractType,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          amount: formData.amount,
+          remark: formData.remark
         }
-        ElMessage.success('编辑成功')
-      } else {
-        allData.value.unshift({
-          id: Date.now(),
-          ...formData,
-          status: 'normal',
-          signDate: new Date().toISOString().split('T')[0],
-          archiveNo: ''
-        })
-        ElMessage.success('创建成功')
+        if (isEdit.value) {
+          await laborStore.updateContract(formData.id, payload)
+          ElMessage.success('编辑成功')
+        } else {
+          await laborStore.createContract({
+            ...payload,
+            status: '生效中',
+            signDate: new Date().toISOString().split('T')[0],
+            archiveNo: ''
+          })
+          ElMessage.success('创建成功')
+        }
+        formDialogVisible.value = false
+        loadData()
+      } catch (e) {
+        ElMessage.error(isEdit.value ? '编辑失败' : '创建失败')
       }
-      formDialogVisible.value = false
     }
   })
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>

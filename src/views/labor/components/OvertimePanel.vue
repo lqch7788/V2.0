@@ -52,15 +52,11 @@
         </div>
         <el-select v-model="filters.overtimeType" placeholder="加班类型" clearable class="w-full sm:w-36">
           <el-option label="全部类型" value="" />
-          <el-option label="工作日加班" value="weekday" />
-          <el-option label="周末加班" value="weekend" />
-          <el-option label="节假日加班" value="holiday" />
+          <el-option v-for="item in OVERTIME_TYPE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-select v-model="filters.status" placeholder="审批状态" clearable class="w-full sm:w-32">
           <el-option label="全部状态" value="" />
-          <el-option label="待审批" value="pending" />
-          <el-option label="已审批" value="approved" />
-          <el-option label="已驳回" value="rejected" />
+          <el-option v-for="item in OVERTIME_STATUS_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-date-picker
           v-model="filters.dateRange"
@@ -113,9 +109,9 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column v-if="batchMode" type="selection" width="55" />
-        <el-table-column prop="userName" label="员工姓名" min-width="100" />
+        <el-table-column prop="staffName" label="员工姓名" min-width="100" />
         <el-table-column prop="date" label="日期" min-width="120" />
-        <el-table-column prop="overtimeType" label="加班类型" min-width="120">
+        <el-table-column prop="type" label="加班类型" min-width="120">
           <template #default="{ row }">
             {{ getOvertimeTypeLabel(row.overtimeType) }}
           </template>
@@ -137,8 +133,8 @@
         <el-table-column v-if="!batchMode" label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button v-if="row.status === 'pending'" link type="success" size="small" @click="approveRecord(row)">批准</el-button>
-            <el-button v-if="row.status === 'pending'" link type="danger" size="small" @click="rejectRecord(row)">驳回</el-button>
+            <el-button v-if="row.status === '待审批'" link type="success" size="small" @click="approveRecord(row)">批准</el-button>
+            <el-button v-if="row.status === '待审批'" link type="danger" size="small" @click="rejectRecord(row)">驳回</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -232,245 +228,163 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { Clock, Search, Plus, Edit, Delete, Download } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { } from 'element-plus'
+import { useLaborStore } from '@/stores/modules/labor'
+import { OVERTIME_TYPE_OPTIONS, OVERTIME_STATUS_OPTIONS } from '@/data/laborData'
 
-// 加班类型映射
-const overtimeTypeMap = {
-  weekday: '工作日加班',
-  weekend: '周末加班',
-  holiday: '节假日加班'
-}
-
+// 加班类型标签映射
+const overtimeTypeMap = Object.fromEntries(OVERTIME_TYPE_OPTIONS.map(o => [o.value, o.label]))
 const getOvertimeTypeLabel = (type) => overtimeTypeMap[type] || type
 
 // 状态映射
 const statusMap = {
-  pending: { label: '待审批', type: 'warning' },
-  approved: { label: '已审批', type: 'success' },
-  rejected: { label: '已驳回', type: 'danger' }
+  '待审批': { label: '待审批', type: 'warning' },
+  '已通过': { label: '已审批', type: 'success' },
+  '已拒绝': { label: '已驳回', type: 'danger' },
+  '已取消': { label: '已取消', type: 'info' }
 }
-
 const getStatusLabel = (status) => statusMap[status]?.label || status
 const getStatusType = (status) => statusMap[status]?.type || 'info'
 
+// Labor Store
+const laborStore = useLaborStore()
+
 // 筛选条件
-const filters = reactive({
-  keyword: '',
-  overtimeType: '',
-  status: '',
-  dateRange: []
-})
+const filters = reactive({ keyword: '', overtimeType: '', status: '', dateRange: [] })
 
-// 分页配置
-const pagination = reactive({
-  currentPage: 1,
-  pageSize: 10,
-  total: 0
-})
+// 分页
+const pagination = reactive({ currentPage: 1, pageSize: 10, total: 0 })
 
-// 批量操作模式
+// 批量操作
 const batchMode = ref(false)
 const selectedRows = ref([])
 const tableRef = ref()
 
-// 详情弹窗
+// 弹窗
 const detailDialogVisible = ref(false)
 const currentRecord = ref(null)
-
-// 表单弹窗
 const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
-  id: null,
-  userName: '',
-  date: '',
-  overtimeType: 'weekday',
-  hours: 2,
-  totalPay: 0,
-  reason: '',
-  remarks: ''
+  id: null, staffId: '', staffName: '', date: new Date().toISOString().split('T')[0],
+  type: '工作日加班', hours: 2, reason: '', remarks: ''
 })
 
 const formRules = {
-  userName: [{ required: true, message: '请输入员工姓名', trigger: 'blur' }],
+  staffName: [{ required: true, message: '请输入员工姓名', trigger: 'blur' }],
   date: [{ required: true, message: '请选择日期', trigger: 'change' }],
-  overtimeType: [{ required: true, message: '请选择加班类型', trigger: 'change' }],
+  type: [{ required: true, message: '请选择加班类型', trigger: 'change' }],
   hours: [{ required: true, message: '请输入时长', trigger: 'blur' }],
   reason: [{ required: true, message: '请输入加班原因', trigger: 'blur' }]
 }
 
-// 模拟数据
-const allData = ref([
-  { id: 1, userName: '张三', date: '2026-05-20', overtimeType: 'weekday', hours: 3, totalPay: 150, reason: '项目紧急上线', status: 'pending', approver: '', approvedAt: '' },
-  { id: 2, userName: '李四', date: '2026-05-18', overtimeType: 'weekend', hours: 8, totalPay: 320, reason: '设备维护', status: 'approved', approver: '王经理', approvedAt: '2026-05-18 17:00' },
-  { id: 3, userName: '王五', date: '2026-05-15', overtimeType: 'holiday', hours: 8, totalPay: 480, reason: '节假日值班', status: 'approved', approver: '王经理', approvedAt: '2026-05-15 12:00' },
-  { id: 4, userName: '赵六', date: '2026-05-10', overtimeType: 'weekday', hours: 2, totalPay: 100, reason: '客户需求变更', status: 'rejected', approver: '王经理', approvedAt: '2026-05-10 15:00' }
-])
+// 数据
+const allData = ref([])
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
+    if (filters.keyword) params.staffName = filters.keyword
+    if (filters.overtimeType) params.type = filters.overtimeType
+    if (filters.status) params.status = filters.status
+    if (filters.dateRange?.length === 2) {
+      params.startDate = filters.dateRange[0]
+      params.endDate = filters.dateRange[1]
+    }
+    await laborStore.fetchOvertimeList(params)
+    allData.value = laborStore.overtimeList
+    pagination.total = laborStore.overtimeTotal
+  } catch (e) {
+    console.error('加载加班数据失败:', e)
+  }
+}
 
 // 统计
 const statusCounts = computed(() => ({
-  pending: allData.value.filter(r => r.status === 'pending').length,
-  approved: allData.value.filter(r => r.status === 'approved').length,
-  rejected: allData.value.filter(r => r.status === 'rejected').length,
+  pending: allData.value.filter(r => r.status === '待审批').length,
+  approved: allData.value.filter(r => r.status === '已通过').length,
+  rejected: allData.value.filter(r => r.status === '已拒绝').length,
   total: allData.value.length
 }))
 
-// 筛选后的数据
-const filteredData = computed(() => {
-  pagination.total = allData.value.length
-  return allData.value.filter(record => {
-    if (filters.keyword && !record.userName.includes(filters.keyword)) return false
-    if (filters.overtimeType && record.overtimeType !== filters.overtimeType) return false
-    if (filters.status && record.status !== filters.status) return false
-    return true
-  })
-})
+const filteredData = computed(() => allData.value)
+const paginatedData = computed(() => allData.value)
 
-// 分页数据
-const paginatedData = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  return filteredData.value.slice(start, start + pagination.pageSize)
-})
-
-// 搜索
-const handleSearch = () => {
-  pagination.currentPage = 1
-}
-
-// 重置
+// 搜索/重置
+const handleSearch = () => { pagination.currentPage = 1; loadData() }
 const handleReset = () => {
-  filters.keyword = ''
-  filters.overtimeType = ''
-  filters.status = ''
-  filters.dateRange = []
-  pagination.currentPage = 1
+  filters.keyword = ''; filters.overtimeType = ''; filters.status = ''; filters.dateRange = []
+  pagination.currentPage = 1; loadData()
 }
 
 // 批量模式
-const enterBatchMode = () => {
-  batchMode.value = 'edit'
-}
-
-const enterDeleteMode = () => {
-  batchMode.value = 'delete'
-}
-
-const enterExportMode = () => {
-  batchMode.value = 'export'
-}
-
-const cancelBatchMode = () => {
-  batchMode.value = false
-  selectedRows.value = []
-}
-
-const handleSelectionChange = (selection) => {
-  selectedRows.value = selection
-}
-
-// 分页
-const handlePageSizeChange = () => {
-  pagination.currentPage = 1
-}
+const enterBatchMode = () => { batchMode.value = 'edit' }
+const enterDeleteMode = () => { batchMode.value = 'delete' }
+const enterExportMode = () => { batchMode.value = 'export' }
+const cancelBatchMode = () => { batchMode.value = false; selectedRows.value = [] }
+const handleSelectionChange = (selection) => { selectedRows.value = selection }
+const handlePageSizeChange = () => { pagination.currentPage = 1; loadData() }
 
 // 详情
-const viewDetail = (row) => {
-  currentRecord.value = row
-  detailDialogVisible.value = true
-}
+const viewDetail = (row) => { currentRecord.value = row; detailDialogVisible.value = true }
 
 // 编辑
 const editRecord = (row) => {
   isEdit.value = true
-  Object.assign(formData, row)
+  Object.assign(formData, {
+    id: row.id, staffId: row.staffId || '', staffName: row.staffName || row.userName || '',
+    date: row.date, type: row.type || row.overtimeType || '工作日加班',
+    hours: row.hours, reason: row.reason || '', remarks: row.remarks || ''
+  })
   formDialogVisible.value = true
 }
 
 // 新增
 const openFormModal = () => {
   isEdit.value = false
-  Object.assign(formData, {
-    id: null,
-    userName: '',
-    date: new Date().toISOString().split('T')[0],
-    overtimeType: 'weekday',
-    hours: 2,
-    totalPay: 0,
-    reason: '',
-    remarks: ''
-  })
+  Object.assign(formData, { id: null, staffId: '', staffName: '', date: new Date().toISOString().split('T')[0], type: '工作日加班', hours: 2, reason: '', remarks: '' })
   formDialogVisible.value = true
 }
 
-// 批准
+// 批准/驳回
 const approveRecord = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要批准该加班申请吗？', '确认批准', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    const index = allData.value.findIndex(r => r.id === row.id)
-    if (index !== -1) {
-      allData.value[index].status = 'approved'
-      allData.value[index].approver = '当前用户'
-      allData.value[index].approvedAt = new Date().toLocaleString()
-    }
-    ElMessage.success('已批准')
-  } catch {
-    // 取消操作
-  }
+    await ElMessageBox.confirm('确定要批准该加班申请吗？', '确认批准', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
+    await laborStore.approveOvertime(row.id, { approver: '当前用户' })
+    ElMessage.success('已批准'); loadData()
+  } catch { /* 取消 */ }
 }
-
-// 驳回
 const rejectRecord = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要驳回该加班申请吗？', '确认驳回', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    const index = allData.value.findIndex(r => r.id === row.id)
-    if (index !== -1) {
-      allData.value[index].status = 'rejected'
-      allData.value[index].approver = '当前用户'
-      allData.value[index].approvedAt = new Date().toLocaleString()
-    }
-    ElMessage.success('已驳回')
-  } catch {
-    // 取消操作
-  }
+    await ElMessageBox.confirm('确定要驳回该加班申请吗？', '确认驳回', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
+    await laborStore.rejectOvertime(row.id, { approver: '当前用户' })
+    ElMessage.success('已驳回'); loadData()
+  } catch { /* 取消 */ }
 }
 
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
+      const payload = { staffId: formData.staffId, staffName: formData.staffName, date: formData.date, type: formData.type, hours: formData.hours, reason: formData.reason, remarks: formData.remarks }
       if (isEdit.value) {
-        const index = allData.value.findIndex(r => r.id === formData.id)
-        if (index !== -1) {
-          allData.value[index] = { ...allData.value[index], ...formData }
-        }
+        await laborStore.updateOvertime(formData.id, payload)
         ElMessage.success('编辑成功')
       } else {
-        allData.value.unshift({
-          id: Date.now(),
-          ...formData,
-          status: 'pending',
-          approver: '',
-          approvedAt: ''
-        })
+        await laborStore.createOvertime(payload)
         ElMessage.success('新增成功')
       }
-      formDialogVisible.value = false
+      formDialogVisible.value = false; loadData()
     }
   })
 }
+
+onMounted(() => { loadData() })
 </script>
 
 <style scoped>
