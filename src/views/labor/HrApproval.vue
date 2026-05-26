@@ -9,7 +9,7 @@
           </el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">HR审批</h1>
+          <h1 class="text-2xl font-bold text-gray-900">HR审批</h1>
           <p class="text-xs text-gray-500">人力资源审批流程管理</p>
         </div>
       </div>
@@ -17,17 +17,17 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">待审批</p>
-        <p class="text-2xl font-bold text-amber-600 mt-1">{{ statusCounts.pending }}</p>
+      <div class="bg-amber-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-amber-600">待审批</p>
+        <p class="text-2xl font-bold text-amber-700 mt-1">{{ statusCounts.pending }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">已批准</p>
-        <p class="text-2xl font-bold text-emerald-600 mt-1">{{ statusCounts.approved }}</p>
+      <div class="bg-green-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-green-600">已批准</p>
+        <p class="text-2xl font-bold text-green-700 mt-1">{{ statusCounts.approved }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">已驳回</p>
-        <p class="text-2xl font-bold text-red-600 mt-1">{{ statusCounts.rejected }}</p>
+      <div class="bg-red-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-red-600">已驳回</p>
+        <p class="text-2xl font-bold text-red-700 mt-1">{{ statusCounts.rejected }}</p>
       </div>
       <div class="bg-white rounded-xl p-4 shadow-sm">
         <p class="text-sm text-gray-500">总记录数</p>
@@ -81,7 +81,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe>
+      <el-table :data="paginatedData" stripe :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
         <el-table-column prop="employeeName" label="员工姓名" min-width="100" />
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="approvalType" label="审批类型" min-width="120">

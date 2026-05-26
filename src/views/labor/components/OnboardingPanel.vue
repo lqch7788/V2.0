@@ -10,7 +10,7 @@
             </el-icon>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">入职办理</h1>
+            <h1 class="text-2xl font-bold text-gray-900">入职办理</h1>
             <p class="text-xs text-gray-500">招聘→入职闭环管理</p>
           </div>
         </div>
@@ -90,19 +90,24 @@
           <el-button size="small" @click="openFormModal">
             <el-icon><Plus /></el-icon> 新增
           </el-button>
-          <el-button size="small" type="primary">
-            <el-icon><Edit /></el-icon> 编辑
+          <el-button v-if="!batchMode" size="small" type="primary" @click="enterBatchEdit">
+            <el-icon><Edit /></el-icon> 批量编辑
           </el-button>
-          <el-button size="small" type="danger">
-            <el-icon><Delete /></el-icon> 删除
+          <el-button v-if="!batchMode" size="small" type="danger" @click="enterBatchDelete">
+            <el-icon><Delete /></el-icon> 批量删除
           </el-button>
-          <el-button size="small">
+          <el-button v-if="!batchMode" size="small" @click="handleExport">
             <el-icon><Download /></el-icon> 导出
           </el-button>
+          <template v-if="batchMode">
+            <el-button size="small" type="success" @click="confirmBatch">确认({{ selectedIds.length }})</el-button>
+            <el-button size="small" @click="cancelBatch">取消</el-button>
+          </template>
         </div>
       </div>
 
-      <el-table v-loading="loading" :data="paginatedData" stripe>
+      <el-table v-loading="loading" :data="paginatedData" stripe :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }" @selection-change="handleSelectionChange">
+        <el-table-column v-if="batchMode" type="selection" width="50" />
         <el-table-column prop="name" label="姓名" min-width="120">
           <template #default="{ row }">
             <div>
@@ -128,11 +133,17 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button v-if="row.status === '待入职'" link type="primary" size="small" @click="startProcess(row)">开始办理</el-button>
-            <el-button v-if="row.status === '办理中'" link type="success" size="small" @click="completeOnboarding(row)">完成入职</el-button>
+            <el-tooltip content="查看详情" placement="top">
+              <el-button size="small" :icon="View" circle @click="viewDetail(row)" />
+            </el-tooltip>
+            <el-tooltip v-if="row.status === '待入职'" content="开始办理" placement="top">
+              <el-button size="small" :icon="VideoPlay" circle type="primary" @click="startProcess(row)" />
+            </el-tooltip>
+            <el-tooltip v-if="row.status === '办理中'" content="完成入职" placement="top">
+              <el-button size="small" :icon="Check" circle type="success" @click="completeOnboarding(row)" />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -214,6 +225,14 @@
             style="width: 100%"
           />
         </el-form-item>
+        <!-- 劳务合同 → 日工资 -->
+        <el-form-item v-if="formData.contractType === '劳务合同'" label="日工资" prop="dailyWage">
+          <el-input-number v-model="formData.dailyWage" :min="0" :precision="2" style="width: 100%" />
+        </el-form-item>
+        <!-- 实习协议 → 时工资 -->
+        <el-form-item v-if="formData.contractType === '实习协议'" label="时工资" prop="hourlyWage">
+          <el-input-number v-model="formData.hourlyWage" :min="0" :precision="2" style="width: 100%" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="formDialogVisible = false">取消</el-button>
@@ -225,12 +244,14 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { CirclePlus, Search, Plus, Edit, Delete, Download, Clock, Warning, CircleCheck } from '@element-plus/icons-vue'
+import { CirclePlus, Search, Plus, Edit, Delete, Download, Clock, Warning, CircleCheck, View, VideoPlay, Check } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
 import { ONBOARDING_STATUS_OPTIONS, DEPT_OPTIONS, CONTRACT_TYPE_OPTIONS } from '@/data/laborData'
+import { useExport } from '@/composables/useExport'
 
 const laborStore = useLaborStore()
+const { exportWithFormatSelect } = useExport({ fileName: '入职办理' })
 
 // 加载状态
 const loading = ref(false)
@@ -273,8 +294,82 @@ const formData = reactive({
   position: '',
   department: '',
   contractType: '劳动合同',
-  joinDate: new Date().toISOString().split('T')[0]
+  joinDate: new Date().toISOString().split('T')[0],
+  dailyWage: 0,
+  hourlyWage: 0
 })
+
+// 批量操作状态
+const batchMode = ref(false)
+const batchType = ref('') // 'edit' | 'delete' | 'export'
+const selectedRows = ref([])
+const selectedIds = computed(() => selectedRows.value.map(r => r.id))
+
+// 导出配置
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
+const exportColumns = [
+  { key: 'name', label: '姓名' },
+  { key: 'phone', label: '手机号' },
+  { key: 'idCard', label: '身份证号' },
+  { key: 'position', label: '岗位' },
+  { key: 'department', label: '部门' },
+  { key: 'status', label: '状态' },
+  { key: 'expectedDate', label: '期望入职日期' }
+]
+
+const handleSelectionChange = (rows) => {
+  selectedRows.value = rows
+}
+
+const enterBatchEdit = () => {
+  batchMode.value = true
+  batchType.value = 'edit'
+}
+
+const enterBatchDelete = () => {
+  batchMode.value = true
+  batchType.value = 'delete'
+}
+
+const handleExport = () => {
+  batchMode.value = true
+  batchType.value = 'export'
+}
+
+const confirmBatch = async () => {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请至少选择一条记录')
+    return
+  }
+  try {
+    if (batchType.value === 'delete') {
+      await ElMessageBox.confirm(`确定删除${selectedIds.value.length}条记录？`, '批量删除', {
+        confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+      })
+      for (const id of selectedIds.value) {
+        await laborStore.deleteOnboarding(id)
+      }
+      ElMessage.success(`已删除${selectedIds.value.length}条记录`)
+    } else if (batchType.value === 'export') {
+      exportWithFormatSelect(selectedRows.value, exportColumns, exportFormat.value)
+      ElMessage.success('导出成功')
+    }
+    cancelBatch()
+    loadData()
+  } catch (e) {
+    if (e !== 'cancel') {
+      console.error('批量操作失败:', e)
+      ElMessage.error('操作失败')
+    }
+  }
+}
+
+const cancelBatch = () => {
+  batchMode.value = false
+  batchType.value = ''
+  selectedRows.value = []
+}
 
 const formRules = {
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
@@ -312,7 +407,7 @@ const statusCounts = computed(() => {
     const status = r.status
     if (status === '待入职') counts.pending++
     else if (status === '办理中') counts.processing++
-    else if (status === '已完成' || status === '已入职') counts.completed++
+    else if (status === '已入职' || status === '已完成') counts.completed++
   })
   return counts
 })
@@ -358,20 +453,15 @@ const viewDetail = (row) => {
   detailDialogVisible.value = true
 }
 
-// 开始办理
+// 开始办理（V1.1无需确认，直接执行）
 const startProcess = async (row) => {
   try {
-    await ElMessageBox.confirm('确定开始办理入职流程吗？', '确认', {
-      confirmButtonText: '确定', cancelButtonText: '取消', type: 'info'
-    })
     await laborStore.updateOnboardingStatus(row.id, { status: '办理中' })
     ElMessage.success('已开始办理入职')
     loadData()
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('[OnboardingPanel] 开始办理失败:', error)
-      ElMessage.error('操作失败')
-    }
+    console.error('[OnboardingPanel] 开始办理失败:', error)
+    ElMessage.error('操作失败')
   }
 }
 
@@ -381,7 +471,7 @@ const completeOnboarding = async (row) => {
     await ElMessageBox.confirm('确定要完成入职办理吗？这将创建员工档案。', '确认完成', {
       confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
-    await laborStore.updateOnboardingStatus(row.id, { status: '已完成' })
+    await laborStore.updateOnboardingStatus(row.id, { status: '已入职' })
     ElMessage.success('入职办理已完成')
     loadData()
   } catch (error) {
@@ -397,7 +487,9 @@ const openFormModal = () => {
   Object.assign(formData, {
     name: '', phone: '', idCard: '', position: '', department: '',
     contractType: '劳动合同',
-    joinDate: new Date().toISOString().split('T')[0]
+    joinDate: new Date().toISOString().split('T')[0],
+    dailyWage: 0,
+    hourlyWage: 0
   })
   formDialogVisible.value = true
 }
@@ -408,11 +500,14 @@ const submitForm = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        await laborStore.createOnboarding({
+        const payload = {
           name: formData.name, phone: formData.phone, idCard: formData.idCard,
           position: formData.position, department: formData.department,
           contractType: formData.contractType, joinDate: formData.joinDate
-        })
+        }
+        if (formData.contractType === '劳务合同') payload.dailyWage = formData.dailyWage
+        if (formData.contractType === '实习协议') payload.hourlyWage = formData.hourlyWage
+        await laborStore.createOnboarding(payload)
         ElMessage.success('入职登记成功')
         formDialogVisible.value = false
         loadData()

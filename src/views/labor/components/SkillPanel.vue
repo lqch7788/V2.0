@@ -9,7 +9,7 @@
           </el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">技能档案</h1>
+          <h1 class="text-2xl font-bold text-gray-900">技能档案</h1>
           <p class="text-xs text-gray-500">员工技能证书与培训记录</p>
         </div>
       </div>
@@ -17,21 +17,21 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">技能证书</p>
-        <p class="text-2xl font-bold text-blue-600 mt-1">{{ totalCount }}</p>
+      <div class="bg-blue-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-blue-600">技能证书</p>
+        <p class="text-2xl font-bold text-blue-700 mt-1">{{ totalCount }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">有效证书</p>
-        <p class="text-2xl font-bold text-emerald-600 mt-1">{{ validCount }}</p>
+      <div class="bg-emerald-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-emerald-600">有效证书</p>
+        <p class="text-2xl font-bold text-emerald-700 mt-1">{{ validCount }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">即将过期</p>
-        <p class="text-2xl font-bold text-amber-600 mt-1">{{ expiringCount }}</p>
+      <div class="bg-amber-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-amber-600">即将过期</p>
+        <p class="text-2xl font-bold text-amber-700 mt-1">{{ expiringCount }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">已过期</p>
-        <p class="text-2xl font-bold text-red-600 mt-1">{{ expiredCount }}</p>
+      <div class="bg-red-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-red-600">已过期</p>
+        <p class="text-2xl font-bold text-red-700 mt-1">{{ expiredCount }}</p>
       </div>
     </div>
 
@@ -79,7 +79,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe>
+      <el-table :data="paginatedData" stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
         <el-table-column prop="employeeName" label="员工姓名" min-width="100" />
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="skillName" label="证书名称" min-width="150" />
@@ -104,6 +104,11 @@
             <el-button link type="info" size="small" @click="downloadCert(row)">下载</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无数据' }}</p>
+          </div>
+        </template>
       </el-table>
 
       <!-- 分页 -->
@@ -282,9 +287,13 @@ const formRules = {
 
 // 数据
 const allData = ref([])
+const loading = ref(false)
+const error = ref('')
 
 // 加载数据（通过员工数据获取技能信息）
 const loadData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
     if (filters.keyword) params.name = filters.keyword
@@ -307,6 +316,10 @@ const loadData = async () => {
     pagination.total = laborStore.workerTotal
   } catch (e) {
     console.error('加载技能数据失败:', e)
+    error.value = '加载数据失败'
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -359,14 +372,51 @@ const viewDetail = (row) => {
   detailDialogVisible.value = true
 }
 
-// 续期
+// 续期 - 打开表单弹窗并填充当前行数据，清空日期/编号字段以便重新填写
 const renewSkill = (row) => {
-  ElMessage.info('续期功能开发中')
+  Object.assign(formData, {
+    employeeName: row.employeeName || '',
+    department: row.department || '',
+    skillName: row.skillName || '',
+    skillType: row.skillType || '农业技能',
+    certNo: '',        // 续期需重新录入证书编号
+    issuer: row.issuer || '',
+    issueDate: '',     // 续期需重新选择发证日期
+    expireDate: '',    // 续期需重新选择到期日期
+    remark: row.remark || ''
+  })
+  formDialogVisible.value = true
 }
 
-// 下载
+// 下载证书信息 - 生成文本摘要文件并触发下载
 const downloadCert = (row) => {
-  ElMessage.info('下载功能开发中')
+  const content = [
+    '========================================',
+    '           技能证书信息',
+    '========================================',
+    `员工姓名：${row.employeeName}`,
+    `部门：${row.department}`,
+    `证书名称：${row.skillName}`,
+    `技能类别：${getSkillTypeLabel(row.skillType)}`,
+    `证书编号：${row.certNo || '-'}`,
+    `颁发机构：${row.issuer || '-'}`,
+    `发证日期：${row.issueDate || '-'}`,
+    `到期日期：${row.expireDate || '-'}`,
+    `状态：${getStatusLabel(row.status)}`,
+    `备注：${row.remark || '-'}`,
+    '========================================',
+    `导出时间：${new Date().toLocaleString('zh-CN')}`
+  ].join('\n')
+  const blob = new Blob(['﻿' + content], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${row.employeeName}_${row.skillName}_证书信息.txt`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  ElMessage.success('下载成功')
 }
 
 // 新增
@@ -390,13 +440,27 @@ const submitForm = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid) => {
     if (valid) {
-      allData.value.unshift({
-        id: Date.now(),
-        ...formData,
-        status: '有效'
-      })
-      ElMessage.success('添加成功')
-      formDialogVisible.value = false
+      try {
+        // 使用通用labor API创建技能记录
+        await laborStore.createLaborRecord('skills', {
+          employeeName: formData.employeeName,
+          department: formData.department,
+          skillName: formData.skillName,
+          skillType: formData.skillType,
+          certNo: formData.certNo,
+          issuer: formData.issuer,
+          issueDate: formData.issueDate,
+          expireDate: formData.expireDate,
+          remark: formData.remark,
+          status: '有效'
+        })
+        ElMessage.success('添加成功')
+        formDialogVisible.value = false
+        loadData()
+      } catch (e) {
+        console.error('提交技能数据失败:', e)
+        ElMessage.error('添加失败')
+      }
     }
   })
 }

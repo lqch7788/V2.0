@@ -9,7 +9,7 @@
           </el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">招聘管理</h1>
+          <h1 class="text-2xl font-bold text-gray-900">招聘管理</h1>
           <p class="text-xs text-gray-500">招聘信息发布与管理</p>
         </div>
       </div>
@@ -17,20 +17,20 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">招聘中</p>
+      <div class="bg-blue-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-blue-700 font-medium">招聘中</p>
         <p class="text-2xl font-bold text-blue-600 mt-1">{{ statusCounts.open }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">已暂停</p>
+      <div class="bg-amber-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-amber-700 font-medium">已暂停</p>
         <p class="text-2xl font-bold text-amber-600 mt-1">{{ statusCounts.paused }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">已结束</p>
+      <div class="bg-gray-100 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-gray-700 font-medium">已结束</p>
         <p class="text-2xl font-bold text-gray-600 mt-1">{{ statusCounts.closed }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">总职位数</p>
+      <div class="bg-gray-100 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-gray-700 font-medium">总职位数</p>
         <p class="text-2xl font-bold text-gray-900 mt-1">{{ pagination.total }}</p>
       </div>
     </div>
@@ -64,7 +64,10 @@
     </div>
 
     <!-- 操作按钮栏 -->
-    <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-end">
+    <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-end gap-2">
+      <el-button size="small" @click="handleExportClick">
+        <el-icon><Download /></el-icon> 导出
+      </el-button>
       <el-button type="primary" size="small" @click="openFormModal">
         <el-icon><Plus /></el-icon> 发布职位
       </el-button>
@@ -72,7 +75,12 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe>
+      <el-table :data="paginatedData" stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无招聘数据' }}</p>
+          </div>
+        </template>
         <el-table-column prop="title" label="职位名称" min-width="150" />
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="position" label="岗位" min-width="100" />
@@ -86,13 +94,17 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button link type="warning" size="small" @click="toggleStatus(row)">
-              {{ row.status === '招聘中' ? '暂停' : '开启' }}
-            </el-button>
-            <el-button link type="danger" size="small" @click="closePosition(row)">关闭</el-button>
+            <el-tooltip content="查看详情" placement="top">
+              <el-button size="small" :icon="View" circle @click="viewDetail(row)" />
+            </el-tooltip>
+            <el-tooltip :content="row.status === '招聘中' ? '暂停' : '开启'" placement="top">
+              <el-button size="small" :icon="VideoPause" circle type="warning" @click="toggleStatus(row)" />
+            </el-tooltip>
+            <el-tooltip content="关闭" placement="top">
+              <el-button size="small" :icon="Close" circle type="danger" @click="closePosition(row)" />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -116,6 +128,22 @@
         />
       </div>
     </div>
+
+    <!-- 导出格式选择弹窗 -->
+    <el-dialog v-model="exportModalVisible" title="选择导出格式" width="400px">
+      <div class="space-y-4">
+        <p class="text-sm text-gray-500">选择导出格式（共 {{ allData.length }} 条记录）</p>
+        <el-radio-group v-model="exportFormat" class="flex flex-col gap-3">
+          <el-radio value="excel" size="large">Excel 格式 (.xls)</el-radio>
+          <el-radio value="csv" size="large">CSV 格式 (.csv)</el-radio>
+          <el-radio value="word" size="large">Word 格式 (.doc)</el-radio>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="exportModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmExport">确认导出</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 详情弹窗 -->
     <el-dialog v-model="detailDialogVisible" title="职位详情" width="600px">
@@ -143,28 +171,85 @@
     </el-dialog>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="formDialogVisible" :title="isEdit ? '编辑职位' : '发布职位'" width="500px">
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-form-item label="职位名称" prop="title">
-          <el-input v-model="formData.title" placeholder="请输入职位名称" />
+    <el-dialog v-model="formDialogVisible" :title="isEdit ? '编辑职位' : '发布职位'" width="600px">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="110px">
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="职位名称" prop="title">
+              <el-input v-model="formData.title" placeholder="请输入职位名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用工类型" prop="employmentType">
+              <el-select v-model="formData.employmentType" placeholder="请选择用工类型">
+                <el-option label="正式工" value="正式工" />
+                <el-option label="临时工" value="临时工" />
+                <el-option label="季节工" value="季节工" />
+                <el-option label="实习生" value="实习生" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="部门" prop="department">
+              <el-input v-model="formData.department" placeholder="请输入部门" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="岗位" prop="position">
+              <el-input v-model="formData.position" placeholder="请输入岗位" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="8">
+            <el-form-item label="招聘人数" prop="headcount">
+              <el-input-number v-model="formData.headcount" :min="1" :max="100" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="优先级" prop="priority">
+              <el-select v-model="formData.priority" placeholder="请选择">
+                <el-option v-for="item in RECRUITMENT_PRIORITY_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="招聘来源" prop="source">
+              <el-input v-model="formData.source" placeholder="如: 内部推荐" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="最低薪资" prop="minSalary">
+              <el-input-number v-model="formData.minSalary" :min="0" :precision="0" style="width: 100%" placeholder="最低薪资" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="最高薪资" prop="maxSalary">
+              <el-input-number v-model="formData.maxSalary" :min="0" :precision="0" style="width: 100%" placeholder="最高薪资" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="期望到岗日期" prop="expectedDate">
+          <el-date-picker
+            v-model="formData.expectedDate"
+            type="date"
+            value-format="YYYY-MM-DD"
+            placeholder="选择日期"
+            style="width: 100%"
+          />
         </el-form-item>
-        <el-form-item label="部门" prop="department">
-          <el-input v-model="formData.department" placeholder="请输入部门" />
-        </el-form-item>
-        <el-form-item label="岗位" prop="position">
-          <el-input v-model="formData.position" placeholder="请输入岗位" />
-        </el-form-item>
-        <el-form-item label="招聘人数" prop="headcount">
-          <el-input-number v-model="formData.headcount" :min="1" :max="100" />
-        </el-form-item>
-        <el-form-item label="薪资范围" prop="salaryRange">
-          <el-input v-model="formData.salaryRange" placeholder="如: 5000-8000" />
+        <el-form-item label="招聘原因" prop="reason">
+          <el-input v-model="formData.reason" type="textarea" :rows="2" placeholder="请输入招聘原因" />
         </el-form-item>
         <el-form-item label="职位描述" prop="description">
           <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入职位描述" />
         </el-form-item>
-        <el-form-item label="任职要求" prop="requirements">
-          <el-input v-model="formData.requirements" type="textarea" :rows="3" placeholder="请输入任职要求" />
+        <el-form-item label="岗位要求" prop="requirements">
+          <el-input v-model="formData.requirements" type="textarea" :rows="3" placeholder="请输入岗位要求/任职要求" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -177,9 +262,10 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { Briefcase, Search, Plus } from '@element-plus/icons-vue'
+import { Briefcase, Search, Plus, Download, View, VideoPause, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
+import { useExport } from '@/composables/useExport'
 import { RECRUITMENT_PRIORITY_OPTIONS, APPROVAL_STATUS_OPTIONS } from '@/data/laborData'
 
 // 状态映射
@@ -193,6 +279,22 @@ const getStatusType = (status) => statusMap[status]?.type || 'info'
 
 // Labor Store
 const laborStore = useLaborStore()
+const { exportWithFormatSelect } = useExport({ fileName: '招聘数据' })
+
+// 招聘导出列配置
+const recruitmentExportColumns = [
+  { key: 'title', label: '职位名称' },
+  { key: 'department', label: '部门' },
+  { key: 'position', label: '岗位' },
+  { key: 'headcount', label: '招聘人数' },
+  { key: 'salaryRange', label: '薪资范围' },
+  { key: 'publishDate', label: '发布日期' },
+  { key: 'status', label: '状态' }
+]
+
+// 加载/错误状态
+const loading = ref(false)
+const error = ref('')
 
 // 筛选条件
 const filters = reactive({ keyword: '', status: '' })
@@ -207,8 +309,9 @@ const formDialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
-  id: null, title: '', department: '', position: '', headcount: 1,
-  salaryRange: '', description: '', requirements: ''
+  id: null, title: '', employmentType: '', department: '', position: '', headcount: 1,
+  priority: '', source: '', minSalary: null, maxSalary: null,
+  expectedDate: '', reason: '', description: '', requirements: ''
 })
 
 const formRules = {
@@ -218,11 +321,17 @@ const formRules = {
   headcount: [{ required: true, message: '请输入招聘人数', trigger: 'blur' }]
 }
 
+// 导出弹窗状态
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
+
 // 数据
 const allData = ref([])
 
 // 加载数据
 const loadData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
     if (filters.keyword) params.title = filters.keyword
@@ -231,7 +340,10 @@ const loadData = async () => {
     allData.value = laborStore.recruitmentList
     pagination.total = laborStore.recruitmentTotal
   } catch (e) {
-    console.error('加载招聘数据失败:', e)
+    error.value = '加载招聘数据失败，请稍后重试'
+    ElMessage.error('加载招聘数据失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -283,12 +395,27 @@ const closePosition = async (row) => {
   } catch { /* 取消 */ }
 }
 
+// 导出
+const handleExportClick = () => {
+  if (allData.value.length === 0) {
+    ElMessage.warning('没有可导出的数据')
+    return
+  }
+  exportModalVisible.value = true
+}
+
+const confirmExport = () => {
+  exportWithFormatSelect(allData.value, recruitmentExportColumns, exportFormat.value, `招聘数据_${new Date().toISOString().slice(0, 10)}`)
+  exportModalVisible.value = false
+}
+
 // 新增
 const openFormModal = () => {
   isEdit.value = false
   Object.assign(formData, {
-    id: null, title: '', department: '', position: '', headcount: 1,
-    salaryRange: '', description: '', requirements: ''
+    id: null, title: '', employmentType: '', department: '', position: '', headcount: 1,
+    priority: '', source: '', minSalary: null, maxSalary: null,
+    expectedDate: '', reason: '', description: '', requirements: ''
   })
   formDialogVisible.value = true
 }
@@ -298,11 +425,18 @@ const submitForm = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid) => {
     if (valid) {
+      // 薪资交叉校验
+      if (formData.minSalary > 0 && formData.maxSalary > 0 && formData.minSalary > formData.maxSalary) {
+        ElMessage.warning('最低薪资不能大于最高薪资')
+        return
+      }
       const payload = {
-        title: formData.title, department: formData.department,
-        position: formData.position, headcount: formData.headcount,
-        salaryRange: formData.salaryRange, description: formData.description,
-        requirements: formData.requirements
+        title: formData.title, employmentType: formData.employmentType,
+        department: formData.department, position: formData.position,
+        headcount: formData.headcount, priority: formData.priority,
+        source: formData.source, minSalary: formData.minSalary, maxSalary: formData.maxSalary,
+        expectedDate: formData.expectedDate, reason: formData.reason,
+        description: formData.description, requirements: formData.requirements
       }
       if (isEdit.value) {
         await laborStore.updateRecruitment(formData.id, payload)

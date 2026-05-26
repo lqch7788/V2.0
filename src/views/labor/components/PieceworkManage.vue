@@ -8,7 +8,7 @@
             <el-icon :size="20" color="white"><Box /></el-icon>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">计件工资管理</h1>
+            <h1 class="text-2xl font-bold text-gray-900">计件工资管理</h1>
             <p class="text-xs text-gray-500">管理临时工计件工资记录</p>
           </div>
         </div>
@@ -93,7 +93,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <el-table :data="paginatedData" border stripe>
+      <el-table :data="paginatedData" border stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
         <el-table-column prop="workDate" label="日期" width="120" />
         <el-table-column prop="workerName" label="员工" width="100" />
         <el-table-column prop="taskName" label="任务" width="150" />
@@ -118,13 +118,19 @@
             <el-tag :type="getStatusType(row.status)" size="small">{{ row.status }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleViewDetail(row)">详情</el-button>
-            <el-button link type="success" @click="handleConfirm(row)">确认</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" :icon="View" circle @click="handleViewDetail(row)" />
+            <el-button size="small" :icon="Edit" circle type="primary" @click="handleEdit(row)" />
+            <el-button size="small" :icon="Select" circle type="success" @click="handleConfirm(row)" />
+            <el-button size="small" :icon="Delete" circle type="danger" @click="handleDelete(row)" />
           </template>
         </el-table-column>
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无数据' }}</p>
+          </div>
+        </template>
       </el-table>
 
       <!-- 分页 -->
@@ -155,10 +161,10 @@
           <el-input v-model="formData.unit" />
         </el-form-item>
         <el-form-item label="数量">
-          <el-input-number v-model="formData.quantity" :min="0" class="w-full" />
+          <el-input-number v-model="formData.quantity" :min="0.01" class="w-full" />
         </el-form-item>
         <el-form-item label="单价">
-          <el-input-number v-model="formData.unitPrice" :min="0" :precision="2" class="w-full" />
+          <el-input-number v-model="formData.unitPrice" :min="0.01" :precision="2" class="w-full" />
         </el-form-item>
         <el-form-item label="工作日期">
           <el-date-picker
@@ -176,6 +182,23 @@
       <template #footer>
         <el-button @click="addModalVisible = false">取消</el-button>
         <el-button type="primary" @click="handleConfirmAdd">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 导出格式选择弹窗 -->
+    <el-dialog v-model="exportModalVisible" title="选择导出格式" width="400px">
+      <div class="flex flex-col gap-3 py-2">
+        <el-radio-group v-model="exportFormat">
+          <div class="flex flex-col gap-2">
+            <el-radio value="excel">Excel (.xls)</el-radio>
+            <el-radio value="csv">CSV (.csv)</el-radio>
+            <el-radio value="word">Word (.doc)</el-radio>
+          </div>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="exportModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmExport">确定导出</el-button>
       </template>
     </el-dialog>
 
@@ -224,9 +247,10 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Box, User, Coin } from '@element-plus/icons-vue'
+import { Box, User, Coin, View, Edit, Delete, Select } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
+import { useExport } from '@/composables/useExport'
 
 // Labor Store
 const laborStore = useLaborStore()
@@ -257,6 +281,8 @@ const stats = reactive({
 
 // 表格数据
 const data = ref([])
+const loading = ref(false)
+const error = ref('')
 
 const total = computed(() => pagination.total)
 const totalPages = computed(() => Math.ceil(total.value / pagination.pageSize))
@@ -264,6 +290,8 @@ const paginatedData = computed(() => data.value)
 
 // 加载数据
 const loadData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
     if (filters.workerName) params.workerName = filters.workerName
@@ -281,6 +309,10 @@ const loadData = async () => {
     stats.avgAmountPerWorker = stats.totalWorkers > 0 ? stats.totalAmount / stats.totalWorkers : 0
   } catch (e) {
     console.error('加载计件工资数据失败:', e)
+    error.value = '加载数据失败'
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -304,8 +336,8 @@ const formData = reactive({
 const getStatusType = (status) => {
   const typeMap = {
     '待确认': 'warning',
-    '已确认': 'success',
-    '已发放': 'primary'
+    '已确认': 'primary',
+    '已发放': 'success'
   }
   return typeMap[status] || 'info'
 }
@@ -330,12 +362,13 @@ const handleAdd = () => {
     quantity: 0,
     unitPrice: 0,
     workDate: '',
-    remarks: ''
+    remarks: '',
+    _editId: null
   })
   addModalVisible.value = true
 }
 
-// 确认新增
+// 确认新增/编辑
 const handleConfirmAdd = async () => {
   if (!formData.workerName || !formData.taskName || !formData.workDate) {
     ElMessage.warning('请填写完整信息')
@@ -343,22 +376,38 @@ const handleConfirmAdd = async () => {
   }
   const total = formData.quantity * formData.unitPrice
   try {
-    await laborStore.createPiecework({
-      workerName: formData.workerName,
-      taskName: formData.taskName,
-      unit: formData.unit,
-      quantity: formData.quantity,
-      unitPrice: formData.unitPrice,
-      total,
-      workDate: formData.workDate,
-      remarks: formData.remarks || '',
-      status: '待确认'
-    })
+    if (formData._editId) {
+      // 编辑模式
+      await laborStore.updatePiecework(formData._editId, {
+        workerName: formData.workerName,
+        taskName: formData.taskName,
+        unit: formData.unit,
+        quantity: formData.quantity,
+        unitPrice: formData.unitPrice,
+        total,
+        workDate: formData.workDate,
+        remarks: formData.remarks || ''
+      })
+      ElMessage.success('编辑成功')
+    } else {
+      // 新增模式
+      await laborStore.createPiecework({
+        workerName: formData.workerName,
+        taskName: formData.taskName,
+        unit: formData.unit,
+        quantity: formData.quantity,
+        unitPrice: formData.unitPrice,
+        total,
+        workDate: formData.workDate,
+        remarks: formData.remarks || '',
+        status: '待确认'
+      })
+      ElMessage.success('新增成功')
+    }
     addModalVisible.value = false
-    ElMessage.success('新增成功')
     loadData()
   } catch (e) {
-    ElMessage.error('新增失败')
+    ElMessage.error(formData._editId ? '编辑失败' : '新增失败')
   }
 }
 
@@ -368,6 +417,22 @@ const handleViewDetail = (row) => {
   detailModalVisible.value = true
 }
 
+// 编辑
+const handleEdit = (row) => {
+  Object.assign(formData, {
+    workerName: row.workerName,
+    taskName: row.taskName,
+    unit: row.unit,
+    quantity: row.quantity,
+    unitPrice: row.unitPrice,
+    workDate: row.workDate,
+    remarks: row.remarks || ''
+  })
+  // 编辑模式暂存id
+  formData._editId = row.id
+  addModalVisible.value = true
+}
+
 // 确认
 const handleConfirm = async (row) => {
   try {
@@ -375,7 +440,7 @@ const handleConfirm = async (row) => {
     ElMessage.success('确认成功')
     loadData()
   } catch (e) {
-    ElMessage.success('确认成功')
+    ElMessage.error('确认失败')
   }
 }
 
@@ -396,8 +461,28 @@ const handleDelete = async (row) => {
 }
 
 // 导出
+const exportColumns = [
+  { key: 'workDate', label: '日期' },
+  { key: 'workerName', label: '员工' },
+  { key: 'taskName', label: '任务' },
+  { key: 'unit', label: '单位' },
+  { key: 'quantity', label: '数量' },
+  { key: 'unitPrice', label: '单价' },
+  { key: 'total', label: '合计' },
+  { key: 'status', label: '状态' },
+]
+
+const { exportWithFormatSelect } = useExport({ fileName: '计件工资管理' })
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
+
 const handleExportClick = () => {
-  ElMessage.success('导出功能开发中')
+  exportModalVisible.value = true
+}
+
+const handleConfirmExport = () => {
+  exportWithFormatSelect(data.value, exportColumns, exportFormat.value)
+  exportModalVisible.value = false
 }
 
 onMounted(() => { loadData() })

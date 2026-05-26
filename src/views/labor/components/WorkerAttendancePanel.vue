@@ -122,11 +122,23 @@
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <el-table
         ref="tableRef"
+        v-loading="loading"
         :data="paginatedData"
         stripe
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }"
         @selection-change="handleSelectionChange"
       >
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无考勤数据' }}</p>
+          </div>
+        </template>
         <el-table-column v-if="batchMode" type="selection" width="55" />
+        <el-table-column prop="workerId" label="工号" width="100">
+          <template #default="{ row }">
+            {{ row.workerId || row.id || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="workerName" label="工人姓名" min-width="100" />
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="date" label="日期" min-width="120" />
@@ -140,6 +152,11 @@
             {{ row.checkOutTime || '-' }}
           </template>
         </el-table-column>
+        <el-table-column prop="workHours" label="工作时长" min-width="100">
+          <template #default="{ row }">
+            {{ row.workHours || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" min-width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">
@@ -148,10 +165,14 @@
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
-        <el-table-column v-if="!batchMode" label="操作" width="180" fixed="right">
+        <el-table-column v-if="!batchMode" label="操作" width="120" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button link type="primary" size="small" @click="editRecord(row)">编辑</el-button>
+            <el-tooltip content="查看详情" placement="top">
+              <el-button size="small" :icon="View" circle @click="viewDetail(row)" />
+            </el-tooltip>
+            <el-tooltip content="编辑" placement="top">
+              <el-button size="small" :icon="Edit" circle type="primary" @click="editRecord(row)" />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -248,10 +269,12 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import {
-  Calendar, CircleCheck, CircleClose, Warning, Search, Plus, Edit, Delete, Download
+  Calendar, CircleCheck, CircleClose, Warning, Search, Plus, Edit, Delete, Download, View
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
+import { useScheduleStore } from '@/stores/modules/schedule'
+import { DEPT_OPTIONS } from '@/data/laborData'
 import { enhancedApiClient } from '@/lib/apiClient'
 
 // 今日日期字符串
@@ -259,9 +282,11 @@ const todayStr = new Date().toISOString().split('T')[0]
 
 // Labor Store
 const laborStore = useLaborStore()
+// Schedule Store（排班对比数据来源）
+const scheduleStore = useScheduleStore()
 
-// 部门列表
-const departments = ['技术部', '运营部', '市场部', '财务部']
+// 部门列表（从配置数据获取）
+const departments = computed(() => DEPT_OPTIONS.filter(o => o.value).map(o => o.value))
 
 // 筛选条件
 const filters = reactive({
@@ -312,11 +337,13 @@ const formRules = {
 function normalizeAttendance(record) {
   return {
     id: record.id,
+    workerId: record.worker_id || record.staff_id || record.id || '',
     workerName: record.name || record.worker_name || '',
     department: record.dept || '',
     date: record.date || '',
     checkInTime: record.check_in || '',
     checkOutTime: record.check_out || '',
+    workHours: record.work_hours || record.workHours || '',
     status: record.status_class || record.status || 'normal',
     remark: record.remarks || ''
   }
@@ -338,24 +365,24 @@ function denormalizeAttendance(data) {
   }
 }
 
-// 考勤数据
-const allData = ref([])
+// 考勤数据（从Store获取）
+const allData = computed(() => {
+  return laborStore.attendanceList.map(r => normalizeAttendance(r))
+})
+const loading = computed(() => laborStore.loading)
+const error = computed(() => laborStore.error)
 
 // 加载数据
 const loadData = async () => {
   try {
-    const params = {}
-    if (filters.date) params.start_date = filters.date
-    if (filters.date) params.end_date = filters.date
+    const params = { pageSize: 100 }
+    if (filters.date) { params.startDate = filters.date; params.endDate = filters.date }
     if (filters.department) params.dept = filters.department
     if (filters.keyword) params.keyword = filters.keyword
-
-    const response = await enhancedApiClient.get('/attendance', params)
-    const records = response?.data || response || []
-    allData.value = Array.isArray(records) ? records.map(r => normalizeAttendance(r)) : []
-  } catch (error) {
-    console.error('[WorkerAttendancePanel] 加载考勤数据失败:', error)
-    allData.value = []
+    await laborStore.fetchAttendance(params)
+  } catch (e) {
+    console.error('[WorkerAttendancePanel] 加载考勤数据失败:', e)
+    ElMessage.error('加载考勤数据失败')
   }
 }
 
@@ -376,15 +403,23 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(start, start + pagination.pageSize)
 })
 
-// 排班对比数据（基于实际数据计算）
+// 排班对比数据（从排班调度Store读取排班，与考勤数据交叉对比）
 const scheduleComparison = computed(() => {
-  const todayRecords = allData.value.filter(r => r.date === todayStr)
-  return {
-    scheduledCount: todayRecords.length,
-    checkedInCount: todayRecords.filter(r => r.checkInTime).length,
-    absentCount: todayRecords.filter(r => !r.checkInTime && r.status !== 'leave').length,
-    unscheduledCount: 0
-  }
+  // 今日排班数据（来自农事管理-排班调度）
+  const todaySchedules = scheduleStore.schedules.filter(s => s.date === todayStr)
+  const scheduledIds = new Set(todaySchedules.map(s => s.staffId))
+  // 今日考勤数据
+  const todayAttendance = allData.value.filter(r => r.date === todayStr)
+  const checkedInIds = new Set(todayAttendance.filter(r => r.checkInTime).map(r => r.workerName || r.id))
+
+  const scheduledCount = scheduledIds.size
+  const checkedInCount = todayAttendance.filter(r => r.checkInTime).length
+  // 有排班但未打卡（缺勤）
+  const absentCount = todayAttendance.filter(r => !r.checkInTime && r.status !== 'leave').length
+  // 未排班但已打卡（临时到岗）
+  const unscheduledCount = todayAttendance.filter(r => r.checkInTime).length -
+    [...scheduledIds].filter(id => checkedInIds.has(id)).length
+  return { scheduledCount, checkedInCount, absentCount, unscheduledCount: Math.max(0, unscheduledCount) }
 })
 
 // 状态映射
@@ -485,7 +520,7 @@ const submitForm = async () => {
         } else {
           // 新增
           data.id = `ATT_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
-          await enhancedApiClient.post('/attendance/batch', { records: [data] })
+          await enhancedApiClient.post('/attendance', data)
           ElMessage.success('新增成功')
         }
         formDialogVisible.value = false
@@ -499,8 +534,12 @@ const submitForm = async () => {
 }
 
 // 初始化加载
-onMounted(() => {
-  loadData()
+onMounted(async () => {
+  await loadData()
+  // 加载排班数据用于排班对比（来自农事管理-排班调度）
+  if (scheduleStore.schedules.length === 0) {
+    await scheduleStore.fetchSchedules()
+  }
 })
 </script>
 

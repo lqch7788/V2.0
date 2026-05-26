@@ -8,7 +8,7 @@
             <el-icon :size="20" color="white"><TrendCharts /></el-icon>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">工资预算预测</h1>
+            <h1 class="text-2xl font-bold text-gray-900">工资预算预测</h1>
             <p class="text-xs text-gray-500">基于种植批次计划的人工成本预算分析</p>
           </div>
         </div>
@@ -79,8 +79,9 @@
       <div class="col-span-2 space-y-4">
         <div class="bg-white rounded-xl p-4 shadow-sm">
           <h3 class="text-sm font-medium text-gray-700 mb-4">月度成本趋势</h3>
-          <div class="h-64 flex items-center justify-center text-gray-400">
-            图表区域
+          <div class="h-64 flex flex-col items-center justify-center text-gray-400">
+            <p>月度成本趋势图表</p>
+            <p class="text-xs mt-2 text-gray-300">(需要集成recharts图表库，V1.1使用recharts渲染4个图表：月度成本趋势、成本构成饼图、采收量柱状图、单位成本折线图)</p>
           </div>
         </div>
       </div>
@@ -90,35 +91,35 @@
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ inputParams.year }}年度预算汇总</h3>
       <div class="grid grid-cols-5 gap-4">
-        <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-lg">
           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-600 mb-2">
             年度总成本
           </div>
           <div class="text-xl font-bold text-gray-900">{{ (yearlyBudget.totalLaborCost / 10000).toFixed(2) }}万元</div>
           <div class="text-xs text-gray-500 mt-1">¥{{ yearlyBudget.totalLaborCost.toLocaleString() }}</div>
         </div>
-        <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg">
           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 mb-2">
             正式工成本
           </div>
           <div class="text-xl font-bold text-gray-900">{{ (yearlyBudget.formalWorkerCost / 10000).toFixed(2) }}万元</div>
           <div class="text-xs text-gray-500 mt-1">占比{{ yearlyBudget.formalWorkerRatio }}%</div>
         </div>
-        <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="p-4 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-lg">
           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-600 mb-2">
             临时工成本
           </div>
           <div class="text-xl font-bold text-gray-900">{{ (yearlyBudget.tempWorkerCost / 10000).toFixed(2) }}万元</div>
           <div class="text-xs text-gray-500 mt-1">占比{{ yearlyBudget.tempWorkerRatio }}%</div>
         </div>
-        <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg">
           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-600 mb-2">
             预计采收量
           </div>
           <div class="text-xl font-bold text-gray-900">{{ (yearlyBudget.totalYield / 10000).toFixed(2) }}万斤</div>
           <div class="text-xs text-gray-500 mt-1">人均{{ yearlyBudget.avgYieldPerPerson }}斤/人</div>
         </div>
-        <div class="p-4 bg-gray-50 rounded-lg">
+        <div class="p-4 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg">
           <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-50 text-gray-600 mb-2">
             平均单位成本
           </div>
@@ -131,7 +132,7 @@
       <div class="mt-6">
         <h4 class="text-sm font-medium text-gray-700 mb-3">季度成本分布</h4>
         <div class="grid grid-cols-4 gap-4">
-          <div v-for="quarter in quarterlyBudget" :key="quarter.quarter" class="p-3 bg-gray-50 rounded-lg">
+          <div v-for="quarter in quarterlyBudget" :key="quarter.quarter" class="p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-100 rounded-lg">
             <div class="text-sm text-gray-500 mb-1">{{ quarter.quarter }}</div>
             <div class="text-lg font-semibold text-gray-900">
               {{ (quarter.laborCost / 10000).toFixed(2) }}万元
@@ -146,7 +147,7 @@
 
     <!-- 月度明细表 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="monthlyBudget" border stripe>
+      <el-table :data="monthlyBudget" border stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
         <el-table-column prop="month" label="月份" width="100" />
         <el-table-column prop="totalCost" label="总成本(万元)" width="130" align="right">
           <template #default="{ row }">
@@ -184,6 +185,11 @@
             ¥{{ row.costPerUnit.toFixed(2) }}
           </template>
         </el-table-column>
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无数据' }}</p>
+          </div>
+        </template>
       </el-table>
     </div>
 
@@ -217,6 +223,19 @@
         <el-button type="primary" @click="handleConfirmAdd">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 导出格式选择弹窗 -->
+    <el-dialog v-model="exportModalVisible" title="选择导出格式" width="400px">
+      <el-radio-group v-model="exportFormat" class="flex flex-col gap-3">
+        <el-radio value="excel">Excel (.xls)</el-radio>
+        <el-radio value="csv">CSV (.csv)</el-radio>
+        <el-radio value="word">Word (.doc)</el-radio>
+      </el-radio-group>
+      <template #footer>
+        <el-button @click="exportModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmExport">确认导出</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -225,9 +244,25 @@ import { ref, reactive, onMounted } from 'vue'
 import { TrendCharts, Download, Plus, Warning, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
+import { useExport } from '@/composables/useExport'
 
 // Labor Store
 const laborStore = useLaborStore()
+
+// 导出功能
+const { exportWithFormatSelect } = useExport({ fileName: '成本预测' })
+// 导出列配置（与表格列对应，key使用实际数据字段名）
+const exportColumns = [
+  { key: 'month', label: '月份' },
+  { key: 'laborCost', label: '总成本(万元)' },
+  { key: 'formalWorkerCost', label: '正式工(万元)' },
+  { key: 'tempWorkerCost', label: '临时工(万元)' },
+  { key: 'socialSecurity', label: '社保(万元)' },
+  { key: 'benefits', label: '福利(万元)' },
+  { key: 'headcount', label: '人数' },
+  { key: 'yieldPrediction', label: '采收量(万斤)' },
+  { key: 'costPerUnit', label: '单位成本' }
+]
 
 // 输入参数
 const inputParams = reactive({
@@ -259,9 +294,14 @@ const quarterlyBudget = ref([])
 
 // 月度明细
 const monthlyBudget = ref([])
+const loading = ref(false)
+const error = ref('')
 
 // 弹窗状态
 const addModalVisible = ref(false)
+// 导出弹窗状态
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
 const formData = reactive({
   month: '',
   totalCost: 0,
@@ -272,6 +312,8 @@ const formData = reactive({
 
 // 加载成本统计数据
 const loadData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const params = { year: inputParams.year }
     await laborStore.fetchLaborCostStats(params)
@@ -296,6 +338,10 @@ const loadData = async () => {
     }
   } catch (e) {
     console.error('加载成本统计数据失败:', e)
+    error.value = '加载数据失败'
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -305,7 +351,7 @@ const handleCalculate = async () => {
     await loadData()
     ElMessage.success('计算完成')
   } catch (e) {
-    ElMessage.success('计算完成')
+    ElMessage.error('计算失败')
   }
 }
 
@@ -320,7 +366,17 @@ const handleReset = () => {
 
 // 导出
 const handleExport = () => {
-  ElMessage.success('导出功能开发中')
+  if (!monthlyBudget.value || monthlyBudget.value.length === 0) {
+    ElMessage.warning('没有可导出的数据')
+    return
+  }
+  exportModalVisible.value = true
+}
+
+// 确认导出
+const confirmExport = () => {
+  exportWithFormatSelect(monthlyBudget.value, exportColumns, exportFormat.value, '成本预测')
+  exportModalVisible.value = false
 }
 
 // 新增

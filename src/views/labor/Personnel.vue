@@ -9,7 +9,7 @@
           </el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">人事管理</h1>
+          <h1 class="text-2xl font-bold text-gray-900">人事管理</h1>
           <p class="text-xs text-gray-500">员工信息与入职流程管理</p>
         </div>
       </div>

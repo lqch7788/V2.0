@@ -9,7 +9,7 @@
           </el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">考勤管理</h1>
+          <h1 class="text-2xl font-bold text-gray-900">考勤管理</h1>
           <p class="text-xs text-gray-500">工人考勤、请假与加班管理</p>
         </div>
       </div>

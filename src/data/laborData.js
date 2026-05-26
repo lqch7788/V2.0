@@ -18,7 +18,7 @@ export const APPROVAL_STATUS_OPTIONS = [
 
 export const APPROVAL_STATUS_COLORS = {
   '待审批': 'bg-amber-100 text-amber-700',
-  '已通过': 'bg-emerald-100 text-emerald-700',
+  '已通过': 'bg-green-100 text-green-700',
   '已拒绝': 'bg-red-100 text-red-700',
   '已取消': 'bg-gray-100 text-gray-500',
   '已撤回': 'bg-gray-100 text-gray-600'
@@ -53,9 +53,9 @@ export const LEAVE_STATUS_OPTIONS = [
 // ============================================
 
 export const OVERTIME_TYPE_OPTIONS = [
-  { value: '工作日加班', label: '工作日加班' },
-  { value: '休息日加班', label: '休息日加班' },
-  { value: '节假日加班', label: '节假日加班' }
+  { value: '工作日加班', label: '工作日加班 (1.5倍)' },
+  { value: '休息日加班', label: '休息日加班 (2倍)' },
+  { value: '节假日加班', label: '节假日加班 (3倍)' }
 ]
 
 export const OVERTIME_STATUS_OPTIONS = [
@@ -289,19 +289,19 @@ export const PERFORMANCE_GRADE_OPTIONS = [
 // ============================================
 
 export const RISK_LEVEL_OPTIONS = [
-  { value: '', label: '全部' },
-  { value: '低', label: '低' },
-  { value: '中', label: '中' },
-  { value: '高', label: '高' },
-  { value: '严重', label: '严重' }
+  { value: '', label: '全部等级' },
+  { value: 'warning', label: '一般提醒' },
+  { value: 'danger', label: '需要注意' },
+  { value: 'critical', label: '紧急处理' }
 ]
 
 export const RISK_TYPE_OPTIONS = [
-  { value: '工伤风险', label: '工伤风险' },
-  { value: '人员流失', label: '人员流失' },
-  { value: '劳动纠纷', label: '劳动纠纷' },
-  { value: '合规风险', label: '合规风险' },
-  { value: '安全风险', label: '安全风险' }
+  { value: 'overtime', label: '超时加班' },
+  { value: 'high_temp', label: '高温作业' },
+  { value: 'schedule_gap', label: '排班空缺' },
+  { value: 'contract_expiry', label: '合同到期' },
+  { value: 'certificate_expiry', label: '证件过期' },
+  { value: 'turnover', label: '频繁离职' }
 ]
 
 // ============================================

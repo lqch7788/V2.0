@@ -8,7 +8,7 @@
             <el-icon :size="20" color="white"><Trophy /></el-icon>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">绩效考核</h1>
+            <h1 class="text-2xl font-bold text-gray-900">绩效考核</h1>
             <p class="text-xs text-gray-500">员工绩效考核评分与排名</p>
           </div>
         </div>
@@ -21,7 +21,7 @@
             <el-icon><Plus /></el-icon>
             新增
           </el-button>
-          <el-button type="warning" @click="handleBatchEdit">
+          <el-button style="background-color: #3b82f6; border-color: #3b82f6; color: white;" @click="handleBatchEdit">
             <el-icon><Edit /></el-icon>
             编辑
           </el-button>
@@ -35,7 +35,7 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-3 gap-4">
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+      <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 shadow-sm">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
             <el-icon :size="20" color="#10b981"><User /></el-icon>
@@ -46,7 +46,7 @@
           </div>
         </div>
       </div>
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+      <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-4 shadow-sm">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
             <el-icon :size="20" color="#22c55e"><TrendCharts /></el-icon>
@@ -57,7 +57,7 @@
           </div>
         </div>
       </div>
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+      <div class="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl p-4 shadow-sm">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
             <el-icon :size="20" color="#f59e0b"><Trophy /></el-icon>
@@ -102,41 +102,49 @@
     <div class="bg-white rounded-xl p-4 shadow-sm">
       <h3 class="text-sm font-medium text-gray-700 mb-4">绩效分布</h3>
       <div class="h-48 flex items-center justify-center text-gray-400">
-        绩效图表区域
+        绩效分布图表 (需要集成recharts，V1.1使用recharts渲染柱状图和饼图)
       </div>
     </div>
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" border stripe>
-        <el-table-column type="selection" width="55" />
+      <!-- 批量操作栏 -->
+      <div v-if="batchMode" class="flex items-center gap-3 px-4 py-2.5 bg-blue-50 border-b border-blue-200">
+        <span class="text-sm text-blue-700 font-medium">已选择 {{ selectedRows.length }} 条记录</span>
+        <el-button type="warning" size="small" @click="handleConfirmBatchEdit" :disabled="selectedRows.length === 0">批量编辑</el-button>
+        <el-button type="danger" size="small" @click="handleConfirmBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
+        <el-button size="small" @click="handleCancelBatch">取消批量模式</el-button>
+      </div>
+
+      <el-table ref="tableRef" :data="paginatedData" border stripe @selection-change="handleSelectionChange" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+        <el-table-column v-if="batchMode" type="selection" width="55" />
         <el-table-column prop="staffId" label="工号" width="100" />
         <el-table-column prop="staffName" label="姓名" width="100" />
         <el-table-column prop="department" label="部门" width="100" />
         <el-table-column prop="month" label="月份" width="100" />
         <el-table-column prop="taskCompletionRate" label="任务完成率" width="120" align="right">
           <template #default="{ row }">
-            {{ row.taskCompletionRate }}%
+            <span :class="getScoreClass(row.taskCompletionRate)">{{ row.taskCompletionRate }}%</span>
           </template>
         </el-table-column>
         <el-table-column prop="attendanceRate" label="出勤率" width="100" align="right">
           <template #default="{ row }">
-            {{ row.attendanceRate }}%
+            <span :class="getScoreClass(row.attendanceRate)">{{ row.attendanceRate }}%</span>
           </template>
         </el-table-column>
         <el-table-column prop="workQuality" label="工作质量" width="100" align="right">
           <template #default="{ row }">
-            {{ row.workQuality }}%
+            <span :class="getScoreClass(row.workQuality)">{{ row.workQuality }}%</span>
           </template>
         </el-table-column>
         <el-table-column prop="safetyCompliance" label="安全规范" width="100" align="right">
           <template #default="{ row }">
-            {{ row.safetyCompliance }}%
+            <span :class="getScoreClass(row.safetyCompliance)">{{ row.safetyCompliance }}%</span>
           </template>
         </el-table-column>
         <el-table-column prop="teamworkAttitude" label="协作态度" width="100" align="right">
           <template #default="{ row }">
-            {{ row.teamworkAttitude }}%
+            <span :class="getScoreClass(row.teamworkAttitude)">{{ row.teamworkAttitude }}%</span>
           </template>
         </el-table-column>
         <el-table-column prop="totalScore" label="综合得分" width="100" align="right">
@@ -144,7 +152,11 @@
             <span class="text-emerald-600 font-bold">{{ row.totalScore }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="rank" label="排名" width="80" align="center" />
+        <el-table-column prop="rank" label="排名" width="80" align="center">
+          <template #default="{ row }">
+            <span :class="getRankBadgeClass(row.rank)">{{ row.rank }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === '已评估' ? 'success' : 'warning'" size="small">{{ row.status }}</el-tag>
@@ -152,9 +164,9 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleView(row)">详情</el-button>
-            <el-button link type="success" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" :icon="View" circle @click="handleView(row)" />
+            <el-button size="small" :icon="Edit" circle type="primary" @click="handleEdit(row)" />
+            <el-button size="small" :icon="Delete" circle type="danger" @click="handleDelete(row)" />
           </template>
         </el-table-column>
       </el-table>
@@ -257,6 +269,23 @@
       </template>
     </el-dialog>
 
+    <!-- 导出格式选择弹窗 -->
+    <el-dialog v-model="exportModalVisible" title="选择导出格式" width="400px">
+      <div class="flex flex-col gap-3 py-2">
+        <el-radio-group v-model="exportFormat">
+          <div class="flex flex-col gap-2">
+            <el-radio value="excel">Excel (.xls)</el-radio>
+            <el-radio value="csv">CSV (.csv)</el-radio>
+            <el-radio value="word">Word (.doc)</el-radio>
+          </div>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="exportModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmExport">确定导出</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 详情弹窗 -->
     <el-dialog v-model="detailModalVisible" title="考核详情" width="600px">
       <div v-if="selectedRecord" class="space-y-4">
@@ -288,10 +317,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Trophy, Download, Plus, Edit, Delete, User, TrendCharts } from '@element-plus/icons-vue'
+import { Trophy, Download, Plus, Edit, Delete, User, TrendCharts, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
 import { PERFORMANCE_GRADE_OPTIONS } from '@/data/laborData'
+import { useExport } from '@/composables/useExport'
 
 // Labor Store
 const laborStore = useLaborStore()
@@ -341,8 +371,9 @@ const selectedRecord = ref(null)
 const editingRecord = ref(null)
 
 // 表单数据
+const getDefaultMonth = () => new Date().toISOString().slice(0, 7)
 const formData = reactive({
-  id: null, staffId: '', staffName: '', department: '', month: '',
+  id: null, staffId: '', staffName: '', department: '生产部', month: getDefaultMonth(),
   taskCompletionRate: 0, attendanceRate: 0, workQuality: 0,
   safetyCompliance: 0, teamworkAttitude: 0, status: '待评估'
 })
@@ -362,7 +393,7 @@ const handleAdd = () => {
   modalTitle.value = '新增考核记录'
   editingRecord.value = null
   Object.assign(formData, {
-    id: null, staffId: '', staffName: '', department: '', month: '',
+    id: null, staffId: '', staffName: '', department: '生产部', month: getDefaultMonth(),
     taskCompletionRate: 0, attendanceRate: 0, workQuality: 0,
     safetyCompliance: 0, teamworkAttitude: 0, status: '待评估'
   })
@@ -384,11 +415,11 @@ const handleConfirm = async () => {
     return
   }
   const totalScore = Math.round(
-    (formData.taskCompletionRate * 0.25 +
-    formData.attendanceRate * 0.15 +
+    (formData.taskCompletionRate * 0.30 +
+    formData.attendanceRate * 0.20 +
     formData.workQuality * 0.25 +
     formData.safetyCompliance * 0.15 +
-    formData.teamworkAttitude * 0.20)
+    formData.teamworkAttitude * 0.10)
   )
 
   const payload = {
@@ -402,15 +433,19 @@ const handleConfirm = async () => {
     totalScore, status: formData.status
   }
 
-  if (editingRecord.value) {
-    await laborStore.updatePerformance(formData.id, payload)
-    ElMessage.success('更新成功')
-  } else {
-    await laborStore.createPerformance(payload)
-    ElMessage.success('新增成功')
+  try {
+    if (editingRecord.value) {
+      await laborStore.updatePerformance(formData.id, payload)
+      ElMessage.success('更新成功')
+    } else {
+      await laborStore.createPerformance(payload)
+      ElMessage.success('新增成功')
+    }
+    modalVisible.value = false
+    loadData()
+  } catch (e) {
+    ElMessage.error('操作失败: ' + (e.message || '未知错误'))
   }
-  modalVisible.value = false
-  loadData()
 }
 
 // 查看
@@ -428,10 +463,108 @@ const handleDelete = async (row) => {
   } catch { /* 用户取消 */ }
 }
 
-// 批量编辑/删除/导出（占位）
-const handleBatchEdit = () => { ElMessage.info('批量编辑功能开发中') }
-const handleBatchDelete = () => { ElMessage.info('批量删除功能开发中') }
-const handleExport = () => { ElMessage.success('导出功能开发中') }
+// 批量操��模式
+const batchMode = ref(false)
+const tableRef = ref(null)
+const selectedRows = ref([])
+
+const handleSelectionChange = (rows) => {
+  selectedRows.value = rows
+}
+
+const handleBatchEdit = () => {
+  batchMode.value = true
+  selectedRows.value = []
+  ElMessage.info('已进入批量编辑模式，请勾选需要编辑的记录')
+}
+
+const handleConfirmBatchEdit = () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先勾选需要编辑的记录')
+    return
+  }
+  ElMessage.success(`已选择 ${selectedRows.value.length} 条记录，准备批量编辑`)
+  // 可扩展：打开批量编辑弹窗
+}
+
+const handleBatchDelete = () => {
+  batchMode.value = true
+  selectedRows.value = []
+  ElMessage.info('已进入批量删除模式，请勾选需要删除的记录')
+}
+
+const handleConfirmBatchDelete = async () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先勾选需要删除的记录')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedRows.value.length} 条考核记录吗？`,
+      '批量删除确认',
+      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+    )
+    for (const row of selectedRows.value) {
+      await laborStore.deletePerformance(row.id)
+    }
+    ElMessage.success(`成功删除 ${selectedRows.value.length} 条记录`)
+    batchMode.value = false
+    selectedRows.value = []
+    loadData()
+  } catch { /* 用户取消 */ }
+}
+
+const handleCancelBatch = () => {
+  batchMode.value = false
+  selectedRows.value = []
+}
+
+// 导出
+const exportColumns = [
+  { key: 'staffId', label: '工号' },
+  { key: 'staffName', label: '姓名' },
+  { key: 'department', label: '部门' },
+  { key: 'month', label: '月份' },
+  { key: 'taskCompletionRate', label: '任务完成率' },
+  { key: 'attendanceRate', label: '出勤率' },
+  { key: 'workQuality', label: '工作质量' },
+  { key: 'safetyCompliance', label: '安全规范' },
+  { key: 'teamworkAttitude', label: '协作态度' },
+  { key: 'totalScore', label: '综合得分' },
+  { key: 'rank', label: '排名' },
+  { key: 'status', label: '状态' },
+]
+
+const { exportWithFormatSelect } = useExport({ fileName: '绩效考核' })
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
+
+const handleExport = () => {
+  exportModalVisible.value = true
+}
+
+const handleConfirmExport = () => {
+  exportWithFormatSelect(allData.value, exportColumns, exportFormat.value)
+  exportModalVisible.value = false
+}
+
+// 得分颜色格式化：>=90绿色, >=80翠绿, >=70琥珀, <70红色
+const getScoreClass = (score) => {
+  const s = Number(score)
+  if (s >= 90) return 'text-green-600 font-bold'
+  if (s >= 80) return 'text-emerald-600 font-semibold'
+  if (s >= 70) return 'text-amber-600 font-semibold'
+  return 'text-red-600 font-semibold'
+}
+
+// 排名徽章：1st金色, 2nd灰色, 3rd橙色
+const getRankBadgeClass = (rank) => {
+  const r = String(rank)
+  if (r === '1' || r === '1st') return 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400 text-white text-xs font-bold'
+  if (r === '2' || r === '2nd') return 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-400 text-white text-xs font-bold'
+  if (r === '3' || r === '3rd') return 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-400 text-white text-xs font-bold'
+  return 'text-gray-500 text-xs'
+}
 
 onMounted(() => { loadData() })
 </script>

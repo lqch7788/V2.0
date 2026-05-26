@@ -7,7 +7,7 @@
           <el-icon :size="20" color="white"><Wallet /></el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">工资预算</h1>
+          <h1 class="text-2xl font-bold text-gray-900">工资预算</h1>
           <p class="text-xs text-gray-500">编制月度工资预算，汇总各部门工资数据</p>
         </div>
       </div>
@@ -58,7 +58,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table v-loading="loading" :data="tableData" border stripe @selection-change="handleSelectionChange">
+      <el-table v-loading="loading" :data="tableData" border stripe @selection-change="handleSelectionChange" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="department" label="部门" width="120" />
         <el-table-column prop="month" label="月份" width="100" />
@@ -217,7 +217,7 @@
 
         <div>
           <h4 class="text-sm font-medium text-gray-700 mb-3">按部门汇总</h4>
-          <el-table :data="summaryData.byDepartment" border size="small">
+          <el-table :data="summaryData.byDepartment" border size="small" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '12px' }">
             <el-table-column prop="department" label="部门" />
             <el-table-column prop="count" label="记录数" width="100" align="center" />
             <el-table-column prop="totalAmount" label="预算总额" width="150" align="right">
@@ -237,6 +237,22 @@
         <el-button @click="summaryModalVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+
+    <!-- 导出格式选择弹窗 -->
+    <el-dialog v-model="exportModalVisible" title="导出工资预算" width="400px">
+      <div class="space-y-4">
+        <p class="text-sm text-gray-500">选择导出格式（共 {{ tableData.length }} 条记录）</p>
+        <el-radio-group v-model="exportFormat" class="flex flex-col gap-3">
+          <el-radio value="excel" size="large">Excel 格式 (.xls)</el-radio>
+          <el-radio value="csv" size="large">CSV 格式 (.csv)</el-radio>
+          <el-radio value="word" size="large">Word 格式 (.doc)</el-radio>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="exportModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmExport">确认导出</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -245,9 +261,25 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { Wallet } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
+import { useExport } from '@/composables/useExport'
 import { DEPT_OPTIONS, SALARY_STATUS_OPTIONS } from '@/data/laborData'
 
 const laborStore = useLaborStore()
+const { exportWithFormatSelect } = useExport({ fileName: '工资预算' })
+
+// 工资预算导出列配置（与表格列对应）
+const budgetExportColumns = [
+  { key: 'department', label: '部门' },
+  { key: 'month', label: '月份' },
+  { key: 'baseSalary', label: '基本工资(元)' },
+  { key: 'overtimePay', label: '加班费(元)' },
+  { key: 'bonus', label: '奖金(元)' },
+  { key: 'deduction', label: '扣款(元)' },
+  { key: 'totalAmount', label: '应发合计(元)' },
+  { key: 'status', label: '状态' },
+  { key: 'submitter', label: '提交人' },
+  { key: 'submitTime', label: '提交时间' }
+]
 
 // 加载状态
 const loading = ref(false)
@@ -292,6 +324,10 @@ const selectedRecord = ref(null)
 // 汇总弹窗
 const summaryModalVisible = ref(false)
 const summaryData = ref(null)
+
+// 导出弹窗
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
 
 // 状态映射
 const statusMap = { '待提交': 'info', '已提交': 'warning', '已审批': 'success', '已驳回': 'danger' }
@@ -482,9 +518,19 @@ const handleOpenSummary = () => {
   summaryModalVisible.value = true
 }
 
-// 导出
+// 打开导出格式选择弹窗
 const handleExport = () => {
-  ElMessage.success('导出功能开发中')
+  if (tableData.value.length === 0) {
+    ElMessage.warning('没有可导出的数据')
+    return
+  }
+  exportModalVisible.value = true
+}
+
+// 确认导出
+const confirmExport = () => {
+  exportWithFormatSelect(tableData.value, budgetExportColumns, exportFormat.value, `工资预算_${new Date().toISOString().slice(0, 10)}`)
+  exportModalVisible.value = false
 }
 
 // 组件挂载时加载数据

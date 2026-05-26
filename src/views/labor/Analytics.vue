@@ -8,7 +8,7 @@
             <el-icon :size="20" color="white"><TrendCharts /></el-icon>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">运营分析</h1>
+            <h1 class="text-2xl font-bold text-gray-900">运营分析</h1>
             <p class="text-xs text-gray-500">人效与绩效考核分析</p>
           </div>
         </div>

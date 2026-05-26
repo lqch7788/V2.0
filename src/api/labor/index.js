@@ -709,6 +709,21 @@ export function getEfficiencyDashboard() {
   return get('/labor/efficiency/dashboard')
 }
 
+/** 新增人效数据 */
+export function createEfficiency(data) {
+  return post('/labor/efficiency', data)
+}
+
+/** 更新人效数据 */
+export function updateEfficiency(id, data) {
+  return put(`/labor/efficiency/${id}`, data)
+}
+
+/** 删除人效数据 */
+export function deleteEfficiency(id) {
+  return del(`/labor/efficiency/${id}`)
+}
+
 // ============================================
 // 字典/字典 API（用于下拉选项）
 // ============================================
@@ -721,6 +736,11 @@ export function getDictionaries() {
 /** 获取通用人工记录列表 */
 export function getLaborRecords(type, params = {}) {
   return get(`/labor/${type}`, params)
+}
+
+/** 创建通用人工记录 */
+export function createLaborRecord(type, data) {
+  return post(`/labor/${type}`, data)
 }
 
 // ============================================
@@ -895,9 +915,13 @@ export const laborApi = {
   getLaborCostStats,
   getRiskStats,
   getEfficiencyDashboard,
+  createEfficiency,
+  updateEfficiency,
+  deleteEfficiency,
   // 通用
   getDictionaries,
   getLaborRecords,
+  createLaborRecord,
   batchDelete,
   batchUpdate,
   exportData

@@ -9,7 +9,7 @@
           </el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">加班管理</h1>
+          <h1 class="text-2xl font-bold text-gray-900">加班管理</h1>
           <p class="text-xs text-gray-500">员工加班申请与审批管理</p>
         </div>
       </div>
@@ -17,20 +17,20 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">待审批</p>
+      <div class="bg-amber-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-amber-700 font-medium">待审批</p>
         <p class="text-2xl font-bold text-amber-600 mt-1">{{ statusCounts.pending }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">已审批</p>
-        <p class="text-2xl font-bold text-blue-600 mt-1">{{ statusCounts.approved }}</p>
+      <div class="bg-green-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-green-700 font-medium">已通过</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-1">{{ statusCounts.approved }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">已驳回</p>
+      <div class="bg-red-50 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-red-700 font-medium">已拒绝</p>
         <p class="text-2xl font-bold text-red-600 mt-1">{{ statusCounts.rejected }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">总记录数</p>
+      <div class="bg-gray-100 rounded-xl p-4 shadow-sm">
+        <p class="text-sm text-gray-700 font-medium">总记录数</p>
         <p class="text-2xl font-bold text-gray-900 mt-1">{{ pagination.total }}</p>
       </div>
     </div>
@@ -86,7 +86,7 @@
         <el-button v-if="!batchMode" type="danger" size="small" @click="enterDeleteMode">
           <el-icon><Delete /></el-icon> 删除
         </el-button>
-        <el-button v-if="!batchMode" size="small" @click="enterExportMode">
+        <el-button v-if="!batchMode" size="small" @click="handleExportClick">
           <el-icon><Download /></el-icon> 导出
         </el-button>
       </div>
@@ -97,6 +97,7 @@
           <span v-if="batchMode === 'delete'">（确认删除选中的记录）</span>
         </span>
         <el-button size="small" @click="cancelBatchMode">取消</el-button>
+        <el-button v-if="batchMode === 'delete'" size="small" type="danger" @click="confirmBatchDelete">确认删除</el-button>
       </div>
     </div>
 
@@ -106,8 +107,15 @@
         ref="tableRef"
         :data="paginatedData"
         stripe
+        v-loading="loading"
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }"
         @selection-change="handleSelectionChange"
       >
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无数据' }}</p>
+          </div>
+        </template>
         <el-table-column v-if="batchMode" type="selection" width="55" />
         <el-table-column prop="staffName" label="员工姓名" min-width="100" />
         <el-table-column prop="date" label="日期" min-width="120" />
@@ -130,11 +138,17 @@
           </template>
         </el-table-column>
         <el-table-column prop="reason" label="原因" min-width="150" show-overflow-tooltip />
-        <el-table-column v-if="!batchMode" label="操作" width="200" fixed="right">
+        <el-table-column v-if="!batchMode" label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button v-if="row.status === '待审批'" link type="success" size="small" @click="approveRecord(row)">批准</el-button>
-            <el-button v-if="row.status === '待审批'" link type="danger" size="small" @click="rejectRecord(row)">驳回</el-button>
+            <el-tooltip content="查看详情" placement="top">
+              <el-button size="small" :icon="View" circle @click="viewDetail(row)" />
+            </el-tooltip>
+            <el-tooltip v-if="row.status === '待审批'" content="批准" placement="top">
+              <el-button size="small" :icon="Check" circle type="success" @click="approveRecord(row)" />
+            </el-tooltip>
+            <el-tooltip v-if="row.status === '待审批'" content="驳回" placement="top">
+              <el-button size="small" :icon="Close" circle type="danger" @click="rejectRecord(row)" />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -163,7 +177,7 @@
     <el-dialog v-model="detailDialogVisible" title="加班详情" width="600px">
       <div v-if="currentRecord" class="space-y-4">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="员工姓名">{{ currentRecord.userName }}</el-descriptions-item>
+          <el-descriptions-item label="员工姓名">{{ currentRecord.staffName || currentRecord.userName }}</el-descriptions-item>
           <el-descriptions-item label="日期">{{ currentRecord.date }}</el-descriptions-item>
           <el-descriptions-item label="加班类型">{{ getOvertimeTypeLabel(currentRecord.overtimeType) }}</el-descriptions-item>
           <el-descriptions-item label="时长(小时)">{{ currentRecord.hours }}</el-descriptions-item>
@@ -187,8 +201,15 @@
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="formDialogVisible" :title="isEdit ? '编辑加班' : '新增加班'" width="500px">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-form-item label="员工姓名" prop="userName">
-          <el-input v-model="formData.userName" placeholder="请输入员工姓名" />
+        <el-form-item label="员工姓名" prop="staffName">
+          <el-select v-model="formData.staffName" placeholder="请选择员工" filterable style="width: 100%" @focus="ensureWorkerList">
+            <el-option
+              v-for="worker in laborStore.workerList"
+              :key="worker.id"
+              :label="worker.name || worker.staffName || worker.id"
+              :value="worker.name || worker.staffName || worker.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="日期" prop="date">
           <el-date-picker
@@ -199,11 +220,9 @@
             style="width: 100%"
           />
         </el-form-item>
-        <el-form-item label="加班类型" prop="overtimeType">
-          <el-select v-model="formData.overtimeType" placeholder="请选择加班类型">
-            <el-option label="工作日加班" value="weekday" />
-            <el-option label="周末加班" value="weekend" />
-            <el-option label="节假日加班" value="holiday" />
+        <el-form-item label="加班类型" prop="type">
+          <el-select v-model="formData.type" placeholder="请选择加班类型">
+            <el-option v-for="item in OVERTIME_TYPE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="时长(小时)" prop="hours">
@@ -224,14 +243,32 @@
         <el-button type="primary" @click="submitForm">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 导出格式选择弹窗 -->
+    <el-dialog v-model="exportModalVisible" title="选择导出格式" width="400px">
+      <div class="flex flex-col gap-3 py-2">
+        <el-radio-group v-model="exportFormat">
+          <div class="flex flex-col gap-2">
+            <el-radio value="excel">Excel (.xls)</el-radio>
+            <el-radio value="csv">CSV (.csv)</el-radio>
+            <el-radio value="word">Word (.doc)</el-radio>
+          </div>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="exportModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmExport">确定导出</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { Clock, Search, Plus, Edit, Delete, Download } from '@element-plus/icons-vue'
+import { Clock, Search, Plus, Edit, Delete, Download, View, Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
+import { useExport } from '@/composables/useExport'
 import { OVERTIME_TYPE_OPTIONS, OVERTIME_STATUS_OPTIONS } from '@/data/laborData'
 
 // 加班类型标签映射
@@ -241,8 +278,8 @@ const getOvertimeTypeLabel = (type) => overtimeTypeMap[type] || type
 // 状态映射
 const statusMap = {
   '待审批': { label: '待审批', type: 'warning' },
-  '已通过': { label: '已审批', type: 'success' },
-  '已拒绝': { label: '已驳回', type: 'danger' },
+  '已通过': { label: '已通过', type: 'success' },
+  '已拒绝': { label: '已拒绝', type: 'danger' },
   '已取消': { label: '已取消', type: 'info' }
 }
 const getStatusLabel = (status) => statusMap[status]?.label || status
@@ -251,16 +288,35 @@ const getStatusType = (status) => statusMap[status]?.type || 'info'
 // Labor Store
 const laborStore = useLaborStore()
 
+// 导出功能
+const { exportWithFormatSelect } = useExport({ fileName: '加班记录' })
+const exportColumns = [
+  { key: 'staffName', label: '员工姓名' },
+  { key: 'overtimeType', label: '加班类型' },
+  { key: 'date', label: '日期' },
+  { key: 'hours', label: '时长' },
+  { key: 'reason', label: '原因' },
+  { key: 'status', label: '状态' }
+]
+
 // 筛选条件
 const filters = reactive({ keyword: '', overtimeType: '', status: '', dateRange: [] })
 
 // 分页
 const pagination = reactive({ currentPage: 1, pageSize: 10, total: 0 })
 
+// 加载状态
+const loading = ref(false)
+const error = ref('')
+
 // 批量操作
 const batchMode = ref(false)
 const selectedRows = ref([])
 const tableRef = ref()
+
+// 导出弹窗
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
 
 // 弹窗
 const detailDialogVisible = ref(false)
@@ -270,7 +326,7 @@ const isEdit = ref(false)
 const formRef = ref()
 const formData = reactive({
   id: null, staffId: '', staffName: '', date: new Date().toISOString().split('T')[0],
-  type: '工作日加班', hours: 2, reason: '', remarks: ''
+  type: '工作日加班', hours: 2, totalPay: 0, reason: '', remarks: ''
 })
 
 const formRules = {
@@ -286,6 +342,8 @@ const allData = ref([])
 
 // 加载数据
 const loadData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
     if (filters.keyword) params.staffName = filters.keyword
@@ -300,6 +358,10 @@ const loadData = async () => {
     pagination.total = laborStore.overtimeTotal
   } catch (e) {
     console.error('加载加班数据失败:', e)
+    error.value = '加载数据失败'
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -324,10 +386,35 @@ const handleReset = () => {
 // 批量模式
 const enterBatchMode = () => { batchMode.value = 'edit' }
 const enterDeleteMode = () => { batchMode.value = 'delete' }
-const enterExportMode = () => { batchMode.value = 'export' }
 const cancelBatchMode = () => { batchMode.value = false; selectedRows.value = [] }
 const handleSelectionChange = (selection) => { selectedRows.value = selection }
 const handlePageSizeChange = () => { pagination.currentPage = 1; loadData() }
+
+// 批量删除
+const confirmBatchDelete = async () => {
+  if (selectedRows.value.length === 0) { ElMessage.warning('请先选择记录'); return }
+  try {
+    await ElMessageBox.confirm(`确定删除选中的${selectedRows.value.length}条记录？`, '批量删除', {
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+    })
+    for (const row of selectedRows.value) {
+      await laborStore.deleteOvertime(row.id)
+    }
+    ElMessage.success(`已删除${selectedRows.value.length}条记录`)
+    cancelBatchMode()
+    loadData()
+  } catch { /* 用户取消或错误 */ }
+}
+
+// 导出
+const handleExportClick = () => {
+  if (allData.value.length === 0) { ElMessage.warning('没有可导出的数据'); return }
+  exportModalVisible.value = true
+}
+const handleConfirmExport = () => {
+  exportWithFormatSelect(allData.value, exportColumns, exportFormat.value)
+  exportModalVisible.value = false
+}
 
 // 详情
 const viewDetail = (row) => { currentRecord.value = row; detailDialogVisible.value = true }
@@ -338,7 +425,7 @@ const editRecord = (row) => {
   Object.assign(formData, {
     id: row.id, staffId: row.staffId || '', staffName: row.staffName || row.userName || '',
     date: row.date, type: row.type || row.overtimeType || '工作日加班',
-    hours: row.hours, reason: row.reason || '', remarks: row.remarks || ''
+    hours: row.hours, totalPay: row.totalPay || 0, reason: row.reason || '', remarks: row.remarks || ''
   })
   formDialogVisible.value = true
 }
@@ -371,7 +458,8 @@ const submitForm = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid) => {
     if (valid) {
-      const payload = { staffId: formData.staffId, staffName: formData.staffName, date: formData.date, type: formData.type, hours: formData.hours, reason: formData.reason, remarks: formData.remarks }
+      if (isEdit.value && !formData.id) { ElMessage.error('记录ID无效，无法编辑'); return }
+      const payload = { id: formData.id, staffId: formData.staffId, staffName: formData.staffName, date: formData.date, type: formData.type, hours: formData.hours, totalPay: formData.totalPay, reason: formData.reason, remarks: formData.remarks }
       if (isEdit.value) {
         await laborStore.updateOvertime(formData.id, payload)
         ElMessage.success('编辑成功')
@@ -384,7 +472,14 @@ const submitForm = async () => {
   })
 }
 
-onMounted(() => { loadData() })
+// 确保员工列表已加载
+const ensureWorkerList = () => {
+  if (laborStore.workerList.length === 0) {
+    laborStore.fetchWorkers()
+  }
+}
+
+onMounted(() => { loadData(); ensureWorkerList() })
 </script>
 
 <style scoped>

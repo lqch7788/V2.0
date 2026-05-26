@@ -8,7 +8,7 @@
             <el-icon :size="20" color="white"><Money /></el-icon>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">薪酬管理</h1>
+            <h1 class="text-2xl font-bold text-gray-900">薪酬管理</h1>
             <p class="text-xs text-gray-500">工资与计件薪酬管理</p>
           </div>
         </div>

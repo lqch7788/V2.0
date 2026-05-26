@@ -8,7 +8,7 @@
             <el-icon :size="20" color="white"><Money /></el-icon>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">工资管理</h1>
+            <h1 class="text-2xl font-bold text-gray-900">工资管理</h1>
             <p class="text-xs text-gray-500">管理员工工资、查看工资条</p>
           </div>
         </div>
@@ -74,34 +74,36 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" border stripe>
+      <el-table :data="paginatedData" border stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
         <el-table-column prop="staffId" label="工号" width="100" />
         <el-table-column prop="staffName" label="姓名" width="100" />
         <el-table-column prop="month" label="月份" width="100" />
         <el-table-column prop="calcType" label="计算方式" width="100" />
         <el-table-column prop="baseSalary" label="基本工资" width="110" align="right">
           <template #default="{ row }">
-            {{ row.baseSalary.toFixed(2) }}
+            ¥{{ row.baseSalary.toFixed(2) }}
           </template>
         </el-table-column>
         <el-table-column prop="overtimePay" label="加班费" width="100" align="right">
           <template #default="{ row }">
-            {{ row.overtimePay.toFixed(2) }}
+            ¥{{ row.overtimePay.toFixed(2) }}
           </template>
         </el-table-column>
         <el-table-column prop="bonus" label="奖金" width="100" align="right">
           <template #default="{ row }">
-            {{ row.bonus.toFixed(2) }}
+            ¥{{ row.bonus.toFixed(2) }}
           </template>
         </el-table-column>
-        <el-table-column prop="deduction" label="扣款" width="100" align="right">
+        <el-table-column prop="deduction" label="扣款明细" width="220" align="right">
           <template #default="{ row }">
-            {{ row.deduction.toFixed(2) }}
+            <span class="text-xs text-gray-600">
+              扣款:¥{{ row.deduction || 0 }} 迟到:¥{{ row.lateDeductions || 0 }} 缺勤:¥{{ row.absenceDeductions || 0 }} 社保:¥{{ row.socialSecurity || 0 }} 公积金:¥{{ row.housingFund || 0 }} 个税:¥{{ row.personalTax || 0 }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column prop="netSalary" label="实发工资" width="120" align="right">
           <template #default="{ row }">
-            <span class="text-emerald-600 font-semibold">{{ row.netSalary.toFixed(2) }}</span>
+            <span class="text-emerald-600 font-semibold">¥{{ row.netSalary.toFixed(2) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
@@ -111,11 +113,16 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleViewDetail(row)">查看</el-button>
-            <el-button link type="success" @click="handleCalculate(row)">计算</el-button>
-            <el-button link type="info" @click="handleExport(row)">导出</el-button>
+            <el-button size="small" :icon="View" circle @click="handleViewDetail(row)" />
+            <el-button v-if="row.calcType === '日薪制' || row.calcType === '时薪制'" size="small" :icon="Coin" circle type="warning" @click="handleCalculate(row)" />
+            <el-button v-if="row.status === '已发放'" size="small" :icon="Download" circle @click="handleExport(row)" />
           </template>
         </el-table-column>
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无工资数据' }}</p>
+          </div>
+        </template>
       </el-table>
 
       <!-- 分页 -->
@@ -163,6 +170,26 @@
         <el-form-item label="扣款">
           <el-input-number v-model="formData.deduction" :min="0" :precision="2" class="w-full" />
         </el-form-item>
+        <el-form-item label="计算方式">
+          <el-select v-model="formData.calcType" class="w-full">
+            <el-option v-for="item in SALARY_CALC_TYPE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="迟到扣款">
+          <el-input-number v-model="formData.lateDeductions" :min="0" :precision="2" class="w-full" />
+        </el-form-item>
+        <el-form-item label="缺勤扣款">
+          <el-input-number v-model="formData.absenceDeductions" :min="0" :precision="2" class="w-full" />
+        </el-form-item>
+        <el-form-item label="社保">
+          <el-input-number v-model="formData.socialSecurity" :min="0" :precision="2" class="w-full" />
+        </el-form-item>
+        <el-form-item label="公积金">
+          <el-input-number v-model="formData.housingFund" :min="0" :precision="2" class="w-full" />
+        </el-form-item>
+        <el-form-item label="个税">
+          <el-input-number v-model="formData.personalTax" :min="0" :precision="2" class="w-full" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="addModalVisible = false">取消</el-button>
@@ -182,6 +209,11 @@
           <el-descriptions-item label="加班费">{{ selectedRecord.overtimePay.toFixed(2) }} 元</el-descriptions-item>
           <el-descriptions-item label="奖金">{{ selectedRecord.bonus.toFixed(2) }} 元</el-descriptions-item>
           <el-descriptions-item label="扣款">{{ selectedRecord.deduction.toFixed(2) }} 元</el-descriptions-item>
+          <el-descriptions-item label="迟到扣款">{{ (selectedRecord.lateDeductions || 0).toFixed(2) }} 元</el-descriptions-item>
+          <el-descriptions-item label="缺勤扣款">{{ (selectedRecord.absenceDeductions || 0).toFixed(2) }} 元</el-descriptions-item>
+          <el-descriptions-item label="社保">{{ (selectedRecord.socialSecurity || 0).toFixed(2) }} 元</el-descriptions-item>
+          <el-descriptions-item label="公积金">{{ (selectedRecord.housingFund || 0).toFixed(2) }} 元</el-descriptions-item>
+          <el-descriptions-item label="个税">{{ (selectedRecord.personalTax || 0).toFixed(2) }} 元</el-descriptions-item>
           <el-descriptions-item label="实发工资" class="text-emerald-600">
             <strong>{{ selectedRecord.netSalary.toFixed(2) }} 元</strong>
           </el-descriptions-item>
@@ -194,18 +226,50 @@
         <el-button @click="detailModalVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+
+    <!-- 导出格式选择弹窗 -->
+    <el-dialog v-model="exportModalVisible" title="导出工资记录" width="400px">
+      <div class="space-y-4">
+        <p class="text-sm text-gray-500">选择导出格式（共 {{ data.length }} 条记录）</p>
+        <el-radio-group v-model="exportFormat" class="flex flex-col gap-3">
+          <el-radio value="excel" size="large">Excel 格式 (.xls)</el-radio>
+          <el-radio value="csv" size="large">CSV 格式 (.csv)</el-radio>
+          <el-radio value="word" size="large">Word 格式 (.doc)</el-radio>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="exportModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmExport">确认导出</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Money, Download, Plus } from '@element-plus/icons-vue'
+import { Money, Download, Plus, View, Coin } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
+import { useExport } from '@/composables/useExport'
 import { SALARY_CALC_TYPE_OPTIONS, SALARY_STATUS_OPTIONS } from '@/data/laborData'
 
 // Labor Store
 const laborStore = useLaborStore()
+const { exportWithFormatSelect } = useExport({ fileName: '工资记录' })
+
+// 工资导出列配置
+const salaryExportColumns = [
+  { key: 'staffId', label: '工号' },
+  { key: 'staffName', label: '姓名' },
+  { key: 'month', label: '月份' },
+  { key: 'calcType', label: '计算方式' },
+  { key: 'baseSalary', label: '基本工资' },
+  { key: 'overtimePay', label: '加班费' },
+  { key: 'bonus', label: '奖金' },
+  { key: 'deduction', label: '扣款' },
+  { key: 'netSalary', label: '实发工资' },
+  { key: 'status', label: '状态' }
+]
 
 // 筛选条件
 const filters = reactive({
@@ -222,6 +286,10 @@ const pagination = reactive({
   total: 0
 })
 
+// 加载状态
+const loading = ref(false)
+const error = ref('')
+
 // 表格数据
 const data = ref([])
 
@@ -231,6 +299,8 @@ const paginatedData = computed(() => data.value)
 
 // 加载数据
 const loadData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
     if (filters.staffName) params.staffName = filters.staffName
@@ -242,12 +312,18 @@ const loadData = async () => {
     pagination.total = laborStore.salaryTotal
   } catch (e) {
     console.error('加载工资数据失败:', e)
+    error.value = '加载数据失败'
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
 }
 
 // 弹窗状态
 const addModalVisible = ref(false)
 const detailModalVisible = ref(false)
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
 const selectedRecord = ref(null)
 
 // 表单数据
@@ -255,18 +331,24 @@ const formData = reactive({
   staffId: '',
   staffName: '',
   month: '',
+  calcType: '月薪制',
   baseSalary: 0,
   overtimePay: 0,
   bonus: 0,
-  deduction: 0
+  deduction: 0,
+  lateDeductions: 0,
+  absenceDeductions: 0,
+  socialSecurity: 0,
+  housingFund: 0,
+  personalTax: 0
 })
 
 // 获取状态类型
 const getStatusType = (status) => {
   const typeMap = {
     '待确认': 'warning',
-    '已确认': 'success',
-    '已发放': 'primary'
+    '已确认': 'primary',
+    '已发放': 'success'
   }
   return typeMap[status] || 'info'
 }
@@ -293,10 +375,16 @@ const handleAdd = () => {
     staffId: '',
     staffName: '',
     month: '',
+    calcType: '月薪制',
     baseSalary: 0,
     overtimePay: 0,
     bonus: 0,
-    deduction: 0
+    deduction: 0,
+    lateDeductions: 0,
+    absenceDeductions: 0,
+    socialSecurity: 0,
+    housingFund: 0,
+    personalTax: 0
   })
   addModalVisible.value = true
 }
@@ -307,17 +395,24 @@ const handleConfirmAdd = async () => {
     ElMessage.warning('请填写完整信息')
     return
   }
-  const netSalary = formData.baseSalary + formData.overtimePay + formData.bonus - formData.deduction
+  const totalAdd = formData.baseSalary + formData.overtimePay + formData.bonus
+  const totalDeduct = formData.deduction + formData.lateDeductions + formData.absenceDeductions + formData.socialSecurity + formData.housingFund + formData.personalTax
+  const netSalary = Math.max(0, totalAdd - totalDeduct)
   try {
     await laborStore.createSalary({
       staffId: formData.staffId,
       staffName: formData.staffName,
       month: formData.month,
-      calcType: '月薪制',
+      calcType: formData.calcType,
       baseSalary: formData.baseSalary,
       overtimePay: formData.overtimePay,
       bonus: formData.bonus,
       deduction: formData.deduction,
+      lateDeductions: formData.lateDeductions,
+      absenceDeductions: formData.absenceDeductions,
+      socialSecurity: formData.socialSecurity,
+      housingFund: formData.housingFund,
+      personalTax: formData.personalTax,
       netSalary,
       status: '待确认'
     })
@@ -338,21 +433,30 @@ const handleViewDetail = (row) => {
 // 计算
 const handleCalculate = async (row) => {
   try {
-    await laborStore.confirmSalary([row.id])
+    await laborStore.calculateSalary(row.id, row)
     ElMessage.success('工资计算完成')
     loadData()
   } catch (e) {
-    ElMessage.success('工资计算完成')
+    ElMessage.error('工资计算失败')
   }
 }
 
 // 导出
 const handleExportClick = () => {
-  ElMessage.success('导出功能开发中')
+  if (data.value.length === 0) {
+    ElMessage.warning('没有可导出的数据')
+    return
+  }
+  exportModalVisible.value = true
+}
+
+const confirmExport = () => {
+  exportWithFormatSelect(data.value, salaryExportColumns, exportFormat.value, `工资记录_${new Date().toISOString().slice(0, 10)}`)
+  exportModalVisible.value = false
 }
 
 const handleExport = (row) => {
-  ElMessage.success('导出功能开发中')
+  exportWithFormatSelect([row], salaryExportColumns, 'excel', `工资条_${row.staffName}_${row.month}`)
 }
 
 onMounted(() => { loadData() })

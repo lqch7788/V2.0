@@ -724,6 +724,26 @@ export const useLaborStore = defineStore('labor', () => {
     }
   }
 
+  async function createEfficiency(data) {
+    await laborApi.createEfficiency(data)
+    await fetchEfficiencyList()
+  }
+
+  async function updateEfficiency(id, data) {
+    await laborApi.updateEfficiency(id, data)
+    await fetchEfficiencyList()
+  }
+
+  async function deleteEfficiency(id) {
+    await laborApi.deleteEfficiency(id)
+    await fetchEfficiencyList()
+  }
+
+  /** 通用创建人工记录（技能、班组等） */
+  async function createLaborRecord(type, data) {
+    await laborApi.createLaborRecord(type, data)
+  }
+
   // ============================================
   // 字典/岗位状态
   // ============================================
@@ -907,6 +927,11 @@ export const useLaborStore = defineStore('labor', () => {
     fetchLaborCostStats,
     fetchRiskStats,
     fetchEfficiencyDashboard,
+    createEfficiency,
+    updateEfficiency,
+    deleteEfficiency,
+    // 通用
+    createLaborRecord,
     // 字典
     dictionaries,
     fetchDictionaries

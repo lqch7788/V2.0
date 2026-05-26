@@ -9,7 +9,7 @@
           </el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">员工信息</h1>
+          <h1 class="text-2xl font-bold text-gray-900">员工信息</h1>
           <p class="text-xs text-gray-500">员工信息管理与组织架构</p>
         </div>
       </div>
@@ -17,47 +17,47 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="bg-blue-50 rounded-xl p-4 shadow-sm">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
             <el-icon :size="20" color="#2563eb"><Document /></el-icon>
           </div>
           <div>
-            <p class="text-2xl font-bold text-gray-900">{{ totalCount }}</p>
-            <p class="text-xs text-gray-500">员工总数</p>
+            <p class="text-2xl font-bold text-blue-700">{{ totalCount }}</p>
+            <p class="text-xs text-blue-600">员工总数</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="bg-green-50 rounded-xl p-4 shadow-sm">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
             <el-icon :size="20" color="#16a34a"><CircleCheck /></el-icon>
           </div>
           <div>
-            <p class="text-2xl font-bold text-gray-900">{{ activeCount }}</p>
-            <p class="text-xs text-gray-500">在职人数</p>
+            <p class="text-2xl font-bold text-green-700">{{ activeCount }}</p>
+            <p class="text-xs text-green-600">在职人数</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="bg-amber-50 rounded-xl p-4 shadow-sm">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
             <el-icon :size="20" color="#d97706"><Clock /></el-icon>
           </div>
           <div>
-            <p class="text-2xl font-bold text-gray-900">{{ trialCount }}</p>
-            <p class="text-xs text-gray-500">试用期</p>
+            <p class="text-2xl font-bold text-amber-700">{{ trialCount }}</p>
+            <p class="text-xs text-amber-600">试用期</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="bg-red-50 rounded-xl p-4 shadow-sm">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
             <el-icon :size="20" color="#dc2626"><UserDelete /></el-icon>
           </div>
           <div>
-            <p class="text-2xl font-bold text-gray-900">{{ leaveCount }}</p>
-            <p class="text-xs text-gray-500">离职人数</p>
+            <p class="text-2xl font-bold text-red-700">{{ leaveCount }}</p>
+            <p class="text-xs text-red-600">离职人数</p>
           </div>
         </div>
       </div>
@@ -128,6 +128,9 @@
         ref="tableRef"
         :data="paginatedData"
         stripe
+        v-loading="loading"
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }"
+        row-class-name="staff-table-row"
         @selection-change="handleSelectionChange"
       >
         <el-table-column v-if="batchMode" type="selection" width="55" />
@@ -135,8 +138,17 @@
         <el-table-column prop="name" label="姓名" min-width="100" />
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="position" label="岗位" min-width="100" />
+        <el-table-column prop="team" label="班组" min-width="100" />
         <el-table-column prop="phone" label="手机号" min-width="120" />
         <el-table-column prop="joinDate" label="入职日期" min-width="120" />
+        <el-table-column prop="skillLevel" label="技能等级" min-width="100" />
+        <el-table-column prop="contractStatus" label="合同状态" min-width="100">
+          <template #default="{ row }">
+            <el-tag :type="getContractStatusType(row.contractStatus)" size="small">
+              {{ row.contractStatus || '-' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" min-width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">
@@ -144,12 +156,21 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column v-if="!batchMode" label="操作" width="180" fixed="right">
+        <el-table-column v-if="!batchMode" label="操作" width="140" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button link type="primary" size="small" @click="editRecord(row)">编辑</el-button>
+            <el-tooltip content="查看详情" placement="top">
+              <el-button size="small" :icon="View" circle @click="viewDetail(row)" />
+            </el-tooltip>
+            <el-tooltip content="编辑" placement="top">
+              <el-button size="small" :icon="Edit" circle type="primary" @click="editRecord(row)" />
+            </el-tooltip>
           </template>
         </el-table-column>
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无数据' }}</p>
+          </div>
+        </template>
       </el-table>
 
       <!-- 分页 -->
@@ -198,52 +219,217 @@
     </el-dialog>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="formDialogVisible" :title="isEdit ? '编辑员工' : '新增员工'" width="500px">
+    <el-dialog v-model="formDialogVisible" :title="isEdit ? '编辑员工' : '新增员工'" width="700px">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-form-item label="工号" prop="code">
-          <el-input v-model="formData.code" placeholder="请输入工号" />
-        </el-form-item>
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入姓名" />
-        </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-radio-group v-model="formData.gender">
-            <el-radio label="男">男</el-radio>
-            <el-radio label="女">女</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="formData.phone" placeholder="请输入手机号" />
-        </el-form-item>
+        <!-- 基本信息 -->
+        <el-divider content-position="left">
+          <span class="text-sm font-semibold text-gray-700">基本信息</span>
+        </el-divider>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="工号" prop="code">
+              <el-input v-model="formData.code" placeholder="请输入工号" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="姓名" prop="name">
+              <el-input v-model="formData.name" placeholder="请输入姓名" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="性别" prop="gender">
+              <el-radio-group v-model="formData.gender">
+                <el-radio label="男">男</el-radio>
+                <el-radio label="女">女</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="手机号" prop="phone">
+              <el-input v-model="formData.phone" placeholder="请输入手机号" />
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-form-item label="身份证号" prop="idCard">
           <el-input v-model="formData.idCard" placeholder="请输入身份证号" />
         </el-form-item>
-        <el-form-item label="部门" prop="department">
-          <el-select v-model="formData.department" placeholder="请选择部门">
-            <el-option v-for="item in DEPT_OPTIONS.filter(d => d.value)" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
+
+        <!-- 工作信息 -->
+        <el-divider content-position="left">
+          <span class="text-sm font-semibold text-gray-700">工作信息</span>
+        </el-divider>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="部门" prop="department">
+              <el-select v-model="formData.department" placeholder="请选择部门">
+                <el-option v-for="item in DEPT_OPTIONS.filter(d => d.value)" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="岗位" prop="position">
+              <el-select v-model="formData.position" placeholder="请选择岗位">
+                <el-option v-for="pos in POSITIONS" :key="pos" :label="pos" :value="pos" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="班组" prop="team">
+              <el-input v-model="formData.team" placeholder="请输入班组" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="作业区域" prop="workArea">
+              <el-input v-model="formData.workArea" placeholder="请输入作业区域" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="技能等级" prop="skillLevel">
+              <el-select v-model="formData.skillLevel" placeholder="请选择技能等级">
+                <el-option label="初级" value="初级" />
+                <el-option label="中级" value="中级" />
+                <el-option label="高级" value="高级" />
+                <el-option label="技师" value="技师" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="工资类型" prop="wageType">
+              <el-select v-model="formData.wageType" placeholder="请选择工资类型">
+                <el-option label="月薪" value="月薪" />
+                <el-option label="日薪" value="日薪" />
+                <el-option label="时薪" value="时薪" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="技能标签">
+          <el-input v-model="formData.skillTags" placeholder="多个标签用逗号分隔" />
         </el-form-item>
-        <el-form-item label="岗位" prop="position">
-          <el-select v-model="formData.position" placeholder="请选择岗位">
-            <el-option v-for="pos in POSITIONS" :key="pos" :label="pos" :value="pos" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="入职日期" prop="joinDate">
-          <el-date-picker
-            v-model="formData.joinDate"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="选择日期"
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="formData.status" placeholder="请选择状态">
-            <el-option label="在职" value="active" />
-            <el-option label="试用期" value="trial" />
-            <el-option label="离职" value="inactive" />
-          </el-select>
-        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="入职日期" prop="joinDate">
+              <el-date-picker
+                v-model="formData.joinDate"
+                type="date"
+                value-format="YYYY-MM-DD"
+                placeholder="选择日期"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="状态" prop="status">
+              <el-select v-model="formData.status" placeholder="请选择状态">
+                <el-option label="在职" value="active" />
+                <el-option label="试用期" value="trial" />
+                <el-option label="离职" value="inactive" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 紧急联系人 -->
+        <el-divider content-position="left">
+          <span class="text-sm font-semibold text-gray-700">紧急联系人</span>
+        </el-divider>
+        <el-row :gutter="16">
+          <el-col :span="8">
+            <el-form-item label="联系人姓名">
+              <el-input v-model="formData.emergencyName" placeholder="请输入" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="关系">
+              <el-input v-model="formData.emergencyRelation" placeholder="如: 配偶" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="联系电话">
+              <el-input v-model="formData.emergencyPhone" placeholder="请输入" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 合同信息 -->
+        <el-divider content-position="left">
+          <span class="text-sm font-semibold text-gray-700">合同信息</span>
+        </el-divider>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="合同编号">
+              <el-input v-model="formData.contractNo" placeholder="请输入合同编号" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="合同类型">
+              <el-select v-model="formData.contractType" placeholder="请选择合同类型">
+                <el-option label="固定期限" value="固定期限" />
+                <el-option label="无固定期限" value="无固定期限" />
+                <el-option label="完成一定任务" value="完成一定任务" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="合同状态">
+              <el-select v-model="formData.contractStatus" placeholder="请选择合同状态">
+                <el-option label="生效中" value="生效中" />
+                <el-option label="即将到期" value="即将到期" />
+                <el-option label="已到期" value="已到期" />
+                <el-option label="已终止" value="已终止" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="合同到期日">
+              <el-date-picker
+                v-model="formData.contractEndDate"
+                type="date"
+                value-format="YYYY-MM-DD"
+                placeholder="选择日期"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 教育信息 -->
+        <el-divider content-position="left">
+          <span class="text-sm font-semibold text-gray-700">教育信息</span>
+        </el-divider>
+        <el-row :gutter="16">
+          <el-col :span="8">
+            <el-form-item label="学历">
+              <el-select v-model="formData.education" placeholder="请选择学历">
+                <el-option label="初中" value="初中" />
+                <el-option label="高中" value="高中" />
+                <el-option label="中专" value="中专" />
+                <el-option label="大专" value="大专" />
+                <el-option label="本科" value="本科" />
+                <el-option label="硕士" value="硕士" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="毕业院校">
+              <el-input v-model="formData.graduatedSchool" placeholder="请输入" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="专业">
+              <el-input v-model="formData.major" placeholder="请输入专业" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
         <el-form-item label="备注">
           <el-input v-model="formData.remark" type="textarea" :rows="3" placeholder="请输入备注" />
         </el-form-item>
@@ -258,7 +444,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { User, Search, Plus, Edit, Delete, Download, Document, CircleCheck, Clock } from '@element-plus/icons-vue'
+import { User, Search, Plus, Edit, Delete, Download, Document, CircleCheck, Clock, View } from '@element-plus/icons-vue'
 import UserDelete from '@/components/icons/UserDelete.vue'
 import { ElMessage } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
@@ -279,6 +465,11 @@ const statusMap = {
 
 const getStatusLabel = (status) => statusMap[status]?.label || status
 const getStatusType = (status) => statusMap[status]?.type || 'info'
+// 合同状态标签类型映射
+const getContractStatusType = (status) => {
+  const map = { '生效中': 'success', '即将到期': 'warning', '已到期': 'danger', '已终止': 'info' }
+  return map[status] || 'info'
+}
 
 // 筛选条件
 const filters = reactive({
@@ -319,8 +510,26 @@ const formData = reactive({
   idCard: '',
   department: '',
   position: '',
+  team: '',
+  workArea: '',
+  skillLevel: '',
+  wageType: '',
+  skillTags: '',
   joinDate: '',
   status: 'active',
+  // 紧急联系人
+  emergencyName: '',
+  emergencyRelation: '',
+  emergencyPhone: '',
+  // 合同信息
+  contractNo: '',
+  contractType: '',
+  contractStatus: '',
+  contractEndDate: '',
+  // 教育信息
+  education: '',
+  graduatedSchool: '',
+  major: '',
   remark: ''
 })
 
@@ -349,7 +558,7 @@ const allData = computed(() => (laborStore.workerList || []).map(w => ({
   remark: w.remark || ''
 })))
 const loading = ref(false)
-const error = ref(null)
+const error = ref('')
 
 // 加载员工数据
 const loadWorkers = async () => {
@@ -457,8 +666,23 @@ const openFormModal = () => {
     idCard: '',
     department: '',
     position: '',
+    team: '',
+    workArea: '',
+    skillLevel: '',
+    wageType: '',
+    skillTags: '',
     joinDate: new Date().toISOString().split('T')[0],
     status: 'active',
+    emergencyName: '',
+    emergencyRelation: '',
+    emergencyPhone: '',
+    contractNo: '',
+    contractType: '',
+    contractStatus: '',
+    contractEndDate: '',
+    education: '',
+    graduatedSchool: '',
+    major: '',
     remark: ''
   })
   formDialogVisible.value = true
@@ -474,7 +698,15 @@ const submitForm = async () => {
           name: formData.name, code: formData.code, gender: formData.gender,
           phone: formData.phone, idCard: formData.idCard,
           department: formData.department, position: formData.position,
-          joinDate: formData.joinDate, status: formData.status, remark: formData.remark
+          team: formData.team, workArea: formData.workArea,
+          skillLevel: formData.skillLevel, wageType: formData.wageType, skillTags: formData.skillTags,
+          joinDate: formData.joinDate, status: formData.status,
+          emergencyName: formData.emergencyName, emergencyRelation: formData.emergencyRelation,
+          emergencyPhone: formData.emergencyPhone,
+          contractNo: formData.contractNo, contractType: formData.contractType,
+          contractStatus: formData.contractStatus, contractEndDate: formData.contractEndDate,
+          education: formData.education, graduatedSchool: formData.graduatedSchool, major: formData.major,
+          remark: formData.remark
         }
         if (isEdit.value) {
           await laborStore.updateWorker(formData.id, payload)
@@ -507,5 +739,8 @@ const handleDelete = async (row) => {
 </script>
 
 <style scoped>
-/* 继承全局样式 */
+:deep(.staff-table-row:hover > td) {
+  background-color: #dbeafe !important; /* blue-100 */
+  cursor: pointer;
+}
 </style>

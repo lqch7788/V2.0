@@ -8,7 +8,7 @@
             <el-icon :size="20" color="white"><TrendCharts /></el-icon>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-gray-900">人效分析</h1>
+            <h1 class="text-2xl font-bold text-gray-900">人效分析</h1>
             <p class="text-xs text-gray-500">查看各部门人效指标及趋势分析</p>
           </div>
         </div>
@@ -45,10 +45,11 @@
           class="w-[160px]"
         />
         <el-select v-model="filters.department" placeholder="部门" clearable class="w-[160px]">
-          <el-option label="技术部" value="技术部" />
-          <el-option label="运营部" value="运营部" />
-          <el-option label="市场部" value="市场部" />
           <el-option label="生产部" value="生产部" />
+          <el-option label="技术部" value="技术部" />
+          <el-option label="质量部" value="质量部" />
+          <el-option label="采购部" value="采购部" />
+          <el-option label="销售部" value="销售部" />
         </el-select>
         <el-button @click="handleReset">重置</el-button>
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -94,7 +95,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" border stripe>
+      <el-table :data="paginatedData" border stripe :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
         <el-table-column prop="date" label="月份" width="100" />
         <el-table-column prop="department" label="部门" width="100" />
         <el-table-column prop="totalWorkers" label="总人数" width="80" align="center" />
@@ -152,6 +153,43 @@
       </div>
     </div>
 
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="detailModalVisible" title="人效详情" width="500px">
+      <div v-if="selectedRecord" class="space-y-4">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="月份">{{ selectedRecord.date }}</el-descriptions-item>
+          <el-descriptions-item label="部门">{{ selectedRecord.department }}</el-descriptions-item>
+          <el-descriptions-item label="总人数">{{ selectedRecord.totalWorkers }}</el-descriptions-item>
+          <el-descriptions-item label="总产出">{{ selectedRecord.totalOutput.toLocaleString() }}</el-descriptions-item>
+          <el-descriptions-item label="人均产出">{{ selectedRecord.avgOutputPerWorker.toFixed(1) }}</el-descriptions-item>
+          <el-descriptions-item label="总工时">{{ selectedRecord.totalHours.toLocaleString() }}</el-descriptions-item>
+          <el-descriptions-item label="工时效率">{{ (selectedRecord.avgEfficiency * 100).toFixed(1) }}%</el-descriptions-item>
+          <el-descriptions-item label="任务达成率">{{ (selectedRecord.taskCompletionRate * 100).toFixed(1) }}%</el-descriptions-item>
+          <el-descriptions-item label="出勤率">{{ (selectedRecord.attendanceRate * 100).toFixed(1) }}%</el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <template #footer>
+        <el-button @click="detailModalVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 导出格式选择弹窗 -->
+    <el-dialog v-model="exportModalVisible" title="选择导出格式" width="400px">
+      <div class="flex flex-col gap-3 py-2">
+        <el-radio-group v-model="exportFormat">
+          <div class="flex flex-col gap-2">
+            <el-radio value="excel">Excel (.xls)</el-radio>
+            <el-radio value="csv">CSV (.csv)</el-radio>
+            <el-radio value="word">Word (.doc)</el-radio>
+          </div>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="exportModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmExport">确定导出</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="modalVisible" :title="modalTitle" width="600px">
       <el-form :model="formData" label-width="100px">
@@ -195,6 +233,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { TrendCharts, Download, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
+import { useExport } from '@/composables/useExport'
 
 const laborStore = useLaborStore()
 
@@ -269,27 +308,58 @@ const handleConfirm = async () => {
   if (!formData.date || !formData.department) { ElMessage.warning('请填写完整信息'); return }
   try {
     if (editingRecord.value) {
-      await laborStore.updatePerformance(editingRecord.value.id, formData)
+      await laborStore.updateEfficiency(editingRecord.value.id, formData)
       ElMessage.success('更新成功')
     } else {
-      await laborStore.createPerformance(formData)
+      await laborStore.createEfficiency(formData)
       ElMessage.success('新增成功')
     }
     modalVisible.value = false; loadData()
   } catch (e) { ElMessage.error('操作失败: ' + e.message) }
 }
 
-const handleView = (row) => { ElMessage.info('详情功能开发中') }
+// 详情弹窗
+const detailModalVisible = ref(false)
+const selectedRecord = ref(null)
+
+const handleView = (row) => {
+  selectedRecord.value = row
+  detailModalVisible.value = true
+}
 
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm(`确定要删除该记录吗？`, '删除确认', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
-    await laborStore.deletePerformance(row.id)
+    await laborStore.deleteEfficiency(row.id)
     ElMessage.success('删除成功'); loadData()
   } catch { /* 取消 */ }
 }
 
-const handleExport = () => { ElMessage.success('导出功能开发中') }
+// 导出
+const exportColumns = [
+  { key: 'date', label: '月份' },
+  { key: 'department', label: '部门' },
+  { key: 'totalWorkers', label: '总人数' },
+  { key: 'totalOutput', label: '总产出' },
+  { key: 'avgOutputPerWorker', label: '人均产出' },
+  { key: 'totalHours', label: '总工时' },
+  { key: 'avgEfficiency', label: '工时效率' },
+  { key: 'taskCompletionRate', label: '任务达成率' },
+  { key: 'attendanceRate', label: '出勤率' },
+]
+
+const { exportWithFormatSelect } = useExport({ fileName: '人效分析' })
+const exportModalVisible = ref(false)
+const exportFormat = ref('excel')
+
+const handleExport = () => {
+  exportModalVisible.value = true
+}
+
+const handleConfirmExport = () => {
+  exportWithFormatSelect(data.value, exportColumns, exportFormat.value)
+  exportModalVisible.value = false
+}
 
 onMounted(() => { loadData() })
 </script>

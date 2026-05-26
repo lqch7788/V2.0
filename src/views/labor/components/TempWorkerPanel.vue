@@ -9,7 +9,7 @@
           </el-icon>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-gray-900">临时工入职</h1>
+          <h1 class="text-2xl font-bold text-gray-900">临时工入职</h1>
           <p class="text-xs text-gray-500">临时工入职登记与管理</p>
         </div>
       </div>
@@ -24,14 +24,18 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe>
+      <el-table :data="paginatedData" stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
         <el-table-column prop="employeeCode" label="工号" min-width="140" />
         <el-table-column prop="name" label="姓名" min-width="100" />
         <el-table-column prop="phone" label="手机号" min-width="120" />
         <el-table-column prop="idCard" label="身份证号" min-width="180" />
         <el-table-column prop="position" label="岗位" min-width="100" />
         <el-table-column prop="department" label="部门" min-width="100" />
-        <el-table-column prop="dailyWage" label="日工资(元)" min-width="100" />
+        <el-table-column prop="dailyWage" label="日工资(元)" min-width="100">
+          <template #default="{ row }">
+            ¥{{ row.dailyWage }}
+          </template>
+        </el-table-column>
         <el-table-column prop="joinDate" label="入职日期" min-width="120" />
         <el-table-column prop="status" label="状态" min-width="100">
           <template #default="{ row }">
@@ -40,12 +44,17 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button link type="danger" size="small" @click="handleLeave(row)">离职</el-button>
+            <el-button size="small" :icon="View" circle title="查看详情" @click="viewDetail(row)" />
+            <el-button size="small" :icon="CircleClose" circle type="danger" title="离职" @click="handleLeave(row)" />
           </template>
         </el-table-column>
+        <template #empty>
+          <div class="text-center py-8">
+            <p class="text-gray-400">{{ error || '暂无数据' }}</p>
+          </div>
+        </template>
       </el-table>
 
       <!-- 分页 -->
@@ -136,7 +145,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { CirclePlus, Plus } from '@element-plus/icons-vue'
+import { CirclePlus, Plus, View, CircleClose } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
 import { WORKER_TYPE_OPTIONS } from '@/data/laborData'
@@ -170,9 +179,13 @@ const formRules = {
 
 // 数据
 const allData = ref([])
+const loading = ref(false)
+const error = ref('')
 
 // 加载数据（临时工 type=temporary）
 const loadData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const params = { page: pagination.currentPage, pageSize: pagination.pageSize, type: 'temporary' }
     await laborStore.fetchWorkers(params)
@@ -180,6 +193,10 @@ const loadData = async () => {
     pagination.total = laborStore.workerTotal
   } catch (e) {
     console.error('加载临时工数据失败:', e)
+    error.value = '加载数据失败'
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
 }
 
