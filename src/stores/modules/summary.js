@@ -47,7 +47,11 @@ function normalizeBatch(db) {
     inProgressTaskCount: Number(db.inProgressTaskCount) || 0,
     totalWorkHours: Number(db.totalWorkHours) || 0,
     laborCost: Number(db.laborCost) || 0,
-    remainingYield: Number(db.remainingYield) || 0
+    remainingYield: Number(db.remainingYield) || 0,
+    // 全链条追溯阶段标记（与V1.1 BatchStatItem 完全一致）
+    hasSeedSource: Number(db.hasSeedSource) || 0,
+    hasSeedling: Number(db.hasSeedling) || 0,
+    hasPlanting: Number(db.hasPlanting) || 0
   }
 }
 
@@ -350,12 +354,15 @@ export const useSummaryStore = defineStore('summary', () => {
       const url = `/summary/chain-overview${query ? `?${query}` : ''}`
 
       const response = await enhancedApiClient.get(url)
-      const data = response?.data || response || []
-      chainStages.value = Array.isArray(data) ? data.map(item => ({
+      // 后端返回 { success: true, data: { stages: [...] } }
+      const stagesData = response?.data?.stages || response?.stages || []
+      chainStages.value = stagesData.map(item => ({
         key: item.key,
+        label: item.label || '',
         count: Number(item.count) || 0,
-        items: item.items || []
-      })) : []
+        items: item.items || [],
+        detail: item.detail || {}
+      }))
       lastFetchTimestamps.value = { ...lastFetchTimestamps.value, chainOverview: Date.now() }
     } catch (err) {
       error.value = err.message

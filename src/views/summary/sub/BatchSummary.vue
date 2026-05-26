@@ -197,6 +197,7 @@
         <el-table
           :data="paginatedBatches"
           style="width: 100%"
+          :header-cell-style="headerCellStyle"
           @row-click="handleViewDetail"
         >
           <el-table-column prop="batchCode" label="批次编号" min-width="120" />
@@ -570,6 +571,14 @@ const STATUS_LABEL = {
   completed: "已完成",
   overdue: "已逾期",
 };
+
+// 表格表头样式 - 与V1.1一致，使用蓝色渐变
+const headerCellStyle = {
+  background: 'linear-gradient(to right, #3b82f6, #2563eb)',
+  color: '#ffffff',
+  fontWeight: '600',
+  fontSize: '14px'
+}
 
 // ========== 甘特图颜色映射 ==========
 const GANTT_COLORS = {

@@ -138,7 +138,7 @@
             <!-- 对比结果表格 -->
             <div class="bg-white rounded-xl p-4 border border-gray-100">
               <h4 class="text-sm font-semibold text-gray-700 mb-3">对比结果</h4>
-              <el-table :data="tableData" stripe style="width: 100%">
+              <el-table :data="tableData" stripe style="width: 100%" :header-cell-style="headerCellStyle">
                 <el-table-column v-if="selectedDimensions.includes('crop')" prop="cropName" label="作物" width="100" />
                 <el-table-column v-if="selectedDimensions.includes('greenhouse')" prop="greenhouse" label="温室" width="100" />
                 <el-table-column v-if="selectedDimensions.includes('time')" prop="period" label="时段" width="120" />
@@ -271,7 +271,7 @@
 
               <!-- 表格模式 -->
               <div v-else-if="chartMode === 'table'" class="overflow-x-auto">
-                <el-table :data="processedChartData" stripe style="width: 100%">
+                <el-table :data="processedChartData" stripe style="width: 100%" :header-cell-style="headerCellStyle">
                   <el-table-column prop="cropName" label="作物" width="100" />
                   <el-table-column prop="greenhouse" label="温室" width="120" />
                   <el-table-column prop="period" label="时段" width="120" />
@@ -321,6 +321,14 @@ import LaborAnalysis from './sub/LaborAnalysis.vue'
 
 // 共享组件
 import { PageHeader } from '@/components/summary'
+
+/** 表格表头蓝色渐变样式（与V1.1一致） */
+const headerCellStyle = {
+  background: 'linear-gradient(to right, #3b82f6, #2563eb)',
+  color: '#ffffff',
+  fontWeight: '600',
+  fontSize: '14px'
+}
 
 const summaryStore = useSummaryStore()
 const activeTab = ref('yield')

@@ -74,7 +74,7 @@
     <!-- 产量统计 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <h3 class="text-base font-semibold text-gray-800 mb-4">产量统计</h3>
-      <el-table :data="report.yieldDetail || []" stripe style="width: 100%">
+      <el-table :data="report.yieldDetail || []" stripe style="width: 100%" :header-cell-style="headerCellStyle">
         <el-table-column prop="cropName" label="作物名称" width="120" />
         <el-table-column prop="greenhouse" label="温室/区域" width="120" />
         <el-table-column prop="harvestArea" label="采收面积(㎡)" width="120" />
@@ -145,7 +145,7 @@
     <!-- 农事记录汇总 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <h3 class="text-base font-semibold text-gray-800 mb-4">农事记录汇总</h3>
-      <el-table :data="report.taskList || []" stripe style="width: 100%">
+      <el-table :data="report.taskList || []" stripe style="width: 100%" :header-cell-style="headerCellStyle">
         <el-table-column prop="date" label="日期" width="120" />
         <el-table-column prop="taskName" label="任务名称" min-width="150" />
         <el-table-column prop="greenhouse" label="执行区域" width="120" />
@@ -179,7 +179,7 @@
           <p class="text-2xl font-bold text-gray-700 mt-1">{{ report.problem?.rate || 0 }}%</p>
         </div>
       </div>
-      <el-table :data="report.problemList || []" stripe style="width: 100%">
+      <el-table :data="report.problemList || []" stripe style="width: 100%" :header-cell-style="headerCellStyle">
         <el-table-column prop="date" label="日期" width="120" />
         <el-table-column prop="type" label="问题类型" width="120" />
         <el-table-column prop="level" label="级别" width="100">
@@ -203,6 +203,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Memo, TrendCharts, Coin, Check, Wallet } from '@element-plus/icons-vue'
+
+/** 表格表头蓝色渐变样式（与V1.1一致） */
+const headerCellStyle = {
+  background: 'linear-gradient(to right, #3b82f6, #2563eb)',
+  color: '#ffffff',
+  fontWeight: '600',
+  fontSize: '14px'
+}
 
 // 选择的月份
 const selectedMonth = ref('2026-05')

@@ -141,7 +141,7 @@
 
           <!-- 明细行 -->
           <div v-if="expanded[meta.key]" class="overflow-x-auto">
-            <el-table :data="getGroupedItems(meta.key)" style="width: 100%">
+            <el-table :data="getGroupedItems(meta.key)" style="width: 100%" :header-cell-style="headerCellStyle">
               <el-table-column prop="costName" label="成本类型" min-width="120" />
               <el-table-column prop="month" label="月份" min-width="100" />
               <el-table-column label="金额" min-width="120" align="right">
@@ -191,6 +191,14 @@ import * as echarts from 'echarts'
 import { Money, User, Box, TrendCharts, Loading, WarningFilled, Histogram, DArrowRight } from '@element-plus/icons-vue'
 import { useSummaryStore } from '@/stores/modules/summary'
 import { PageHeader, KpiCard, KpiCardGrid, SummaryDateFilter } from '@/components/summary'
+
+/** 表格表头蓝色渐变样式（与V1.1一致） */
+const headerCellStyle = {
+  background: 'linear-gradient(to right, #3b82f6, #2563eb)',
+  color: '#ffffff',
+  fontWeight: '600',
+  fontSize: '14px'
+}
 
 // ========== Props ==========
 const props = defineProps({
