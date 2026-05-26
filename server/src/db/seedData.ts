@@ -4992,6 +4992,153 @@ function seedMaterialTypes() {
 }
 
 /**
+ * 导入物料数据（仓库总览用）
+ */
+function seedMaterials() {
+  const db = getDatabase();
+  const count = Number(db.exec("SELECT COUNT(*) FROM materials")[0]?.values[0][0] || 0);
+  if (count > 0) { console.log(`物料数据已存在 (${count}条)，跳过种子导入`); return; }
+
+  const now = new Date().toISOString();
+  const items = [
+    { code: 'SP0101001', name: '番茄种子', category: '种质资源', specification: '50g/袋', unit: '袋', quantity: 200, minStock: 50, maxStock: 500, price: '12.5', supplier: '山东寿光种业', location: 'A区-01-01', barcode: '6901234567001', batchNo: 'B20240301', productionDate: '2024-01-15', expiryDate: '2025-01-15' },
+    { code: 'SP0101002', name: '黄瓜种子', category: '种质资源', specification: '100粒/袋', unit: '袋', quantity: 150, minStock: 30, maxStock: 300, price: '8.0', supplier: '山东寿光种业', location: 'A区-01-02', barcode: '6901234567002', batchNo: 'B20240302', productionDate: '2024-02-01', expiryDate: '2025-02-01' },
+    { code: 'SP0101003', name: '辣椒种子', category: '种质资源', specification: '200粒/袋', unit: '袋', quantity: 100, minStock: 20, maxStock: 200, price: '15.0', supplier: '湖南湘研种业', location: 'A区-01-03', barcode: '6901234567003', batchNo: 'B20240303', productionDate: '2024-01-20', expiryDate: '2025-01-20' },
+    { code: 'SP0101004', name: '茄子种子', category: '种质资源', specification: '100粒/袋', unit: '袋', quantity: 80, minStock: 20, maxStock: 200, price: '10.0', supplier: '山东寿光种业', location: 'A区-01-04', barcode: '6901234567004', batchNo: 'B20240304', productionDate: '2024-02-10', expiryDate: '2025-02-10' },
+    { code: 'SP0101005', name: '西瓜种子', category: '种质资源', specification: '50粒/袋', unit: '袋', quantity: 120, minStock: 25, maxStock: 250, price: '20.0', supplier: '新疆农科院', location: 'A区-01-05', barcode: '6901234567005', batchNo: 'B20240305', productionDate: '2024-03-01', expiryDate: '2025-03-01' },
+    { code: 'SP0201001', name: '商品有机肥', category: '肥料', specification: '50kg/袋', unit: '袋', quantity: 500, minStock: 100, maxStock: 1000, price: '85.0', supplier: '山东寿光肥料厂', location: 'A区-02-01', barcode: '6901234567101', batchNo: 'F20240301', productionDate: '2024-03-01', expiryDate: '2026-03-01' },
+    { code: 'SP0201002', name: '复合肥(N-P-K 15-15-15)', category: '肥料', specification: '50kg/袋', unit: '袋', quantity: 350, minStock: 80, maxStock: 800, price: '120.0', supplier: '湖北宜化集团', location: 'A区-02-02', barcode: '6901234567102', batchNo: 'F20240302', productionDate: '2024-02-15', expiryDate: '2026-02-15' },
+    { code: 'SP0201003', name: '尿素', category: '肥料', specification: '50kg/袋', unit: '袋', quantity: 280, minStock: 60, maxStock: 600, price: '95.0', supplier: '湖北宜化集团', location: 'A区-02-03', barcode: '6901234567103', batchNo: 'F20240303', productionDate: '2024-03-05', expiryDate: '2026-03-05' },
+    { code: 'SP0201004', name: '磷酸二氢钾', category: '肥料', specification: '500g/袋', unit: '袋', quantity: 400, minStock: 100, maxStock: 1000, price: '35.0', supplier: '四川什邡化工', location: 'A区-02-04', barcode: '6901234567104', batchNo: 'F20240304', productionDate: '2024-01-10', expiryDate: '2026-01-10' },
+    { code: 'SP0301001', name: '吡虫啉', category: '农药', specification: '10g×10袋/盒', unit: '盒', quantity: 200, minStock: 50, maxStock: 500, price: '28.0', supplier: '江苏扬农化工', location: 'B区-01-01', barcode: '6901234567201', batchNo: 'P20240301', productionDate: '2024-01-15', expiryDate: '2026-01-15' },
+    { code: 'SP0301002', name: '多菌灵', category: '农药', specification: '100g/瓶', unit: '瓶', quantity: 300, minStock: 60, maxStock: 600, price: '45.0', supplier: '江苏扬农化工', location: 'B区-01-02', barcode: '6901234567202', batchNo: 'P20240302', productionDate: '2024-02-01', expiryDate: '2026-02-01' },
+    { code: 'SP0301003', name: '阿维菌素', category: '农药', specification: '500ml/瓶', unit: '瓶', quantity: 150, minStock: 30, maxStock: 300, price: '68.0', supplier: '浙江新安化工', location: 'B区-01-03', barcode: '6901234567203', batchNo: 'P20240303', productionDate: '2024-03-01', expiryDate: '2026-03-01' },
+    { code: 'EQ0202001', name: 'PO膜(2m×100m)', category: '覆盖材料', specification: '2m×100m', unit: '卷', quantity: 180, minStock: 40, maxStock: 400, price: '150.0', supplier: '山东寿光农膜厂', location: 'C区-01-01', barcode: '6901234567301', batchNo: 'E20240301', productionDate: '2024-01-01', expiryDate: '2027-01-01' },
+    { code: 'EQ0202002', name: '农用薄膜(5m×100m)', category: '覆盖材料', specification: '5m×100m', unit: '卷', quantity: 120, minStock: 30, maxStock: 300, price: '180.0', supplier: '山东寿光农膜厂', location: 'C区-01-02', barcode: '6901234567302', batchNo: 'E20240302', productionDate: '2024-02-01', expiryDate: '2027-02-01' },
+    { code: 'EQ0103001', name: '电动喷雾机(16L)', category: '植保机械', specification: '16L', unit: '台', quantity: 50, minStock: 10, maxStock: 100, price: '280.0', supplier: '台州路桥农机', location: 'C区-02-01', barcode: '6901234567401', batchNo: 'Q20240301', productionDate: '2024-01-20', expiryDate: '2028-01-20' },
+    { code: 'EQ0301001', name: '滴灌管(16mm×500m)', category: '灌溉设备', specification: '16mm×500m', unit: '卷', quantity: 90, minStock: 20, maxStock: 200, price: '180.0', supplier: '河北润田节水', location: 'C区-02-02', barcode: '6901234567402', batchNo: 'Q20240302', productionDate: '2024-02-10', expiryDate: '2028-02-10' },
+    { code: 'PH0104001', name: '农药瓶(500ml)', category: '包装材料', specification: '500ml/瓶', unit: '箱', quantity: 250, minStock: 50, maxStock: 500, price: '3.5', supplier: '浙江黄岩塑料', location: 'C区-03-01', barcode: '6901234567501', batchNo: 'H20240301', productionDate: '2024-03-01', expiryDate: '2029-03-01' },
+    { code: 'PH0104002', name: '编织袋(25kg)', category: '包装材料', specification: '25kg装', unit: '个', quantity: 5000, minStock: 1000, maxStock: 10000, price: '1.2', supplier: '温州苍南塑编', location: 'C区-03-02', barcode: '6901234567502', batchNo: 'H20240302', productionDate: '2024-03-05', expiryDate: '2029-03-05' },
+    { code: 'PH0104003', name: '穴盘(72孔)', category: '育苗用品', specification: '72孔', unit: '个', quantity: 800, minStock: 200, maxStock: 2000, price: '2.5', supplier: '台州黄岩塑业', location: 'C区-03-03', barcode: '6901234567503', batchNo: 'H20240303', productionDate: '2024-02-20', expiryDate: '2029-02-20' },
+    { code: 'PH0104004', name: '基质(育苗用)', category: '育苗用品', specification: '50L/袋', unit: '袋', quantity: 300, minStock: 50, maxStock: 500, price: '45.0', supplier: '丹麦品氏托普', location: 'C区-03-04', barcode: '6901234567504', batchNo: 'H20240304', productionDate: '2024-03-01', expiryDate: '2025-03-01' },
+  ];
+
+  const stmt = db.prepare(`INSERT INTO materials (code, name, category, specification, unit, quantity, minStock, maxStock, price, supplier, location, barcode, batchNo, productionDate, expiryDate, lastUpdateTime, dataStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+  for (const item of items) {
+    stmt.run([item.code, item.name, item.category, item.specification, item.unit, item.quantity, item.minStock, item.maxStock, item.price, item.supplier, item.location, item.barcode, item.batchNo, item.productionDate, item.expiryDate, now, '启用']);
+  }
+  stmt.free();
+  console.log(`已导入物料种子数据: ${items.length}条`);
+}
+
+/**
+ * 导入入库记录种子数据（物料入库用）
+ */
+function seedInboundRecords() {
+  const db = getDatabase();
+  const count = Number(db.exec("SELECT COUNT(*) FROM inbound_records")[0]?.values[0][0] || 0);
+  if (count > 0) { console.log(`入库记录数据已存在 (${count}条)，跳过种子导入`); return; }
+
+  const now = new Date().toISOString();
+  const records = [
+    { code: 'RK20240301001', inboundDate: '2024-03-01', supplier: '山东寿光种业', operator: '郭靖', status: 'completed', materials: JSON.stringify([{ code: 'SP0101001', name: '番茄种子', category: '种质资源', specification: '50g/袋', barcode: '6901234567001', unit: '袋', quantity: 200, price: '12.5', supplier: '山东寿光种业', batchNo: 'B20240301', location: 'A区-01-01', productionDate: '2024-01-15', expiryDate: '2025-01-15', remarks: '' }, { code: 'SP0101002', name: '黄瓜种子', category: '种质资源', specification: '100粒/袋', barcode: '6901234567002', unit: '袋', quantity: 150, price: '8.0', supplier: '山东寿光种业', batchNo: 'B20240302', location: 'A区-01-02', productionDate: '2024-02-01', expiryDate: '2025-02-01', remarks: '' }]) },
+    { code: 'RK20240302001', inboundDate: '2024-03-05', supplier: '湖北宜化集团', operator: '杨过', status: 'completed', materials: JSON.stringify([{ code: 'SP0201002', name: '复合肥(N-P-K 15-15-15)', category: '肥料', specification: '50kg/袋', barcode: '6901234567102', unit: '袋', quantity: 350, price: '120.0', supplier: '湖北宜化集团', batchNo: 'F20240302', location: 'A区-02-02', productionDate: '2024-02-15', expiryDate: '2026-02-15', remarks: '' }, { code: 'SP0201003', name: '尿素', category: '肥料', specification: '50kg/袋', barcode: '6901234567103', unit: '袋', quantity: 280, price: '95.0', supplier: '湖北宜化集团', batchNo: 'F20240303', location: 'A区-02-03', productionDate: '2024-03-05', expiryDate: '2026-03-05', remarks: '' }]) },
+    { code: 'RK20240303001', inboundDate: '2024-03-10', supplier: '江苏扬农化工', operator: '张无忌', status: 'completed', materials: JSON.stringify([{ code: 'SP0301001', name: '吡虫啉', category: '农药', specification: '10g×10袋/盒', barcode: '6901234567201', unit: '盒', quantity: 200, price: '28.0', supplier: '江苏扬农化工', batchNo: 'P20240301', location: 'B区-01-01', productionDate: '2024-01-15', expiryDate: '2026-01-15', remarks: '' }, { code: 'SP0301002', name: '多菌灵', category: '农药', specification: '100g/瓶', barcode: '6901234567202', unit: '瓶', quantity: 300, price: '45.0', supplier: '江苏扬农化工', batchNo: 'P20240302', location: 'B区-01-02', productionDate: '2024-02-01', expiryDate: '2026-02-01', remarks: '' }, { code: 'SP0301003', name: '阿维菌素', category: '农药', specification: '500ml/瓶', barcode: '6901234567203', unit: '瓶', quantity: 150, price: '68.0', supplier: '浙江新安化工', batchNo: 'P20240303', location: 'B区-01-03', productionDate: '2024-03-01', expiryDate: '2026-03-01', remarks: '' }]) },
+    { code: 'RK20240304001', inboundDate: '2024-03-15', supplier: '山东寿光农膜厂', operator: '段誉', status: 'completed', materials: JSON.stringify([{ code: 'EQ0202001', name: 'PO膜(2m×100m)', category: '覆盖材料', specification: '2m×100m', barcode: '6901234567301', unit: '卷', quantity: 180, price: '150.0', supplier: '山东寿光农膜厂', batchNo: 'E20240301', location: 'C区-01-01', productionDate: '2024-01-01', expiryDate: '2027-01-01', remarks: '' }]) },
+    { code: 'RK20240305001', inboundDate: '2024-03-18', supplier: '河北润田节水', operator: '令狐冲', status: 'pending', materials: JSON.stringify([{ code: 'EQ0301001', name: '滴灌管(16mm×500m)', category: '灌溉设备', specification: '16mm×500m', barcode: '6901234567402', unit: '卷', quantity: 90, price: '180.0', supplier: '河北润田节水', batchNo: 'Q20240302', location: 'C区-02-02', productionDate: '2024-02-10', expiryDate: '2028-02-10', remarks: '' }]) },
+    { code: 'RK20240306001', inboundDate: '2024-03-20', supplier: '丹麦克品氏托普', operator: '袁承志', status: 'completed', materials: JSON.stringify([{ code: 'PH0104004', name: '基质(育苗用)', category: '育苗用品', specification: '50L/袋', barcode: '6901234567504', unit: '袋', quantity: 300, price: '45.0', supplier: '丹麦品氏托普', batchNo: 'H20240304', location: 'C区-03-04', productionDate: '2024-03-01', expiryDate: '2025-03-01', remarks: '' }]) },
+  ];
+
+  for (const r of records) {
+    db.run(`INSERT INTO inbound_records (code, inboundDate, supplier, operator, status, materials) VALUES (?, ?, ?, ?, ?, ?)`,
+      [r.code, r.inboundDate, r.supplier, r.operator, r.status, r.materials]);
+  }
+  console.log(`已导入入库记录种子数据: ${records.length}条`);
+}
+
+/**
+ * 导入领料申请种子数据（material_requests表）
+ * 列结构匹配后端 /api/material-requests 路由
+ */
+function seedMaterialRequests() {
+  const db = getDatabase();
+  const count = Number(db.exec("SELECT COUNT(*) FROM material_requests")[0]?.values[0][0] || 0);
+  if (count > 0) { console.log(`领料申请数据已存在 (${count}条)，跳过种子导入`); return; }
+
+  const now = new Date().toISOString();
+  const records = [
+    { id: 'MR001', request_code: 'LL20260301001', request_title: '张伟民领料申请', request_type: '领料申请', department_id: 'D001', department_name: '生产部', applicant_id: 'U001', applicant_name: '张伟民', apply_date: '2026-03-01', expected_date: '2026-03-05', warehouse_id: 'W001', warehouse_name: '仓库A区', plant_area: '1号棚-叶菜区', production_batch_code: 'FQ2024-001', total_amount: 875, priority: 'medium', status: 'approved', approval_status: 'approved', remarks: '', attachments: '[]', materials: JSON.stringify([{ materialCode: 'SP0201001', materialName: '商品有机肥', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 10, stockQuantity: 150, unitPrice: 45, warehousePosition: 'A-01-01', remark: '正常出库', batchNo: '' }, { materialCode: 'SP0202001', materialName: '尿素', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 5, stockQuantity: 80, unitPrice: 85, warehousePosition: 'A-01-02', remark: '正常出库', batchNo: '' }]), create_by: 'U001', create_time: now, update_time: now },
+    { id: 'MR002', request_code: 'LL20260302002', request_title: '李明轩领料申请', request_type: '领料申请', department_id: 'D001', department_name: '生产部', applicant_id: 'U002', applicant_name: '李明轩', apply_date: '2026-03-02', expected_date: '2026-03-06', warehouse_id: 'W002', warehouse_name: '仓库B区', plant_area: '2号棚-茄果区', production_batch_code: 'FQ2024-002', total_amount: 224, priority: 'medium', status: 'approved', approval_status: 'approved', remarks: '', attachments: '[]', materials: JSON.stringify([{ materialCode: 'SP0301001', materialName: '吡虫啉', spec: '100g/瓶', unit: '瓶', category: '农药与植保产品', requestedQuantity: 8, stockQuantity: 120, unitPrice: 28, warehousePosition: 'B-02-03', remark: '正常出库', batchNo: '' }]), create_by: 'U002', create_time: now, update_time: now },
+    { id: 'MR003', request_code: 'LL20260303003', request_title: '王建国领料申请', request_type: '领料申请', department_id: 'D001', department_name: '生产部', applicant_id: 'U003', applicant_name: '王建国', apply_date: '2026-03-03', expected_date: '2026-03-07', warehouse_id: 'W003', warehouse_name: '仓库C区', plant_area: '3号棚-育苗区', production_batch_code: 'FQ2024-003', total_amount: 805, priority: 'medium', status: 'pending', approval_status: 'pending', remarks: '', attachments: '[]', materials: JSON.stringify([{ materialCode: 'SP0302001', materialName: '多菌灵', spec: '200g/袋', unit: '袋', category: '农药与植保产品', requestedQuantity: 15, stockQuantity: 45, unitPrice: 35, warehousePosition: 'C-03-01', remark: '待审批', batchNo: '' }, { materialCode: 'SP0301001', materialName: '吡虫啉', spec: '100g/瓶', unit: '瓶', category: '农药与植保产品', requestedQuantity: 10, stockQuantity: 120, unitPrice: 28, warehousePosition: 'C-03-02', remark: '待审批', batchNo: '' }]), create_by: 'U003', create_time: now, update_time: now },
+    { id: 'MR004', request_code: 'LL20260304004', request_title: '赵俊杰领料申请', request_type: '领料申请', department_id: 'D001', department_name: '生产部', applicant_id: 'U004', applicant_name: '赵俊杰', apply_date: '2026-03-04', expected_date: '2026-03-08', warehouse_id: 'W001', warehouse_name: '仓库A区', plant_area: '1号棚-叶菜区', production_batch_code: 'FQ2024-004', total_amount: 1440, priority: 'medium', status: 'approved', approval_status: 'approved', remarks: '', attachments: '[]', materials: JSON.stringify([{ materialCode: 'SP0103001', materialName: '番茄种子', spec: '50g/袋', unit: '袋', category: '种质资源', requestedQuantity: 12, stockQuantity: 60, unitPrice: 120, warehousePosition: 'A-02-01', remark: '正常出库', batchNo: '' }]), create_by: 'U004', create_time: now, update_time: now },
+    { id: 'MR005', request_code: 'LL20260305005', request_title: '钱文涛领料申请', request_type: '领料申请', department_id: 'D004', department_name: '后勤部', applicant_id: 'U005', applicant_name: '钱文涛', apply_date: '2026-03-05', expected_date: '2026-03-09', warehouse_id: 'W004', warehouse_name: '仓库D区', plant_area: '办公区绿化', production_batch_code: 'FQ2024-005', total_amount: 0, priority: 'low', status: 'rejected', approval_status: 'rejected', remarks: '库存不足，无法满足申请数量', attachments: '[]', materials: '[]', create_by: 'U005', create_time: now, update_time: now },
+    { id: 'MR006', request_code: 'LL20260306006', request_title: '孙晓峰领料申请', request_type: '领料申请', department_id: 'D001', department_name: '生产部', applicant_id: 'U006', applicant_name: '孙晓峰', apply_date: '2026-03-06', expected_date: '2026-03-10', warehouse_id: 'W002', warehouse_name: '仓库B区', plant_area: '4号棚-水稻区', production_batch_code: 'FQ2024-006', total_amount: 1700, priority: 'medium', status: 'pending', approval_status: 'pending', remarks: '', attachments: '[]', materials: JSON.stringify([{ materialCode: 'SP0202001', materialName: '尿素', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 20, stockQuantity: 80, unitPrice: 85, warehousePosition: 'B-01-02', remark: '库存充足', batchNo: '' }]), create_by: 'U006', create_time: now, update_time: now },
+    { id: 'MR007', request_code: 'LL20260307007', request_title: '周志强领料申请', request_type: '领料申请', department_id: 'D001', department_name: '生产部', applicant_id: 'U007', applicant_name: '周志强', apply_date: '2026-03-07', expected_date: '2026-03-11', warehouse_id: 'W003', warehouse_name: '仓库C区', plant_area: '5号棚-水果区', production_batch_code: 'FQ2024-007', total_amount: 890, priority: 'medium', status: 'approved', approval_status: 'approved', remarks: '', attachments: '[]', materials: JSON.stringify([{ materialCode: 'OP0201001', materialName: '锄头', spec: '标准型', unit: '把', category: '劳保与防护用品', requestedQuantity: 5, stockQuantity: 35, unitPrice: 42, warehousePosition: 'C-04-01', remark: '正常出库', batchNo: '' }, { materialCode: 'OP0102001', materialName: '劳保胶靴', spec: '标准码', unit: '双', category: '劳保与防护用品', requestedQuantity: 10, stockQuantity: 50, unitPrice: 68, warehousePosition: 'C-04-02', remark: '正常出库', batchNo: '' }]), create_by: 'U007', create_time: now, update_time: now },
+    { id: 'MR008', request_code: 'LL20260308008', request_title: '吴海龙领料申请', request_type: '领料申请', department_id: 'D003', department_name: '设备部', applicant_id: 'U008', applicant_name: '吴海龙', apply_date: '2026-03-08', expected_date: '2026-03-12', warehouse_id: 'W001', warehouse_name: '仓库A区', plant_area: '灌溉系统维护', production_batch_code: 'FQ2024-008', total_amount: 1160, priority: 'high', status: 'approved', approval_status: 'approved', remarks: '', attachments: '[]', materials: JSON.stringify([{ materialCode: 'EQ0103001', materialName: '电动喷雾机', spec: '标准型', unit: '台', category: '农业机械', requestedQuantity: 2, stockQuantity: 15, unitPrice: 580, warehousePosition: 'A-05-01', remark: '正常出库', batchNo: '' }]), create_by: 'U008', create_time: now, update_time: now },
+    { id: 'MR009', request_code: 'LL20260309009', request_title: '郑志远领料申请', request_type: '领料申请', department_id: 'D002', department_name: '技术部', applicant_id: 'U009', applicant_name: '郑志远', apply_date: '2026-03-09', expected_date: '2026-03-13', warehouse_id: 'W005', warehouse_name: '仓库E区', plant_area: '实验室', production_batch_code: 'FQ2024-001', total_amount: 0, priority: 'low', status: 'cancelled', approval_status: 'cancelled', remarks: '', attachments: '[]', materials: '[]', create_by: 'U009', create_time: now, update_time: now },
+    { id: 'MR010', request_code: 'LL20260310010', request_title: '陈思远领料申请', request_type: '领料申请', department_id: 'D001', department_name: '生产部', applicant_id: 'U010', applicant_name: '陈思远', apply_date: '2026-03-10', expected_date: '2026-03-14', warehouse_id: 'W002', warehouse_name: '仓库B区', plant_area: '2号棚-茄果区', production_batch_code: 'FQ2024-002', total_amount: 1950, priority: 'medium', status: 'approved', approval_status: 'approved', remarks: '', attachments: '[]', materials: JSON.stringify([{ materialCode: 'SP0101001', materialName: '水稻种子', spec: '20kg/袋', unit: '袋', category: '种质资源', requestedQuantity: 30, stockQuantity: 100, unitPrice: 65, warehousePosition: 'B-02-01', remark: '正常出库', batchNo: '' }]), create_by: 'U010', create_time: now, update_time: now },
+  ];
+
+  for (const r of records) {
+    db.run(`
+      INSERT OR REPLACE INTO material_requests (
+        id, request_code, request_title, request_type,
+        department_id, department_name, applicant_id, applicant_name,
+        apply_date, expected_date, warehouse_id, warehouse_name,
+        plant_area, production_batch_code, total_amount, priority,
+        status, approval_status, remarks, attachments, materials,
+        create_by, create_time, update_time
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      r.id, r.request_code, r.request_title, r.request_type,
+      r.department_id, r.department_name, r.applicant_id, r.applicant_name,
+      r.apply_date, r.expected_date, r.warehouse_id, r.warehouse_name,
+      r.plant_area, r.production_batch_code, r.total_amount, r.priority,
+      r.status, r.approval_status, r.remarks, r.attachments, r.materials,
+      r.create_by, r.create_time, r.update_time,
+    ]);
+  }
+  console.log(`已导入领料申请种子数据: ${records.length}条`);
+}
+
+/**
+ * 导入领料出库种子数据（material_executes表）
+ * 列结构匹配后端 /api/material-executes 路由
+ */
+function seedMaterialExecutes() {
+  const db = getDatabase();
+  const count = Number(db.exec("SELECT COUNT(*) FROM material_executes")[0]?.values[0][0] || 0);
+  if (count > 0) { console.log(`领料出库数据已存在 (${count}条)，跳过种子导入`); return; }
+
+  const now = new Date().toISOString();
+  const records = [
+    { id: 'CK001', code: 'CK20260301001', date: '2026-03-01', applicant: '张伟民', warehouse_location: '仓库A区', reviewer: '王志刚', operator: '李操作员', production_batch_code: 'FQ2024-001', source_application_codes: JSON.stringify(['LL20260301001', 'LL20260302002']), execute_status: '已出库', execute_status_class: 'completed', materials: JSON.stringify([{ materialCode: 'SP0201001', materialName: '商品有机肥', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 10, stockQuantity: 100, actualQuantity: 10, remark: '正常出库', applicationCode: 'LL20260301001', batchNo: '' }, { materialCode: 'SP0202001', materialName: '尿素', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 5, stockQuantity: 50, actualQuantity: 5, remark: '正常出库', applicationCode: 'LL20260301001', batchNo: '' }, { materialCode: 'SP0301001', materialName: '吡虫啉', spec: '100g/瓶', unit: '瓶', category: '农药与植保产品', requestedQuantity: 8, stockQuantity: 200, actualQuantity: 8, remark: '正常出库', applicationCode: 'LL20260302002', batchNo: '' }]), create_by: '', create_time: now, update_time: now },
+    { id: 'CK002', code: 'CK20260304002', date: '2026-03-04', applicant: '赵俊杰', warehouse_location: '仓库A区', reviewer: '王志刚', operator: '张操作员', production_batch_code: 'FQ2024-004', source_application_codes: JSON.stringify(['LL20260304004']), execute_status: '部分出库', execute_status_class: 'partial', materials: JSON.stringify([{ materialCode: 'SP0103001', materialName: '番茄种子', spec: '50g/袋', unit: '袋', category: '种质资源', requestedQuantity: 12, stockQuantity: 8, actualQuantity: 8, remark: '库存不足，实际发放8袋', applicationCode: 'LL20260304004', batchNo: '' }]), create_by: '', create_time: now, update_time: now },
+    { id: 'CK003', code: 'CK20260307003', date: '2026-03-07', applicant: '周志强', warehouse_location: '仓库C区', reviewer: '张志远', operator: '王操作员', production_batch_code: 'FQ2024-007', source_application_codes: JSON.stringify(['LL20260307007']), execute_status: '待出库', execute_status_class: 'pending_out', materials: JSON.stringify([{ materialCode: 'OP0201001', materialName: '锄头', spec: '标准型', unit: '把', category: '劳保与防护用品', requestedQuantity: 5, stockQuantity: 50, actualQuantity: 0, remark: '待出库', applicationCode: 'LL20260307007', batchNo: '' }, { materialCode: 'OP0102001', materialName: '劳保胶靴', spec: '标准码', unit: '双', category: '劳保与防护用品', requestedQuantity: 10, stockQuantity: 30, actualQuantity: 0, remark: '待出库', applicationCode: 'LL20260307007', batchNo: '' }]), create_by: '', create_time: now, update_time: now },
+    { id: 'CK004', code: 'CK20260308004', date: '2026-03-08', applicant: '吴海龙', warehouse_location: '仓库A区', reviewer: '王志刚', operator: '李操作员', production_batch_code: 'FQ2024-008', source_application_codes: JSON.stringify(['LL20260308008']), execute_status: '待出库', execute_status_class: 'pending_out', materials: JSON.stringify([{ materialCode: 'EQ0103001', materialName: '电动喷雾机', spec: '标准型', unit: '台', category: '农业机械', requestedQuantity: 2, stockQuantity: 10, actualQuantity: 0, remark: '待出库', applicationCode: 'LL20260308008', batchNo: '' }]), create_by: '', create_time: now, update_time: now },
+    { id: 'CK005', code: 'CK20260310005', date: '2026-03-10', applicant: '陈思远', warehouse_location: '仓库B区', reviewer: '李志刚', operator: '赵操作员', production_batch_code: 'FQ2024-002', source_application_codes: JSON.stringify(['LL20260310010']), execute_status: '已出库', execute_status_class: 'completed', materials: JSON.stringify([{ materialCode: 'SP0101001', materialName: '水稻种子', spec: '20kg/袋', unit: '袋', category: '种质资源', requestedQuantity: 30, stockQuantity: 200, actualQuantity: 30, remark: '正常出库', applicationCode: 'LL20260310010', batchNo: '' }]), create_by: '', create_time: now, update_time: now },
+    { id: 'CK006', code: 'CK20260312006', date: '2026-03-12', applicant: '杨文博', warehouse_location: '仓库A区', reviewer: '王志刚', operator: '张操作员', production_batch_code: 'FQ2024-004', source_application_codes: JSON.stringify(['LL20260312012']), execute_status: '部分出库', execute_status_class: 'partial', materials: JSON.stringify([{ materialCode: 'PH0104001', materialName: '塑料袋', spec: '标准型', unit: '卷', category: '采收容器', requestedQuantity: 50, stockQuantity: 50, actualQuantity: 50, remark: '正常出库', applicationCode: 'LL20260312012', batchNo: '' }, { materialCode: 'IT0101001', materialName: '土壤温湿度传感器', spec: '标准型', unit: '个', category: '监测设备', requestedQuantity: 5, stockQuantity: 2, actualQuantity: 2, remark: '库存不足，实际发放2个', applicationCode: 'LL20260312012', batchNo: '' }]), create_by: '', create_time: now, update_time: now },
+    { id: 'CK007', code: 'CK20260313007', date: '2026-03-13', applicant: '刘志刚', warehouse_location: '仓库D区', reviewer: '张志明', operator: '孙操作员', production_batch_code: 'FQ2024-005', source_application_codes: '[]', execute_status: '已取消', execute_status_class: 'cancelled', materials: '[]', create_by: '', create_time: now, update_time: now },
+    { id: 'CK008', code: 'CK20260314008', date: '2026-03-14', applicant: '王秀英', warehouse_location: '仓库C区', reviewer: '李志远', operator: '周操作员', production_batch_code: 'FQ2024-006', source_application_codes: '[]', execute_status: '待出库', execute_status_class: 'pending_out', materials: JSON.stringify([{ materialCode: 'EQ0306001', materialName: '滴灌带', spec: '50m/卷', unit: '卷', category: '农业机械', requestedQuantity: 20, stockQuantity: 0, actualQuantity: 0, remark: '库存为0，无法出库', applicationCode: '', batchNo: '' }]), create_by: '', create_time: now, update_time: now },
+  ];
+
+  for (const r of records) {
+    db.run(`
+      INSERT OR REPLACE INTO material_executes (
+        id, code, date, applicant, warehouse_location, reviewer, operator,
+        production_batch_code, source_application_codes, execute_status,
+        execute_status_class, materials, create_by, create_time, update_time
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      r.id, r.code, r.date, r.applicant, r.warehouse_location, r.reviewer, r.operator,
+      r.production_batch_code, r.source_application_codes, r.execute_status,
+      r.execute_status_class, r.materials, r.create_by, r.create_time, r.update_time,
+    ]);
+  }
+  console.log(`已导入领料出库种子数据: ${records.length}条`);
+}
+
+/**
  * 导出数据库
  */
 export function exportDatabase() {
@@ -5030,6 +5177,10 @@ export function exportDatabase() {
   seedApprovalAmountThresholds();
   seedApprovalTypeRules();
   seedMaterialTypes();
+  seedMaterials();
+  seedInboundRecords();
+  seedMaterialRequests();
+  seedMaterialExecutes();
   seedIndicators();
   seedAnnouncements();
   seedAnnouncementTemplates();

@@ -1,6 +1,6 @@
 /**
  * 物料领用 API 服务
- * 对接后端 /api/materialRequest
+ * 对接后端 /api/material-requests, /api/material-executes
  */
 
 import request from '../request';
@@ -89,7 +89,7 @@ export async function getApplicationList(filters = {}) {
   if (filters.limit) params.append('limit', String(filters.limit));
 
   const query = params.toString();
-  return request.get(`/materialRequest${query ? `?${query}` : ''}`);
+  return request.get(`/material-requests${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -98,7 +98,7 @@ export async function getApplicationList(filters = {}) {
  * @returns {Promise<MaterialReceivingRecord>}
  */
 export async function getApplicationById(id) {
-  return request.get(`/materialRequest/${id}`);
+  return request.get(`/material-requests/${id}`);
 }
 
 /**
@@ -107,7 +107,7 @@ export async function getApplicationById(id) {
  * @returns {Promise<Object>}
  */
 export async function createApplication(data) {
-  return request.post('/materialRequest', data);
+  return request.post('/material-requests', data);
 }
 
 /**
@@ -117,7 +117,7 @@ export async function createApplication(data) {
  * @returns {Promise<Object>}
  */
 export async function updateApplication(id, data) {
-  return request.put(`/materialRequest/${id}`, data);
+  return request.put(`/material-requests/${id}`, data);
 }
 
 /**
@@ -127,7 +127,7 @@ export async function updateApplication(id, data) {
  */
 export async function deleteApplication(id) {
   try {
-    await request.delete(`/materialRequest/${id}`);
+    await request.delete(`/material-requests/${id}`);
     return true;
   } catch {
     return false;
@@ -143,7 +143,7 @@ export async function deleteApplication(id) {
  */
 export async function approveApplication(id, action, rejectReason) {
   try {
-    await request.post(`/materialRequest/${id}/${action}`, { rejectReason });
+    await request.post(`/material-requests/${id}/${action}`, { rejectReason });
     return true;
   } catch {
     return false;
@@ -164,7 +164,7 @@ export async function getExecuteList(filters = {}) {
   if (filters.limit) params.append('limit', String(filters.limit));
 
   const query = params.toString();
-  return request.get(`/materialRequest/execute${query ? `?${query}` : ''}`);
+  return request.get(`/material-executes${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -173,7 +173,7 @@ export async function getExecuteList(filters = {}) {
  * @returns {Promise<MaterialExecuteRecord>}
  */
 export async function getExecuteById(id) {
-  return request.get(`/materialRequest/execute/${id}`);
+  return request.get(`/material-executes/${id}`);
 }
 
 /**
@@ -182,7 +182,7 @@ export async function getExecuteById(id) {
  * @returns {Promise<Object>}
  */
 export async function createExecute(data) {
-  return request.post('/materialRequest/execute', data);
+  return request.post('/material-executes', data);
 }
 
 /**
@@ -192,7 +192,26 @@ export async function createExecute(data) {
  * @returns {Promise<Object>}
  */
 export async function updateExecute(id, data) {
-  return request.put(`/materialRequest/execute/${id}`, data);
+  return request.put(`/material-executes/${id}`, data);
+}
+
+/**
+ * 确认领料出库
+ * @param {string|number} id - 出库单ID
+ * @returns {Promise<boolean>}
+ */
+/**
+ * 删除领料出库单
+ * @param {string|number} id - 出库单ID
+ * @returns {Promise<boolean>}
+ */
+export async function deleteExecute(id) {
+  try {
+    await request.delete(`/material-executes/${id}`);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -202,7 +221,7 @@ export async function updateExecute(id, data) {
  */
 export async function confirmExecute(id) {
   try {
-    await request.post(`/materialRequest/execute/${id}/confirm`);
+    await request.post(`/material-executes/${id}/confirm`);
     return true;
   } catch {
     return false;
@@ -221,7 +240,7 @@ export async function getStatistics(filters = {}) {
   if (filters.department) params.append('department', filters.department);
 
   const query = params.toString();
-  return request.get(`/materialRequest/statistics${query ? `?${query}` : ''}`);
+  return request.get(`/material-requests/statistics${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -236,7 +255,7 @@ export async function getMaterialStatistics(filters = {}) {
   if (filters.department) params.append('department', filters.department);
 
   const query = params.toString();
-  return request.get(`/materialRequest/statistics/material${query ? `?${query}` : ''}`);
+  return request.get(`/material-requests/statistics/material${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -252,7 +271,7 @@ export async function getCostStatistics(filters = {}) {
   if (filters.category) params.append('category', filters.category);
 
   const query = params.toString();
-  return request.get(`/materialRequest/statistics/cost${query ? `?${query}` : ''}`);
+  return request.get(`/material-requests/statistics/cost${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -262,7 +281,7 @@ export async function getCostStatistics(filters = {}) {
  */
 export async function deleteApplicationsBatch(ids) {
   try {
-    await request.delete(`/materialRequest/batch?ids=${ids.join(',')}`);
+    await request.delete(`/material-requests/batch?ids=${ids.join(',')}`);
     return true;
   } catch {
     return false;

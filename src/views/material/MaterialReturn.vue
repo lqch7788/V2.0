@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><RefreshLeft /></el-icon>
+            <el-icon :size="24" color="white"><Sort /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">生产退料</h1>
@@ -23,7 +23,7 @@
           <el-input v-model="searchForm.code" placeholder="请输入" clearable @clear="updateSearchField('code', '')" @input="updateSearchField('code', $event)" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">物料名称</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">物资名称</label>
           <el-input v-model="searchForm.material" placeholder="请输入" clearable @clear="updateSearchField('material', '')" @input="updateSearchField('material', $event)" />
         </div>
         <div>
@@ -35,13 +35,13 @@
           <el-input v-model="searchForm.applicant" placeholder="请输入" clearable @clear="updateSearchField('applicant', '')" @input="updateSearchField('applicant', $event)" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
           <el-select v-model="searchForm.status" placeholder="全部状态" @change="updateSearchField('status', $event)">
             <el-option v-for="opt in STATUS_OPTIONS" :key="opt.value" :label="opt.label" :value="opt.value" />
           </el-select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">部门</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">退料部门</label>
           <el-select v-model="searchForm.department" placeholder="全部部门" @change="updateSearchField('department', $event)">
             <el-option label="全部部门" value="all" />
             <el-option v-for="dept in departmentOptions" :key="dept" :label="dept" :value="dept" />
@@ -157,10 +157,10 @@
               <el-table-column prop="materialName" label="物料名称" min-width="120" />
               <el-table-column prop="spec" label="规格" width="100" />
               <el-table-column prop="unit" label="单位" width="60" />
-              <el-table-column prop="quantity" label="领料数量" width="90" />
+              <el-table-column prop="returnQuantity" label="本次退料数量" width="100" />
               <el-table-column prop="unitPrice" label="单价(元)" width="90" />
               <el-table-column label="小计(元)" width="100">
-                <template #default="{ row: mr }">{{ (mr.quantity * mr.unitPrice).toFixed(2) }}</template>
+                <template #default="{ row: mr }">{{ ((mr.returnQuantity || 0) * (mr.unitPrice || 0)).toFixed(2) }}</template>
               </el-table-column>
               <el-table-column prop="warehousePosition" label="仓库货位" width="100" />
               <el-table-column prop="reason" label="退料原因" width="100" />
@@ -210,11 +210,10 @@
           <el-descriptions-item label="操作人">{{ selectedRecord.operator || '-' }}</el-descriptions-item>
           <el-descriptions-item label="审核人">{{ selectedRecord.reviewer || '-' }}</el-descriptions-item>
           <el-descriptions-item label="审核日期">{{ selectedRecord.reviewDate || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="驳回原因" :span="2">
-            <span v-if="selectedRecord.rejectReason" class="text-red-600">{{ selectedRecord.rejectReason }}</span>
-            <span v-else>-</span>
+          <el-descriptions-item v-if="selectedRecord.rejectReason" label="驳回原因" :span="3">
+            <span class="text-red-600 font-medium">{{ selectedRecord.rejectReason }}</span>
           </el-descriptions-item>
-          <el-descriptions-item label="备注" :span="3">{{ selectedRecord.remark || '-' }}</el-descriptions-item>
+          <el-descriptions-item v-if="selectedRecord.remark" label="备注" :span="3">{{ selectedRecord.remark }}</el-descriptions-item>
         </el-descriptions>
 
         <div class="mt-4">
@@ -338,9 +337,9 @@
                 <el-input-number v-model="mr.returnQuantity" :min="0" size="small" style="width: 100%" @change="v => handleMaterialChange($index, 'returnQuantity', v)" />
               </template>
             </el-table-column>
-            <el-table-column label="单价" width="90">
-              <template #default="{ row: mr, $index }">
-                <el-input-number v-model="mr.unitPrice" :min="0" :precision="2" size="small" style="width: 100%" @change="v => handleMaterialChange($index, 'unitPrice', v)" />
+            <el-table-column label="单价(元)" width="90">
+              <template #default="{ row: mr }">
+                <span class="text-sm text-right block">{{ mr.unitPrice ? '¥' + mr.unitPrice.toFixed(2) : '-' }}</span>
               </template>
             </el-table-column>
             <el-table-column label="货位" width="90">
@@ -351,6 +350,7 @@
             <el-table-column label="退料原因" width="120">
               <template #default="{ row: mr, $index }">
                 <el-select v-model="mr.reason" size="small" @change="v => handleMaterialChange($index, 'reason', v)">
+                  <el-option value="" label="请选择" />
                   <el-option v-for="r in RETURN_REASONS" :key="r" :label="r" :value="r" />
                 </el-select>
               </template>
@@ -366,6 +366,45 @@
       <template #footer>
         <el-button @click="handleCancelAdd">取消</el-button>
         <el-button type="primary" @click="handleSaveAdd">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 物料选择弹窗 -->
+    <el-dialog v-model="showMaterialSelectModal" title="选择物料" width="900px" :close-on-click-modal="false">
+      <!-- 搜索栏 -->
+      <div class="mb-4">
+        <el-input v-model="materialSelectSearch" placeholder="搜索物料编码或名称..." clearable>
+          <template #prefix><el-icon><Search /></el-icon></template>
+        </el-input>
+      </div>
+
+      <!-- 物料列表 -->
+      <div v-if="filteredWarehouseMaterials.length > 0" class="border border-gray-200 rounded-lg overflow-hidden">
+        <el-table :data="filteredWarehouseMaterials" size="small" max-height="400" @selection-change="(val) => { selectedMaterialCodes = new Set(val.map(m => m.code || m.name)) }">
+          <el-table-column type="selection" width="45" />
+          <el-table-column prop="code" label="物料编码" width="120">
+            <template #default="{ row }"><span class="font-mono text-sm">{{ row.code || row.name }}</span></template>
+          </el-table-column>
+          <el-table-column prop="name" label="物料名称" min-width="140" />
+          <el-table-column prop="specification" label="规格" width="100">
+            <template #default="{ row }">{{ row.specification || '-' }}</template>
+          </el-table-column>
+          <el-table-column prop="unit" label="单位" width="60" />
+          <el-table-column prop="stockQuantity" label="库存数量" width="100" />
+          <el-table-column prop="location" label="仓库货位" width="100">
+            <template #default="{ row }">{{ row.location || '-' }}</template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <div v-else class="text-center text-gray-500 py-8">暂无物料数据</div>
+
+      <div class="mt-4 text-sm text-gray-500">
+        已选择 <strong>{{ selectedMaterialCodes.size }}</strong> 项
+      </div>
+
+      <template #footer>
+        <el-button @click="showMaterialSelectModal = false">取消</el-button>
+        <el-button type="primary" @click="confirmMaterialSelect">确认添加</el-button>
       </template>
     </el-dialog>
 
@@ -505,7 +544,6 @@
       </el-form>
       <template #footer>
         <el-button @click="showEditModal = false">取消</el-button>
-        <el-button type="danger" plain @click="handleVoidApply()">作废申请</el-button>
         <el-button type="primary" @click="handleSaveEdit">保存</el-button>
       </template>
     </el-dialog>
@@ -526,27 +564,7 @@
       </el-form-item>
       <template #footer>
         <el-button @click="showVoidModal = false">取消</el-button>
-        <el-button type="danger" @click="submitVoidApply">提交作废申请</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 删除确认弹窗（单条） -->
-    <el-dialog v-model="showDeleteConfirm" title="确认删除" width="400px">
-      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-        <p class="text-sm text-amber-800">
-          <strong>警告：</strong> 删除此退料记录可能会导致相关数据丢失，无法恢复。请确认是否继续删除操作。
-        </p>
-      </div>
-      <div class="flex items-center gap-3">
-        <el-icon :size="40" color="#f56c6c"><WarningFilled /></el-icon>
-        <div>
-          <p class="text-lg font-medium">确定要删除该退料记录吗？</p>
-          <p class="text-sm text-gray-500">此操作不可恢复，将同时删除关联的所有物料明细</p>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="showDeleteConfirm = false">取消</el-button>
-        <el-button type="danger" @click="confirmDelete">确认删除</el-button>
+        <el-button type="warning" @click="submitVoidApply">提交作废申请</el-button>
       </template>
     </el-dialog>
 
@@ -583,6 +601,193 @@
       <template #footer>
         <el-button @click="showExportTypeModal = false">取消</el-button>
         <el-button type="primary" @click="confirmExport">确认导出</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 批量编辑弹窗 -->
+    <el-dialog v-model="showBatchEditModal" title="批量编辑退料记录" width="1100px" :close-on-click-modal="false" @close="closeBatchEditModal">
+      <!-- 进度提示 -->
+      <div class="bg-blue-50 rounded-lg p-3 mb-3">
+        <p class="text-sm text-blue-800">已选择 <strong>{{ selectedRows.length }}</strong> 条退料记录进行批量编辑，已编辑 <strong>{{ Object.keys(batchEditedRecords).length }}</strong> 条</p>
+      </div>
+
+      <!-- 退料单选择下拉 -->
+      <div class="mb-3">
+        <el-select
+          :model-value="selectedRows[currentBatchEditIndex]"
+          @change="(val) => { const idx = selectedRows.indexOf(val); if (idx >= 0) currentBatchEditIndex = idx }"
+          class="w-full"
+        >
+          <el-option
+            v-for="id in selectedRows"
+            :key="id"
+            :label="`${getRecordById(id)?.code || '-'} (${getRecordById(id)?.applicant || '-'})${batchEditedRecords[id] ? ' ✅ 已编辑' : ''}`"
+            :value="id"
+          />
+        </el-select>
+      </div>
+
+      <template v-if="currentBatchRecord">
+        <!-- 基本信息 -->
+        <div class="bg-gray-100 rounded-lg p-3 mb-3">
+          <div class="grid grid-cols-3 gap-y-2 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">退料单号：</span>
+              <span class="font-mono font-medium text-gray-900">{{ currentBatchRecord.code || '-' }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">日期：</span>
+              <el-date-picker
+                :model-value="currentBatchRecord.date"
+                @update:model-value="batchHandleFieldChange(currentBatchId, 'date', $event)"
+                type="date" value-format="YYYY-MM-DD" size="small" class="flex-1"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">退料类型：</span>
+              <el-select
+                :model-value="currentBatchRecord.type"
+                @change="batchHandleFieldChange(currentBatchId, 'type', $event)"
+                size="small" class="flex-1"
+              >
+                <el-option v-for="t in RETURN_TYPES" :key="t" :label="t" :value="t" />
+              </el-select>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">申请人：</span>
+              <el-input
+                :model-value="currentBatchRecord.applicant"
+                @input="batchHandleFieldChange(currentBatchId, 'applicant', $event)"
+                size="small" class="flex-1"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">部门：</span>
+              <el-select
+                :model-value="currentBatchRecord.department"
+                @change="batchHandleFieldChange(currentBatchId, 'department', $event)"
+                size="small" class="flex-1"
+              >
+                <el-option v-for="d in departmentOptions" :key="d" :label="d" :value="d" />
+              </el-select>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">仓库位置：</span>
+              <el-input
+                :model-value="currentBatchRecord.warehouseLocation"
+                @input="batchHandleFieldChange(currentBatchId, 'warehouseLocation', $event)"
+                size="small" class="flex-1" placeholder="请输入"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">操作人：</span>
+              <el-input
+                :model-value="currentBatchRecord.operator"
+                @input="batchHandleFieldChange(currentBatchId, 'operator', $event)"
+                size="small" class="flex-1" placeholder="请输入"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">审核人：</span>
+              <el-input
+                :model-value="currentBatchRecord.reviewer"
+                @input="batchHandleFieldChange(currentBatchId, 'reviewer', $event)"
+                size="small" class="flex-1" placeholder="请输入"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 w-20 shrink-0">状态：</span>
+              <span class="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-sm text-gray-600">
+                {{ currentBatchRecord.status || '-' }}
+              </span>
+              <span class="text-xs text-gray-400">（审批状态由系统自动生成）</span>
+            </div>
+            <div class="flex items-center gap-2 col-span-3">
+              <span class="text-gray-500 w-20 shrink-0">备注：</span>
+              <el-input
+                :model-value="currentBatchRecord.remark"
+                @input="batchHandleFieldChange(currentBatchId, 'remark', $event)"
+                size="small" class="flex-1" placeholder="请输入"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 物料明细 -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-sm font-medium text-gray-700">物料明细</label>
+            <span class="text-xs text-gray-500">共 {{ currentBatchRecord.materials?.length || 0 }} 条</span>
+          </div>
+          <div v-if="currentBatchRecord.materials?.length" class="border border-gray-200 rounded-lg overflow-hidden">
+            <div class="overflow-auto max-h-[320px]">
+              <el-table :data="currentBatchRecord.materials" size="small">
+                <el-table-column label="来源领料单号" width="140">
+                  <template #default="{ row: mr, $index }">
+                    <el-input v-model="mr.sourceApplicationCode" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'sourceApplicationCode', $event)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="物料编码" width="110">
+                  <template #default="{ row: mr, $index }">
+                    <el-input v-model="mr.materialCode" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'materialCode', $event)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="物料分类" width="120">
+                  <template #default="{ row: mr, $index }">
+                    <el-input v-model="mr.category" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'category', $event)" placeholder="中类-小类" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="物料名称" min-width="120">
+                  <template #default="{ row: mr, $index }">
+                    <el-input v-model="mr.materialName" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'materialName', $event)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="规格" width="100">
+                  <template #default="{ row: mr, $index }">
+                    <el-input v-model="mr.spec" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'spec', $event)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="单位" width="70">
+                  <template #default="{ row: mr, $index }">
+                    <el-input v-model="mr.unit" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'unit', $event)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="退料数量" width="100">
+                  <template #default="{ row: mr, $index }">
+                    <el-input-number v-model="mr.returnQuantity" :min="0" size="small" style="width: 100%" @change="batchHandleMaterialChange(currentBatchId, $index, 'returnQuantity', $event)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="单价" width="90">
+                  <template #default="{ row: mr, $index }">
+                    <el-input-number v-model="mr.unitPrice" :min="0" size="small" style="width: 100%" @change="batchHandleMaterialChange(currentBatchId, $index, 'unitPrice', $event)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="仓库货位" width="100">
+                  <template #default="{ row: mr, $index }">
+                    <el-input v-model="mr.warehousePosition" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'warehousePosition', $event)" placeholder="仓库-区-位" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="退料原因" width="120">
+                  <template #default="{ row: mr, $index }">
+                    <el-select v-model="mr.reason" size="small" @change="batchHandleMaterialChange(currentBatchId, $index, 'reason', $event)">
+                      <el-option value="" label="请选择" />
+                      <el-option v-for="r in RETURN_REASONS" :key="r" :label="r" :value="r" />
+                    </el-select>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+          <div v-else class="text-sm text-gray-500 italic border border-gray-200 rounded-lg p-4 text-center">
+            暂无物料明细
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <el-button @click="closeBatchEditModal">取消</el-button>
+        <el-button @click="batchGoToNext">下一条</el-button>
+        <el-button type="primary" @click="handleBatchSaveAll">保存全部 ({{ Object.keys(batchEditedRecords).length }} 个)</el-button>
       </template>
     </el-dialog>
 
@@ -643,9 +848,10 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { RefreshLeft, Plus, Edit, Delete, Download, ArrowDown, ArrowRight, Refresh, WarningFilled, InfoFilled } from '@element-plus/icons-vue'
+import { Sort, Plus, Edit, Delete, Download, ArrowDown, ArrowRight, Refresh, WarningFilled, InfoFilled, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useMaterialReturnStore } from '@/stores/modules/inventory/useMaterialReturnStore'
+import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
 
 // ============ 常量配置（与V1.1 config.ts一致） ============
 
@@ -695,6 +901,10 @@ const departmentOptions = ['生产部', '种植部', '设备部', '品质部', '
 // ============ Store ============
 
 const store = useMaterialReturnStore()
+const warehouseStore = useWarehouseMaterialStore()
+
+/** 获取当前用户名 */
+const currentOperatorName = localStorage.getItem('username') || '系统管理员'
 
 // ============ 工具函数 ============
 
@@ -742,7 +952,6 @@ const showDetailModal = ref(false)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showVoidModal = ref(false)
-const showDeleteConfirm = ref(false)
 const showBatchDeleteConfirm = ref(false)
 const showExportTypeModal = ref(false)
 const showEditWarning = ref(false)
@@ -750,9 +959,18 @@ const showDeleteWarning = ref(false)
 const showEditAlert = ref(false)
 
 const selectedRecord = ref(null)
-const deletingId = ref(null)
 const voidReason = ref('')
 const editAlertMessage = ref('')
+
+// 批量编辑状态
+const batchEditedRecords = ref({})
+const currentBatchEditIndex = ref(0)
+const showBatchEditModal = ref(false)
+
+// 物料选择弹窗状态
+const showMaterialSelectModal = ref(false)
+const materialSelectSearch = ref('')
+const selectedMaterialCodes = ref(new Set())
 
 // 表单
 const addForm = reactive(createEmptyAddForm())
@@ -767,7 +985,7 @@ function createEmptyAddForm() {
     department: '',
     warehouseLocation: '',
     remark: '',
-    operator: '',
+    operator: currentOperatorName,
     reviewer: '',
     reviewDate: '',
     rejectReason: '',
@@ -830,6 +1048,18 @@ const paginatedReturns = computed(() => {
 })
 
 const totalPages = computed(() => Math.ceil(filteredReturns.value.length / pageSize.value) || 1)
+
+/** 批量编辑：当前记录ID */
+const currentBatchId = computed(() => selectedRows.value[currentBatchEditIndex.value])
+
+/** 批量编辑：当前记录 */
+const currentBatchRecord = computed(() => {
+  const id = currentBatchId.value
+  return batchEditedRecords.value[id] || null
+})
+
+/** 根据ID获取退料记录 */
+const getRecordById = (id) => allReturns.value.find(r => r.id === id)
 
 // ============ 选择逻辑 ============
 
@@ -949,15 +1179,6 @@ const goToVoidFromAlert = () => {
 
 // ============ 删除操作 ============
 
-const confirmDelete = async () => {
-  if (deletingId.value !== null) {
-    await store.removeReturn(deletingId.value)
-    ElMessage.success('删除成功')
-  }
-  showDeleteConfirm.value = false
-  deletingId.value = null
-}
-
 const confirmBatchDelete = async () => {
   if (selectedRows.value.length > 0) {
     await store.removeReturnsBatch(selectedRows.value)
@@ -986,9 +1207,67 @@ const handleGenerateCode = () => {
   addForm.code = generateReturnCode(allReturns.value.map(r => r.code))
 }
 
-const handleOpenMaterialSelect = () => {
-  ElMessage.info('从仓库选择物料功能：请先输入来源领料单号，系统将自动加载对应物料')
+const handleOpenMaterialSelect = async () => {
+  selectedMaterialCodes.value = new Set()
+  materialSelectSearch.value = ''
+  // 确保仓库物料已加载
+  if (warehouseStore.materials.length === 0) {
+    await warehouseStore.loadMaterials()
+  }
+  showMaterialSelectModal.value = true
 }
+
+/** 物料选择弹窗：切换选中 */
+const toggleMaterialSelect = (code) => {
+  const newSet = new Set(selectedMaterialCodes.value)
+  if (newSet.has(code)) newSet.delete(code)
+  else newSet.add(code)
+  selectedMaterialCodes.value = newSet
+}
+
+/** 物料选择弹窗：全选/取消全选 */
+const toggleAllMaterialSelect = () => {
+  const filtered = filteredWarehouseMaterials.value
+  if (filtered.length === 0) return
+  const allSelected = filtered.every(m => selectedMaterialCodes.value.has(m.code || m.name))
+  if (allSelected) {
+    selectedMaterialCodes.value = new Set()
+  } else {
+    selectedMaterialCodes.value = new Set(filtered.map(m => m.code || m.name))
+  }
+}
+
+/** 物料选择弹窗：确认选择 */
+const confirmMaterialSelect = () => {
+  const filtered = filteredWarehouseMaterials.value
+  const selected = filtered.filter(m => selectedMaterialCodes.value.has(m.code || m.name))
+  selected.forEach(m => {
+    addForm.materials.push({
+      sourceApplicationCode: '',
+      materialCode: m.code || m.name,
+      category: m.category || '',
+      materialName: m.name,
+      spec: m.specification || '',
+      unit: m.unit || '',
+      returnQuantity: m.stockQuantity || 0,
+      unitPrice: m.unitPrice || 0,
+      warehousePosition: m.location || '',
+      reason: '',
+      remark: ''
+    })
+  })
+  showMaterialSelectModal.value = false
+}
+
+/** 物料选择弹窗：过滤后的仓库物料 */
+const filteredWarehouseMaterials = computed(() => {
+  const keyword = materialSelectSearch.value.toLowerCase()
+  if (!keyword) return warehouseStore.materials
+  return warehouseStore.materials.filter(m =>
+    (m.code || '').toLowerCase().includes(keyword) ||
+    (m.name || '').toLowerCase().includes(keyword)
+  )
+})
 
 const handleSaveAdd = async () => {
   if (!addForm.code) {
@@ -1092,7 +1371,7 @@ const confirmExport = () => {
     html += '</table></body></html>'
     content = html
     mimeType = 'application/vnd.ms-excel;charset=utf-8'
-    extension = 'xls'
+    extension = 'xlsx'
   } else {
     let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1">'
     html += `<tr>${headers.map(h => `<th>${h}</th>`).join('')}${materialHeaders.map(h => `<th>${h}</th>`).join('')}</tr>`
@@ -1109,7 +1388,7 @@ const confirmExport = () => {
     html += '</table></body></html>'
     content = html
     mimeType = 'application/vnd.ms-word;charset=utf-8'
-    extension = 'doc'
+    extension = 'docx'
   }
 
   const blob = new Blob([content], { type: mimeType })
@@ -1140,13 +1419,20 @@ const openBatchEditOrWarn = () => {
     ElMessage.warning('请先选择要编辑的记录')
     return
   }
-  ElMessage.info('批量编辑功能：请在列表中选择单条记录后点击行内"编辑"按钮进行编辑')
-  cancelBatchEditMode()
+  showEditWarning.value = false
+  // 初始化批量编辑数据
+  const records = {}
+  selectedRows.value.forEach(id => {
+    const record = allReturns.value.find(r => r.id === id)
+    if (record) records[id] = JSON.parse(JSON.stringify(record))
+  })
+  batchEditedRecords.value = records
+  currentBatchEditIndex.value = 0
+  showBatchEditModal.value = true
 }
 
 const confirmEditWarning = () => {
   showEditWarning.value = false
-  batchEditMode.value = true
 }
 
 const closeEditWarning = () => {
@@ -1158,6 +1444,61 @@ const closeEditWarning = () => {
 const cancelBatchEditMode = () => {
   batchEditMode.value = false
   selectedRows.value = []
+}
+
+/** 批量编辑：跳转到下一条 */
+const batchGoToNext = () => {
+  const next = currentBatchEditIndex.value + 1
+  if (next < selectedRows.value.length) {
+    currentBatchEditIndex.value = next
+  } else {
+    currentBatchEditIndex.value = 0
+  }
+}
+
+/** 批量编辑：字段变更 */
+const batchHandleFieldChange = (recordId, field, value) => {
+  const records = { ...batchEditedRecords.value }
+  if (records[recordId]) {
+    records[recordId] = { ...records[recordId], [field]: value }
+    batchEditedRecords.value = records
+  }
+}
+
+/** 批量编辑：物料字段变更 */
+const batchHandleMaterialChange = (recordId, index, field, value) => {
+  const records = { ...batchEditedRecords.value }
+  if (records[recordId] && records[recordId].materials) {
+    const materials = [...records[recordId].materials]
+    materials[index] = { ...materials[index], [field]: value }
+    records[recordId] = { ...records[recordId], materials }
+    batchEditedRecords.value = records
+  }
+}
+
+/** 批量编辑：保存全部 */
+const handleBatchSaveAll = async () => {
+  try {
+    const ids = Object.keys(batchEditedRecords.value).map(Number)
+    for (const id of ids) {
+      await store.editReturn(id, batchEditedRecords.value[id])
+    }
+    ElMessage.success(`成功保存 ${ids.length} 条记录`)
+  } catch (e) {
+    ElMessage.error('批量保存失败: ' + (e.message || '未知错误'))
+  }
+  showBatchEditModal.value = false
+  batchEditMode.value = false
+  selectedRows.value = []
+  batchEditedRecords.value = {}
+  currentBatchEditIndex.value = 0
+}
+
+/** 批量编辑：关闭 */
+const closeBatchEditModal = () => {
+  showBatchEditModal.value = false
+  batchEditedRecords.value = {}
+  currentBatchEditIndex.value = 0
 }
 
 // ============ 批量删除操作 ============
@@ -1182,3 +1523,20 @@ onMounted(async () => {
   await store.loadReturnRecords()
 })
 </script>
+
+<style scoped>
+/* 表格表头蓝色渐变（与V1.1一致） */
+:deep(.el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+:deep(.el-table__header-wrapper .el-table__header th .el-table__cell) {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+/* 行hover效果 */
+:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
+  background-color: #dbeafe !important;
+}
+</style>

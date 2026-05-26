@@ -18,6 +18,8 @@
     <!-- 编码规则生成器（可折叠） -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <div class="px-6 py-3 flex items-center gap-3 border-b border-gray-100">
+        <el-button size="small" @click="$router.push('/code-rule')">编码规则 &gt;&gt;</el-button>
+        <div class="h-6 w-px bg-gray-300"></div>
         <span class="text-base font-bold text-blue-600">物料编码生成</span>
         <el-button
           text
@@ -1472,3 +1474,31 @@ onMounted(async () => {
   await inboundStore.loadInboundRecords()
 })
 </script>
+
+<style scoped>
+/* 蓝色渐变表头 - 与V1.1保持一致 */
+:deep(.el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+:deep(.el-table__header-wrapper .el-table__header th .el-table__cell) {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+:deep(.el-table__header-wrapper .el-table__header th .cell) {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* 蓝色悬停行 - 与V1.1 hover:bg-blue-100 一致 */
+:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
+  background-color: #dbeafe !important;
+}
+
+/* 展开行内嵌子表格：翠绿色渐变表头 - 与V1.1一致 */
+:deep(.el-table__expanded-cell .el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #10b981, #059669) !important;
+  color: #ffffff !important;
+}
+</style>

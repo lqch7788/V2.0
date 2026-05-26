@@ -1,15 +1,14 @@
 <template>
   <div class="space-y-6">
-    <!-- 页头 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <!-- 页头 - 与V1.1 PageHeader.tsx一致：Truck图标，无副标题 -->
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Shop /></el-icon>
+            <el-icon :size="24" color="white"><Van /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">供应商管理</h1>
-            <p class="text-gray-500">供应商信息管理</p>
           </div>
         </div>
       </div>
@@ -25,7 +24,7 @@
       </el-button>
     </div>
 
-    <!-- 编码生成器（可折叠） -->
+    <!-- 编码生成器（可折叠） - 与V1.1 SupplierCodeGenerator一致 -->
     <div v-if="codeGenExpanded" class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-2 mb-4">
         <h3 class="text-lg font-semibold text-gray-900">编码生成</h3>
@@ -38,7 +37,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">供应商大类</label>
           <el-select v-model="codeGen.bigCategory" placeholder="请选择大类" class="w-full" @change="handleCodeGenBigChange">
-            <el-option v-for="cat in supplierCategories" :key="cat.code" :label="`${cat.code} - ${cat.name}`" :value="cat.code" />
+            <el-option v-for="cat in categoryOptions" :key="cat.code" :label="`${cat.code} - ${cat.name}`" :value="cat.code" />
           </el-select>
         </div>
         <div>
@@ -68,9 +67,8 @@
       <div v-if="codeGenSuccess && !codeGenError" class="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-600">{{ codeGenSuccess }}</div>
     </div>
 
-    <!-- 筛选 -->
+    <!-- 筛选 - 与V1.1 SupplierFilters一致 -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <!-- 第一行：默认可见筛选 -->
       <div class="flex items-end gap-4">
         <div class="flex-1 grid grid-cols-5 gap-4">
           <div>
@@ -86,19 +84,16 @@
             </el-select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">供应物资类型</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">供应商类型</label>
             <el-select v-model="filters.type" placeholder="全部" class="w-full" @change="handleFilterChange('type', filters.type)">
-              <el-option label="全部" value="全部" />
-              <el-option v-for="cat in supplierCategories" :key="cat.code" :label="cat.name" :value="cat.code" />
+              <el-option label="全部类型" value="全部" />
+              <el-option v-for="cat in categoryOptions" :key="cat.code" :label="cat.name" :value="cat.code" />
             </el-select>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">供应商属性</label>
             <el-select v-model="filters.supplierAttribute" placeholder="全部" class="w-full" @change="handleFilterChange('supplierAttribute', filters.supplierAttribute)">
-              <el-option label="全部" value="全部" />
-              <el-option label="企业" value="企业" />
-              <el-option label="个体户" value="个体户" />
-              <el-option label="事业单位" value="事业单位" />
+              <el-option v-for="opt in supplierAttributeFilterOptions" :key="opt" :value="opt">{{ opt }}</el-option>
             </el-select>
           </div>
           <div>
@@ -120,7 +115,7 @@
         </div>
       </div>
 
-      <!-- 更多筛选：默认折叠 -->
+      <!-- 更多筛选 -->
       <div v-if="showMore" class="mt-3 grid grid-cols-5 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">联系人</label>
@@ -145,7 +140,7 @@
       </div>
     </div>
 
-    <!-- 表格区域 -->
+    <!-- 表格区域 - 与V1.1 SupplierTable一致 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -180,18 +175,18 @@
         </div>
       </div>
 
-      <!-- 表格 -->
-      <el-table :data="paginatedSuppliers" stripe @selection-change="handleSelectionChange" ref="tableRef">
+      <!-- 表格 - V1.1列顺序：编号→名称→类型→属性→联系人→移动电话→组织→状态→地区→创建时间→操作 -->
+      <el-table :data="paginatedSuppliers" stripe @selection-change="handleSelectionChange" ref="tableRef" class="supplier-table">
         <el-table-column v-if="hasActiveMode" type="selection" width="50" />
         <el-table-column prop="code" label="供应商编号" width="150">
           <template #default="{ row }">
             <span class="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline" @click="handleView(row)">{{ row.code }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="供应物资类型" width="160">
+        <el-table-column prop="name" label="供应商名称" min-width="180" />
+        <el-table-column label="供应类型" width="160">
           <template #default="{ row }">{{ getSupplierTypeName(row.supplierType) }}</template>
         </el-table-column>
-        <el-table-column prop="name" label="供应商名称" min-width="180" />
         <el-table-column prop="supplierAttribute" label="供应商属性" width="100" />
         <el-table-column prop="contact" label="联系人" width="90" />
         <el-table-column prop="mobilePhone" label="移动电话" width="130" />
@@ -238,15 +233,18 @@
 
     <!-- ========== 弹窗 ========== -->
 
-    <!-- 查看详情弹窗 -->
+    <!-- 查看详情弹窗 - 与V1.1 SupplierDetailModal一致 -->
     <el-dialog v-model="showDetailModal" title="供应商详情" width="700px" :close-on-click-modal="false">
       <template v-if="detailSupplier">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="供应商编号">{{ detailSupplier.code }}</el-descriptions-item>
-          <el-descriptions-item label="所属组织">{{ detailSupplier.organization }}</el-descriptions-item>
           <el-descriptions-item label="供应商名称" :span="2">{{ detailSupplier.name }}</el-descriptions-item>
-          <el-descriptions-item label="供应物资类型">{{ getSupplierTypeName(detailSupplier.supplierType) }}</el-descriptions-item>
+          <el-descriptions-item label="供应类型">{{ getSupplierTypeName(detailSupplier.supplierType) }}</el-descriptions-item>
           <el-descriptions-item label="供应商属性">{{ detailSupplier.supplierAttribute }}</el-descriptions-item>
+          <el-descriptions-item label="所属组织">{{ detailSupplier.organization }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="detailSupplier.status === '合作中' ? 'success' : detailSupplier.status === '暂停' ? 'warning' : 'danger'" size="small">{{ detailSupplier.status }}</el-tag>
+          </el-descriptions-item>
           <el-descriptions-item label="联系人">{{ detailSupplier.contact }}</el-descriptions-item>
           <el-descriptions-item label="移动电话">{{ detailSupplier.mobilePhone }}</el-descriptions-item>
           <el-descriptions-item label="工作电话">{{ detailSupplier.workPhone || '-' }}</el-descriptions-item>
@@ -255,9 +253,6 @@
           <el-descriptions-item label="省份">{{ detailSupplier.province }}</el-descriptions-item>
           <el-descriptions-item label="城市">{{ detailSupplier.city }}</el-descriptions-item>
           <el-descriptions-item label="详细地址" :span="2">{{ detailSupplier.address }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="detailSupplier.status === '合作中' ? 'success' : detailSupplier.status === '暂停' ? 'warning' : 'danger'" size="small">{{ detailSupplier.status }}</el-tag>
-          </el-descriptions-item>
           <el-descriptions-item label="开户行">{{ detailSupplier.bankName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="银行卡号" :span="2">{{ detailSupplier.bankCardNumber || '-' }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ detailSupplier.createDate }}</el-descriptions-item>
@@ -269,7 +264,7 @@
       </template>
     </el-dialog>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑弹窗 - 与V1.1 SupplierAddModal/SupplierEditModal一致 -->
     <el-dialog v-model="showFormModal" :title="isEdit ? '编辑供应商' : '新增供应商'" width="800px" :close-on-click-modal="false" @closed="resetForm">
       <el-form :model="form" label-width="120px" ref="formRef">
         <el-row :gutter="20">
@@ -296,18 +291,16 @@
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="供应物资类型">
-              <el-select v-model="form.supplierType" placeholder="请选择" class="w-full" @change="onFormSupplierTypeChange">
-                <el-option v-for="cat in supplierCategories" :key="cat.code" :label="`${cat.code} - ${cat.name}`" :value="cat.code" />
+            <el-form-item label="供应类型">
+              <el-select v-model="form.supplierType" placeholder="请选择" class="w-full">
+                <el-option v-for="cat in categoryOptions" :key="cat.code" :label="`${cat.code} - ${cat.name}`" :value="cat.code" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="供应商属性">
               <el-select v-model="form.supplierAttribute" placeholder="请选择" class="w-full">
-                <el-option label="企业" value="企业" />
-                <el-option label="个体户" value="个体户" />
-                <el-option label="事业单位" value="事业单位" />
+                <el-option v-for="opt in supplierAttributeOptions" :key="opt.code" :label="opt.name" :value="opt.name" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -392,47 +385,200 @@
       </el-form>
       <template #footer>
         <el-button @click="showFormModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">保存</el-button>
+        <el-button type="primary" @click="handleSave">{{ isEdit ? '保存' : '提交' }}</el-button>
       </template>
     </el-dialog>
 
-    <!-- 批量编辑弹窗 -->
-    <el-dialog v-model="showBatchEditModal" title="批量编辑供应商" width="700px" :close-on-click-modal="false">
-      <p class="text-sm text-gray-500 mb-4">正在编辑 {{ batchEditSuppliers.length }} 个供应商</p>
-      <el-form label-width="100px">
-        <el-form-item label="供应物资类型">
-          <el-select v-model="batchFields.supplierType" placeholder="留空则不修改" class="w-full">
-            <el-option v-for="cat in supplierCategories" :key="cat.code" :label="`${cat.code} - ${cat.name}`" :value="cat.code" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="供应商属性">
-          <el-select v-model="batchFields.supplierAttribute" placeholder="留空则不修改" class="w-full">
-            <el-option label="企业" value="企业" />
-            <el-option label="个体户" value="个体户" />
-            <el-option label="事业单位" value="事业单位" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="batchFields.status" placeholder="留空则不修改" class="w-full">
-            <el-option label="合作中" value="合作中" />
-            <el-option label="暂停" value="暂停" />
-            <el-option label="终止" value="终止" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="所属组织">
-          <el-select v-model="batchFields.organization" placeholder="留空则不修改" class="w-full">
-            <el-option label="宁波帮帮忙公司" value="宁波帮帮忙公司" />
-            <el-option label="成都帮帮您公司" value="成都帮帮您公司" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+    <!-- 批量编辑弹窗 - 与V1.1 SupplierBatchEditModal完全一致：逐条编辑+累积保存 -->
+    <el-dialog v-model="showBatchEditModal" width="1000px" :close-on-click-modal="false" @closed="handleBatchEditModalClose">
+      <template #header>
+        <div class="bg-emerald-600 -mx-5 -mt-5 px-5 py-4 rounded-t-xl flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-white">批量编辑供应商</h3>
+          <el-button link @click="showBatchEditModal = false">
+            <el-icon :size="20" color="white"><Close /></el-icon>
+          </el-button>
+        </div>
+      </template>
+
+      <!-- 提示信息栏 -->
+      <div class="px-4 py-3 bg-blue-50 border-b border-blue-100 -mx-5">
+        <p class="text-sm text-blue-800">
+          已选择 <strong>{{ batchEditSuppliers.length }}</strong> 个供应商进行批量编辑，已编辑 <strong>{{ batchEditedCount }}</strong> 个
+        </p>
+      </div>
+
+      <!-- 供应商选择下拉 + 导航 -->
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+        <label class="text-sm font-medium text-gray-700 whitespace-nowrap">当前编辑：</label>
+        <el-select
+          :model-value="currentBatchSupplierId ? String(currentBatchSupplierId) : ''"
+          @change="handleBatchSupplierSelect"
+          class="flex-1"
+          placeholder="请选择供应商"
+        >
+          <el-option
+            v-for="s in batchEditSuppliers"
+            :key="s.id"
+            :value="String(s.id)"
+            :label="`${s.code} — ${s.name}${batchEditedSuppliers[s.id] ? ' ✅' : ''}`"
+          />
+        </el-select>
+        <div class="flex items-center gap-1">
+          <el-button link :disabled="currentBatchEditIndex === 0" @click="handleBatchPrev">
+            <el-icon><ArrowLeft /></el-icon>
+          </el-button>
+          <span class="text-sm text-gray-500 whitespace-nowrap">{{ currentBatchEditIndex + 1 }} / {{ batchEditSuppliers.length }}</span>
+          <el-button link :disabled="currentBatchEditIndex >= batchEditSuppliers.length - 1" @click="handleBatchNext">
+            <el-icon><ArrowRight /></el-icon>
+          </el-button>
+        </div>
+      </div>
+
+      <!-- 只读标识信息 -->
+      <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
+        <div class="grid grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">供应商编号</label>
+            <div class="text-sm font-medium text-gray-900">{{ currentBatchSupplier?.code || '-' }}</div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">供应商名称</label>
+            <div class="text-sm font-medium text-gray-900">{{ currentBatchSupplier?.name || '-' }}</div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">创建时间</label>
+            <div class="text-sm text-gray-600">{{ currentBatchSupplier?.createDate || '-' }}</div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">原始状态</label>
+            <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" :class="{
+              'bg-green-100 text-green-700': currentBatchSupplier?.status === '合作中',
+              'bg-yellow-100 text-yellow-700': currentBatchSupplier?.status === '暂停',
+              'bg-red-100 text-red-700': currentBatchSupplier?.status === '终止'
+            }">
+              {{ currentBatchSupplier?.status || '-' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 可编辑字段 -->
+      <div class="flex-1 overflow-y-auto p-4 max-h-[50vh]">
+        <!-- 基本信息 -->
+        <h4 class="text-sm font-semibold text-emerald-700 mb-3 pb-1 border-b border-emerald-200">基本信息</h4>
+        <div class="grid grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">供应类型</label>
+            <el-select :model-value="getBatchValue('supplierType')" @change="(v) => handleBatchFieldChange('supplierType', v)" class="w-full" size="small">
+              <el-option value="" label="不修改" />
+              <el-option v-for="cat in categoryOptions" :key="cat.code" :label="cat.name" :value="cat.code" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">供应商属性</label>
+            <el-select :model-value="getBatchValue('supplierAttribute')" @change="(v) => handleBatchFieldChange('supplierAttribute', v)" class="w-full" size="small">
+              <el-option value="" label="不修改" />
+              <el-option v-for="opt in supplierAttributeOptions" :key="opt.code" :label="opt.name" :value="opt.name" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">所属组织</label>
+            <el-select :model-value="getBatchValue('organization')" @change="(v) => handleBatchFieldChange('organization', v)" class="w-full" size="small">
+              <el-option value="" label="不修改" />
+              <el-option label="宁波帮帮忙公司" value="宁波帮帮忙公司" />
+              <el-option label="成都帮帮您公司" value="成都帮帮您公司" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">状态</label>
+            <el-select :model-value="getBatchValue('status')" @change="(v) => handleBatchFieldChange('status', v)" class="w-full" size="small">
+              <el-option value="" label="不修改" />
+              <el-option label="合作中" value="合作中" />
+              <el-option label="暂停" value="暂停" />
+              <el-option label="终止" value="终止" />
+            </el-select>
+          </div>
+        </div>
+
+        <!-- 联系信息 -->
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">联系信息</h4>
+        <div class="grid grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">联系人</label>
+            <el-input :model-value="getBatchValue('contact')" @input="(v) => handleBatchFieldChange('contact', v)" size="small" :placeholder="currentBatchSupplier?.contact || '未填写'" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">移动电话</label>
+            <el-input :model-value="getBatchValue('mobilePhone')" @input="(v) => handleBatchFieldChange('mobilePhone', v)" size="small" :placeholder="currentBatchSupplier?.mobilePhone || '未填写'" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">工作电话</label>
+            <el-input :model-value="getBatchValue('workPhone')" @input="(v) => handleBatchFieldChange('workPhone', v)" size="small" :placeholder="currentBatchSupplier?.workPhone || '未填写'" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">传真</label>
+            <el-input :model-value="getBatchValue('fax')" @input="(v) => handleBatchFieldChange('fax', v)" size="small" :placeholder="currentBatchSupplier?.fax || '未填写'" />
+          </div>
+        </div>
+
+        <!-- 地区信息 -->
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">地区信息</h4>
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">国家</label>
+            <el-input :model-value="getBatchValue('country')" @input="(v) => handleBatchFieldChange('country', v)" size="small" :placeholder="currentBatchSupplier?.country || '未填写'" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">省份</label>
+            <el-input :model-value="getBatchValue('province')" @input="(v) => handleBatchFieldChange('province', v)" size="small" :placeholder="currentBatchSupplier?.province || '未填写'" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">城市</label>
+            <el-input :model-value="getBatchValue('city')" @input="(v) => handleBatchFieldChange('city', v)" size="small" :placeholder="currentBatchSupplier?.city || '未填写'" />
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-medium text-gray-700 mb-1">详细地址</label>
+          <el-input :model-value="getBatchValue('address')" @input="(v) => handleBatchFieldChange('address', v)" size="small" :placeholder="currentBatchSupplier?.address || '未填写'" />
+        </div>
+
+        <!-- 财务信息 -->
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">财务信息</h4>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">开户行</label>
+            <el-input :model-value="getBatchValue('bankName')" @input="(v) => handleBatchFieldChange('bankName', v)" size="small" :placeholder="currentBatchSupplier?.bankName || '未填写'" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">银行卡号</label>
+            <el-input :model-value="getBatchValue('bankCardNumber')" @input="(v) => handleBatchFieldChange('bankCardNumber', v)" size="small" :placeholder="currentBatchSupplier?.bankCardNumber || '未填写'" class="font-mono" />
+          </div>
+        </div>
+
+        <!-- 备注 -->
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">备注</h4>
+        <div>
+          <el-input :model-value="getBatchValue('remarks')" @input="(v) => handleBatchFieldChange('remarks', v)" type="textarea" :rows="2" :placeholder="currentBatchSupplier?.remarks || '未填写'" />
+        </div>
+      </div>
+
+      <!-- 底部操作按钮 -->
       <template #footer>
-        <el-button @click="showBatchEditModal = false">取消</el-button>
-        <el-button type="primary" @click="handleBatchSave">保存</el-button>
+        <div class="flex justify-between gap-3 w-full">
+          <el-button @click="showBatchEditModal = false">取消</el-button>
+          <div class="flex items-center gap-3">
+            <el-button @click="handleBatchNext" :disabled="!currentBatchSupplierId">
+              确认 {{ currentBatchEditIndex + 1 < batchEditSuppliers.length ? '(下一个)' : '(已最后一个)' }}
+            </el-button>
+            <el-button type="primary" @click="handleSaveAllBatch">
+              保存全部 ({{ batchEditedCount }} 个)
+            </el-button>
+          </div>
+        </div>
       </template>
     </el-dialog>
 
-    <!-- 导出格式选择弹窗 -->
+    <!-- 导出格式选择弹窗 - 与V1.1 SupplierExportModal一致 -->
     <el-dialog v-model="showExportModal" title="选择导出格式" width="500px" :close-on-click-modal="false">
       <p class="text-sm text-gray-500 mb-4">{{ exportRecords.length > 0 ? `已选择 ${exportRecords.length} 条数据` : `共 ${filteredSuppliers.length} 条数据` }}</p>
       <div class="space-y-3">
@@ -447,22 +593,46 @@
       </div>
       <template #footer>
         <el-button @click="showExportModal = false; exitExportMode()">取消</el-button>
-        <el-button type="primary" @click="handleDoExport">导出</el-button>
+        <el-button type="primary" @click="handleDoExport">确认导出</el-button>
       </template>
     </el-dialog>
 
-    <!-- 删除确认弹窗 -->
-    <el-dialog v-model="showDeleteModal" title="确认删除" width="450px" :close-on-click-modal="false">
-      <div class="flex items-center gap-3 py-2">
-        <el-icon :size="40" color="#f56c6c"><WarningFilled /></el-icon>
-        <div>
-          <p class="text-lg font-medium">确定要删除选中的 {{ deleteSupplierIds.length }} 个供应商吗？</p>
-          <p class="text-sm text-gray-500 mt-1">此操作不可恢复</p>
+    <!-- 删除确认弹窗 - 与V1.1 BatchDeleteConfirmDialog一致（含供应商名称+风险警告） -->
+    <el-dialog v-model="showDeleteModal" width="460px" :close-on-click-modal="false">
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <el-icon :size="24" color="#dc2626"><WarningFilled /></el-icon>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">批量删除确认</h3>
         </div>
+      </template>
+
+      <div class="text-sm text-gray-600 space-y-3">
+        <p>确定要删除选中的 <span class="font-bold text-red-600">{{ deleteSupplierIds.length }}</span> 个供应商吗？</p>
+        <div class="p-3 bg-gray-50 rounded-lg text-xs">
+          <p class="font-medium text-gray-700 mb-1">选中供应商：</p>
+          <p class="text-gray-600">{{ deleteSupplierNames }}</p>
+        </div>
+
+        <!-- 数据完整性警告 -->
+        <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-sm font-medium text-red-700 mb-2">数据完整性风险提示：</p>
+          <ul class="list-disc list-inside space-y-1 text-xs text-red-600">
+            <li>删除后将无法恢复供应商基础信息</li>
+            <li>关联的采购计划可能缺少供应商来源</li>
+            <li>物料的供应商追溯链可能出现断链</li>
+            <li>入库记录的供应商字段将失去关联</li>
+            <li>财务对账记录中的供应商信息可能受影响</li>
+          </ul>
+        </div>
+
+        <p class="text-red-500 font-medium">此操作不可撤销！请谨慎操作。</p>
       </div>
+
       <template #footer>
         <el-button @click="showDeleteModal = false">取消</el-button>
-        <el-button type="danger" @click="handleDoDelete">确认删除</el-button>
+        <el-button type="danger" @click="handleDoDelete">已知晓风险，确认删除</el-button>
       </template>
     </el-dialog>
   </div>
@@ -471,12 +641,14 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Shop, Plus, Edit, Delete, Download, CopyDocument, WarningFilled, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
+import { Van, Plus, Edit, Delete, Download, CopyDocument, WarningFilled, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useSupplierStore } from '@/stores/modules/inventory/useSupplierStore'
+import { useDictionaryStore } from '@/stores/modules/dictionary'
+import { useSupplierCodeRuleStore } from '@/stores/modules/supplierCodeRule'
 import { validateMobilePhone, validateWorkPhone, validateFax, validateBankCard, validateCode, runValidations } from '@/utils/validators'
 
-// ==================== 常量（与V1.1完全一致） ====================
+// ==================== 常量（与V1.1 data.ts完全一致） ====================
 
 // 11大类供应商分类（V1.1 data.ts）
 const supplierCategories = [
@@ -536,10 +708,41 @@ const exportFormats = [
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
 
+// 编码生成器使用的分类选项（优先使用Store数据，回退到本地常量）
+const categoryOptions = computed(() => {
+  const storeCats = supplierCodeRuleStore.categories
+  return storeCats && storeCats.length > 0 ? storeCats : supplierCategories
+})
+
 // ==================== Store ====================
 
 const router = useRouter()
 const supplierStore = useSupplierStore()
+const dictionaryStore = useDictionaryStore()
+const supplierCodeRuleStore = useSupplierCodeRuleStore()
+
+// ==================== 字典数据 ====================
+
+// 供应商属性选项（从字典加载，与V1.1一致）
+const supplierAttributeOptions = computed(() => {
+  const attrs = dictionaryStore.dictionaries.filter(
+    d => d.category === 'supplier_attribute' && d.status === 'active'
+  )
+  if (attrs.length === 0) {
+    // 字典为空时使用硬编码回退
+    return [
+      { code: '企业', name: '企业' },
+      { code: '个体户', name: '个体户' },
+      { code: '事业单位', name: '事业单位' }
+    ]
+  }
+  return attrs
+})
+
+// 筛选器用的属性选项（包含"全部"）
+const supplierAttributeFilterOptions = computed(() => {
+  return ['全部', ...supplierAttributeOptions.value.map(a => a.name)]
+})
 
 // ==================== 状态 ====================
 
@@ -565,14 +768,16 @@ const batchEditSuppliers = ref([])
 const deleteSupplierIds = ref([])
 const tableRef = ref()
 
-const batchFields = reactive({ supplierType: '', supplierAttribute: '', status: '', organization: '' })
+// 批量编辑状态（逐条编辑+累积保存，与V1.1一致）
+const batchEditedSuppliers = ref({})
+const currentBatchEditIndex = ref(0)
 
 // 编码生成器
 const codeGen = reactive({ bigCategory: '', midCategory: '', generatedCode: '' })
 const codeGenError = ref('')
 const codeGenSuccess = ref('')
 
-// 筛选
+// 筛选 - 与V1.1 SupplierFiltersState一致
 const filters = reactive({
   code: '', name: '', contact: '',
   type: '全部', status: '全部', supplierAttribute: '全部', organization: '全部',
@@ -656,6 +861,18 @@ const codeGenMidCats = computed(() => {
   return big ? big.midCategories : []
 })
 
+// 批量编辑相关计算属性
+const currentBatchSupplierId = computed(() => batchEditSuppliers.value[currentBatchEditIndex.value]?.id)
+const currentBatchSupplier = computed(() => batchEditSuppliers.value[currentBatchEditIndex.value])
+const batchEditedCount = computed(() => Object.keys(batchEditedSuppliers.value).length)
+
+// 删除确认显示的供应商名称
+const deleteSupplierNames = computed(() => {
+  const selected = (supplierStore.suppliers || []).filter(s => deleteSupplierIds.value.includes(s.id))
+  const names = selected.slice(0, 5).map(s => s.name).join('、')
+  return selected.length > 5 ? `${names} 等${selected.length}个` : names
+})
+
 // ==================== 筛选 ====================
 
 const handleFilterChange = (key, value) => {
@@ -706,7 +923,7 @@ const enterBatchEditMode = () => { batchEditMode.value = true; deleteMode.value 
 const enterDeleteMode = () => { deleteMode.value = true; batchEditMode.value = false; exportMode.value = false; selectedRows.value = [] }
 const enterExportMode = () => { exportMode.value = true; batchEditMode.value = false; deleteMode.value = false; selectedRows.value = [] }
 
-const cancelBatchEdit = () => { batchEditMode.value = false; selectedRows.value = [] }
+const cancelBatchEdit = () => { batchEditMode.value = false; showBatchEditModal.value = false; selectedRows.value = []; batchEditedSuppliers.value = {}; currentBatchEditIndex.value = 0 }
 const cancelDelete = () => { deleteMode.value = false; showDeleteModal.value = false; selectedRows.value = [] }
 const cancelExport = () => { exportMode.value = false; selectedRows.value = [] }
 const exitExportMode = () => { exportMode.value = false; selectedRows.value = [] }
@@ -723,7 +940,7 @@ const handleGenerateCode = () => {
     codeGenError.value = '请选择供应商大类和供应商中类'
     return
   }
-  const seq = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')
+  const seq = String(Math.floor(Math.random() * 99) + 1).padStart(3, '0')
   codeGen.generatedCode = `SU_${codeGen.bigCategory}${codeGen.midCategory}${seq}`
   codeGenSuccess.value = '编码生成成功！'
 }
@@ -744,8 +961,6 @@ const handleResetCodeGen = () => {
 }
 
 const handleShowCodeRule = () => { router.push('/supplier-code-rule') }
-
-const onFormSupplierTypeChange = () => {}
 
 // ==================== 表格操作 ====================
 
@@ -851,7 +1066,7 @@ const resetForm = () => {
   form.remarks = ''
 }
 
-// ==================== 批量编辑 ====================
+// ==================== 批量编辑 - 与V1.1 SupplierBatchEditModal一致 ====================
 
 const handleConfirmBatchEdit = () => {
   if (selectedRows.value.length === 0) {
@@ -859,35 +1074,76 @@ const handleConfirmBatchEdit = () => {
     return
   }
   batchEditSuppliers.value = (supplierStore.suppliers || []).filter(s => selectedRows.value.includes(s.id))
-  batchFields.supplierType = ''
-  batchFields.supplierAttribute = ''
-  batchFields.status = ''
-  batchFields.organization = ''
+  batchEditedSuppliers.value = {}
+  currentBatchEditIndex.value = 0
   showBatchEditModal.value = true
 }
 
-const handleBatchSave = async () => {
-  const updates = {}
-  if (batchFields.supplierType) updates.supplierType = batchFields.supplierType
-  if (batchFields.supplierAttribute) updates.supplierAttribute = batchFields.supplierAttribute
-  if (batchFields.status) updates.status = batchFields.status
-  if (batchFields.organization) updates.organization = batchFields.organization
+const getBatchValue = (field) => {
+  const id = currentBatchSupplierId.value
+  if (!id) return ''
+  if (batchEditedSuppliers.value[id]?.[field] !== undefined) return batchEditedSuppliers.value[id][field]
+  if (currentBatchSupplier.value) return currentBatchSupplier.value[field] || ''
+  return ''
+}
 
-  if (Object.keys(updates).length === 0) {
-    ElMessage.warning('请至少填写一项要修改的字段')
+const handleBatchFieldChange = (field, value) => {
+  const id = currentBatchSupplierId.value
+  if (!id) return
+  batchEditedSuppliers.value = {
+    ...batchEditedSuppliers.value,
+    [id]: { ...(batchEditedSuppliers.value[id] || {}), [field]: value }
+  }
+}
+
+const handleBatchSupplierSelect = (val) => {
+  const id = Number(val)
+  const idx = batchEditSuppliers.value.findIndex(s => s.id === id)
+  if (idx >= 0) currentBatchEditIndex.value = idx
+}
+
+const handleBatchNext = () => {
+  if (currentBatchEditIndex.value < batchEditSuppliers.value.length - 1) {
+    currentBatchEditIndex.value++
+  }
+}
+
+const handleBatchPrev = () => {
+  if (currentBatchEditIndex.value > 0) {
+    currentBatchEditIndex.value--
+  }
+}
+
+const handleBatchEditModalClose = () => {
+  batchEditedSuppliers.value = {}
+  currentBatchEditIndex.value = 0
+}
+
+const handleSaveAllBatch = async () => {
+  const entries = Object.entries(batchEditedSuppliers.value)
+  if (entries.length === 0) {
+    ElMessage.warning('没有需要保存的修改')
     return
   }
-
-  try {
-    for (const supplier of batchEditSuppliers.value) {
-      await supplierStore.editSupplier(supplier.id, updates)
+  let successCount = 0
+  for (const [idStr, updates] of entries) {
+    try {
+      await supplierStore.editSupplier(Number(idStr), updates)
+      successCount++
+    } catch {
+      // 继续处理其他条目
     }
-    ElMessage.success(`批量编辑成功，已更新 ${batchEditSuppliers.value.length} 个供应商`)
-    showBatchEditModal.value = false
-    cancelBatchEdit()
-    await supplierStore.loadSuppliers()
-  } catch (err) {
-    ElMessage.error('批量编辑失败: ' + (err.message || '未知错误'))
+  }
+  await supplierStore.loadSuppliers()
+  batchEditedSuppliers.value = {}
+  currentBatchEditIndex.value = 0
+  selectedRows.value = []
+  batchEditMode.value = false
+  showBatchEditModal.value = false
+  if (successCount < entries.length) {
+    ElMessage.warning(`批量编辑完成：成功 ${successCount}/${entries.length} 项`)
+  } else {
+    ElMessage.success(`批量编辑成功，已更新 ${successCount} 个供应商`)
   }
 }
 
@@ -908,14 +1164,15 @@ const handleDoDelete = async () => {
     await supplierStore.removeSuppliersBatch(deleteSupplierIds.value)
     ElMessage.success(`已删除 ${deleteSupplierIds.value.length} 个供应商`)
     showDeleteModal.value = false
-    cancelDelete()
+    deleteMode.value = false
+    selectedRows.value = []
     await supplierStore.loadSuppliers()
   } catch (err) {
     ElMessage.error('删除失败: ' + (err.message || '未知错误'))
   }
 }
 
-// ==================== 导出 ====================
+// ==================== 导出 - 与V1.1 SupplierManagementPage一致 ====================
 
 const handleConfirmExport = () => {
   if (selectedRows.value.length > 0) {
@@ -934,7 +1191,7 @@ const handleDoExport = () => {
   }
 
   const headers = ['供应商编号', '所属组织', '供应商名称', '供应物资类型', '供应商属性', '联系人', '移动电话', '工作电话', '传真号码', '国家', '省份', '城市', '详细地址', '状态', '开户行', '银行卡号', '创建时间', '备注']
-  const rows = dataToExport.map(s => ({
+  const exportData = dataToExport.map(s => ({
     '供应商编号': s.code,
     '所属组织': s.organization,
     '供应商名称': s.name,
@@ -961,17 +1218,17 @@ const handleDoExport = () => {
   const bankCardIndex = headers.indexOf('银行卡号')
 
   if (exportFormat.value === 'csv') {
-    content = '﻿' + headers.join(',') + '\n' + rows.map(row => headers.map(h => `"${(row[h] || '')}"`).join(',')).join('\n')
+    content = '﻿' + headers.join(',') + '\n' + exportData.map(row => headers.map(h => `"${(row[h] || '')}"`).join(',')).join('\n')
     mimeType = 'text/csv;charset=utf-8'
     extension = 'csv'
   } else if (exportFormat.value === 'excel') {
-    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(row => `<tr>${headers.map((h, i) => { const v = row[h] || ''; return i === bankCardIndex && v ? `<td style="mso-number-format:\\@">${v}</td>` : `<td>${v}</td>` }).join('')}</tr>`).join('')}</table></body></html>`
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map((h, i) => { const v = row[h] || ''; return i === bankCardIndex && v ? `<td style="mso-number-format:\\@">${v}</td>` : `<td>${v}</td>` }).join('')}</tr>`).join('')}</table></body></html>`
     mimeType = 'application/vnd.ms-excel;charset=utf-8'
-    extension = 'xls'
+    extension = 'xlsx'
   } else if (exportFormat.value === 'word') {
-    content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1">${headers.map(h => `<th>${h}</th>`).join('')}${rows.map(row => `<tr>${headers.map(h => `<td>${(row[h] || '')}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1">${headers.map(h => `<th>${h}</th>`).join('')}${exportData.map(row => `<tr>${headers.map(h => { const v = row[h] || ''; return h === '银行卡号' && v ? `<td style="mso-number-format:\\@">${v}</td>` : `<td>${v}</td>` }).join('')}</tr>`).join('')}</table></body></html>`
     mimeType = 'application/ms-word;charset=utf-8'
-    extension = 'doc'
+    extension = 'docx'
   }
 
   const blob = new Blob([content], { type: mimeType })
@@ -992,6 +1249,27 @@ const handleDoExport = () => {
 // ==================== 初始化 ====================
 
 onMounted(async () => {
-  await supplierStore.loadSuppliers()
+  await Promise.all([
+    supplierStore.loadSuppliers(),
+    dictionaryStore.loadDictionaries(),
+    supplierCodeRuleStore.fetchCategories()
+  ])
 })
 </script>
+
+<style scoped>
+/* 表格表头蓝色渐变（与V1.1一致） */
+.supplier-table :deep(.el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+.supplier-table :deep(.el-table__header-wrapper .el-table__header th .el-table__cell) {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+/* 表格行悬浮蓝色（与V1.1 hover:bg-blue-100一致） */
+.supplier-table :deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
+  background-color: #dbeafe !important;
+}
+</style>

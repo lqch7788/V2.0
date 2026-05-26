@@ -581,3 +581,19 @@ onMounted(() => {
   loadExecuteData()
 })
 </script>
+
+<style scoped>
+/* 蓝色渐变表头 - 与V1.1保持一致 */
+:deep(.el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+:deep(.el-table__header-wrapper .el-table__header th .cell) {
+  color: #fff !important;
+}
+/* 蓝色悬停行 */
+:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
+  background-color: #dbeafe !important;
+}
+</style>

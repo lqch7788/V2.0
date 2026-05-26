@@ -7,12 +7,12 @@
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white">
-              <Goods />
+              <Box />
             </el-icon>
           </div>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">库存总览</h1>
-            <p class="text-gray-500">仓库物料库存总览</p>
+            <h1 class="text-2xl font-bold text-gray-900">仓库物料</h1>
+            <p class="text-gray-500">仓库物料库存管理</p>
           </div>
         </div>
       </div>
@@ -42,14 +42,13 @@
 
       <!-- 操作工具栏 -->
       <ActionToolbar
-      title="物料汇总表"
+      title="库存总览"
       :batch-edit-mode="batchEditMode"
       :delete-mode="deleteMode"
       :export-mode="exportMode"
       :selected-rows="selectedRows"
       :low-stock-count="lowStockCount"
       :filters="filters"
-      @add="handleAdd"
       @low-stock-toggle="handleLowStockToggle"
       @batch-edit="handleBatchEditClick"
       @delete="handleDeleteWarning"
@@ -153,54 +152,12 @@
       @export="handleDoExport"
     />
 
-    <!-- 新增物料弹窗 -->
-    <el-dialog v-model="showAddModal" title="新增物料" width="600px" :close-on-click-modal="false">
-      <el-form :model="addForm" label-width="100px">
-        <el-form-item label="物料编码" required>
-          <el-input v-model="addForm.code" placeholder="系统自动生成" disabled />
-        </el-form-item>
-        <el-form-item label="物料名称" required>
-          <el-input v-model="addForm.name" placeholder="请输入物料名称" />
-        </el-form-item>
-        <el-form-item label="物料分类">
-          <el-input v-model="addForm.category" placeholder="请输入物料分类" />
-        </el-form-item>
-        <el-form-item label="规格型号">
-          <el-input v-model="addForm.specification" placeholder="请输入规格型号" />
-        </el-form-item>
-        <el-form-item label="单位">
-          <el-input v-model="addForm.unit" placeholder="如：袋、箱、个" />
-        </el-form-item>
-        <el-form-item label="库存数量">
-          <el-input-number v-model="addForm.quantity" :min="0" :precision="2" />
-        </el-form-item>
-        <el-form-item label="最低库存">
-          <el-input-number v-model="addForm.minStock" :min="0" :precision="2" />
-        </el-form-item>
-        <el-form-item label="最高库存">
-          <el-input-number v-model="addForm.maxStock" :min="0" :precision="2" />
-        </el-form-item>
-        <el-form-item label="单价">
-          <el-input v-model="addForm.price" placeholder="请输入单价" />
-        </el-form-item>
-        <el-form-item label="供应商">
-          <el-input v-model="addForm.supplier" placeholder="请输入供应商" />
-        </el-form-item>
-        <el-form-item label="存放位置">
-          <el-input v-model="addForm.location" placeholder="请输入存放位置" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAddModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveAddForm">保存</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { Goods, Loading } from '@element-plus/icons-vue'
+import { Box, Loading } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { storeToRefs } from 'pinia'
 import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
@@ -308,12 +265,18 @@ const handleSelectAll = () => {
   }
 }
 
-const handleSelectRow = (id) => {
-  const idx = selectedRows.value.indexOf(id)
+const handleSelectRow = (idOrIds) => {
+  // MaterialsTable emit的是完整ID数组
+  if (Array.isArray(idOrIds)) {
+    selectedRows.value = idOrIds
+    return
+  }
+  // 兼容单ID操作
+  const idx = selectedRows.value.indexOf(idOrIds)
   if (idx >= 0) {
-    selectedRows.value = selectedRows.value.filter(r => r !== id)
+    selectedRows.value = selectedRows.value.filter(r => r !== idOrIds)
   } else {
-    selectedRows.value = [...selectedRows.value, id]
+    selectedRows.value = [...selectedRows.value, idOrIds]
   }
 }
 
@@ -398,10 +361,12 @@ const setExportFormat = (format) => {
 
 const handleDoExport = () => {
   const selectedData = filteredMaterials.value.filter(m => selectedRows.value.includes(m.id))
-  const headers = ['物料编码', '物料名称', '分类', '规格', '单位', '库存数量', '最低库存', '最高库存', '单价', '供应商', '存放位置', '数据状态']
+  // V1.1导出17列完整数据
+  const headers = ['物料编号', '物料名称', '分类', '规格型号', '条形码', '单位', '库存数量', '最低库存', '最高库存', '单价', '供应商', '存放位置', '批次号', '生产日期', '有效期至', '最后更新时间', '数据状态']
   const rows = selectedData.map(m => [
-    m.code, m.name, m.category, m.specification, m.unit,
-    m.quantity, m.minStock, m.maxStock, m.price, m.supplier, m.location, m.dataStatus
+    m.code, m.name, m.category, m.specification, m.barcode, m.unit,
+    m.quantity, m.minStock, m.maxStock, m.price, m.supplier, m.location,
+    m.batchNo, m.productionDate, m.expiryDate, m.lastUpdateTime, m.dataStatus
   ])
 
   let content = ''
@@ -420,11 +385,11 @@ const handleDoExport = () => {
   } else if (exportFormat.value === 'excel') {
     content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(row => `<tr>${row.map(cell => `<td>${cell ?? ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
     mimeType = 'application/vnd.ms-excel;charset=utf-8'
-    extension = 'xls'
+    extension = 'xlsx'
   } else if (exportFormat.value === 'word') {
     content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>物料库存</title></head><body><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse"><tr style="background-color:#f0f0f0">${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(row => `<tr>${row.map(cell => `<td>${cell ?? ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
     mimeType = 'application/ms-word;charset=utf-8'
-    extension = 'doc'
+    extension = 'docx'
   }
 
   try {
@@ -499,7 +464,7 @@ const handleSaveEdit = async (material) => {
 
 // ActionToolbar callbacks
 const handleBatchEditClick = () => {
-  showBatchEditWarning.value = true
+  batchEditMode.value = true
 }
 
 const handleBatchEditWarningConfirm = () => {
@@ -583,61 +548,17 @@ const handleBatchNext = () => {
   }
 }
 
-// 新增物料
-const showAddModal = ref(false)
-
-const addForm = reactive({
-  code: '',
-  name: '',
-  category: '',
-  specification: '',
-  unit: '袋',
-  quantity: 0,
-  minStock: 0,
-  maxStock: 0,
-  price: '',
-  supplier: '',
-  location: ''
-})
-
-const handleAdd = () => {
-  // 重置表单
-  addForm.code = ''
-  addForm.name = ''
-  addForm.category = ''
-  addForm.specification = ''
-  addForm.unit = '袋'
-  addForm.quantity = 0
-  addForm.minStock = 0
-  addForm.maxStock = 0
-  addForm.price = ''
-  addForm.supplier = ''
-  addForm.location = ''
-  showAddModal.value = true
-}
-
-const handleSaveAddForm = async () => {
-  if (!addForm.name) {
-    ElMessage.warning('请输入物料名称')
-    return
-  }
-  try {
-    await warehouseMaterialStore.addMaterial({
-      name: addForm.name,
-      category: addForm.category,
-      specification: addForm.specification,
-      unit: addForm.unit,
-      quantity: addForm.quantity,
-      minStock: addForm.minStock,
-      maxStock: addForm.maxStock,
-      price: addForm.price,
-      supplier: addForm.supplier,
-      location: addForm.location
-    })
-    showAddModal.value = false
-    ElMessage.success('新增物料成功')
-  } catch (error) {
-    ElMessage.error('新增物料失败')
-  }
-}
 </script>
+
+<style scoped>
+/* 表格表头蓝色渐变（与V1.1一致） */
+:deep(.el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+:deep(.el-table__header-wrapper .el-table__header th .el-table__cell) {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+</style>

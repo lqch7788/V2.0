@@ -61,6 +61,12 @@
             <el-button v-if="!batchEditMode && !deleteMode && !exportMode" @click="exportMode = true; selectedRows = []">
               <el-icon><Download /></el-icon>导出
             </el-button>
+            <el-button v-if="batchEditMode === 'edit' && selectedRows.length > 0" type="primary" @click="showBatchEditModal = true">
+              确认批量编辑 ({{ selectedRows.length }}条)
+            </el-button>
+            <el-button v-if="batchEditMode === 'delete' && selectedRows.length > 0" type="danger" @click="showBatchDeleteConfirm = true">
+              确认批量删除 ({{ selectedRows.length }}条)
+            </el-button>
             <el-button v-if="batchEditMode || deleteMode || exportMode" @click="batchEditMode = null; deleteMode = false; exportMode = false; selectedRows = []">
               取消
             </el-button>
@@ -190,6 +196,12 @@
             <el-button v-if="!exBatchEditMode" @click="exBatchEditMode = 'edit'; exSelectedRows = []"><el-icon><Edit /></el-icon>编辑</el-button>
             <el-button v-if="!exBatchEditMode" type="danger" @click="exBatchEditMode = 'delete'; exSelectedRows = []"><el-icon><Delete /></el-icon>删除</el-button>
             <el-button v-if="!exBatchEditMode" @click="exExportMode = true; exSelectedRows = []"><el-icon><Download /></el-icon>导出</el-button>
+            <el-button v-if="exBatchEditMode === 'edit' && exSelectedRows.length > 0" type="primary" @click="exShowBatchEditModal = true">
+              确认批量编辑 ({{ exSelectedRows.length }}条)
+            </el-button>
+            <el-button v-if="exBatchEditMode === 'delete' && exSelectedRows.length > 0" type="danger" @click="exShowBatchDeleteConfirm = true">
+              确认批量删除 ({{ exSelectedRows.length }}条)
+            </el-button>
             <el-button v-if="exBatchEditMode || exExportMode" @click="exBatchEditMode = null; exExportMode = false; exSelectedRows = []">取消</el-button>
           </div>
         </div>
@@ -582,6 +594,39 @@
       <template #footer><el-button @click="showVoidModal = false">取消</el-button><el-button type="danger" @click="submitVoid">确认作废</el-button></template>
     </el-dialog>
 
+    <!-- 批量编辑弹窗 -->
+    <el-dialog v-model="showBatchEditModal" title="批量编辑领料单" width="650px">
+      <p class="text-sm text-blue-600 mb-4">已选择 <strong>{{ selectedRows.length }}</strong> 条领料单，修改以下字段将应用到所有选中记录</p>
+      <el-form :model="batchEditForm" label-width="120px">
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="库存地点">
+            <el-select v-model="batchEditForm.warehouseLocation" placeholder="不修改" clearable>
+              <el-option v-for="w in warehouses" :key="w" :value="w" :label="w" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="审核人">
+            <el-input v-model="batchEditForm.reviewer" placeholder="不修改" />
+          </el-form-item>
+          <el-form-item label="生产批次号">
+            <el-select v-model="batchEditForm.productionBatchCode" placeholder="不修改" clearable>
+              <el-option v-for="b in PRODUCTION_BATCH_CODES" :key="b" :value="b" :label="b" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="batchEditForm.status" placeholder="不修改" clearable>
+              <el-option label="待审批" value="待审批" />
+              <el-option label="已审批" value="已审批" />
+              <el-option label="已作废" value="已作废" />
+            </el-select>
+          </el-form-item>
+        </div>
+      </el-form>
+      <template #footer>
+        <el-button @click="showBatchEditModal = false">取消</el-button>
+        <el-button type="primary" @click="handleBatchEditSave">保存 ({{ selectedRows.length }}条)</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 批量删除确认 -->
     <el-dialog v-model="showBatchDeleteConfirm" title="批量删除" width="400px">
       <p class="text-lg">确定要删除选中的 {{ selectedRows.length }} 条领料单吗？</p>
@@ -745,6 +790,47 @@
       </el-radio-group>
       <template #footer><el-button @click="exShowExportTypeModal = false">取消</el-button><el-button type="primary" @click="confirmExExport">导出</el-button></template>
     </el-dialog>
+
+    <!-- 出库 - 批量编辑弹窗 -->
+    <el-dialog v-model="exShowBatchEditModal" title="批量编辑出库单" width="650px">
+      <p class="text-sm text-blue-600 mb-4">已选择 <strong>{{ exSelectedRows.length }}</strong> 条出库单，修改以下字段将应用到所有选中记录</p>
+      <el-form :model="exBatchEditForm" label-width="120px">
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="仓库地点">
+            <el-select v-model="exBatchEditForm.warehouseLocation" placeholder="不修改" clearable>
+              <el-option v-for="w in warehouses" :key="w" :value="w" :label="w" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="审核人">
+            <el-input v-model="exBatchEditForm.reviewer" placeholder="不修改" />
+          </el-form-item>
+          <el-form-item label="生产批次号">
+            <el-select v-model="exBatchEditForm.productionBatchCode" placeholder="不修改" clearable>
+              <el-option v-for="b in PRODUCTION_BATCH_CODES" :key="b" :value="b" :label="b" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="执行状态">
+            <el-select v-model="exBatchEditForm.executeStatus" placeholder="不修改" clearable>
+              <el-option label="已出库" value="已出库" />
+              <el-option label="部分出库" value="部分出库" />
+              <el-option label="待出库" value="待出库" />
+              <el-option label="已取消" value="已取消" />
+            </el-select>
+          </el-form-item>
+        </div>
+      </el-form>
+      <template #footer>
+        <el-button @click="exShowBatchEditModal = false">取消</el-button>
+        <el-button type="primary" @click="handleExBatchEditSave">保存 ({{ exSelectedRows.length }}条)</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 出库 - 批量删除确认 -->
+    <el-dialog v-model="exShowBatchDeleteConfirm" title="批量删除" width="400px">
+      <p class="text-lg">确定要删除选中的 {{ exSelectedRows.length }} 条出库单吗？</p>
+      <p class="text-sm text-gray-500 mt-1">此操作不可恢复</p>
+      <template #footer><el-button @click="exShowBatchDeleteConfirm = false">取消</el-button><el-button type="danger" @click="handleExBatchDelete">确认删除</el-button></template>
+    </el-dialog>
   </div>
 </template>
 
@@ -753,6 +839,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { Plus, Edit, Delete, Download, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import MaterialReceivingHeader from '@/components/materialReceiving/MaterialReceivingHeader.vue'
+import { getApplicationList, createApplication as apiCreateApp, updateApplication as apiUpdateApp, deleteApplication as apiDeleteApp, deleteApplicationsBatch, getExecuteList, createExecute as apiCreateExe, updateExecute as apiUpdateExe, deleteExecute as apiDeleteExe } from '@/api/material/apiMaterialRequestService'
 
 // ==================== 通用数据 ====================
 const activeTab = ref('application')
@@ -807,44 +894,42 @@ const onProductionBatchChange = (val) => {
 }
 
 // ==================== Tab 1: 申请领料 ====================
-const applicationData = ref([
-  { id: 1, code: 'LL20260301001', date: '2026-03-01', applicant: '张伟民', department: '生产部', warehouseLocation: '仓库A区', plantArea: '1号棚-叶菜区', reviewer: '王志刚', productionBatchCode: 'FQ2024-001', status: '已审批', statusClass: 'approved', materials: [
-    { materialCode: 'SP0201001', materialName: '商品有机肥', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 10, stockQuantity: 150, unitPrice: 45, warehousePosition: 'A-01-01', remark: '正常出库', batchNo: '' },
-    { materialCode: 'SP0202001', materialName: '尿素', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 5, stockQuantity: 80, unitPrice: 85, warehousePosition: 'A-01-02', remark: '正常出库', batchNo: '' }
-  ]},
-  { id: 2, code: 'LL20260302002', date: '2026-03-02', applicant: '李明轩', department: '生产部', warehouseLocation: '仓库B区', plantArea: '2号棚-茄果区', reviewer: '李志刚', productionBatchCode: 'FQ2024-002', status: '已审批', statusClass: 'approved', materials: [
-    { materialCode: 'SP0301001', materialName: '吡虫啉', spec: '100g/瓶', unit: '瓶', category: '农药与植保产品', requestedQuantity: 8, stockQuantity: 120, unitPrice: 28, warehousePosition: 'B-02-03', remark: '正常出库', batchNo: '' }
-  ]},
-  { id: 3, code: 'LL20260303003', date: '2026-03-03', applicant: '王建国', department: '生产部', warehouseLocation: '仓库C区', plantArea: '3号棚-育苗区', reviewer: '张志远', productionBatchCode: 'FQ2024-003', status: '待审批', statusClass: 'pending', materials: [
-    { materialCode: 'SP0302001', materialName: '多菌灵', spec: '200g/袋', unit: '袋', category: '农药与植保产品', requestedQuantity: 15, stockQuantity: 45, unitPrice: 35, warehousePosition: 'C-03-01', remark: '待审批', batchNo: '' },
-    { materialCode: 'SP0301001', materialName: '吡虫啉', spec: '100g/瓶', unit: '瓶', category: '农药与植保产品', requestedQuantity: 10, stockQuantity: 120, unitPrice: 28, warehousePosition: 'C-03-02', remark: '待审批', batchNo: '' }
-  ]},
-  { id: 4, code: 'LL20260304004', date: '2026-03-04', applicant: '赵俊杰', department: '生产部', warehouseLocation: '仓库A区', plantArea: '1号棚-叶菜区', reviewer: '王志刚', productionBatchCode: 'FQ2024-004', status: '已审批', statusClass: 'approved', materials: [
-    { materialCode: 'SP0103001', materialName: '番茄种子', spec: '50g/袋', unit: '袋', category: '种质资源', requestedQuantity: 12, stockQuantity: 60, unitPrice: 120, warehousePosition: 'A-02-01', remark: '正常出库', batchNo: '' }
-  ]},
-  { id: 5, code: 'LL20260305005', date: '2026-03-05', applicant: '钱文涛', department: '后勤部', warehouseLocation: '仓库D区', plantArea: '办公区绿化', reviewer: '陈志明', productionBatchCode: 'FQ2024-005', status: '已拒绝', statusClass: 'rejected', rejectReason: '库存不足，无法满足申请数量', materials: [] },
-  { id: 6, code: 'LL20260306006', date: '2026-03-06', applicant: '孙晓峰', department: '生产部', warehouseLocation: '仓库B区', plantArea: '4号棚-水稻区', reviewer: '李志刚', productionBatchCode: 'FQ2024-006', status: '待审批', statusClass: 'pending', materials: [
-    { materialCode: 'SP0202001', materialName: '尿素', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 20, stockQuantity: 80, unitPrice: 85, warehousePosition: 'B-01-02', remark: '库存充足', batchNo: '' }
-  ]},
-  { id: 7, code: 'LL20260307007', date: '2026-03-07', applicant: '周志强', department: '生产部', warehouseLocation: '仓库C区', plantArea: '5号棚-水果区', reviewer: '张志远', productionBatchCode: 'FQ2024-007', status: '已审批', statusClass: 'approved', materials: [
-    { materialCode: 'OP0201001', materialName: '锄头', spec: '标准型', unit: '把', category: '劳保与防护用品', requestedQuantity: 5, stockQuantity: 35, unitPrice: 42, warehousePosition: 'C-04-01', remark: '正常出库', batchNo: '' },
-    { materialCode: 'OP0102001', materialName: '劳保胶靴', spec: '标准码', unit: '双', category: '劳保与防护用品', requestedQuantity: 10, stockQuantity: 50, unitPrice: 68, warehousePosition: 'C-04-02', remark: '正常出库', batchNo: '' }
-  ]},
-  { id: 8, code: 'LL20260308008', date: '2026-03-08', applicant: '吴海龙', department: '设备部', warehouseLocation: '仓库A区', plantArea: '灌溉系统维护', reviewer: '王志刚', productionBatchCode: 'FQ2024-008', status: '已审批', statusClass: 'approved', materials: [
-    { materialCode: 'EQ0103001', materialName: '电动喷雾机', spec: '标准型', unit: '台', category: '农业机械', requestedQuantity: 2, stockQuantity: 15, unitPrice: 580, warehousePosition: 'A-05-01', remark: '正常出库', batchNo: '' }
-  ]},
-  { id: 9, code: 'LL20260309009', date: '2026-03-09', applicant: '郑志远', department: '技术部', warehouseLocation: '仓库E区', plantArea: '实验室', reviewer: '赵志鹏', productionBatchCode: 'FQ2024-001', status: '已取消', statusClass: 'cancelled', materials: [] },
-  { id: 10, code: 'LL20260310010', date: '2026-03-10', applicant: '陈思远', department: '生产部', warehouseLocation: '仓库B区', plantArea: '2号棚-茄果区', reviewer: '李志刚', productionBatchCode: 'FQ2024-002', status: '已审批', statusClass: 'approved', materials: [
-    { materialCode: 'SP0101001', materialName: '水稻种子', spec: '20kg/袋', unit: '袋', category: '种质资源', requestedQuantity: 30, stockQuantity: 100, unitPrice: 65, warehousePosition: 'B-02-01', remark: '正常出库', batchNo: '' }
-  ]},
-  { id: 11, code: 'LL20260311011', date: '2026-03-11', applicant: '刘志伟', department: '生产部', warehouseLocation: '仓库C区', plantArea: '6号棚-花卉区', reviewer: '张志远', productionBatchCode: 'FQ2024-003', status: '待审批', statusClass: 'pending', materials: [
-    { materialCode: 'EQ0306001', materialName: '滴灌带', spec: '50m/卷', unit: '卷', category: '农业机械', requestedQuantity: 20, stockQuantity: 200, unitPrice: 38, warehousePosition: 'C-05-01', remark: '待审批', batchNo: '' }
-  ]},
-  { id: 12, code: 'LL20260312012', date: '2026-03-12', applicant: '杨文博', department: '采后处理部', warehouseLocation: '仓库A区', plantArea: '采后处理车间', reviewer: '王志刚', productionBatchCode: 'FQ2024-004', status: '已审批', statusClass: 'approved', materials: [
-    { materialCode: 'PH0104001', materialName: '塑料袋', spec: '标准型', unit: '卷', category: '采收容器', requestedQuantity: 50, stockQuantity: 500, unitPrice: 8.5, warehousePosition: 'A-03-01', remark: '正常出库', batchNo: '' },
-    { materialCode: 'IT0101001', materialName: '土壤温湿度传感器', spec: '标准型', unit: '个', category: '监测设备', requestedQuantity: 5, stockQuantity: 30, unitPrice: 260, warehousePosition: 'A-04-01', remark: '正常出库', batchNo: '' }
-  ]}
-])
+// 后端字段映射：request_code→code, applicant_name→applicant, department_name→department, warehouse_name→warehouseLocation
+// approval_status→status文字映射
+const mapAppStatus = (s) => {
+  const m = { approved: '已审批', pending: '待审批', rejected: '已拒绝', voided: '已作废', cancelled: '已取消' }
+  return m[s] || '待审批'
+}
+const mapAppStatusClass = (s) => {
+  const m = { approved: 'approved', pending: 'pending', rejected: 'rejected', voided: 'voided', cancelled: 'cancelled' }
+  return m[s] || 'pending'
+}
+const mapAppRecord = (r) => ({
+  id: r.id || r.request_code,
+  code: r.request_code || r.code || '',
+  date: r.apply_date || r.date || '',
+  applicant: r.applicant_name || r.applicant || '',
+  department: r.department_name || r.department || '',
+  warehouseLocation: r.warehouse_name || r.warehouseLocation || '',
+  plantArea: r.plant_area || r.plantArea || '',
+  reviewer: r.approver_name || r.reviewer || '',
+  productionBatchCode: r.production_batch_code || r.productionBatchCode || '',
+  status: mapAppStatus(r.approval_status || r.status),
+  statusClass: r.statusClass || mapAppStatusClass(r.approval_status || r.status),
+  rejectReason: r.rejectReason || r.remarks || '',
+  materials: Array.isArray(r.materials) ? r.materials : (typeof r.materials === 'string' ? JSON.parse(r.materials || '[]') : [])
+})
+
+const applicationData = ref([])
+const isLoadingApp = ref(false)
+const loadApplicationData = async () => {
+  isLoadingApp.value = true
+  try {
+    const res = await getApplicationList()
+    applicationData.value = (res || []).map(mapAppRecord)
+  } catch { /* fallback to empty */ }
+  finally { isLoadingApp.value = false }
+}
 
 const searchCode = ref('')
 const searchApplicant = ref('')
@@ -863,6 +948,7 @@ const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteConfirm = ref(false)
 const showVoidModal = ref(false)
+const showBatchEditModal = ref(false)
 const showBatchDeleteConfirm = ref(false)
 const showExportTypeModal = ref(false)
 const exportFileType = ref('xlsx')
@@ -926,10 +1012,13 @@ const handleEditRecord = (row) => {
 
 const handleDeleteRecord = (id) => { deletingId.value = id; showDeleteConfirm.value = true }
 
-const confirmDelete = () => {
+const confirmDelete = async () => {
   if (deletingId.value !== null) {
-    applicationData.value = applicationData.value.filter(item => item.id !== deletingId.value)
-    ElMessage.success('删除成功')
+    try {
+      await apiDeleteApp(deletingId.value)
+      ElMessage.success('删除成功')
+      await loadApplicationData()
+    } catch { ElMessage.error('删除失败') }
   }
   showDeleteConfirm.value = false; deletingId.value = null
 }
@@ -978,12 +1067,11 @@ const onEditMaterialCodeChangeRow = (row) => {
   if (found) { row.materialName = found.materialName; row.spec = found.spec; row.unit = found.unit; row.category = found.category; row.stockQuantity = found.stockQuantity; row.unitPrice = found.unitPrice; row.warehousePosition = found.warehousePosition }
 }
 
-const handleSaveAdd = () => {
+const handleSaveAdd = async () => {
   if (!addForm.applicant) { ElMessage.warning('请选择申领人'); return }
   if (addForm.materials.length === 0) { ElMessage.warning('请添加至少一个物料'); return }
   if (!addForm.code) handleGenerateAddCode()
   const newRecord = {
-    id: Date.now(),
     code: addForm.code,
     date: addForm.date,
     applicant: addForm.applicant,
@@ -992,14 +1080,15 @@ const handleSaveAdd = () => {
     plantArea: addForm.plantArea,
     reviewer: addForm.reviewer,
     productionBatchCode: addForm.productionBatchCode,
-    status: '待审批',
-    statusClass: 'pending',
     materials: JSON.parse(JSON.stringify(addForm.materials))
   }
-  applicationData.value.unshift(newRecord)
-  ElMessage.success('新增成功')
-  showAddModal.value = false
-  resetAddForm()
+  try {
+    await apiCreateApp(newRecord)
+    ElMessage.success('新增成功')
+    showAddModal.value = false
+    resetAddForm()
+    await loadApplicationData()
+  } catch { ElMessage.error('新增失败，请重试') }
 }
 
 // 编辑表单
@@ -1008,27 +1097,59 @@ const handleEditAddMaterial = () => {
   editForm.materials.push({ materialCode: '', materialName: '', batchNo: '', spec: '', unit: '', category: '', requestedQuantity: 1, stockQuantity: 0, unitPrice: 0, warehousePosition: '', remark: '' })
 }
 
-const handleSaveEdit = () => {
+const handleSaveEdit = async () => {
   if (!selectedRecord.value) return
-  const rec = applicationData.value.find(r => r.id === selectedRecord.value.id)
-  if (rec) {
-    Object.assign(rec, {
-      date: editForm.date, applicant: editForm.applicant, department: editForm.department,
-      warehouseLocation: editForm.warehouseLocation, plantArea: editForm.plantArea,
-      reviewer: editForm.reviewer, productionBatchCode: editForm.productionBatchCode,
-      status: '待审批', statusClass: 'pending', materials: JSON.parse(JSON.stringify(editForm.materials))
-    })
+  const updates = {
+    date: editForm.date, applicant: editForm.applicant, department: editForm.department,
+    warehouseLocation: editForm.warehouseLocation, plantArea: editForm.plantArea,
+    reviewer: editForm.reviewer, productionBatchCode: editForm.productionBatchCode,
+    materials: JSON.parse(JSON.stringify(editForm.materials))
   }
-  ElMessage.success('编辑已保存，领料单已重新提交')
-  showEditModal.value = false
+  try {
+    await apiUpdateApp(selectedRecord.value.id, updates)
+    ElMessage.success('编辑已保存，领料单已重新提交')
+    showEditModal.value = false
+    await loadApplicationData()
+  } catch { ElMessage.error('保存失败，请重试') }
 }
 
-const handleBatchDelete = () => {
-  applicationData.value = applicationData.value.filter(item => !selectedRows.value.includes(item.id))
-  ElMessage.success(`删除了 ${selectedRows.value.length} 条记录`)
-  showBatchDeleteConfirm.value = false
-  batchEditMode.value = null
-  selectedRows.value = []
+// 批量编辑表单
+const batchEditForm = reactive({ warehouseLocation: '', reviewer: '', productionBatchCode: '', status: '' })
+
+const handleBatchEditSave = async () => {
+  if (selectedRows.value.length === 0) { ElMessage.warning('请先选择记录'); return }
+  const updates = {}
+  if (batchEditForm.warehouseLocation) updates.warehouseLocation = batchEditForm.warehouseLocation
+  if (batchEditForm.reviewer) updates.reviewer = batchEditForm.reviewer
+  if (batchEditForm.productionBatchCode) updates.productionBatchCode = batchEditForm.productionBatchCode
+  if (batchEditForm.status) updates.status = batchEditForm.status
+  if (Object.keys(updates).length === 0) { ElMessage.warning('请至少填写一个要修改的字段'); return }
+  try {
+    for (const id of selectedRows.value) {
+      await apiUpdateApp(id, updates)
+    }
+    ElMessage.success(`批量编辑成功，已更新 ${selectedRows.value.length} 条记录`)
+    showBatchEditModal.value = false
+    batchEditMode.value = null
+    selectedRows.value = []
+    // 重置批量编辑表单
+    batchEditForm.warehouseLocation = ''
+    batchEditForm.reviewer = ''
+    batchEditForm.productionBatchCode = ''
+    batchEditForm.status = ''
+    await loadApplicationData()
+  } catch { ElMessage.error('批量编辑失败，请重试') }
+}
+
+const handleBatchDelete = async () => {
+  try {
+    await deleteApplicationsBatch(selectedRows.value)
+    ElMessage.success(`删除了 ${selectedRows.value.length} 条记录`)
+    showBatchDeleteConfirm.value = false
+    batchEditMode.value = null
+    selectedRows.value = []
+    await loadApplicationData()
+  } catch { ElMessage.error('批量删除失败') }
 }
 
 const submitVoid = () => {
@@ -1068,34 +1189,32 @@ const confirmExport = () => {
 }
 
 // ==================== Tab 2: 领料出库 ====================
-const executeData = ref([
-  { id: 1, code: 'CK20260301001', date: '2026-03-01', applicant: '张伟民', warehouseLocation: '仓库A区', reviewer: '王志刚', operator: '李操作员', productionBatchCode: 'FQ2024-001', sourceApplicationCodes: ['LL20260301001', 'LL20260302002'], executeStatus: '已出库', executeStatusClass: 'completed', materials: [
-    { materialCode: 'SP0201001', materialName: '商品有机肥', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 10, stockQuantity: 100, actualQuantity: 10, remark: '正常出库', applicationCode: 'LL20260301001', batchNo: '' },
-    { materialCode: 'SP0202001', materialName: '尿素', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 5, stockQuantity: 50, actualQuantity: 5, remark: '正常出库', applicationCode: 'LL20260301001', batchNo: '' },
-    { materialCode: 'SP0301001', materialName: '吡虫啉', spec: '100g/瓶', unit: '瓶', category: '农药与植保产品', requestedQuantity: 8, stockQuantity: 200, actualQuantity: 8, remark: '正常出库', applicationCode: 'LL20260302002', batchNo: '' }
-  ]},
-  { id: 2, code: 'CK20260304002', date: '2026-03-04', applicant: '赵俊杰', warehouseLocation: '仓库A区', reviewer: '王志刚', operator: '张操作员', productionBatchCode: 'FQ2024-004', sourceApplicationCodes: ['LL20260304004'], executeStatus: '部分出库', executeStatusClass: 'partial', materials: [
-    { materialCode: 'SP0103001', materialName: '番茄种子', spec: '50g/袋', unit: '袋', category: '种质资源', requestedQuantity: 12, stockQuantity: 8, actualQuantity: 8, remark: '库存不足，实际发放8袋', applicationCode: 'LL20260304004', batchNo: '' }
-  ]},
-  { id: 3, code: 'CK20260307003', date: '2026-03-07', applicant: '周志强', warehouseLocation: '仓库C区', reviewer: '张志远', operator: '王操作员', productionBatchCode: 'FQ2024-007', sourceApplicationCodes: ['LL20260307007'], executeStatus: '待出库', executeStatusClass: 'pending_out', materials: [
-    { materialCode: 'OP0201001', materialName: '锄头', spec: '标准型', unit: '把', category: '劳保与防护用品', requestedQuantity: 5, stockQuantity: 50, actualQuantity: 0, remark: '待出库', applicationCode: 'LL20260307007', batchNo: '' },
-    { materialCode: 'OP0102001', materialName: '劳保胶靴', spec: '标准码', unit: '双', category: '劳保与防护用品', requestedQuantity: 10, stockQuantity: 30, actualQuantity: 0, remark: '待出库', applicationCode: 'LL20260307007', batchNo: '' }
-  ]},
-  { id: 4, code: 'CK20260308004', date: '2026-03-08', applicant: '吴海龙', warehouseLocation: '仓库A区', reviewer: '王志刚', operator: '李操作员', productionBatchCode: 'FQ2024-008', sourceApplicationCodes: ['LL20260308008'], executeStatus: '待出库', executeStatusClass: 'pending_out', materials: [
-    { materialCode: 'EQ0103001', materialName: '电动喷雾机', spec: '标准型', unit: '台', category: '农业机械', requestedQuantity: 2, stockQuantity: 10, actualQuantity: 0, remark: '待出库', applicationCode: 'LL20260308008', batchNo: '' }
-  ]},
-  { id: 5, code: 'CK20260310005', date: '2026-03-10', applicant: '陈思远', warehouseLocation: '仓库B区', reviewer: '李志刚', operator: '赵操作员', productionBatchCode: 'FQ2024-002', sourceApplicationCodes: ['LL20260310010'], executeStatus: '已出库', executeStatusClass: 'completed', materials: [
-    { materialCode: 'SP0101001', materialName: '水稻种子', spec: '20kg/袋', unit: '袋', category: '种质资源', requestedQuantity: 30, stockQuantity: 200, actualQuantity: 30, remark: '正常出库', applicationCode: 'LL20260310010', batchNo: '' }
-  ]},
-  { id: 6, code: 'CK20260312006', date: '2026-03-12', applicant: '杨文博', warehouseLocation: '仓库A区', reviewer: '王志刚', operator: '张操作员', productionBatchCode: 'FQ2024-004', sourceApplicationCodes: ['LL20260312012'], executeStatus: '部分出库', executeStatusClass: 'partial', materials: [
-    { materialCode: 'PH0104001', materialName: '塑料袋', spec: '标准型', unit: '卷', category: '采收容器', requestedQuantity: 50, stockQuantity: 50, actualQuantity: 50, remark: '正常出库', applicationCode: 'LL20260312012', batchNo: '' },
-    { materialCode: 'IT0101001', materialName: '土壤温湿度传感器', spec: '标准型', unit: '个', category: '监测设备', requestedQuantity: 5, stockQuantity: 2, actualQuantity: 2, remark: '库存不足，实际发放2个', applicationCode: 'LL20260312012', batchNo: '' }
-  ]},
-  { id: 7, code: 'CK20260313007', date: '2026-03-13', applicant: '刘志刚', warehouseLocation: '仓库D区', reviewer: '张志明', operator: '孙操作员', productionBatchCode: 'FQ2024-005', sourceApplicationCodes: ['LL20260313013'], executeStatus: '已取消', executeStatusClass: 'cancelled', materials: [] },
-  { id: 8, code: 'CK20260314008', date: '2026-03-14', applicant: '王秀英', warehouseLocation: '仓库C区', reviewer: '李志远', operator: '周操作员', productionBatchCode: 'FQ2024-006', sourceApplicationCodes: ['LL20260314014'], executeStatus: '待出库', executeStatusClass: 'pending_out', materials: [
-    { materialCode: 'EQ0306001', materialName: '滴灌带', spec: '50m/卷', unit: '卷', category: '农业机械', requestedQuantity: 20, stockQuantity: 0, actualQuantity: 0, remark: '库存为0，无法出库', applicationCode: 'LL20260314014', batchNo: '' }
-  ]}
-])
+// 后端字段映射：warehouse_location→warehouseLocation, execute_status→executeStatus, execute_status_class→executeStatusClass
+const mapExRecord = (r) => ({
+  id: r.id || r.code,
+  code: r.code || '',
+  date: r.date || '',
+  applicant: r.applicant || '',
+  warehouseLocation: r.warehouse_location || r.warehouseLocation || '',
+  reviewer: r.reviewer || '',
+  operator: r.operator || '',
+  productionBatchCode: r.production_batch_code || r.productionBatchCode || '',
+  sourceApplicationCodes: Array.isArray(r.source_application_codes) ? r.source_application_codes : (typeof r.source_application_codes === 'string' ? JSON.parse(r.source_application_codes || '[]') : []),
+  executeStatus: r.execute_status || r.executeStatus || '已出库',
+  executeStatusClass: r.execute_status_class || r.executeStatusClass || 'completed',
+  materials: Array.isArray(r.materials) ? r.materials : (typeof r.materials === 'string' ? JSON.parse(r.materials || '[]') : [])
+})
+
+const executeData = ref([])
+const isLoadingEx = ref(false)
+const loadExecuteData = async () => {
+  isLoadingEx.value = true
+  try {
+    const res = await getExecuteList()
+    executeData.value = (res || []).map(mapExRecord)
+  } catch { /* fallback to empty */ }
+  finally { isLoadingEx.value = false }
+}
 
 const exSearchCode = ref('')
 const exSearchApplicant = ref('')
@@ -1112,6 +1231,8 @@ const exShowDetailModal = ref(false)
 const exShowAddModal = ref(false)
 const exShowEditModal = ref(false)
 const exShowDeleteConfirm = ref(false)
+const exShowBatchEditModal = ref(false)
+const exShowBatchDeleteConfirm = ref(false)
 const exShowExportTypeModal = ref(false)
 const exExportFileType = ref('xlsx')
 const exSelectedRecord = ref(null)
@@ -1171,10 +1292,56 @@ const handleExEditRecord = (row) => {
 
 const handleExDeleteRecord = (id) => { exDeletingId.value = id; exShowDeleteConfirm.value = true }
 
-const confirmExDelete = () => {
-  executeData.value = executeData.value.filter(item => item.id !== exDeletingId.value)
-  ElMessage.success('删除成功')
+const confirmExDelete = async () => {
+  if (exDeletingId.value !== null) {
+    try {
+      await apiDeleteExe(exDeletingId.value)
+      ElMessage.success('删除成功')
+      await loadExecuteData()
+    } catch { ElMessage.error('删除失败') }
+  }
   exShowDeleteConfirm.value = false; exDeletingId.value = null
+}
+
+// 出库批量编辑
+const exBatchEditForm = reactive({ warehouseLocation: '', reviewer: '', productionBatchCode: '', executeStatus: '' })
+
+const handleExBatchEditSave = async () => {
+  if (exSelectedRows.value.length === 0) { ElMessage.warning('请先选择记录'); return }
+  const updates = {}
+  if (exBatchEditForm.warehouseLocation) updates.warehouseLocation = exBatchEditForm.warehouseLocation
+  if (exBatchEditForm.reviewer) updates.reviewer = exBatchEditForm.reviewer
+  if (exBatchEditForm.productionBatchCode) updates.productionBatchCode = exBatchEditForm.productionBatchCode
+  if (exBatchEditForm.executeStatus) updates.executeStatus = exBatchEditForm.executeStatus
+  if (Object.keys(updates).length === 0) { ElMessage.warning('请至少填写一个要修改的字段'); return }
+  try {
+    for (const id of exSelectedRows.value) {
+      await apiUpdateExe(id, updates)
+    }
+    ElMessage.success(`批量编辑成功，已更新 ${exSelectedRows.value.length} 条记录`)
+    exShowBatchEditModal.value = false
+    exBatchEditMode.value = null
+    exSelectedRows.value = []
+    exBatchEditForm.warehouseLocation = ''
+    exBatchEditForm.reviewer = ''
+    exBatchEditForm.productionBatchCode = ''
+    exBatchEditForm.executeStatus = ''
+    await loadExecuteData()
+  } catch { ElMessage.error('批量编辑失败，请重试') }
+}
+
+const handleExBatchDelete = async () => {
+  if (exSelectedRows.value.length === 0) return
+  try {
+    for (const id of exSelectedRows.value) {
+      await apiDeleteExe(id)
+    }
+    ElMessage.success(`已删除 ${exSelectedRows.value.length} 条出库单`)
+    exShowBatchDeleteConfirm.value = false
+    exBatchEditMode.value = null
+    exSelectedRows.value = []
+    await loadExecuteData()
+  } catch { ElMessage.error('批量删除失败，请重试') }
 }
 
 // 出库新增 & 物料池
@@ -1228,14 +1395,13 @@ const handleAddToPool = () => {
   exSelectedMaterialIndices.value = []
 }
 
-const handleExSaveAdd = () => {
+const handleExSaveAdd = async () => {
   if (exMaterialPool.value.length === 0) { ElMessage.warning('请先添加物料到物料池'); return }
   const sourceAppCodes = [...new Set(exMaterialPool.value.map(m => m.applicationCode))]
   const firstMat = exMaterialPool.value[0]
   const sourceApp = applicationData.value.find(app => app.code === firstMat.applicationCode)
   const hasPartial = exMaterialPool.value.some(m => m.actualQuantity < m.requestedQuantity)
   const newRecord = {
-    id: Date.now(),
     code: exAddForm.code,
     date: exAddForm.date,
     applicant: exAddForm.applicant || sourceApp?.applicant || '',
@@ -1248,26 +1414,30 @@ const handleExSaveAdd = () => {
     executeStatusClass: hasPartial ? 'partial' : 'completed',
     materials: JSON.parse(JSON.stringify(exMaterialPool.value))
   }
-  executeData.value.unshift(newRecord)
-  ElMessage.success('新增成功')
-  exShowAddModal.value = false; resetExAddForm()
+  try {
+    await apiCreateExe(newRecord)
+    ElMessage.success('新增成功')
+    exShowAddModal.value = false; resetExAddForm()
+    await loadExecuteData()
+  } catch { ElMessage.error('新增失败，请重试') }
 }
 
 // 出库编辑
 const exEditForm = reactive({ date: '', applicant: '', warehouseLocation: '', reviewer: '', operator: '', productionBatchCode: '', executeStatus: '', materials: [] })
 
-const handleExSaveEdit = () => {
+const handleExSaveEdit = async () => {
   if (!exSelectedRecord.value) return
-  const rec = executeData.value.find(r => r.id === exSelectedRecord.value.id)
-  if (rec) {
-    Object.assign(rec, {
-      date: exEditForm.date, applicant: exEditForm.applicant, warehouseLocation: exEditForm.warehouseLocation,
-      reviewer: exEditForm.reviewer, operator: exEditForm.operator, productionBatchCode: exEditForm.productionBatchCode,
-      executeStatus: exEditForm.executeStatus, materials: JSON.parse(JSON.stringify(exEditForm.materials))
-    })
+  const updates = {
+    date: exEditForm.date, applicant: exEditForm.applicant, warehouseLocation: exEditForm.warehouseLocation,
+    reviewer: exEditForm.reviewer, operator: exEditForm.operator, productionBatchCode: exEditForm.productionBatchCode,
+    executeStatus: exEditForm.executeStatus, materials: JSON.parse(JSON.stringify(exEditForm.materials))
   }
-  ElMessage.success('保存成功')
-  exShowEditModal.value = false
+  try {
+    await apiUpdateExe(exSelectedRecord.value.id, updates)
+    ElMessage.success('保存成功')
+    exShowEditModal.value = false
+    await loadExecuteData()
+  } catch { ElMessage.error('保存失败，请重试') }
 }
 
 const confirmExExport = () => {
@@ -1408,6 +1578,12 @@ const costCategoryData = categorySummaryData
 const costTrendData = categoryTrendData
 
 const maxTrendQty = computed(() => Math.max(...costTrendData.map(d => d.total), 1))
+
+// ==================== 页面初始化 ====================
+onMounted(() => {
+  loadApplicationData()
+  loadExecuteData()
+})
 </script>
 
 <style scoped>
@@ -1419,5 +1595,16 @@ const maxTrendQty = computed(() => Math.max(...costTrendData.map(d => d.total), 
 }
 :deep(.el-table__header-wrapper .el-table__header th .cell) {
   color: #fff !important;
+}
+
+/* 蓝色悬停行 - 与V1.1 hover:bg-blue-100 一致 */
+:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
+  background-color: #dbeafe !important;
+}
+
+/* 展开行内嵌子表格：翠绿色渐变表头 - 与V1.1一致 */
+:deep(.el-table__expanded-cell .el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #10b981, #059669) !important;
+  color: #ffffff !important;
 }
 </style>
