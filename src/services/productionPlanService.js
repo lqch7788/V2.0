@@ -123,20 +123,117 @@ export async function resetProductionPlans() {
 
 /**
  * 生产计划关联记录
+ * 查询与该生产计划关联的种源、育苗、种植、采收、库存记录
  */
 export async function getProductionPlanRelations(productionPlanId, productionPlanCode) {
-  // VUE1.2 降级实现：缺少 inventory/seed/seedling/planting/harvest 等服务
-  // 保留调用逻辑，返回空数组作为降级
-  return {
-    productionPlanId,
-    productionPlanCode,
-    relations: [],
-    summary: {
-      seedSourceCount: 0,
-      seedlingCount: 0,
-      plantingCount: 0,
-      harvestCount: 0,
-      totalQuantity: 0,
-    },
+  const relations = []
+
+  try {
+    // 并行查询各模块数据
+    const [seedlings, plantings, harvests, inventory] = await Promise.all([
+      request.get('/seedlings', { params: { limit: 200 } }).catch(() => []),
+      request.get('/plantings', { params: { limit: 200 } }).catch(() => []),
+      request.get('/harvest', { params: { limit: 200 } }).catch(() => []),
+      request.get('/inventory', { params: { limit: 200 } }).catch(() => []),
+    ])
+
+    const items = Array.isArray(seedlings) ? seedlings : (seedlings?.data || seedlings?.records || [])
+    const plants = Array.isArray(plantings) ? plantings : (plantings?.data || plantings?.records || [])
+    const harvestList = Array.isArray(harvests) ? harvests : (harvests?.data || harvests?.records || [])
+    const invList = Array.isArray(inventory) ? inventory : (inventory?.data || inventory?.records || [])
+
+    // 育苗关联：productionPlanCode 匹配
+    items.forEach(item => {
+      if (item.productionPlanCode === productionPlanCode) {
+        relations.push({
+          type: 'seedling',
+          businessId: item.id,
+          businessCode: item.seedlingCode || item.code || '',
+          relatedDate: item.startDate || item.createTime || '',
+          quantity: item.seedlingQuantity || item.quantity || 0,
+          unit: item.unit || '株',
+          status: item.status || '',
+        })
+      }
+    })
+
+    // 种植关联：productionPlanCode 匹配
+    plants.forEach(item => {
+      if (item.productionPlanCode === productionPlanCode) {
+        relations.push({
+          type: 'planting',
+          businessId: item.id,
+          businessCode: item.plantCode || item.plantingCode || item.code || '',
+          relatedDate: item.plantingDate || item.startDate || item.createTime || '',
+          quantity: item.plantingCount || item.quantity || 0,
+          unit: item.unit || '株',
+          status: item.status || '',
+        })
+      }
+    })
+
+    // 采收关联：productionPlanCode 匹配
+    harvestList.forEach(item => {
+      if (item.productionPlanCode === productionPlanCode) {
+        relations.push({
+          type: 'harvest',
+          businessId: item.id,
+          businessCode: item.harvestCode || item.code || '',
+          relatedDate: item.harvestDate || item.createTime || '',
+          quantity: item.harvestQuantity || item.quantity || 0,
+          unit: item.unit || 'kg',
+          status: item.status || '',
+        })
+      }
+    })
+
+    // 库存关联：batchCode 或 productionPlanCode 匹配
+    invList.forEach(item => {
+      const invCode = item.batchCode || item.productionPlanCode || ''
+      if (invCode === productionPlanCode) {
+        relations.push({
+          type: 'inventory',
+          businessId: item.id,
+          businessCode: item.batchCode || item.code || '',
+          relatedDate: item.storageDate || item.createTime || '',
+          quantity: item.quantity || item.currentQuantity || 0,
+          unit: item.unit || 'kg',
+          status: item.status || '',
+          instanceId: item.id,
+        })
+      }
+    })
+
+    const seedSourceCount = relations.filter(r => r.type === 'seedling').length
+    const seedlingCount = relations.filter(r => r.type === 'seedling').length
+    const plantingCount = relations.filter(r => r.type === 'planting').length
+    const harvestCount = relations.filter(r => r.type === 'harvest').length
+
+    return {
+      productionPlanId,
+      productionPlanCode,
+      relations,
+      summary: {
+        seedSourceCount,
+        seedlingCount,
+        plantingCount,
+        harvestCount,
+        totalQuantity: relations.reduce((sum, r) => sum + (r.quantity || 0), 0),
+      },
+    }
+  } catch (error) {
+    console.error('加载生产计划关联记录失败:', error)
+    return {
+      productionPlanId,
+      productionPlanCode,
+      relations: [],
+      summary: {
+        seedSourceCount: 0,
+        seedlingCount: 0,
+        plantingCount: 0,
+        harvestCount: 0,
+        totalQuantity: 0,
+      },
+    }
   }
 }

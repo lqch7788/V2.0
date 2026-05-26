@@ -8,6 +8,53 @@ import { queryToObjects, execCount } from '../utils/queryHelper';
 
 const router = Router();
 
+// snake_case → camelCase 字段映射（育苗表 + JOIN别名）
+function mapSeedlingToCamel(item: Record<string, unknown>): Record<string, unknown> {
+  const fieldMap: Record<string, string> = {
+    id: 'id',
+    seedling_code: 'seedlingCode',
+    source_id: 'sourceId',
+    source_name: 'sourceName',
+    production_plan_code: 'productionPlanCode',
+    crop_code: 'cropCode',
+    crop_name: 'cropName',
+    crop_variety: 'cropVariety',
+    seedling_type: 'seedlingType',
+    greenhouse_name: 'greenhouseName',
+    area_name: 'areaName',
+    seedling_date: 'seedlingDate',
+    expected_finish_date: 'expectedFinishDate',
+    actual_finish_date: 'actualFinishDate',
+    seedling_quantity: 'seedlingQuantity',
+    survival_quantity: 'survivalQuantity',
+    survival_rate: 'survivalRate',
+    planted_count: 'plantedCount',
+    planted_quantity: 'plantedQuantity',
+    pictures: 'pictures',
+    quality_grade: 'qualityGrade',
+    status: 'status',
+    seedling_status: 'seedlingStatus',
+    remarks: 'remarks',
+    create_by: 'createBy',
+    create_time: 'createTime',
+    update_time: 'updateTime',
+    work_hours: 'workHours',
+    charge_person: 'chargePerson',
+    is_finished: 'isFinished',
+    loss_count: 'lossCount',
+    loss_rate: 'lossRate',
+    printed_count: 'printedCount',
+    target_survival_count: 'targetSurvivalCount',
+  };
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(item)) {
+    const mappedKey = fieldMap[key] || key;
+    result[mappedKey] = value;
+  }
+  return result;
+}
+
 // ============================================
 // 批量操作路由必须在 /:id 之前定义，否则 /batch 会被当作 :id 参数
 // ============================================
@@ -411,12 +458,13 @@ router.get('/', (req: Request, res: Response) => {
     const offset = (Number(page) - 1) * Number(limit);
     sql += ' LIMIT ' + Number(limit) + ' OFFSET ' + offset;
 
-    // 获取数据列表
+    // 获取数据列表，转换为前端 camelCase 格式
     const items = queryToObjects(db, sql, params);
+    const camelItems = (items as Record<string, unknown>[]).map(item => mapSeedlingToCamel(item));
 
     res.json({
       success: true,
-      data: items,
+      data: camelItems,
       meta: { total, page: Number(page), limit: Number(limit) }
     });
   } catch (error) {

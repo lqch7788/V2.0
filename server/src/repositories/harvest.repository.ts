@@ -53,6 +53,55 @@ function toSnakeFields(data: Record<string, any>): Record<string, any> {
   return result;
 }
 
+/** 反向映射：数据库 snake_case 字段 → 前端 camelCase 字段 */
+const REVERSE_FIELD_MAP: Record<string, string> = {
+  harvest_code: 'harvestCode',
+  source_id: 'sourceId',
+  source_name: 'sourceName',
+  crop_name: 'cropName',
+  crop_variety: 'cropVariety',
+  greenhouse_name: 'greenhouseName',
+  harvest_date: 'harvestDate',
+  harvest_quantity: 'harvestQuantity',
+  unit: 'unit',
+  unit_price: 'unitPrice',
+  total_amount: 'totalAmount',
+  quality_grade: 'qualityGrade',
+  buyer_id: 'buyerId',
+  buyer_name: 'buyerName',
+  sales_channel: 'salesChannel',
+  status: 'status',
+  remarks: 'remarks',
+  create_by: 'createBy',
+  create_time: 'createTime',
+  update_time: 'updateTime',
+  warehouse_id: 'warehouseId',
+  warehouse_name: 'warehouseName',
+  inbound_type: 'inboundType',
+  auditor_id: 'auditorId',
+  auditor: 'auditor',
+  batch_code: 'batchCode',
+  batch_id: 'batchId',
+  planting_mode: 'plantingMode',
+  production_plan_code: 'productionPlanCode',
+  harvest_area: 'harvestArea',
+  harvester_ids: 'harvesterIds',
+  related_task_id: 'relatedTaskId',
+  related_task_code: 'relatedTaskCode',
+  expected_harvest_date: 'expectedHarvestDate',
+  actual_harvest_date: 'actualHarvestDate',
+};
+
+/** 将数据库返回的 snake_case 数据转换为前端 camelCase 格式 */
+function toCamelFields(data: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const mappedKey = REVERSE_FIELD_MAP[key] || key;
+    result[mappedKey] = value;
+  }
+  return result;
+}
+
 /**
  * 采收记录查询参数
  */
@@ -156,7 +205,10 @@ export class HarvestRepository {
 
     const items = queryToObjects<HarvestRecord>(db, baseSql, params);
 
-    return { data: items, total };
+    // 转换为前端 camelCase 格式
+    const camelItems = items.map(item => toCamelFields(item as Record<string, any>)) as HarvestRecord[];
+
+    return { data: camelItems, total };
   }
 
   /**
@@ -183,7 +235,7 @@ export class HarvestRepository {
     }
     stmt.free();
 
-    return item || undefined;
+    return item ? toCamelFields(item as Record<string, any>) as HarvestRecord : undefined;
   }
 
   /**
@@ -201,7 +253,8 @@ export class HarvestRepository {
     LEFT JOIN warehouses w ON h.warehouse_id = w.id
     LEFT JOIN users u ON h.auditor_id = u.id
     WHERE h.source_id = ? OR h.source_name = ? ORDER BY h.harvest_date DESC, h.create_time DESC`;
-    return queryToObjects<HarvestRecord>(db, sql, [batchCode, batchCode]);
+    const items = queryToObjects<HarvestRecord>(db, sql, [batchCode, batchCode]);
+    return items.map(item => toCamelFields(item as Record<string, any>)) as HarvestRecord[];
   }
 
   /**
@@ -222,7 +275,8 @@ export class HarvestRepository {
     LEFT JOIN warehouses w ON h.warehouse_id = w.id
     LEFT JOIN users u ON h.auditor_id = u.id
     WHERE h.id IN (${placeholders}) ORDER BY h.create_time DESC`;
-    return queryToObjects<HarvestRecord>(db, sql, ids);
+    const items = queryToObjects<HarvestRecord>(db, sql, ids);
+    return items.map(item => toCamelFields(item as Record<string, any>)) as HarvestRecord[];
   }
 
   /**
@@ -502,7 +556,8 @@ export class HarvestRepository {
 
     sql += ' ORDER BY h.harvest_date DESC, h.create_time DESC';
 
-    return queryToObjects<HarvestRecord>(db, sql, params);
+    const items = queryToObjects<HarvestRecord>(db, sql, params);
+    return items.map(item => toCamelFields(item as Record<string, any>)) as HarvestRecord[];
   }
 
   /**
@@ -515,8 +570,11 @@ export class HarvestRepository {
     const sql = 'SELECT * FROM harvest_records ORDER BY create_time DESC LIMIT 100';
     const items = queryToObjects<HarvestRecord>(db, sql, []);
 
+    // 转换为 camelCase
+    const camelItems = items.map(item => toCamelFields(item as Record<string, any>)) as HarvestRecord[];
+
     // 如果没有数据，添加示例数据
-    if (items.length === 0) {
+    if (camelItems.length === 0) {
       const now = new Date().toISOString();
       const defaultData = [
         {
@@ -579,10 +637,11 @@ export class HarvestRepository {
       }
       saveDatabase();
 
-      return queryToObjects<HarvestRecord>(db, sql, []);
+      const freshItems = queryToObjects<HarvestRecord>(db, sql, []);
+      return freshItems.map(item => toCamelFields(item as Record<string, any>)) as HarvestRecord[];
     }
 
-    return items;
+    return camelItems;
   }
 
   /**

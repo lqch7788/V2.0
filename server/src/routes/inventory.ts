@@ -7,6 +7,44 @@ import { getDatabase, saveDatabase } from '../db';
 
 const router = Router();
 
+// snake_case → camelCase 字段映射（库存表）
+function mapInventoryToCamel(item: Record<string, unknown>): Record<string, unknown> {
+  const fieldMap: Record<string, string> = {
+    id: 'id',
+    harvest_record_id: 'harvestRecordId',
+    product_code: 'productCode',
+    crop_name: 'cropName',
+    variety: 'variety',
+    stock_type: 'stockType',
+    quantity: 'quantity',
+    unit: 'unit',
+    grade: 'grade',
+    warehouse_id: 'warehouseId',
+    warehouse_name: 'warehouseName',
+    storage_location: 'storageLocation',
+    harvest_date: 'harvestDate',
+    storage_date: 'storageDate',
+    expiration_date: 'expirationDate',
+    batch_code: 'batchCode',
+    greenhouse_name: 'greenhouseName',
+    planting_mode: 'plantingMode',
+    production_plan_code: 'productionPlanCode',
+    status: 'status',
+    alert_settings: 'alertSettings',
+    inbound_records: 'inboundRecords',
+    outbound_records: 'outboundRecords',
+    create_time: 'createTime',
+    update_time: 'updateTime',
+    create_by_id: 'createById',
+  };
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(item)) {
+    result[fieldMap[key] || key] = value;
+  }
+  return result;
+}
+
 /**
  * 获取所有库存记录
  */
@@ -56,9 +94,12 @@ router.get('/', (req: Request, res: Response) => {
     }
     stmt.free();
 
+    // 转换为 camelCase
+    const camelItems = items.map(item => mapInventoryToCamel(item));
+
     res.json({
       success: true,
-      data: items,
+      data: camelItems,
       meta: {
         total,
         page: Number(page),
@@ -104,11 +145,14 @@ router.get('/aggregate/by-crop', (req: Request, res: Response) => {
       });
     }
 
+    // 转换为 camelCase
+    const camelItems = items.map(item => mapInventoryToCamel(item));
+
     // 按 stock_type 分组
     const grouped = {
-      seed: items.filter((item: any) => item.stock_type === 'seed'),
-      seedling: items.filter((item: any) => item.stock_type === 'seedling'),
-      product: items.filter((item: any) => item.stock_type === 'product')
+      seed: camelItems.filter((item: any) => item.stockType === 'seed'),
+      seedling: camelItems.filter((item: any) => item.stockType === 'seedling'),
+      product: camelItems.filter((item: any) => item.stockType === 'product')
     };
 
     // 计算各形态总数量
@@ -121,11 +165,11 @@ router.get('/aggregate/by-crop', (req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
-        crop_name: crop_name || '',
+        cropName: crop_name || '',
         seed: grouped.seed,
         seedling: grouped.seedling,
         product: grouped.product,
-        total: items.length,
+        total: camelItems.length,
         totalQuantity
       }
     });
@@ -174,7 +218,8 @@ router.get('/batch', (req: Request, res: Response) => {
       });
     }
 
-    res.json({ success: true, data: items });
+    const camelItems = items.map(item => mapInventoryToCamel(item));
+    res.json({ success: true, data: camelItems });
   } catch (error) {
     res.status(500).json({ success: false, error: '批量获取库存记录失败' });
   }
@@ -261,7 +306,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: item
+      data: mapInventoryToCamel(item)
     });
   } catch (error) {
     console.error('获取库存详情失败:', error);

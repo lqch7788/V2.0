@@ -70,7 +70,7 @@ function mapItemToCamelCase<T>(obj: any): T {
 function mapToFrontendFormat(record: Record<string, unknown>): Record<string, unknown> {
   const status = (record.status as string) || 'draft';
   const priority = (record.priority as string) || 'normal';
-  const planType = (record.planType as string) || '';
+  const planType = (record.planType || record.plan_type as string) || '';
 
   // 处理 items 数组中的字段转换
   let itemsArray: any[] = [];
