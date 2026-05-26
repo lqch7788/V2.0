@@ -150,7 +150,7 @@
     <!-- 备份记录表格 -->
     <div v-if="activeTab === 'record'" class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
       <el-table :data="paginatedRecords" stripe style="width: 100%">
-        <el-table-column prop="name" label="备份名称" min-width="180">
+        <el-table-column prop="name" label="备份名称" width="180">
           <template #default="{ row }">
             <div class="flex items-center gap-2">
               <el-icon :size="16" :color="getStatusIconColor(row.status)">

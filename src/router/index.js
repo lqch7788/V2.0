@@ -798,6 +798,18 @@ const routes = [
     meta: { title: '人事审批' }
   },
   {
+    path: '/hr-approval-detail/:id',
+    name: 'HrApprovalDetail',
+    component: () => import('@/views/approval/HrApprovalDetail.vue'),
+    meta: { title: '审批详情' }
+  },
+  {
+    path: '/settings/personnel/hr-documents',
+    name: 'HrApprovalDocuments',
+    component: () => import('@/views/approval/HrApprovalDocuments.vue'),
+    meta: { title: '考勤单据' }
+  },
+  {
     path: '/messages',
     name: 'Messages',
     component: () => import('@/views/message/Messages.vue'),

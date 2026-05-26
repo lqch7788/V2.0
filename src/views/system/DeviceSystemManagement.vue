@@ -100,8 +100,8 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="systemName" label="系统名称" min-width="150" />
-        <el-table-column prop="idcUrl" label="IDC 地址" min-width="200">
+        <el-table-column prop="systemName" label="系统名称" width="150" />
+        <el-table-column prop="idcUrl" label="IDC 地址" width="200">
           <template #default="{ row }">
             <a v-if="row.idcUrl" :href="row.idcUrl" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-xs font-mono">
               {{ row.idcUrl }}
@@ -116,7 +116,7 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="描述" min-width="250">
+        <el-table-column prop="description" label="描述" width="250">
           <template #default="{ row }">
             <span class="text-gray-500 text-xs truncate block max-w-[250px]">
               {{ row.description || '-' }}
