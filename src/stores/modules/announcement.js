@@ -7,6 +7,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { enhancedApiClient } from '@/lib/apiClient'
+import { submitAnnouncementApproval } from '@/services/approvalSubmitService'
+import { useAuthStore } from '@/stores/modules/auth'
 
 // ============================================
 // 工具函数
@@ -309,6 +311,7 @@ export const useAnnouncementStore = defineStore('announcement', () => {
 
   /**
    * 提交公告审批（与V1.1 submitForApproval一致）
+   * 使用 approvalSubmitService.submitAnnouncementApproval → POST /api/approvals
    */
   const submitForApproval = async (id) => {
     const item = notices.value.find(i => i.id === id)
@@ -316,17 +319,34 @@ export const useAnnouncementStore = defineStore('announcement', () => {
       console.warn('[AnnouncementStore] 提交审批失败：公告不存在')
       return false
     }
+
     try {
-      // 调用审批提交API
-      const result = await enhancedApiClient.post('/announcements/submit-approval', {
+      // 获取当前用户信息（与V1.1一致：优先auth store，失败则fallback）
+      let applicantId = 'system'
+      let applicantName = '系统'
+      let department = ''
+      try {
+        const authStore = useAuthStore()
+        applicantId = authStore.user?.oid || authStore.user?.id || 'system'
+        applicantName = authStore.user?.realName || authStore.user?.name || '系统'
+        department = authStore.user?.orgOid || authStore.user?.departmentId || ''
+      } catch {
+        // 获取用户信息失败，使用默认值
+      }
+
+      const result = await submitAnnouncementApproval({
         announcementId: id,
         announcementCode: item.code || '',
         announcementTitle: item.title,
         announcementType: item.type,
+        applicantId,
+        applicantName,
+        department,
       })
-      if (result?.success || result?.data?.success) {
+
+      if (result.success) {
         notices.value = notices.value.map(i =>
-          i.id === id ? { ...i, status: '审批中', approvalId: result.approvalId || result.data?.approvalId } : i
+          i.id === id ? { ...i, status: '审批中', approvalId: result.approvalId } : i
         )
         return true
       }

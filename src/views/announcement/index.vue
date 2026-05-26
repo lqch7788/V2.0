@@ -296,6 +296,7 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useAnnouncementStore } from '@/stores/modules/announcement'
+import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { announcementCategories } from '@/data/announcementData'
 import AnnouncementFilters from './components/AnnouncementFilters.vue'
 import AnnouncementTable from './components/AnnouncementTable.vue'
@@ -307,14 +308,21 @@ import TemplateEditModal from './modals/TemplateEditModal.vue'
 
 // 使用 Store
 const announcementStore = useAnnouncementStore()
+const dictionaryStore = useDictionaryStore()
 
 // ========== 标签页状态 ==========
 const activeTab = ref('list')
 
-const setActiveTab = (tab) => {
+const setActiveTab = async (tab) => {
   activeTab.value = tab
   if (tab === 'template') {
-    announcementStore.fetchTemplates()
+    templateLoading.value = true
+    try {
+      await dictionaryStore.loadDictionaries()
+      await announcementStore.fetchTemplates()
+    } finally {
+      templateLoading.value = false
+    }
   }
 }
 
@@ -372,7 +380,11 @@ const paginatedNotices = computed(() =>
 // 模板计算
 const allTypes = computed(() => {
   const set = new Set(['全部'])
-  announcementStore.notices.forEach(n => set.add(n.type))
+  // 从字典获取公告类型
+  const typeDict = dictionaryStore.dictionaryData['announcement_type'] || []
+  typeDict.forEach(d => { if (d.dictLabel) set.add(d.dictLabel) })
+  // 从模板数据补充
+  announcementStore.templates.forEach(t => { if (t.type) set.add(t.type) })
   return Array.from(set)
 })
 

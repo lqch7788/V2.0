@@ -5030,7 +5030,133 @@ export function exportDatabase() {
   seedApprovalAmountThresholds();
   seedApprovalTypeRules();
   seedMaterialTypes();
+  seedIndicators();
+  seedAnnouncements();
+  seedAnnouncementTemplates();
 
   saveDatabase();
   console.log('数据库种子数据导入完成');
+}
+
+/**
+ * 导入指标种子数据
+ */
+function seedIndicators() {
+  const db = getDatabase();
+
+  // 检查是否已有数据
+  const stmt = db.prepare('SELECT COUNT(*) AS cnt FROM indicators');
+  stmt.step();
+  const row = stmt.getAsObject();
+  stmt.free();
+  if (Number(row.cnt) > 0) {
+    console.log(`指标数据已存在 (${row.cnt} 条)，跳过导入`);
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const defaultData = [
+    { id: '1', code: 'KPI001', name: '月产量完成率', category: '生产指标', unit: '%', target: 95, actual: 92.5, trend: 'up', frequency: '月度', source: '自动采集', warning: 90, weight: 15 },
+    { id: '2', code: 'KPI002', name: '温室利用率', category: '资源指标', unit: '%', target: 90, actual: 88.3, trend: 'down', frequency: '月度', source: '自动采集', warning: 85, weight: 10 },
+    { id: '3', code: 'KPI003', name: '种苗成活率', category: '质量指标', unit: '%', target: 98, actual: 97.2, trend: 'up', frequency: '季度', source: '自动采集', warning: 95, weight: 12 },
+    { id: '4', code: 'KPI004', name: '病虫害发生率', category: '质量指标', unit: '%', target: 5, actual: 3.8, trend: 'down', frequency: '月度', source: '自动采集', warning: 8, weight: 10 },
+    { id: '5', code: 'KPI005', name: '采收损耗率', category: '质量指标', unit: '%', target: 3, actual: 2.5, trend: 'down', frequency: '月度', source: '人工录入', warning: 5, weight: 8 },
+    { id: '6', code: 'KPI006', name: '人工成本占比', category: '成本指标', unit: '%', target: 25, actual: 26.2, trend: 'up', frequency: '月度', source: '自动采集', warning: 28, weight: 10 },
+    { id: '7', code: 'KPI007', name: '肥料利用率', category: '效率指标', unit: '%', target: 85, actual: 82.1, trend: 'up', frequency: '季度', source: '人工录入', warning: 80, weight: 8 },
+    { id: '8', code: 'KPI008', name: '亩均产值', category: '效益指标', unit: '万元/亩', target: 3.5, actual: 3.2, trend: 'up', frequency: '年度', source: '人工录入', warning: 3.0, weight: 15 },
+    { id: '9', code: 'KPI009', name: '客户满意度', category: '服务指标', unit: '分', target: 90, actual: 92, trend: 'up', frequency: '季度', source: '人工录入', warning: 85, weight: 10 },
+    { id: '10', code: 'KPI010', name: '设备完好率', category: '设备指标', unit: '%', target: 95, actual: 94.5, trend: 'down', frequency: '月度', source: '自动采集', warning: 90, weight: 8 },
+    { id: '11', code: 'KPI011', name: '水资源利用率', category: '效率指标', unit: '%', target: 80, actual: 78.5, trend: 'up', frequency: '月度', source: '自动采集', warning: 75, weight: 8 },
+    { id: '12', code: 'KPI012', name: '农残检测合格率', category: '质量指标', unit: '%', target: 100, actual: 99.8, trend: 'stable', frequency: '批次', source: '人工录入', warning: 98, weight: 12 },
+    { id: '13', code: 'KPI013', name: '新品研发周期', category: '效率指标', unit: '天', target: 60, actual: 55, trend: 'down', frequency: '年度', source: '人工录入', warning: 70, weight: 6 },
+    { id: '14', code: 'KPI014', name: '能源消耗强度', category: '成本指标', unit: 'kWh/亩', target: 800, actual: 850, trend: 'up', frequency: '月度', source: '自动采集', warning: 900, weight: 8 },
+    { id: '15', code: 'KPI015', name: '员工培训完成率', category: '服务指标', unit: '%', target: 95, actual: 93, trend: 'up', frequency: '季度', source: '人工录入', warning: 90, weight: 5 },
+    { id: '16', code: 'KPI016', name: '安全事故发生率', category: '安全指标', unit: '次', target: 0, actual: 1, trend: 'up', frequency: '月度', source: '人工录入', warning: 2, weight: 15 },
+  ];
+
+  for (const item of defaultData) {
+    db.run(`
+      INSERT INTO indicators (id, code, name, category, unit, target, actual, trend, frequency, source, warning, weight, create_time, update_time)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [item.id, item.code, item.name, item.category, item.unit, item.target, item.actual, item.trend, item.frequency, item.source, item.warning, item.weight, now, now]);
+  }
+
+  saveDatabase();
+  console.log(`已导入指标种子数据: ${defaultData.length}条`);
+}
+
+/**
+ * 导入公告种子数据
+ */
+function seedAnnouncements() {
+  const db = getDatabase();
+
+  // 检查是否已有数据
+  const stmt = db.prepare('SELECT COUNT(*) AS cnt FROM announcements');
+  stmt.step();
+  const row = stmt.getAsObject();
+  stmt.free();
+  if (Number(row.cnt) > 0) {
+    console.log(`公告数据已存在 (${row.cnt} 条)，跳过导入`);
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const defaultData = [
+    { id: '1', code: 'N20260401', title: '关于2026年春季种植计划的通知', type: '生产公告', category: '生产计划', priority: '高', status: '已发布', sender: '生产管理部', date: '2026-04-15', deadline: '2026-05-15', readCount: 156, recipients: '全体基地', content: '为确保2026年春季种植工作顺利开展，现将种植计划通知如下...' },
+    { id: '2', code: 'N20260402', title: '温室环境控制标准更新', type: '生产公告', category: '技术标准', priority: '高', status: '已发布', sender: '技术部', date: '2026-04-18', deadline: '2026-05-01', readCount: 142, recipients: '温室管理人员', content: '根据最新研究成果，现对温室环境控制标准进行更新...' },
+    { id: '3', code: 'N20260403', title: '劳动节放假安排通知', type: '行政公告', category: '行政通知', priority: '中', status: '已发布', sender: '行政人事部', date: '2026-04-20', deadline: '2026-05-10', readCount: 234, recipients: '全体员工', content: '根据国家法定节假日安排，现将劳动节放假事宜通知如下...' },
+    { id: '4', code: 'N20260404', title: '新员工入职培训通知', type: '行政公告', category: '培训通知', priority: '中', status: '审批中', sender: '行政人事部', date: '2026-04-22', deadline: '2026-05-05', readCount: 0, recipients: '新入职员工', content: '欢迎新员工加入公司，现将入职培训安排通知如下...' },
+    { id: '5', code: 'N20260405', title: '农药使用安全规范', type: '生产公告', category: '安全规范', priority: '高', status: '已发布', sender: '安全生产部', date: '2026-04-25', deadline: '2026-06-01', readCount: 128, recipients: '生产人员', content: '为确保农药使用安全，特制定本规范...' },
+    { id: '6', code: 'N20260406', title: '办公设备采购通知', type: '行政公告', category: '采购通知', priority: '低', status: '草稿', sender: '行政部', date: '2026-04-28', deadline: '2026-05-15', readCount: 0, recipients: '各部门负责人', content: '根据公司需求，现计划采购一批办公设备...' },
+    { id: '7', code: 'N20260501', title: '采收标准更新通知', type: '生产公告', category: '技术标准', priority: '高', status: '已发布', sender: '质量管理部', date: '2026-05-01', deadline: '2026-05-15', readCount: 98, recipients: '采收人员', content: '为提高产品质量，现对采收标准进行更新...' },
+    { id: '8', code: 'N20260502', title: '安全生产月活动通知', type: '行政公告', category: '活动通知', priority: '中', status: '已发布', sender: '安全生产部', date: '2026-05-05', deadline: '2026-06-05', readCount: 187, recipients: '全体员工', content: '为提高全员安全意识，现将安全生产月活动安排通知如下...' },
+    { id: '9', code: 'N20260503', title: '灌溉系统维护通知', type: '生产公告', category: '设备维护', priority: '中', status: '审批中', sender: '设备管理部', date: '2026-05-08', deadline: '2026-05-20', readCount: 0, recipients: '设备维护人员', content: '为确保灌溉系统正常运行，现将维护计划通知如下...' },
+    { id: '10', code: 'N20260504', title: '考勤管理制度修订', type: '行政公告', category: '制度修订', priority: '高', status: '已发布', sender: '行政人事部', date: '2026-05-10', deadline: '2026-06-01', readCount: 210, recipients: '全体员工', content: '为规范考勤管理，现对考勤管理制度进行修订...' },
+  ];
+
+  for (const item of defaultData) {
+    db.run(`
+      INSERT INTO announcements (id, code, title, type, category, priority, status, sender, date, deadline, read_count, recipients, content, create_time, update_time)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [item.id, item.code, item.title, item.type, item.category, item.priority, item.status, item.sender, item.date, item.deadline, item.readCount, item.recipients, item.content, now, now]);
+  }
+
+  saveDatabase();
+  console.log(`已导入公告种子数据: ${defaultData.length}条`);
+}
+
+/**
+ * 导入公告模板种子数据
+ */
+function seedAnnouncementTemplates() {
+  const db = getDatabase();
+
+  // 检查是否已有数据
+  const stmt = db.prepare('SELECT COUNT(*) AS cnt FROM announcement_templates');
+  stmt.step();
+  const row = stmt.getAsObject();
+  stmt.free();
+  if (Number(row.cnt) > 0) {
+    console.log(`公告模板数据已存在 (${row.cnt} 条)，跳过导入`);
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const defaultData = [
+    { id: 'ATPL001', code: 'TPL_PRODUCTION', name: '生产公告模板', type: '生产公告', category: '生产计划', titleTemplate: '关于{事项}的通知', contentTemplate: '为确保{事项}工作顺利开展，现将{具体内容}通知如下：\n\n一、{要点一}\n二、{要点二}\n三、{要点三}\n\n请各相关部门认真执行。', defaultPriority: '高', usageCount: 15, status: '启用' },
+    { id: 'ATPL002', code: 'TPL_ADMIN', name: '行政公告模板', type: '行政公告', category: '行政通知', titleTemplate: '{事项}通知', contentTemplate: '根据{依据}，现将{事项}通知如下：\n\n一、{要点一}\n二、{要点二}\n\n特此通知。', defaultPriority: '中', usageCount: 23, status: '启用' },
+    { id: 'ATPL003', code: 'TPL_SAFETY', name: '安全规范模板', type: '生产公告', category: '安全规范', titleTemplate: '{事项}安全规范', contentTemplate: '为确保{事项}安全，特制定本规范：\n\n一、{安全要求一}\n二、{安全要求二}\n三、{应急措施}\n\n请严格遵守。', defaultPriority: '高', usageCount: 8, status: '启用' },
+    { id: 'ATPL004', code: 'TPL_TRAINING', name: '培训通知模板', type: '行政公告', category: '培训通知', titleTemplate: '关于{培训主题}培训的通知', contentTemplate: '为提升{培训目标}，现将{培训主题}培训安排通知如下：\n\n培训时间：{时间}\n培训地点：{地点}\n参加人员：{人员}\n\n请准时参加。', defaultPriority: '中', usageCount: 12, status: '启用' },
+  ];
+
+  for (const item of defaultData) {
+    db.run(`
+      INSERT INTO announcement_templates (id, code, name, type, category, title_template, content, default_priority, usage_count, status, create_time, update_time)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [item.id, item.code, item.name, item.type, item.category, item.titleTemplate, item.contentTemplate, item.defaultPriority, item.usageCount, item.status, now, now]);
+  }
+
+  saveDatabase();
+  console.log(`已导入公告模板种子数据: ${defaultData.length}条`);
 }
