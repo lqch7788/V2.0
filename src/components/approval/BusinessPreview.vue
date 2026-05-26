@@ -36,9 +36,9 @@
         <div v-if="businessLink.materials && businessLink.materials.length > 0">
           <div class="text-xs text-gray-500 mb-2">物料明细</div>
           <el-table :data="businessLink.materials" size="small" border>
-            <el-table-column prop="materialName" label="物料名称" min-width="150" />
-            <el-table-column prop="requestedQuantity" label="申请数量" align="right" min-width="100" />
-            <el-table-column prop="unit" label="单位" align="right" min-width="80" />
+            <el-table-column prop="materialName" label="物料名称" width="150" />
+            <el-table-column prop="requestedQuantity" label="申请数量" align="right" width="100" />
+            <el-table-column prop="unit" label="单位" align="right" width="80" />
           </el-table>
         </div>
       </div>
@@ -61,9 +61,9 @@
         <div v-if="businessLink.items && businessLink.items.length > 0">
           <div class="text-xs text-gray-500 mb-2">采购明细</div>
           <el-table :data="businessLink.items" size="small" border>
-            <el-table-column prop="materialName" label="物料名称" min-width="150" />
-            <el-table-column prop="quantity" label="数量" align="right" min-width="80" />
-            <el-table-column label="预计单价" align="right" min-width="100">
+            <el-table-column prop="materialName" label="物料名称" width="150" />
+            <el-table-column prop="quantity" label="数量" align="right" width="80" />
+            <el-table-column label="预计单价" align="right" width="100">
               <template #default="{ row }">
                 ¥{{ row.estimatedPrice }}
               </template>

@@ -13,48 +13,48 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-blue-600"><Document /></el-icon>
+    <!-- 统计卡片 - V1.1: bg-[#F2F6FA] -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-blue-600"><Document /></el-icon>
           </div>
           <div>
-            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
             <p class="text-xs text-gray-500">总申请数</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
           </div>
           <div>
-            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
             <p class="text-xs text-gray-500">待审批</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
-            <p class="text-lg font-bold text-gray-900">{{ stats.approved }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
             <p class="text-xs text-gray-500">已通过</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-red-600"><CircleClose /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-red-600"><CircleClose /></el-icon>
           </div>
           <div>
-            <p class="text-lg font-bold text-gray-900">{{ stats.rejected }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
             <p class="text-xs text-gray-500">已拒绝</p>
           </div>
         </div>
@@ -209,7 +209,7 @@
       <el-table
         v-loading="loading"
         :data="paginatedData"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #6366f1)', color: 'white', fontWeight: '600' }"
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
         row-class-name="hover:bg-blue-50"
         :expand-row-keys="hasSpecialTable(activeTab) ? expandedRows : []"
         row-key="id"

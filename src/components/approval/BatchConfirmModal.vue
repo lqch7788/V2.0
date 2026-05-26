@@ -45,9 +45,9 @@
     <!-- 审批单列表 -->
     <div class="border border-gray-200 rounded-lg max-h-48 overflow-y-auto mb-4">
       <el-table :data="selectedApprovals" size="small" class="approval-table">
-        <el-table-column prop="code" label="单号" min-width="120" />
-        <el-table-column prop="typeName" label="类型" min-width="100" />
-        <el-table-column prop="applicantName" label="申请人" min-width="100" />
+        <el-table-column prop="code" label="单号" width="120" />
+        <el-table-column prop="typeName" label="类型" width="100" />
+        <el-table-column prop="applicantName" label="申请人" width="100" />
       </el-table>
     </div>
 

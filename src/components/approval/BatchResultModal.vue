@@ -49,9 +49,9 @@
       </div>
       <div class="border border-red-200 rounded-lg overflow-hidden">
         <el-table :data="failedItems" size="small" class="result-table">
-          <el-table-column prop="code" label="单号" min-width="120" />
-          <el-table-column prop="typeName" label="类型" min-width="100" />
-          <el-table-column prop="error" label="失败原因" min-width="180">
+          <el-table-column prop="code" label="单号" width="120" />
+          <el-table-column prop="typeName" label="类型" width="100" />
+          <el-table-column prop="error" label="失败原因" width="180">
             <template #default="{ row }">
               <span class="text-red-600">{{ row.error }}</span>
             </template>

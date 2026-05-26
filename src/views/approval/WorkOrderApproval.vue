@@ -13,49 +13,49 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-emerald-600"><Document /></el-icon>
+    <!-- 统计卡片 - V1.1: bg-[#F2F6FA] -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><Document /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
             <p class="text-xs text-gray-500">总工单</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-blue-600"><Clock /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-blue-600"><Clock /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.inProgress }}</p>
             <p class="text-xs text-gray-500">进行中</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.inProgress }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.completed }}</p>
             <p class="text-xs text-gray-500">已完成</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.completed }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-amber-600"><RefreshRight /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-amber-600"><RefreshRight /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
             <p class="text-xs text-gray-500">待开始</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
           </div>
         </div>
       </div>
@@ -130,7 +130,7 @@
           {{ modeLabel }}工单列表
         </h3>
       </div>
-      <el-table :data="paginatedData" style="width: 100%" stripe>
+      <el-table :data="paginatedData" style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }">
         <el-table-column prop="code" label="工单编号" min-width="120" />
         <el-table-column prop="name" label="工人姓名" min-width="100" />
         <el-table-column prop="workerId" label="工号" min-width="80" />
@@ -140,42 +140,23 @@
         <el-table-column prop="date" label="工作日期" min-width="120" />
         <el-table-column label="状态" min-width="100">
           <template #default="{ row }">
-            <el-tag
-              :type="statusTypeMap[row.statusClass] || 'info'"
-              size="small"
-              effect="light"
-            >
+            <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(row.statusClass)">
               {{ row.status }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="100" align="center">
+        <el-table-column label="操作" min-width="120" align="center">
           <template #default="{ row }">
             <div class="flex items-center justify-center gap-1">
-              <el-button
-                type="primary"
-                :icon="View"
-                circle
-                size="small"
-                title="查看"
-                @click="handleView(row)"
-              />
-              <el-button
-                type="warning"
-                :icon="Edit"
-                circle
-                size="small"
-                title="编辑"
-                @click="handleEdit(row)"
-              />
-              <el-button
-                type="success"
-                :icon="CircleCheck"
-                circle
-                size="small"
-                title="审批"
-                @click="handleApprove(row)"
-              />
+              <el-button link size="small" @click="handleView(row)" title="查看">
+                <el-icon :size="16"><View /></el-icon>
+              </el-button>
+              <el-button link size="small" @click="handleEdit(row)" title="编辑">
+                <el-icon :size="16"><Edit /></el-icon>
+              </el-button>
+              <el-button link size="small" @click="handleApprove(row)" title="审批">
+                <el-icon :size="16"><CircleCheck /></el-icon>
+              </el-button>
             </div>
           </template>
         </el-table-column>
@@ -299,11 +280,25 @@ const stats = reactive({
   pending: 5
 })
 
-// 状态类型映射
+// 状态类型映射 - V1.1: inline pill classes
 const statusTypeMap = {
   'normal': 'success',
   'pending': 'warning',
   'draft': 'info'
+}
+
+// 状态样式 - V1.1: inline pills
+const getStatusClass = (statusClass) => {
+  switch (statusClass) {
+    case 'normal':
+      return 'bg-emerald-100 text-emerald-700'
+    case 'pending':
+      return 'bg-amber-100 text-amber-700'
+    case 'draft':
+      return 'bg-gray-100 text-gray-700'
+    default:
+      return 'bg-gray-100 text-gray-700'
+  }
 }
 
 // 当前模式

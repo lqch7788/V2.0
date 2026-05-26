@@ -500,6 +500,54 @@ class ApiApprovalService {
   }
 
   /**
+   * 创建审批
+   */
+  async createApproval(data: Partial<Approval>): Promise<Approval | null> {
+    try {
+      const body = denormalizeApproval(data);
+      const response = await enhancedApiClient.post<{ success: boolean; data: unknown }>(
+        API_BASE, body
+      );
+      if ((response as { success: boolean; data: unknown }).success && (response as { success: boolean; data: unknown }).data) {
+        return normalizeApproval((response as { success: boolean; data: unknown }).data as Record<string, unknown>);
+      }
+      return null;
+    } catch (error) {
+      console.error('[ApiApprovalService] 创建审批失败:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 更新审批
+   */
+  async updateApproval(id: string, updates: Partial<Approval>): Promise<boolean> {
+    try {
+      const body = denormalizeApproval(updates);
+      const response = await enhancedApiClient.put<{ success: boolean }>(
+        `${API_BASE}/${id}`, body
+      );
+      return (response as { success: boolean }).success;
+    } catch (error) {
+      console.error('[ApiApprovalService] 更新审批失败:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 删除审批
+   */
+  async deleteApproval(id: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await enhancedApiClient.delete<{ success: boolean }>(`${API_BASE}/${id}`);
+      return { success: (response as { success: boolean }).success || false };
+    } catch (error) {
+      console.error('[ApiApprovalService] 删除审批失败:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  /**
    * 批量审批拒绝
    */
   async batchReject(

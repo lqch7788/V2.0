@@ -13,56 +13,56 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
+    <!-- 统计卡片 - V1.1: bg-[#F2F6FA] -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
             <p class="text-xs text-gray-500">待审批</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
             <p class="text-xs text-gray-500">已通过</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.approved }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-red-600"><CircleClose /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-red-600"><CircleClose /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
             <p class="text-xs text-gray-500">已拒绝</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.rejected }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-blue-600"><Document /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-blue-600"><Document /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ totalCount }}</p>
             <p class="text-xs text-gray-500">总记录</p>
-            <p class="text-lg font-bold text-gray-900">{{ totalCount }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 筛选栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <!-- 筛选栏 - V1.1: bg-[#F2F6FA] -->
+    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap gap-4 items-end">
         <!-- 关键词搜索 -->
         <div class="flex-1 min-w-[180px]">
@@ -182,49 +182,41 @@
       <el-table
         :data="paginatedData"
         style="width: 100%"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #6366f1)', color: 'white', fontWeight: '600' }"
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
         @selection-change="handleRowSelectionChange"
       >
         <el-table-column type="selection" width="50" align="center" />
-        <el-table-column prop="code" label="申请单号" min-width="150" />
-        <el-table-column prop="applicantName" label="申请人" min-width="100" />
-        <el-table-column prop="typeName" label="类型" min-width="120">
+        <el-table-column prop="code" label="申请单号" width="150" />
+        <el-table-column prop="applicantName" label="申请人" width="100" />
+        <el-table-column prop="typeName" label="类型" width="120">
           <template #default="{ row }">
-            <el-tag :type="getTypeTagType(row.type)" size="small">
+            <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getTypeClass(row.type)">
               {{ row.typeName }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
-        <el-table-column prop="applyDate" label="申请时间" min-width="120" />
-        <el-table-column label="状态" min-width="100">
+        <el-table-column prop="applyDate" label="申请时间" width="120" />
+        <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusBadge(row.status)" size="small">
+            <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(row.status)">
               {{ getStatusText(row.status) }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="150">
+        <el-table-column label="操作" width="120" align="center">
           <template #default="{ row }">
-            <div class="flex gap-2">
-              <el-button type="primary" size="small" @click="handleViewDetail(row)">
-                <el-icon><View /></el-icon>
+            <div class="flex items-center justify-center gap-1">
+              <el-button link size="small" @click="handleViewDetail(row)" title="查看">
+                <el-icon :size="16"><View /></el-icon>
               </el-button>
-              <el-button
-                v-if="row.status === 'pending'"
-                type="success"
-                size="small"
-                @click="handleApprove(row)"
-              >
-                通过
-              </el-button>
-              <el-button
-                v-if="row.status === 'pending'"
-                type="danger"
-                size="small"
-                @click="handleReject(row)"
-              >
-                拒绝
-              </el-button>
+              <template v-if="row.status === 'pending'">
+                <el-button link size="small" @click="handleApprove(row)" title="通过">
+                  <el-icon :size="16"><CircleCheck /></el-icon>
+                </el-button>
+                <el-button link size="small" @click="handleReject(row)" title="拒绝">
+                  <el-icon :size="16"><CircleClose /></el-icon>
+                </el-button>
+              </template>
             </div>
           </template>
         </el-table-column>
@@ -546,14 +538,27 @@ const stats = computed(() => ({
   rejected: approvals.value.filter(a => a.status === ApprovalStatus.REJECTED).length
 }))
 
-// 状态显示
+// 状态显示 - V1.1: inline pills with tailwind classes
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'approved':
+      return 'bg-emerald-100 text-emerald-700'
+    case 'rejected':
+      return 'bg-red-100 text-red-700'
+    case 'pending':
+      return 'bg-amber-100 text-amber-700'
+    default:
+      return 'bg-gray-100 text-gray-700'
+  }
+}
+
 const getStatusBadge = (status) => {
   switch (status) {
-    case ApprovalStatus.APPROVED:
+    case 'approved':
       return 'success'
-    case ApprovalStatus.REJECTED:
+    case 'rejected':
       return 'danger'
-    case ApprovalStatus.PENDING:
+    case 'pending':
       return 'warning'
     default:
       return 'info'
@@ -562,18 +567,34 @@ const getStatusBadge = (status) => {
 
 const getStatusText = (status) => {
   switch (status) {
-    case ApprovalStatus.APPROVED:
+    case 'approved':
       return '已通过'
-    case ApprovalStatus.REJECTED:
+    case 'rejected':
       return '已拒绝'
-    case ApprovalStatus.PENDING:
+    case 'pending':
       return '待审批'
     default:
       return status
   }
 }
 
-// 类型标签
+// 类型样式 - V1.1: inline pills
+const getTypeClass = (type) => {
+  const typeClassMap = {
+    [ApprovalType.LEAVE]: 'bg-blue-100 text-blue-700',
+    [ApprovalType.OVERTIME]: 'bg-amber-100 text-amber-700',
+    [ApprovalType.RESIGNATION]: 'bg-red-100 text-red-700',
+    [ApprovalType.RECRUITMENT]: 'bg-emerald-100 text-emerald-700',
+    [ApprovalType.ONBOARDING]: 'bg-gray-100 text-gray-700',
+    [ApprovalType.ATTENDANCE_REPAIR]: 'bg-amber-100 text-amber-700',
+    [ApprovalType.SALARY_ADJUSTMENT]: 'bg-blue-100 text-blue-700',
+    [ApprovalType.CONTRACT_RENEWAL]: 'bg-gray-100 text-gray-700',
+    [ApprovalType.SALARY_BUDGET]: 'bg-emerald-100 text-emerald-700',
+    [ApprovalType.TRANSFER]: 'bg-amber-100 text-amber-700'
+  }
+  return typeClassMap[type] || 'bg-gray-100 text-gray-700'
+}
+
 const getTypeTagType = (type) => {
   const typeTagMap = {
     [ApprovalType.LEAVE]: 'primary',

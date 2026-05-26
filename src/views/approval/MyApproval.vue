@@ -1,176 +1,153 @@
 <template>
   <div class="space-y-6">
-    <!-- 页面标题 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <!-- 页面标题 - V1.1: FileText图标, emerald渐变, 我提交的审批 -->
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-          <el-icon :size="24" class="text-white"><User /></el-icon>
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+          <el-icon :size="24" class="text-white"><Document /></el-icon>
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">我的审批</h1>
-          <p class="text-gray-500">由我审批的任务</p>
+          <h1 class="text-2xl font-bold text-gray-900">我提交的审批</h1>
+          <p class="text-gray-500">我提交的审批单据及审批进度</p>
         </div>
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-blue-600"><Document /></el-icon>
+    <!-- 统计卡片 - V1.1 KpiCard风格: 3卡片 bg-[#F2F6FA] -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+            <el-icon :size="20" class="text-amber-700"><Clock /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ pendingCount }}</p>
             <p class="text-xs text-gray-500">待审批</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-700"><CircleCheck /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ approvedCount }}</p>
             <p class="text-xs text-gray-500">已通过</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.approved }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-red-600"><Warning /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+            <el-icon :size="20" class="text-red-700"><CircleClose /></el-icon>
           </div>
           <div>
-            <p class="text-xs text-gray-500">已驳回</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.rejected }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-purple-600"><Grid /></el-icon>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500">全部</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ rejectedCount }}</p>
+            <p class="text-xs text-gray-500">已拒绝</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 筛选工具栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <!-- 筛选工具栏 - V1.1: bg-[#F2F6FA] -->
+    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap gap-4 items-end">
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">审批类型</label>
-          <el-select v-model="filters.type" placeholder="全部" clearable style="width: 100%">
-            <el-option label="全部" value="" />
-            <el-option label="领料审批" value="material" />
-            <el-option label="采购审批" value="purchase" />
-            <el-option label="生产审批" value="production" />
-            <el-option label="农事审批" value="farm" />
+        <div class="flex-1 min-w-[180px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">搜索</label>
+          <el-input v-model="searchTerm" placeholder="搜索审批单号、标题..." clearable />
+        </div>
+        <div class="min-w-[150px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
+          <el-select v-model="statusFilter" placeholder="全部" style="width: 100%">
+            <el-option label="全部" value="全部" />
+            <el-option label="待审批" value="待审批" />
+            <el-option label="已通过" value="已通过" />
+            <el-option label="已拒绝" value="已拒绝" />
           </el-select>
         </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-          <el-select v-model="filters.status" placeholder="全部" clearable style="width: 100%">
-            <el-option label="全部" value="" />
-            <el-option label="待审批" value="pending" />
-            <el-option label="已通过" value="approved" />
-            <el-option label="已驳回" value="rejected" />
-          </el-select>
-        </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">搜索关键词</label>
-          <el-input v-model="filters.searchText" placeholder="申请单号/申请人" clearable />
-        </div>
-        <div class="flex gap-2">
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button @click="handleReset">
-            <el-icon><Refresh /></el-icon>
-            重置
-          </el-button>
-        </div>
+        <el-button size="small" @click="handleSearch">
+          <el-icon><Search /></el-icon>搜索
+        </el-button>
       </div>
     </div>
 
-    <!-- 数据表格 -->
+    <!-- 数据表格 - V1.1: 蓝色渐变表头 from-blue-500 to-blue-600 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <h3 class="text-lg font-semibold text-gray-900">我的审批列表</h3>
-        <div class="flex gap-2">
-          <el-button
-            v-if="!batchDeleteMode"
-            type="danger"
-            plain
-            size="small"
-            @click="batchDeleteMode = true"
-          >
-            批量删除
-          </el-button>
-          <template v-if="batchDeleteMode">
-            <el-button type="danger" size="small" @click="handleBatchDelete" :disabled="selectedRows.length === 0">
-              确认删除 ({{ selectedRows.length }})
-            </el-button>
-            <el-button size="small" @click="cancelBatchDelete">取消</el-button>
-          </template>
-        </div>
+      <div class="p-4 border-b border-gray-100">
+        <h3 class="text-lg font-semibold text-gray-900">我的申请列表</h3>
       </div>
-
       <el-table
-        :data="paginatedRecords"
+        :data="paginatedList"
         style="width: 100%"
-        stripe
-        @selection-change="handleSelectionChange"
+        :header-cell-style="{
+          background: 'linear-gradient(to right, #3b82f6, #2563eb)',
+          color: '#ffffff',
+          fontWeight: '600',
+          fontSize: '14px',
+          borderBottom: 'none'
+        }"
       >
-        <el-table-column v-if="batchDeleteMode" type="selection" width="50" align="center" />
         <el-table-column prop="code" label="申请单号" min-width="140" align="center" />
-        <el-table-column prop="type" label="审批类型" min-width="120" align="center">
+        <el-table-column prop="typeName" label="类型" min-width="100" align="center" />
+        <el-table-column label="标题" min-width="180" align="center">
           <template #default="{ row }">
-            <el-tag :type="typeColorMap[row.type]" size="small" effect="light">
-              {{ typeLabelMap[row.type] }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="applicantName" label="申请人" min-width="100" align="center" />
-        <el-table-column prop="applicantDepartment" label="部门" min-width="100" align="center" />
-        <el-table-column prop="applyDate" label="申请时间" min-width="120" align="center" />
-        <el-table-column prop="title" label="申请原因" min-width="150" align="center">
-          <template #default="{ row }">
-            <span class="text-sm text-gray-500 truncate block max-w-[150px]" :title="row.title">
+            <span class="text-sm text-gray-600 truncate block max-w-[180px]" :title="row.title">
               {{ row.title || '-' }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="状态" min-width="100" align="center">
+        <el-table-column prop="applyDate" label="提交时间" min-width="120" align="center" />
+        <el-table-column label="当前审批人" min-width="110" align="center">
           <template #default="{ row }">
-            <el-tag :type="statusColorMap[row.status]" size="small" effect="light">
-              {{ statusLabelMap[row.status] }}
-            </el-tag>
+            {{ getCurrentApprover(row) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="120" align="center">
+        <el-table-column label="审批流程" min-width="100" align="center">
           <template #default="{ row }">
-            <div v-if="row.status === 'pending'" class="flex items-center justify-center gap-1">
-              <el-button type="success" size="small" @click="handleApprove(row)">通过</el-button>
-              <el-button type="danger" size="small" @click="handleReject(row)">驳回</el-button>
+            {{ row.currentStep }}/{{ row.totalSteps }}
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="100" align="center">
+          <template #default="{ row }">
+            <span
+              class="inline-flex px-2 py-1 rounded-full text-xs font-medium"
+              :class="statusClass(row.status)"
+            >
+              {{ statusLabel(row.status) }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="100" align="center">
+          <template #default="{ row }">
+            <div class="flex items-center justify-center gap-1">
+              <el-button
+                v-if="row.status === 'pending'"
+                link
+                size="small"
+                @click="handleWithdraw(row)"
+                title="撤回"
+              >
+                <el-icon :size="16"><CircleClose /></el-icon>
+              </el-button>
+              <el-button link size="small" @click="showDetail(row)" title="查看">
+                <el-icon :size="16"><View /></el-icon>
+              </el-button>
             </div>
-            <el-button v-else type="primary" size="small" @click="handleView(row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
+
+      <div v-if="filteredList.length === 0" class="p-8 text-center text-gray-500">
+        暂无审批记录
+      </div>
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-500">每页</span>
-          <el-select v-model="pageSize" @change="handlePageSizeChange" style="width: 80px">
+          <el-select v-model="pageSize" @change="currentPage = 1" style="width: 80px">
+            <el-option :value="5" label="5" />
             <el-option :value="10" label="10" />
             <el-option :value="20" label="20" />
             <el-option :value="50" label="50" />
@@ -178,243 +155,126 @@
           <span class="text-sm text-gray-500">条</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">共 {{ filteredRecords.length }} 条</span>
-          <el-button
-            :icon="ArrowLeft"
-            circle
-            size="small"
-            :disabled="currentPage === 1"
-            @click="handlePrevPage"
-          />
+          <span class="text-sm text-gray-500">共 {{ filteredList.length }} 条</span>
+          <el-button :disabled="currentPage === 1" size="small" circle @click="currentPage--">
+            <el-icon><ArrowLeft /></el-icon>
+          </el-button>
           <span class="text-sm">{{ currentPage }} / {{ totalPages }}</span>
-          <el-button
-            :icon="ArrowRight"
-            circle
-            size="small"
-            :disabled="currentPage >= totalPages"
-            @click="handleNextPage"
-          />
+          <el-button :disabled="currentPage >= totalPages" size="small" circle @click="currentPage++">
+            <el-icon><ArrowRight /></el-icon>
+          </el-button>
         </div>
       </div>
     </div>
 
-    <!-- 详情弹窗 -->
-    <el-dialog v-model="showDetailModal" title="审批详情" width="800px" top="5vh">
-      <div v-if="selectedApproval" class="space-y-4">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="申请单号">{{ selectedApproval.code }}</el-descriptions-item>
-          <el-descriptions-item label="审批类型">{{ typeLabelMap[selectedApproval.type] }}</el-descriptions-item>
-          <el-descriptions-item label="申请人">{{ selectedApproval.applicantName }}</el-descriptions-item>
-          <el-descriptions-item label="部门">{{ selectedApproval.applicantDepartment }}</el-descriptions-item>
-          <el-descriptions-item label="申请时间">{{ selectedApproval.applyDate }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="statusColorMap[selectedApproval.status]">{{ statusLabelMap[selectedApproval.status] }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="申请原因" :span="2">{{ selectedApproval.title }}</el-descriptions-item>
-        </el-descriptions>
-      </div>
-      <template #footer>
-        <el-button @click="showDetailModal = false">关闭</el-button>
-      </template>
+    <!-- 审批详情弹窗 - V1.1: Dialog + ApprovalDetail -->
+    <el-dialog v-model="detailVisible" title="审批详情" width="700px" destroy-on-close>
+      <ApprovalDetail v-if="detailApproval" :approval="detailApproval" />
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
-  User,
-  Document,
-  CircleCheck,
-  Warning,
-  Grid,
-  Search,
-  Refresh,
-  ArrowLeft,
-  ArrowRight
+  Document, Clock, CircleCheck, CircleClose, Search, View,
+  ArrowLeft, ArrowRight
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
+import ApprovalDetail from '@/components/approval/ApprovalDetail.vue'
 
-// 审批Store
 const approvalStore = useApprovalStore()
-const { approvals } = storeToRefs(approvalStore)
+const { myApprovals } = storeToRefs(approvalStore)
 
-// 审批类型标签映射
-const typeLabelMap = {
-  'material': '领料审批',
-  'purchase': '采购审批',
-  'production': '生产审批',
-  'farm': '农事审批',
-  'budget': '预算审批'
-}
-
-// 审批类型颜色映射
-const typeColorMap = {
-  'material': 'primary',
-  'purchase': 'warning',
-  'production': 'success',
-  'farm': 'info',
-  'budget': 'danger'
-}
-
-// 状态标签映射
-const statusLabelMap = {
-  'pending': '待审批',
-  'approved': '已通过',
-  'rejected': '已驳回'
-}
-
-// 状态颜色映射
-const statusColorMap = {
-  'pending': 'warning',
-  'approved': 'success',
-  'rejected': 'danger'
-}
-
-// 统计数据
-const stats = computed(() => ({
-  pending: approvals.value.filter(a => a.status === 'pending').length,
-  approved: approvals.value.filter(a => a.status === 'approved').length,
-  rejected: approvals.value.filter(a => a.status === 'rejected').length,
-  total: approvals.value.length
-}))
-
-// 筛选条件
-const filters = reactive({
-  type: '',
-  status: '',
-  searchText: ''
-})
-
-// 分页
+const searchTerm = ref('')
+const statusFilter = ref('全部')
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(5)
+const detailApproval = ref(null)
+const detailVisible = ref(false)
 
-// 批量选择
-const selectedRows = ref([])
-const batchDeleteMode = ref(false)
-
-// 筛选后的记录
-const filteredRecords = computed(() => {
-  return approvals.value.filter(record => {
-    if (filters.type && record.type !== filters.type) return false
-    if (filters.status && record.status !== filters.status) return false
-    if (filters.searchText) {
-      const text = filters.searchText.toLowerCase()
-      if (!record.code.toLowerCase().includes(text) &&
-          !record.applicantName.toLowerCase().includes(text)) {
-        return false
-      }
-    }
-    return true
+// 筛选 - V1.1: searchTerm匹配title和code
+const filteredList = computed(() => {
+  return myApprovals.value.filter(a => {
+    const matchSearch = !searchTerm.value ||
+      a.title?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      a.code?.toLowerCase().includes(searchTerm.value)
+    const matchStatus =
+      statusFilter.value === '全部' ||
+      (statusFilter.value === '待审批' && a.status === 'pending') ||
+      (statusFilter.value === '已通过' && a.status === 'approved') ||
+      (statusFilter.value === '已拒绝' && a.status === 'rejected')
+    return matchSearch && matchStatus
   })
 })
 
-// 总页数
-const totalPages = computed(() => Math.ceil(filteredRecords.value.length / pageSize.value) || 1)
-
-// 分页数据
-const paginatedRecords = computed(() => {
+const totalPages = computed(() => Math.ceil(filteredList.value.length / pageSize.value) || 1)
+const paginatedList = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return filteredRecords.value.slice(start, start + pageSize.value)
+  return filteredList.value.slice(start, start + pageSize.value)
 })
 
-// 搜索
+// 统计 - V1.1逻辑
+const pendingCount = computed(() => {
+  return myApprovals.value.filter(a => a.status === 'pending').length
+})
+const approvedCount = computed(() => {
+  return myApprovals.value.filter(a => a.status === 'approved').length
+})
+const rejectedCount = computed(() => {
+  return myApprovals.value.filter(a => a.status === 'rejected').length
+})
+
+// 获取当前审批人 - V1.1: approvers[currentStep - 1]
+const getCurrentApprover = (item) => {
+  const approver = item.approvers?.[item.currentStep - 1]
+  return approver?.userName || '-'
+}
+
+// 状态样式 - V1.1 inline pills
+const statusClass = (status) => {
+  if (status === 'approved') return 'bg-green-100 text-green-700'
+  if (status === 'rejected') return 'bg-red-100 text-red-700'
+  return 'bg-amber-100 text-amber-700'
+}
+
+const statusLabel = (status) => {
+  if (status === 'pending') return '待审批'
+  if (status === 'approved') return '已通过'
+  if (status === 'rejected') return '已拒绝'
+  return status
+}
+
 const handleSearch = () => {
   currentPage.value = 1
 }
 
-// 重置
-const handleReset = () => {
-  Object.assign(filters, {
-    type: '',
-    status: '',
-    searchText: ''
-  })
-  currentPage.value = 1
+const showDetail = (row) => {
+  detailApproval.value = row
+  detailVisible.value = true
 }
 
-// 批量删除
-const handleBatchDelete = () => {
-  ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '删除确认', {
-    confirmButtonText: '确认删除',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    ElMessage.success('删除成功')
-    batchDeleteMode.value = false
-    selectedRows.value = []
-  }).catch(() => {})
-}
-
-const cancelBatchDelete = () => {
-  batchDeleteMode.value = false
-  selectedRows.value = []
-}
-
-// 表格选择
-const handleSelectionChange = (selection) => {
-  selectedRows.value = selection
-}
-
-// 审核通过
-const handleApprove = async (row) => {
+// 撤回 - V1.1: cancel(id, '主动撤回')
+const handleWithdraw = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要通过该审批申请吗？`, '审核确认', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'success'
-    })
-    await approvalStore.approve(row.id)
-    await approvalStore.fetchApprovals()
-    ElMessage.success('审核已通过')
-  } catch {}
-}
-
-// 审核驳回
-const handleReject = async (row) => {
-  try {
-    await ElMessageBox.prompt('请输入驳回原因', '驳回确认', {
-      confirmButtonText: '确认驳回',
+    await ElMessageBox.confirm('确定要撤回该审批吗？', '撤回确认', {
+      confirmButtonText: '确认撤回',
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await approvalStore.reject(row.id, '审批拒绝')
+    await approvalStore.cancel(row.id, '主动撤回')
+    ElMessage.success('已撤回')
     await approvalStore.fetchApprovals()
-    ElMessage.success('已驳回')
-  } catch {}
-}
-
-// 查看详情
-const selectedApproval = ref(null)
-const showDetailModal = ref(false)
-
-const handleView = (row) => {
-  selectedApproval.value = row
-  showDetailModal.value = true
-}
-
-// 分页操作
-const handlePrevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
+  } catch (err) {
+    if (err !== 'cancel') {
+      console.error('撤回失败:', err)
+    }
   }
 }
 
-const handleNextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-const handlePageSizeChange = () => {
-  currentPage.value = 1
-}
-
-// 初始化 - 从API加载数据
-onMounted(async () => {
-  await approvalStore.fetchApprovals()
+onMounted(() => {
+  approvalStore.fetchApprovals()
 })
 </script>

@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6">
-    <!-- 页面标题 -->
+    <!-- 页面标题 - V1.1: emerald渐变 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <el-icon :size="24" class="text-white"><Edit /></el-icon>
         </div>
         <div>
@@ -13,56 +13,56 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-emerald-600"><Document /></el-icon>
+    <!-- 统计卡片 - V1.1: bg-[#F2F6FA] -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-600"><Document /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
             <p class="text-xs text-gray-500">总日志</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-blue-600"><Calendar /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-blue-600"><Calendar /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.today }}</p>
             <p class="text-xs text-gray-500">今日</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.today }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-purple-600"><Grid /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-purple-600"><Grid /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.week }}</p>
             <p class="text-xs text-gray-500">本周</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.week }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-red-600"><Warning /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-red-600"><Warning /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.exception }}</p>
             <p class="text-xs text-gray-500">异常</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.exception }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 筛选栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <!-- 筛选栏 - V1.1: bg-[#F2F6FA] -->
+    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap gap-4 items-end">
         <div class="flex-1 min-w-[150px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">日期</label>
@@ -157,11 +157,11 @@
         </div>
       </div>
 
-      <!-- 表格 -->
+      <!-- 表格 - V1.1: blue gradient header -->
       <el-table
         :data="paginatedData"
         style="width: 100%"
-        stripe
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
         @selection-change="handleSelectionChange"
       >
         <el-table-column v-if="batchEditMode || batchDeleteMode || exportMode" type="selection" width="50" align="center" />
@@ -184,11 +184,15 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="150" align="center">
+        <el-table-column label="操作" min-width="120" align="center">
           <template #default="{ row }">
             <div class="flex items-center justify-center gap-1">
-              <el-button type="primary" :icon="View" circle size="small" title="查看" @click="handleView(row)" />
-              <el-button type="warning" :icon="Edit" circle size="small" title="编辑" @click="handleEdit(row)" />
+              <el-button link size="small" @click="handleView(row)" title="查看">
+                <el-icon :size="16"><View /></el-icon>
+              </el-button>
+              <el-button link size="small" @click="handleEdit(row)" title="编辑">
+                <el-icon :size="16"><Edit /></el-icon>
+              </el-button>
             </div>
           </template>
         </el-table-column>

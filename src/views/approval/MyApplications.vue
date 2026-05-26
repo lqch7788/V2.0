@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
-    <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <!-- 页面头部 - V1.1: ClipboardList图标, emerald渐变 -->
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <el-icon :size="24" class="text-white"><DocumentCopy /></el-icon>
@@ -13,49 +13,49 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
+    <!-- 统计卡片 - V1.1 KpiCard风格: bg-[#F2F6FA] -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+            <el-icon :size="20" class="text-amber-700"><Clock /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
             <p class="text-xs text-gray-500">待审批</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.pending }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-emerald-600"><CircleCheck /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <el-icon :size="20" class="text-emerald-700"><CircleCheck /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
             <p class="text-xs text-gray-500">已通过</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.approved }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-red-600"><CircleClose /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+            <el-icon :size="20" class="text-red-700"><CircleClose /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
             <p class="text-xs text-gray-500">已拒绝</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.rejected }}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-lg p-3 border border-gray-300">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="16" class="text-blue-600"><Document /></el-icon>
+      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <el-icon :size="20" class="text-blue-700"><Document /></el-icon>
           </div>
           <div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
             <p class="text-xs text-gray-500">全部</p>
-            <p class="text-lg font-bold text-gray-900">{{ stats.total }}</p>
           </div>
         </div>
       </div>
@@ -75,8 +75,8 @@
       </el-button>
     </div>
 
-    <!-- 搜索筛选 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <!-- 搜索筛选 - V1.1: bg-[#F2F6FA] -->
+    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="flex gap-4 items-end">
         <div class="flex-1">
           <el-input
@@ -106,31 +106,39 @@
       </div>
     </div>
 
-    <!-- 数据列表 -->
+    <!-- 数据列表 - V1.1: 蓝色渐变表头 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <div class="p-4 border-b border-gray-100">
         <h3 class="text-lg font-semibold text-gray-900">我的申请列表</h3>
       </div>
 
-      <el-table :data="paginatedData" style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #6366f1)', color: 'white', fontWeight: '600' }">
-        <el-table-column prop="code" label="审批单号" min-width="120" />
-        <el-table-column prop="title" label="标题" min-width="150" />
-        <el-table-column prop="typeName" label="类型" min-width="100" />
-        <el-table-column prop="applicantName" label="申请人" min-width="100" />
-        <el-table-column prop="applyDate" label="申请时间" min-width="120" />
-        <el-table-column label="状态" min-width="100">
+      <el-table :data="paginatedData" style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600', borderBottom: 'none' }">
+        <el-table-column prop="code" label="审批单号" width="120" />
+        <el-table-column prop="title" label="标题" width="150" />
+        <el-table-column prop="typeName" label="类型" width="100" />
+        <el-table-column prop="applicantName" label="申请人" width="100" />
+        <el-table-column prop="applyDate" label="申请时间" width="120" />
+        <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusBadge(row.status)" size="small">
+            <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(row.status)">
               {{ getStatusText(row.status) }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="120">
+        <el-table-column label="操作" width="120" align="center">
           <template #default="{ row }">
-            <div class="flex gap-2">
-              <el-button type="primary" size="small" @click="handleView(row)">
-                <el-icon><View /></el-icon>
+            <div class="flex items-center justify-center gap-1">
+              <el-button link size="small" @click="handleView(row)" title="查看">
+                <el-icon :size="16"><View /></el-icon>
               </el-button>
+              <template v-if="row.status === 'pending'">
+                <el-button link size="small" @click="handleApprove(row)" title="通过">
+                  <el-icon :size="16"><CircleCheck /></el-icon>
+                </el-button>
+                <el-button link size="small" @click="handleReject(row)" title="拒绝">
+                  <el-icon :size="16"><CircleClose /></el-icon>
+                </el-button>
+              </template>
             </div>
           </template>
         </el-table-column>
@@ -158,18 +166,10 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import {
-  DocumentCopy,
-  Search,
-  Clock,
-  CircleCheck,
-  CircleClose,
-  Document,
-  Grid,
-  List,
-  Close,
-  Check,
-  View
+  DocumentCopy, Search, Clock, CircleCheck, CircleClose,
+  Document, Grid, List, Close, Check, View
 } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import ApprovalDetail from '@/components/approval/ApprovalDetail.vue'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
@@ -190,46 +190,33 @@ const tabs = [
   { key: 'rejected', label: '已拒绝', icon: Close }
 ]
 
-// 当前用户ID
 const currentUserId = localStorage.getItem('userId') || 'user_001'
-
-// 当前Tab
 const activeTab = ref('all')
-
-// 搜索和筛选
 const searchTerm = ref('')
 const typeFilter = ref('全部')
-
-// 分页
 const currentPage = ref(1)
 const pageSize = ref(10)
-
-// 详情弹窗
 const detailVisible = ref(false)
 const currentApproval = ref(null)
 
 // 筛选数据
 const filteredData = computed(() => {
   return approvals.value.filter(item => {
-    // 只看当前用户提交的
     if (item.applicantId !== currentUserId) return false
-    // Tab筛选
     if (activeTab.value === 'pending' && item.status !== ApprovalStatus.PENDING) return false
     if (activeTab.value === 'approved' && item.status !== ApprovalStatus.APPROVED) return false
     if (activeTab.value === 'rejected' && item.status !== ApprovalStatus.REJECTED) return false
-    // 搜索
-    const matchSearch =
-      !searchTerm.value ||
+    const matchSearch = !searchTerm.value ||
       item.title?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
       item.applicantName?.includes(searchTerm.value) ||
       item.code?.includes(searchTerm.value)
-    // 类型筛选
     const matchType = typeFilter.value === '全部' || item.type === typeFilter.value
     return matchSearch && matchType
   })
 })
 
-// 更新统计
+const stats = reactive({ total: 0, pending: 0, approved: 0, rejected: 0 })
+
 const updateStats = () => {
   const myApps = approvals.value.filter(a => a.applicantId === currentUserId)
   stats.total = myApps.length
@@ -238,66 +225,70 @@ const updateStats = () => {
   stats.rejected = myApps.filter(d => d.status === ApprovalStatus.REJECTED).length
 }
 
-// 统计数据
-const stats = reactive({
-  total: 0,
-  pending: 0,
-  approved: 0,
-  rejected: 0
-})
-
 const totalPages = computed(() => Math.ceil(filteredData.value.length / pageSize.value) || 1)
-
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   return filteredData.value.slice(start, start + pageSize.value)
 })
 
-// Tab切换
-const handleTabChange = (key) => {
-  activeTab.value = key
-  currentPage.value = 1
-}
+const handleTabChange = (key) => { activeTab.value = key; currentPage.value = 1 }
+const handleSearch = () => { currentPage.value = 1 }
 
-// 搜索
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-// 状态显示
-const getStatusBadge = (status) => {
+// V1.1状态样式: 内联pills
+const getStatusClass = (status) => {
   switch (status) {
-    case ApprovalStatus.APPROVED:
-      return 'success'
-    case ApprovalStatus.REJECTED:
-      return 'danger'
-    case ApprovalStatus.PENDING:
-      return 'warning'
-    default:
-      return 'info'
+    case ApprovalStatus.APPROVED: return 'bg-emerald-100 text-emerald-700'
+    case ApprovalStatus.REJECTED: return 'bg-red-100 text-red-700'
+    case ApprovalStatus.PENDING: return 'bg-amber-100 text-amber-700'
+    default: return 'bg-gray-100 text-gray-700'
   }
 }
 
 const getStatusText = (status) => {
   switch (status) {
-    case ApprovalStatus.APPROVED:
-      return '已通过'
-    case ApprovalStatus.REJECTED:
-      return '已拒绝'
-    case ApprovalStatus.PENDING:
-      return '待审批'
-    default:
-      return status
+    case ApprovalStatus.APPROVED: return '已通过'
+    case ApprovalStatus.REJECTED: return '已拒绝'
+    case ApprovalStatus.PENDING: return '待审批'
+    default: return status
   }
 }
 
-// 查看详情
 const handleView = (row) => {
   currentApproval.value = row
   detailVisible.value = true
 }
 
-// 初始化
+// 审批通过
+const handleApprove = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要通过该审批申请吗？', '审核确认', {
+      confirmButtonText: '确认', cancelButtonText: '取消', type: 'success'
+    })
+    await approvalStore.approve(row.id)
+    ElMessage.success('审核已通过')
+    updateStats()
+  } catch (err) {
+    if (err !== 'cancel') console.error('审批通过失败:', err)
+  }
+}
+
+// 审批拒绝
+const handleReject = async (row) => {
+  try {
+    const { value } = await ElMessageBox.prompt('请输入驳回原因', '驳回确认', {
+      confirmButtonText: '确认驳回', cancelButtonText: '取消', type: 'warning',
+      inputValue: '审批拒绝'
+    })
+    if (value) {
+      await approvalStore.reject(row.id, value)
+      ElMessage.success('已驳回')
+      updateStats()
+    }
+  } catch (err) {
+    if (err !== 'cancel') console.error('审批驳回失败:', err)
+  }
+}
+
 onMounted(async () => {
   await approvalStore.fetchApprovals()
   updateStats()

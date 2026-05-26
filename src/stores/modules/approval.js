@@ -3,7 +3,8 @@
  * 文件路径：src/stores/modules/approval.js
  * 功能：管理审批列表、筛选、统计数据和审批操作
  *
- * 架构：Store → API服务 → enhancedApiClient → API
+ * 数据流：Store → API服务 → enhancedApiClient → API（无本地降级）
+ * 与V1.1 useApprovalStore.ts 完全一致
  */
 
 import { defineStore } from 'pinia'
@@ -14,12 +15,9 @@ import {
 } from '@/services/apiApprovalService'
 
 // ============================================================
-// 统计数据计算
+// 统计数据计算（与V1.1 computeStats 完全一致）
 // ============================================================
 
-/**
- * 从审批列表计算统计数据
- */
 function computeStats(approvals) {
   return {
     total: approvals.length,
@@ -102,10 +100,12 @@ export const useApprovalStore = defineStore('approval', () => {
   })
 
   /**
-   * 已通过列表
+   * 已办审批列表（已通过 + 已拒绝，与V1.1 useApprovedApprovals 一致）
    */
   const approvedApprovals = computed(() => {
-    return approvals.value.filter(a => a.status === ApprovalStatus.APPROVED)
+    return approvals.value.filter(
+      a => a.status === ApprovalStatus.APPROVED || a.status === ApprovalStatus.REJECTED
+    )
   })
 
   /**
@@ -113,6 +113,14 @@ export const useApprovalStore = defineStore('approval', () => {
    */
   const rejectedApprovals = computed(() => {
     return approvals.value.filter(a => a.status === ApprovalStatus.REJECTED)
+  })
+
+  /**
+   * 我提交的审批列表（与V1.1 useMyApprovals 一致）
+   */
+  const myApprovals = computed(() => {
+    const currentUserId = localStorage.getItem('userId') || ''
+    return approvals.value.filter(a => a.applicantId === currentUserId)
   })
 
   // ========== 方法 ==========
@@ -176,22 +184,21 @@ export const useApprovalStore = defineStore('approval', () => {
   }
 
   /**
-   * 审批通过
+   * 审批通过（与V1.1完全一致：乐观更新+刷新）
    */
   const approve = async (id, comment) => {
     try {
       const result = await apiApprovalService.approve(id, comment)
       if (result.success) {
-        // 更新本地状态
-        const index = approvals.value.findIndex(a => a.id === id)
-        if (index !== -1) {
-          approvals.value[index] = {
-            ...approvals.value[index],
-            status: ApprovalStatus.APPROVED,
-            updatedAt: new Date().toISOString()
-          }
-          stats.value = computeStats(approvals.value)
-        }
+        // 乐观更新本地状态
+        approvals.value = approvals.value.map(a =>
+          a.id === id
+            ? { ...a, status: ApprovalStatus.APPROVED, updatedAt: new Date().toISOString() }
+            : a
+        )
+        stats.value = computeStats(approvals.value)
+        // 重新加载以获取最新数据（与V1.1一致）
+        await fetchApprovals(filters.value)
         return true
       } else {
         error.value = result.error || '审批通过失败'
@@ -205,22 +212,21 @@ export const useApprovalStore = defineStore('approval', () => {
   }
 
   /**
-   * 审批拒绝
+   * 审批拒绝（与V1.1完全一致：乐观更新+刷新）
    */
   const reject = async (id, comment) => {
     try {
       const result = await apiApprovalService.reject(id, comment)
       if (result.success) {
-        // 更新本地状态
-        const index = approvals.value.findIndex(a => a.id === id)
-        if (index !== -1) {
-          approvals.value[index] = {
-            ...approvals.value[index],
-            status: ApprovalStatus.REJECTED,
-            updatedAt: new Date().toISOString()
-          }
-          stats.value = computeStats(approvals.value)
-        }
+        // 乐观更新本地状态
+        approvals.value = approvals.value.map(a =>
+          a.id === id
+            ? { ...a, status: ApprovalStatus.REJECTED, updatedAt: new Date().toISOString() }
+            : a
+        )
+        stats.value = computeStats(approvals.value)
+        // 重新加载以获取最新数据（与V1.1一致）
+        await fetchApprovals(filters.value)
         return true
       } else {
         error.value = result.error || '审批拒绝失败'
@@ -261,7 +267,6 @@ export const useApprovalStore = defineStore('approval', () => {
     try {
       const result = await apiApprovalService.batchReject(ids, comment)
       if (result.success) {
-        // 重新加载列表
         await fetchApprovals(filters.value)
         return true
       } else {
@@ -271,6 +276,109 @@ export const useApprovalStore = defineStore('approval', () => {
     } catch (err) {
       error.value = err.message || '批量审批拒绝失败'
       console.error('[ApprovalStore] 批量审批拒绝失败:', err)
+      return false
+    }
+  }
+
+  /**
+   * 撤回审批（与V1.1 cancel 完全一致）
+   */
+  const cancel = async (id, reason) => {
+    try {
+      const result = await apiApprovalService.executeAction(
+        id,
+        'cancel',
+        reason || '',
+        localStorage.getItem('userId') || '',
+        localStorage.getItem('username') || '系统'
+      )
+      if (result.success) {
+        approvals.value = approvals.value.map(a =>
+          a.id === id
+            ? { ...a, status: ApprovalStatus.CANCELLED, updatedAt: new Date().toISOString() }
+            : a
+        )
+        stats.value = computeStats(approvals.value)
+        await fetchApprovals(filters.value)
+        return true
+      } else {
+        error.value = result.error || '撤回失败'
+        return false
+      }
+    } catch (err) {
+      error.value = err.message || '撤回失败'
+      console.error('[ApprovalStore] 撤回审批失败:', err)
+      return false
+    }
+  }
+
+  // ========== 本地状态操作（与V1.1完全一致） ==========
+
+  /** 乐观更新本地审批状态（不调API） */
+  const updateApprovalLocal = (id, updates) => {
+    approvals.value = approvals.value.map(a =>
+      a.id === id ? { ...a, ...updates } : a
+    )
+    stats.value = computeStats(approvals.value)
+  }
+
+  /** 乐观删除本地审批（不调API） */
+  const deleteApprovalLocal = (id) => {
+    approvals.value = approvals.value.filter(a => a.id !== id)
+    stats.value = computeStats(approvals.value)
+  }
+
+  /** 乐观添加本地审批（不调API） */
+  const addApprovalLocal = (approval) => {
+    approvals.value = [approval, ...approvals.value]
+    stats.value = computeStats(approvals.value)
+  }
+
+  // ========== CRUD 操作（与V1.1完全一致） ==========
+
+  /** 创建审批 */
+  const addApproval = async (approval) => {
+    try {
+      const result = await apiApprovalService.createApproval(approval)
+      if (result) {
+        approvals.value = [result, ...approvals.value]
+        stats.value = computeStats(approvals.value)
+        return result
+      }
+      return null
+    } catch (err) {
+      console.error('[ApprovalStore] 创建审批失败:', err)
+      return null
+    }
+  }
+
+  /** 更新审批 */
+  const updateApproval = async (id, updates) => {
+    try {
+      const result = await apiApprovalService.updateApproval(id, updates)
+      if (result) {
+        approvals.value = approvals.value.map(a =>
+          a.id === id ? { ...a, ...updates } : a
+        )
+        stats.value = computeStats(approvals.value)
+      }
+    } catch (err) {
+      console.error('[ApprovalStore] 更新审批失败:', err)
+    }
+  }
+
+  /** 删除审批 */
+  const deleteApproval = async (id) => {
+    try {
+      const result = await apiApprovalService.deleteApproval(id)
+      if (result.success) {
+        approvals.value = approvals.value.filter(a => a.id !== id)
+        stats.value = computeStats(approvals.value)
+        return true
+      }
+      return false
+    } catch (err) {
+      console.error('[ApprovalStore] 删除审批失败:', err)
       return false
     }
   }
@@ -289,6 +397,7 @@ export const useApprovalStore = defineStore('approval', () => {
     pendingApprovals,
     approvedApprovals,
     rejectedApprovals,
+    myApprovals,
     // 方法
     setApprovals,
     fetchApprovals,
@@ -300,6 +409,13 @@ export const useApprovalStore = defineStore('approval', () => {
     reject,
     batchApprove,
     batchReject,
+    cancel,
+    updateApprovalLocal,
+    deleteApprovalLocal,
+    addApprovalLocal,
+    addApproval,
+    updateApproval,
+    deleteApproval,
   }
 })
 
