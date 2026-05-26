@@ -37,8 +37,11 @@
             <Plus class="w-4 h-4" />
             新增
           </button>
-          <button v-if="canEdit" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="batchEditMode = true">
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="batchEditMode = true">
             批量编辑
+          </button>
+          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700" @click="deleteMode = true">
+            删除
           </button>
           <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="handleExportClick">
             <Download class="w-4 h-4" />
@@ -137,7 +140,6 @@ import { ref, computed, onMounted } from 'vue'
 import { Plus, Download, ClipboardList } from 'lucide-vue-next'
 import { useOrderDataStore } from '@/stores'
 import { showAlert, showConfirm } from '@/lib/dialogService'
-import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
 import OrderStats from './components/OrderStats.vue'
 import OrderFilter from './components/OrderFilter.vue'
 import OrderTable from './components/OrderTable.vue'
@@ -156,7 +158,7 @@ const CropOrderStatus = {
 // 权限检查 - 已取消，所有人可使用所有功能
 const canCreate = true
 const canDelete = true
-const canEdit = false
+const canEdit = true
 const canExport = true
 
 // 从 Pinia Store 获取订单数据和操作方法
@@ -180,15 +182,13 @@ const filters = ref({
 const pagination = ref({ current: 1, pageSize: 10 })
 const selectedRows = ref<string[]>([])
 
-// 作物品种数据
-const cropVarietyOptions = computed(() => {
-  initVarieties()
-  return getVarietyOptions()
+// 作物品种数据（从订单数据中提取唯一品种，与V1.1保持一致）
+const cropNames = computed(() => {
+  const uniqueCropVarieties = [...new Set(orders.value.map((order: any) => order.cropVariety).filter(Boolean))]
+  return uniqueCropVarieties
+    .sort((a: string, b: string) => a.localeCompare(b))
+    .map((name: string) => ({ value: name, label: name }))
 })
-
-const cropNames = computed(() =>
-  cropVarietyOptions.value.map(v => ({ value: v.value, label: v.label }))
-)
 
 // 组件挂载时加载数据
 onMounted(async () => {
@@ -208,7 +208,7 @@ const currentRecord = ref<any>(null)
 
 // 导出状态
 const exportMode = ref(false)
-const exportFormat = ref('excel')
+const exportFormat = ref('xlsx')
 const showExportModal = ref(false)
 
 // 工具栏模式状态
@@ -220,7 +220,7 @@ const filteredData = computed(() => {
   const filtered = orders.value.filter((item: any) => {
     if (filters.value.orderCode && !item.orderCode?.includes(filters.value.orderCode)) return false
     if (filters.value.orderName && !item.orderName?.includes(filters.value.orderName)) return false
-    if (filters.value.cropName && !item.cropName?.includes(filters.value.cropName) && !item.cropVariety?.includes(filters.value.cropName)) return false
+    if (filters.value.cropName && !item.cropVariety?.includes(filters.value.cropName)) return false
     if (filters.value.status && item.status !== filters.value.status) return false
     if (filters.value.startDate && item.orderDate < filters.value.startDate) return false
     if (filters.value.endDate && item.orderDate > filters.value.endDate) return false

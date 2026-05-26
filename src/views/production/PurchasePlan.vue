@@ -1113,7 +1113,7 @@ const createForm = ref({
   purchaseApplicationCode: '',
   relatedBatchCode: '',
   purchaseType: '生产物资采购',
-  applicant: localStorage.getItem('username') || '',
+  applicant: localStorage.getItem('username') || '陆启闯',
   applicantDepartment: '生产部',
   applyDate: new Date().toISOString().split('T')[0],
   requiredDate: '',
@@ -1292,7 +1292,7 @@ function handleOpenCreateModal() {
     purchaseApplicationCode: generateCode(),
     relatedBatchCode: '',
     purchaseType: '生产物资采购',
-    applicant: localStorage.getItem('username') || '',
+    applicant: localStorage.getItem('username') || '陆启闯',
     applicantDepartment: '生产部',
     applyDate: new Date().toISOString().split('T')[0],
     requiredDate: '',
@@ -1510,7 +1510,7 @@ function handleConfirmExport() {
 }
 
 async function handleDoExport() {
-  const selectedData = purchasePlansData.value.filter((p: any) => selectedRows.value.includes(p.id))
+  const selectedData = purchasePlansData.value.filter((p: any) => selectedRows.value.includes(p.purchaseApplicationCode))
   const headers = ['计划编号', '计划名称', '类型', '申请人', '申请日期', '总金额', '供应商', '交货日期', '优先级', '状态']
   const exportData = selectedData.map((row: any) => ({
     '计划编号': row.purchaseApplicationCode,
