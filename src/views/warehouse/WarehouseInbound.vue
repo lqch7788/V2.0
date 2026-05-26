@@ -225,27 +225,29 @@
       <el-table
         :data="displayedRecords"
         stripe
+        style="width: 100%; table-layout: fixed;"
         @selection-change="handleSelectionChange"
         ref="tableRef"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
       >
         <el-table-column type="selection" width="48" v-if="hasActiveMode" />
         <el-table-column type="expand" width="40">
           <template #default="{ row }">
             <div class="p-4 bg-gray-50">
               <h4 class="text-sm font-semibold text-gray-700 mb-3">物料明细（共 {{ row.materials?.length || 0 }} 项）</h4>
-              <el-table :data="row.materials || []" size="small" border :header-cell-style="{ background: 'linear-gradient(to right, #10b981, #059669)', color: 'white', fontWeight: '600' }">
-                <el-table-column prop="code" label="物料编码" />
-                <el-table-column prop="name" label="物料名称" />
-                <el-table-column prop="category" label="分类" />
-                <el-table-column prop="specification" label="规格" />
-                <el-table-column label="数量" align="right">
-                  <template #default="{ row: m }">{{ m.quantity }} {{ m.unit }}</template>
-                </el-table-column>
-                <el-table-column prop="price" label="单价" align="right" />
-                <el-table-column prop="batchNo" label="批次号" />
-                <el-table-column prop="expiryDate" label="有效期至" />
-              </el-table>
+              <div class="overflow-x-auto">
+                <el-table :data="row.materials || []" size="small" border style="width: 100%; table-layout: fixed;">
+                  <el-table-column prop="code" label="物料编码" />
+                  <el-table-column prop="name" label="物料名称" />
+                  <el-table-column prop="category" label="分类" />
+                  <el-table-column prop="specification" label="规格" />
+                  <el-table-column label="数量" align="right">
+                    <template #default="{ row: m }">{{ m.quantity }} {{ m.unit }}</template>
+                  </el-table-column>
+                  <el-table-column prop="price" label="单价" align="right" />
+                  <el-table-column prop="batchNo" label="批次号" />
+                  <el-table-column prop="expiryDate" label="有效期至" />
+                </el-table>
+              </div>
             </div>
           </template>
         </el-table-column>
@@ -1466,4 +1468,29 @@ onMounted(async () => {
   await inboundStore.loadInboundRecords()
 })
 </script>
+
+<style scoped>
+/* 主表格：蓝色渐变原生表头 */
+:deep(.el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+:deep(.el-table__header-wrapper .el-table__header th .cell) {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* 展开行子表格：绿色渐变原生表头 */
+:deep(.el-table__expanded-cell .el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #10b981, #059669) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+:deep(.el-table__expanded-cell .el-table__header-wrapper .el-table__header th .cell) {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+</style>
+
 
