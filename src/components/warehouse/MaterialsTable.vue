@@ -16,15 +16,15 @@
       :max-height="600"
     >
       <el-table-column type="selection" width="55" v-if="showSelection" />
-      <el-table-column prop="code" label="物料编号" min-width="130" fixed>
+      <el-table-column prop="code" label="物料编号" width="130" fixed>
         <template #default="{ row }">
           <span class="text-blue-600 cursor-pointer hover:text-blue-800 underline" @click="$emit('view', row)">{{ row.code }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="物料名称" min-width="130" />
-      <el-table-column prop="category" label="分类" min-width="160" />
-      <el-table-column prop="specification" label="规格型号" min-width="130" />
-      <el-table-column prop="barcode" label="条形码" min-width="130" />
+      <el-table-column prop="name" label="物料名称" width="130" />
+      <el-table-column prop="category" label="分类" width="160" />
+      <el-table-column prop="specification" label="规格型号" width="130" />
+      <el-table-column prop="barcode" label="条形码" width="130" />
       <el-table-column prop="unit" label="单位" width="65" />
       <el-table-column prop="quantity" label="库存数量" width="85">
         <template #default="{ row }">
@@ -36,12 +36,12 @@
       <el-table-column label="单价（元）" width="100">
         <template #default="{ row }">{{ row.price?.replace('元', '') }}</template>
       </el-table-column>
-      <el-table-column prop="supplier" label="供应商" min-width="130" />
-      <el-table-column prop="location" label="存放位置" min-width="100" />
-      <el-table-column prop="batchNo" label="批次号" min-width="100" />
-      <el-table-column prop="productionDate" label="生产日期" min-width="100" />
-      <el-table-column prop="expiryDate" label="有效期至" min-width="100" />
-      <el-table-column label="最后更新时间" min-width="130">
+      <el-table-column prop="supplier" label="供应商" width="130" />
+      <el-table-column prop="location" label="存放位置" width="100" />
+      <el-table-column prop="batchNo" label="批次号" width="100" />
+      <el-table-column prop="productionDate" label="生产日期" width="100" />
+      <el-table-column prop="expiryDate" label="有效期至" width="100" />
+      <el-table-column label="最后更新时间" width="130">
         <template #default="{ row }">{{ row.lastUpdateTime?.slice(0, 10) }}</template>
       </el-table-column>
       <el-table-column label="数据状态" width="90">

@@ -35,8 +35,10 @@ export const useSupplierStore = defineStore('supplier', () => {
         ...filters
       }
       const res = await getSuppliers(params)
-      suppliers.value = res || []
-      total.value = res.total || res.meta?.total || 0
+      const data = res || []
+      suppliers.value = data
+      // API响应已通过拦截器返回纯数组，total直接用数组长度
+      total.value = data.length || suppliers.value.length
       if (filters.page) pagination.value.page = filters.page
       if (filters.limit) pagination.value.limit = filters.limit
     } catch (err) {

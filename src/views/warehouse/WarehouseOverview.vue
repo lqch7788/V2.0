@@ -231,6 +231,7 @@ const filterMaterials = (materials, filters) => {
   return materials.filter((m) => {
     if (filters.code && !m.code.includes(filters.code)) return false
     if (filters.name && !m.name.includes(filters.name)) return false
+    if (filters.category && filters.category !== '全部' && m.category !== filters.category) return false
     if (filters.supplier && m.supplier !== filters.supplier) return false
     if (filters.location && m.location !== filters.location) return false
     if (filters.searchBigCategory && !m.code.startsWith(filters.searchBigCategory)) return false
@@ -462,9 +463,9 @@ const handleSaveEdit = async (material) => {
   }
 }
 
-// ActionToolbar callbacks
+// ActionToolbar callbacks - 与V1.1一致：批量编辑先弹警告再进入模式
 const handleBatchEditClick = () => {
-  batchEditMode.value = true
+  showBatchEditWarning.value = true
 }
 
 const handleBatchEditWarningConfirm = () => {
@@ -560,5 +561,9 @@ const handleBatchNext = () => {
 :deep(.el-table__header-wrapper .el-table__header th .el-table__cell) {
   background: transparent !important;
   color: #ffffff !important;
+}
+/* 蓝色悬停行 - 与V1.1 hover:bg-blue-100 一致 */
+:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
+  background-color: #dbeafe !important;
 }
 </style>

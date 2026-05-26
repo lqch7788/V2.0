@@ -90,7 +90,7 @@
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="code" label="类别编码" width="120" />
-        <el-table-column prop="name" label="类别名称" min-width="150" />
+        <el-table-column prop="name" label="类别名称" width="150" />
         <el-table-column prop="level" label="层级" width="80">
           <template #default="{ row }">
             <el-tag :type="row.level === 1 ? 'success' : row.level === 2 ? 'warning' : 'info'" size="small">
@@ -104,7 +104,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="prefix" label="编码前缀" width="100" />
-        <el-table-column prop="description" label="描述" min-width="150" />
+        <el-table-column prop="description" label="描述" width="150" />
         <el-table-column prop="sortOrder" label="排序" width="80" />
         <el-table-column label="状态" width="80">
           <template #default="{ row }">

@@ -175,42 +175,42 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" v-if="exportMode || batchEditMode || deleteMode" />
-        <el-table-column prop="productCode" label="作物编码" min-width="140">
+        <el-table-column prop="productCode" label="作物编码" width="140">
           <template #default="{ row }">
             <span class="text-blue-600 cursor-pointer hover:text-blue-800 underline" @click="handleViewDetail(row)">
               {{ generateCropCode(row.cropName, row.variety) || row.productCode }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="variety" label="作物品种" min-width="100" />
-        <el-table-column prop="cropName" label="品种路径" min-width="100" />
+        <el-table-column prop="variety" label="作物品种" width="100" />
+        <el-table-column prop="cropName" label="品种路径" width="100" />
         <el-table-column prop="grade" label="等级" width="80">
           <template #default="{ row }">
             <el-tag :type="gradeTagType(row.grade)" size="small">{{ row.grade }}级</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="quantity" label="库存数量" min-width="100">
+        <el-table-column prop="quantity" label="库存数量" width="100">
           <template #default="{ row }">
             <span :class="row.status === 'low_stock' || row.status === 'out_of_stock' ? 'text-red-600 font-medium' : 'text-gray-900'">
               {{ row.quantity }} {{ row.unit }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="库存限值" min-width="120">
+        <el-table-column label="库存限值" width="120">
           <template #default="{ row }">
             {{ row.alertSettings?.minStock || 0 }} ~ {{ row.alertSettings?.maxStock || 0 }} {{ row.unit }}
           </template>
         </el-table-column>
-        <el-table-column prop="warehouseName" label="仓库" min-width="100" />
-        <el-table-column prop="storageLocation" label="存放位置" min-width="100" />
-        <el-table-column prop="storageDate" label="入库时间" min-width="100" />
-        <el-table-column label="保质期(天)" min-width="100">
+        <el-table-column prop="warehouseName" label="仓库" width="100" />
+        <el-table-column prop="storageLocation" label="存放位置" width="100" />
+        <el-table-column prop="storageDate" label="入库时间" width="100" />
+        <el-table-column label="保质期(天)" width="100">
           <template #default="{ row }">
             {{ row.alertSettings?.expirationDays || 0 }} 天
           </template>
         </el-table-column>
-        <el-table-column prop="expirationDate" label="过期时间" min-width="100" />
-        <el-table-column label="存储时间" min-width="80">
+        <el-table-column prop="expirationDate" label="过期时间" width="100" />
+        <el-table-column label="存储时间" width="80">
           <template #default="{ row }">
             {{ getStorageDays(row.storageDate) }} 天
           </template>
@@ -222,12 +222,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作人" min-width="100">
+        <el-table-column label="操作人" width="100">
           <template #default="{ row }">
             {{ row.inboundRecords?.length > 0 ? row.inboundRecords[row.inboundRecords.length - 1].operator : '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="备注" min-width="100" />
+        <el-table-column label="备注" width="100" />
       </el-table>
 
       <!-- 分页 -->

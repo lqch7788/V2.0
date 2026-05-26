@@ -1,6 +1,6 @@
 <template>
   <!-- 数据表格 -->
-  <div class="bg-white rounded-xl shadow-sm overflow-hidden mt-4">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-4">
     <!-- 表格头部操作区 -->
     <div class="p-4 border-b border-gray-100 flex items-center justify-between">
       <h3 class="text-lg font-semibold text-gray-900">领料出库单列表</h3>
@@ -68,18 +68,18 @@
             <div class="text-sm">
               <div class="font-medium text-blue-800 mb-2">物料明细</div>
               <el-table :data="row.materials" size="small" border>
-                <el-table-column prop="applicationCode" label="来源领料单号" min-width="140">
+                <el-table-column prop="applicationCode" label="来源领料单号" width="140">
                   <template #default="{ row }">
                     <span class="font-mono">{{ row.applicationCode }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="materialCode" label="物料编码" min-width="120">
+                <el-table-column prop="materialCode" label="物料编码" width="120">
                   <template #default="{ row }">
                     <span class="font-mono">{{ row.materialCode }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="materialName" label="物料名称" min-width="100" />
-                <el-table-column prop="spec" label="规格" min-width="80" />
+                <el-table-column prop="materialName" label="物料名称" width="120" />
+                <el-table-column prop="spec" label="规格" width="80" />
                 <el-table-column prop="unit" label="单位" width="60" />
                 <el-table-column prop="requestedQuantity" label="申请数量" width="90" />
                 <el-table-column label="本次实发" width="90">
@@ -89,8 +89,8 @@
                     </span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="warehousePosition" label="仓库货位" min-width="100" />
-                <el-table-column prop="remark" label="备注" min-width="100" />
+                <el-table-column prop="warehousePosition" label="仓库货位" width="100" />
+                <el-table-column prop="remark" label="备注" width="100" />
               </el-table>
             </div>
           </div>
@@ -98,7 +98,7 @@
       </el-table-column>
 
       <!-- 数据列 -->
-      <el-table-column prop="code" label="出库单号" min-width="150">
+      <el-table-column prop="code" label="出库单号" width="150">
         <template #default="{ row }">
           <span
             class="text-blue-600 cursor-pointer hover:text-blue-800 underline font-medium"
@@ -108,18 +108,18 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="date" label="出库日期" min-width="120" />
-      <el-table-column prop="applicant" label="申领人" min-width="100" />
-      <el-table-column prop="warehouseLocation" label="库存地点" min-width="100" />
-      <el-table-column prop="reviewer" label="审核人" min-width="100" />
-      <el-table-column prop="operator" label="操作人" min-width="100" />
-      <el-table-column prop="productionBatchCode" label="生产批次号" min-width="140" />
-      <el-table-column label="物料种类" min-width="100">
+      <el-table-column prop="date" label="出库日期" width="120" />
+      <el-table-column prop="applicant" label="申领人" width="100" />
+      <el-table-column prop="warehouseLocation" label="库存地点" width="110" />
+      <el-table-column prop="reviewer" label="审核人" width="100" />
+      <el-table-column prop="operator" label="操作人" width="100" />
+      <el-table-column prop="productionBatchCode" label="生产批次号" width="140" />
+      <el-table-column label="物料种类" width="90">
         <template #default="{ row }">
           {{ row.materials?.length > 0 ? `${row.materials.length}种` : '-' }}
         </template>
       </el-table-column>
-      <el-table-column label="执行状态" min-width="100">
+      <el-table-column label="执行状态" width="100">
         <template #default="{ row }">
           <el-tag
             :type="getStatusTagType(row.executeStatusClass)"

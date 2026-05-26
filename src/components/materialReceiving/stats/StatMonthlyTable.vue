@@ -45,7 +45,7 @@
       <el-table :data="tableData" style="width: 100%" stripe>
         <el-table-column type="selection" width="55" v-if="exportMode" />
         <el-table-column prop="month" label="月份" width="120" />
-        <el-table-column prop="category" label="物料分类" min-width="150" />
+        <el-table-column prop="category" label="物料分类" width="150" />
         <el-table-column prop="quantity" label="领料数量" width="120" sortable />
         <el-table-column prop="unit" label="单位" width="80" />
         <el-table-column prop="amount" label="金额" width="120" sortable>

@@ -1,6 +1,6 @@
 /**
  * 物料退库 API 服务
- * 对接后端 /api/materialReturn
+ * 对接后端 /api/material-returns
  */
 
 import request from '../request';
@@ -59,7 +59,7 @@ export async function getReturnRecords(filters = {}) {
   if (filters.limit) params.append('limit', String(filters.limit));
 
   const query = params.toString();
-  return request.get(`/materialReturn${query ? `?${query}` : ''}`);
+  return request.get(`/material-returns${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -68,7 +68,7 @@ export async function getReturnRecords(filters = {}) {
  * @returns {Promise<ReturnRecord>}
  */
 export async function getReturnRecordById(id) {
-  return request.get(`/materialReturn/${id}`);
+  return request.get(`/material-returns/${id}`);
 }
 
 /**
@@ -77,7 +77,7 @@ export async function getReturnRecordById(id) {
  * @returns {Promise<Object>}
  */
 export async function createReturnRecord(data) {
-  return request.post('/materialReturn', data);
+  return request.post('/material-returns', data);
 }
 
 /**
@@ -87,7 +87,7 @@ export async function createReturnRecord(data) {
  * @returns {Promise<Object>}
  */
 export async function updateReturnRecord(id, data) {
-  return request.put(`/materialReturn/${id}`, data);
+  return request.put(`/material-returns/${id}`, data);
 }
 
 /**
@@ -97,7 +97,7 @@ export async function updateReturnRecord(id, data) {
  */
 export async function deleteReturnRecord(id) {
   try {
-    await request.delete(`/materialReturn/${id}`);
+    await request.delete(`/material-returns/${id}`);
     return true;
   } catch {
     return false;
@@ -113,7 +113,7 @@ export async function deleteReturnRecord(id) {
  */
 export async function approveReturnRecord(id, action, rejectReason) {
   try {
-    await request.post(`/materialReturn/${id}/${action}`, { rejectReason });
+    await request.post(`/material-returns/${id}/${action}`, { rejectReason });
     return true;
   } catch {
     return false;
@@ -127,7 +127,7 @@ export async function approveReturnRecord(id, action, rejectReason) {
  */
 export async function voidReturnRecord(id) {
   try {
-    await request.post(`/materialReturn/${id}/void`);
+    await request.post(`/material-returns/${id}/void`);
     return true;
   } catch {
     return false;
@@ -141,7 +141,7 @@ export async function voidReturnRecord(id) {
  */
 export async function deleteReturnRecordsBatch(ids) {
   try {
-    await request.delete(`/materialReturn/batch?ids=${ids.join(',')}`);
+    await request.delete(`/material-returns/batch?ids=${ids.join(',')}`);
     return true;
   } catch {
     return false;
@@ -154,5 +154,5 @@ export async function deleteReturnRecordsBatch(ids) {
  * @returns {Promise<Object>}
  */
 export async function getReturnStats(filters = {}) {
-  return request.get('/materialReturn/stats', filters);
+  return request.get('/material-returns/stats', filters);
 }

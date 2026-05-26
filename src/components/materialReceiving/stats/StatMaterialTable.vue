@@ -22,10 +22,10 @@
     <!-- 表格 -->
     <el-table :data="tableData" style="width: 100%" stripe>
       <el-table-column type="selection" width="55" v-if="exportMode" />
-      <el-table-column prop="materialCode" label="物料编码" min-width="120" />
-      <el-table-column prop="materialName" label="物料名称" min-width="150" />
-      <el-table-column prop="category" label="分类" min-width="120" />
-      <el-table-column prop="spec" label="规格" min-width="100" />
+      <el-table-column prop="materialCode" label="物料编码" width="120" />
+      <el-table-column prop="materialName" label="物料名称" width="150" />
+      <el-table-column prop="category" label="分类" width="120" />
+      <el-table-column prop="spec" label="规格" width="100" />
       <el-table-column prop="unit" label="单位" width="80" />
       <el-table-column prop="totalQuantity" label="领用总量" width="120" sortable />
       <el-table-column prop="totalAmount" label="总金额" width="120" sortable>
@@ -33,7 +33,7 @@
           ¥{{ row.totalAmount?.toLocaleString() }}
         </template>
       </el-table-column>
-      <el-table-column prop="supplier" label="供应商" min-width="120" />
+      <el-table-column prop="supplier" label="供应商" width="120" />
       <el-table-column label="操作" width="120" fixed="right">
         <template #default="{ row }">
           <el-button text size="small" @click="$emit('view-detail', row)">查看明细</el-button>

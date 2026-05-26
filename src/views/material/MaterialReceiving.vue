@@ -88,7 +88,7 @@
                 <h4 class="font-medium mb-2 text-sm text-gray-700">领料物料明细</h4>
                 <el-table :data="row.materials" size="small" border>
                   <el-table-column prop="materialCode" label="物料编码" width="120" />
-                  <el-table-column prop="materialName" label="物料名称" min-width="140" />
+                  <el-table-column prop="materialName" label="物料名称" width="140" />
                   <el-table-column prop="batchNo" label="批次号" width="110" />
                   <el-table-column prop="spec" label="规格" width="100" />
                   <el-table-column prop="unit" label="单位" width="70" />
@@ -105,7 +105,7 @@
                     <template #default="{ row: m }">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</template>
                   </el-table-column>
                   <el-table-column prop="warehousePosition" label="仓库货位" width="110" />
-                  <el-table-column prop="remark" label="备注" min-width="120" />
+                  <el-table-column prop="remark" label="备注" width="120" />
                 </el-table>
               </div>
             </template>
@@ -118,7 +118,7 @@
           <el-table-column label="物料种类" width="90">
             <template #default="{ row }">{{ row.materials.length > 0 ? row.materials.length + '种' : '-' }}</template>
           </el-table-column>
-          <el-table-column prop="plantArea" label="种植区域/用途" min-width="130" />
+          <el-table-column prop="plantArea" label="种植区域/用途" width="130" />
           <el-table-column prop="reviewer" label="审核人" width="100" />
           <el-table-column prop="productionBatchCode" label="生产计划批次号" width="130" />
           <el-table-column prop="status" label="状态" width="100">
@@ -214,7 +214,7 @@
                 <el-table :data="row.materials" size="small" border>
                   <el-table-column prop="applicationCode" label="来源领料单号" width="150" />
                   <el-table-column prop="materialCode" label="物料编码" width="120" />
-                  <el-table-column prop="materialName" label="物料名称" min-width="140" />
+                  <el-table-column prop="materialName" label="物料名称" width="140" />
                   <el-table-column prop="batchNo" label="批次号" width="110" />
                   <el-table-column prop="spec" label="规格" width="100" />
                   <el-table-column prop="unit" label="单位" width="70" />
@@ -243,7 +243,7 @@
                       <span v-else class="text-green-600">0</span>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="remark" label="备注" min-width="120" />
+                  <el-table-column prop="remark" label="备注" width="120" />
                 </el-table>
               </div>
             </template>
@@ -311,7 +311,7 @@
             <el-table-column type="expand">
               <template #default="{ row }">
                 <el-table :data="getMonthDetails(row.month)" size="small" border>
-                  <el-table-column prop="categoryName" label="物料分类" min-width="180" />
+                  <el-table-column prop="categoryName" label="物料分类" width="180" />
                   <el-table-column prop="quantity" label="数量" width="120" />
                   <el-table-column label="金额(元)" width="120"><template #default="{ row: r }">{{ (r.amount || 0).toLocaleString() }}</template></el-table-column>
                   <el-table-column label="占比" width="100"><template #default="{ row: r }">{{ r.percentage.toFixed(1) }}%</template></el-table-column>
@@ -336,11 +336,11 @@
           </div>
           <el-table :data="paginatedMaterialStatData" stripe border row-key="materialCode">
             <el-table-column prop="materialCode" label="物料编码" width="130" />
-            <el-table-column prop="materialName" label="物料名称" min-width="150" />
+            <el-table-column prop="materialName" label="物料名称" width="150" />
             <el-table-column prop="category" label="分类" width="150" />
             <el-table-column prop="spec" label="规格" width="100" />
             <el-table-column prop="unit" label="单位" width="70" />
-            <el-table-column prop="supplier" label="供应商" min-width="140" />
+            <el-table-column prop="supplier" label="供应商" width="140" />
             <el-table-column prop="batchCode" label="批次号" width="130" />
             <el-table-column prop="requisitionDepartment" label="领料部门" width="110" />
             <el-table-column prop="totalQuantity" label="总数量" width="90" />
@@ -352,53 +352,202 @@
           </div>
         </div>
       </div>
+
+      <!-- 部门汇总 -->
+      <div v-if="statActiveTab === 'department'" class="p-4">
+        <el-table :data="filteredDepartmentData" stripe border row-key="applicant">
+          <el-table-column prop="applicant" label="申领人" width="100" />
+          <el-table-column prop="department" label="部门" width="100" />
+          <el-table-column prop="requisitionCount" label="申领次数" width="90" />
+          <el-table-column prop="requisitionOrders" label="申领单数" width="90" />
+          <el-table-column prop="materialTypes" label="物料种类" width="90" />
+          <el-table-column prop="totalQuantity" label="领料总量" width="90" />
+          <el-table-column label="总金额(元)" width="110">
+            <template #default="{ row }">{{ row.totalAmount.toLocaleString() }}</template>
+          </el-table-column>
+          <el-table-column prop="avgPerOrder" label="平均每单量" width="100" />
+          <el-table-column label="平均金额" width="90">
+            <template #default="{ row }">¥{{ row.avgAmount }}</template>
+          </el-table-column>
+          <el-table-column label="主要物料" width="200">
+            <template #default="{ row }">
+              <div class="flex flex-wrap gap-1">
+                <el-tag v-for="m in row.topMaterials" :key="m" size="small" type="info">{{ m }}</el-tag>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="mt-4 text-center text-sm text-gray-500">共 {{ filteredDepartmentData.length }} 条</div>
+      </div>
+
+      <!-- 区域统计 -->
+      <div v-if="statActiveTab === 'area'" class="p-4">
+        <!-- 区域子Tab -->
+        <div class="flex gap-2 mb-4">
+          <el-button :type="statAreaTab === 'greenhouse' ? 'primary' : ''" size="small" @click="statAreaTab = 'greenhouse'; statCurrentPage = 1">大棚统计</el-button>
+          <el-button :type="statAreaTab === 'field' ? 'primary' : ''" size="small" @click="statAreaTab = 'field'; statCurrentPage = 1">大田统计</el-button>
+          <el-button :type="statAreaTab === 'batch' ? 'primary' : ''" size="small" @click="statAreaTab = 'batch'; statCurrentPage = 1">种植批次统计</el-button>
+        </div>
+
+        <!-- 大棚统计 -->
+        <div v-if="statAreaTab === 'greenhouse'">
+          <div class="flex gap-3 mb-3 items-end">
+            <div><label class="block text-xs text-gray-500 mb-1">大棚类型</label><el-select v-model="statGreenhouseTypeFilter" placeholder="全部" clearable style="width: 140px"><el-option label="玻璃温室" value="玻璃温室" /><el-option label="日光温室" value="日光温室" /><el-option label="塑料大棚" value="塑料大棚" /></el-select></div>
+            <el-button size="small" @click="statGreenhouseTypeFilter = ''">重置</el-button>
+          </div>
+          <el-table :data="filteredGreenhouseData" stripe border row-key="greenhouse">
+            <el-table-column prop="greenhouse" label="大棚名称" width="140" />
+            <el-table-column prop="greenhouseType" label="类型" width="90" />
+            <el-table-column prop="requisitionCount" label="领料次数" width="90" />
+            <el-table-column prop="materialTypes" label="物料种类" width="90" />
+            <el-table-column prop="totalQuantity" label="领料总量" width="90" />
+            <el-table-column label="总金额(元)" width="110">
+              <template #default="{ row }">{{ row.totalAmount.toLocaleString() }}</template>
+            </el-table-column>
+            <el-table-column label="环比变化" width="100">
+              <template #default="{ row }">
+                <span :class="(row.comparison?.lastMonth?.changeRate || 0) > 0 ? 'text-red-600' : 'text-green-600'">
+                  {{ row.comparison?.lastMonth?.changeRate > 0 ? '↑' : '↓' }}{{ row.comparison?.lastMonth?.changeRate || 0 }}%
+                </span>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="mt-4 text-center text-sm text-gray-500">共 {{ filteredGreenhouseData.length }} 条</div>
+        </div>
+
+        <!-- 大田统计 -->
+        <div v-if="statAreaTab === 'field'">
+          <el-table :data="filteredFieldData" stripe border row-key="field">
+            <el-table-column prop="field" label="地块" width="100" />
+            <el-table-column prop="crop" label="种植作物" width="100" />
+            <el-table-column prop="requisitionCount" label="领料次数" width="90" />
+            <el-table-column prop="materialTypes" label="物料种类" width="90" />
+            <el-table-column prop="totalQuantity" label="领料总量" width="90" />
+            <el-table-column label="总金额(元)" width="110">
+              <template #default="{ row }">{{ row.totalAmount.toLocaleString() }}</template>
+            </el-table-column>
+            <el-table-column label="环比变化" width="100">
+              <template #default="{ row }">
+                <span :class="(row.comparison?.lastMonth?.changeRate || 0) > 0 ? 'text-red-600' : 'text-green-600'">
+                  {{ row.comparison?.lastMonth?.changeRate > 0 ? '↑' : '↓' }}{{ row.comparison?.lastMonth?.changeRate || 0 }}%
+                </span>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="mt-4 text-center text-sm text-gray-500">共 {{ filteredFieldData.length }} 条</div>
+        </div>
+
+        <!-- 种植批次统计 -->
+        <div v-if="statAreaTab === 'batch'">
+          <el-table :data="filteredBatchData" stripe border row-key="batchCode">
+            <el-table-column prop="batchCode" label="批次号" width="130" />
+            <el-table-column prop="cropName" label="种植作物" width="90" />
+            <el-table-column prop="variety" label="品种" width="100" />
+            <el-table-column prop="plantArea" label="种植区域" width="120" />
+            <el-table-column prop="areaSize" label="区域面积" width="90" />
+            <el-table-column label="计划周期" width="180">
+              <template #default="{ row }">{{ row.plannedStartDate }} ~ {{ row.plannedEndDate }}</template>
+            </el-table-column>
+            <el-table-column prop="requisitionCount" label="领料次数" width="90" />
+            <el-table-column prop="materialTypes" label="物料种类" width="90" />
+            <el-table-column prop="totalQuantity" label="领料总量" width="90" />
+            <el-table-column label="总金额(元)" width="110">
+              <template #default="{ row }">{{ row.totalAmount.toLocaleString() }}</template>
+            </el-table-column>
+          </el-table>
+          <div class="mt-4 text-center text-sm text-gray-500">共 {{ filteredBatchData.length }} 条</div>
+        </div>
+      </div>
     </div>
 
     <!-- Tab 4: 成本核算 -->
     <div v-show="activeTab === 'cost'" class="space-y-4">
-      <div class="grid grid-cols-4 gap-4">
-        <div v-for="kpi in costKPIs" :key="kpi.label" class="bg-white rounded-xl p-5 shadow-sm">
-          <p class="text-sm text-gray-500">{{ kpi.label }}</p>
-          <p class="text-2xl font-bold mt-1 text-gray-900">{{ kpi.value }}</p>
-          <p class="text-xs mt-1" :class="kpi.trend > 0 ? 'text-red-500' : 'text-green-500'">{{ kpi.trend > 0 ? '↑' : '↓' }} {{ Math.abs(kpi.trend) }}%</p>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="bg-white rounded-xl p-5 shadow-sm">
-          <h4 class="font-semibold text-gray-900 mb-4">分类成本构成</h4>
-          <div class="space-y-3">
-            <div v-for="cat in costCategoryData" :key="cat.name" class="flex items-center gap-3">
-              <span class="text-sm text-gray-600 w-36 truncate">{{ cat.name }}</span>
-              <div class="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-                <div class="h-full rounded-full" :style="{ width: cat.percentage + '%', backgroundColor: cat.color }"></div>
-              </div>
-              <span class="text-sm font-medium text-gray-900 w-16 text-right">¥{{ (cat.amount * 10000).toLocaleString() }}</span>
-              <span class="text-xs text-gray-500 w-12 text-right">{{ cat.percentage }}%</span>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white rounded-xl p-5 shadow-sm">
-          <h4 class="font-semibold text-gray-900 mb-4">月度成本趋势</h4>
-          <div class="space-y-2">
-            <div v-for="trend in costTrendData" :key="trend.month" class="flex items-center gap-2">
-              <span class="text-xs text-gray-500 w-20">{{ trend.month }}</span>
-              <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div class="h-full bg-emerald-500 rounded-full" :style="{ width: (trend.total / maxTrendQty * 100) + '%' }"></div>
-              </div>
-              <span class="text-xs text-gray-700 w-20 text-right">{{ trend.total.toLocaleString() }}</span>
-            </div>
+      <!-- 成本子Tab切换 -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="border-b border-gray-100 px-6 pt-4">
+          <div class="flex gap-6">
+            <button
+              v-for="ct in costSubTabs"
+              :key="ct.key"
+              @click="costActiveTab = ct.key"
+              class="pb-3 text-sm font-medium border-b-2 transition-colors"
+              :class="costActiveTab === ct.key ? 'text-emerald-600 border-emerald-500' : 'text-gray-500 border-transparent hover:text-gray-700'"
+            >{{ ct.label }}</button>
           </div>
         </div>
       </div>
-      <!-- 分类对比表格 -->
-      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100"><h3 class="text-lg font-semibold text-gray-900">分类成本对比</h3></div>
-        <el-table :data="costCategoryData" stripe border>
-          <el-table-column prop="name" label="物料分类" min-width="180" />
-          <el-table-column label="总金额(万元)"><template #default="{ row }">{{ (row.amount || 0).toLocaleString() }}</template></el-table-column>
-          <el-table-column label="占比"><template #default="{ row }">{{ row.percentage }}%</template></el-table-column>
-          <el-table-column label="环比" width="100"><template #default="{ row }">{{ row.mom || '-' }}</template></el-table-column>
-        </el-table>
+
+      <!-- 成本概览 -->
+      <div v-if="costActiveTab === 'overview'">
+        <div class="grid grid-cols-4 gap-4 mb-4">
+          <div v-for="kpi in costKPIs" :key="kpi.label" class="bg-white rounded-xl p-5 shadow-sm">
+            <p class="text-sm text-gray-500">{{ kpi.label }}</p>
+            <p class="text-2xl font-bold mt-1 text-gray-900">{{ kpi.value }}</p>
+            <p class="text-xs mt-1" :class="kpi.trend > 0 ? 'text-red-500' : 'text-green-500'">{{ kpi.trend > 0 ? '↑' : '↓' }} {{ Math.abs(kpi.trend) }}%</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <!-- 分类成本构成 -->
+          <div class="bg-white rounded-xl p-5 shadow-sm">
+            <h4 class="font-semibold text-gray-900 mb-4">分类成本构成</h4>
+            <div class="space-y-3">
+              <div v-for="cat in costCategoryData" :key="cat.name" class="flex items-center gap-3">
+                <span class="text-sm text-gray-600 w-36 truncate">{{ cat.name }}</span>
+                <div class="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full" :style="{ width: cat.percentage + '%', backgroundColor: cat.color }"></div>
+                </div>
+                <span class="text-sm font-medium text-gray-900 w-16 text-right">¥{{ (cat.amount * 10000).toLocaleString() }}</span>
+                <span class="text-xs text-gray-500 w-12 text-right">{{ cat.percentage }}%</span>
+              </div>
+            </div>
+          </div>
+          <!-- 月度成本趋势 -->
+          <div class="col-span-2 bg-white rounded-xl p-5 shadow-sm">
+            <h4 class="font-semibold text-gray-900 mb-4">月度成本趋势</h4>
+            <div class="space-y-2">
+              <div v-for="trend in costTrendData" :key="trend.month" class="flex items-center gap-2">
+                <span class="text-xs text-gray-500 w-20">{{ trend.month }}</span>
+                <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-emerald-500 rounded-full" :style="{ width: (trend.total / maxTrendQty * 100) + '%' }"></div>
+                </div>
+                <span class="text-xs text-gray-700 w-20 text-right">{{ trend.total.toLocaleString() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分类对比 -->
+      <div v-if="costActiveTab === 'comparison'">
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-gray-100"><h3 class="text-lg font-semibold text-gray-900">分类成本对比</h3></div>
+          <el-table :data="costCategoryData" stripe border>
+            <el-table-column prop="name" label="物料分类" width="200" />
+            <el-table-column label="总金额(万元)" width="140"><template #default="{ row }">{{ (row.amount || 0).toLocaleString() }}</template></el-table-column>
+            <el-table-column label="占比" width="100"><template #default="{ row }">{{ row.percentage }}%</template></el-table-column>
+            <el-table-column label="环比" width="100"><template #default="{ row }">{{ row.mom || '-' }}</template></el-table-column>
+          </el-table>
+        </div>
+        <!-- 部门成本对比 -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mt-4">
+          <div class="p-4 border-b border-gray-100"><h3 class="text-lg font-semibold text-gray-900">部门成本对比</h3></div>
+          <el-table :data="costDeptData" stripe border>
+            <el-table-column prop="department" label="部门" width="150" />
+            <el-table-column label="使用量" width="100"><template #default="{ row }">{{ row.totalQuantity }}</template></el-table-column>
+            <el-table-column label="总金额(元)" width="130"><template #default="{ row }">{{ row.totalAmount.toLocaleString() }}</template></el-table-column>
+            <el-table-column label="占总成本" width="100"><template #default="{ row }">{{ row.percentage }}%</template></el-table-column>
+          </el-table>
+        </div>
+        <!-- 批次成本对比 -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mt-4">
+          <div class="p-4 border-b border-gray-100"><h3 class="text-lg font-semibold text-gray-900">批次成本对比</h3></div>
+          <el-table :data="costBatchData" stripe border>
+            <el-table-column prop="batchCode" label="批次号" width="140" />
+            <el-table-column prop="cropName" label="种植作物" width="100" />
+            <el-table-column label="总金额(元)" width="120"><template #default="{ row }">{{ row.totalAmount.toLocaleString() }}</template></el-table-column>
+            <el-table-column label="占总成本" width="100"><template #default="{ row }">{{ row.percentage }}%</template></el-table-column>
+          </el-table>
+        </div>
       </div>
     </div>
 
@@ -423,7 +572,7 @@
         <h4 class="font-medium mb-2 text-sm">物料明细</h4>
         <el-table :data="selectedRecord?.materials || []" size="small" border>
           <el-table-column prop="materialCode" label="物料编码" width="120" />
-          <el-table-column prop="materialName" label="物料名称" min-width="140" />
+          <el-table-column prop="materialName" label="物料名称" width="140" />
           <el-table-column prop="spec" label="规格" width="90" />
           <el-table-column prop="unit" label="单位" width="70" />
           <el-table-column prop="requestedQuantity" label="申领数量" width="90">
@@ -439,7 +588,7 @@
             <template #default="{ row: m }">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</template>
           </el-table-column>
           <el-table-column prop="warehousePosition" label="仓库货位" width="110" />
-          <el-table-column prop="remark" label="备注" min-width="100" />
+          <el-table-column prop="remark" label="备注" width="100" />
         </el-table>
       </div>
       <template #footer><el-button @click="showDetailModal = false">关闭</el-button></template>
@@ -487,7 +636,7 @@
           </div>
           <el-table :data="addForm.materials" size="small" border>
             <el-table-column prop="materialCode" label="物料编码" width="110"><template #default="{ row: m }"><el-input v-model="m.materialCode" size="small" @change="onAddMaterialCodeChange(m)" /></template></el-table-column>
-            <el-table-column prop="materialName" label="物料名称" min-width="120"><template #default="{ row: m }"><el-input v-model="m.materialName" size="small" @change="onAddMaterialNameChange(m)" /></template></el-table-column>
+            <el-table-column prop="materialName" label="物料名称" width="120"><template #default="{ row: m }"><el-input v-model="m.materialName" size="small" @change="onAddMaterialNameChange(m)" /></template></el-table-column>
             <el-table-column prop="spec" label="规格" width="80"><template #default="{ row: m }"><el-input v-model="m.spec" size="small" /></template></el-table-column>
             <el-table-column prop="unit" label="单位" width="60"><template #default="{ row: m }"><el-input v-model="m.unit" size="small" /></template></el-table-column>
             <el-table-column prop="requestedQuantity" label="申领数量" width="90">
@@ -545,7 +694,7 @@
           <el-button size="small" class="mb-2" @click="handleEditAddMaterial">+ 添加物料</el-button>
           <el-table :data="editForm.materials" size="small" border>
             <el-table-column prop="materialCode" label="物料编码" width="110"><template #default="{ row: m }"><el-input v-model="m.materialCode" size="small" @change="onEditMaterialCodeChangeRow(m)" /></template></el-table-column>
-            <el-table-column prop="materialName" label="物料名称" min-width="120"><template #default="{ row: m }"><el-input v-model="m.materialName" size="small" /></template></el-table-column>
+            <el-table-column prop="materialName" label="物料名称" width="120"><template #default="{ row: m }"><el-input v-model="m.materialName" size="small" /></template></el-table-column>
             <el-table-column prop="spec" label="规格" width="80"><template #default="{ row: m }"><el-input v-model="m.spec" size="small" /></template></el-table-column>
             <el-table-column prop="unit" label="单位" width="60"><template #default="{ row: m }"><el-input v-model="m.unit" size="small" /></template></el-table-column>
             <el-table-column prop="requestedQuantity" label="申领数量" width="90">
@@ -662,7 +811,7 @@
         <el-table :data="exSelectedRecord?.materials || []" size="small" border>
           <el-table-column prop="applicationCode" label="来源领料单号" width="150" />
           <el-table-column prop="materialCode" label="物料编码" width="120" />
-          <el-table-column prop="materialName" label="物料名称" min-width="140" />
+          <el-table-column prop="materialName" label="物料名称" width="140" />
           <el-table-column prop="spec" label="规格" width="90" />
           <el-table-column prop="unit" label="单位" width="70" />
           <el-table-column prop="requestedQuantity" label="申请数量" width="90" />
@@ -690,7 +839,7 @@
               <span v-else class="text-green-600">0</span>
             </template>
           </el-table-column>
-          <el-table-column prop="remark" label="备注" min-width="100" />
+          <el-table-column prop="remark" label="备注" width="100" />
         </el-table>
       </div>
       <template #footer><el-button @click="exShowDetailModal = false">关闭</el-button></template>
@@ -722,7 +871,7 @@
           <el-table :data="exSelectedAppMaterials" size="small" border @selection-change="handleExMaterialSelect" ref="exMaterialTableRef" row-key="materialCode">
             <el-table-column type="selection" width="45" />
             <el-table-column prop="materialCode" label="物料编码" width="110" />
-            <el-table-column prop="materialName" label="物料名称" min-width="130" />
+            <el-table-column prop="materialName" label="物料名称" width="130" />
             <el-table-column prop="spec" label="规格" width="80" />
             <el-table-column prop="unit" label="单位" width="60" />
             <el-table-column prop="requestedQuantity" label="申请数量" width="85" />
@@ -733,7 +882,7 @@
           <el-table :data="exMaterialPool" size="small" border>
             <el-table-column prop="applicationCode" label="来源单号" width="140" />
             <el-table-column prop="materialCode" label="物料编码" width="110" />
-            <el-table-column prop="materialName" label="物料名称" min-width="130" />
+            <el-table-column prop="materialName" label="物料名称" width="130" />
             <el-table-column prop="spec" label="规格" width="80" />
             <el-table-column prop="unit" label="单位" width="60" />
             <el-table-column prop="requestedQuantity" label="申请数量" width="85" />
@@ -762,7 +911,7 @@
           <el-button size="small" class="mb-2" @click="exEditForm.materials.push({ materialCode:'', materialName:'', batchNo:'', spec:'', unit:'', category:'', requestedQuantity:0, stockQuantity:0, actualQuantity:0, remark:'', applicationCode:'' })">+ 添加物料</el-button>
           <el-table :data="exEditForm.materials" size="small" border>
             <el-table-column prop="materialCode" label="物料编码" width="110"><template #default="{ row }"><el-input v-model="row.materialCode" size="small" /></template></el-table-column>
-            <el-table-column prop="materialName" label="物料名称" min-width="120"><template #default="{ row }"><el-input v-model="row.materialName" size="small" /></template></el-table-column>
+            <el-table-column prop="materialName" label="物料名称" width="120"><template #default="{ row }"><el-input v-model="row.materialName" size="small" /></template></el-table-column>
             <el-table-column prop="spec" label="规格" width="80"><template #default="{ row }"><el-input v-model="row.spec" size="small" /></template></el-table-column>
             <el-table-column prop="unit" label="单位" width="60"><template #default="{ row }"><el-input v-model="row.unit" size="small" /></template></el-table-column>
             <el-table-column prop="requestedQuantity" label="申请数量" width="85"><template #default="{ row }"><el-input-number v-model="row.requestedQuantity" :min="0" size="small" style="width: 100%" /></template></el-table-column>
@@ -1467,13 +1616,18 @@ const confirmExExport = () => {
 }
 
 // ==================== Tab 3: 领料统计 ====================
-const statSubTabs = [{ key: 'monthly', label: '月度汇总' }, { key: 'material', label: '分类汇总' }]
+const statSubTabs = [{ key: 'monthly', label: '月度汇总' }, { key: 'material', label: '分类汇总' }, { key: 'department', label: '部门汇总' }, { key: 'area', label: '区域统计' }]
 const statActiveTab = ref('monthly')
+const statAreaTab = ref('greenhouse')
 const statYearFilter = ref(String(new Date().getFullYear()))
 const statMonthFilter = ref('all')
 const statMaterialSearch = ref('')
 const statDepartmentFilter = ref([])
 const statCategoryFilter = ref([])
+const statGreenhouseTypeFilter = ref('')
+const statGreenhouseFilter = ref([])
+const statFieldFilter = ref([])
+const statBatchFilter = ref('')
 const statCurrentPage = ref(1)
 
 const years = ['2025', '2026']
@@ -1566,7 +1720,56 @@ const paginatedMaterialStatData = computed(() => {
   return filteredMaterialStatData.value.slice(start, start + 10)
 })
 
+// 部门统计数据
+const departmentStatData = ref([
+  { applicant: '张伟民', department: '生产部', requisitionCount: 18, requisitionOrders: 12, materialTypes: 15, totalQuantity: 680, totalAmount: 18650, avgPerOrder: 38, avgAmount: 1036, topMaterials: ['商品有机肥', '尿素', '吡虫啉'] },
+  { applicant: '李明轩', department: '生产部', requisitionCount: 15, requisitionOrders: 10, materialTypes: 12, totalQuantity: 520, totalAmount: 14280, avgPerOrder: 35, avgAmount: 952, topMaterials: ['商品有机肥', '番茄种子', '滴灌带'] },
+  { applicant: '王建国', department: '生产部', requisitionCount: 20, requisitionOrders: 14, materialTypes: 18, totalQuantity: 750, totalAmount: 20580, avgPerOrder: 38, avgAmount: 1029, topMaterials: ['尿素', '多菌灵', '锄头'] },
+  { applicant: '赵俊杰', department: '生产部', requisitionCount: 16, requisitionOrders: 11, materialTypes: 14, totalQuantity: 580, totalAmount: 15860, avgPerOrder: 36, avgAmount: 990, topMaterials: ['商品有机肥', '水稻种子', '劳保胶靴'] },
+  { applicant: '郑志远', department: '技术部', requisitionCount: 12, requisitionOrders: 8, materialTypes: 10, totalQuantity: 280, totalAmount: 7680, avgPerOrder: 23, avgAmount: 640, topMaterials: ['多菌灵', '土壤温湿度传感器', '吡虫啉'] },
+  { applicant: '孙一鸣', department: '技术部', requisitionCount: 8, requisitionOrders: 6, materialTypes: 7, totalQuantity: 180, totalAmount: 4920, avgPerOrder: 23, avgAmount: 615, topMaterials: ['土壤温湿度传感器', '多菌灵'] }
+])
+
+// 大棚统计数据
+const greenhouseStatData = ref([
+  { greenhouse: '玻璃温室A区', greenhouseType: '玻璃温室', period: '2025-03', requisitionCount: 8, materialTypes: 6, totalQuantity: 520, totalAmount: 14260, comparison: { lastMonth: { quantity: 480, amount: 12850, changeRate: 8.3 } } },
+  { greenhouse: '玻璃温室B区', greenhouseType: '玻璃温室', period: '2025-03', requisitionCount: 6, materialTypes: 5, totalQuantity: 380, totalAmount: 9840, comparison: { lastMonth: { quantity: 350, amount: 8920, changeRate: 8.6 } } },
+  { greenhouse: '玻璃温室C区', greenhouseType: '玻璃温室', period: '2025-03', requisitionCount: 5, materialTypes: 4, totalQuantity: 280, totalAmount: 7260, comparison: { lastMonth: { quantity: 260, amount: 6580, changeRate: 7.7 } } },
+  { greenhouse: '日光温室1号', greenhouseType: '日光温室', period: '2025-03', requisitionCount: 4, materialTypes: 4, totalQuantity: 180, totalAmount: 4860, comparison: { lastMonth: { quantity: 160, amount: 4280, changeRate: 12.5 } } },
+  { greenhouse: '日光温室2号', greenhouseType: '日光温室', period: '2025-03', requisitionCount: 4, materialTypes: 3, totalQuantity: 160, totalAmount: 4320, comparison: { lastMonth: { quantity: 150, amount: 3980, changeRate: 6.7 } } },
+  { greenhouse: '塑料大棚1号', greenhouseType: '塑料大棚', period: '2025-03', requisitionCount: 3, materialTypes: 3, totalQuantity: 120, totalAmount: 3280, comparison: { lastMonth: { quantity: 110, amount: 2940, changeRate: 9.1 } } }
+])
+
+// 大田统计数据
+const fieldStatData = ref([
+  { field: 'A1地块', crop: '水稻', period: '2025-03', requisitionCount: 5, materialTypes: 6, totalQuantity: 380, totalAmount: 10360, comparison: { lastMonth: { quantity: 350, amount: 9360, changeRate: 8.6 } } },
+  { field: 'A2地块', crop: '水稻', period: '2025-03', requisitionCount: 5, materialTypes: 5, totalQuantity: 360, totalAmount: 9820, comparison: { lastMonth: { quantity: 330, amount: 8820, changeRate: 9.1 } } },
+  { field: 'A3地块', crop: '水稻', period: '2025-03', requisitionCount: 4, materialTypes: 5, totalQuantity: 320, totalAmount: 8720, comparison: { lastMonth: { quantity: 290, amount: 7760, changeRate: 10.3 } } },
+  { field: 'B1地块', crop: '小麦', period: '2025-03', requisitionCount: 4, materialTypes: 4, totalQuantity: 280, totalAmount: 7640, comparison: { lastMonth: { quantity: 260, amount: 6980, changeRate: 7.7 } } },
+  { field: 'B2地块', crop: '小麦', period: '2025-03', requisitionCount: 4, materialTypes: 4, totalQuantity: 260, totalAmount: 7080, comparison: { lastMonth: { quantity: 240, amount: 6420, changeRate: 8.3 } } }
+])
+
+// 种植批次统计数据
+const batchStatData = ref([
+  { batchCode: 'FQ2024-001', cropName: '番茄', variety: '红果番茄', plantArea: '玻璃温室A区', areaSize: '3000 m²', plannedStartDate: '2026-03-01', plannedEndDate: '2026-09-30', requisitionCount: 12, materialTypes: 8, totalQuantity: 680, actualQuantity: 665, totalAmount: 18560 },
+  { batchCode: 'SD2024-001', cropName: '水稻', variety: '常规水稻', plantArea: 'A1/A2/A3地块', areaSize: '5000 m²', plannedStartDate: '2026-04-15', plannedEndDate: '2026-10-15', requisitionCount: 14, materialTypes: 7, totalQuantity: 860, actualQuantity: 842, totalAmount: 23480 },
+  { batchCode: 'XM2024-001', cropName: '小麦', variety: '冬小麦', plantArea: 'B1/B2地块', areaSize: '3500 m²', plannedStartDate: '2025-10-01', plannedEndDate: '2026-06-15', requisitionCount: 8, materialTypes: 6, totalQuantity: 480, actualQuantity: 468, totalAmount: 13120 }
+])
+
+const filteredDepartmentData = computed(() => departmentStatData.value)
+const filteredGreenhouseData = computed(() => {
+  return greenhouseStatData.value.filter(item => {
+    if (statGreenhouseTypeFilter.value && item.greenhouseType !== statGreenhouseTypeFilter.value) return false
+    return true
+  })
+})
+const filteredFieldData = computed(() => fieldStatData.value)
+const filteredBatchData = computed(() => batchStatData.value)
+
 // ==================== Tab 4: 成本核算 ====================
+const costSubTabs = [{ key: 'overview', label: '成本概览' }, { key: 'comparison', label: '分类对比' }]
+const costActiveTab = ref('overview')
+
 const costKPIs = [
   { label: '总成本', value: '¥924,580', trend: 5.2 },
   { label: '本月成本', value: '¥38,250', trend: -2.1 },
@@ -1576,6 +1779,22 @@ const costKPIs = [
 
 const costCategoryData = categorySummaryData
 const costTrendData = categoryTrendData
+
+// 部门成本数据
+const costDeptData = [
+  { department: '生产部', totalQuantity: 2530, totalAmount: 69370, percentage: 69.4 },
+  { department: '技术部', totalQuantity: 460, totalAmount: 12600, percentage: 12.6 },
+  { department: '设备部', totalQuantity: 215, totalAmount: 8700, percentage: 8.7 },
+  { department: '采后处理部', totalQuantity: 600, totalAmount: 5015, percentage: 5.0 },
+  { department: '品控部', totalQuantity: 120, totalAmount: 3380, percentage: 3.4 }
+]
+
+// 批次成本数据
+const costBatchData = [
+  { batchCode: 'FQ2024-001', cropName: '番茄', totalAmount: 18560, percentage: 33.7 },
+  { batchCode: 'SD2024-001', cropName: '水稻', totalAmount: 23480, percentage: 42.6 },
+  { batchCode: 'XM2024-001', cropName: '小麦', totalAmount: 13120, percentage: 23.8 }
+]
 
 const maxTrendQty = computed(() => Math.max(...costTrendData.map(d => d.total), 1))
 

@@ -174,30 +174,38 @@
         </div>
       </div>
 
-      <!-- 工具栏 -->
+      <!-- ActionToolbar 批量操作工具栏 - 对应V1.1 ActionToolbar -->
+      <ActionToolbar
+        title="库存总览"
+        :batch-edit-mode="batchEditMode"
+        :delete-mode="deleteMode"
+        :export-mode="exportMode"
+        :selected-rows="selectedRows"
+        :low-stock-count="lowStockCount"
+        :filters="toolbarFilters"
+        :show-low-stock-button="true"
+        :can-create="false"
+        @low-stock-toggle="handleToolbarLowStockToggle"
+        @batch-edit="handleToolbarBatchEdit"
+        @delete="handleToolbarDelete"
+        @export="handleToolbarExport"
+        @confirm-batch-edit="handleToolbarConfirmBatchEdit"
+        @cancel-batch-edit="handleToolbarCancelBatchEdit"
+        @confirm-delete="handleToolbarConfirmBatchDelete"
+        @cancel-delete="handleToolbarCancelDelete"
+        @confirm-export="handleToolbarConfirmExport"
+        @cancel-export="handleToolbarCancelExport"
+      />
+
+      <!-- 表格容器 -->
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">物料库存列表</h3>
-          <div class="flex items-center gap-2">
-            <el-button
-              v-if="showLowStock"
-              type="danger"
-              text
-              @click="handleLowStockClick"
-            >
-              显示全部
-            </el-button>
-            <template v-if="exportMode">
-              <el-button type="primary" @click="handleConfirmExport">
-                <el-icon><Download /></el-icon>
-                确认导出
-              </el-button>
-              <el-button @click="handleCancelExport">取消</el-button>
-            </template>
-            <el-button v-else type="primary" @click="handleExportClick">
-              <el-icon><Download /></el-icon>
-              导出
-            </el-button>
+        <!-- 选择模式提示条 - 编辑/删除/导出模式下显示 -->
+        <div
+          v-if="exportMode || batchEditMode || deleteMode"
+          class="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50"
+        >
+          <div class="flex items-center gap-4">
+            <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
           </div>
         </div>
 
@@ -208,12 +216,12 @@
           @selection-change="handleSelectionChange"
         >
           <el-table-column
-            v-if="exportMode"
+            v-if="exportMode || batchEditMode || deleteMode"
             type="selection"
             width="55"
           />
           <el-table-column prop="code" label="物料编号" width="120" />
-          <el-table-column prop="name" label="物料名称" min-width="150" />
+          <el-table-column prop="name" label="物料名称" width="150" />
           <el-table-column prop="category" label="分类" width="120" />
           <el-table-column prop="unit" label="单位" width="80" />
           <el-table-column prop="quantity" label="库存数量" width="100">
@@ -228,13 +236,15 @@
           <el-table-column prop="supplier" label="供应商" width="120" />
           <el-table-column prop="location" label="存放位置" width="100" />
           <el-table-column
-            v-if="!exportMode"
+            v-if="!exportMode && !batchEditMode && !deleteMode"
             label="操作"
-            width="120"
+            width="180"
             fixed="right"
           >
             <template #default="{ row }">
               <el-button link type="primary" @click="handleView(row)">查看</el-button>
+              <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
+              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -390,7 +400,7 @@
         <el-table :data="inboundRecords" stripe>
           <el-table-column prop="code" label="入库单号" width="150" />
           <el-table-column prop="materialCode" label="物料编号" width="120" />
-          <el-table-column prop="materialName" label="物料名称" min-width="150" />
+          <el-table-column prop="materialName" label="物料名称" width="150" />
           <el-table-column label="入库数量" width="120">
             <template #default="{ row }">
               {{ row.quantity }}{{ row.unit }}
@@ -406,9 +416,11 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="120" fixed="right">
+          <el-table-column label="操作" width="180" fixed="right">
             <template #default="{ row }">
               <el-button link type="primary" @click="handleViewInbound(row)">查看</el-button>
+              <el-button link type="primary" @click="handleEditInbound(row)">编辑</el-button>
+              <el-button link type="danger" @click="handleDeleteInbound(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -588,6 +600,65 @@
       </template>
     </el-dialog>
 
+    <!-- 物料详情弹窗 -->
+    <el-dialog v-model="showDetailModal" title="物料详情" width="800px">
+      <el-descriptions v-if="selectedMaterial" :column="3" border size="small">
+        <el-descriptions-item label="物料编号">{{ selectedMaterial.code }}</el-descriptions-item>
+        <el-descriptions-item label="物料名称">{{ selectedMaterial.name }}</el-descriptions-item>
+        <el-descriptions-item label="分类">{{ selectedMaterial.category }}</el-descriptions-item>
+        <el-descriptions-item label="规格型号">{{ selectedMaterial.specification || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="条形码">{{ selectedMaterial.barcode || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="单位">{{ selectedMaterial.unit }}</el-descriptions-item>
+        <el-descriptions-item label="库存数量">
+          <span :class="selectedMaterial.quantity < selectedMaterial.minStock ? 'text-red-600 font-bold' : ''">{{ selectedMaterial.quantity }}</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="最低库存">{{ selectedMaterial.minStock }}</el-descriptions-item>
+        <el-descriptions-item label="最高库存">{{ selectedMaterial.maxStock || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="单价">{{ selectedMaterial.price }}</el-descriptions-item>
+        <el-descriptions-item label="供应商">{{ selectedMaterial.supplier }}</el-descriptions-item>
+        <el-descriptions-item label="存放位置">{{ selectedMaterial.location }}</el-descriptions-item>
+        <el-descriptions-item label="批次号">{{ selectedMaterial.batchNo || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="生产日期">{{ selectedMaterial.productionDate || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="有效期至">{{ selectedMaterial.expiryDate || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="最后更新时间">{{ selectedMaterial.lastUpdateTime || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="数据状态">
+          <el-tag :type="selectedMaterial.dataStatus === '启用' ? 'success' : 'info'">{{ selectedMaterial.dataStatus || '启用' }}</el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
+      <template #footer><el-button @click="showDetailModal = false">关闭</el-button></template>
+    </el-dialog>
+
+    <!-- 入库详情弹窗 -->
+    <el-dialog v-model="showInboundDetailModal" title="入库记录详情" width="800px">
+      <el-descriptions v-if="selectedInboundRecord" :column="2" border size="small">
+        <el-descriptions-item label="入库单号">{{ selectedInboundRecord.code }}</el-descriptions-item>
+        <el-descriptions-item label="入库日期">{{ selectedInboundRecord.inboundDate }}</el-descriptions-item>
+        <el-descriptions-item label="物料编码">{{ selectedInboundRecord.materialCode }}</el-descriptions-item>
+        <el-descriptions-item label="物料名称">{{ selectedInboundRecord.materialName }}</el-descriptions-item>
+        <el-descriptions-item label="入库数量">{{ selectedInboundRecord.quantity }}{{ selectedInboundRecord.unit }}</el-descriptions-item>
+        <el-descriptions-item label="供应商">{{ selectedInboundRecord.supplier }}</el-descriptions-item>
+        <el-descriptions-item label="操作员">{{ selectedInboundRecord.operator }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="selectedInboundRecord.status === 'completed' ? 'success' : 'warning'">{{ selectedInboundRecord.status === 'completed' ? '已完成' : '待审核' }}</el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
+      <div v-if="selectedInboundRecord?.materials?.length > 0" class="mt-4">
+        <h4 class="font-medium mb-2 text-sm">入库物料明细</h4>
+        <el-table :data="selectedInboundRecord.materials" size="small" border>
+          <el-table-column prop="materialCode" label="物料编码" width="120" />
+          <el-table-column prop="materialName" label="物料名称" width="140" />
+          <el-table-column prop="spec" label="规格" width="90" />
+          <el-table-column prop="unit" label="单位" width="70" />
+          <el-table-column prop="quantity" label="数量" width="80" />
+          <el-table-column prop="batchNo" label="批次号" width="110" />
+          <el-table-column prop="productionDate" label="生产日期" width="100" />
+          <el-table-column prop="location" label="存放位置" width="100" />
+          <el-table-column prop="remark" label="备注" width="100" />
+        </el-table>
+      </div>
+      <template #footer><el-button @click="showInboundDetailModal = false">关闭</el-button></template>
+    </el-dialog>
+
     <!-- 导出格式选择弹窗 -->
     <el-dialog
       v-model="showExportModal"
@@ -628,6 +699,95 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 物料编辑弹窗 - 对应V1.1 MaterialEditModal -->
+    <MaterialEditModal
+      :material="selectedMaterial"
+      :is-open="showEditModal"
+      @close="showEditModal = false"
+      @save="handleSaveEdit"
+    />
+
+    <!-- 物料删除确认弹窗 - 对应V1.1 MaterialDeleteConfirmModal -->
+    <MaterialDeleteConfirmModal
+      :material="selectedMaterial"
+      :is-open="showDeleteModal"
+      @close="showDeleteModal = false"
+      @confirm="handleConfirmDelete"
+    />
+
+    <!-- 批量删除警告弹窗 - 对应V1.1 DeleteWarningDialog -->
+    <DeleteWarningDialog
+      :is-open="showDeleteWarning"
+      @close="showDeleteWarning = false"
+      @confirm="handleToolbarConfirmDeleteWarning"
+    />
+
+    <!-- 批量删除确认弹窗 - 对应V1.1 BatchDeleteConfirmDialog -->
+    <BatchDeleteConfirmDialog
+      :is-open="showBatchDeleteConfirm"
+      :selected-materials="selectedRows"
+      @close="showBatchDeleteConfirm = false"
+      @confirm="handleConfirmBatchDelete"
+    />
+
+    <!-- 入库记录编辑弹窗 - 对应V1.1 InboundEditModal -->
+    <el-dialog
+      v-model="showInboundEditModal"
+      title="编辑入库记录"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form v-if="selectedInboundRecord" label-width="100px">
+        <el-form-item label="入库单号">
+          <el-input :model-value="inboundEditForm.code" readonly />
+        </el-form-item>
+        <el-form-item label="入库日期">
+          <el-date-picker
+            v-model="inboundEditForm.inboundDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="供应商">
+          <el-input v-model="inboundEditForm.supplier" placeholder="请输入供应商" />
+        </el-form-item>
+        <el-form-item label="操作员">
+          <el-input v-model="inboundEditForm.operator" placeholder="请输入操作员" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="inboundEditForm.status" placeholder="请选择状态">
+            <el-option value="pending" label="待审核" />
+            <el-option value="completed" label="已完成" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showInboundEditModal = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveInboundEdit">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 入库记录删除确认弹窗 - 对应V1.1 InboundDeleteConfirmModal -->
+    <el-dialog
+      v-model="showInboundDeleteModal"
+      title="删除确认"
+      width="450px"
+      :close-on-click-modal="true"
+    >
+      <div v-if="selectedInboundRecord">
+        <p class="text-sm text-gray-600">
+          确定要删除入库记录 <strong>{{ selectedInboundRecord.code }}</strong> 吗？
+        </p>
+        <p class="text-sm text-red-500 mt-2">此操作不可撤销！</p>
+      </div>
+      <template #footer>
+        <el-button @click="showInboundDeleteModal = false">取消</el-button>
+        <el-button type="danger" @click="handleConfirmInboundDelete">确认删除</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -635,36 +795,50 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { Goods, Warning, Download, Search, Plus, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { } from 'element-plus'
 import { getMaterials, getInboundRecords } from '@/api/material/apiWarehouseMaterialService'
+import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
+import { useInboundStore } from '@/stores/modules/inventory/useInboundStore'
+import ActionToolbar from './components/ActionToolbar.vue'
+import MaterialEditModal from './components/MaterialEditModal.vue'
+import MaterialDeleteConfirmModal from './components/MaterialDeleteConfirmModal.vue'
+import DeleteWarningDialog from './components/DeleteWarningDialog.vue'
+import BatchDeleteConfirmDialog from './components/BatchDeleteConfirmDialog.vue'
 
-// 分类配置（来自V1.1的categoryConfig）
+// 分类配置（与V1.1 categoryConfig一致 — 7大分类体系）
 const categoryConfig = {
-  '01': { name: '原料', categories: {
-    '01': { name: '种子', subCategories: {
-      '01': { name: '蔬菜种子', prefix: '010101' },
-      '02': { name: '水果种子', prefix: '010102' }
-    }},
-    '02': { name: '肥料', subCategories: {
-      '01': { name: '氮肥', prefix: '010201' },
-      '02': { name: '磷肥', prefix: '010202' },
-      '03': { name: '钾肥', prefix: '010203' }
-    }},
-    '03': { name: '农药', subCategories: {
-      '01': { name: '杀虫剂', prefix: '010301' },
-      '02': { name: '杀菌剂', prefix: '010302' }
-    }}
-  }},
-  '02': { name: '资材', categories: {
-    '01': { name: '包装材料', subCategories: {
-      '01': { name: '纸箱', prefix: '020101' },
-      '02': { name: '塑料袋', prefix: '020102' }
-    }},
-    '02': { name: '工具', subCategories: {
-      '01': { name: '剪刀', prefix: '020201' },
-      '02': { name: '铲子', prefix: '020202' }
-    }}
-  }}
+  'SP': { name: '生产投入类', categories: {
+    '01': { name: '种质资源', subCategories: { '01': { name: '种子', prefix: 'SP0101' }, '02': { name: '种苗', prefix: 'SP0102' }, '03': { name: '种球', prefix: 'SP0103' } } },
+    '02': { name: '肥料与土壤改良剂', subCategories: { '01': { name: '有机肥', prefix: 'SP0201' }, '02': { name: '化肥', prefix: 'SP0202' }, '03': { name: '土壤改良剂', prefix: 'SP0203' } } },
+    '03': { name: '农药与植保产品', subCategories: { '01': { name: '杀虫剂', prefix: 'SP0301' }, '02': { name: '杀菌剂', prefix: 'SP0302' }, '03': { name: '除草剂', prefix: 'SP0303' } } },
+    '04': { name: '灌溉与水管材料', subCategories: { '01': { name: '滴灌材料', prefix: 'SP0401' }, '02': { name: '喷灌材料', prefix: 'SP0402' } } },
+    '05': { name: '农膜与覆盖材料', subCategories: { '01': { name: '地膜', prefix: 'SP0501' }, '02': { name: '棚膜', prefix: 'SP0502' } } }
+  } },
+  'EQ': { name: '设施与装备类', categories: {
+    '01': { name: '农业机械', subCategories: { '01': { name: '耕作机械', prefix: 'EQ0101' }, '02': { name: '种植机械', prefix: 'EQ0102' }, '03': { name: '植保机械', prefix: 'EQ0103' } } },
+    '02': { name: '温室设施', subCategories: { '01': { name: '骨架材料', prefix: 'EQ0201' }, '02': { name: '覆盖材料', prefix: 'EQ0202' } } },
+    '03': { name: '仓储设备', subCategories: { '01': { name: '货架', prefix: 'EQ0301' }, '02': { name: '冷藏设备', prefix: 'EQ0302' } } },
+    '04': { name: '运输设备', subCategories: { '01': { name: '搬运车', prefix: 'EQ0401' }, '02': { name: '运输车', prefix: 'EQ0402' } } }
+  } },
+  'OP': { name: '作业支持类', categories: {
+    '01': { name: '劳保与防护用品', subCategories: { '01': { name: '防护服', prefix: 'OP0101' }, '02': { name: '手套口罩', prefix: 'OP0102' } } },
+    '02': { name: '工具与器械', subCategories: { '01': { name: '手动工具', prefix: 'OP0201' }, '02': { name: '电动工具', prefix: 'OP0202' } } }
+  } },
+  'PH': { name: '采后处理与流通类', categories: {
+    '01': { name: '采收容器', subCategories: { '01': { name: '周转筐', prefix: 'PH0101' }, '02': { name: '包装箱', prefix: 'PH0102' } } },
+    '02': { name: '包装材料', subCategories: { '01': { name: '纸箱', prefix: 'PH0201' }, '02': { name: '塑料袋', prefix: 'PH0202' } } },
+    '03': { name: '保鲜材料', subCategories: { '01': { name: '保鲜膜', prefix: 'PH0301' }, '02': { name: '保鲜剂', prefix: 'PH0302' } } }
+  } },
+  'IT': { name: '数字化与管理类', categories: {
+    '01': { name: '监测设备', subCategories: { '01': { name: '传感器', prefix: 'IT0101' }, '02': { name: '摄像头', prefix: 'IT0102' } } },
+    '02': { name: '控制设备', subCategories: { '01': { name: '控制器', prefix: 'IT0201' }, '02': { name: '执行器', prefix: 'IT0202' } } }
+  } },
+  'EC': { name: '能源与通用耗材', categories: {
+    '01': { name: '能源', subCategories: { '01': { name: '电力', prefix: 'EC0101' }, '02': { name: '燃油', prefix: 'EC0102' } } },
+    '02': { name: '通用耗材', subCategories: { '01': { name: '办公用品', prefix: 'EC0201' }, '02': { name: '清洁用品', prefix: 'EC0202' } } }
+  } },
+  'OT': { name: '其他类', categories: {
+    '01': { name: '其他物料', subCategories: { '01': { name: '其他', prefix: 'OT0101' } } }
+  } }
 }
 
 // 大类选项
@@ -683,30 +857,42 @@ const exportFormats = [
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
 
-// Mock数据（仅用于初始化）
+// Mock数据（仅用于API不可用时的fallback，与V1.1数据格式一致）
 const mockWarehouseMaterials = ref([
-  { id: 1, code: '010101001', name: '番茄种子', category: '种子', unit: '袋', quantity: 100, minStock: 20, price: '25.00', supplier: '种子公司A', location: 'A区-01' },
-  { id: 2, code: '010201001', name: '尿素', category: '肥料', unit: '袋', quantity: 200, minStock: 50, price: '120.00', supplier: '肥料公司B', location: 'B区-02' },
-  { id: 3, code: '010301001', name: '多菌灵', category: '农药', unit: '瓶', quantity: 80, minStock: 15, price: '35.00', supplier: '农药公司C', location: 'C区-01' },
-  { id: 4, code: '020101001', name: '纸箱(大)', category: '资材', unit: '个', quantity: 150, minStock: 30, price: '8.00', supplier: '资材公司D', location: 'D区-03' },
+  { id: 1, code: 'SP0201001', name: '商品有机肥', category: '肥料与土壤改良剂', specification: '50kg/袋', barcode: '6901234567890', unit: '袋', quantity: 150, minStock: 30, maxStock: 500, price: '45.00', supplier: '有机肥供应商A', location: 'A-01-01', batchNo: 'YC20260301', productionDate: '2026-03-01', expiryDate: '2027-03-01', lastUpdateTime: '2026-05-20', dataStatus: '启用' },
+  { id: 2, code: 'SP0202001', name: '尿素', category: '肥料与土壤改良剂', specification: '50kg/袋', barcode: '6901234567891', unit: '袋', quantity: 80, minStock: 20, maxStock: 300, price: '85.00', supplier: '化肥供应商B', location: 'A-02-01', batchNo: 'HF20260315', productionDate: '2026-03-15', expiryDate: '2027-03-15', lastUpdateTime: '2026-05-18', dataStatus: '启用' },
+  { id: 3, code: 'SP0301001', name: '吡虫啉', category: '农药与植保产品', specification: '100g/瓶', barcode: '6901234567892', unit: '瓶', quantity: 120, minStock: 20, maxStock: 400, price: '28.00', supplier: '农药供应商C', location: 'B-02-03', batchNo: 'NY20260220', productionDate: '2026-02-20', expiryDate: '2027-02-20', lastUpdateTime: '2026-05-15', dataStatus: '启用' },
+  { id: 4, code: 'SP0302001', name: '多菌灵', category: '农药与植保产品', specification: '200g/袋', barcode: '6901234567893', unit: '袋', quantity: 15, minStock: 20, maxStock: 200, price: '35.00', supplier: '农药供应商C', location: 'C-03-01', batchNo: 'NY20260110', productionDate: '2026-01-10', expiryDate: '2027-01-10', lastUpdateTime: '2026-05-12', dataStatus: '启用' },
+  { id: 5, code: 'SP0103001', name: '番茄种子', category: '种质资源', specification: '50g/袋', barcode: '6901234567894', unit: '袋', quantity: 60, minStock: 10, maxStock: 200, price: '120.00', supplier: '种子供应商D', location: 'A-02-01', batchNo: 'ZZ20260201', productionDate: '2026-02-01', expiryDate: '2027-02-01', lastUpdateTime: '2026-05-10', dataStatus: '启用' },
+  { id: 6, code: 'OP0201001', name: '锄头', category: '工具与器械', specification: '标准型', barcode: '6901234567895', unit: '把', quantity: 35, minStock: 10, maxStock: 100, price: '42.00', supplier: '劳保供应商E', location: 'C-04-01', batchNo: 'LB20260228', productionDate: '2026-02-28', expiryDate: '2029-02-28', lastUpdateTime: '2026-05-08', dataStatus: '启用' },
+  { id: 7, code: 'EQ0306001', name: '滴灌带', category: '农业机械', specification: '50m/卷', barcode: '6901234567896', unit: '卷', quantity: 200, minStock: 50, maxStock: 800, price: '38.00', supplier: '农机供应商F', location: 'C-05-01', batchNo: 'NJ20260210', productionDate: '2026-02-10', expiryDate: '2028-02-10', lastUpdateTime: '2026-05-06', dataStatus: '启用' },
 ])
 
 const mockInboundRecords = ref([
-  { id: 1, code: 'RK20260121-001', materialCode: '010101001', materialName: '番茄种子', quantity: 50, unit: '袋', supplier: '种子公司A', inboundDate: '2026-01-21', operator: '张三', status: 'completed' },
-  { id: 2, code: 'RK20260120-001', materialCode: '010201001', materialName: '尿素', quantity: 100, unit: '袋', supplier: '肥料公司B', inboundDate: '2026-01-20', operator: '李四', status: 'pending' },
+  { id: 1, code: 'RK20260121-001', materialCode: 'SP0201001', materialName: '商品有机肥', quantity: 50, unit: '袋', supplier: '有机肥供应商A', inboundDate: '2026-01-21', operator: '张伟民', status: 'completed', materials: [{ materialCode: 'SP0201001', materialName: '商品有机肥', spec: '50kg/袋', unit: '袋', quantity: 50, unitPrice: 45, batchNo: 'YC20260301', productionDate: '2026-03-01', expiryDate: '2027-03-01', location: 'A-01-01', remark: '正常入库' }] },
+  { id: 2, code: 'RK20260120-001', materialCode: 'SP0202001', materialName: '尿素', quantity: 100, unit: '袋', supplier: '化肥供应商B', inboundDate: '2026-01-20', operator: '李明轩', status: 'pending', materials: [{ materialCode: 'SP0202001', materialName: '尿素', spec: '50kg/袋', unit: '袋', quantity: 100, unitPrice: 85, batchNo: 'HF20260315', productionDate: '2026-03-15', expiryDate: '2027-03-15', location: 'A-02-01', remark: '待审核' }] },
 ])
 
-// 物料数据（从API加载）
+// Store
+const warehouseMaterialStore = useWarehouseMaterialStore()
+const inboundStore = useInboundStore()
+
+// 物料数据（从Store/API加载）
 const warehouseMaterials = ref([])
 const inboundRecordsData = ref([])
 const loading = ref(false)
 
-// 从API加载数据
+// 从Store/API加载数据
 const loadMaterials = async () => {
   loading.value = true
   try {
-    const data = await getMaterials()
-    warehouseMaterials.value = Array.isArray(data) ? data : (data.data || [])
+    await warehouseMaterialStore.loadItems()
+    if (warehouseMaterialStore.items.length > 0) {
+      warehouseMaterials.value = warehouseMaterialStore.items
+    } else {
+      const data = await getMaterials()
+      warehouseMaterials.value = Array.isArray(data) ? data : (data.data || [])
+    }
   } catch (error) {
     console.error('加载物料数据失败:', error)
     ElMessage.error('加载物料数据失败')
@@ -745,6 +931,16 @@ const showAddModal = ref(false)
 const codeError = ref('')
 const nameError = ref('')
 const copySuccess = ref(false)
+// 编辑/删除弹窗状态
+const showEditModal = ref(false)
+const showDeleteModal = ref(false)
+const showInboundEditModal = ref(false)
+const showInboundDeleteModal = ref(false)
+// 批量操作模式
+const batchEditMode = ref(false)
+const deleteMode = ref(false)
+const showDeleteWarning = ref(false)
+const showBatchDeleteConfirm = ref(false)
 
 // 筛选状态
 const filters = reactive({
@@ -811,6 +1007,12 @@ const lowStockCount = computed(() => {
   const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
   return source.filter(m => m.quantity < m.minStock).length
 })
+
+// 合并筛选条件供ActionToolbar使用（showLowStock在ActionToolbar中需要通过filters访问）
+const toolbarFilters = computed(() => ({
+  ...filters,
+  showLowStock: showLowStock.value
+}))
 
 const uniqueSuppliers = computed(() => {
   const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
@@ -1158,15 +1360,40 @@ const checkNameDuplicate = () => {
   }
 }
 
-const handleSaveInbound = () => {
+const handleSaveInbound = async () => {
   if (codeError.value || nameError.value) return
   if (!newInbound.materialCode || !newInbound.materialName || !newInbound.quantity) return
 
-  // 保存逻辑
-  console.log('Saving inbound:', newInbound)
-  showAddModal.value = false
-  resetNewInbound()
-  ElMessage.success('保存成功')
+  try {
+    await inboundStore.addItem({
+      code: newInbound.orderCode || `RK${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(inboundRecordsData.value.length + 1).padStart(3,'0')}`,
+      materialCode: newInbound.materialCode,
+      materialName: newInbound.materialName,
+      quantity: Number(newInbound.quantity),
+      unit: newInbound.unit,
+      supplier: newInbound.supplier,
+      inboundDate: newInbound.inboundDate || new Date().toISOString().slice(0, 10),
+      operator: newInbound.operator,
+      status: 'pending',
+      materials: [{
+        materialCode: newInbound.materialCode,
+        materialName: newInbound.materialName,
+        spec: '',
+        unit: newInbound.unit,
+        quantity: Number(newInbound.quantity),
+        unitPrice: 0,
+        batchNo: '',
+        location: '',
+        remark: newInbound.remarks || ''
+      }]
+    })
+    showAddModal.value = false
+    resetNewInbound()
+    await loadInboundRecords()
+    ElMessage.success('入库记录保存成功')
+  } catch (error) {
+    ElMessage.error('保存失败: ' + (error.message || '未知错误'))
+  }
 }
 
 const handleCloseModal = () => {
@@ -1191,14 +1418,195 @@ const resetNewInbound = () => {
   nameError.value = ''
 }
 
+const showDetailModal = ref(false)
+const showInboundDetailModal = ref(false)
+const selectedMaterial = ref(null)
+const selectedInboundRecord = ref(null)
+
 const handleView = (row) => {
-  console.log('View material:', row)
-  ElMessage.info('查看详情功能')
+  selectedMaterial.value = row
+  showDetailModal.value = true
 }
 
 const handleViewInbound = (row) => {
-  console.log('View inbound:', row)
-  ElMessage.info('查看入库记录详情')
+  selectedInboundRecord.value = row
+  showInboundDetailModal.value = true
+}
+
+// ========== 批量操作工具栏回调 ==========
+
+// 切换库存不足筛选
+const handleToolbarLowStockToggle = () => {
+  showLowStock.value = !showLowStock.value
+  currentPage.value = 1
+}
+
+// 进入批量编辑模式
+const handleToolbarBatchEdit = () => {
+  batchEditMode.value = true
+  selectedRows.value = []
+}
+
+// 取消批量编辑
+const handleToolbarCancelBatchEdit = () => {
+  batchEditMode.value = false
+  selectedRows.value = []
+}
+
+// 确认批量编辑
+const handleToolbarConfirmBatchEdit = () => {
+  if (selectedRows.value.length === 1) {
+    // 单条编辑 - 打开编辑弹窗
+    selectedMaterial.value = selectedRows.value[0]
+    showEditModal.value = true
+  } else if (selectedRows.value.length > 1) {
+    // 多条编辑 - 暂不支持，提示用户
+    ElMessage.warning('批量编辑功能暂不支持，请逐条编辑')
+  }
+  batchEditMode.value = false
+  selectedRows.value = []
+}
+
+// 进入删除确认（先弹出警告）
+const handleToolbarDelete = () => {
+  showDeleteWarning.value = true
+}
+
+// 警告确认后进入删除模式
+const handleToolbarConfirmDeleteWarning = () => {
+  showDeleteWarning.value = false
+  deleteMode.value = true
+  selectedRows.value = []
+}
+
+// 取消删除模式
+const handleToolbarCancelDelete = () => {
+  deleteMode.value = false
+  selectedRows.value = []
+}
+
+// 确认批量删除（弹出确认框）
+const handleToolbarConfirmBatchDelete = () => {
+  showBatchDeleteConfirm.value = true
+}
+
+// 批量删除确认后的实际删除
+const handleConfirmBatchDelete = () => {
+  const ids = selectedRows.value.map(r => r.id)
+  warehouseMaterials.value = warehouseMaterials.value.filter(m => !ids.includes(m.id))
+  showBatchDeleteConfirm.value = false
+  deleteMode.value = false
+  selectedRows.value = []
+  ElMessage.success('批量删除成功')
+}
+
+// 进入导出模式
+const handleToolbarExport = () => {
+  exportMode.value = true
+  selectedRows.value = []
+}
+
+// 确认导出
+const handleToolbarConfirmExport = () => {
+  showExportModal.value = true
+}
+
+// 取消导出模式
+const handleToolbarCancelExport = () => {
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+// ========== 物料编辑/删除（单条） ==========
+
+// 编辑物料
+const handleEdit = (material) => {
+  selectedMaterial.value = material
+  showEditModal.value = true
+}
+
+// 删除物料
+const handleDelete = (material) => {
+  selectedMaterial.value = material
+  showDeleteModal.value = true
+}
+
+// 确认删除单个物料
+const handleConfirmDelete = () => {
+  if (selectedMaterial.value) {
+    warehouseMaterials.value = warehouseMaterials.value.filter(m => m.id !== selectedMaterial.value.id)
+    ElMessage.success('物料已删除')
+  }
+  showDeleteModal.value = false
+  selectedMaterial.value = null
+}
+
+// 保存编辑后的物料
+const handleSaveEdit = (material) => {
+  warehouseMaterials.value = warehouseMaterials.value.map(m => m.id === material.id ? material : m)
+  showEditModal.value = false
+  selectedMaterial.value = null
+  ElMessage.success('物料信息已更新')
+}
+
+// ========== 入库记录编辑/删除 ==========
+
+// 入库记录编辑表单
+const inboundEditForm = reactive({
+  id: null,
+  code: '',
+  inboundDate: '',
+  supplier: '',
+  operator: '',
+  status: ''
+})
+
+// 编辑入库记录
+const handleEditInbound = (row) => {
+  selectedInboundRecord.value = row
+  // 初始化编辑表单
+  inboundEditForm.id = row.id
+  inboundEditForm.code = row.code
+  inboundEditForm.inboundDate = row.inboundDate
+  inboundEditForm.supplier = row.supplier
+  inboundEditForm.operator = row.operator
+  inboundEditForm.status = row.status
+  showInboundEditModal.value = true
+}
+
+// 保存入库记录编辑
+const handleSaveInboundEdit = () => {
+  if (selectedInboundRecord.value) {
+    const idx = inboundRecordsData.value.findIndex(r => r.id === selectedInboundRecord.value.id)
+    if (idx !== -1) {
+      inboundRecordsData.value[idx] = {
+        ...inboundRecordsData.value[idx],
+        inboundDate: inboundEditForm.inboundDate,
+        supplier: inboundEditForm.supplier,
+        operator: inboundEditForm.operator,
+        status: inboundEditForm.status
+      }
+    }
+    ElMessage.success('入库记录已更新')
+  }
+  showInboundEditModal.value = false
+  selectedInboundRecord.value = null
+}
+
+// 删除入库记录（单条）
+const handleDeleteInbound = (row) => {
+  selectedInboundRecord.value = row
+  showInboundDeleteModal.value = true
+}
+
+// 确认删除入库记录
+const handleConfirmInboundDelete = () => {
+  if (selectedInboundRecord.value) {
+    inboundRecordsData.value = inboundRecordsData.value.filter(r => r.id !== selectedInboundRecord.value.id)
+    ElMessage.success('入库记录已删除')
+  }
+  showInboundDeleteModal.value = false
+  selectedInboundRecord.value = null
 }
 </script>
 

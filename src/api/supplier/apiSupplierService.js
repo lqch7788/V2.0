@@ -1,6 +1,6 @@
 /**
  * 供应商 API 服务
- * 对接后端 /api/supplier
+ * 对接后端 /api/suppliers
  */
 
 import request from '../request';
@@ -106,7 +106,10 @@ export async function getSuppliers(filters = {}) {
   if (filters.limit) params.append('limit', String(filters.limit));
 
   const query = params.toString();
-  return request.get(`/supplier${query ? `?${query}` : ''}`);
+  const rawData = await request.get(`/suppliers${query ? `?${query}` : ''}`);
+  // 将后端snake_case字段映射为前端camelCase格式
+  const items = Array.isArray(rawData) ? rawData : []
+  return items.map(fromBackendFields);
 }
 
 /**
@@ -115,7 +118,7 @@ export async function getSuppliers(filters = {}) {
  * @returns {Promise<Supplier>}
  */
 export async function getSupplierById(id) {
-  const data = await request.get(`/supplier/${id}`);
+  const data = await request.get(`/suppliers/${id}`);
   return fromBackendFields(data);
 }
 
@@ -127,7 +130,7 @@ export async function getSupplierById(id) {
 export async function createSupplier(data) {
   const backendData = toBackendFields(data);
   backendData.id = data.code || `SUP${Date.now()}`;
-  return request.post('/supplier', backendData);
+  return request.post('/suppliers', backendData);
 }
 
 /**
@@ -138,7 +141,7 @@ export async function createSupplier(data) {
  */
 export async function updateSupplier(id, data) {
   const backendData = toBackendFields(data);
-  return request.put(`/supplier/${id}`, backendData);
+  return request.put(`/suppliers/${id}`, backendData);
 }
 
 /**
@@ -148,7 +151,7 @@ export async function updateSupplier(id, data) {
  */
 export async function deleteSupplier(id) {
   try {
-    await request.delete(`/supplier/${id}`);
+    await request.delete(`/suppliers/${id}`);
     return true;
   } catch {
     return false;
@@ -162,7 +165,7 @@ export async function deleteSupplier(id) {
  */
 export async function deleteSuppliersBatch(ids) {
   try {
-    await request.delete(`/supplier/batch?ids=${ids.join(',')}`);
+    await request.delete(`/suppliers/batch?ids=${ids.join(',')}`);
     return true;
   } catch {
     return false;

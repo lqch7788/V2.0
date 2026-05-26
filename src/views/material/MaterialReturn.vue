@@ -135,7 +135,7 @@
         <el-table-column prop="reviewer" label="审核人" width="90">
           <template #default="{ row }">{{ row.reviewer || '-' }}</template>
         </el-table-column>
-        <el-table-column label="备注" min-width="120">
+        <el-table-column label="备注" width="120">
           <template #default="{ row }">{{ row.remark || '-' }}</template>
         </el-table-column>
         <el-table-column label="操作" width="170" fixed="right">
@@ -154,7 +154,7 @@
               <el-table-column prop="sourceApplicationCode" label="来源领料单号" width="140" />
               <el-table-column prop="materialCode" label="物料编码" width="110" />
               <el-table-column prop="category" label="物料分类" width="120" />
-              <el-table-column prop="materialName" label="物料名称" min-width="120" />
+              <el-table-column prop="materialName" label="物料名称" width="120" />
               <el-table-column prop="spec" label="规格" width="100" />
               <el-table-column prop="unit" label="单位" width="60" />
               <el-table-column prop="returnQuantity" label="本次退料数量" width="100" />
@@ -222,7 +222,7 @@
             <el-table-column prop="sourceApplicationCode" label="来源领料单号" width="140" />
             <el-table-column prop="materialCode" label="物料编码" width="110" />
             <el-table-column prop="category" label="物料分类" width="120" />
-            <el-table-column prop="materialName" label="物料名称" min-width="120" />
+            <el-table-column prop="materialName" label="物料名称" width="120" />
             <el-table-column prop="spec" label="规格" width="100" />
             <el-table-column prop="unit" label="单位" width="60" />
             <el-table-column prop="returnQuantity" label="退料数量" width="90" />
@@ -317,7 +317,7 @@
                 <el-input v-model="mr.category" size="small" @input="v => handleMaterialChange($index, 'category', v)" />
               </template>
             </el-table-column>
-            <el-table-column label="物料名称" min-width="110">
+            <el-table-column label="物料名称" width="110">
               <template #default="{ row: mr, $index }">
                 <el-input v-model="mr.materialName" size="small" @input="v => handleMaterialChange($index, 'materialName', v)" />
               </template>
@@ -385,7 +385,7 @@
           <el-table-column prop="code" label="物料编码" width="120">
             <template #default="{ row }"><span class="font-mono text-sm">{{ row.code || row.name }}</span></template>
           </el-table-column>
-          <el-table-column prop="name" label="物料名称" min-width="140" />
+          <el-table-column prop="name" label="物料名称" width="140" />
           <el-table-column prop="specification" label="规格" width="100">
             <template #default="{ row }">{{ row.specification || '-' }}</template>
           </el-table-column>
@@ -497,7 +497,7 @@
                 <el-input v-model="mr.category" size="small" @input="v => handleEditMaterialChange($index, 'category', v)" />
               </template>
             </el-table-column>
-            <el-table-column label="物料名称" min-width="110">
+            <el-table-column label="物料名称" width="110">
               <template #default="{ row: mr, $index }">
                 <el-input v-model="mr.materialName" size="small" @input="v => handleEditMaterialChange($index, 'materialName', v)" />
               </template>
@@ -737,7 +737,7 @@
                     <el-input v-model="mr.category" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'category', $event)" placeholder="中类-小类" />
                   </template>
                 </el-table-column>
-                <el-table-column label="物料名称" min-width="120">
+                <el-table-column label="物料名称" width="120">
                   <template #default="{ row: mr, $index }">
                     <el-input v-model="mr.materialName" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'materialName', $event)" />
                   </template>

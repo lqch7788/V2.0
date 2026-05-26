@@ -597,6 +597,26 @@
       </template>
     </el-dialog>
 
+    <!-- 单行删除警告弹窗 - 与V1.1 DeleteWarningDialog一致 -->
+    <el-dialog v-model="showDeleteWarning" width="420px" :close-on-click-modal="false">
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <el-icon :size="24" color="#dc2626"><WarningFilled /></el-icon>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">确认删除</h3>
+        </div>
+      </template>
+      <div class="text-sm text-gray-600">
+        <p>确定要删除供应商 <span class="font-bold text-red-600">"{{ singleDeleteTarget?.name }}"</span> 吗？</p>
+        <p class="mt-2 text-red-500 font-medium">此操作不可撤销！</p>
+      </div>
+      <template #footer>
+        <el-button @click="showDeleteWarning = false">取消</el-button>
+        <el-button type="danger" @click="handleConfirmSingleDelete">确认删除</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 删除确认弹窗 - 与V1.1 BatchDeleteConfirmDialog一致（含供应商名称+风险警告） -->
     <el-dialog v-model="showDeleteModal" width="460px" :close-on-click-modal="false">
       <template #header>
@@ -758,6 +778,7 @@ const showFormModal = ref(false)
 const showBatchEditModal = ref(false)
 const showExportModal = ref(false)
 const showDeleteModal = ref(false)
+const showDeleteWarning = ref(false)  // 单行删除警告弹窗（与V1.1 DeleteWarningDialog一致）
 const isEdit = ref(false)
 const showMore = ref(false)
 const codeGenExpanded = ref(false)
@@ -966,10 +987,22 @@ const handleShowCodeRule = () => { router.push('/supplier-code-rule') }
 
 const handleView = (row) => { detailSupplier.value = row; showDetailModal.value = true }
 
+// 单行删除：先显示警告弹窗（与V1.1 DeleteWarningDialog一致）
+const singleDeleteTarget = ref(null)
+
 const handleDeleteSingle = (row) => {
-  selectedRows.value = [row.id]
-  deleteSupplierIds.value = [row.id]
-  showDeleteModal.value = true
+  singleDeleteTarget.value = row
+  showDeleteWarning.value = true
+}
+
+const handleConfirmSingleDelete = () => {
+  if (singleDeleteTarget.value) {
+    selectedRows.value = [singleDeleteTarget.value.id]
+    deleteSupplierIds.value = [singleDeleteTarget.value.id]
+    showDeleteWarning.value = false
+    handleDoDelete()
+    singleDeleteTarget.value = null
+  }
 }
 
 const handleAdd = () => {

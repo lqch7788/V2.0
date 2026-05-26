@@ -227,36 +227,33 @@
         stripe
         @selection-change="handleSelectionChange"
         ref="tableRef"
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
       >
         <el-table-column type="selection" width="50" v-if="hasActiveMode" />
-        <el-table-column type="expand">
+        <el-table-column type="expand" width="50">
           <template #default="{ row }">
-            <div class="p-4">
+            <div class="p-4 bg-gray-50">
               <h4 class="text-sm font-semibold text-gray-700 mb-3">物料明细（共 {{ row.materials?.length || 0 }} 项）</h4>
-              <el-table :data="row.materials || []" size="small" border>
-                <el-table-column prop="code" label="物料编码" width="140" />
-                <el-table-column prop="name" label="物料名称" min-width="140" />
+              <el-table :data="row.materials || []" size="small" border :header-cell-style="{ background: 'linear-gradient(to right, #10b981, #059669)', color: 'white', fontWeight: '600' }">
+                <el-table-column prop="code" label="物料编码" width="150" />
+                <el-table-column prop="name" label="物料名称" min-width="120" />
                 <el-table-column prop="category" label="分类" width="120" />
                 <el-table-column prop="specification" label="规格" width="100" />
-                <el-table-column prop="barcode" label="条形码" width="120" />
-                <el-table-column prop="unit" label="单位" width="70" />
-                <el-table-column prop="quantity" label="数量" width="80" />
-                <el-table-column prop="price" label="单价" width="80" />
-                <el-table-column prop="supplier" label="供应商" width="120" />
-                <el-table-column prop="batchNo" label="批次号" width="100" />
-                <el-table-column prop="location" label="存放位置" width="100" />
-                <el-table-column label="生产日期" width="110">
-                  <template #default="{ row: m }">{{ m.productionDate || '-' }}</template>
+                <el-table-column prop="quantity" label="数量" width="100" align="right">
+                  <template #default="{ row: m }">{{ m.quantity }} {{ m.unit }}</template>
                 </el-table-column>
-                <el-table-column label="过期日期" width="110">
+                <el-table-column prop="price" label="单价" width="100" align="right" />
+                <el-table-column prop="batchNo" label="批次号" width="120">
+                  <template #default="{ row: m }">{{ m.batchNo || '-' }}</template>
+                </el-table-column>
+                <el-table-column prop="expiryDate" label="有效期至" width="120">
                   <template #default="{ row: m }">{{ m.expiryDate || '-' }}</template>
                 </el-table-column>
-                <el-table-column prop="remarks" label="备注" width="100" />
               </el-table>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="入库单号" width="180">
+        <el-table-column label="入库单号" min-width="180">
           <template #default="{ row }">
             <span class="text-blue-600 cursor-pointer hover:text-blue-800 underline" @click="handleViewRecord(row)">{{ row.code }}</span>
           </template>
@@ -264,7 +261,7 @@
         <el-table-column prop="inboundDate" label="入库日期" width="120" />
         <el-table-column prop="supplier" label="供应商" width="150" />
         <el-table-column prop="operator" label="操作员" width="100" />
-        <el-table-column label="物料数量" width="100" align="center">
+        <el-table-column label="物料数量" width="120" align="center">
           <template #default="{ row }">{{ row.materials?.length || 0 }} 种物料</template>
         </el-table-column>
         <el-table-column label="状态" width="100" align="center">
@@ -274,10 +271,9 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="140" fixed="right" v-if="!hasActiveMode">
+        <el-table-column label="操作" width="120" fixed="right" v-if="!hasActiveMode">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleViewRecord(row)">查看</el-button>
-            <el-button link type="primary" size="small" @click="handleEditRecord(row)">编辑</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -352,7 +348,7 @@
         <h4 class="text-sm font-semibold text-gray-700 mb-2">物料明细</h4>
         <el-table :data="detailRecord.materials || []" size="small" border max-height="300">
           <el-table-column prop="code" label="物料编码" width="140" />
-          <el-table-column prop="name" label="物料名称" min-width="140" />
+          <el-table-column prop="name" label="物料名称" width="140" />
           <el-table-column prop="category" label="分类" width="120" />
           <el-table-column prop="specification" label="规格" width="100" />
           <el-table-column prop="barcode" label="条形码" width="120" />
@@ -410,7 +406,7 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="物料名称" min-width="130">
+            <el-table-column label="物料名称" width="130">
               <template #default="{ row }">
                 <el-input v-model="row.name" size="small" placeholder="名称" />
               </template>
@@ -1475,30 +1471,3 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-/* 蓝色渐变表头 - 与V1.1保持一致 */
-:deep(.el-table__header-wrapper .el-table__header th) {
-  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-:deep(.el-table__header-wrapper .el-table__header th .el-table__cell) {
-  background: transparent !important;
-  color: #ffffff !important;
-}
-:deep(.el-table__header-wrapper .el-table__header th .cell) {
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-
-/* 蓝色悬停行 - 与V1.1 hover:bg-blue-100 一致 */
-:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
-  background-color: #dbeafe !important;
-}
-
-/* 展开行内嵌子表格：翠绿色渐变表头 - 与V1.1一致 */
-:deep(.el-table__expanded-cell .el-table__header-wrapper .el-table__header th) {
-  background: linear-gradient(to right, #10b981, #059669) !important;
-  color: #ffffff !important;
-}
-</style>

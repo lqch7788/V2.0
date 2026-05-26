@@ -49,7 +49,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="planTitle" label="计划名称" min-width="150" />
+      <el-table-column prop="planTitle" label="计划名称" width="150" />
 
       <el-table-column prop="purchaseTypeName" label="类型" width="120" />
 

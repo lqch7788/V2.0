@@ -12,25 +12,25 @@
     <!-- 表格内容 -->
     <div class="overflow-x-auto">
       <el-table :data="paginatedRecords" style="width: 100%" stripe>
-        <el-table-column prop="code" label="入库单号" min-width="150" />
-        <el-table-column prop="materialCode" label="物料编号" min-width="120" />
-        <el-table-column prop="materialName" label="物料名称" min-width="120" />
-        <el-table-column label="入库数量" min-width="100">
+        <el-table-column prop="code" label="入库单号" width="150" />
+        <el-table-column prop="materialCode" label="物料编号" width="120" />
+        <el-table-column prop="materialName" label="物料名称" width="120" />
+        <el-table-column label="入库数量" width="100">
           <template #default="{ row }">
             {{ row.quantity }}{{ row.unit }}
           </template>
         </el-table-column>
-        <el-table-column prop="supplier" label="供应商" min-width="120" />
-        <el-table-column prop="inboundDate" label="入库日期" min-width="120" />
-        <el-table-column prop="operator" label="操作员" min-width="100" />
-        <el-table-column label="状态" min-width="80">
+        <el-table-column prop="supplier" label="供应商" width="120" />
+        <el-table-column prop="inboundDate" label="入库日期" width="120" />
+        <el-table-column prop="operator" label="操作员" width="100" />
+        <el-table-column label="状态" width="80">
           <template #default="{ row }">
             <el-tag :type="row.status === 'completed' ? 'success' : 'warning'" size="small">
               {{ row.status === 'completed' ? '已完成' : '待审核' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="100" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
             <div class="flex items-center gap-1">
               <el-button v-if="can('PROC_MATERIALS', 'view')" text size="small" title="查看" @click="$emit('view', row)">
