@@ -332,6 +332,39 @@
       </template>
     </el-dialog>
 
+    <!-- 批量编辑弹窗 -->
+    <el-dialog v-model="showBatchEditModal" width="480px" destroy-on-close class="farm-modal">
+      <template #header>
+        <div class="farm-modal-header">
+          <span class="text-white text-lg font-semibold">批量编辑</span>
+        </div>
+      </template>
+      <div class="space-y-4">
+        <p class="text-sm text-gray-500">为选中的 <span class="font-medium text-gray-700">{{ batchEditIds.length }}</span> 个任务统一修改以下字段（留空则不修改）</p>
+        <el-form label-width="80px">
+          <el-form-item label="优先级">
+            <el-select v-model="batchEditForm.priority" placeholder="不修改" clearable style="width: 100%">
+              <el-option label="普通" value="normal" />
+              <el-option label="高" value="high" />
+              <el-option label="紧急" value="urgent" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="任务类型">
+            <el-select v-model="batchEditForm.type" placeholder="不修改" clearable style="width: 100%">
+              <el-option v-for="t in TASK_TYPES" :key="t.type" :label="t.name" :value="t.type" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="截止日期">
+            <el-date-picker v-model="batchEditForm.dueDate" type="date" placeholder="不修改" style="width: 100%" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <el-button @click="showBatchEditModal = false">取消</el-button>
+        <el-button type="primary" @click="confirmBatchEdit">确认修改</el-button>
+      </template>
+    </el-dialog>
+
     <!-- SOP内容弹窗 -->
     <el-dialog v-model="showSopModal" width="640px" destroy-on-close class="farm-modal">
       <template #header>
@@ -907,9 +940,33 @@ function confirmBatchDelete() {
   ElMessage.success('批量删除完成')
 }
 
+const showBatchEditModal = ref(false)
+const batchEditForm = reactive({ priority: '', type: '', dueDate: '' })
+
 function handleBatchEdit(taskIds) {
   batchEditIds.value = taskIds
-  ElMessage.info('批量编辑功能已触发')
+  batchEditForm.priority = ''
+  batchEditForm.type = ''
+  batchEditForm.dueDate = ''
+  showBatchEditModal.value = true
+}
+
+function confirmBatchEdit() {
+  const updates = {}
+  if (batchEditForm.priority) updates.priority = batchEditForm.priority
+  if (batchEditForm.type) {
+    updates.type = batchEditForm.type
+    updates.typeName = TASK_TYPES.find(t => t.type === batchEditForm.type)?.name || batchEditForm.type
+  }
+  if (batchEditForm.dueDate) updates.dueDate = batchEditForm.dueDate
+  if (Object.keys(updates).length === 0) { ElMessage.warning('请至少修改一个字段'); return }
+  batchEditIds.value.forEach(taskId => {
+    tasksHook.updateTask(taskId, updates)
+  })
+  ElMessage.success(`已批量更新 ${batchEditIds.value.length} 个任务`)
+  showBatchEditModal.value = false
+  batchEditIds.value = []
+  selectedIds.value = []
 }
 
 function handleBatchReassign(taskIds) {

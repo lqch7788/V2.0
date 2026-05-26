@@ -2,137 +2,177 @@
   <div class="space-y-4">
     <!-- 页面标题 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="#fff"><User /></el-icon>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">班组分配</h1>
-            <p class="text-gray-500">管理临时工班组分配</p>
-          </div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+          <el-icon :size="20" color="#fff"><User /></el-icon>
         </div>
-        <el-button type="primary" size="small" @click="openCreateModal">
-          <el-icon><Plus /></el-icon>
-          新建班组
-        </el-button>
-      </div>
-    </div>
-
-    <!-- 筛选栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="flex gap-4">
-        <div class="flex-1 relative">
-          <el-input
-            v-model="filters.keyword"
-            placeholder="搜索班组名称、负责人、作业区域..."
-            clearable
-            @input="handleSearch"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">班组分配</h1>
+          <p class="text-sm text-gray-500">管理临时工班组分配</p>
         </div>
       </div>
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">班组数量</p>
-        <p class="text-2xl font-bold text-gray-900 mt-1">{{ teams.length }}</p>
-      </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">总人数</p>
-        <p class="text-2xl font-bold text-blue-600 mt-1">
-          {{ teams.reduce((sum, team) => sum + team.memberCount, 0) }}
-        </p>
-      </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-gray-500">未分配</p>
-        <p class="text-2xl font-bold text-amber-600 mt-1">{{ unassignedWorkers.length }}</p>
-      </div>
-    </div>
-
-    <!-- 班组列表 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div
-        v-for="team in teams"
-        :key="team.id"
-        class="bg-white rounded-xl shadow-sm overflow-hidden"
-      >
-        <div class="p-4 border-b">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="font-semibold text-lg">{{ team.name }}</h3>
-              <p class="text-sm text-gray-500">
-                负责人: {{ team.leaderName }} · {{ team.workZone || '未设置区域' }}
-              </p>
-            </div>
-            <div class="flex gap-2">
-              <el-button text circle @click="openAssignModal(team)" title="分配工人">
-                <el-icon><CirclePlus /></el-icon>
-              </el-button>
-              <el-button text circle @click="openEditModal(team)" title="编辑">
-                <el-icon><Setting /></el-icon>
-              </el-button>
-              <el-button text circle @click="handleDelete(team)" title="删除">
-                <el-icon><Delete /></el-icon>
-              </el-button>
-            </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+            <el-icon :size="16" class="text-emerald-600"><User /></el-icon>
           </div>
-          <p v-if="team.description" class="text-sm text-gray-600 mt-2">{{ team.description }}</p>
+          <div>
+            <p class="text-xs text-gray-500">班组数量</p>
+            <p class="text-lg font-bold text-gray-800">{{ store.teams.length }}</p>
+          </div>
         </div>
-        <div class="p-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm text-gray-500">成员 ({{ team.memberCount }}人)</span>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+            <el-icon :size="16" class="text-blue-600"><User /></el-icon>
           </div>
-          <div v-if="team.memberCount > 0" class="flex flex-wrap gap-2">
-            <span
-              v-for="i in team.memberCount"
-              :key="i"
-              class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
-            >
-              成员{{ i }}
-            </span>
+          <div>
+            <p class="text-xs text-gray-500">总人数</p>
+            <p class="text-lg font-bold text-gray-800">{{ store.totalMembers }}</p>
           </div>
-          <p v-else class="text-sm text-gray-400">暂无成员</p>
+        </div>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+            <el-icon :size="16" class="text-amber-600"><CirclePlus /></el-icon>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">未分配</p>
+            <p class="text-lg font-bold text-gray-800">{{ store.unassignedWorkers.length }}</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 分页 -->
-    <div class="bg-white px-4 py-3 border-t flex items-center justify-between">
-      <div class="flex items-center gap-2 text-sm text-gray-500">
-        <span>每页</span>
-        <el-select
-          v-model="pagination.pageSize"
-          size="small"
-          style="width: 100px"
-          @change="handlePageSizeChange"
-        >
-          <el-option :value="10" label="10条" />
-          <el-option :value="20" label="20条" />
-          <el-option :value="50" label="50条" />
-        </el-select>
+    <!-- 筛选栏 - 3字段搜索（与V1.1一致） -->
+    <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="flex items-center gap-4 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500 whitespace-nowrap">班组名称:</span>
+          <el-input v-model="filters.name" placeholder="请输入" size="small" style="width: 140px" clearable />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500 whitespace-nowrap">负责人:</span>
+          <el-input v-model="filters.leaderName" placeholder="请输入" size="small" style="width: 140px" clearable />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500 whitespace-nowrap">作业区域:</span>
+          <el-input v-model="filters.workZone" placeholder="请输入" size="small" style="width: 140px" clearable />
+        </div>
+        <div class="flex gap-2 ml-auto">
+          <el-button size="small" @click="handleReset">重置</el-button>
+          <el-button size="small" type="primary" @click="handleSearch">搜索</el-button>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-medium text-emerald-600">{{ pagination.currentPage }}</span>
-        <el-button
-          text
-          :disabled="pagination.currentPage >= totalPages"
-          @click="setPage(pagination.currentPage + 1)"
+    </div>
+
+    <!-- 班组列表表格 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <!-- 表格标题栏 -->
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">班组分配记录表</h3>
+        <div class="flex gap-2">
+          <template v-if="batchDeleteMode">
+            <el-button size="small" type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete">
+              <el-icon><Delete /></el-icon>
+              确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+            </el-button>
+            <el-button size="small" @click="handleCancelBatch">取消</el-button>
+          </template>
+          <template v-else>
+            <el-button size="small" type="danger" @click="batchDeleteMode = true">
+              <el-icon><Delete /></el-icon>
+              批量删除
+            </el-button>
+            <el-button size="small" type="primary" @click="openCreateModal">
+              <el-icon><Plus /></el-icon>
+              新建班组
+            </el-button>
+          </template>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <el-table
+          :data="filteredTeams"
+          style="width: 100%"
+          :header-cell-style="{ background: 'linear-gradient(to right, #3B82F6, #2563EB)', color: '#fff' }"
+          @selection-change="handleSelectionChange"
         >
-          &gt;
-        </el-button>
-        <el-button
-          text
-          :disabled="pagination.currentPage >= totalPages"
-          @click="setPage(totalPages)"
-        >
-          &gt;&gt;
-        </el-button>
+          <el-table-column
+            v-if="batchDeleteMode"
+            type="selection"
+            width="50"
+          />
+          <el-table-column label="班组名称" min-width="120">
+            <template #default="{ row }">
+              <el-button link type="primary" size="small" @click="openDetailModal(row)">
+                {{ row.name }}
+              </el-button>
+            </template>
+          </el-table-column>
+          <el-table-column prop="leaderName" label="负责人" width="100" />
+          <el-table-column label="作业区域" width="100">
+            <template #default="{ row }">
+              {{ row.workZone || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="成员数量" width="100">
+            <template #default="{ row }">
+              <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                {{ row.memberCount }}人
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="描述" min-width="120">
+            <template #default="{ row }">
+              <span class="text-sm text-gray-500">{{ row.description || '-' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="180" fixed="right">
+            <template #default="{ row }">
+              <div class="flex items-center gap-1">
+                <el-button text circle @click="openDetailModal(row)" title="查看详情">
+                  <el-icon><View /></el-icon>
+                </el-button>
+                <el-button text circle @click="openAssignModal(row)" title="分配工人">
+                  <el-icon><CirclePlus /></el-icon>
+                </el-button>
+                <el-button text circle @click="openEditModal(row)" title="编辑">
+                  <el-icon><Edit /></el-icon>
+                </el-button>
+                <el-button text circle @click="handleDelete(row)" title="删除">
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <!-- 空数据 -->
+      <div v-if="filteredTeams.length === 0" class="px-4 py-8 text-center text-gray-500">
+        暂无数据
+      </div>
+
+      <!-- 分页 -->
+      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <div class="text-sm text-gray-500">
+          共 {{ filteredTeams.length }} 条记录
+        </div>
+        <el-pagination
+          v-model:current-page="pagination.currentPage"
+          v-model:page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 50]"
+          :total="filteredTeams.length"
+          layout="sizes, prev, pager, next"
+        />
       </div>
     </div>
 
@@ -140,9 +180,16 @@
     <TeamAssignModal
       :is-open="isAssignModalOpen"
       :team="selectedTeam"
-      :unassigned-workers="unassignedWorkers"
+      :unassigned-workers="store.unassignedWorkers"
       :on-assign="handleAssign"
       :on-close="() => isAssignModalOpen = false"
+    />
+
+    <!-- 班组详情弹窗 -->
+    <TeamDetailModal
+      :open="isDetailModalOpen"
+      :team="detailTeam"
+      @close="isDetailModalOpen = false"
     />
 
     <!-- 新建/编辑班组弹窗 -->
@@ -152,25 +199,24 @@
       width="500px"
       @close="handleFormClose"
     >
-      <el-form :model="formData" label-width="80px" class="space-y-4">
-        <el-form-item label="班组名称">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">班组名称</label>
           <el-input v-model="formData.name" placeholder="请输入班组名称" />
-        </el-form-item>
-        <el-form-item label="负责人">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">负责人</label>
           <el-input v-model="formData.leaderName" placeholder="请输入负责人姓名" />
-        </el-form-item>
-        <el-form-item label="作业区域">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">作业区域</label>
           <el-input v-model="formData.workZone" placeholder="请输入作业区域" />
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入描述"
-          />
-        </el-form-item>
-      </el-form>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">描述</label>
+          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入描述" />
+        </div>
+      </div>
       <template #footer>
         <div class="flex justify-end gap-3">
           <el-button @click="isFormOpen = false">取消</el-button>
@@ -182,125 +228,70 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, Plus, Search, CirclePlus, Setting, Delete } from '@element-plus/icons-vue'
+import { User, Plus, CirclePlus, Edit, Delete, View } from '@element-plus/icons-vue'
 import TeamAssignModal from '@/components/labor/team/TeamAssignModal.vue'
+import TeamDetailModal from '@/components/labor/team/TeamDetailModal.vue'
 import { useTeamStore } from '@/stores/modules/team'
 
-// Pinia store
 const store = useTeamStore()
 
-// ============ 模拟数据生成函数（种子数据） ============
+// ============ 筛选（3字段，与V1.1一致） ============
+const filters = reactive({ name: '', leaderName: '', workZone: '' })
 
-// 模拟数据（与V1.1一致）
-const generateTeams = () => [
-  {
-    id: 'team001',
-    name: '收割组A',
-    leaderId: 'w001',
-    leaderName: '张三',
-    memberIds: ['w002', 'w003', 'w004'],
-    memberCount: 3,
-    description: '负责番茄采收',
-    workZone: '东区',
-    createdAt: '2026-01-01',
-    updatedAt: '2026-03-15',
-  },
-  {
-    id: 'team002',
-    name: '灌溉组B',
-    leaderId: 'w005',
-    leaderName: '李四',
-    memberIds: ['w006', 'w007'],
-    memberCount: 2,
-    description: '负责灌溉系统操作',
-    workZone: '西区',
-    createdAt: '2026-01-01',
-    updatedAt: '2026-03-10',
-  },
-  {
-    id: 'team003',
-    name: '运输组C',
-    leaderId: 'w008',
-    leaderName: '王五',
-    memberIds: ['w009', 'w010', 'w011', 'w012'],
-    memberCount: 4,
-    description: '负责农产品运输',
-    workZone: '全场区',
-    createdAt: '2026-02-01',
-    updatedAt: '2026-03-18',
-  },
-]
+// ============ 分页 ============
+const pagination = reactive({ currentPage: 1, pageSize: 10 })
 
-const generateUnassignedWorkers = () => [
-  { id: 'uw001', name: '赵六', phone: '13900139001', skillTags: ['果蔬采收', '分级包装'], workerType: '临时工' },
-  { id: 'uw002', name: '钱七', phone: '13900139002', skillTags: ['微喷灌溉', '滴灌操作'], workerType: '临时工' },
-  { id: 'uw003', name: '孙八', phone: '13900139003', skillTags: ['拖拉机', '旋耕机'], workerType: '临时工' },
-]
+// ============ 批量删除 ============
+const batchDeleteMode = ref(false)
+const selectedRows = ref([])
 
-// ============ 状态 ============
-
-// 从store映射数据，保持模板变量名不变
-const allTeams = computed(() => store.teams)
-const allUnassignedWorkers = computed(() => store.unassignedWorkers)
-const filters = ref({ keyword: '' })
-const pagination = ref({
-  currentPage: 1,
-  pageSize: 10,
-  total: 0,
-})
-
-// 弹窗状态
+// ============ 弹窗 ============
 const isAssignModalOpen = ref(false)
 const selectedTeam = ref(null)
+const isDetailModalOpen = ref(false)
+const detailTeam = ref(null)
 const isFormOpen = ref(false)
 const editingTeam = ref(null)
-const formData = ref({
-  name: '',
-  leaderName: '',
-  description: '',
-  workZone: '',
-})
-
-// 当前用户
-const currentUser = { id: 'u001', name: '张明' }
+const formData = reactive({ name: '', leaderName: '', description: '', workZone: '' })
 
 // ============ 计算属性 ============
-
 const filteredTeams = computed(() => {
-  if (!filters.value.keyword) return allTeams.value
-  const keyword = filters.value.keyword.toLowerCase()
-  return allTeams.value.filter(team =>
-    team.name.toLowerCase().includes(keyword) ||
-    team.leaderName.toLowerCase().includes(keyword) ||
-    team.workZone?.toLowerCase().includes(keyword)
-  )
+  return store.teams.filter(team => {
+    if (filters.name && !team.name.toLowerCase().includes(filters.name.toLowerCase())) return false
+    if (filters.leaderName && !team.leaderName.toLowerCase().includes(filters.leaderName.toLowerCase())) return false
+    if (filters.workZone && !(team.workZone || '').toLowerCase().includes(filters.workZone.toLowerCase())) return false
+    return true
+  })
 })
-
-const teams = computed(() => {
-  const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
-  const end = start + pagination.value.pageSize
-  return filteredTeams.value.slice(start, end)
-})
-
-const unassignedWorkers = computed(() => allUnassignedWorkers.value)
-
-const totalPages = computed(() => Math.ceil(filteredTeams.value.length / pagination.value.pageSize))
 
 // ============ 方法 ============
-
-const handleSearch = () => {
-  pagination.value.currentPage = 1
-  pagination.value.total = filteredTeams.value.length
+const handleSearch = () => { pagination.currentPage = 1 }
+const handleReset = () => {
+  Object.assign(filters, { name: '', leaderName: '', workZone: '' })
+  pagination.currentPage = 1
 }
 
-const setPage = (page) => {
-  pagination.value.currentPage = page
+const handleSelectionChange = (selection) => {
+  selectedRows.value = selection.map(s => s.id)
 }
 
-const handlePageSizeChange = () => {
-  pagination.value.currentPage = 1
+const handleBatchDelete = async () => {
+  if (selectedRows.value.length === 0) { ElMessage.warning('请先选择要删除的班组'); return }
+  try {
+    await ElMessageBox.confirm(`确定删除选中的 ${selectedRows.value.length} 个班组吗？`, '提示', {
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning',
+    })
+    selectedRows.value.forEach(id => store.removeTeam(id))
+    ElMessage.success('批量删除成功')
+    handleCancelBatch()
+  } catch { /* 取消 */ }
+}
+
+const handleCancelBatch = () => {
+  batchDeleteMode.value = false
+  selectedRows.value = []
 }
 
 const openAssignModal = (team) => {
@@ -308,56 +299,52 @@ const openAssignModal = (team) => {
   isAssignModalOpen.value = true
 }
 
+const openDetailModal = (team) => {
+  detailTeam.value = team
+  isDetailModalOpen.value = true
+}
+
 const openCreateModal = () => {
   editingTeam.value = null
-  formData.value = { name: '', leaderName: '', description: '', workZone: '' }
+  Object.assign(formData, { name: '', leaderName: '', description: '', workZone: '' })
   isFormOpen.value = true
 }
 
 const openEditModal = (team) => {
   editingTeam.value = team
-  formData.value = {
+  Object.assign(formData, {
     name: team.name,
     leaderName: team.leaderName,
     description: team.description || '',
     workZone: team.workZone || '',
-  }
+  })
   isFormOpen.value = true
 }
 
-// 分配工人 - 调用store.assignWorkers
 const handleAssign = (teamId, workerIds) => {
   store.assignWorkers(teamId, workerIds)
   ElMessage.success('分配成功')
 }
 
-// 提交表单 - 调用store.addTeam 或 store.updateTeam
 const handleSubmit = () => {
   if (editingTeam.value) {
-    // 编辑班组
-    store.updateTeam(editingTeam.value.id, formData.value)
+    store.updateTeam(editingTeam.value.id, { ...formData })
     ElMessage.success('更新成功')
   } else {
-    // 新建班组
-    store.addTeam(formData.value)
+    store.addTeam({ ...formData })
     ElMessage.success('创建成功')
   }
   isFormOpen.value = false
 }
 
-// 删除班组 - 调用store.removeTeam
 const handleDelete = async (team) => {
   try {
     await ElMessageBox.confirm(`确定删除班组 "${team.name}" 吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning',
     })
     store.removeTeam(team.id)
     ElMessage.success('删除成功')
-  } catch {
-    // 用户取消
-  }
+  } catch { /* 取消 */ }
 }
 
 const handleFormClose = () => {
@@ -366,13 +353,7 @@ const handleFormClose = () => {
 }
 
 // ============ 初始化 ============
-
 onMounted(() => {
-  // 种子数据：写入store
-  if (store.teams.length === 0) {
-    generateTeams().forEach(team => store.teams.push(team))
-    generateUnassignedWorkers().forEach(worker => store.unassignedWorkers.push(worker))
-  }
-  pagination.value.total = filteredTeams.value.length
+  store.initSeedData()
 })
 </script>

@@ -4,28 +4,25 @@
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" color="#fff"><Clipboard /></el-icon>
+          <el-icon :size="24" color="#fff"><Tickets /></el-icon>
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">每日工单汇总表</h1>
-          <p class="text-gray-500">每日农事工单执行情况汇总</p>
+          <h1 class="text-2xl font-bold text-gray-900">每日工单汇总</h1>
+          <p class="text-gray-500">基于任务数据汇总的每日农事工单执行情况</p>
         </div>
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- 统计卡片（动态列数：与V1.1 StatCards完全一致） -->
+    <div :class="['grid gap-4', statCards.length <= 4 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-5']">
       <div
-        v-for="(card, index) in statCards"
-        :key="index"
-        class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+        v-for="card in statCards"
+        :key="card.label"
+        class="bg-white rounded-lg p-3 shadow-sm border border-gray-100"
       >
         <div class="flex items-center gap-2">
-          <div
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-            :class="card.iconBgColor"
-          >
-            <span class="text-lg">{{ card.icon }}</span>
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center text-white" :class="card.iconBgColor">
+            <el-icon :size="16"><component :is="card.icon" /></el-icon>
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ card.value }}</p>
@@ -38,18 +35,23 @@
     <!-- 筛选工具栏 -->
     <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap gap-4 items-end">
-        <!-- 日期筛选 -->
-        <div class="min-w-[180px]">
+        <!-- 日期筛选（下拉选择，从任务截止日期提取） -->
+        <div class="min-w-[150px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">日期</label>
-          <el-date-picker
+          <el-select
             v-model="dateFilter"
-            type="date"
-            placeholder="选择日期"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
+            placeholder="全部"
+            clearable
             style="width: 100%"
-            @change="handleDateChange"
-          />
+            @change="handleFilterChange"
+          >
+            <el-option
+              v-for="opt in filterOptionDates"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
+          </el-select>
         </div>
 
         <!-- 工作区域筛选 -->
@@ -57,127 +59,141 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">工作区域</label>
           <el-select
             v-model="greenhouseFilter"
-            placeholder="选择区域"
+            placeholder="全部"
             clearable
             style="width: 100%"
             @change="handleFilterChange"
           >
             <el-option
-              v-for="option in filterOptions.greenhouses"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
+              v-for="opt in filterOptionGreenhouses"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
             />
           </el-select>
         </div>
 
-        <!-- 作业类型筛选 -->
+        <!-- 任务类型筛选 -->
         <div class="min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">作业类型</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">任务类型</label>
           <el-select
             v-model="taskTypeFilter"
-            placeholder="选择类型"
+            placeholder="全部"
             clearable
             style="width: 100%"
             @change="handleFilterChange"
           >
             <el-option
-              v-for="option in filterOptions.taskTypes"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
+              v-for="opt in filterOptionTaskTypes"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
             />
           </el-select>
-        </div>
-
-        <!-- 操作按钮 -->
-        <div class="flex gap-2">
-          <el-button @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button v-if="!exportMode" @click="handleExportClick">
-            <el-icon><Download /></el-icon>
-            导出
-          </el-button>
-          <template v-else>
-            <el-button type="primary" @click="handleConfirmExport">
-              <el-icon><Download /></el-icon>
-              确认导出
-            </el-button>
-            <el-button @click="handleCancelExport">取消</el-button>
-          </template>
         </div>
       </div>
     </div>
 
-    <!-- 数据表格 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table
-        :data="paginatedData"
-        style="width: 100%"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3B82F6, #2563EB)', color: '#fff' }"
-        row-class-name="hover:bg-blue-100 transition-colors"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column
-          v-if="exportMode"
-          type="selection"
-          width="50"
-        />
-        <el-table-column prop="date" label="日期" width="120" />
-        <el-table-column prop="greenhouse" label="工作区域" width="100" />
-        <el-table-column prop="crop" label="作物" width="80" />
-        <el-table-column prop="taskType" label="作业类型" width="150" />
-        <el-table-column label="工作量" width="120">
-          <template #default="{ row }">
-            {{ formatWorkload(row) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100">
-          <template #default="{ row }">
-            <span
-              :class="[
-                'inline-flex px-2 py-1 rounded-full text-xs font-medium',
-                row.status === '已完成' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-              ]"
-            >
-              {{ row.status }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="完成率" width="100">
-          <template #default="{ row }">
-            <span
-              :class="[
-                'font-medium',
-                row.completionRate === '100%' ? 'text-green-600' :
-                parseInt(row.completionRate) >= 80 ? 'text-amber-600' : 'text-red-600'
-              ]"
-            >
-              {{ row.completionRate }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="!exportMode" label="操作" width="80">
-          <template #default="{ row }">
-            <el-button text circle @click="handleView(row)">
-              <el-icon><View /></el-icon>
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <!-- 导出模式底部栏 -->
-      <div
-        v-if="exportMode && selectedRows.length > 0"
-        class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50"
-      >
-        <div class="flex items-center gap-4">
-          <el-button text @click="handleSelectAll">
-            {{ selectedRows.length === summaries.length ? '全不选' : '全选' }}
+    <!-- 表格标题栏 + 导出按钮 -->
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-800">每日工单汇总表</h3>
+      <el-button v-if="!exportMode" size="small" @click="handleExportClick">
+        <el-icon><Download /></el-icon>
+        导出
+      </el-button>
+      <template v-else>
+        <div class="flex gap-2">
+          <el-button type="primary" size="small" @click="handleConfirmExport">
+            <el-icon><Download /></el-icon>
+            确认导出
           </el-button>
-          <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
+          <el-button size="small" @click="handleCancelExport">取消</el-button>
+        </div>
+      </template>
+    </div>
+
+    <!-- 数据表格（与V1.1 SummaryTable原生table完全一致） -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <tr>
+              <th v-if="exportMode" class="py-3 text-sm font-semibold whitespace-nowrap w-12">
+                <input
+                  type="checkbox"
+                  :checked="selectedRows.length === filteredSummaries.length && filteredSummaries.length > 0"
+                  @change="handleSelectAll"
+                  class="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                />
+              </th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 130px">任务编号</th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">任务类型</th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">工作区域</th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">作物</th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">执行人</th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 120px">工作量</th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">进度</th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 90px">状态</th>
+              <th v-if="!exportMode" class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 70px">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-300">
+            <tr
+              v-for="row in paginatedData"
+              :key="row.id"
+              class="hover:bg-blue-100 transition-colors"
+            >
+              <td v-if="exportMode" class="py-3 whitespace-nowrap text-center">
+                <input
+                  type="checkbox"
+                  :checked="selectedRows.includes(row.id)"
+                  @change="handleToggleRow(row.id)"
+                  class="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                />
+              </td>
+              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.taskCode }}</td>
+              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.taskTypeName }}</td>
+              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.greenhouse }}</td>
+              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.crop }}</td>
+              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.worker }}</td>
+              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ formatWorkload(row) }}</td>
+              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
+                {{ row.progress !== undefined ? row.progress + '%' : '-' }}
+              </td>
+              <td class="py-3 px-4 text-sm whitespace-nowrap">
+                <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', statusColorClass(row.status)]">
+                  {{ row.status }}
+                </span>
+              </td>
+              <td v-if="!exportMode" class="py-3 whitespace-nowrap text-center">
+                <button class="text-gray-500 hover:text-gray-700 p-1" title="查看">
+                  <el-icon :size="16"><View /></el-icon>
+                </button>
+              </td>
+            </tr>
+            <!-- 空状态 -->
+            <tr v-if="paginatedData.length === 0">
+              <td :colspan="exportMode ? 10 : 9" class="py-8 text-center text-gray-500">
+                暂无数据
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 导出模式底部选择栏 -->
+        <div
+          v-if="exportMode && selectedRows.length > 0"
+          class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50"
+        >
+          <div class="flex items-center gap-4">
+            <button
+              class="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+              @click="handleSelectAll"
+            >
+              {{ selectedRows.length === filteredSummaries.length ? '全不选' : '全选' }}
+            </button>
+            <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
+          </div>
         </div>
       </div>
 
@@ -185,24 +201,37 @@
       <div class="flex items-center justify-between px-4 py-3 border-t">
         <div class="flex items-center gap-2 text-sm text-gray-500">
           <span>每页</span>
-          <el-select
+          <select
             v-model="pageSize"
-            size="small"
-            style="width: 100px"
+            class="border border-gray-300 rounded px-2 py-1 text-sm"
             @change="handlePageSizeChange"
           >
-            <el-option :value="10" label="10条" />
-            <el-option :value="20" label="20条" />
-            <el-option :value="50" label="50条" />
-          </el-select>
+            <option :value="10">10条</option>
+            <option :value="20">20条</option>
+            <option :value="50">50条</option>
+          </select>
         </div>
-        <el-pagination
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          :total="filteredSummaries.length"
-          layout="prev, pager, next"
-          @current-change="handlePageChange"
-        />
+        <div class="flex items-center gap-1">
+          <button
+            :disabled="currentPage <= 1"
+            class="px-3 py-1 border rounded text-sm"
+            :class="currentPage <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-600 border-gray-300 hover:bg-gray-50'"
+            @click="currentPage--"
+          >上一页</button>
+          <button
+            v-for="p in totalPages"
+            :key="p"
+            class="px-3 py-1 border rounded text-sm"
+            :class="p === currentPage ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-600 border-gray-300 hover:bg-gray-50'"
+            @click="currentPage = p"
+          >{{ p }}</button>
+          <button
+            :disabled="currentPage >= totalPages"
+            class="px-3 py-1 border rounded text-sm"
+            :class="currentPage >= totalPages ? 'text-gray-300 border-gray-200' : 'text-gray-600 border-gray-300 hover:bg-gray-50'"
+            @click="currentPage++"
+          >下一页</button>
+        </div>
       </div>
     </div>
 
@@ -251,14 +280,6 @@
         </div>
       </template>
     </el-dialog>
-
-    <!-- 加载状态 -->
-    <div v-if="loading" class="flex items-center justify-center h-64">
-      <div class="flex flex-col items-center gap-4">
-        <el-icon class="is-loading" :size="40"><Loading /></el-icon>
-        <span class="text-gray-500">加载中...</span>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -266,16 +287,59 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  DocumentCopy,
-  Search,
   Download,
+  Message,
+  Clock,
+  CircleCheck,
+  Loading,
+  Tickets,
   View,
-  Loading
 } from '@element-plus/icons-vue'
-import { useDailyWorkSummaryStore } from '@/stores/modules/dailyWorkSummary'
+import { useTasks } from '@/composables/useTasks'
+import { usePersistentWorkLogs } from '@/composables/usePersistentWorkLogs'
 
-// Pinia store
-const store = useDailyWorkSummaryStore()
+// ============ 数据源（与V1.1完全一致）============
+const { tasks } = useTasks()
+const { workLogs } = usePersistentWorkLogs()
+
+// 任务类型英文→中文映射表（兜底用，覆盖所有V1.1已知类型）
+const TYPE_NAME_MAP = {
+  // 农事作业
+  fertilization: '施肥',
+  irrigation: '灌溉',
+  pruning: '修剪',
+  pesticide: '植保',
+  weeding: '除草',
+  harvest: '采收',
+  planting: '种植',
+  seedling: '育苗',
+  soil_improvement: '土壤改良',
+  mulching: '覆膜',
+  pollination: '授粉',
+  transplanting: '移栽',
+  ventilation: '通风',
+  plant_protection: '植保',
+  // 维修类（V1.1 laborData临时任务）
+  equipment_repair: '设备维修',
+  farm_repair: '农事抢修',
+  // 其他
+  other: '其他',
+}
+
+// ============ 筛选状态 ============
+const dateFilter = ref('')
+const greenhouseFilter = ref('')
+const taskTypeFilter = ref('')
+
+// ============ 分页 ============
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// ============ 导出 ============
+const exportMode = ref(false)
+const selectedRows = ref([])
+const exportFormat = ref('excel')
+const showExportModal = ref(false)
 
 const exportFormats = [
   { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
@@ -284,98 +348,133 @@ const exportFormats = [
   { value: 'excel_with_attachments', label: 'Excel+附件 (.zip)', desc: '包含照片等附件，适合需要原始证据的场景' },
 ]
 
-// ============ 模拟数据 ============
+// ============ 核心：任务→汇总行（与V1.1完全一致）============
+const summaries = computed(() => {
+  return tasks.value
+    .filter(task => task.id && task.title)
+    .map(task => {
+      // 从工作日志中查找关联记录，用于补充工时/人数
+      const matchedLogs = workLogs.value.filter(
+        w => w.taskId === task.id || w.taskCode === task.taskCode
+      )
+      const totalHours = matchedLogs.reduce((sum, w) => sum + (w.workloadHours || 0), 0)
+      const totalDays = matchedLogs.reduce((sum, w) => sum + (w.workloadDays || 0), 0)
+      const totalWorkers = matchedLogs.length > 0
+        ? Math.max(...matchedLogs.map(w => w.workers || 0))
+        : 0
 
-const generateMockSummaries = () => {
-  const tasks = [
-    { greenhouse: '东区1号棚', crop: '番茄', taskType: '浇水' },
-    { greenhouse: '东区2号棚', crop: '黄瓜', taskType: '施肥' },
-    { greenhouse: '西区1号棚', crop: '茄子', taskType: '除草' },
-    { greenhouse: '西区2号棚', crop: '辣椒', taskType: '采摘' },
-    { greenhouse: '南区1号棚', crop: '番茄', taskType: '打药' },
-  ]
+      // 状态标签映射
+      const statusMap = {
+        draft: '草稿',
+        pending: '待接受',
+        accepted: '已接受',
+        in_progress: '处理中',
+        waiting_acceptance: '待验收',
+        completed: '已完成',
+        rejected: '返工中',
+        failed: '任务失败',
+        cancelled: '已取消',
+        abandoned: '已放弃',
+      }
+      const statusLabel = statusMap[task.status] || task.status
 
-  const statuses = ['已完成', '进行中', '待接受', '已接受']
-  const completionRates = ['100%', '80%', '60%', '40%', '0%']
+      return {
+        id: task.id,
+        taskCode: task.taskCode || task.id || '-',
+        taskTypeName: task.typeName || TYPE_NAME_MAP[task.type] || task.type || '-',
+        greenhouse: task.greenhouseName || '-',
+        crop: task.cropName || '-',
+        worker: task.assigneeName || '-',
+        tasks: task.title || '-',
+        workloadDays: totalDays || undefined,
+        workloadHours: totalHours || undefined,
+        workers: totalWorkers || undefined,
+        progress: task.progress || 0,
+        status: statusLabel,
+        dueDate: task.dueDate || undefined,
+      }
+    })
+})
 
-  return Array.from({ length: 100 }, (_, i) => {
-    const task = tasks[i % tasks.length]
-    const date = new Date()
-    date.setDate(date.getDate() - Math.floor(i / 5))
-    const dateStr = date.toISOString().split('T')[0]
-    const statusIndex = i % 4
-    const status = statuses[statusIndex]
-    return {
-      id: `summary-${i + 1}`,
-      date,
-      taskId: `task-${i + 1}`,
-      taskCode: `TK${String(i + 1).padStart(4, '0')}`,
-      greenhouse: task.greenhouse,
-      crop: task.crop,
-      taskType: task.taskType,
-      plannedArea: Math.floor(Math.random() * 10) + 5,
-      completedArea: Math.floor(Math.random() * 10),
-      workloadDays: Math.floor(Math.random() * 3) + 1,
-      workloadHours: Math.floor(Math.random() * 8) + 1,
-      workers: Math.floor(Math.random() * 5) + 1,
-      status,
-      completionRate: completionRates[Math.floor(Math.random() * 4)],
-    }
+// ============ 筛选 ============
+const filteredSummaries = computed(() => {
+  return summaries.value.filter(s => {
+    if (dateFilter.value && s.dueDate !== dateFilter.value) return false
+    if (greenhouseFilter.value && greenhouseFilter.value !== '全部' && s.greenhouse !== greenhouseFilter.value) return false
+    if (taskTypeFilter.value && taskTypeFilter.value !== '全部' && s.taskTypeName !== taskTypeFilter.value) return false
+    return true
   })
-}
-
-// ============ 状态 ============
-
-const loading = computed(() => store.loading)
-const currentPage = ref(1)
-const pageSize = ref(10)
-
-// 筛选条件 - 通过computed get/set与store双向同步
-const dateFilter = computed({
-  get: () => store.filters.date,
-  set: (val) => store.setFilter('date', val || '')
-})
-const greenhouseFilter = computed({
-  get: () => store.filters.greenhouse,
-  set: (val) => store.setFilter('greenhouse', val || '')
-})
-const taskTypeFilter = computed({
-  get: () => store.filters.taskType,
-  set: (val) => store.setFilter('taskType', val || '')
 })
 
-// 导出相关状态
-const exportMode = ref(false)
-const selectedRows = ref([])
-const exportFormat = ref('excel')
-const showExportModal = ref(false)
+// ============ 筛选选项（从tasks提取，与V1.1完全一致）============
+const filterOptionDates = computed(() => {
+  const dates = [...new Set(tasks.value.map(t => t.dueDate).filter(Boolean))].sort((a, b) => String(b).localeCompare(String(a)))
+  return [
+    { value: '', label: '全部' },
+    ...dates.map(d => ({ value: d, label: d })),
+  ]
+})
 
-// ============ 计算属性 ============
+const filterOptionGreenhouses = computed(() => {
+  const greenhouses = [...new Set(tasks.value.map(t => t.greenhouseName).filter(Boolean))]
+  return [
+    { value: '', label: '全部' },
+    ...greenhouses.map(g => ({ value: g, label: g })),
+  ]
+})
 
-// 从store获取筛选结果和筛选项
-const filteredSummaries = computed(() => store.filteredSummaries)
-const filterOptions = computed(() => store.filterOptions)
+const filterOptionTaskTypes = computed(() => {
+  const taskTypes = [...new Set(tasks.value.map(t => t.typeName || t.type).filter(Boolean))]
+  return [
+    { value: '', label: '全部' },
+    ...taskTypes.map(t => ({ value: t, label: t })),
+  ]
+})
 
+// ============ 分页 ============
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
   return filteredSummaries.value.slice(start, end)
 })
 
-// 统计卡片 - 使用store.stats
+// ============ 统计卡片（5个：与V1.1完全一致）============
 const statCards = computed(() => {
-  const s = store.stats
+  const total = summaries.value.length
+  const completed = summaries.value.filter(s => s.status === '已完成').length
+  const inProgress = summaries.value.filter(s =>
+    ['已接受', '处理中', '返工中'].includes(s.status)
+  ).length
+  const waitingAcceptance = summaries.value.filter(s => s.status === '待验收').length
+  const pending = summaries.value.filter(s => s.status === '待接受').length
+
   return [
-    { label: '任务总数', value: s.total, icon: '📋', iconBgColor: 'bg-blue-500' },
-    { label: '已作业', value: s.completed, icon: '✓', iconBgColor: 'bg-green-500' },
-    { label: '进行中', value: s.inProgress, icon: '⟳', iconBgColor: 'bg-amber-500' },
-    { label: '待接受', value: s.pending, icon: '📨', iconBgColor: 'bg-purple-500' },
+    { label: '任务总数', value: total, icon: Tickets, iconBgColor: 'from-blue-500 to-blue-600' },
+    { label: '待接受', value: pending, icon: Message, iconBgColor: 'from-gray-500 to-gray-600' },
+    { label: '进行中', value: inProgress, icon: Loading, iconBgColor: 'from-amber-500 to-amber-600' },
+    { label: '待验收', value: waitingAcceptance, icon: Clock, iconBgColor: 'from-orange-500 to-orange-600' },
+    { label: '已完成', value: completed, icon: CircleCheck, iconBgColor: 'from-green-500 to-green-600' },
   ]
 })
 
-// ============ 方法 ============
+// ============ 状态颜色映射（8种：与V1.1完全一致）============
+const statusColorMap = {
+  '已完成': 'bg-green-100 text-green-700',
+  '待验收': 'bg-orange-100 text-orange-700',
+  '已接受': 'bg-blue-100 text-blue-700',
+  '处理中': 'bg-blue-100 text-blue-700',
+  '返工中': 'bg-red-100 text-red-700',
+  '待接受': 'bg-gray-100 text-gray-600',
+  '已取消': 'bg-gray-100 text-gray-500',
+  '任务失败': 'bg-purple-100 text-purple-700',
+}
 
-const formatWorkload = (row) => {
+function statusColorClass(status) {
+  return statusColorMap[status] || 'bg-gray-100 text-gray-700'
+}
+
+// ============ 工作量格式化 ============
+function formatWorkload(row) {
   const parts = []
   if (row.workloadDays) parts.push(`${row.workloadDays}天`)
   if (row.workloadHours) parts.push(`${row.workloadHours}小时`)
@@ -383,31 +482,27 @@ const formatWorkload = (row) => {
   return parts.length > 0 ? parts.join('') : '-'
 }
 
-const handleDateChange = () => {
+// ============ 事件处理 ============
+function handleFilterChange() {
   currentPage.value = 1
 }
 
-const handleFilterChange = () => {
+function handlePageSizeChange() {
   currentPage.value = 1
 }
 
-const handleSearch = () => {
-  currentPage.value = 1
+const totalPages = computed(() => Math.ceil(filteredSummaries.value.length / pageSize.value))
+
+function handleToggleRow(id) {
+  const idx = selectedRows.value.indexOf(id)
+  if (idx === -1) {
+    selectedRows.value = [...selectedRows.value, id]
+  } else {
+    selectedRows.value = selectedRows.value.filter(s => s !== id)
+  }
 }
 
-const handlePageChange = (page) => {
-  currentPage.value = page
-}
-
-const handlePageSizeChange = () => {
-  currentPage.value = 1
-}
-
-const handleSelectionChange = (selection) => {
-  selectedRows.value = selection.map(s => s.id)
-}
-
-const handleSelectAll = () => {
+function handleSelectAll() {
   if (selectedRows.value.length === filteredSummaries.value.length) {
     selectedRows.value = []
   } else {
@@ -415,12 +510,12 @@ const handleSelectAll = () => {
   }
 }
 
-const handleExportClick = () => {
+function handleExportClick() {
   exportMode.value = true
   selectedRows.value = []
 }
 
-const handleConfirmExport = () => {
+function handleConfirmExport() {
   if (selectedRows.value.length === 0) {
     ElMessage.warning('请先选择要导出的数据')
     return
@@ -428,27 +523,65 @@ const handleConfirmExport = () => {
   showExportModal.value = true
 }
 
-const handleCancelExport = () => {
+function handleCancelExport() {
   exportMode.value = false
   selectedRows.value = []
 }
 
-const handleDoExport = () => {
-  // 实际项目中这里会调用导出服务
-  ElMessage.success(`已选择 ${selectedRows.value.length} 条数据，将以 ${exportFormat.value} 格式导出`)
+function handleDoExport() {
+  const exportData = filteredSummaries.value.filter(s => selectedRows.value.includes(s.id))
+  const rows = exportData.map(s => {
+    const parts = []
+    if (s.workloadDays) parts.push(`${s.workloadDays}天`)
+    if (s.workloadHours) parts.push(`${s.workloadHours}小时`)
+    if (s.workers) parts.push(`${s.workers}人`)
+    return {
+      '任务编号': s.taskCode,
+      '任务类型': s.taskTypeName,
+      '工作区域': s.greenhouse,
+      '作物': s.crop,
+      '执行人': s.worker,
+      '工作内容': s.tasks,
+      '工作量': parts.length > 0 ? parts.join('') : '-',
+      '进度': s.progress !== undefined ? `${s.progress}%` : '-',
+      '状态': s.status,
+      '截止日期': s.dueDate || '-',
+    }
+  })
+
+  const headers = ['任务编号', '任务类型', '工作区域', '作物', '执行人', '工作内容', '工作量', '进度', '状态', '截止日期']
+
+  let content, mimeType, ext
+  if (exportFormat.value === 'csv') {
+    const BOM = '﻿'
+    content = BOM + headers.join(',') + '\n' + rows.map(r => headers.map(h => `"${r[h] || ''}"`).join(',')).join('\n')
+    mimeType = 'text/csv;charset=utf-8'
+    ext = 'csv'
+  } else {
+    // Excel/Word: HTML table
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${headers.map(h => `<td>${r[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    mimeType = exportFormat.value === 'word' ? 'application/msword' : 'application/vnd.ms-excel'
+    ext = exportFormat.value === 'word' ? 'doc' : 'xls'
+  }
+
+  const blob = new Blob([content], { type: `${mimeType};charset=utf-8` })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `每日工单汇总_${new Date().toISOString().slice(0, 10)}.${ext}`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+
+  ElMessage.success(`已导出 ${selectedRows.value.length} 条数据为 ${ext.toUpperCase()} 格式`)
   showExportModal.value = false
   exportMode.value = false
   selectedRows.value = []
 }
-
-const handleView = (row) => {
-  ElMessage.info(`查看详情: ${row.taskCode}`)
-}
-
-// ============ 初始化 ============
-
-// 种子数据写入store（开发阶段，后续对接API替换）
-if (store.summaries.length === 0) {
-  store.summaries = generateMockSummaries()
-}
 </script>
+
+<style scoped>
+/* 原生表格样式：与V1.1 SummaryTable完全一致 */
+/* Tailwind class处理所有样式：header渐变、行分隔线、行悬停 */
+</style>

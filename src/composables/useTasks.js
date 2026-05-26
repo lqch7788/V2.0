@@ -174,7 +174,7 @@ function convertStoreTempTaskToTask(t) {
     taskCode: id,
     title,
     type: type || 'other',
-    typeName: type || '其他',
+    typeName: t.typeName || t.task_type_name || type || '其他',
     status,
     priority: t.priority || t.urgency || 'normal',
     progress: t.progress || 0,

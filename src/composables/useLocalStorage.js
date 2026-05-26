@@ -19,6 +19,8 @@ export const STORAGE_KEYS = {
   MY_TASKS: 'yuanxingtu_my_tasks',
   PROBLEM_ATTACHMENTS: 'yuanxingtu_problem_attachments',
   DISPATCH_MODE_CONFIG: 'yuanxingtu_dispatch_mode_config',
+  TEAMS: 'yuanxingtu_teams',
+  UNASSIGNED_WORKERS: 'yuanxingtu_unassigned_workers',
 }
 
 /** 从 localStorage 读取数据（带版本控制） */
