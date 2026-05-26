@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-          <el-icon :size="24" color="#fff"><ClipboardList /></el-icon>
+          <el-icon :size="24" color="#fff"><List /></el-icon>
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">生产领料</h1>
@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { ClipboardList } from '@element-plus/icons-vue'
+import { List } from '@element-plus/icons-vue'
 
 const TABS = [
   { key: 'application', label: '申请领料' },

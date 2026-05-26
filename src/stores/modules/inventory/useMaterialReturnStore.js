@@ -32,7 +32,7 @@ export const useMaterialReturnStore = defineStore('materialReturn', () => {
         ...filters
       }
       const res = await getReturnRecords(params)
-      returnRecords.value = res.data || []
+      returnRecords.value = res || []
       total.value = res.total || 0
       if (filters.page) pagination.value.page = filters.page
       if (filters.limit) pagination.value.limit = filters.limit

@@ -35,7 +35,7 @@ export const useSupplierStore = defineStore('supplier', () => {
         ...filters
       }
       const res = await getSuppliers(params)
-      suppliers.value = res.data || []
+      suppliers.value = res || []
       total.value = res.total || res.meta?.total || 0
       if (filters.page) pagination.value.page = filters.page
       if (filters.limit) pagination.value.limit = filters.limit

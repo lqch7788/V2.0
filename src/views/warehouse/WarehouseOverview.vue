@@ -18,16 +18,30 @@
       </div>
     </div>
 
-    <!-- 物料筛选器 -->
-    <MaterialFilters
-      :filters="filters"
-      :low-stock-count="lowStockCount"
-      @filters-change="handleFiltersChange"
-      @low-stock-click="handleLowStockToggle"
-    />
+    <!-- 加载状态 -->
+    <div v-if="loading" class="flex items-center justify-center py-12">
+      <el-icon class="animate-spin text-3xl text-emerald-500"><Loading /></el-icon>
+      <span class="ml-3 text-gray-500">加载中...</span>
+    </div>
 
-    <!-- 操作工具栏 -->
-    <ActionToolbar
+    <!-- 错误状态 -->
+    <div v-if="error && !loading" class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+      <p class="text-red-600">加载失败：{{ error }}</p>
+      <el-button type="primary" size="small" class="mt-2" @click="warehouseMaterialStore.loadMaterials()">重试</el-button>
+    </div>
+
+    <!-- 主内容区（加载中或出错时隐藏） -->
+    <template v-if="!loading && !error">
+      <!-- 物料筛选器 -->
+      <MaterialFilters
+        :filters="filters"
+        :low-stock-count="lowStockCount"
+        @filters-change="handleFiltersChange"
+        @low-stock-click="handleLowStockToggle"
+      />
+
+      <!-- 操作工具栏 -->
+      <ActionToolbar
       title="物料汇总表"
       :batch-edit-mode="batchEditMode"
       :delete-mode="deleteMode"
@@ -67,6 +81,7 @@
       @cancel-selection="handleCancelSelection"
       @confirm-export="handleConfirmExportClick"
     />
+    </template>
 
     <!-- 物料详情弹窗 -->
     <MaterialDetailModal
@@ -185,8 +200,9 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { Goods } from '@element-plus/icons-vue'
+import { Goods, Loading } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { storeToRefs } from 'pinia'
 import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
 
 // 导入V2.0已有的组件
@@ -204,10 +220,15 @@ import MaterialExportModal from './components/MaterialExportModal.vue'
 
 // 使用Store
 const warehouseMaterialStore = useWarehouseMaterialStore()
+const { loading, error } = storeToRefs(warehouseMaterialStore)
 
 // 初始化加载
 onMounted(async () => {
-  await warehouseMaterialStore.loadMaterials()
+  try {
+    await warehouseMaterialStore.loadMaterials()
+  } catch {
+    // 错误已在Store中处理
+  }
 })
 
 // 筛选状态 - 与V1.1保持一致
@@ -406,20 +427,25 @@ const handleDoExport = () => {
     extension = 'doc'
   }
 
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `物料汇总表_${new Date().toISOString().slice(0, 10)}.${extension}`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  try {
+    const blob = new Blob([content], { type: mimeType })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `物料汇总表_${new Date().toISOString().slice(0, 10)}.${extension}`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
 
-  showExportModal.value = false
-  exportMode.value = false
-  selectedRows.value = []
-  ElMessage.success('导出成功')
+    showExportModal.value = false
+    exportMode.value = false
+    selectedRows.value = []
+    ElMessage.success('导出成功')
+  } catch (err) {
+    ElMessage.error('导出失败')
+    console.error('导出失败:', err)
+  }
 }
 
 // 查看/编辑/删除操作
@@ -452,8 +478,13 @@ const handleConfirmDeleteAction = () => {
 }
 
 const handleConfirmDelete = async (id) => {
-  await warehouseMaterialStore.removeMaterial(id)
-  await warehouseMaterialStore.loadMaterials()
+  try {
+    await warehouseMaterialStore.removeMaterial(id)
+    await warehouseMaterialStore.loadMaterials()
+    ElMessage.success('删除成功')
+  } catch {
+    ElMessage.error('删除失败')
+  }
 }
 
 const handleSaveEdit = async (material) => {
@@ -521,13 +552,19 @@ const handleBatchFieldChange = (materialId, field, value) => {
   }
 }
 
-const handleBatchSaveAll = () => {
+const handleBatchSaveAll = async () => {
+  const edits = Object.entries(batchEditedMaterials.value)
+  if (edits.length > 0) {
+    for (const [materialId, data] of edits) {
+      await warehouseMaterialStore.editMaterial(materialId, data)
+    }
+    await warehouseMaterialStore.loadMaterials()
+  }
   showBatchEditModal.value = false
   batchEditMode.value = false
   selectedRows.value = []
   batchEditedMaterials.value = {}
   currentBatchEditIndex.value = 0
-  warehouseMaterialStore.loadMaterials()
   ElMessage.success('批量编辑保存成功')
 }
 

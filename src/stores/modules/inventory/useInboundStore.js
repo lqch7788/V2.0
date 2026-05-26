@@ -32,7 +32,7 @@ export const useInboundStore = defineStore('inbound', () => {
         ...filters
       }
       const res = await getInboundRecords(params)
-      inboundRecords.value = res.data || []
+      inboundRecords.value = res || []
       total.value = res.total || 0
       if (filters.page) pagination.value.page = filters.page
       if (filters.limit) pagination.value.limit = filters.limit
