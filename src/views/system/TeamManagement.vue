@@ -487,10 +487,15 @@ const handleDeleteTeam = async (id) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
+  } catch {
+    return // 用户取消
+  }
+  try {
     await deleteTeam(id)
     teams.value = teams.value.filter(t => t.id !== id)
-  } catch {
-    // 用户取消
+  } catch (error) {
+    console.error('删除班组失败:', error)
+    ElMessage.error('删除失败')
   }
 }
 
@@ -579,10 +584,15 @@ const handleDeleteShift = async (id) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
+  } catch {
+    return // 用户取消
+  }
+  try {
     await deleteShift(id)
     shifts.value = shifts.value.filter(s => s.id !== id)
-  } catch {
-    // 用户取消
+  } catch (error) {
+    console.error('删除班次失败:', error)
+    ElMessage.error('删除失败')
   }
 }
 

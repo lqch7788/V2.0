@@ -89,7 +89,7 @@
             class="hover:bg-blue-50"
           >
             <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ role.aid }}</td>
-            <td class="px-4 py-3 text-sm text-gray-900">{{ role.name }}</td>
+            <td class="px-4 py-3 text-sm text-gray-900">{{ role.role_name || role.name }}</td>
             <td class="px-4 py-3 text-sm text-gray-500">{{ getOrgName(role.orgOid) }}</td>
             <td class="px-4 py-3 text-sm text-gray-500 max-w-[200px] truncate">
               {{ role.description || '-' }}

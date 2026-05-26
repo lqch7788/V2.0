@@ -454,6 +454,8 @@ const saveAuthority = async () => {
 }
 
 const loadRoleAuthority = async () => {
+  authorityChanges.clear()
+  hasChanges.value = false
   if (!selectedRoleOid.value) return
   try {
     const data = await getRoleAuthority(selectedRoleOid.value, selectedAppType.value)
@@ -530,6 +532,7 @@ const handleProcessSave = async () => {
     }
     await saveProcess(payload)
     processDialogVisible.value = false
+    await loadProcesses({ appType: selectedAppType.value })
   } catch (err) {
     ElMessage.error('保存失败')
   }
@@ -538,6 +541,7 @@ const handleProcessSave = async () => {
 const handleProcessDelete = async (oid) => {
   try {
     await deleteProcess(oid)
+    await loadProcesses({ appType: selectedAppType.value })
   } catch (err) {
     ElMessage.error('删除失败')
   }

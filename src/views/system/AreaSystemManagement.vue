@@ -355,8 +355,7 @@ const handleSubmit = async () => {
       deviceOid: form.value.deviceOid || undefined,
       description: form.value.description || undefined
     })
-    if (result) {
-    }
+    if (!result) return
   }
   closeModal()
 }

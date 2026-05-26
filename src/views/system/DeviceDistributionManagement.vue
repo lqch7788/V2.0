@@ -440,8 +440,7 @@ const handleSubmit = async () => {
   } else {
     // 新增
     const result = await store.createItem({ ...form, showCurve: form.showCurve || 0 })
-    if (result) {
-    }
+    if (!result) return
   }
 
   dialogVisible.value = false
@@ -453,9 +452,9 @@ const handleDelete = async () => {
   if (!selectedItem.value) return
 
   const success = await store.deleteItem(selectedItem.value.oid)
-  if (success) {
-  } else {
+  if (!success) {
     ElMessage.error('删除失败')
+    return
   }
 
   deleteDialogVisible.value = false

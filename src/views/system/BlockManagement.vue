@@ -418,7 +418,7 @@ const errors = reactive({
  */
 const baseOptions = computed(() => {
   return greenhouseStore.greenhouses.map(gh => ({
-    value: gh.id || gh.oid,
+    value: gh.oid || gh.id,
     label: gh.name || gh.greenhouseName || '未命名基地'
   }))
 })
@@ -650,7 +650,6 @@ const confirmDelete = async () => {
 
   try {
     await zoneStore.removeZone(deleteTargetId.value)
-    ElMessage.success('删除区域成功')
     deleteDialogVisible.value = false
     deleteTargetId.value = null
   } catch (err) {

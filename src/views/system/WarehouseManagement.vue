@@ -294,7 +294,6 @@ const handleCreate = async () => {
           status: formData.status,
           description: formData.description
         })
-        ElMessage.success('创建仓库成功')
         handleCloseModal()
         loadWarehouses()
       } catch (error) {
@@ -322,7 +321,6 @@ const handleUpdate = async () => {
           status: formData.status,
           description: formData.description
         })
-        ElMessage.success('更新仓库成功')
         handleCloseModal()
         loadWarehouses()
       } catch (error) {
@@ -336,7 +334,8 @@ const handleUpdate = async () => {
 // 删除仓库
 const handleDeleteWarehouse = async (id) => {
   try {
-    const whName = warehouse.warehouseName || warehouse.name || ''
+    const target = allWarehouses.value.find(w => w.id === id)
+    const whName = target?.name || target?.warehouseName || ''
     await ElMessageBox.confirm(`确定要删除仓库"${whName}"吗？`, '确认删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
@@ -344,7 +343,6 @@ const handleDeleteWarehouse = async (id) => {
     })
     await deleteWarehouse(id)
     allWarehouses.value = allWarehouses.value.filter(w => w.id !== id)
-    ElMessage.success('删除仓库成功')
   } catch {
     // 用户取消操作
   }

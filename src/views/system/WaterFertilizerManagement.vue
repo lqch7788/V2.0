@@ -594,7 +594,6 @@ const handleDispatch = async (oid) => {
 
   if (result) {
     dispatchProgress.value = 100
-    ElMessage.success('参数下发成功')
     setTimeout(() => {
       dispatchingOid.value = null
       dispatchProgress.value = 0

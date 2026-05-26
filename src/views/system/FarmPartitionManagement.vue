@@ -520,7 +520,6 @@ const handleSubmit = async () => {
   if (!form.name.trim()) return
 
   if (isEditMode.value) {
-    // 编辑模式 - 调用store更新
     await farmPartitionStore.updateItem(selectedItem.value.oid, {
       name: form.name,
       areaType: form.areaType,
@@ -532,8 +531,7 @@ const handleSubmit = async () => {
       description: form.description || undefined,
     })
   } else {
-    // 新增模式 - 调用store创建
-    await farmPartitionStore.createItem({
+    const result = await farmPartitionStore.createItem({
       name: form.name,
       areaType: form.areaType,
       greenhouseType: form.greenhouseType || undefined,
@@ -544,6 +542,7 @@ const handleSubmit = async () => {
       description: form.description || undefined,
       parentOid: parentForAdd.value,
     })
+    if (!result) return
   }
 
   dialogVisible.value = false
@@ -569,3 +568,31 @@ onMounted(() => {
   fetchItems()
 })
 </script>
+
+<style scoped>
+/* 弹窗头部3-stop渐变 - 与V1.1 PartitionModal 100%一致 */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 24px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 24px;
+}
+
+/* 主按钮emerald绿色 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
+}
+</style>

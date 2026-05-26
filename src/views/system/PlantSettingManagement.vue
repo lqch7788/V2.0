@@ -97,7 +97,7 @@
             </template>
             <template v-else>
               <tr
-                v-for="item in paginatedData"
+                v-for="item in filteredData"
                 :key="item.oid"
                 class="border-b border-gray-50 hover:bg-gray-50 transition-colors"
               >
@@ -159,13 +159,6 @@
         <div class="text-sm text-gray-500">
           共 {{ filteredData.length }} 条记录
         </div>
-        <el-pagination
-          v-model:current-page="pagination.currentPage"
-          :page-size="pagination.pageSize"
-          :total="filteredData.length"
-          layout="prev, pager, next"
-          background
-        />
       </div>
     </div>
 
@@ -189,7 +182,6 @@
               <el-input
                 v-model="form.settingKey"
                 placeholder="如：plant_icon"
-                :disabled="isEdit"
               />
             </div>
             <div>

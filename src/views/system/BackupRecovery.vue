@@ -26,8 +26,14 @@
       </div>
     </div>
 
+    <!-- 加载状态 -->
+    <div v-if="loading" class="flex items-center justify-center h-64">
+      <el-icon class="is-loading text-2xl text-emerald-600"><Loading /></el-icon>
+      <span class="ml-2 text-gray-600">加载中...</span>
+    </div>
+
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div v-if="!loading" class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
@@ -83,7 +89,7 @@
     </div>
 
     <!-- Tab导航 -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+    <div v-if="!loading" class="bg-white rounded-lg shadow-sm border border-gray-100">
       <div class="flex border-b">
         <button
           v-for="tab in tabs"
@@ -105,7 +111,7 @@
     </div>
 
     <!-- 搜索栏 -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+    <div v-if="!loading" class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
       <div class="flex items-center gap-4">
         <div class="flex-1">
           <div class="relative max-w-md">

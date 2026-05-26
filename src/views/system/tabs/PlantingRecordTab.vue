@@ -453,7 +453,6 @@ const handleEndSeason = async () => {
   }
   try {
     await plantingRecordStore.endSeason(currentRecord.value.oid, endForm.value)
-    ElMessage.success('结束种植季成功')
     endDialogVisible.value = false
     await loadData()
   } catch (err) {

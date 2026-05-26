@@ -394,25 +394,30 @@ const closeModal = () => {
 const handleSubmit = async () => {
   if (!form.cameraName.trim()) return
 
-  // 根据分区名称获取分区信息
-  const partition = partitionStore.items.find(p => p.oid === form.partitionOid)
   const submitData = {
-    ...form,
-    partitionName: partition?.name || '',
-    status: 'active'
+    cameraName: form.cameraName,
+    cameraCode: form.cameraCode || undefined,
+    rtspUrl: form.rtspUrl || undefined,
+    httpUrl: form.httpUrl || undefined,
+    partitionOid: form.partitionOid || undefined,
+    greenhouseOid: form.greenhouseOid || undefined,
+    brand: form.brand || undefined,
+    model: form.model || undefined,
+    username: form.username || undefined,
+    password: form.password || undefined,
+    channelCount: form.channelCount
   }
 
   try {
     if (isEditMode.value) {
       await cameraStore.updateItem(selectedItem.value.oid, submitData)
+      closeModal()
     } else {
       const result = await cameraStore.createItem(submitData)
       if (result) {
         closeModal()
       }
-      return
     }
-    closeModal()
   } catch (err) {
     ElMessage.error(isEditMode.value ? '编辑失败' : '新增失败')
   }

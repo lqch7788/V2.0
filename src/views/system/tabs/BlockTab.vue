@@ -457,7 +457,6 @@ const handleSave = async () => {
       } else {
         await zoneStore.addZone(formData.value)
       }
-      ElMessage.success(editingItem.value ? '编辑成功' : '新增成功')
     } else {
       if (!formData.value.blockName) {
         ElMessage.warning('请填写地块名称')
@@ -468,7 +467,6 @@ const handleSave = async () => {
       } else {
         await blockStore.addBlock(formData.value)
       }
-      ElMessage.success(editingItem.value ? '编辑成功' : '新增成功')
     }
     dialogVisible.value = false
     await loadData()

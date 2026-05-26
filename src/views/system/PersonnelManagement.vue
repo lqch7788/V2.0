@@ -377,7 +377,7 @@ import {
   Briefcase,
   Calendar,
   Document,
-  Tickets,
+  Clock,
   Plus,
   Edit,
   View,
@@ -390,11 +390,11 @@ const positionStore = usePositionStore()
 
 // HR 子功能卡片 - 与V1.1 hrSubItems 一致
 const hrSubItems = [
-  { icon: User, label: '人员管理', path: '/personnel/staff', desc: '园区员工信息管理' },
-  { icon: Briefcase, label: '职务管理', path: '/settings/personnel', desc: '组织架构与职务岗位设置' },
-  { icon: Calendar, label: '员工考勤', path: '/labor/attendance', desc: '正式员工考勤记录与统计' },
-  { icon: Document, label: '审批单', path: '/hr-approval', desc: '人事相关审批流程管理' },
-  { icon: Tickets, label: '考勤单据', path: '/labor/attendance', desc: '考勤异常单据与补录申请' }
+  { icon: User, label: '人员管理', path: '/settings/personnel/staff', desc: '园区员工信息管理' },
+  { icon: Briefcase, label: '职务管理', path: '/settings/personnel/position', desc: '组织架构与职务岗位设置' },
+  { icon: Calendar, label: '员工考勤', path: '/settings/personnel/attendance', desc: '正式员工考勤记录与统计' },
+  { icon: Clock, label: '审批单', path: '/settings/personnel/hr-approval', desc: '人事相关审批流程管理' },
+  { icon: Document, label: '考勤单据', path: '/settings/personnel/hr-documents', desc: '考勤异常单据与补录申请' }
 ]
 
 // 级别映射 - 与V1.1 levelMap 一致

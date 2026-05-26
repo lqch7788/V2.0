@@ -40,7 +40,7 @@
             @clear="handleSearch"
           />
         </div>
-        <el-select v-model="statusFilter" placeholder="全部" clearable size="small" class="w-24">
+        <el-select v-model="statusFilter" placeholder="全部" clearable size="small" class="w-24" @change="currentPage = 1">
           <el-option value="all" label="全部" />
           <el-option value="active" label="启用" />
           <el-option value="inactive" label="禁用" />
@@ -200,7 +200,7 @@
               @click="toggleUserRole(role.oid)"
             >
               <el-checkbox :model-value="userRoleOids.includes(role.oid)" size="small" />
-              <span class="text-gray-700">{{ role.name }}</span>
+              <span class="text-gray-700">{{ role.role_name || role.name }}</span>
               <span class="text-xs text-gray-400 font-mono ml-auto">{{ role.aid }}</span>
             </div>
           </div>

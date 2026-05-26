@@ -82,7 +82,7 @@
           <span class="text-sm font-bold text-gray-900">作物编码生成</span>
           <el-button
             :icon="codeGenExpanded ? 'ArrowUp' : 'ArrowRight'"
-            :icon-position="right"
+            :icon-position="'right'"
             text
             @click="codeGenExpanded = !codeGenExpanded"
           >
@@ -838,7 +838,8 @@ function handleDelete(row) {
 async function confirmDelete() {
   if (deleteTargetVariety.value) {
     try {
-      await store.deleteItem(deleteTargetVariety.value.id)
+      const success = await store.deleteItem(deleteTargetVariety.value.id)
+      if (!success) return
       updateStats()
       if (selectedVariety.value?.id === deleteTargetVariety.value.id) {
         selectedVariety.value = null

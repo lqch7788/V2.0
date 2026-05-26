@@ -54,8 +54,19 @@
       </div>
 
       <div class="p-6">
+        <!-- 加载中 -->
+        <div v-if="loading" class="flex items-center justify-center py-16">
+          <el-icon class="is-loading text-2xl text-emerald-600" :size="32"><Loading /></el-icon>
+          <span class="ml-2 text-gray-500">加载中...</span>
+        </div>
+
+        <!-- 错误提示 -->
+        <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+          {{ error }}
+        </div>
+
         <!-- ========== 通知规则 ========== -->
-        <div v-if="activeTab === 'rules'" class="space-y-4">
+        <div v-else-if="activeTab === 'rules'" class="space-y-4">
           <div v-if="filteredRules.length === 0" class="text-center py-8 text-gray-400">
             {{ searchTerm ? '没有匹配的规则' : '暂无通知规则，点击上方按钮新增' }}
           </div>
@@ -112,7 +123,7 @@
         </div>
 
         <!-- ========== 通知渠道 ========== -->
-        <div v-if="activeTab === 'channels'" class="space-y-4">
+        <div v-else-if="activeTab === 'channels'" class="space-y-4">
           <div v-if="filteredChannels.length === 0" class="text-center py-8 text-gray-400">
             {{ searchTerm ? '没有匹配的渠道' : '暂无通知渠道' }}
           </div>
@@ -165,7 +176,7 @@
         </div>
 
         <!-- ========== 个人偏好 ========== -->
-        <div v-if="activeTab === 'preferences'" class="space-y-4">
+        <div v-else-if="activeTab === 'preferences'" class="space-y-4">
           <h3 class="text-lg font-semibold text-gray-900">个人通知偏好</h3>
           <p class="text-sm text-gray-500">配置您希望接收的通知类型和时段</p>
 
@@ -370,7 +381,7 @@ import {
   Plus,
   Edit,
   Delete,
-  Select,
+  Loading,
   Message,
   Phone,
   ChatLineSquare,
@@ -379,7 +390,7 @@ import {
 
 // Store
 const notificationStore = useNotificationSettingsStore()
-const { channels, rules, preferences, loading, loadAll, loadPreferences, toggleChannelActive, addChannel, updateChannel, removeChannel, toggleRuleActive, addRule, updateRule, removeRule, saveUserPreferences } = notificationStore
+const { channels, rules, preferences, loading, error, loadAll, loadPreferences, toggleChannelActive, addChannel, updateChannel, removeChannel, toggleRuleActive, addRule, updateRule, removeRule, saveUserPreferences } = notificationStore
 
 // Tabs配置
 const tabs = [
@@ -541,6 +552,7 @@ const handleSaveChannel = async () => {
       })
     } else {
       await addChannel({
+        channelCode: editingChannel.value?.channelCode || `CH_${Date.now()}`,
         channelName: channelForm.channelName.trim(),
         channelType: channelForm.channelType
       })
@@ -598,11 +610,14 @@ const handleSaveRule = async () => {
   saving.value = true
   try {
     const payload = {
+      ruleCode: editingRule.value?.ruleCode || `RULE_${Date.now()}`,
       ruleName: ruleForm.ruleName.trim(),
       eventType: ruleForm.eventType,
+      recipientType: 'custom',
       recipientIds: ruleForm.recipientIds.split(',').map(r => r.trim()).filter(Boolean),
       channelIds: ruleForm.channelIds,
-      frequency: ruleForm.frequency
+      frequency: ruleForm.frequency,
+      isActive: true
     }
     if (editingRule.value) {
       await updateRule(editingRule.value.id, payload)

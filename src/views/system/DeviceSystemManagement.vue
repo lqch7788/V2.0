@@ -424,8 +424,7 @@ const handleSubmit = async () => {
   } else {
     // 新增
     const result = await deviceSystemStore.createItem(data)
-    if (result) {
-    }
+    if (!result) return
   }
 
   dialogVisible.value = false
