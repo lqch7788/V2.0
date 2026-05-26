@@ -4,7 +4,7 @@
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white"><Goods /></el-icon>
           </div>
           <div>
@@ -227,7 +227,7 @@
         ref="tableRef"
       >
         <el-table-column type="selection" width="50" v-if="hasActiveMode" />
-        <el-table-column type="expand" v-if="!hasActiveMode">
+        <el-table-column type="expand">
           <template #default="{ row }">
             <div class="p-4">
               <h4 class="text-sm font-semibold text-gray-700 mb-3">物料明细（共 {{ row.materials?.length || 0 }} 项）</h4>
@@ -236,9 +236,11 @@
                 <el-table-column prop="name" label="物料名称" min-width="140" />
                 <el-table-column prop="category" label="分类" width="120" />
                 <el-table-column prop="specification" label="规格" width="100" />
+                <el-table-column prop="barcode" label="条形码" width="120" />
                 <el-table-column prop="unit" label="单位" width="70" />
                 <el-table-column prop="quantity" label="数量" width="80" />
                 <el-table-column prop="price" label="单价" width="80" />
+                <el-table-column prop="supplier" label="供应商" width="120" />
                 <el-table-column prop="batchNo" label="批次号" width="100" />
                 <el-table-column prop="location" label="存放位置" width="100" />
                 <el-table-column label="生产日期" width="110">
@@ -252,12 +254,16 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="code" label="入库单号" width="180" />
+        <el-table-column label="入库单号" width="180">
+          <template #default="{ row }">
+            <span class="text-blue-600 cursor-pointer hover:text-blue-800 underline" @click="handleViewRecord(row)">{{ row.code }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="inboundDate" label="入库日期" width="120" />
         <el-table-column prop="supplier" label="供应商" width="150" />
         <el-table-column prop="operator" label="操作员" width="100" />
         <el-table-column label="物料数量" width="100" align="center">
-          <template #default="{ row }">{{ row.materials?.length || 0 }} 种</template>
+          <template #default="{ row }">{{ row.materials?.length || 0 }} 种物料</template>
         </el-table-column>
         <el-table-column label="状态" width="100" align="center">
           <template #default="{ row }">
@@ -303,27 +309,55 @@
     <!-- ========== 弹窗 ========== -->
 
     <!-- 查看详情弹窗 -->
-    <el-dialog v-model="showDetailModal" title="入库详情" width="800px" :close-on-click-modal="false">
+    <el-dialog v-model="showDetailModal" title="入库详情" width="900px" :close-on-click-modal="false">
       <template v-if="detailRecord">
-        <el-descriptions :column="2" border class="mb-4">
-          <el-descriptions-item label="入库单号">{{ detailRecord.code }}</el-descriptions-item>
-          <el-descriptions-item label="入库日期">{{ detailRecord.inboundDate || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="供应商">{{ detailRecord.supplier || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="操作员">{{ detailRecord.operator || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="getStatusTagType(detailRecord.status)" size="small">{{ getStatusText(detailRecord.status) }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="作废日期">{{ detailRecord.voidedDate || '-' }}</el-descriptions-item>
-        </el-descriptions>
+        <div class="bg-emerald-50 rounded-lg p-4 mb-6 border border-emerald-200">
+          <div class="grid grid-cols-5 gap-4">
+            <div>
+              <span class="text-xs text-emerald-600 block font-medium">入库单号</span>
+              <span class="text-lg font-mono font-bold text-emerald-700">{{ detailRecord.code }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-emerald-600 block font-medium">入库日期</span>
+              <span class="text-sm font-medium text-gray-900">{{ detailRecord.inboundDate || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-emerald-600 block font-medium">供应商</span>
+              <span class="text-sm font-medium text-gray-900">{{ detailRecord.supplier || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-emerald-600 block font-medium">操作员</span>
+              <span class="text-sm font-medium text-gray-900">{{ detailRecord.operator || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-emerald-600 block font-medium">状态</span>
+              <span class="text-sm font-medium" :class="{
+                'text-green-600': detailRecord.status === 'completed',
+                'text-gray-500': detailRecord.status === 'voided',
+                'text-amber-600': detailRecord.status === 'pending'
+              }">
+                {{ getStatusText(detailRecord.status) }}
+              </span>
+            </div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-emerald-200">
+            <span class="text-xs text-emerald-600">物料统计：</span>
+            <span class="text-sm font-medium text-gray-900 ml-2">
+              共 {{ detailRecord.materials?.length || 0 }} 种物料，合计 {{ detailRecord.materials?.reduce((sum, m) => sum + Number(m.quantity), 0) || 0 }} 件
+            </span>
+          </div>
+        </div>
         <h4 class="text-sm font-semibold text-gray-700 mb-2">物料明细</h4>
         <el-table :data="detailRecord.materials || []" size="small" border max-height="300">
           <el-table-column prop="code" label="物料编码" width="140" />
           <el-table-column prop="name" label="物料名称" min-width="140" />
           <el-table-column prop="category" label="分类" width="120" />
           <el-table-column prop="specification" label="规格" width="100" />
+          <el-table-column prop="barcode" label="条形码" width="120" />
           <el-table-column prop="unit" label="单位" width="70" />
           <el-table-column prop="quantity" label="数量" width="80" />
           <el-table-column prop="price" label="单价" width="80" />
+          <el-table-column prop="supplier" label="供应商" width="120" />
           <el-table-column prop="batchNo" label="批次号" width="100" />
           <el-table-column prop="location" label="存放位置" width="100" />
           <el-table-column prop="remarks" label="备注" width="100" />
@@ -389,6 +423,11 @@
                 <el-input v-model="row.specification" size="small" placeholder="规格" />
               </template>
             </el-table-column>
+            <el-table-column label="条形码" width="110">
+              <template #default="{ row }">
+                <el-input v-model="row.barcode" size="small" placeholder="条形码" />
+              </template>
+            </el-table-column>
             <el-table-column label="单位" width="80">
               <template #default="{ row }">
                 <el-select v-model="row.unit" size="small" placeholder="单位">
@@ -406,14 +445,19 @@
                 <el-input v-model="row.price" size="small" placeholder="单价" />
               </template>
             </el-table-column>
-            <el-table-column label="批次号" width="100">
+            <el-table-column label="供应商" width="120">
               <template #default="{ row }">
-                <el-input v-model="row.batchNo" size="small" placeholder="批次号" />
+                <el-input v-model="row.supplier" size="small" placeholder="供应商" />
               </template>
             </el-table-column>
             <el-table-column label="存放位置" width="100">
               <template #default="{ row }">
                 <el-input v-model="row.location" size="small" placeholder="位置" />
+              </template>
+            </el-table-column>
+            <el-table-column label="批号" width="100">
+              <template #default="{ row }">
+                <el-input v-model="row.batchNo" size="small" placeholder="批号" />
               </template>
             </el-table-column>
             <el-table-column label="生产日期" width="120">
@@ -469,107 +513,178 @@
       </template>
     </el-dialog>
 
-    <!-- 编辑入库弹窗 -->
-    <el-dialog v-model="showEditModal" title="编辑入库" width="900px" :close-on-click-modal="false">
+    <!-- 编辑入库弹窗（状态感知） -->
+    <el-dialog v-model="showEditModal" title="编辑入库记录" width="900px" :close-on-click-modal="false">
       <template v-if="editRecord">
-        <el-form :model="editForm" label-width="100px">
-          <el-form-item label="入库单号">
-            <el-input v-model="editForm.code" readonly />
-          </el-form-item>
-          <el-form-item label="入库日期">
-            <el-date-picker v-model="editForm.inboundDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
-          </el-form-item>
-          <el-form-item label="供应商">
-            <el-input v-model="editForm.supplier" placeholder="请输入供应商" />
-          </el-form-item>
-          <el-form-item label="操作员">
-            <el-input v-model="editForm.operator" placeholder="请输入操作员" />
-          </el-form-item>
+        <!-- 已完成状态警告 -->
+        <div v-if="editRecord.status === 'completed'" class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+          <el-icon color="#f59e0b"><WarningFilled /></el-icon>
+          <span class="text-sm text-amber-700">此记录已完成，物料明细不可编辑。如需修改请申请作废后重新录入。</span>
+        </div>
+        <!-- 已作废状态提示 -->
+        <div v-if="editRecord.status === 'voided'" class="mb-4 p-3 bg-gray-100 border border-gray-400 rounded-lg flex items-center gap-2">
+          <el-icon color="#6b7280"><WarningFilled /></el-icon>
+          <span class="text-sm text-gray-600">此记录已作废，仅供查看，无法编辑。</span>
+        </div>
 
-          <el-divider content-position="left">物料明细</el-divider>
-          <div class="mb-3 flex justify-end">
-            <el-button size="small" type="primary" @click="addEditMaterialRow">
-              <el-icon><Plus /></el-icon>添加物料
-            </el-button>
+        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+          <div class="grid grid-cols-5 gap-4">
+            <div>
+              <span class="text-xs text-gray-500 block">入库单号</span>
+              <span class="text-sm font-medium text-gray-900">{{ editRecord.code }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">入库日期</span>
+              <span class="text-sm font-medium text-gray-900">{{ editRecord.inboundDate }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">供应商</span>
+              <span class="text-sm font-medium text-gray-900">{{ editRecord.supplier }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">操作员</span>
+              <span class="text-sm font-medium text-gray-900">{{ editRecord.operator }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">状态</span>
+              <span class="text-sm font-medium" :class="{
+                'text-amber-600': editRecord.status === 'pending',
+                'text-green-600': editRecord.status === 'completed',
+                'text-gray-500': editRecord.status === 'voided'
+              }">{{ getStatusText(editRecord.status) }}</span>
+            </div>
           </div>
-          <div class="border rounded overflow-hidden">
-            <el-table :data="editForm.materials" size="small" border>
-              <el-table-column label="物料编码" width="140">
-                <template #default="{ row }">
+        </div>
+
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-sm font-semibold text-gray-800">物料明细（{{ editForm.materials.length }}种物料）</h4>
+          <el-button v-if="editRecord.status === 'pending'" size="small" type="primary" @click="addEditMaterialRow">
+            <el-icon><Plus /></el-icon>添加物料
+          </el-button>
+        </div>
+        <div class="border rounded overflow-hidden">
+          <el-table :data="editForm.materials" size="small" border>
+            <el-table-column label="操作" width="60" fixed="right">
+              <template #default="{ $index }">
+                <el-button v-if="editRecord.status === 'pending'" link type="danger" size="small" @click="removeEditMaterialRow($index)">
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+                <span v-else class="text-gray-400">-</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="物料编码" width="140">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model="row.code" size="small" placeholder="编码" />
                 </template>
-              </el-table-column>
-              <el-table-column label="物料名称" min-width="130">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-blue-600 font-medium">{{ row.code }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="物料名称" min-width="130">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model="row.name" size="small" placeholder="名称" />
                 </template>
-              </el-table-column>
-              <el-table-column label="分类" width="120">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-900">{{ row.name }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="分类" width="120">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model="row.category" size="small" placeholder="分类" />
                 </template>
-              </el-table-column>
-              <el-table-column label="规格" width="100">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-600">{{ row.category || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格" width="100">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model="row.specification" size="small" placeholder="规格" />
                 </template>
-              </el-table-column>
-              <el-table-column label="单位" width="80">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-600">{{ row.specification || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="条形码" width="110">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
+                  <el-input v-model="row.barcode" size="small" placeholder="条形码" />
+                </template>
+                <span v-else class="text-xs text-gray-600">{{ row.barcode || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="单位" width="80">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-select v-model="row.unit" size="small">
                     <el-option v-for="u in unitOptions" :key="u" :label="u" :value="u" />
                   </el-select>
                 </template>
-              </el-table-column>
-              <el-table-column label="数量" width="80">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-600">{{ row.unit }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量" width="80">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model.number="row.quantity" size="small" type="number" />
                 </template>
-              </el-table-column>
-              <el-table-column label="单价" width="80">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-900">{{ row.quantity }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="单价" width="80">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model="row.price" size="small" placeholder="单价" />
                 </template>
-              </el-table-column>
-              <el-table-column label="批次号" width="100">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-900">{{ row.price }}元</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="批次号" width="100">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model="row.batchNo" size="small" placeholder="批次号" />
                 </template>
-              </el-table-column>
-              <el-table-column label="存放位置" width="100">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-600">{{ row.batchNo || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="存放位置" width="100">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model="row.location" size="small" placeholder="位置" />
                 </template>
-              </el-table-column>
-              <el-table-column label="生产日期" width="120">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-600">{{ row.location || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="生产日期" width="120">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-date-picker v-model="row.productionDate" type="date" size="small" value-format="YYYY-MM-DD" style="width: 100%" />
                 </template>
-              </el-table-column>
-              <el-table-column label="过期日期" width="120">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-600">{{ row.productionDate || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="过期日期" width="120">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-date-picker v-model="row.expiryDate" type="date" size="small" value-format="YYYY-MM-DD" style="width: 100%" />
                 </template>
-              </el-table-column>
-              <el-table-column label="备注" width="100">
-                <template #default="{ row }">
+                <span v-else class="text-xs text-gray-600">{{ row.expiryDate || '-' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="备注" width="100">
+              <template #default="{ row }">
+                <template v-if="editRecord.status === 'pending'">
                   <el-input v-model="row.remarks" size="small" placeholder="备注" />
                 </template>
-              </el-table-column>
-              <el-table-column label="操作" width="60" fixed="right">
-                <template #default="{ $index }">
-                  <el-button link type="danger" size="small" @click="removeEditMaterialRow($index)">
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-        </el-form>
+                <span v-else class="text-xs text-gray-600">{{ row.remarks || '-' }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </template>
       <template #footer>
-        <el-button @click="showEditModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveEdit">保存</el-button>
+        <el-button v-if="editRecord?.status === 'completed'" type="warning" @click="handleApplyVoid">申请作废</el-button>
+        <el-button @click="showEditModal = false">关闭</el-button>
+        <el-button v-if="editRecord?.status === 'pending'" type="primary" @click="handleSaveEdit">保存</el-button>
       </template>
     </el-dialog>
 
@@ -624,7 +739,7 @@
             v-for="fmt in exportFormats"
             :key="fmt.value"
             :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all mb-2',
-              exportFormat === fmt.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300']"
+              exportFormat === fmt.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300']"
             @click="exportFormat = fmt.value"
           >
             <el-radio :value="fmt.value">
@@ -653,9 +768,9 @@ import { useInboundStore } from '@/stores/modules/inventory/useInboundStore'
 const unitOptions = ['袋', '箱', '个', '公斤', '升', '平方米', '吨', '包', '卷', '套', '台']
 
 const exportFormats = [
-  { value: 'excel', label: 'Excel (.xls)', desc: '适用于数据分析和处理' },
+  { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.doc)', desc: '适用于文档编辑和分享' }
+  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
 
 // 与V1.1完全一致的7大类分类配置
@@ -780,7 +895,7 @@ const addFormRef = ref()
 
 // 编辑表单
 const editForm = reactive({
-  id: 0, code: '', inboundDate: '', supplier: '', operator: '',
+  id: 0, code: '', inboundDate: '', supplier: '', operator: '', status: 'pending',
   materials: []
 })
 
@@ -1045,6 +1160,7 @@ const handleEditRecord = (record) => {
   editForm.inboundDate = record.inboundDate || ''
   editForm.supplier = record.supplier || ''
   editForm.operator = record.operator || ''
+  editForm.status = record.status || 'pending'
   editForm.materials = (record.materials || []).map(m => ({ ...m }))
   showEditModal.value = true
 }
@@ -1161,6 +1277,10 @@ const handleSaveNewInbound = async () => {
 
 // ==================== 编辑保存 ====================
 
+const handleApplyVoid = () => {
+  ElMessage.info('作废申请已提交')
+}
+
 const handleSaveEdit = async () => {
   try {
     await inboundStore.editInbound(editForm.id, {
@@ -1168,6 +1288,7 @@ const handleSaveEdit = async () => {
       inboundDate: editForm.inboundDate,
       supplier: editForm.supplier,
       operator: editForm.operator,
+      status: editForm.status,
       materials: editForm.materials.map(m => {
         const { id, ...rest } = m
         return rest
@@ -1248,15 +1369,14 @@ const handleConfirmDelete = () => {
 const handleConfirmDeleteExecute = async () => {
   if (deleteRecords.value.length === 0) return
   try {
-    for (const record of deleteRecords.value) {
-      await inboundStore.voidInbound(record.id)
-    }
-    ElMessage.success(`已作废 ${deleteRecords.value.length} 条记录`)
+    const ids = deleteRecords.value.map(r => r.id)
+    await inboundStore.removeMaterials(ids)
+    ElMessage.success(`已删除 ${deleteRecords.value.length} 条记录`)
     showDeleteModal.value = false
     cancelSelection()
     await inboundStore.loadInboundRecords()
   } catch (err) {
-    ElMessage.error('作废失败: ' + (err.message || '未知错误'))
+    ElMessage.error('删除失败: ' + (err.message || '未知错误'))
   }
 }
 
@@ -1274,36 +1394,36 @@ const handleConfirmExport = () => {
 
 // 在导出弹窗中点击"导出" → 执行实际导出
 const handleDoExport = () => {
-  const dataToExport = exportRecords.value.length > 0
-    ? exportRecords.value
-    : filteredRecords.value
+  const dataToExport = exportRecords.value
 
   if (dataToExport.length === 0) {
     ElMessage.warning('没有可导出的数据')
     return
   }
 
-  // 展平导出：每条物料一行
-  const headers = ['入库单号', '入库日期', '供应商', '操作员', '状态', '物料编码', '物料名称', '分类', '规格', '单位', '数量', '单价', '批次号', '存放位置', '生产日期', '过期日期', '备注']
+  // 展平导出：每条物料一行（与V1.1一致：入库单信息仅首行显示）
+  const headers = ['入库单号', '入库日期', '供应商', '操作员', '状态', '序号', '物料编码', '物料名称', '分类', '规格', '条形码', '单位', '数量', '单价', '批次号', '生产日期', '有效期至', '存放位置', '备注']
   const rows = []
   dataToExport.forEach(r => {
     const materials = r.materials || []
+    const materialCount = materials.length
     if (materials.length === 0) {
       rows.push({
         '入库单号': r.code, '入库日期': r.inboundDate || '', '供应商': r.supplier || '',
-        '操作员': r.operator || '', '状态': getStatusText(r.status),
-        '物料编码': '', '物料名称': '', '分类': '', '规格': '', '单位': '', '数量': '', '单价': '',
-        '批次号': '', '存放位置': '', '生产日期': '', '过期日期': '', '备注': ''
+        '操作员': r.operator || '', '状态': getStatusText(r.status), '序号': '',
+        '物料编码': '', '物料名称': '', '分类': '', '规格': '', '条形码': '', '单位': '', '数量': '', '单价': '',
+        '批次号': '', '生产日期': '', '有效期至': '', '存放位置': '', '备注': ''
       })
     } else {
-      materials.forEach(m => {
+      materials.forEach((m, index) => {
         rows.push({
-          '入库单号': r.code, '入库日期': r.inboundDate || '', '供应商': r.supplier || '',
-          '操作员': r.operator || '', '状态': getStatusText(r.status),
+          '入库单号': index === 0 ? r.code : '', '入库日期': index === 0 ? (r.inboundDate || '') : '',
+          '供应商': index === 0 ? (r.supplier || '') : '', '操作员': index === 0 ? (r.operator || '') : '',
+          '状态': index === 0 ? getStatusText(r.status) : '', '序号': `${index + 1}/${materialCount}`,
           '物料编码': m.code || '', '物料名称': m.name || '', '分类': m.category || '',
-          '规格': m.specification || '', '单位': m.unit || '', '数量': m.quantity ?? '',
-          '单价': m.price || '', '批次号': m.batchNo || '', '存放位置': m.location || '',
-          '生产日期': m.productionDate || '', '过期日期': m.expiryDate || '', '备注': m.remarks || ''
+          '规格': m.specification || '', '条形码': m.barcode || '', '单位': m.unit || '', '数量': m.quantity ?? '',
+          '单价': m.price || '', '批次号': m.batchNo || '', '生产日期': m.productionDate || '',
+          '有效期至': m.expiryDate || '', '存放位置': m.location || '', '备注': m.remarks || ''
         })
       })
     }

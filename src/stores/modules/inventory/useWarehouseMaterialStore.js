@@ -108,7 +108,7 @@ export const useWarehouseMaterialStore = defineStore('warehouseMaterial', () => 
     } catch (err) {
       error.value = err.message || '批量删除物料失败'
       console.error('removeMaterialsBatch error:', err)
-      return false
+      throw err
     } finally {
       loading.value = false
     }
@@ -129,7 +129,7 @@ export const useWarehouseMaterialStore = defineStore('warehouseMaterial', () => 
     } catch (err) {
       error.value = err.message || '删除物料失败'
       console.error('removeMaterial error:', err)
-      return false
+      throw err
     } finally {
       loading.value = false
     }

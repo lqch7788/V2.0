@@ -4,7 +4,7 @@
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white"><Shop /></el-icon>
           </div>
           <div>
@@ -70,55 +70,78 @@
 
     <!-- 筛选 -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="grid grid-cols-7 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">供应商编号</label>
-          <el-input v-model="filters.code" placeholder="请输入" clearable @clear="handleFilterChange('code', '')" @keyup.enter="currentPage = 1" />
+      <!-- 第一行：默认可见筛选 -->
+      <div class="flex items-end gap-4">
+        <div class="flex-1 grid grid-cols-5 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">供应商名称</label>
+            <el-input v-model="filters.name" placeholder="输入名称搜索" clearable @clear="handleFilterChange('name', '')" @keyup.enter="currentPage = 1" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">所属组织</label>
+            <el-select v-model="filters.organization" placeholder="全部" class="w-full" @change="handleFilterChange('organization', filters.organization)">
+              <el-option label="全部" value="全部" />
+              <el-option label="宁波帮帮忙公司" value="宁波帮帮忙公司" />
+              <el-option label="成都帮帮您公司" value="成都帮帮您公司" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">供应物资类型</label>
+            <el-select v-model="filters.type" placeholder="全部" class="w-full" @change="handleFilterChange('type', filters.type)">
+              <el-option label="全部" value="全部" />
+              <el-option v-for="cat in supplierCategories" :key="cat.code" :label="cat.name" :value="cat.code" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">供应商属性</label>
+            <el-select v-model="filters.supplierAttribute" placeholder="全部" class="w-full" @change="handleFilterChange('supplierAttribute', filters.supplierAttribute)">
+              <el-option label="全部" value="全部" />
+              <el-option label="企业" value="企业" />
+              <el-option label="个体户" value="个体户" />
+              <el-option label="事业单位" value="事业单位" />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">供应商状态</label>
+            <el-select v-model="filters.status" placeholder="全部" class="w-full" @change="handleFilterChange('status', filters.status)">
+              <el-option label="全部" value="全部" />
+              <el-option label="合作中" value="合作中" />
+              <el-option label="暂停" value="暂停" />
+              <el-option label="终止" value="终止" />
+            </el-select>
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">供应商名称</label>
-          <el-input v-model="filters.name" placeholder="请输入" clearable @clear="handleFilterChange('name', '')" @keyup.enter="currentPage = 1" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">联系人</label>
-          <el-input v-model="filters.contact" placeholder="请输入" clearable @clear="handleFilterChange('contact', '')" @keyup.enter="currentPage = 1" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">供应物资类型</label>
-          <el-select v-model="filters.type" placeholder="全部" class="w-full" @change="handleFilterChange('type', filters.type)">
-            <el-option label="全部" value="全部" />
-            <el-option v-for="cat in supplierCategories" :key="cat.code" :label="cat.name" :value="cat.code" />
-          </el-select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-          <el-select v-model="filters.status" placeholder="全部" class="w-full" @change="handleFilterChange('status', filters.status)">
-            <el-option label="全部" value="全部" />
-            <el-option label="合作中" value="合作中" />
-            <el-option label="暂停" value="暂停" />
-            <el-option label="终止" value="终止" />
-          </el-select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">供应商属性</label>
-          <el-select v-model="filters.supplierAttribute" placeholder="全部" class="w-full" @change="handleFilterChange('supplierAttribute', filters.supplierAttribute)">
-            <el-option label="全部" value="全部" />
-            <el-option label="企业" value="企业" />
-            <el-option label="个体户" value="个体户" />
-            <el-option label="事业单位" value="事业单位" />
-          </el-select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">所属组织</label>
-          <el-select v-model="filters.organization" placeholder="全部" class="w-full" @change="handleFilterChange('organization', filters.organization)">
-            <el-option label="全部" value="全部" />
-            <el-option label="宁波帮帮忙公司" value="宁波帮帮忙公司" />
-            <el-option label="成都帮帮您公司" value="成都帮帮您公司" />
-          </el-select>
+        <div class="flex items-end gap-2">
+          <el-button size="small" @click="showMore = !showMore">
+            {{ showMore ? '收起' : '更多' }}
+            <el-icon><component :is="showMore ? ArrowUp : ArrowDown" /></el-icon>
+          </el-button>
+          <el-button size="small" @click="handleResetFilters">重置</el-button>
         </div>
       </div>
-      <div class="mt-4 flex justify-end">
-        <el-button @click="handleResetFilters">重置</el-button>
+
+      <!-- 更多筛选：默认折叠 -->
+      <div v-if="showMore" class="mt-3 grid grid-cols-5 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">联系人</label>
+          <el-input v-model="filters.contact" placeholder="输入联系人搜索" clearable @clear="handleFilterChange('contact', '')" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">省份</label>
+          <el-input v-model="filters.province" placeholder="省份" clearable @clear="handleFilterChange('province', '')" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">城市</label>
+          <el-input v-model="filters.city" placeholder="城市" clearable @clear="handleFilterChange('city', '')" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">区县</label>
+          <el-input v-model="filters.district" placeholder="区县" clearable @clear="handleFilterChange('district', '')" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">供应商编号</label>
+          <el-input v-model="filters.code" placeholder="输入编号搜索" clearable @clear="handleFilterChange('code', '')" />
+        </div>
       </div>
     </div>
 
@@ -186,10 +209,11 @@
           <template #default="{ row }">{{ row.province }} {{ row.city }}</template>
         </el-table-column>
         <el-table-column prop="createDate" label="创建时间" width="120" />
-        <el-table-column label="操作" width="120" fixed="right" v-if="!hasActiveMode">
+        <el-table-column label="操作" width="150" fixed="right" v-if="!hasActiveMode">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
             <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+            <el-button link type="danger" size="small" @click="handleDeleteSingle(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -252,7 +276,7 @@
           <el-col :span="12">
             <el-form-item label="供应商编号">
               <div class="flex gap-2 w-full">
-                <el-input v-model="form.code" placeholder="请输入或从编码生成器复制" />
+                <el-input v-model="form.code" placeholder="请输入或从编码生成器复制" :disabled="isEdit" />
               </div>
             </el-form-item>
           </el-col>
@@ -413,7 +437,7 @@
       <p class="text-sm text-gray-500 mb-4">{{ exportRecords.length > 0 ? `已选择 ${exportRecords.length} 条数据` : `共 ${filteredSuppliers.length} 条数据` }}</p>
       <div class="space-y-3">
         <el-radio-group v-model="exportFormat">
-          <div v-for="fmt in exportFormats" :key="fmt.value" :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all mb-2', exportFormat === fmt.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300']" @click="exportFormat = fmt.value">
+          <div v-for="fmt in exportFormats" :key="fmt.value" :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all mb-2', exportFormat === fmt.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300']" @click="exportFormat = fmt.value">
             <el-radio :value="fmt.value">
               <span class="ml-2 block text-sm font-medium text-gray-900">{{ fmt.label }}</span>
               <span class="ml-2 block text-xs text-gray-500">{{ fmt.desc }}</span>
@@ -450,6 +474,7 @@ import { useRouter } from 'vue-router'
 import { Shop, Plus, Edit, Delete, Download, CopyDocument, WarningFilled, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useSupplierStore } from '@/stores/modules/inventory/useSupplierStore'
+import { validateMobilePhone, validateWorkPhone, validateFax, validateBankCard, validateCode, runValidations } from '@/utils/validators'
 
 // ==================== 常量（与V1.1完全一致） ====================
 
@@ -506,9 +531,9 @@ const getSupplierTypeName = (code) => {
 }
 
 const exportFormats = [
-  { value: 'excel', label: 'Excel (.xls)', desc: '适用于数据分析和处理' },
+  { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.doc)', desc: '适用于文档编辑和分享' }
+  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
 
 // ==================== Store ====================
@@ -531,6 +556,7 @@ const showBatchEditModal = ref(false)
 const showExportModal = ref(false)
 const showDeleteModal = ref(false)
 const isEdit = ref(false)
+const showMore = ref(false)
 const codeGenExpanded = ref(false)
 const copySuccess = ref(false)
 const detailSupplier = ref(null)
@@ -549,7 +575,8 @@ const codeGenSuccess = ref('')
 // 筛选
 const filters = reactive({
   code: '', name: '', contact: '',
-  type: '全部', status: '全部', supplierAttribute: '全部', organization: '全部'
+  type: '全部', status: '全部', supplierAttribute: '全部', organization: '全部',
+  province: '', city: '', district: ''
 })
 
 // 表单
@@ -592,6 +619,18 @@ const filteredSuppliers = computed(() => {
   if (filters.organization !== '全部') {
     list = list.filter(s => s.organization === filters.organization)
   }
+  if (filters.province) {
+    const kw = filters.province.toLowerCase()
+    list = list.filter(s => s.province && s.province.toLowerCase().includes(kw))
+  }
+  if (filters.city) {
+    const kw = filters.city.toLowerCase()
+    list = list.filter(s => s.city && s.city.toLowerCase().includes(kw))
+  }
+  if (filters.district) {
+    const kw = filters.district.toLowerCase()
+    list = list.filter(s => s.district && s.district.toLowerCase().includes(kw))
+  }
   return list
 })
 
@@ -632,6 +671,9 @@ const handleResetFilters = () => {
   filters.status = '全部'
   filters.supplierAttribute = '全部'
   filters.organization = '全部'
+  filters.province = ''
+  filters.city = ''
+  filters.district = ''
   currentPage.value = 1
 }
 
@@ -709,6 +751,12 @@ const onFormSupplierTypeChange = () => {}
 
 const handleView = (row) => { detailSupplier.value = row; showDetailModal.value = true }
 
+const handleDeleteSingle = (row) => {
+  selectedRows.value = [row.id]
+  deleteSupplierIds.value = [row.id]
+  showDeleteModal.value = true
+}
+
 const handleAdd = () => {
   isEdit.value = false
   resetForm()
@@ -742,6 +790,28 @@ const handleEdit = (row) => {
 }
 
 const handleSave = async () => {
+  if (!form.name) {
+    ElMessage.warning('请输入供应商名称')
+    return
+  }
+  if (!form.code) {
+    ElMessage.warning('请输入供应商编号')
+    return
+  }
+
+  // 格式验证（与V1.1 SupplierAddModal 第191-197行一致）
+  const errors = runValidations([
+    { field: 'mobilePhone', valid: validateMobilePhone(form.mobilePhone), message: '手机号格式不正确，应为1开头的11位数字' },
+    { field: 'workPhone', valid: validateWorkPhone(form.workPhone), message: '工作电话格式不正确，应为区号-号码格式（如：0571-88886666）' },
+    { field: 'fax', valid: validateFax(form.fax), message: '传真格式不正确' },
+    { field: 'bankCardNumber', valid: validateBankCard(form.bankCardNumber), message: '银行卡号格式不正确，应为15位或17-18位数字' },
+    { field: 'code', valid: validateCode(form.code), message: '标识码只能包含字母、数字、下划线和连字符' },
+  ])
+  if (errors.length > 0) {
+    ElMessage.warning('请检查以下字段：\n' + errors.map(e => e.message).join('\n'))
+    return
+  }
+
   try {
     if (isEdit.value) {
       const { id, ...data } = form

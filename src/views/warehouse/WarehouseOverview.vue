@@ -480,7 +480,6 @@ const handleConfirmDeleteAction = () => {
 const handleConfirmDelete = async (id) => {
   try {
     await warehouseMaterialStore.removeMaterial(id)
-    await warehouseMaterialStore.loadMaterials()
     ElMessage.success('删除成功')
   } catch {
     ElMessage.error('删除失败')
@@ -488,10 +487,14 @@ const handleConfirmDelete = async (id) => {
 }
 
 const handleSaveEdit = async (material) => {
-  await warehouseMaterialStore.editMaterial(material.id, material)
-  await warehouseMaterialStore.loadMaterials()
-  showEditModal.value = false
-  selectedMaterial.value = null
+  try {
+    await warehouseMaterialStore.editMaterial(material.id, material)
+    showEditModal.value = false
+    selectedMaterial.value = null
+    ElMessage.success('保存成功')
+  } catch {
+    ElMessage.error('保存失败')
+  }
 }
 
 // ActionToolbar callbacks
@@ -553,19 +556,22 @@ const handleBatchFieldChange = (materialId, field, value) => {
 }
 
 const handleBatchSaveAll = async () => {
-  const edits = Object.entries(batchEditedMaterials.value)
-  if (edits.length > 0) {
-    for (const [materialId, data] of edits) {
-      await warehouseMaterialStore.editMaterial(materialId, data)
+  try {
+    const edits = Object.entries(batchEditedMaterials.value)
+    if (edits.length > 0) {
+      for (const [materialId, data] of edits) {
+        await warehouseMaterialStore.editMaterial(materialId, data)
+      }
     }
-    await warehouseMaterialStore.loadMaterials()
+    showBatchEditModal.value = false
+    batchEditMode.value = false
+    selectedRows.value = []
+    batchEditedMaterials.value = {}
+    currentBatchEditIndex.value = 0
+    ElMessage.success('批量编辑保存成功')
+  } catch {
+    ElMessage.error('批量编辑保存失败')
   }
-  showBatchEditModal.value = false
-  batchEditMode.value = false
-  selectedRows.value = []
-  batchEditedMaterials.value = {}
-  currentBatchEditIndex.value = 0
-  ElMessage.success('批量编辑保存成功')
 }
 
 const handleBatchNext = () => {

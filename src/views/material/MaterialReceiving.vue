@@ -17,12 +17,14 @@
             <el-input v-model="searchApplicant" placeholder="请输入申领人" clearable @clear="searchApplicant = ''; currentPage = 1" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">生产批次号</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">生产计划批次号</label>
             <el-input v-model="searchBatchCode" placeholder="请输入批次号" clearable @clear="searchBatchCode = ''; currentPage = 1" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">仓库地点</label>
-            <el-input v-model="searchWarehouse" placeholder="请输入仓库" clearable @clear="searchWarehouse = ''; currentPage = 1" />
+            <label class="block text-sm font-medium text-gray-700 mb-1">库存地点</label>
+            <el-select v-model="searchWarehouse" placeholder="全部" clearable @clear="searchWarehouse = ''; currentPage = 1">
+              <el-option v-for="w in warehouses" :key="w" :value="w" :label="w" />
+            </el-select>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
@@ -84,9 +86,18 @@
                   <el-table-column prop="batchNo" label="批次号" width="110" />
                   <el-table-column prop="spec" label="规格" width="100" />
                   <el-table-column prop="unit" label="单位" width="70" />
-                  <el-table-column prop="requestedQuantity" label="申请数量" width="90" />
-                  <el-table-column prop="stockQuantity" label="库存数量" width="90" />
-                  <el-table-column prop="unitPrice" label="单价(元)" width="90" />
+                  <el-table-column prop="requestedQuantity" label="申领数量" width="90">
+                    <template #default="{ row: m }">
+                      <span :class="{ 'text-red-600 font-bold': m.requestedQuantity > m.stockQuantity }">{{ m.requestedQuantity }}{{ m.requestedQuantity > m.stockQuantity ? ' ⚠️' : '' }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="stockQuantity" label="当前库存" width="90" />
+                  <el-table-column prop="unitPrice" label="单价(元)" width="90">
+                    <template #default="{ row: m }">{{ (m.unitPrice || 0).toFixed(2) }}</template>
+                  </el-table-column>
+                  <el-table-column label="小计(元)" width="90">
+                    <template #default="{ row: m }">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</template>
+                  </el-table-column>
                   <el-table-column prop="warehousePosition" label="仓库货位" width="110" />
                   <el-table-column prop="remark" label="备注" min-width="120" />
                 </el-table>
@@ -94,17 +105,26 @@
             </template>
           </el-table-column>
           <el-table-column prop="code" label="领料单号" width="150" />
-          <el-table-column prop="date" label="日期" width="110" />
-          <el-table-column prop="applicant" label="申领人" width="100" />
+          <el-table-column prop="date" label="申请日期" width="110" />
+          <el-table-column prop="applicant" label="申请人" width="100" />
           <el-table-column prop="department" label="部门" width="100" />
-          <el-table-column prop="warehouseLocation" label="仓库地点" width="110" />
-          <el-table-column prop="plantArea" label="种植区域" min-width="130" />
+          <el-table-column prop="warehouseLocation" label="库存地点" width="110" />
+          <el-table-column label="物料种类" width="90">
+            <template #default="{ row }">{{ row.materials.length > 0 ? row.materials.length + '种' : '-' }}</template>
+          </el-table-column>
+          <el-table-column prop="plantArea" label="种植区域/用途" min-width="130" />
           <el-table-column prop="reviewer" label="审核人" width="100" />
-          <el-table-column prop="productionBatchCode" label="生产批次号" width="130" />
-          <el-table-column prop="status" label="状态" width="90">
+          <el-table-column prop="productionBatchCode" label="生产计划批次号" width="130" />
+          <el-table-column prop="status" label="状态" width="100">
             <template #default="{ row }">
-              <el-tag :type="getAppStatusType(row.status)" size="small">{{ row.status }}</el-tag>
+              <div class="flex flex-col gap-1">
+                <el-tag :type="getAppStatusType(row.status)" size="small">{{ row.status }}</el-tag>
+                <span v-if="row.status === '已拒绝' && row.rejectReason" class="text-xs text-red-600 max-w-[150px] truncate" :title="row.rejectReason">原因：{{ row.rejectReason }}</span>
+              </div>
             </template>
+          </el-table-column>
+          <el-table-column label="备注" width="100">
+            <template #default="{ row }">{{ row.materials.length > 0 ? row.materials[0].remark : '-' }}</template>
           </el-table-column>
           <el-table-column label="操作" width="200" fixed="right">
             <template #default="{ row }">
@@ -140,8 +160,12 @@
         <div class="grid grid-cols-5 gap-4">
           <div><label class="block text-sm font-medium text-gray-700 mb-1">出库单号</label><el-input v-model="exSearchCode" placeholder="请输入" clearable /></div>
           <div><label class="block text-sm font-medium text-gray-700 mb-1">申领人</label><el-input v-model="exSearchApplicant" placeholder="请输入" clearable /></div>
-          <div><label class="block text-sm font-medium text-gray-700 mb-1">生产批次号</label><el-input v-model="exSearchBatchCode" placeholder="请输入" clearable /></div>
-          <div><label class="block text-sm font-medium text-gray-700 mb-1">仓库地点</label><el-input v-model="exSearchWarehouse" placeholder="请输入" clearable /></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">生产计划批次号</label><el-input v-model="exSearchBatchCode" placeholder="请输入" clearable /></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-1">库存地点</label>
+            <el-select v-model="exSearchWarehouse" placeholder="全部" clearable @clear="exSearchWarehouse = ''">
+              <el-option v-for="w in warehouses" :key="w" :value="w" :label="w" />
+            </el-select>
+          </div>
           <div><label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
             <el-select v-model="exStatusFilter" placeholder="全部" clearable>
               <el-option label="全部" value="all" />
@@ -176,26 +200,49 @@
               <div class="p-4 bg-gray-50">
                 <h4 class="font-medium mb-2 text-sm text-gray-700">出库物料明细</h4>
                 <el-table :data="row.materials" size="small" border>
+                  <el-table-column prop="applicationCode" label="来源领料单号" width="150" />
                   <el-table-column prop="materialCode" label="物料编码" width="120" />
                   <el-table-column prop="materialName" label="物料名称" min-width="140" />
                   <el-table-column prop="batchNo" label="批次号" width="110" />
                   <el-table-column prop="spec" label="规格" width="100" />
                   <el-table-column prop="unit" label="单位" width="70" />
                   <el-table-column prop="requestedQuantity" label="申请数量" width="90" />
-                  <el-table-column prop="actualQuantity" label="本次实发" width="90" />
-                  <el-table-column prop="applicationCode" label="来源领料单号" width="150" />
+                  <el-table-column label="实际库存" width="90">
+                    <template #default="{ row: m }">
+                      <span :class="m.stockQuantity < m.requestedQuantity ? 'text-red-600 font-medium' : 'text-green-600'">{{ m.stockQuantity }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="本次实发" width="90">
+                    <template #default="{ row: m }">
+                      <span v-if="m.actualQuantity > 0" :class="m.actualQuantity < m.requestedQuantity ? 'text-amber-600 font-medium' : 'text-green-600'">{{ m.actualQuantity }}</span>
+                      <span v-else :class="m.stockQuantity === 0 ? 'text-red-600 font-medium' : 'text-gray-400'">{{ m.actualQuantity }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="单价(元)" width="90">
+                    <template #default="{ row: m }">{{ (m.unitPrice || 0).toFixed(2) }}</template>
+                  </el-table-column>
+                  <el-table-column label="小计(元)" width="90">
+                    <template #default="{ row: m }">{{ ((m.requestedQuantity || 0) * (m.unitPrice || 0)).toFixed(2) }}</template>
+                  </el-table-column>
+                  <el-table-column prop="warehousePosition" label="仓库货位" width="110" />
+                  <el-table-column label="差异" width="70">
+                    <template #default="{ row: m }">
+                      <span v-if="m.requestedQuantity - m.actualQuantity > 0" class="text-red-600 font-medium">-{{ m.requestedQuantity - m.actualQuantity }}</span>
+                      <span v-else class="text-green-600">0</span>
+                    </template>
+                  </el-table-column>
                   <el-table-column prop="remark" label="备注" min-width="120" />
                 </el-table>
               </div>
             </template>
           </el-table-column>
           <el-table-column prop="code" label="出库单号" width="150" />
-          <el-table-column prop="date" label="日期" width="110" />
-          <el-table-column prop="applicant" label="申领人" width="100" />
-          <el-table-column prop="warehouseLocation" label="仓库地点" width="110" />
+          <el-table-column prop="date" label="申请日期" width="110" />
+          <el-table-column prop="applicant" label="申请人" width="100" />
+          <el-table-column prop="warehouseLocation" label="库存地点" width="110" />
           <el-table-column prop="reviewer" label="审核人" width="100" />
-          <el-table-column prop="operator" label="操作员" width="100" />
-          <el-table-column prop="productionBatchCode" label="生产批次号" width="130" />
+          <el-table-column prop="operator" label="操作人" width="100" />
+          <el-table-column prop="productionBatchCode" label="生产计划批次号" width="130" />
           <el-table-column prop="executeStatus" label="执行状态" width="100">
             <template #default="{ row }">
               <el-tag :type="getExStatusType(row.executeStatus)" size="small">{{ row.executeStatus }}</el-tag>
@@ -347,27 +394,39 @@
     <el-dialog v-model="showDetailModal" title="领料单详情" width="900px">
       <el-descriptions :column="3" border size="small">
         <el-descriptions-item label="领料单号">{{ selectedRecord?.code }}</el-descriptions-item>
-        <el-descriptions-item label="日期">{{ selectedRecord?.date }}</el-descriptions-item>
-        <el-descriptions-item label="状态"><el-tag :type="getAppStatusType(selectedRecord?.status || '')" size="small">{{ selectedRecord?.status }}</el-tag></el-descriptions-item>
-        <el-descriptions-item label="申领人">{{ selectedRecord?.applicant }}</el-descriptions-item>
+        <el-descriptions-item label="申请日期">{{ selectedRecord?.date }}</el-descriptions-item>
+        <el-descriptions-item label="申请人">{{ selectedRecord?.applicant }}</el-descriptions-item>
         <el-descriptions-item label="部门">{{ selectedRecord?.department }}</el-descriptions-item>
-        <el-descriptions-item label="仓库地点">{{ selectedRecord?.warehouseLocation }}</el-descriptions-item>
-        <el-descriptions-item label="种植区域">{{ selectedRecord?.plantArea }}</el-descriptions-item>
+        <el-descriptions-item label="库存地点">{{ selectedRecord?.warehouseLocation }}</el-descriptions-item>
+        <el-descriptions-item label="物料种类">{{ selectedRecord?.materials?.length > 0 ? selectedRecord.materials.length + '种' : '-' }}</el-descriptions-item>
+        <el-descriptions-item label="种植区域/用途">{{ selectedRecord?.plantArea }}</el-descriptions-item>
         <el-descriptions-item label="审核人">{{ selectedRecord?.reviewer }}</el-descriptions-item>
-        <el-descriptions-item label="生产批次号">{{ selectedRecord?.productionBatchCode }}</el-descriptions-item>
+        <el-descriptions-item label="生产计划批次号">{{ selectedRecord?.productionBatchCode }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getAppStatusType(selectedRecord?.status || '')" size="small">{{ selectedRecord?.status }}</el-tag>
+          <p v-if="selectedRecord?.status === '已拒绝' && selectedRecord?.rejectReason" class="text-xs text-red-600 mt-1">拒绝原因：{{ selectedRecord.rejectReason }}</p>
+        </el-descriptions-item>
       </el-descriptions>
       <div class="mt-4">
         <h4 class="font-medium mb-2 text-sm">物料明细</h4>
         <el-table :data="selectedRecord?.materials || []" size="small" border>
           <el-table-column prop="materialCode" label="物料编码" width="120" />
           <el-table-column prop="materialName" label="物料名称" min-width="140" />
-          <el-table-column prop="batchNo" label="批次号" width="100" />
           <el-table-column prop="spec" label="规格" width="90" />
           <el-table-column prop="unit" label="单位" width="70" />
-          <el-table-column prop="requestedQuantity" label="申请数量" width="90" />
-          <el-table-column prop="stockQuantity" label="库存数量" width="90" />
-          <el-table-column prop="unitPrice" label="单价" width="80" />
-          <el-table-column prop="warehousePosition" label="货位" width="100" />
+          <el-table-column prop="requestedQuantity" label="申领数量" width="90">
+            <template #default="{ row: m }">
+              <span :class="{ 'text-red-600 font-bold': m.requestedQuantity > m.stockQuantity }">{{ m.requestedQuantity }}{{ m.requestedQuantity > m.stockQuantity ? ' (!)' : '' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="stockQuantity" label="当前库存" width="90" />
+          <el-table-column prop="unitPrice" label="单价(元)" width="90">
+            <template #default="{ row: m }">{{ (m.unitPrice || 0).toFixed(2) }}</template>
+          </el-table-column>
+          <el-table-column label="小计(元)" width="90">
+            <template #default="{ row: m }">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</template>
+          </el-table-column>
+          <el-table-column prop="warehousePosition" label="仓库货位" width="110" />
           <el-table-column prop="remark" label="备注" min-width="100" />
         </el-table>
       </div>
@@ -375,22 +434,39 @@
     </el-dialog>
 
     <!-- 申请领料 - 新增弹窗 -->
-    <el-dialog v-model="showAddModal" title="新增领料单" width="950px" :close-on-click-modal="false">
-      <el-form :model="addForm" label-width="110px">
+    <el-dialog v-model="showAddModal" title="新增领料单" width="1050px" :close-on-click-modal="false">
+      <el-form :model="addForm" label-width="120px">
         <el-row :gutter="16">
-          <el-col :span="8"><el-form-item label="领料单号"><el-input v-model="addForm.code" readonly /></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="日期"><el-date-picker v-model="addForm.date" type="date" value-format="YYYY-MM-DD" style="width: 100%" /></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="申领人"><el-select v-model="addForm.applicant" placeholder="请选择" style="width: 100%" filterable><el-option v-for="u in userList" :key="u.id" :value="u.name" :label="u.name" /></el-select></el-form-item></el-col>
+          <el-col :span="8">
+            <el-form-item label="领料单号">
+              <div class="flex gap-2">
+                <el-input v-model="addForm.code" readonly placeholder="点击生成获取单号" class="flex-1" />
+                <el-button size="small" @click="handleGenerateAddCode" title="生成领料单号">生成</el-button>
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8"><el-form-item label="申请日期"><el-date-picker v-model="addForm.date" type="date" value-format="YYYY-MM-DD" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="操作员"><el-input :value="currentOperatorName" readonly class="operator-readonly" /></el-form-item></el-col>
         </el-row>
         <el-row :gutter="16">
+          <el-col :span="8"><el-form-item label="申请人"><el-select v-model="addForm.applicant" placeholder="请选择" style="width: 100%" filterable><el-option v-for="u in userList" :key="u.id" :value="u.name" :label="u.name" /></el-select></el-form-item></el-col>
           <el-col :span="8"><el-form-item label="部门"><el-select v-model="addForm.department" style="width: 100%"><el-option v-for="d in departments" :key="d" :value="d" :label="d" /></el-select></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="仓库地点"><el-select v-model="addForm.warehouseLocation" style="width: 100%"><el-option v-for="w in warehouses" :key="w" :value="w" :label="w" /></el-select></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="种植区域"><el-input v-model="addForm.plantArea" placeholder="如：1号棚-叶菜区" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="库存地点"><el-select v-model="addForm.warehouseLocation" style="width: 100%"><el-option v-for="w in warehouses" :key="w" :value="w" :label="w" /></el-select></el-form-item></el-col>
         </el-row>
         <el-row :gutter="16">
+          <el-col :span="8"><el-form-item label="种植区域/用途"><el-input v-model="addForm.plantArea" placeholder="如：1号棚-叶菜区" /></el-form-item></el-col>
           <el-col :span="8"><el-form-item label="审核人"><el-select v-model="addForm.reviewer" style="width: 100%" filterable><el-option v-for="u in userList" :key="u.id" :value="u.name" :label="u.name" /></el-select></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="生产批次号"><el-input v-model="addForm.productionBatchCode" placeholder="如：FQ2024-001" /></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="备注"><el-input v-model="addForm.batchRemark" placeholder="备注信息" /></el-form-item></el-col>
+          <el-col :span="8">
+            <el-form-item label="生产计划批次号">
+              <el-select v-model="addForm.productionBatchCode" placeholder="请选择生产批次" style="width: 100%" @change="onProductionBatchChange">
+                <el-option v-for="code in PRODUCTION_BATCH_CODES" :key="code" :value="code" :label="code" />
+                <el-option value="其他" label="其他" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16" v-if="addForm.productionBatchCode === '其他'">
+          <el-col :span="16"><el-form-item label="其他批次备注"><el-input v-model="addForm.batchRemark" placeholder="请输入其他批次的具体说明" /></el-form-item></el-col>
         </el-row>
         <el-form-item label="物料明细">
           <div class="mb-2 flex gap-2">
@@ -398,14 +474,29 @@
             <el-button size="small" @click="handleGenerateAddCode">生成单号</el-button>
           </div>
           <el-table :data="addForm.materials" size="small" border>
-            <el-table-column prop="materialCode" label="物料编码" width="120"><template #default="{ row }"><el-input v-model="row.materialCode" size="small" @change="onMaterialCodeChange(row)" /></template></el-table-column>
-            <el-table-column prop="materialName" label="物料名称" min-width="130"><template #default="{ row }"><el-input v-model="row.materialName" size="small" /></template></el-table-column>
-            <el-table-column prop="batchNo" label="批次号" width="100"><template #default="{ row }"><el-input v-model="row.batchNo" size="small" /></template></el-table-column>
-            <el-table-column prop="spec" label="规格" width="90"><template #default="{ row }"><el-input v-model="row.spec" size="small" /></template></el-table-column>
-            <el-table-column prop="unit" label="单位" width="70"><template #default="{ row }"><el-input v-model="row.unit" size="small" /></template></el-table-column>
-            <el-table-column prop="requestedQuantity" label="申请数量" width="90"><template #default="{ row }"><el-input-number v-model="row.requestedQuantity" :min="1" size="small" style="width: 100%" /></template></el-table-column>
-            <el-table-column prop="remark" label="备注" width="100"><template #default="{ row }"><el-input v-model="row.remark" size="small" /></template></el-table-column>
-            <el-table-column label="操作" width="70"><template #default="{ $index }"><el-button link type="danger" size="small" @click="addForm.materials.splice($index, 1)">删除</el-button></template></el-table-column>
+            <el-table-column prop="materialCode" label="物料编码" width="110"><template #default="{ row: m }"><el-input v-model="m.materialCode" size="small" @change="onAddMaterialCodeChange(m)" /></template></el-table-column>
+            <el-table-column prop="materialName" label="物料名称" min-width="120"><template #default="{ row: m }"><el-input v-model="m.materialName" size="small" @change="onAddMaterialNameChange(m)" /></template></el-table-column>
+            <el-table-column prop="spec" label="规格" width="80"><template #default="{ row: m }"><el-input v-model="m.spec" size="small" /></template></el-table-column>
+            <el-table-column prop="unit" label="单位" width="60"><template #default="{ row: m }"><el-input v-model="m.unit" size="small" /></template></el-table-column>
+            <el-table-column prop="requestedQuantity" label="申领数量" width="90">
+              <template #default="{ row: m }">
+                <el-input-number v-model="m.requestedQuantity" :min="1" size="small" style="width: 100%" :class="{ 'stock-warning-input': m.requestedQuantity > (m.stockQuantity || 0) }" />
+              </template>
+            </el-table-column>
+            <el-table-column label="当前库存" width="90">
+              <template #default="{ row: m }"><el-input-number v-model="m.stockQuantity" :min="0" size="small" style="width: 100%" /></template>
+            </el-table-column>
+            <el-table-column label="单价(元)" width="90">
+              <template #default="{ row: m }"><el-input-number v-model="m.unitPrice" :min="0" :precision="2" size="small" style="width: 100%" /></template>
+            </el-table-column>
+            <el-table-column label="小计(元)" width="90">
+              <template #default="{ row: m }"><span class="text-sm text-blue-700">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</span></template>
+            </el-table-column>
+            <el-table-column label="仓库货位" width="100">
+              <template #default="{ row: m }"><el-input v-model="m.warehousePosition" size="small" /></template>
+            </el-table-column>
+            <el-table-column prop="remark" label="备注" width="100"><template #default="{ row: m }"><el-input v-model="m.remark" size="small" /></template></el-table-column>
+            <el-table-column label="操作" width="60"><template #default="{ $index }"><el-button link type="danger" size="small" @click="addForm.materials.splice($index, 1)">删除</el-button></template></el-table-column>
           </el-table>
         </el-form-item>
       </el-form>
@@ -416,33 +507,54 @@
     </el-dialog>
 
     <!-- 申请领料 - 编辑弹窗 -->
-    <el-dialog v-model="showEditModal" title="编辑领料单" width="950px" :close-on-click-modal="false">
-      <el-form :model="editForm" label-width="110px">
+    <el-dialog v-model="showEditModal" title="编辑领料单" width="1050px" :close-on-click-modal="false">
+      <el-form :model="editForm" label-width="120px">
+        <!-- 领料单号 - 只读 -->
+        <el-form-item label="领料单号">
+          <div class="bg-gray-100 rounded-lg p-2 text-sm font-medium text-gray-900">{{ selectedRecord?.code }}</div>
+        </el-form-item>
         <el-row :gutter="16">
-          <el-col :span="8"><el-form-item label="日期"><el-date-picker v-model="editForm.date" type="date" value-format="YYYY-MM-DD" style="width: 100%" /></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="申领人"><el-select v-model="editForm.applicant" style="width: 100%" filterable><el-option v-for="u in userList" :key="u.id" :value="u.name" :label="u.name" /></el-select></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="部门"><el-select v-model="editForm.department" style="width: 100%"><el-option v-for="d in departments" :key="d" :value="d" :label="d" /></el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="申请日期"><el-date-picker v-model="editForm.date" type="date" value-format="YYYY-MM-DD" style="width: 100%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="申请人"><el-select v-model="editForm.applicant" style="width: 100%" filterable><el-option v-for="u in userList" :key="u.id" :value="u.name" :label="u.name" /></el-select></el-form-item></el-col>
         </el-row>
         <el-row :gutter="16">
-          <el-col :span="8"><el-form-item label="仓库地点"><el-select v-model="editForm.warehouseLocation" style="width: 100%"><el-option v-for="w in warehouses" :key="w" :value="w" :label="w" /></el-select></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="种植区域"><el-input v-model="editForm.plantArea" /></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="审核人"><el-select v-model="editForm.reviewer" style="width: 100%" filterable><el-option v-for="u in userList" :key="u.id" :value="u.name" :label="u.name" /></el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="部门"><el-select v-model="editForm.department" style="width: 100%"><el-option v-for="d in departments" :key="d" :value="d" :label="d" /></el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="库存地点"><el-select v-model="editForm.warehouseLocation" style="width: 100%"><el-option v-for="w in warehouses" :key="w" :value="w" :label="w" /></el-select></el-form-item></el-col>
         </el-row>
         <el-row :gutter="16">
-          <el-col :span="8"><el-form-item label="生产批次号"><el-input v-model="editForm.productionBatchCode" /></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="状态"><el-select v-model="editForm.status" style="width: 100%"><el-option v-for="s in ['待审批','已审批','已拒绝','已作废','已取消']" :key="s" :value="s" :label="s" /></el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="种植区域/用途"><el-input v-model="editForm.plantArea" placeholder="如：1号棚-叶菜区" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="审核人"><el-select v-model="editForm.reviewer" style="width: 100%" filterable><el-option v-for="u in userList" :key="u.id" :value="u.name" :label="u.name" /></el-select></el-form-item></el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12"><el-form-item label="生产计划批次号"><el-input v-model="editForm.productionBatchCode" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="状态"><el-select v-model="editForm.status" style="width: 100%"><el-option v-for="s in ['待审批','已审批','已拒绝','已作废','已取消']" :key="s" :value="s" :label="s" /></el-select></el-form-item></el-col>
         </el-row>
         <el-form-item label="物料明细">
           <el-button size="small" class="mb-2" @click="handleEditAddMaterial">+ 添加物料</el-button>
           <el-table :data="editForm.materials" size="small" border>
-            <el-table-column prop="materialCode" label="物料编码" width="120"><template #default="{ row, $index }"><el-input v-model="row.materialCode" size="small" @change="onEditMaterialCodeChange($index)" /></template></el-table-column>
-            <el-table-column prop="materialName" label="物料名称" min-width="130"><template #default="{ row }"><el-input v-model="row.materialName" size="small" /></template></el-table-column>
-            <el-table-column prop="batchNo" label="批次号" width="100"><template #default="{ row }"><el-input v-model="row.batchNo" size="small" /></template></el-table-column>
-            <el-table-column prop="spec" label="规格" width="90"><template #default="{ row }"><el-input v-model="row.spec" size="small" /></template></el-table-column>
-            <el-table-column prop="unit" label="单位" width="70"><template #default="{ row }"><el-input v-model="row.unit" size="small" /></template></el-table-column>
-            <el-table-column prop="requestedQuantity" label="申请数量" width="90"><template #default="{ row }"><el-input-number v-model="row.requestedQuantity" :min="1" size="small" style="width: 100%" /></template></el-table-column>
-            <el-table-column prop="remark" label="备注" width="100"><template #default="{ row }"><el-input v-model="row.remark" size="small" /></template></el-table-column>
-            <el-table-column label="操作" width="70"><template #default="{ $index }"><el-button link type="danger" size="small" @click="editForm.materials.splice($index, 1)">删除</el-button></template></el-table-column>
+            <el-table-column prop="materialCode" label="物料编码" width="110"><template #default="{ row: m }"><el-input v-model="m.materialCode" size="small" @change="onEditMaterialCodeChangeRow(m)" /></template></el-table-column>
+            <el-table-column prop="materialName" label="物料名称" min-width="120"><template #default="{ row: m }"><el-input v-model="m.materialName" size="small" /></template></el-table-column>
+            <el-table-column prop="spec" label="规格" width="80"><template #default="{ row: m }"><el-input v-model="m.spec" size="small" /></template></el-table-column>
+            <el-table-column prop="unit" label="单位" width="60"><template #default="{ row: m }"><el-input v-model="m.unit" size="small" /></template></el-table-column>
+            <el-table-column prop="requestedQuantity" label="申领数量" width="90">
+              <template #default="{ row: m }">
+                <el-input-number v-model="m.requestedQuantity" :min="1" size="small" style="width: 100%" :class="{ 'stock-warning-input': m.requestedQuantity > (m.stockQuantity || 0) }" />
+              </template>
+            </el-table-column>
+            <el-table-column label="当前库存" width="90">
+              <template #default="{ row: m }"><el-input-number v-model="m.stockQuantity" :min="0" size="small" style="width: 100%" /></template>
+            </el-table-column>
+            <el-table-column label="单价(元)" width="90">
+              <template #default="{ row: m }"><el-input-number v-model="m.unitPrice" :min="0" :precision="2" size="small" style="width: 100%" /></template>
+            </el-table-column>
+            <el-table-column label="小计(元)" width="90">
+              <template #default="{ row: m }"><span class="text-sm text-blue-700">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</span></template>
+            </el-table-column>
+            <el-table-column label="仓库货位" width="100">
+              <template #default="{ row: m }"><el-input v-model="m.warehousePosition" size="small" /></template>
+            </el-table-column>
+            <el-table-column prop="remark" label="备注" width="100"><template #default="{ row: m }"><el-input v-model="m.remark" size="small" /></template></el-table-column>
+            <el-table-column label="操作" width="60"><template #default="{ $index }"><el-button link type="danger" size="small" @click="editForm.materials.splice($index, 1)">删除</el-button></template></el-table-column>
           </el-table>
         </el-form-item>
       </el-form>
@@ -492,24 +604,47 @@
     <el-dialog v-model="exShowDetailModal" title="出库单详情" width="900px">
       <el-descriptions :column="3" border size="small">
         <el-descriptions-item label="出库单号">{{ exSelectedRecord?.code }}</el-descriptions-item>
-        <el-descriptions-item label="日期">{{ exSelectedRecord?.date }}</el-descriptions-item>
+        <el-descriptions-item label="申请日期">{{ exSelectedRecord?.date }}</el-descriptions-item>
         <el-descriptions-item label="执行状态"><el-tag :type="getExStatusType(exSelectedRecord?.executeStatus || '')" size="small">{{ exSelectedRecord?.executeStatus }}</el-tag></el-descriptions-item>
-        <el-descriptions-item label="申领人">{{ exSelectedRecord?.applicant }}</el-descriptions-item>
-        <el-descriptions-item label="仓库地点">{{ exSelectedRecord?.warehouseLocation }}</el-descriptions-item>
+        <el-descriptions-item label="申请人">{{ exSelectedRecord?.applicant }}</el-descriptions-item>
+        <el-descriptions-item label="库存地点">{{ exSelectedRecord?.warehouseLocation }}</el-descriptions-item>
         <el-descriptions-item label="审核人">{{ exSelectedRecord?.reviewer }}</el-descriptions-item>
-        <el-descriptions-item label="操作员">{{ exSelectedRecord?.operator }}</el-descriptions-item>
-        <el-descriptions-item label="生产批次号">{{ exSelectedRecord?.productionBatchCode }}</el-descriptions-item>
+        <el-descriptions-item label="操作人">{{ exSelectedRecord?.operator }}</el-descriptions-item>
+        <el-descriptions-item label="生产计划批次号">{{ exSelectedRecord?.productionBatchCode }}</el-descriptions-item>
         <el-descriptions-item label="来源申请单">{{ (exSelectedRecord?.sourceApplicationCodes || []).join(', ') }}</el-descriptions-item>
       </el-descriptions>
       <div class="mt-4"><h4 class="font-medium mb-2 text-sm">出库物料明细</h4>
         <el-table :data="exSelectedRecord?.materials || []" size="small" border>
+          <el-table-column prop="applicationCode" label="来源领料单号" width="150" />
           <el-table-column prop="materialCode" label="物料编码" width="120" />
           <el-table-column prop="materialName" label="物料名称" min-width="140" />
           <el-table-column prop="spec" label="规格" width="90" />
           <el-table-column prop="unit" label="单位" width="70" />
           <el-table-column prop="requestedQuantity" label="申请数量" width="90" />
-          <el-table-column prop="actualQuantity" label="本次实发" width="90" />
-          <el-table-column prop="applicationCode" label="来源单号" width="140" />
+          <el-table-column label="实际库存" width="90">
+            <template #default="{ row: m }">
+              <span :class="m.stockQuantity < m.requestedQuantity ? 'text-red-600 font-medium' : 'text-green-600'">{{ m.stockQuantity }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="本次实发" width="90">
+            <template #default="{ row: m }">
+              <span v-if="m.actualQuantity > 0" :class="m.actualQuantity < m.requestedQuantity ? 'text-amber-600 font-medium' : 'text-green-600'">{{ m.actualQuantity }}</span>
+              <span v-else :class="m.stockQuantity === 0 ? 'text-red-600 font-medium' : 'text-gray-400'">{{ m.actualQuantity }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="单价(元)" width="90">
+            <template #default="{ row: m }">{{ (m.unitPrice || 0).toFixed(2) }}</template>
+          </el-table-column>
+          <el-table-column label="小计(元)" width="90">
+            <template #default="{ row: m }">{{ ((m.requestedQuantity || 0) * (m.unitPrice || 0)).toFixed(2) }}</template>
+          </el-table-column>
+          <el-table-column prop="warehousePosition" label="仓库货位" width="110" />
+          <el-table-column label="差异" width="70">
+            <template #default="{ row: m }">
+              <span v-if="m.requestedQuantity - m.actualQuantity > 0" class="text-red-600 font-medium">-{{ m.requestedQuantity - m.actualQuantity }}</span>
+              <span v-else class="text-green-600">0</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="remark" label="备注" min-width="100" />
         </el-table>
       </div>
@@ -625,6 +760,7 @@ const onTabChange = (tab) => { activeTab.value = tab }
 
 const departments = ['生产部', '技术部', '设备部', '后勤部', '采后处理部']
 const warehouses = ['仓库A区', '仓库B区', '仓库C区', '仓库D区', '仓库E区']
+const PRODUCTION_BATCH_CODES = ['FQ2024-001', 'FQ2024-002', 'FQ2024-003', 'FQ2024-004', 'FQ2024-005', 'FQ2024-006', 'FQ2024-007', 'FQ2024-008']
 const userList = ref([
   { id: '1', name: '张伟民' }, { id: '2', name: '李明轩' }, { id: '3', name: '王建国' },
   { id: '4', name: '赵俊杰' }, { id: '5', name: '钱文涛' }, { id: '6', name: '孙晓峰' },
@@ -660,6 +796,16 @@ const materialBaseDB = [
 
 const findMaterialByCode = (code) => materialBaseDB.find(m => m.materialCode === code)
 
+// 当前操作员
+const currentOperatorName = computed(() => {
+  return userList.value[0]?.name || '当前用户'
+})
+
+// 生产批次切换
+const onProductionBatchChange = (val) => {
+  if (val !== '其他') { addForm.batchRemark = '' }
+}
+
 // ==================== Tab 1: 申请领料 ====================
 const applicationData = ref([
   { id: 1, code: 'LL20260301001', date: '2026-03-01', applicant: '张伟民', department: '生产部', warehouseLocation: '仓库A区', plantArea: '1号棚-叶菜区', reviewer: '王志刚', productionBatchCode: 'FQ2024-001', status: '已审批', statusClass: 'approved', materials: [
@@ -676,7 +822,7 @@ const applicationData = ref([
   { id: 4, code: 'LL20260304004', date: '2026-03-04', applicant: '赵俊杰', department: '生产部', warehouseLocation: '仓库A区', plantArea: '1号棚-叶菜区', reviewer: '王志刚', productionBatchCode: 'FQ2024-004', status: '已审批', statusClass: 'approved', materials: [
     { materialCode: 'SP0103001', materialName: '番茄种子', spec: '50g/袋', unit: '袋', category: '种质资源', requestedQuantity: 12, stockQuantity: 60, unitPrice: 120, warehousePosition: 'A-02-01', remark: '正常出库', batchNo: '' }
   ]},
-  { id: 5, code: 'LL20260305005', date: '2026-03-05', applicant: '钱文涛', department: '后勤部', warehouseLocation: '仓库D区', plantArea: '办公区绿化', reviewer: '陈志明', productionBatchCode: 'FQ2024-005', status: '已拒绝', statusClass: 'rejected', materials: [] },
+  { id: 5, code: 'LL20260305005', date: '2026-03-05', applicant: '钱文涛', department: '后勤部', warehouseLocation: '仓库D区', plantArea: '办公区绿化', reviewer: '陈志明', productionBatchCode: 'FQ2024-005', status: '已拒绝', statusClass: 'rejected', rejectReason: '库存不足，无法满足申请数量', materials: [] },
   { id: 6, code: 'LL20260306006', date: '2026-03-06', applicant: '孙晓峰', department: '生产部', warehouseLocation: '仓库B区', plantArea: '4号棚-水稻区', reviewer: '李志刚', productionBatchCode: 'FQ2024-006', status: '待审批', statusClass: 'pending', materials: [
     { materialCode: 'SP0202001', materialName: '尿素', spec: '50kg/袋', unit: '袋', category: '肥料与土壤改良剂', requestedQuantity: 20, stockQuantity: 80, unitPrice: 85, warehousePosition: 'B-01-02', remark: '库存充足', batchNo: '' }
   ]},
@@ -814,14 +960,20 @@ const handleGenerateAddCode = () => {
   addForm.code = `LL${dateStr}${seq}`
 }
 
-const onMaterialCodeChange = (row) => {
+const onAddMaterialCodeChange = (row) => {
+  if (!row || !row.materialCode) return
   const found = findMaterialByCode(row.materialCode)
-  if (found) { row.materialName = found.materialName; row.spec = found.spec; row.unit = found.unit; row.category = found.category; row.stockQuantity = found.stockQuantity; row.unitPrice = found.unitPrice; row.warehousePosition = found.warehousePosition }
+  if (found) { row.materialName = found.materialName; row.spec = found.spec; row.unit = found.unit; row.category = found.category; row.stockQuantity = found.stockQuantity; row.unitPrice = found.unitPrice; row.warehousePosition = found.warehousePosition; row.remark = found.remark }
 }
 
-const onEditMaterialCodeChange = (index) => {
-  const row = editForm.materials[index]
-  if (!row) return
+const onAddMaterialNameChange = (row) => {
+  if (!row || !row.materialName) return
+  const found = materialBaseDB.find(m => m.materialName === row.materialName)
+  if (found) { row.materialCode = found.materialCode; row.spec = found.spec; row.unit = found.unit; row.category = found.category; row.stockQuantity = found.stockQuantity; row.unitPrice = found.unitPrice; row.warehousePosition = found.warehousePosition; row.remark = found.remark }
+}
+
+const onEditMaterialCodeChangeRow = (row) => {
+  if (!row || !row.materialCode) return
   const found = findMaterialByCode(row.materialCode)
   if (found) { row.materialName = found.materialName; row.spec = found.spec; row.unit = found.unit; row.category = found.category; row.stockQuantity = found.stockQuantity; row.unitPrice = found.unitPrice; row.warehousePosition = found.warehousePosition }
 }
@@ -902,10 +1054,10 @@ const confirmExport = () => {
     mimeType = 'text/csv;charset=utf-8'; extension = 'csv'
   } else if (exportFileType.value === 'xlsx') {
     content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(r => `<tr>${fields.map(f => `<td>${r[f] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    mimeType = 'application/vnd.ms-excel;charset=utf-8'; extension = 'xls'
+    mimeType = 'application/vnd.ms-excel;charset=utf-8'; extension = 'xlsx'
   } else {
     content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(r => `<tr>${fields.map(f => `<td>${r[f] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    mimeType = 'application/vnd.ms-word;charset=utf-8'; extension = 'doc'
+    mimeType = 'application/vnd.ms-word;charset=utf-8'; extension = 'docx'
   }
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
@@ -1131,10 +1283,10 @@ const confirmExExport = () => {
     mimeType = 'text/csv;charset=utf-8'; extension = 'csv'
   } else if (exExportFileType.value === 'xlsx') {
     content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(r => `<tr>${fields.map(f => `<td>${r[f] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    mimeType = 'application/vnd.ms-excel;charset=utf-8'; extension = 'xls'
+    mimeType = 'application/vnd.ms-excel;charset=utf-8'; extension = 'xlsx'
   } else {
     content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(r => `<tr>${fields.map(f => `<td>${r[f] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    mimeType = 'application/vnd.ms-word;charset=utf-8'; extension = 'doc'
+    mimeType = 'application/vnd.ms-word;charset=utf-8'; extension = 'docx'
   }
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
@@ -1257,3 +1409,15 @@ const costTrendData = categoryTrendData
 
 const maxTrendQty = computed(() => Math.max(...costTrendData.map(d => d.total), 1))
 </script>
+
+<style scoped>
+/* 蓝色渐变表头 - 与V1.1保持一致 */
+:deep(.el-table__header-wrapper .el-table__header th) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+:deep(.el-table__header-wrapper .el-table__header th .cell) {
+  color: #fff !important;
+}
+</style>

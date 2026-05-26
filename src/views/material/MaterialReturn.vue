@@ -120,16 +120,25 @@
         <el-table-column prop="date" label="退料日期" width="110" />
         <el-table-column prop="type" label="退料类型" width="100" />
         <el-table-column prop="applicant" label="申请人" width="90" />
+        <el-table-column prop="operator" label="操作人" width="90">
+          <template #default="{ row }">{{ row.operator || '-' }}</template>
+        </el-table-column>
         <el-table-column prop="department" label="退料部门" width="100" />
         <el-table-column prop="warehouseLocation" label="仓库位置" width="100" />
-        <el-table-column label="状态" width="100">
+        <el-table-column label="审批状态" width="100">
           <template #default="{ row }">
             <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(row)">
               {{ row.status }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="140" fixed="right">
+        <el-table-column prop="reviewer" label="审核人" width="90">
+          <template #default="{ row }">{{ row.reviewer || '-' }}</template>
+        </el-table-column>
+        <el-table-column label="备注" min-width="120">
+          <template #default="{ row }">{{ row.remark || '-' }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="170" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
             <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
@@ -148,10 +157,10 @@
               <el-table-column prop="materialName" label="物料名称" min-width="120" />
               <el-table-column prop="spec" label="规格" width="100" />
               <el-table-column prop="unit" label="单位" width="60" />
-              <el-table-column prop="returnQuantity" label="退料数量" width="90" />
+              <el-table-column prop="quantity" label="领料数量" width="90" />
               <el-table-column prop="unitPrice" label="单价(元)" width="90" />
               <el-table-column label="小计(元)" width="100">
-                <template #default="{ row: mr }">{{ (mr.returnQuantity * mr.unitPrice).toFixed(2) }}</template>
+                <template #default="{ row: mr }">{{ (mr.quantity * mr.unitPrice).toFixed(2) }}</template>
               </el-table-column>
               <el-table-column prop="warehousePosition" label="仓库货位" width="100" />
               <el-table-column prop="reason" label="退料原因" width="100" />
@@ -241,13 +250,6 @@
           <el-col :span="8">
             <el-form-item label="退料日期">
               <el-date-picker v-model="addForm.date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="退料类型">
-              <el-select v-model="addForm.type">
-                <el-option v-for="t in RETURN_TYPES" :key="t" :label="t" :value="t" />
-              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -530,6 +532,11 @@
 
     <!-- 删除确认弹窗（单条） -->
     <el-dialog v-model="showDeleteConfirm" title="确认删除" width="400px">
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+        <p class="text-sm text-amber-800">
+          <strong>警告：</strong> 删除此退料记录可能会导致相关数据丢失，无法恢复。请确认是否继续删除操作。
+        </p>
+      </div>
       <div class="flex items-center gap-3">
         <el-icon :size="40" color="#f56c6c"><WarningFilled /></el-icon>
         <div>
@@ -586,9 +593,9 @@
         <div>
           <p class="text-base font-medium mb-2">批量编辑退料单注意事项</p>
           <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
-            <li>批量修改将影响退料历史追溯</li>
-            <li>修改仓库可能导致库存数据不一致</li>
-            <li>修改物料数据可能影响成本统计</li>
+            <li>该退料单的历史记录可能无法追溯</li>
+            <li>已生成的入库单据数据可能不一致</li>
+            <li>相关的统计报表数据可能需要重新核算</li>
           </ul>
         </div>
       </div>
@@ -605,9 +612,9 @@
         <div>
           <p class="text-base font-medium mb-2">确认进入批量删除模式</p>
           <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
-            <li>删除后数据将无法恢复</li>
-            <li>退料单下的物料明细将一并删除</li>
-            <li>已完成的退料单不可删除</li>
+            <li>所有选中的退料单将被永久删除</li>
+            <li>相关的物料明细也将被删除</li>
+            <li>历史数据将无法恢复</li>
           </ul>
         </div>
       </div>
@@ -1042,14 +1049,12 @@ const handleCancelExport = () => {
 }
 
 const confirmExport = () => {
-  const exportData = selectedRows.value.length > 0
-    ? filteredReturns.value.filter(item => selectedRows.value.includes(item.id))
-    : filteredReturns.value
+  const exportData = filteredReturns.value.filter(item => selectedRows.value.includes(item.id))
 
   const headers = ['退料单号', '退料日期', '退料类型', '申请人', '操作人', '退料部门', '仓库位置', '审批状态', '审核人', '备注']
   const fields = ['code', 'date', 'type', 'applicant', 'operator', 'department', 'warehouseLocation', 'status', 'reviewer', 'remark']
-  const materialHeaders = ['物料编码', '物料名称', '规格', '单位', '退料数量', '退料原因']
-  const materialFields = ['materialCode', 'materialName', 'spec', 'unit', 'returnQuantity', 'reason']
+  const materialHeaders = ['物料编码', '物料名称', '规格', '单位', '领料数量', '退料原因']
+  const materialFields = ['materialCode', 'materialName', 'spec', 'unit', 'quantity', 'reason']
 
   let content = ''
   let mimeType = ''
@@ -1126,10 +1131,7 @@ const confirmExport = () => {
 // ============ 批量编辑操作 ============
 
 const enterBatchEditMode = () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要编辑的记录')
-    return
-  }
+  batchEditMode.value = true
   showEditWarning.value = true
 }
 
@@ -1161,10 +1163,6 @@ const cancelBatchEditMode = () => {
 // ============ 批量删除操作 ============
 
 const enterDeleteMode = () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要删除的记录')
-    return
-  }
   showDeleteWarning.value = true
 }
 
