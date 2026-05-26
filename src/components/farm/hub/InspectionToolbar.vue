@@ -15,43 +15,52 @@
     <!-- 批量操作模式 -->
     <template v-if="exportMode || batchEditMode || batchDeleteMode">
       <div class="flex gap-2">
-        <el-button v-if="exportMode" type="primary" size="small" @click="onConfirmExport">
-          <el-icon><Download /></el-icon>
-          确认导出
-        </el-button>
-        <el-button v-if="exportMode" size="small" @click="onCancelExport">取消</el-button>
+        <!-- 导出模式 -->
+        <template v-if="exportMode">
+          <el-button type="primary" size="small" @click="onConfirmExport">
+            <el-icon class="mr-1"><Download /></el-icon>
+            确认导出
+          </el-button>
+          <el-button size="small" @click="onCancelExport">取消</el-button>
+        </template>
 
-        <el-button v-if="batchEditMode" type="primary" size="small" @click="onConfirmBatchEdit">
-          <el-icon><Edit /></el-icon>
-          确认编辑
-        </el-button>
-        <el-button v-if="batchEditMode" size="small" @click="onCancelBatchEdit">取消</el-button>
+        <!-- 批量编辑模式 -->
+        <template v-if="batchEditMode">
+          <el-button type="primary" size="small" @click="onConfirmBatchEdit">
+            <el-icon class="mr-1"><Edit /></el-icon>
+            确认编辑
+          </el-button>
+          <el-button size="small" @click="onCancelBatchEdit">取消</el-button>
+        </template>
 
-        <el-button v-if="batchDeleteMode" type="danger" size="small" @click="onConfirmBatchDelete">
-          <el-icon><Delete /></el-icon>
-          确认删除
-        </el-button>
-        <el-button v-if="batchDeleteMode" size="small" @click="onCancelBatchDelete">取消</el-button>
+        <!-- 批量删除模式 -->
+        <template v-if="batchDeleteMode">
+          <el-button type="danger" size="small" @click="onConfirmBatchDelete">
+            <el-icon class="mr-1"><Delete /></el-icon>
+            确认删除
+          </el-button>
+          <el-button size="small" @click="onCancelBatchDelete">取消</el-button>
+        </template>
       </div>
     </template>
 
-    <!-- 默认模式 -->
+    <!-- 默认操作按钮 -->
     <template v-else>
       <div class="flex gap-2">
         <el-button type="primary" size="small" @click="onCreate">
-          <el-icon><Plus /></el-icon>
+          <el-icon class="mr-1"><Plus /></el-icon>
           新增
         </el-button>
-        <el-button type="primary" size="small" @click="onBatchEdit">
-          <el-icon><Edit /></el-icon>
+        <el-button size="small" @click="onBatchEdit">
+          <el-icon class="mr-1"><Edit /></el-icon>
           编辑
         </el-button>
         <el-button type="danger" size="small" @click="onBatchDelete">
-          <el-icon><Delete /></el-icon>
+          <el-icon class="mr-1"><Delete /></el-icon>
           删除
         </el-button>
         <el-button size="small" @click="onExport">
-          <el-icon><Download /></el-icon>
+          <el-icon class="mr-1"><Download /></el-icon>
           导出
         </el-button>
       </div>
@@ -62,5 +71,23 @@
 <script setup>
 import { Plus, Edit, Delete, Download } from '@element-plus/icons-vue'
 
-defineProps({})
+defineProps({
+  // 模式状态
+  exportMode: { type: Boolean, default: false },
+  batchEditMode: { type: Boolean, default: false },
+  batchDeleteMode: { type: Boolean, default: false },
+  // 统计信息
+  stats: { type: Object, default: undefined },
+  // 操作回调
+  onCreate: { type: Function, default: () => {} },
+  onBatchEdit: { type: Function, default: () => {} },
+  onBatchDelete: { type: Function, default: () => {} },
+  onExport: { type: Function, default: () => {} },
+  onConfirmExport: { type: Function, default: () => {} },
+  onCancelExport: { type: Function, default: () => {} },
+  onConfirmBatchEdit: { type: Function, default: () => {} },
+  onCancelBatchEdit: { type: Function, default: () => {} },
+  onConfirmBatchDelete: { type: Function, default: () => {} },
+  onCancelBatchDelete: { type: Function, default: () => {} }
+})
 </script>

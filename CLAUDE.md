@@ -115,3 +115,57 @@
 2. **查看实际代码** - 读取V1.1的jsx/ts文件，获取正确的功能逻辑
 3. **对比V2.0代码** - 找出V2.0与V1.1的逻辑差异点
 4. **原样修复** - 按照V1.1的逻辑修复，确保功能一致
+
+---
+
+## 🧪 深度对比检查清单（铁律 - 每次文件对比强制执行）
+
+**【强制规则】每次对比V1.1和V2.0文件时，必须逐维度检查，禁止只检查UI/样式差异：**
+
+### 6维度检查清单
+
+| 维度 | 检查内容 | 检查方法 |
+|------|---------|---------|
+| **1. 数据源** | API调用端点、参数名、参数个数、Store使用、props传递、computed依赖 | 对比每个API调用：URL路径、query/body参数名是否一致；Store中的state/getter/action是否对应 |
+| **2. 状态流转** | 所有state/props的初始值、所有可能状态分支 | 对比 ref/reactive 初始值；确认加载态/空态/错误态/边界值/正常态5种状态是否都有处理 |
+| **3. 弹窗逻辑** | 每个弹窗的所有字段、校验规则、提交/取消行为、弹窗嵌套 | 逐字段对比弹窗表单：字段名、label、placeholder、校验条件、提交API参数映射、关闭后的状态清理 |
+| **4. 事件处理** | 每个@click/@change的完整链路：调了什么API → 更新了什么状态 → UI如何响应 | 从V1.1的事件处理函数追踪到API调用→state更新→UI更新的完整链路，逐链对比V2.0 |
+| **5. 条件渲染** | 所有v-if/v-show/v-for的条件表达式、分支逻辑 | 对比每个条件分支的触发条件和渲染结果，确认边界条件完整 |
+| **6. 错误处理** | try/catch、fallback数据、ElMessage提示、空数组兜底 | 对比每个API调用的错误处理：catch中有没有fallback、有没有用户提示、有没有localStorage回退 |
+
+### 执行流程
+
+```
+1. 读V1.1源文件 → 提取所有: API调用、state、事件处理函数、条件分支、弹窗
+2. 读V2.0对应文件 → 逐维度对比每个逻辑点
+3. 列出差异清单 → 按维度标记 MISSING / DIFFERENT / BUG / OK
+4. 逐项修复 → 每修一个勾一个，修复完成后再build验证
+```
+
+### 禁止事项
+
+- ❌ 禁止只检查UI/样式差异就说"已修复"
+- ❌ 禁止不追踪API调用链就下结论
+- ❌ 禁止不检查弹窗内部字段和逻辑
+- ❌ 禁止不验证后端数据格式与前端是否匹配
+- ❌ 禁止跳过错误处理和fallback逻辑的对比
+
+---
+
+## Skill routing
+
+When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
+
+Key routing rules:
+- Product ideas/brainstorming → invoke /office-hours
+- Strategy/scope → invoke /plan-ceo-review
+- Architecture → invoke /plan-eng-review
+- Design system/plan review → invoke /design-consultation or /plan-design-review
+- Full review pipeline → invoke /autoplan
+- Bugs/errors → invoke /investigate
+- QA/testing site behavior → invoke /qa or /qa-only
+- Code review/diff check → invoke /review
+- Visual polish → invoke /design-review
+- Ship/deploy/PR → invoke /ship or /land-and-deploy
+- Save progress → invoke /context-save
+- Resume context → invoke /context-restore

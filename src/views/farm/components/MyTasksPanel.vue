@@ -53,13 +53,23 @@
               </template>
             </el-table-column>
             <el-table-column prop="remarks" label="备注" width="120" show-overflow-tooltip />
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column label="操作" width="260" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
-                <el-button link type="primary" size="small" @click="handleSop(row)" v-if="row.sopContent">SOP</el-button>
-                <el-button link type="primary" size="small" @click="handleAccept(row)" v-if="row.status === 'pending'">接单</el-button>
-                <el-button link type="success" size="small" @click="handleFeedback(row)" v-if="row.status === 'in_progress' || row.status === 'accepted'">反馈</el-button>
-                <el-button link type="warning" size="small" @click="handleReject(row)" v-if="row.status === 'pending'">拒绝</el-button>
+                <!-- pending: 接受+拒绝（与 V1.1 ProductionTaskTableRow 一致） -->
+                <template v-if="row.status === 'pending'">
+                  <el-button type="success" size="small" @click="handleAccept(row)" class="text-xs">接受</el-button>
+                  <el-button type="danger" size="small" @click="handleReject(row)" class="text-xs">拒绝</el-button>
+                </template>
+                <!-- accepted/in_progress: 提交进度 -->
+                <el-button v-if="row.status === 'accepted' || row.status === 'in_progress'" type="primary" size="small" @click="handleFeedback(row)" class="text-xs">提交进度</el-button>
+                <!-- rejected: 继续执行+查看 -->
+                <template v-if="row.status === 'rejected'">
+                  <el-button type="warning" size="small" @click="handleContinueExecution(row)" class="text-xs">继续执行</el-button>
+                  <el-button type="info" size="small" @click="handleView(row)" class="text-xs">查看</el-button>
+                </template>
+                <!-- waiting_acceptance/completed: 查看 -->
+                <el-button v-if="row.status === 'waiting_acceptance' || row.status === 'completed'" type="info" size="small" @click="handleView(row)" class="text-xs">查看</el-button>
+                <el-button v-if="row.sopContent" type="primary" link size="small" @click="handleSop(row)">SOP</el-button>
               </template>
             </el-table-column>
           </template>
@@ -206,8 +216,12 @@
       </div>
       <template #footer>
         <el-button @click="showDetailModal = false">关闭</el-button>
-        <el-button v-if="selectedTask?.status === 'pending'" type="primary" @click="handleAcceptFromDetail">接单</el-button>
-        <el-button v-if="selectedTask?.status === 'in_progress' || selectedTask?.status === 'accepted'" type="success" @click="handleFeedbackFromDetail">反馈</el-button>
+        <template v-if="selectedTask?.status === 'pending'">
+          <el-button type="success" @click="handleAcceptFromDetail">接受</el-button>
+          <el-button type="danger" @click="handleRejectFromDetail">拒绝</el-button>
+        </template>
+        <el-button v-if="selectedTask?.status === 'accepted' || selectedTask?.status === 'in_progress'" type="primary" @click="handleFeedbackFromDetail">提交进度</el-button>
+        <el-button v-if="selectedTask?.status === 'rejected'" type="warning" @click="handleContinueFromDetail">继续执行</el-button>
       </template>
     </el-dialog>
 
@@ -301,29 +315,67 @@ onMounted(() => {
   }
 })
 
-// 任务统计
+// 任务统计（与 V1.1 MyTasksPage.tsx 筛选逻辑一致）
 const taskCounts = computed(() => ({
   all: store.tasks.length,
-  problem: store.tasks.filter(t => t.sourceType === 'problem' || t.inspectionType).length,
-  production: store.tasks.filter(t => !t.sourceType || t.sourceType === 'production').length,
-  temp: store.tasks.filter(t => t.sourceType === 'temp' || t.tempTaskType).length,
+  problem: store.tasks.filter(t => t.sourceProblemId != null).length,
+  production: store.tasks.filter(t => {
+    if (!t.taskCode || !t.taskCode.startsWith('NS')) return false
+    if (t.sourceType === 'tempTask') return false
+    if (t.sourceProblemId != null) return false
+    return true
+  }).length,
+  temp: store.tasks.filter(t => {
+    if (t.sourceType === 'tempTask') return true
+    if (t.taskCode && t.taskCode.startsWith('TT')) return true
+    return false
+  }).length,
   worklog: workLogStore.workLogs.length
 }))
 
-// 过滤后的任务
+// 过滤后的任务（与 V1.1 MyTasksPage.tsx 筛选逻辑一致）
 const filteredTasks = computed(() => {
+  // 按创建时间倒序排序
+  const sortByTime = (a, b) => {
+    const getTime = (t) => {
+      const ts = t.createdAt || t.planStart || t.startDate || ''
+      if (!ts) return 0
+      const d = new Date(ts)
+      return isNaN(d.getTime()) ? 0 : d.getTime()
+    }
+    return getTime(b) - getTime(a)
+  }
+
+  let result = []
   switch (taskFilter.value) {
     case 'production':
-      return store.tasks.filter(t => !t.sourceType || t.sourceType === 'production')
+      // 农事任务：仅显示 NS 开头，排除临时任务和问题反馈任务
+      result = store.tasks.filter(t => {
+        if (!t.taskCode || !t.taskCode.startsWith('NS')) return false
+        if (t.sourceType === 'tempTask') return false
+        if (t.sourceProblemId != null) return false
+        return true
+      })
+      break
     case 'temp':
-      return store.tasks.filter(t => t.sourceType === 'temp' || t.tempTaskType)
+      // 临时任务：TT 开头或 sourceType 为 tempTask，排除草稿
+      result = store.tasks.filter(t => {
+        if (t.status === 'draft') return false
+        if (t.sourceType === 'tempTask') return true
+        if (t.taskCode && t.taskCode.startsWith('TT')) return true
+        return false
+      })
+      break
     case 'problem':
-      return store.tasks.filter(t => t.sourceType === 'problem' || t.inspectionType)
+      // 巡查反馈：有 sourceProblemId 的
+      result = store.tasks.filter(t => t.sourceProblemId != null)
+      break
     case 'worklog':
       return []
     default:
-      return store.tasks
+      result = [...store.tasks]
   }
+  return result.sort(sortByTime)
 })
 
 // 分页后的任务
@@ -393,7 +445,7 @@ const handleSop = (row) => {
   showSopModal.value = true
 }
 
-// 接单
+// 接单（pending → accepted，与 V1.1 acceptTask 一致）
 const handleAccept = async (row) => {
   try {
     await ElMessageBox.confirm(`确定接受任务 "${row.taskCode || row.title}" 吗？`, '确认接单', {
@@ -401,8 +453,8 @@ const handleAccept = async (row) => {
       cancelButtonText: '取消',
       type: 'info'
     })
-    await store.updateTask(row.id, { status: 'in_progress' })
-    ElMessage.success('已接受任务')
+    await store.accept(row.id)
+    ElMessage.success('已接受任务，请开始执行')
   } catch { /* 取消 */ }
 }
 
@@ -412,7 +464,19 @@ const handleAcceptFromDetail = async () => {
   showDetailModal.value = false
 }
 
-// 拒绝任务
+// 从详情页拒绝
+const handleRejectFromDetail = async () => {
+  await handleReject(selectedTask.value)
+  showDetailModal.value = false
+}
+
+// 从详情页继续执行
+const handleContinueFromDetail = async () => {
+  showDetailModal.value = false
+  await handleContinueExecution(selectedTask.value)
+}
+
+// 拒绝任务（pending → rejected，与 V1.1 rejectByExecutor 一致）
 const handleReject = async (row) => {
   try {
     const { value: reason } = await ElMessageBox.prompt('请输入拒绝原因', '拒绝任务', {
@@ -422,8 +486,21 @@ const handleReject = async (row) => {
       inputValidator: (val) => val ? true : '请输入拒绝原因',
       inputErrorMessage: '拒绝原因不能为空'
     })
-    await store.updateTask(row.id, { status: 'rejected', remarks: reason })
-    ElMessage.success('已拒绝任务')
+    await store.reject(row.id, reason)
+    ElMessage.success('已拒绝任务，将通知管理员重新分派')
+  } catch { /* 取消 */ }
+}
+
+// 继续执行（rejected → in_progress，与 V1.1 continueExecution 一致）
+const handleContinueExecution = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确定继续执行任务 "${row.taskCode || row.title}" 吗？`, '确认继续执行', {
+      confirmButtonText: '确定继续',
+      cancelButtonText: '取消',
+      type: 'info'
+    })
+    await store.start(row.id)
+    ElMessage.success('已恢复任务执行')
   } catch { /* 取消 */ }
 }
 
@@ -444,19 +521,31 @@ const handleFeedbackFromDetail = () => {
   handleFeedback(selectedTask.value)
 }
 
-// 提交反馈
+// 提交反馈（与 V1.1 submitProgress 一致：进度100%时提交验收 → waiting_acceptance）
 const submitFeedback = async () => {
   if (!selectedTask.value) return
   try {
     const newProgress = feedbackForm.progress
-    const status = newProgress >= 100 ? 'completed' : 'in_progress'
-    await store.updateTask(selectedTask.value.id, {
-      progress: newProgress,
-      status,
-      remarks: feedbackForm.description || (feedbackForm.canContinue ? '正常执行' : `无法继续: ${feedbackForm.cannotContinueReason}`),
-      materials: feedbackForm.materialCode ? [{ code: feedbackForm.materialCode }] : undefined
-    })
-    ElMessage.success('反馈提交成功')
+    const desc = feedbackForm.description || (feedbackForm.canContinue ? '正常执行' : `无法继续: ${feedbackForm.cannotContinueReason}`)
+
+    // 无法继续 → 拒绝任务
+    if (!feedbackForm.canContinue && feedbackForm.cannotContinueReason.trim()) {
+      await store.reject(selectedTask.value.id, feedbackForm.cannotContinueReason)
+      ElMessage.warning('已提交无法继续反馈，任务将重新分派')
+      showFeedbackModal.value = false
+      return
+    }
+
+    // 提交进度记录
+    await store.submitProgressData(selectedTask.value.id, newProgress, desc)
+
+    // 进度100%时提交验收
+    if (newProgress >= 100) {
+      await store.submitAcceptance(selectedTask.value.id)
+      ElMessage.success('已提交验收申请，等待管理员审核')
+    } else {
+      ElMessage.success('进度反馈提交成功')
+    }
     showFeedbackModal.value = false
   } catch (err) {
     ElMessage.error('反馈提交失败')

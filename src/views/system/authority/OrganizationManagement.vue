@@ -184,13 +184,20 @@
           </el-select>
         </div>
 
-        <div>
+        <!-- 关联部门（仅部门类型显示，与V1.1一致） -->
+        <div v-if="formData.orgType === 'department' || !formData.orgType">
           <label class="block text-sm font-medium text-gray-700 mb-1">
             关联部门 <span class="text-xs text-gray-400">（双向同步）</span>
           </label>
-          <el-select v-model="formData.departmentId" clearable class="w-full" placeholder="不关联（独立组织）">
+          <el-select
+            v-model="formData.departmentId"
+            clearable
+            class="w-full"
+            placeholder="不关联（独立组织）"
+            @change="handleDeptChange"
+          >
             <el-option
-              v-for="dept in departments"
+              v-for="dept in activeDepartments"
               :key="dept.id || dept.oid"
               :label="`${dept.name} (${dept.code})`"
               :value="dept.id || dept.oid"
@@ -223,7 +230,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   OfficeBuilding,
@@ -256,6 +263,11 @@ const {
 } = authorityStore
 
 const departments = computed(() => departmentStore.departments || [])
+
+// 过滤掉已停用的部门（与V1.1一致）
+const activeDepartments = computed(() =>
+  departments.value.filter(d => d.status !== 'inactive')
+)
 
 // 搜索和分页
 const searchTerm = ref('')
@@ -322,13 +334,15 @@ const getLevel = (org, orgList = organizations.value || []) => {
   return level >= 0 ? level : 0
 }
 
-// 切换展开状态
+// 切换展开状态 — 必须替换整个Set以触发Vue3响应式
 const toggleExpand = (oid) => {
-  if (expandedOids.value.has(oid)) {
-    expandedOids.value.delete(oid)
+  const next = new Set(expandedOids.value)
+  if (next.has(oid)) {
+    next.delete(oid)
   } else {
-    expandedOids.value.add(oid)
+    next.add(oid)
   }
+  expandedOids.value = next
 }
 
 // 打开新增弹窗
@@ -363,6 +377,24 @@ const handleEdit = (org) => {
   dialogVisible.value = true
 }
 
+// 组织类型变化时清除部门关联（与V1.1一致）
+watch(() => formData.orgType, (newType) => {
+  if (newType !== 'department') {
+    formData.departmentId = ''
+    formData.departmentName = ''
+  }
+})
+
+// 部门选择变化时自动查找部门名称
+const handleDeptChange = (deptId) => {
+  if (!deptId) {
+    formData.departmentName = ''
+    return
+  }
+  const dept = departments.value.find(d => (d.id || d.oid) === deptId)
+  formData.departmentName = dept?.name || ''
+}
+
 // 保存
 const handleSave = async () => {
   if (!formData.aid || !formData.name) {
@@ -373,7 +405,9 @@ const handleSave = async () => {
   try {
     const payload = {
       ...formData,
-      oid: editingOrg.value?.oid || undefined
+      oid: editingOrg.value?.oid || undefined,
+      // 非部门类型时清除部门关联（与V1.1一致）
+      ...(formData.orgType !== 'department' ? { departmentId: undefined, departmentName: undefined } : {})
     }
     await saveOrganization(payload)
     ElMessage.success('保存成功')
@@ -408,3 +442,23 @@ onMounted(async () => {
   await departmentStore.loadDepartments?.()
 })
 </script>
+
+<style scoped>
+/* 弹窗头部渐变 - 与V1.1保持一致: 3-stop emerald渐变 */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+</style>

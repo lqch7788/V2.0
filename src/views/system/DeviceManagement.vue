@@ -223,11 +223,44 @@
             />
           </div>
         </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">所属温室</label>
+            <el-select v-model="newDevice.greenhouseOid" placeholder="请选择温室" clearable class="w-full">
+              <el-option
+                v-for="gh in greenhouseOptions"
+                :key="gh.oid || gh.id"
+                :label="gh.name || gh.greenhouseName"
+                :value="gh.oid || gh.id"
+              />
+            </el-select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">安装日期</label>
+            <el-date-picker
+              v-model="newDevice.installDate"
+              type="date"
+              placeholder="选择安装日期"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              class="w-full"
+            />
+          </div>
+        </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">安装位置</label>
           <el-input
             v-model="newDevice.location"
             placeholder="请输入安装位置"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">描述</label>
+          <el-input
+            v-model="newDevice.description"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入设备描述"
           />
         </div>
         <div>
@@ -254,12 +287,12 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDeviceStore } from '@/stores'
+import { useGreenhouseStore } from '@/stores/modules/greenhouse'
 import { DEVICE_TYPES } from '@/types/system'
 import {
   ArrowLeft,
   Monitor,
   Search,
-  Plus,
   Edit,
   Delete,
   Loading,
@@ -275,6 +308,7 @@ const router = useRouter()
 
 // ========== Store ==========
 const deviceStore = useDeviceStore()
+const greenhouseStore = useGreenhouseStore()
 
 // ========== 状态 ==========
 const searchTerm = ref('')
@@ -290,8 +324,21 @@ const newDevice = reactive({
   deviceType: '',
   manufacturer: '',
   serialNumber: '',
+  greenhouseOid: '',
   location: '',
+  installDate: '',
+  description: '',
   status: 'online'
+})
+
+// 温室选项
+const greenhouseOptions = computed(() => {
+  return (greenhouseStore.greenhouses || []).map(gh => ({
+    oid: gh.oid || gh.id,
+    id: gh.oid || gh.id,
+    name: gh.name || gh.greenhouseName,
+    greenhouseName: gh.name || gh.greenhouseName
+  }))
 })
 
 // ========== 计算属性 ==========
@@ -317,6 +364,7 @@ const filteredDevices = computed(() => {
 // ========== 生命周期 ==========
 onMounted(() => {
   loadDevices()
+  greenhouseStore.fetchItems?.()
 })
 
 // ========== 方法 ==========
@@ -362,7 +410,10 @@ const editDeviceAction = (device) => {
   newDevice.deviceType = device.deviceType || ''
   newDevice.manufacturer = device.manufacturer || ''
   newDevice.serialNumber = device.serialNumber || ''
+  newDevice.greenhouseOid = device.greenhouseOid || ''
   newDevice.location = device.location || ''
+  newDevice.installDate = device.installDate || ''
+  newDevice.description = device.description || ''
   newDevice.status = device.status
   showModal.value = true
 }
@@ -401,7 +452,10 @@ const handleSaveDevice = async () => {
         deviceType: newDevice.deviceType,
         manufacturer: newDevice.manufacturer,
         serialNumber: newDevice.serialNumber,
+        greenhouseOid: newDevice.greenhouseOid || undefined,
         location: newDevice.location,
+        installDate: newDevice.installDate || undefined,
+        description: newDevice.description || undefined,
         status: newDevice.status
       })
       ElMessage.success('更新成功')
@@ -413,7 +467,10 @@ const handleSaveDevice = async () => {
         deviceType: newDevice.deviceType,
         manufacturer: newDevice.manufacturer,
         serialNumber: newDevice.serialNumber,
+        greenhouseOid: newDevice.greenhouseOid || undefined,
         location: newDevice.location,
+        installDate: newDevice.installDate || undefined,
+        description: newDevice.description || undefined,
         status: newDevice.status
       })
       ElMessage.success('创建成功')
@@ -435,7 +492,10 @@ const handleModalClose = () => {
   newDevice.deviceType = ''
   newDevice.manufacturer = ''
   newDevice.serialNumber = ''
+  newDevice.greenhouseOid = ''
   newDevice.location = ''
+  newDevice.installDate = ''
+  newDevice.description = ''
   newDevice.status = 'online'
 }
 

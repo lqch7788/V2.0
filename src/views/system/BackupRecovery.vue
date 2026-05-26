@@ -15,7 +15,7 @@
           </router-link>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white">
-              <Coin />
+              <Folder />
             </el-icon>
           </div>
           <div>
@@ -32,7 +32,7 @@
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
             <el-icon :size="20" color="#10b981">
-              <Coin />
+              <Folder />
             </el-icon>
           </div>
           <div>
@@ -369,7 +369,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   CircleCheck, CircleClose, Download, Upload, Delete,
   Search, Plus, ArrowLeft,
-  Coin, Folder, Monitor, Setting, Timer, Refresh
+  Folder, Monitor, Setting, Timer, Refresh
 } from '@element-plus/icons-vue'
 import { enhancedApiClient } from '@/lib/apiClient'
 
@@ -416,7 +416,7 @@ const pageSize = 10
 
 // Tab配置
 const tabs = [
-  { key: 'record', icon: Coin, label: '备份记录' },
+  { key: 'record', icon: Folder, label: '备份记录' },
   { key: 'strategy', icon: Setting, label: '备份策略' }
 ]
 

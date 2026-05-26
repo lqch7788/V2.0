@@ -230,8 +230,7 @@
           :page-size="pageSize"
           :total="totalItems"
           :page-sizes="[10, 20, 50]"
-          :current-page="currentPage"
-          layout="total, sizes, prev, pager, next"
+          layout="sizes, prev, pager, next"
           background
           @size-change="handleSizeChange"
           @current-change="handlePageChange"
@@ -296,7 +295,7 @@
         </el-form-item>
 
         <!-- 基地字段 -->
-        <template v-if="!editingItem || editingItem.type === 'base'">
+        <template v-if="(!editingItem && addType === 'base') || (editingItem && editingItem.type === 'base')">
           <div class="grid grid-cols-2 gap-4">
             <el-form-item label="面积">
               <el-input-number v-model="formData.area" :min="0" controls-position="right" class="w-full" />
@@ -720,18 +719,26 @@ watch(companyGroups, (newVal) => {
 <style scoped>
 /* 基地设置页面样式 */
 .base-settings-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(to right, #10b981, #059669);
-  color: white;
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
   margin: 0;
   padding: 16px 20px;
 }
-
 .base-settings-dialog :deep(.el-dialog__title) {
   color: white;
   font-weight: 600;
 }
-
 .base-settings-dialog :deep(.el-dialog__headerbtn .el-dialog__close) {
   color: white;
+}
+.base-settings-dialog :deep(.el-dialog__body) {
+  padding: 20px;
+}
+/* 主按钮改为emerald绿色 - 与V1.1保持一致 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
 }
 </style>

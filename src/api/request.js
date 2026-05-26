@@ -132,6 +132,11 @@ export function put(url, data, config) {
   return request.put(url, data, config)
 }
 
+// 封装 PATCH 请求
+export function patch(url, data, config) {
+  return request.patch(url, data, config)
+}
+
 // 封装 DELETE 请求
 export function del(url, params, config) {
   return request.delete(url, { params, ...config })

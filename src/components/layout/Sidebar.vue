@@ -194,19 +194,19 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/schedule" class="submenu-item" :class="{ active: isActive('/schedule') }">
+                <router-link to="/farm/schedule" class="submenu-item" :class="{ active: isActive('/farm/schedule') }">
                   <el-icon :size="16"><Calendar /></el-icon>
                   <span>排班调度</span>
                 </router-link>
               </li>
               <li>
-                <router-link to="/team" class="submenu-item" :class="{ active: isActive('/team') }">
+                <router-link to="/farm/team" class="submenu-item" :class="{ active: isActive('/farm/team') }">
                   <el-icon :size="16"><Folder /></el-icon>
                   <span>班组分配</span>
                 </router-link>
               </li>
               <li>
-                <router-link to="/daily-work-summary" class="submenu-item" :class="{ active: isActive('/daily-work-summary') }">
+                <router-link to="/farm/daily-summary" class="submenu-item" :class="{ active: isActive('/farm/daily-summary') }">
                   <el-icon :size="16"><Calendar /></el-icon>
                   <span>每日工单汇总</span>
                 </router-link>
@@ -476,7 +476,7 @@ const isCropActive = computed(() => {
 })
 
 const isFarmActive = computed(() => {
-  return ['/farm-hub', '/task-center', '/schedule', '/team', '/daily-work-summary'].some(p => route.path.startsWith(p))
+  return ['/farm-hub', '/task-center', '/farm/schedule', '/farm/team', '/farm/daily-summary', '/schedule', '/team', '/daily-work-summary'].some(p => route.path.startsWith(p))
 })
 
 const isInventoryActive = computed(() => {

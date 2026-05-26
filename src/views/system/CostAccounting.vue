@@ -234,7 +234,7 @@
         <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl text-white">
           <h3 class="text-lg font-semibold">{{ editingCategory ? '编辑类别' : '新增成本类别' }}</h3>
           <button @click="showCategoryModal = false" class="p-1 hover:bg-white/20 rounded">
-            <el-icon :size="20"><Plus /></el-icon>
+            <el-icon :size="20"><Close /></el-icon>
           </button>
         </div>
       </template>
@@ -287,7 +287,7 @@
         <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl text-white">
           <h3 class="text-lg font-semibold">{{ editingBudget ? '编辑预算' : '新增预算' }}</h3>
           <button @click="showBudgetModal = false" class="p-1 hover:bg-white/20 rounded">
-            <el-icon :size="20"><Plus /></el-icon>
+            <el-icon :size="20"><Close /></el-icon>
           </button>
         </div>
       </template>

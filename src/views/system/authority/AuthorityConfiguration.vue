@@ -1,29 +1,5 @@
 <template>
-  <div class="space-y-6">
-    <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-none">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <a
-            href="/settings"
-            class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
-            title="返回系统设置"
-          >
-            <el-icon :size="20" color="#4b5563">
-              <ArrowLeft />
-            </el-icon>
-          </a>
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Key /></el-icon>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">权限配置</h1>
-            <p class="text-gray-500">工序管理 · 角色权限矩阵 · 数据权限</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
+  <div class="space-y-4">
     <!-- 工具栏：内部Tab -->
     <div class="flex items-center gap-3 flex-wrap">
       <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
@@ -233,13 +209,15 @@
                   :key="act.code"
                   class="text-center py-1.5 px-2"
                 >
-                  <el-button
-                    size="small"
-                    :type="getAuthValue(proc.oid, act.code) === 1 ? 'success' : 'info'"
-                    :icon="getAuthValue(proc.oid, act.code) === 1 ? 'Check' : 'Close'"
-                    class-name="w-7 h-7 rounded flex items-center justify-center"
+                  <button
                     @click="toggleAuthority(proc.oid, act.code)"
-                  />
+                    :class="getAuthValue(proc.oid, act.code) === 1
+                      ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-50'
+                      : 'border-gray-300 text-red-500 hover:bg-red-50'"
+                    class="w-7 h-7 rounded border flex items-center justify-center transition-colors font-bold text-base"
+                  >
+                    {{ getAuthValue(proc.oid, act.code) === 1 ? '✓' : '✗' }}
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -297,11 +275,9 @@ import {
   Search,
   Refresh,
   Check,
-  Close,
   Folder,
   Edit,
-  Delete,
-  ArrowLeft
+  Delete
 } from '@element-plus/icons-vue'
 import { useAuthorityStore } from '@/stores/modules/authority'
 import {
@@ -384,11 +360,24 @@ const flatProcessList = computed(() => {
   return result
 })
 
-// 筛选工序
+// 全部展平工序（用于权限矩阵，始终显示所有工序，不依赖展开状态）
+const allProcessesFlat = computed(() => {
+  const result = []
+  const flatten = (nodes) => {
+    for (const node of nodes || []) {
+      result.push(node)
+      if (node.children?.length) flatten(node.children)
+    }
+  }
+  flatten(processes.value || [])
+  return result
+})
+
+// 筛选工序（权限矩阵用）
 const filteredProcesses = computed(() => {
-  if (!searchTerm.value) return flatProcessList.value || []
+  if (!searchTerm.value) return allProcessesFlat.value
   const term = searchTerm.value.toLowerCase()
-  return (flatProcessList.value || []).filter(p =>
+  return allProcessesFlat.value.filter(p =>
     p.process_name?.toLowerCase().includes(term) ||
     p.process_code?.toLowerCase().includes(term)
   )
@@ -422,30 +411,26 @@ const toggleAuthority = (processOid, actionCode) => {
 }
 
 const grantAll = () => {
-  const changes = new Map()
-  for (const proc of flatProcessList.value) {
+  authorityChanges.clear()
+  for (const proc of allProcessesFlat.value) {
     const actionMap = new Map()
     for (const act of ACTION_LIST) {
       actionMap.set(act.code, 1)
     }
-    changes.set(proc.oid, actionMap)
+    authorityChanges.set(proc.oid, actionMap)
   }
-  changes.set('__grant_all__', new Map())
-  Object.assign(authorityChanges, changes)
   hasChanges.value = true
 }
 
 const revokeAll = () => {
-  const changes = new Map()
-  for (const proc of flatProcessList.value) {
+  authorityChanges.clear()
+  for (const proc of allProcessesFlat.value) {
     const actionMap = new Map()
     for (const act of ACTION_LIST) {
       actionMap.set(act.code, 0)
     }
-    changes.set(proc.oid, actionMap)
+    authorityChanges.set(proc.oid, actionMap)
   }
-  changes.set('__revoke_all__', new Map())
-  Object.assign(authorityChanges, changes)
   hasChanges.value = true
 }
 
@@ -453,7 +438,6 @@ const saveAuthority = async () => {
   if (!selectedRoleOid.value) return
   const authorities = []
   for (const [processOid, actions] of authorityChanges) {
-    if (processOid === '__grant_all__' || processOid === '__revoke_all__') continue
     for (const [actionCode, value] of actions) {
       authorities.push({ processOid, actionOid: actionCode, value })
     }
@@ -462,7 +446,7 @@ const saveAuthority = async () => {
   try {
     await saveRoleAuthority(selectedRoleOid.value, authorities)
     hasChanges.value = false
-    Object.keys(authorityChanges).forEach(k => delete authorityChanges[k])
+    authorityChanges.clear()
     await loadRoleAuthority()
     ElMessage.success('保存成功')
   } catch (err) {
@@ -504,7 +488,7 @@ const toggleDataAuthority = async (orgOid) => {
 const refreshData = async () => {
   await loadProcesses({ appType: selectedAppType.value })
   hasChanges.value = false
-  Object.keys(authorityChanges).forEach(k => delete authorityChanges[k])
+  authorityChanges.clear()
 }
 
 const handleAppTypeChange = () => {
@@ -572,5 +556,40 @@ onMounted(async () => {
   await loadProcesses({ appType: selectedAppType.value })
   await loadRoles()
   await loadOrganizations()
+  // V1.1: 默认选择系统管理员角色，自动加载权限数据
+  if (!selectedRoleOid.value && roles.value.length > 0) {
+    const adminRole = roles.value.find(r => (r.role_name || r.name) === '系统管理员')
+    if (adminRole) {
+      selectedRoleOid.value = adminRole.oid
+    }
+  }
 })
 </script>
+
+<style scoped>
+/* 弹窗头部：V1.1 3-stop emerald渐变 */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+
+/* 绿色主题按钮 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
+}
+</style>

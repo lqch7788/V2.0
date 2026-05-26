@@ -1,728 +1,446 @@
 <template>
-  <div class="space-y-6">
-    <!-- 页面标题卡片 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+  <div class="space-y-4">
+    <!-- 页面标题 -->
+    <div class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-          <el-icon :size="24" color="white">
-            <Calendar />
-          </el-icon>
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+          <el-icon :size="20" class="text-white"><Calendar /></el-icon>
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">日计划</h1>
-          <p class="text-gray-500">管理每日生产计划任务</p>
+          <h1 class="text-lg font-bold text-gray-900">每日工单汇总与规划</h1>
+          <p class="text-sm text-gray-500">每日任务进度与人员负荷分析</p>
         </div>
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-blue-500">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500 mb-1">今日计划</p>
-            <p class="text-2xl font-bold text-gray-900">{{ todayPlans.length }}</p>
-          </div>
-          <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-            <el-icon :size="24" color="#3b82f6">
-              <Calendar />
-            </el-icon>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-emerald-500">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500 mb-1">已完成</p>
-            <p class="text-2xl font-bold text-gray-900">{{ completedCount }}</p>
-          </div>
-          <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-            <el-icon :size="24" color="#10b981">
-              <CircleCheck />
-            </el-icon>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-orange-500">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500 mb-1">进行中</p>
-            <p class="text-2xl font-bold text-gray-900">{{ inProgressCount }}</p>
-          </div>
-          <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-            <el-icon :size="24" color="#f97316">
-              <Loading />
-            </el-icon>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-purple-500">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500 mb-1">本周计划</p>
-            <p class="text-2xl font-bold text-gray-900">{{ weekPlans.length }}</p>
-          </div>
-          <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-            <el-icon :size="24" color="#a855f7">
-              <Clock />
-            </el-icon>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 筛选工具栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="flex flex-wrap gap-4 items-end">
-        <!-- 日期选择 -->
-        <div class="flex-1 min-w-[180px]">
-          <label class="block text-sm font-medium text-gray-500 mb-1">计划日期</label>
-          <el-date-picker
-            v-model="filterDate"
-            type="date"
-            placeholder="请选择日期"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-            @change="handleFilterChange"
-          />
-        </div>
-
-        <!-- 状态筛选 -->
-        <div class="min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-500 mb-1">状态</label>
-          <el-select
-            v-model="filterStatus"
-            placeholder="请选择状态"
-            clearable
-            @change="handleFilterChange"
-          >
-            <el-option value="pending" label="待执行" />
-            <el-option value="in_progress" label="进行中" />
-            <el-option value="completed" label="已完成" />
-            <el-option value="cancelled" label="已取消" />
-          </el-select>
-        </div>
-
-        <!-- 操作按钮 -->
-        <div class="flex gap-2">
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 操作按钮 -->
-    <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-900">日计划列表</h3>
-      <div class="flex gap-2">
-        <el-button v-if="canCreate" type="primary" @click="handleOpenAddModal">
-          <el-icon><Plus /></el-icon>
-          新增
-        </el-button>
-        <el-button v-if="canExport" type="success" @click="handleExport">
-          <el-icon><Download /></el-icon>
-          导出
-        </el-button>
-      </div>
-    </div>
-
-    <!-- 数据表格 -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <div class="flex items-center gap-3">
-        <div class="w-6 h-6 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <span class="text-gray-500">加载中...</span>
-      </div>
-    </div>
-
-    <div v-else class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-      <el-table :data="paginatedData" stripe @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="50" />
-
-        <el-table-column prop="planCode" label="计划编号" width="150">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="handleDetail(row)">
-              {{ row.planCode }}
-            </el-button>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="planDate" label="计划日期" width="120" />
-
-        <el-table-column prop="cropName" label="作物名称" width="120" />
-
-        <el-table-column prop="taskType" label="任务类型" width="100">
-          <template #default="{ row }">
-            <span>{{ getTaskTypeName(row.taskType) }}</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="greenhouseName" label="执行区域" width="120" />
-
-        <el-table-column prop="responsiblePerson" label="负责人" width="100" />
-
-        <el-table-column prop="targetQuantity" label="目标数量" width="100">
-          <template #default="{ row }">
-            {{ row.targetQuantity }} {{ row.unit || 'kg' }}
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
-              {{ getStatusName(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="remarks" label="备注" min-width="150" show-overflow-tooltip />
-
-        <el-table-column label="操作" width="150" fixed="right">
-          <template #default="{ row }">
-            <div class="flex gap-1">
-              <el-button link type="primary" size="small" @click="handleDetail(row)">
-                详情
-              </el-button>
-              <el-button link type="primary" size="small" @click="handleEdit(row)">
-                编辑
-              </el-button>
-              <el-button link type="danger" size="small" @click="handleDeleteRow(row)">
-                删除
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <!-- 分页 -->
-      <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-100">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">共 {{ filteredData.length }} 条</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <el-button
-            :disabled="currentPage === 1"
-            size="small"
-            @click="handlePageChange(currentPage - 1)"
-          >
-            上一页
-          </el-button>
-          <span class="text-sm">{{ currentPage }} / {{ totalPages }}</span>
-          <el-button
-            :disabled="currentPage >= totalPages"
-            size="small"
-            @click="handlePageChange(currentPage + 1)"
-          >
-            下一页
-          </el-button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 详情弹窗 -->
-    <el-dialog
-      v-model="detailModalVisible"
-      title="日计划详情"
-      width="600px"
-    >
-      <div v-if="currentRecord" class="space-y-4">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="计划编号">{{ currentRecord.planCode }}</el-descriptions-item>
-          <el-descriptions-item label="计划日期">{{ currentRecord.planDate }}</el-descriptions-item>
-          <el-descriptions-item label="作物名称">{{ currentRecord.cropName }}</el-descriptions-item>
-          <el-descriptions-item label="任务类型">{{ getTaskTypeName(currentRecord.taskType) }}</el-descriptions-item>
-          <el-descriptions-item label="执行区域">{{ currentRecord.greenhouseName }}</el-descriptions-item>
-          <el-descriptions-item label="负责人">{{ currentRecord.responsiblePerson }}</el-descriptions-item>
-          <el-descriptions-item label="目标数量">{{ currentRecord.targetQuantity }} {{ currentRecord.unit || 'kg' }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="getStatusType(currentRecord.status)" size="small">
-              {{ getStatusName(currentRecord.status) }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="备注" :span="2">{{ currentRecord.remarks || '-' }}</el-descriptions-item>
-        </el-descriptions>
-      </div>
-      <template #footer>
-        <el-button @click="detailModalVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 编辑弹窗 -->
-    <el-dialog
-      v-model="editModalVisible"
-      title="编辑日计划"
-      width="600px"
-    >
-      <div v-if="currentRecord" class="space-y-4">
-        <el-form :model="editForm" label-width="100px">
-          <el-form-item label="任务类型">
-            <el-select v-model="editForm.taskType" placeholder="请选择任务类型">
-              <el-option value="planting" label="种植" />
-              <el-option value="watering" label="浇水" />
-              <el-option value="fertilizing" label="施肥" />
-              <el-option value="harvesting" label="采收" />
-              <el-option value="other" label="其他" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="负责人">
-            <el-input v-model="editForm.responsiblePerson" placeholder="请输入负责人" />
-          </el-form-item>
-          <el-form-item label="目标数量">
-            <el-input-number v-model="editForm.targetQuantity" :min="0" />
-          </el-form-item>
-          <el-form-item label="状态">
-            <el-select v-model="editForm.status" placeholder="请选择状态">
-              <el-option value="pending" label="待执行" />
-              <el-option value="in_progress" label="进行中" />
-              <el-option value="completed" label="已完成" />
-              <el-option value="cancelled" label="已取消" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="备注">
-            <el-input v-model="editForm.remarks" type="textarea" :rows="3" placeholder="请输入备注" />
-          </el-form-item>
-        </el-form>
-      </div>
-      <template #footer>
-        <el-button @click="editModalVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveEdit">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 新增弹窗 -->
-    <el-dialog
-      v-model="addModalVisible"
-      title="新增日计划"
-      width="600px"
-    >
-      <div class="space-y-4">
-        <el-form :model="addForm" label-width="100px">
-          <el-form-item label="计划日期" required>
+    <!-- 日期选择和操作按钮 -->
+    <div class="bg-[#F2F6FA] rounded-xl shadow-sm border border-gray-100 p-4">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500">选择日期:</span>
             <el-date-picker
-              v-model="addForm.planDate"
+              v-model="selectedDate"
               type="date"
-              placeholder="请选择日期"
+              placeholder="选择日期"
               value-format="YYYY-MM-DD"
-              style="width: 100%"
+              @change="handleDateChange"
             />
-          </el-form-item>
-          <el-form-item label="作物名称" required>
-            <el-input v-model="addForm.cropName" placeholder="请输入作物名称" />
-          </el-form-item>
-          <el-form-item label="任务类型" required>
-            <el-select v-model="addForm.taskType" placeholder="请选择任务类型">
-              <el-option value="planting" label="种植" />
-              <el-option value="watering" label="浇水" />
-              <el-option value="fertilizing" label="施肥" />
-              <el-option value="harvesting" label="采收" />
-              <el-option value="other" label="其他" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="执行区域">
-            <el-input v-model="addForm.greenhouseName" placeholder="请输入执行区域" />
-          </el-form-item>
-          <el-form-item label="负责人">
-            <el-input v-model="addForm.responsiblePerson" placeholder="请输入负责人" />
-          </el-form-item>
-          <el-form-item label="目标数量">
-            <el-input-number v-model="addForm.targetQuantity" :min="0" />
-          </el-form-item>
-          <el-form-item label="备注">
-            <el-input v-model="addForm.remarks" type="textarea" :rows="3" placeholder="请输入备注" />
-          </el-form-item>
-        </el-form>
+          </div>
+          <el-button @click="handleRefresh">
+            <el-icon><Refresh /></el-icon>
+            刷新数据
+          </el-button>
+        </div>
+        <el-button
+          type="primary"
+          :disabled="!todayPlan.tasks.length"
+          @click="handleConfirmDispatch"
+        >
+          <el-icon><Promotion /></el-icon>
+          一键确认派发 ({{ todayPlan.totalTasks }} 项)
+        </el-button>
       </div>
-      <template #footer>
-        <el-button @click="addModalVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleAdd">确定</el-button>
-      </template>
-    </el-dialog>
+    </div>
 
-    <!-- 导出格式弹窗 -->
-    <ExportFormatModal
-      v-model:visible="showExportModal"
-      :export-format="exportFormat"
-      :selected-count="selectedRows.length"
-      @change="exportFormat = $event"
-      @confirm="handleDoExport"
-    />
+    <!-- 统计卡片 - 5列 -->
+    <div class="grid grid-cols-5 gap-3">
+      <div v-for="stat in statsData" :key="stat.label" :class="[stat.bgColor, 'rounded-lg px-3 py-2.5']">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+            <el-icon :size="16" :class="stat.iconColor"><component :is="stat.icon" /></el-icon>
+          </div>
+          <div>
+            <div class="text-xl font-bold text-gray-900">{{ stat.value }}</div>
+            <div class="text-xs text-gray-500">{{ stat.label }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 建议 -->
+    <div v-if="report && report.aiRecommendations.length > 0" class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
+      <div class="flex items-center gap-2 mb-3">
+        <el-icon :size="20" class="text-purple-600"><Cpu /></el-icon>
+        <span class="font-semibold text-gray-900">AI 智能分析建议</span>
+      </div>
+      <div class="space-y-2">
+        <div v-for="(item, index) in report.aiRecommendations" :key="index" class="flex items-start gap-2 text-sm text-gray-700">
+          <span class="text-purple-500">•</span>
+          <span>{{ item }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 子Tab切换 -->
+    <div class="bg-white rounded-xl shadow-sm">
+      <div class="border-b border-gray-200 px-4 py-3">
+        <nav class="flex gap-2">
+          <button
+            v-for="tab in subTabs"
+            :key="tab.key"
+            @click="activeSubTab = tab.key"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+            :class="activeSubTab === tab.key ? 'bg-emerald-600 text-white' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'"
+          >
+            <el-icon :size="16"><component :is="tab.icon" /></el-icon>
+            {{ tab.label }}
+            <span v-if="tab.count !== undefined">({{ tab.count }})</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="p-4">
+        <!-- 任务概览 -->
+        <div v-if="activeSubTab === 'overview' && report" class="space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900">今日任务进度概览</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-emerald-700 font-medium">完成任务</span>
+                <span class="text-2xl font-bold text-emerald-600">{{ report.completedTasks }}</span>
+              </div>
+              <div class="w-full h-2 bg-emerald-200 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-emerald-500 rounded-full transition-all"
+                  :style="{ width: (report.totalTasks > 0 ? Math.round(report.completedTasks / report.totalTasks * 100) : 0) + '%' }"
+                />
+              </div>
+              <div class="text-xs text-emerald-600 mt-1">共 {{ report.totalTasks }} 个任务</div>
+            </div>
+            <div :class="[report.overdueTasks > 0 ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100', 'rounded-lg p-4 border']">
+              <div class="flex items-center justify-between mb-2">
+                <span :class="['text-sm font-medium', report.overdueTasks > 0 ? 'text-red-700' : 'text-gray-700']">超期任务</span>
+                <span :class="['text-2xl font-bold', report.overdueTasks > 0 ? 'text-red-600' : 'text-gray-600']">{{ report.overdueTasks }}</span>
+              </div>
+              <div v-if="report.overdueTasks > 0" class="text-xs text-red-600">需要及时处理</div>
+            </div>
+          </div>
+
+          <!-- AI派工建议列表 -->
+          <h3 class="text-lg font-semibold text-gray-900">AI 派工建议</h3>
+          <div v-if="todayPlan.tasks.length > 0" class="bg-gray-50 rounded-lg border border-gray-100">
+            <div v-for="(task, index) in todayPlan.tasks.slice(0, 5)" :key="index"
+              class="flex items-center gap-3 p-3 border-b border-gray-100 last:border-b-0">
+              <span :class="[
+                'inline-flex px-2 py-0.5 rounded text-xs font-medium',
+                task.priority === 'high' ? 'bg-red-100 text-red-700' :
+                task.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+              ]">
+                {{ task.priority === 'high' ? '紧急' : task.priority === 'medium' ? '重要' : '普通' }}
+              </span>
+              <span class="font-medium text-gray-900">{{ task.taskTypeName }}</span>
+              <span class="text-sm text-gray-500">- {{ task.greenhouseName }}</span>
+              <template v-if="getSuggestion(task.id)">
+                <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                  推荐: {{ getSuggestion(task.id).workerName }}
+                </span>
+                <span class="text-xs text-gray-400">置信度 {{ getSuggestion(task.id).confidenceScore }}%</span>
+              </template>
+            </div>
+          </div>
+          <div v-else class="text-center py-8 text-gray-500">今日暂无待派发任务</div>
+        </div>
+
+        <!-- 提前完成 / 已推迟 / 未完成 - 共用任务进度表格 -->
+        <div v-if="['ahead', 'delayed', 'unfinished'].includes(activeSubTab)">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <h3 class="text-lg font-semibold text-gray-900">{{ subTableTitle }}</h3>
+              <p class="text-sm text-gray-500 mt-0.5">{{ subTableDesc }}</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <th class="px-4 py-3 text-center text-sm font-semibold">任务名称</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">计划日期</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">实际完成</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">状态</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">延迟天数</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">执行人</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">延迟原因</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-300">
+                  <tr v-for="item in paginatedSubTableData" :key="item.taskId" class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900 truncate max-w-[200px]">{{ item.taskName }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.plannedDate }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.actualCompletionDate || '-' }}</td>
+                    <td class="px-4 py-3 text-center">
+                      <span :class="[
+                        'inline-flex px-2 py-0.5 rounded text-xs font-medium',
+                        item.progressStatus === 'ahead' ? 'bg-emerald-100 text-emerald-700' :
+                        item.progressStatus === 'delayed' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
+                      ]">
+                        {{ item.progressStatus === 'ahead' ? '提前完成' : item.progressStatus === 'delayed' ? '已推迟' : '已取消' }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <span v-if="item.delayDays" class="text-red-500 font-medium">{{ item.delayDays }}天</span>
+                      <span v-else class="text-gray-400">-</span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.actualAssignee }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 truncate max-w-[150px]">{{ item.delayReason || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="subTableDataTotal.length > subTablePageSize" class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <span class="text-sm text-gray-500">共 {{ subTableDataTotal.length }} 条</span>
+              <div class="flex items-center gap-2">
+                <el-button :disabled="subTablePage <= 1" size="small" @click="subTablePage--">上一页</el-button>
+                <span class="text-sm">{{ subTablePage }} / {{ Math.ceil(subTableDataTotal.length / subTablePageSize) }}</span>
+                <el-button :disabled="subTablePage >= Math.ceil(subTableDataTotal.length / subTablePageSize)" size="small" @click="subTablePage++">下一页</el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 人员负荷 -->
+        <div v-if="activeSubTab === 'workers'">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <h3 class="text-lg font-semibold text-gray-900">人员负荷分析</h3>
+              <p class="text-sm text-gray-500 mt-0.5">各执行人员当前的工作负荷情况</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <th class="px-4 py-3 text-center text-sm font-semibold">员工姓名</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">今日任务数</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">已完成</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">完成率</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">负荷状态</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold">可用性</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-300">
+                  <tr v-for="item in paginatedWorkerData" :key="item.workerId" class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900 text-center">{{ item.workerName }}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-center">{{ item.todayTasks }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.completedTasks }} / {{ item.todayTasks }}</td>
+                    <td class="px-4 py-3 text-center">
+                      <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div :class="[
+                          'h-full rounded-full',
+                          item.completionRate >= 80 ? 'bg-emerald-500' : item.completionRate >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                        ]" :style="{ width: item.completionRate + '%' }" />
+                      </div>
+                      <span class="text-xs text-gray-500">{{ item.completionRate }}%</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <span :class="[
+                        'inline-flex px-2 py-0.5 rounded text-xs font-medium',
+                        item.loadStatus === 'normal' ? 'bg-emerald-100 text-emerald-700' :
+                        item.loadStatus === 'busy' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                      ]">
+                        {{ item.loadStatus === 'normal' ? '正常' : item.loadStatus === 'busy' ? '较忙' : '过载' }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <span :class="[
+                        'inline-flex px-2 py-0.5 rounded text-xs font-medium',
+                        item.availability === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                      ]">
+                        {{ item.availability === 'available' ? '空闲' : '工作中' }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="(report?.workerLoadAnalysis || []).length > workerLoadPageSize" class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <span class="text-sm text-gray-500">共 {{ (report?.workerLoadAnalysis || []).length }} 条</span>
+              <div class="flex items-center gap-2">
+                <el-button :disabled="workerLoadPage <= 1" size="small" @click="workerLoadPage--">上一页</el-button>
+                <span class="text-sm">{{ workerLoadPage }} / {{ Math.ceil((report?.workerLoadAnalysis || []).length / workerLoadPageSize) }}</span>
+                <el-button :disabled="workerLoadPage >= Math.ceil((report?.workerLoadAnalysis || []).length / workerLoadPageSize)" size="small" @click="workerLoadPage++">下一页</el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Calendar, Search, Plus, Download, CircleCheck, Loading, Clock } from '@element-plus/icons-vue'
-import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
+import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import {
+  Calendar, Refresh, Promotion, Cpu,
+  Clock, CircleCheck, WarningFilled, Files
+} from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 
-// 权限控制
-const canCreate = ref(true)
-const canEdit = ref(true)
-const canDelete = ref(true)
-const canExport = ref(true)
+// ============================================
+// 模拟数据生成（对应V1.1 useDailyWorkOrderAnalysis hook）
+// ============================================
 
-// 统计数据
-const dailyPlans = ref([])
-const loading = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(10)
-const selectedRows = ref([])
+/** 模拟每日报告 */
+const generateMockReport = (date) => {
+  const totalTasks = 25 + Math.floor(Math.random() * 15)
+  const completedTasks = Math.floor(totalTasks * (0.4 + Math.random() * 0.3))
+  const inProgressTasks = Math.floor((totalTasks - completedTasks) * 0.6)
+  const pendingTasks = totalTasks - completedTasks - inProgressTasks
+  const overdueTasks = Math.floor(Math.random() * 4)
 
-// 筛选状态
-const filterDate = ref('')
-const filterStatus = ref('')
+  const taskNames = ['灌溉作业', '施肥作业', '植保喷洒', '修剪整形', '采收作业', '除草清理', '温控调节', '补光管理']
+  const workerNames = ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九']
 
-// 弹窗状态
-const detailModalVisible = ref(false)
-const editModalVisible = ref(false)
-const addModalVisible = ref(false)
-const showExportModal = ref(false)
-const exportFormat = ref('excel')
-const currentRecord = ref(null)
-
-// 编辑表单
-const editForm = reactive({
-  taskType: '',
-  responsiblePerson: '',
-  targetQuantity: 0,
-  status: '',
-  remarks: ''
-})
-
-// 新增表单
-const addForm = reactive({
-  planDate: '',
-  cropName: '',
-  taskType: '',
-  greenhouseName: '',
-  responsiblePerson: '',
-  targetQuantity: 0,
-  remarks: ''
-})
-
-// 从localStorage加载数据
-const loadData = () => {
-  const stored = localStorage.getItem('dailyPlans')
-  if (stored) {
-    dailyPlans.value = JSON.parse(stored)
-  } else {
-    // 初始化示例数据
-    dailyPlans.value = [
-      {
-        id: 'DP001',
-        planCode: 'RJH2026052201',
-        planDate: dayjs().format('YYYY-MM-DD'),
-        cropName: '番茄',
-        taskType: 'planting',
-        greenhouseName: '1号温室',
-        responsiblePerson: '张三',
-        targetQuantity: 100,
-        unit: 'kg',
-        status: 'pending',
-        remarks: ''
-      },
-      {
-        id: 'DP002',
-        planCode: 'RJH2026052202',
-        planDate: dayjs().format('YYYY-MM-DD'),
-        cropName: '黄瓜',
-        taskType: 'watering',
-        greenhouseName: '2号温室',
-        responsiblePerson: '李四',
-        targetQuantity: 200,
-        unit: 'kg',
-        status: 'in_progress',
-        remarks: '注意控制水量'
-      },
-      {
-        id: 'DP003',
-        planCode: 'RJH2026052101',
-        planDate: dayjs().subtract(1, 'day').format('YYYY-MM-DD'),
-        cropName: '茄子',
-        taskType: 'harvesting',
-        greenhouseName: '3号温室',
-        responsiblePerson: '王五',
-        targetQuantity: 150,
-        unit: 'kg',
-        status: 'completed',
-        remarks: '已完成采收'
-      }
-    ]
-    saveData()
-  }
-}
-
-// 保存数据到localStorage
-const saveData = () => {
-  localStorage.setItem('dailyPlans', JSON.stringify(dailyPlans.value))
-}
-
-// 今日计划
-const todayPlans = computed(() => {
-  const today = dayjs().format('YYYY-MM-DD')
-  return dailyPlans.value.filter(p => p.planDate === today)
-})
-
-// 本周计划
-const weekPlans = computed(() => {
-  const startOfWeek = dayjs().startOf('week').format('YYYY-MM-DD')
-  const endOfWeek = dayjs().endOf('week').format('YYYY-MM-DD')
-  return dailyPlans.value.filter(p => p.planDate >= startOfWeek && p.planDate <= endOfWeek)
-})
-
-// 已完成数量
-const completedCount = computed(() => {
-  return dailyPlans.value.filter(p => p.status === 'completed').length
-})
-
-// 进行中数量
-const inProgressCount = computed(() => {
-  return dailyPlans.value.filter(p => p.status === 'in_progress').length
-})
-
-// 筛选后的数据
-const filteredData = computed(() => {
-  return dailyPlans.value.filter(item => {
-    if (filterDate.value && item.planDate !== filterDate.value) return false
-    if (filterStatus.value && item.status !== filterStatus.value) return false
-    return true
+  const generateTask = (prefix, progressStatus) => ({
+    taskId: `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    taskName: taskNames[Math.floor(Math.random() * taskNames.length)],
+    plannedDate: date,
+    actualCompletionDate: progressStatus === 'ahead' ? dayjs(date).subtract(Math.floor(Math.random() * 3) + 1, 'day').format('YYYY-MM-DD') : null,
+    progressStatus,
+    delayDays: progressStatus === 'delayed' ? Math.floor(Math.random() * 5) + 1 : 0,
+    actualAssignee: workerNames[Math.floor(Math.random() * workerNames.length)],
+    delayReason: progressStatus === 'delayed' ? ['人员不足', '天气原因', '设备故障', '材料短缺'][Math.floor(Math.random() * 4)] : '',
   })
+
+  return {
+    date,
+    totalTasks,
+    pendingTasks,
+    inProgressTasks,
+    completedTasks,
+    overdueTasks,
+    aiRecommendations: [
+      '建议优先处理高优先级灌溉任务，避免影响作物生长周期',
+      '3号温室施肥任务可合并执行，减少人员调度成本30%',
+      '张三当前负荷较低(40%)，建议承接额外采收任务',
+      '预计明日下午有降雨，建议提前完成植保喷洒作业',
+    ],
+    aheadTasks: Array.from({ length: Math.floor(Math.random() * 4) + 1 }, (_, i) => generateTask('ahead', 'ahead')),
+    delayedTasks: Array.from({ length: overdueTasks }, (_, i) => generateTask('delay', 'delayed')),
+    unfinishedTasks: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, (_, i) => generateTask('unfin', 'cancelled')),
+    workerLoadAnalysis: [
+      { workerId: '1', workerName: '张三', todayTasks: 5, completedTasks: 3, completionRate: 60, loadStatus: 'busy', availability: 'busy' },
+      { workerId: '2', workerName: '李四', todayTasks: 3, completedTasks: 3, completionRate: 100, loadStatus: 'normal', availability: 'available' },
+      { workerId: '3', workerName: '王五', todayTasks: 7, completedTasks: 2, completionRate: 29, loadStatus: 'overloaded', availability: 'busy' },
+      { workerId: '4', workerName: '赵六', todayTasks: 4, completedTasks: 2, completionRate: 50, loadStatus: 'normal', availability: 'busy' },
+      { workerId: '5', workerName: '钱七', todayTasks: 2, completedTasks: 2, completionRate: 100, loadStatus: 'normal', availability: 'available' },
+      { workerId: '6', workerName: '孙八', todayTasks: 6, completedTasks: 3, completionRate: 50, loadStatus: 'busy', availability: 'busy' },
+      { workerId: '7', workerName: '周九', todayTasks: 8, completedTasks: 1, completionRate: 13, loadStatus: 'overloaded', availability: 'busy' },
+    ],
+  }
+}
+
+/** 模拟今日派工计划 */
+const generateMockTodayPlan = () => ({
+  tasks: [
+    { id: 't1', taskTypeName: '灌溉', greenhouseName: '1号温室', priority: 'high' },
+    { id: 't2', taskTypeName: '施肥', greenhouseName: '2号温室', priority: 'medium' },
+    { id: 't3', taskTypeName: '植保', greenhouseName: '3号温室', priority: 'high' },
+    { id: 't4', taskTypeName: '采收', greenhouseName: '1号温室', priority: 'normal' },
+    { id: 't5', taskTypeName: '修剪', greenhouseName: '4号温室', priority: 'medium' },
+  ],
+  totalTasks: 5,
+  workerSuggestions: [
+    { taskId: 't1', workerName: '李四', confidenceScore: 92 },
+    { taskId: 't2', workerName: '张三', confidenceScore: 88 },
+    { taskId: 't3', workerName: '王五', confidenceScore: 85 },
+    { taskId: 't4', workerName: '赵六', confidenceScore: 90 },
+    { taskId: 't5', workerName: '钱七', confidenceScore: 87 },
+  ],
 })
 
-// 分页数据
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
+// ============================================
+// 主状态
+// ============================================
+const selectedDate = ref(dayjs().format('YYYY-MM-DD'))
+const report = ref(null)
+const todayPlan = ref({ tasks: [], totalTasks: 0, workerSuggestions: [] })
+const activeSubTab = ref('overview')
+// 子表分页
+const subTablePage = ref(1)
+const subTablePageSize = ref(10)
+const workerLoadPage = ref(1)
+const workerLoadPageSize = ref(10)
+
+// ============================================
+// 计算属性
+// ============================================
+const statsData = computed(() => {
+  if (!report.value) return []
+  return [
+    { label: '总任务数', value: report.value.totalTasks, icon: Files, bgColor: 'bg-blue-50 border border-blue-200', iconColor: 'text-blue-500' },
+    { label: '待处理', value: report.value.pendingTasks, icon: Clock, bgColor: 'bg-orange-50 border border-orange-200', iconColor: 'text-orange-500' },
+    { label: '进行中', value: report.value.inProgressTasks, icon: WarningFilled, bgColor: 'bg-indigo-50 border border-indigo-200', iconColor: 'text-indigo-500' },
+    { label: '已完成', value: report.value.completedTasks, icon: CircleCheck, bgColor: 'bg-green-50 border border-green-200', iconColor: 'text-green-500' },
+    { label: '已超期', value: report.value.overdueTasks, icon: WarningFilled, bgColor: 'bg-red-50 border border-red-200', iconColor: 'text-red-500' },
+  ]
 })
 
-// 总页数
-const totalPages = computed(() => Math.ceil(filteredData.value.length / pageSize.value))
+const subTabs = computed(() => [
+  { key: 'overview', label: '任务概览', icon: Calendar, count: undefined },
+  { key: 'ahead', label: '提前完成', icon: CircleCheck, count: report.value?.aheadTasks.length || 0 },
+  { key: 'delayed', label: '已推迟', icon: WarningFilled, count: report.value?.delayedTasks.length || 0 },
+  { key: 'unfinished', label: '未完成', icon: WarningFilled, count: report.value?.unfinishedTasks.length || 0 },
+  { key: 'workers', label: '人员负荷', icon: Clock, count: report.value?.workerLoadAnalysis.length || 0 },
+])
 
-// 状态名称映射
-const getStatusName = (status) => {
-  const statusMap = {
-    pending: '待执行',
-    in_progress: '进行中',
-    completed: '已完成',
-    cancelled: '已取消'
-  }
-  return statusMap[status] || status
+/** 子表标题和描述（根据当前tab） */
+const subTableTitle = computed(() => {
+  if (activeSubTab.value === 'ahead') return '提前完成任务'
+  if (activeSubTab.value === 'delayed') return '已推迟任务'
+  return '未完成任务'
+})
+const subTableDesc = computed(() => {
+  if (activeSubTab.value === 'ahead') return '以下任务在实际完成时间之前完成'
+  if (activeSubTab.value === 'delayed') return '以下任务未能按计划时间完成'
+  return '截止日期已到但尚未完成的任务'
+})
+
+/** 当前子表全量数据 */
+const subTableDataTotal = computed(() => {
+  if (!report.value) return []
+  if (activeSubTab.value === 'ahead') return report.value.aheadTasks
+  if (activeSubTab.value === 'delayed') return report.value.delayedTasks
+  if (activeSubTab.value === 'unfinished') return report.value.unfinishedTasks
+  return []
+})
+
+/** 分页后的子表数据 */
+const paginatedSubTableData = computed(() => {
+  const start = (subTablePage.value - 1) * subTablePageSize.value
+  return subTableDataTotal.value.slice(start, start + subTablePageSize.value)
+})
+
+/** 分页后的人员负荷数据 */
+const paginatedWorkerData = computed(() => {
+  const data = report.value?.workerLoadAnalysis || []
+  const start = (workerLoadPage.value - 1) * workerLoadPageSize.value
+  return data.slice(start, start + workerLoadPageSize.value)
+})
+
+// ============================================
+// 方法
+// ============================================
+const getSuggestion = (taskId) => {
+  return todayPlan.value.workerSuggestions?.find(s => s.taskId === taskId)
 }
 
-const getStatusType = (status) => {
-  const typeMap = {
-    pending: 'info',
-    in_progress: 'warning',
-    completed: 'success',
-    cancelled: 'danger'
-  }
-  return typeMap[status] || 'info'
+const handleDateChange = () => {
+  regenerateData()
 }
 
-// 任务类型名称映射
-const getTaskTypeName = (type) => {
-  const typeMap = {
-    planting: '种植',
-    watering: '浇水',
-    fertilizing: '施肥',
-    harvesting: '采收',
-    other: '其他'
-  }
-  return typeMap[type] || type
+const handleRefresh = () => {
+  regenerateData()
 }
 
-// 处理筛选变化
-const handleFilterChange = () => {
-  currentPage.value = 1
+const handleConfirmDispatch = async () => {
+  ElMessage.success(`成功派发 ${todayPlan.value.totalTasks} 个任务！`)
 }
 
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const handleReset = () => {
-  filterDate.value = ''
-  filterStatus.value = ''
-  currentPage.value = 1
-}
-
-const handleSelectionChange = (rows) => {
-  selectedRows.value = rows
-}
-
-const handlePageChange = (page) => {
-  currentPage.value = page
-}
-
-// 打开新增弹窗
-const handleOpenAddModal = () => {
-  Object.assign(addForm, {
-    planDate: dayjs().format('YYYY-MM-DD'),
-    cropName: '',
-    taskType: '',
-    greenhouseName: '',
-    responsiblePerson: '',
-    targetQuantity: 0,
-    remarks: ''
-  })
-  addModalVisible.value = true
-}
-
-// 新增计划
-const handleAdd = () => {
-  if (!addForm.planDate || !addForm.cropName || !addForm.taskType) {
-    ElMessage.warning('请填写必填项')
-    return
-  }
-
-  const newPlan = {
-    id: `DP${Date.now()}`,
-    planCode: `RJH${dayjs().format('YYYYMMDD')}${String(dailyPlans.value.length + 1).padStart(2, '0')}`,
-    planDate: addForm.planDate,
-    cropName: addForm.cropName,
-    taskType: addForm.taskType,
-    greenhouseName: addForm.greenhouseName,
-    responsiblePerson: addForm.responsiblePerson,
-    targetQuantity: addForm.targetQuantity,
-    unit: 'kg',
-    status: 'pending',
-    remarks: addForm.remarks
-  }
-
-  dailyPlans.value.unshift(newPlan)
-  saveData()
-  addModalVisible.value = false
-  ElMessage.success('添加成功')
-}
-
-// 详情
-const handleDetail = (row) => {
-  currentRecord.value = row
-  detailModalVisible.value = true
-}
-
-// 编辑
-const handleEdit = (row) => {
-  currentRecord.value = row
-  Object.assign(editForm, {
-    taskType: row.taskType,
-    responsiblePerson: row.responsiblePerson,
-    targetQuantity: row.targetQuantity,
-    status: row.status,
-    remarks: row.remarks
-  })
-  editModalVisible.value = true
-}
-
-// 保存编辑
-const handleSaveEdit = () => {
-  if (!currentRecord.value) return
-
-  const index = dailyPlans.value.findIndex(p => p.id === currentRecord.value.id)
-  if (index !== -1) {
-    dailyPlans.value[index] = {
-      ...dailyPlans.value[index],
-      taskType: editForm.taskType,
-      responsiblePerson: editForm.responsiblePerson,
-      targetQuantity: editForm.targetQuantity,
-      status: editForm.status,
-      remarks: editForm.remarks
-    }
-    saveData()
-    editModalVisible.value = false
-    ElMessage.success('保存成功')
-  }
-}
-
-// 删除行
-const handleDeleteRow = async (row) => {
-  try {
-    await ElMessageBox.confirm(`确定要删除计划 ${row.planCode} 吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    dailyPlans.value = dailyPlans.value.filter(p => p.id !== row.id)
-    saveData()
-    ElMessage.success('删除成功')
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
-    }
-  }
-}
-
-// 导出
-const handleExport = () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要导出的数据')
-    return
-  }
-  showExportModal.value = true
-}
-
-const handleDoExport = () => {
-  const selectedData = filteredData.value.filter(item => selectedRows.value.includes(item.id))
-  const headers = ['计划编号', '计划日期', '作物名称', '任务类型', '执行区域', '负责人', '目标数量', '单位', '状态', '备注']
-  const exportData = selectedData.map(row => ({
-    '计划编号': row.planCode,
-    '计划日期': row.planDate,
-    '作物名称': row.cropName,
-    '任务类型': getTaskTypeName(row.taskType),
-    '执行区域': row.greenhouseName,
-    '负责人': row.responsiblePerson,
-    '目标数量': row.targetQuantity,
-    '单位': row.unit || 'kg',
-    '状态': getStatusName(row.status),
-    '备注': row.remarks || ''
-  }))
-
-  let content = ''
-  let mimeType = ''
-  let extension = ''
-
-  if (exportFormat.value === 'csv') {
-    content = headers.join(',') + '\n' + exportData.map(row =>
-      headers.map(h => `"${row[h] || ''}"`).join(',')
-    ).join('\n')
-    mimeType = 'text/csv;charset=utf-8'
-    extension = 'csv'
-  } else if (exportFormat.value === 'excel') {
-    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    mimeType = 'application/vnd.ms-excel;charset=utf-8'
-    extension = 'xls'
-  } else {
-    content = `<html><head><meta charset="utf-8"><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; } th { background-color: #4a90d9; color: white; }</style></head><body><table>${headers.map(h => `<th>${h}</th>`).join('')}${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    mimeType = 'application/vnd.ms-word;charset=utf-8'
-    extension = 'doc'
-  }
-
-  const fileName = `日计划_${dayjs().format('YYYY-MM-DD')}.${extension}`
-
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = fileName
-  a.click()
-  URL.revokeObjectURL(url)
-
-  showExportModal.value = false
-  selectedRows.value = []
-  ElMessage.success('导出成功')
+const regenerateData = () => {
+  report.value = generateMockReport(selectedDate.value)
+  todayPlan.value = generateMockTodayPlan()
 }
 
 // 初始化
-onMounted(() => {
-  loading.value = true
-  loadData()
-  loading.value = false
-})
+regenerateData()
 </script>

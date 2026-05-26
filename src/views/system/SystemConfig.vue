@@ -12,12 +12,12 @@
           <el-icon :size="20"><ArrowLeft /></el-icon>
         </a>
         <!-- 标题图标 -->
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-slate-500 to-gray-600 flex items-center justify-center">
           <el-icon :size="24" color="white"><Setting /></el-icon>
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">系统参数配置</h1>
-          <p class="text-gray-500">管理系统运行参数、阈值、开关等配置项</p>
+          <h1 class="text-2xl font-bold text-gray-900">系统配置</h1>
+          <p class="text-gray-500">管理系统配置参数</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -355,7 +355,7 @@ const getTypeBadgeClass = (type) => {
     string: 'px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700',
     number: 'px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700',
     boolean: 'px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700',
-    json: 'px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700'
+    json: 'px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700'
   }
   return map[type] || map.string
 }
@@ -394,7 +394,9 @@ const handleCancelEdit = () => {
 /** 删除配置 */
 const handleDeleteConfig = async (id) => {
   try {
-    await ElMessageBox.confirm('确定要删除这个配置项吗？', '提示', {
+    const foundConfig = configs.value.find(c => c.id === id)
+    const configKey = foundConfig?.configKey || ''
+    await ElMessageBox.confirm(`确定要删除配置项"${configKey}"吗？`, '确认删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'

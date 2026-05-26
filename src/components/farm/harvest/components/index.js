@@ -2,3 +2,4 @@
 export { default as HarvestPageHeader } from './HarvestPageHeader.vue'
 export { default as HarvestStatsCards } from './HarvestStatsCards.vue'
 export { default as HarvestTableToolbar } from './HarvestTableToolbar.vue'
+export { default as HarvestTabSwitch } from './HarvestTabSwitch.vue'

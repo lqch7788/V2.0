@@ -546,14 +546,20 @@ const handleSubmit = async () => {
     partitionName: partition?.name || form.partitionOid
   }
 
-  if (isEdit.value && selectedItem.value) {
-    await waterFertilizerStore.updateItem(selectedItem.value.oid, itemData)
-    ElMessage.success('更新成功')
-  } else {
-    await waterFertilizerStore.createItem(itemData)
-    ElMessage.success('新增成功')
+  try {
+    if (isEdit.value && selectedItem.value) {
+      const result = await waterFertilizerStore.updateItem(selectedItem.value.oid, itemData)
+      if (result || result === undefined) ElMessage.success('更新成功')
+      else ElMessage.error('更新失败')
+    } else {
+      const result = await waterFertilizerStore.createItem(itemData)
+      if (result) ElMessage.success('新增成功')
+      else ElMessage.error('新增失败')
+    }
+    closeModal()
+  } catch (err) {
+    ElMessage.error(isEdit.value ? '更新失败' : '新增失败')
   }
-  closeModal()
 }
 
 /**
@@ -637,5 +643,12 @@ onMounted(() => {
 /* 表头渐变色 */
 .bg-gradient-to-r from-emerald-500 to-emerald-600 {
   background: linear-gradient(to right, #10b981, #059669);
+}
+/* 主按钮改为emerald绿色 - 与V1.1保持一致 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
 }
 </style>

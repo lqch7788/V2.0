@@ -1,4 +1,5 @@
 <template>
+  <!-- 顶部统计看板 - 与V1.1 FarmHubHeader 1:1一致 -->
   <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
     <!-- 顶部导航栏 -->
     <div class="flex items-center justify-between mb-6">
@@ -11,109 +12,135 @@
           <p class="text-gray-500">智能排程与任务调度管理中心</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <el-button type="primary" @click="onOpenSmartDispatch">智能派工</el-button>
-        <el-button type="primary" @click="onOpenDailyPlan">每日规划</el-button>
-        <el-button type="primary" @click="onOpenMonthlyPlan">月度规划</el-button>
-      </div>
     </div>
 
     <!-- 任务统计卡片区域 - 一排9列 -->
-    <div class="grid grid-cols-9 gap-3">
+    <div class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
       <!-- 待办任务 -->
-      <StatCardItem
-        :icon="'Document'"
-        label="待办任务"
-        :value="stats.pendingTasks"
-        icon-color="text-blue-500"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">待办任务</p>
+            <p class="text-xl font-bold text-gray-900">{{ stats.pendingTasks }}</p>
+          </div>
+          <el-icon :size="20" class="text-blue-500"><Document /></el-icon>
+        </div>
+      </div>
+
       <!-- 进行中任务 -->
-      <StatCardItem
-        :icon="'Clock'"
-        label="进行中"
-        :value="stats.inProgressTasks"
-        icon-color="text-orange-500"
-        value-color="text-orange-600"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">进行中</p>
+            <p class="text-xl font-bold text-orange-600">{{ stats.inProgressTasks }}</p>
+          </div>
+          <el-icon :size="20" class="text-orange-500"><Clock /></el-icon>
+        </div>
+      </div>
+
       <!-- 今日完成 -->
-      <StatCardItem
-        :icon="'CircleCheck'"
-        label="今日完成"
-        :value="stats.todayCompleted"
-        icon-color="text-green-500"
-        value-color="text-green-600"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">今日完成</p>
+            <p class="text-xl font-bold text-green-600">{{ stats.todayCompleted }}</p>
+          </div>
+          <el-icon :size="20" class="text-green-500"><CircleCheck /></el-icon>
+        </div>
+      </div>
+
       <!-- 紧急问题 -->
-      <StatCardItem
-        :icon="'Warning'"
-        label="紧急问题"
-        :value="stats.urgentProblems"
-        icon-color="text-red-500"
-        value-color="text-red-600"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">紧急问题</p>
+            <p class="text-xl font-bold text-red-600">{{ stats.urgentProblems }}</p>
+          </div>
+          <el-icon :size="20" class="text-red-500"><Warning /></el-icon>
+        </div>
+      </div>
+
       <!-- 今日巡查 -->
-      <StatCardItem
-        :icon="'Odometer'"
-        label="今日巡查"
-        :value="stats.todayInspections"
-        icon-color="text-purple-500"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">今日巡查</p>
+            <p class="text-xl font-bold text-gray-900">{{ stats.todayInspections }}</p>
+          </div>
+          <el-icon :size="20" class="text-purple-500"><Odometer /></el-icon>
+        </div>
+      </div>
+
       <!-- 累计巡查 -->
-      <StatCardItem
-        :icon="'Document'"
-        label="累计巡查"
-        :value="stats.totalInspections"
-        icon-color="text-indigo-500"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">累计巡查</p>
+            <p class="text-xl font-bold text-gray-900">{{ stats.totalInspections }}</p>
+          </div>
+          <el-icon :size="20" class="text-indigo-500"><Document /></el-icon>
+        </div>
+      </div>
+
       <!-- 异常巡查 -->
-      <StatCardItem
-        :icon="'Close'"
-        label="异常巡查"
-        :value="stats.abnormalInspections"
-        icon-color="text-red-400"
-        value-color="text-red-500"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">异常巡查</p>
+            <p class="text-xl font-bold text-red-500">{{ stats.abnormalInspections }}</p>
+          </div>
+          <el-icon :size="20" class="text-red-400"><Close /></el-icon>
+        </div>
+      </div>
+
       <!-- 待处理问题 -->
-      <StatCardItem
-        :icon="'WarnTriangleFilled'"
-        label="待处理问题"
-        :value="stats.pendingProblems"
-        icon-color="text-amber-500"
-        value-color="text-amber-600"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">待处理问题</p>
+            <p class="text-xl font-bold text-amber-600">{{ stats.pendingProblems }}</p>
+          </div>
+          <el-icon :size="20" class="text-amber-500"><WarnTriangleFilled /></el-icon>
+        </div>
+      </div>
+
       <!-- 已处理问题 -->
-      <StatCardItem
-        :icon="'SuccessFilled'"
-        label="已处理问题"
-        :value="stats.processedProblems"
-        icon-color="text-teal-500"
-        value-color="text-teal-600"
-      />
+      <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-gray-500">已处理问题</p>
+            <p class="text-xl font-bold text-teal-600">{{ stats.processedProblems }}</p>
+          </div>
+          <el-icon :size="20" class="text-teal-500"><SuccessFilled /></el-icon>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { Promotion, Clock, CircleCheck, Warning, Odometer, Document, Close, WarnTriangleFilled, SuccessFilled } from '@element-plus/icons-vue'
+/** 农场Hub头部统计看板 - 从V1.1 FarmHubHeader.tsx 1:1迁移 */
+import {
+  Promotion, Clock, CircleCheck, Warning,
+  Odometer, Document, Close, WarnTriangleFilled, SuccessFilled,
+} from '@element-plus/icons-vue'
 
-defineProps({})
+defineProps({
+  /** Hub统计数据 */
+  stats: {
+    type: Object,
+    default: () => ({
+      pendingTasks: 0,
+      inProgressTasks: 0,
+      todayCompleted: 0,
+      urgentProblems: 0,
+      todayInspections: 0,
+      totalInspections: 0,
+      abnormalInspections: 0,
+      pendingProblems: 0,
+      processedProblems: 0,
+    }),
+  },
+})
 
-// StatCardItem 子组件
-const StatCardItem = {
-  props: ['icon', 'label', 'value', 'iconColor', 'valueColor'],
-  components: { Clock, CircleCheck, Warning, Odometer, Document, Close, WarnTriangleFilled, SuccessFilled },
-  template: `
-    <div class="bg-white rounded-lg shadow-sm border-2 border-gray-200 px-3 py-2">
-      <div class="flex items-center justify-between gap-2">
-        <div>
-          <p class="text-xs text-gray-500">{{ label }}</p>
-          <p :class="['text-xl font-bold', valueColor || 'text-gray-900']">{{ value }}</p>
-        </div>
-        <el-icon :size="20" :class="iconColor">
-          <component :is="icon" />
-        </el-icon>
-      </div>
-    </div>
-  `
-}
 </script>

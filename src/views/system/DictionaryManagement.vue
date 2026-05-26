@@ -76,6 +76,7 @@
       <div
         v-for="mod in DICTIONARY_MODULES"
         :key="mod.code"
+        v-show="!searchTerm || moduleHasMatch(mod.code)"
         class="bg-white rounded-xl shadow-sm overflow-hidden"
       >
         <!-- 模块头部 -->
@@ -107,6 +108,7 @@
               <div
                 v-for="category in getCategoriesInModule(mod.code)"
                 :key="category"
+                v-show="!searchTerm || categoryHasMatch(category)"
                 class="border border-gray-100 rounded-lg overflow-hidden"
               >
                 <!-- 分类头部 -->
@@ -607,5 +609,32 @@ const handleSearch = () => {
     })
     expandedModules.value = matchingModules
   }
+}
+
+// 模块是否有匹配项（用于搜索过滤）
+const moduleHasMatch = (moduleCode) => {
+  const searchLower = searchTerm.value.toLowerCase()
+  const moduleCategories = getCategoriesInModule(moduleCode)
+  return moduleCategories.some(cat => {
+    const catName = getCategoryChineseName(cat)
+    if (catName.toLowerCase().includes(searchLower) || cat.toLowerCase().includes(searchLower)) return true
+    const items = getDictionariesByCategory(cat)
+    return items.some(d =>
+      d.name.toLowerCase().includes(searchLower) ||
+      d.code.toLowerCase().includes(searchLower)
+    )
+  })
+}
+
+// 分类是否有匹配项（用于搜索过滤）
+const categoryHasMatch = (category) => {
+  const searchLower = searchTerm.value.toLowerCase()
+  const catName = getCategoryChineseName(category)
+  if (catName.toLowerCase().includes(searchLower) || category.toLowerCase().includes(searchLower)) return true
+  const items = getDictionariesByCategory(category)
+  return items.some(d =>
+    d.name.toLowerCase().includes(searchLower) ||
+    d.code.toLowerCase().includes(searchLower)
+  )
 }
 </script>

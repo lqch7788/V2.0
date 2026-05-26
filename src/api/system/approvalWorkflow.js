@@ -2,7 +2,7 @@
  * 审批工作流 API 服务
  * 对接后端审批流程相关接口
  */
-import { get, post, put, del } from '@/api/request'
+import { get, post, put, del, patch } from '@/api/request'
 
 // ============================================
 // 类型定义
@@ -43,42 +43,42 @@ export const ApprovalWorkflow = {
  * 获取审批工作流列表
  */
 export function getApprovalWorkflows() {
-  return get('/approval/workflows')
+  return get('/approval-workflows')
 }
 
 /**
  * 获取单个审批工作流
  */
 export function getApprovalWorkflow(id) {
-  return get(`/approval/workflows/${id}`)
+  return get(`/approval-workflows/${id}`)
 }
 
 /**
  * 创建审批工作流
  */
 export function createApprovalWorkflow(data) {
-  return post('/approval/workflows', data)
+  return post('/approval-workflows', data)
 }
 
 /**
  * 更新审批工作流
  */
 export function updateApprovalWorkflow(id, data) {
-  return put(`/approval/workflows/${id}`, data)
+  return put(`/approval-workflows/${id}`, data)
 }
 
 /**
  * 删除审批工作流
  */
 export function deleteApprovalWorkflow(id) {
-  return del(`/approval/workflows/${id}`)
+  return del(`/approval-workflows/${id}`)
 }
 
 /**
  * 切换审批工作流状态
  */
 export function toggleApprovalWorkflowStatus(id) {
-  return put(`/approval/workflows/${id}/toggle-status`)
+  return patch(`/approval-workflows/${id}/toggle`)
 }
 
 // ============================================

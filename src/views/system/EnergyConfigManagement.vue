@@ -12,7 +12,7 @@
             <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
           </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Odometer /></el-icon>
+            <el-icon :size="24" color="white"><Lightning /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">能耗管理</h1>
@@ -204,6 +204,7 @@
       :title="isEdit ? '编辑能耗配置' : '新增能耗配置'"
       width="560px"
       :close-on-click-modal="false"
+      class="energy-modal"
     >
       <div class="p-4">
         <!-- 关联配置 -->
@@ -315,7 +316,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { ArrowLeft, Odometer, Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { ArrowLeft, Lightning, Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useEnergyConfigStore, ENERGY_TYPES } from '@/stores/modules/energyConfig'
 import { useFarmPartitionStore } from '@/stores/modules/farmPartition'
@@ -459,35 +460,38 @@ const resetForm = () => {
 const handleSubmit = async () => {
   if (!form.partitionOid) return
 
-  if (isEdit.value) {
-    // 编辑
-    await energyConfigStore.updateItem(selectedItem.value.oid, {
-      partitionOid: form.partitionOid,
-      energyType: form.energyType,
-      deviceOid: form.deviceOid || null,
-      deviceName: form.deviceName || null,
-      meterCode: form.meterCode || null,
-      unit: form.unit,
-      description: form.description || null
-    })
-    ElMessage.success('更新成功')
-  } else {
-    // 新增
-    const result = await energyConfigStore.createItem({
-      partitionOid: form.partitionOid,
-      energyType: form.energyType,
-      deviceOid: form.deviceOid || null,
-      deviceName: form.deviceName || null,
-      meterCode: form.meterCode || null,
-      unit: form.unit,
-      description: form.description || null
-    })
-    if (result) {
-      ElMessage.success('创建成功')
+  try {
+    if (isEdit.value) {
+      await energyConfigStore.updateItem(selectedItem.value.oid, {
+        partitionOid: form.partitionOid,
+        energyType: form.energyType,
+        deviceOid: form.deviceOid || null,
+        deviceName: form.deviceName || null,
+        meterCode: form.meterCode || null,
+        unit: form.unit,
+        description: form.description || null
+      })
+      ElMessage.success('更新成功')
+    } else {
+      const result = await energyConfigStore.createItem({
+        partitionOid: form.partitionOid,
+        energyType: form.energyType,
+        deviceOid: form.deviceOid || null,
+        deviceName: form.deviceName || null,
+        meterCode: form.meterCode || null,
+        unit: form.unit,
+        description: form.description || null
+      })
+      if (result) {
+        ElMessage.success('创建成功')
+        closeModal()
+      }
+      return
     }
+    closeModal()
+  } catch (err) {
+    ElMessage.error(isEdit.value ? '更新失败' : '创建失败')
   }
-
-  closeModal()
 }
 
 // 打开删除确认
@@ -514,5 +518,28 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 继承V1.1样式 */
+/* 弹窗头部渐变 - 与V1.1保持一致 */
+.energy-modal :deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+.energy-modal :deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+.energy-modal :deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+.energy-modal :deep(.el-dialog__body) {
+  padding: 20px;
+}
+/* 主按钮改为emerald绿色 - 与V1.1保持一致 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
+}
 </style>

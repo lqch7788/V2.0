@@ -4,11 +4,15 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <router-link to="/settings" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <el-icon :size="24"><ArrowLeft /></el-icon>
-          </router-link>
+          <a
+            href="/settings"
+            class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
+            title="返回系统设置"
+          >
+            <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
+          </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Grid /></el-icon>
+            <el-icon :size="24" color="white"><OfficeBuilding /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">基地管理</h1>
@@ -65,7 +69,7 @@
 
     <!-- 表格 -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <el-table :data="paginatedBases" v-loading="loading" stripe style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #059669, #0891b2)', color: 'white', fontWeight: '600' }">
+      <el-table :data="paginatedBases" v-loading="loading" stripe style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #10b981, #0d9488)', color: 'white', fontWeight: '600' }">
         <el-table-column prop="baseCode" label="基地编码" min-width="120" />
         <el-table-column prop="baseName" label="基地名称" min-width="150">
           <template #default="{ row }">
@@ -145,7 +149,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Search, Refresh, Plus, Edit, Delete, ArrowLeft, Location, Grid } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Edit, Delete, ArrowLeft, Location, OfficeBuilding } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getBases, createBase, updateBase, deleteBase } from '@/services/apiBasicDataService'
 
@@ -198,11 +202,11 @@ const pageSize = 10
 // 筛选后的基地
 const filteredBases = computed(() => {
   if (!searchTerm.value) return allBases.value
-  const term = searchTerm.value.toLowerCase()
+  const term = searchTerm.value
   return allBases.value.filter(base =>
-    (base.baseName && base.baseName.toLowerCase().includes(term)) ||
-    (base.baseCode && base.baseCode.toLowerCase().includes(term)) ||
-    (base.location && base.location.toLowerCase().includes(term))
+    (base.baseName && base.baseName.includes(term)) ||
+    (base.baseCode && base.baseCode.includes(term)) ||
+    (base.location && base.location.includes(term))
   )
 })
 

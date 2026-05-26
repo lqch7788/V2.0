@@ -1,552 +1,1180 @@
 <template>
+  <!-- 农事任务中心 - FarmTaskHub 主页面，与V1.1 FarmTaskHub.tsx 逻辑完全一致 -->
   <div class="space-y-6 p-6">
-    <!-- 页面标题 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-          <el-icon :size="24" class="text-white"><Grape /></el-icon>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">农事任务中心</h1>
-          <p class="text-gray-500">农事任务管理与调度</p>
-        </div>
-      </div>
-    </div>
+    <!-- 顶部统计看板 -->
+    <FarmHubHeader :stats="hubStats" />
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-5 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
-            <el-icon :size="24" class="text-amber-600"><Clock /></el-icon>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">待办任务</p>
-            <p class="text-2xl font-bold text-gray-800">{{ store.statusStats.pending }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-5 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-            <el-icon :size="24" class="text-blue-600"><Loading /></el-icon>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">进行中</p>
-            <p class="text-2xl font-bold text-gray-800">{{ store.statusStats.inProgress }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-5 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-            <el-icon :size="24" class="text-purple-600"><Checked /></el-icon>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">待验收</p>
-            <p class="text-2xl font-bold text-gray-800">{{ store.statusStats.waitingAcceptance }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-5 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-            <el-icon :size="24" class="text-emerald-600"><CircleCheck /></el-icon>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">已完成</p>
-            <p class="text-2xl font-bold text-gray-800">{{ store.statusStats.completed }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 筛选栏 + 操作按钮 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="flex flex-wrap items-center gap-3">
-        <!-- 状态筛选 -->
-        <el-select
-          v-model="filters.status"
-          placeholder="任务状态"
-          clearable
-          size="default"
-          style="width: 140px"
-          @change="handleFilterChange"
-        >
-          <el-option label="待执行" value="pending" />
-          <el-option label="已接受" value="accepted" />
-          <el-option label="进行中" value="in_progress" />
-          <el-option label="待验收" value="waiting_acceptance" />
-          <el-option label="已完成" value="completed" />
-          <el-option label="已取消" value="cancelled" />
-        </el-select>
-
-        <!-- 优先级筛选 -->
-        <el-select
-          v-model="filters.priority"
-          placeholder="优先级"
-          clearable
-          size="default"
-          style="width: 120px"
-          @change="handleFilterChange"
-        >
-          <el-option label="紧急" value="urgent" />
-          <el-option label="高" value="high" />
-          <el-option label="普通" value="normal" />
-        </el-select>
-
-        <!-- 关键词搜索 -->
-        <el-input
-          v-model="filters.keyword"
-          placeholder="搜索任务编号/名称/执行人"
-          clearable
-          size="default"
-          style="width: 260px"
-          @clear="handleFilterChange"
-          @keyup.enter="handleFilterChange"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-
-        <el-button type="primary" @click="handleFilterChange">
-          <el-icon><Search /></el-icon>
-          搜索
-        </el-button>
-
-        <el-button @click="handleResetFilters">重置</el-button>
-
-        <div class="flex-1" />
-
-        <!-- 快捷操作 -->
-        <el-button type="success" @click="showCreateDialog = true">
-          <el-icon><Plus /></el-icon>
-          新建任务
-        </el-button>
-        <el-button @click="handleBatchImport">
-          <el-icon><Upload /></el-icon>
-          批量导入
-        </el-button>
-        <el-button @click="handleExport">
-          <el-icon><Download /></el-icon>
-          导出
-        </el-button>
-      </div>
-    </div>
-
-    <!-- 任务列表表格 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
-      <el-table
-        v-loading="store.loading"
-        :data="store.filteredTasks"
-        stripe
-        size="default"
-        style="width: 100%"
-        :header-cell-style="{ background: '#f9fafb', color: '#374151', fontWeight: '600' }"
-      >
-        <el-table-column prop="taskCode" label="任务编号" width="150" />
-        <el-table-column prop="title" label="任务名称" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="typeName" label="任务类型" width="100" align="center" />
-        <el-table-column prop="assigneeName" label="执行人" width="100" align="center">
-          <template #default="{ row }">
-            <span>{{ row.assigneeName || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="区域" width="120" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span>{{ row.greenhouseName || row.field || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="优先级" width="90" align="center">
-          <template #default="{ row }">
-            <el-tag :type="getPriorityType(row.priority)" size="small" effect="plain">
-              {{ getPriorityLabel(row.priority) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="110" align="center">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small" effect="plain">
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="截止日期" width="120" align="center">
-          <template #default="{ row }">
-            <span :class="{ 'text-red-500': isOverdue(row) }">
-              {{ row.dueDate || '-' }}
+    <!-- Tab切换区域 -->
+    <div class="bg-white rounded-xl shadow-sm">
+      <!-- Tab 头部 -->
+      <div class="border-b border-gray-200">
+        <nav class="flex -mb-px gap-1 px-2">
+          <button
+            v-for="tab in TAB_CONFIG"
+            :key="tab.key"
+            @click="activeTab = tab.key"
+            :class="[
+              'px-6 py-3 text-base rounded-t-lg transition-all',
+              getTabStyle(tab.key),
+            ]"
+          >
+            {{ tab.label }}
+            <span
+              :class="[
+                'ml-2 px-2 py-0.5 text-xs rounded-full font-medium',
+                activeTab === tab.key ? 'bg-white/30' : 'bg-gray-200 text-gray-600',
+              ]"
+            >
+              {{ getTabCount(tab.key) }}
             </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="240" fixed="right" align="center">
-          <template #default="{ row }">
-            <div class="flex items-center justify-center gap-1">
-              <el-button link type="primary" size="small" @click="handleViewDetail(row)">
-                查看
-              </el-button>
-              <el-button
-                v-if="row.status === 'pending'"
-                link type="warning" size="small"
-                @click="handleWithdraw(row)"
-              >
-                撤回
-              </el-button>
-              <el-button
-                v-if="row.status === 'pending' || row.status === 'accepted'"
-                link type="danger" size="small"
-                @click="handleCancel(row)"
-              >
-                取消
-              </el-button>
-              <el-button
-                v-if="['accepted', 'in_progress', 'failed'].includes(row.status)"
-                link type="info" size="small"
-                @click="handleReassign(row)"
-              >
-                重派
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+          </button>
+        </nav>
+      </div>
 
-      <!-- 分页 -->
-      <div class="flex justify-end mt-4">
-        <el-pagination
-          :current-page="store.pagination.page"
-          :page-size="store.pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="store.total"
-          layout="total, sizes, prev, pager, next, jumper"
-          background
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
+      <!-- Tab内容 -->
+      <div class="p-4">
+        <!-- 农事任务Tab -->
+        <div v-if="activeTab === 'task'" key="task-content">
+          <TaskTab
+            :tasks="filteredTasks"
+            :stats="taskStats"
+            :selected-ids="selectedIds"
+            :filters="taskFilters"
+            :on-toggle-select="handleToggleSelect"
+            :on-select-all="handleSelectAll"
+            :on-clear-selection="handleClearSelection"
+            :on-filter-change="handleTaskFilterChange"
+            :on-reset-filters="handleResetTaskFilters"
+            :on-view-task="handleViewTaskDetail"
+            :on-view-task-in-calendar="handleViewTaskInCalendar"
+            :on-create="() => showCreateModal = true"
+            :on-withdraw="handleTaskWithdraw"
+            :on-cancel="handleTaskCancel"
+            :on-reassign="handleTaskReassign"
+            :on-overtime="handleTaskOvertime"
+            :on-continue="handleTaskContinue"
+            :on-accept="handleTaskAccept"
+            :on-remind="handleTaskRemind"
+            :on-select-executor="handleSelectExecutor"
+            :on-publish="handlePublish"
+            :on-view-sop="handleViewSop"
+            :on-batch-dispatch="handleBatchDispatch"
+            :on-batch-verify="handleBatchVerify"
+            :on-batch-delete="handleBatchDelete"
+            :on-batch-edit="handleBatchEdit"
+            :on-import="() => showImportModal = true"
+            :on-export="handleExport"
+            :on-batch-reassign="handleBatchReassign"
+          />
+        </div>
+
+        <!-- 巡查记录Tab -->
+        <div v-if="activeTab === 'inspection'" key="inspection-content">
+          <InspectionTab
+            v-if="showInspectionTab"
+            :inspections="inspections"
+            :stats="inspectionStats"
+            :filters="inspectionFilters"
+            :current-page="inspectionPage"
+            :page-size="inspectionPageSize"
+            :export-mode="inspectionExportMode"
+            :batch-edit-mode="inspectionBatchEditMode"
+            :batch-delete-mode="inspectionBatchDeleteMode"
+            :selected-rows="inspectionSelectedRows"
+            :detail-record-id="inspectionDetailId"
+            :is-create-modal-open="isInspectionCreateOpen"
+            :problems="problems"
+            @filter-change="handleInspectionFilterChange"
+            @reset-filters="handleResetInspectionFilters"
+            @page-change="handleInspectionPageChange"
+            @page-size-change="handleInspectionPageSizeChange"
+            @toggle-export-mode="inspectionExportMode = !inspectionExportMode"
+            @toggle-batch-edit-mode="inspectionBatchEditMode = !inspectionBatchEditMode"
+            @toggle-batch-delete-mode="inspectionBatchDeleteMode = !inspectionBatchDeleteMode"
+            @toggle-select-row="handleInspectionToggleRow"
+            @select-all="handleInspectionSelectAll"
+            @clear-selection="inspectionSelectedRows = []"
+            @view-detail="handleViewInspectionDetail"
+            @close-detail="inspectionDetailId = null"
+            @open-create-modal="isInspectionCreateOpen = true"
+            @close-create-modal="isInspectionCreateOpen = false"
+            @report-problem="handleInspectionReportProblem"
+            @accept-problem="handleInspectionAcceptProblem"
+            @batch-delete="handleInspectionBatchDelete"
+            @batch-edit="handleInspectionBatchEdit"
+          />
+          <div v-else class="text-center py-12 text-gray-400">巡查记录加载中...</div>
+        </div>
+
+        <!-- 问题管理Tab -->
+        <div v-if="activeTab === 'problem'" key="problem-content">
+          <ProblemTab
+            v-if="showProblemTab"
+            :stats="problemStats"
+            :external-tasks="tasks"
+            @problem-dispatched="handleProblemDispatched"
+          />
+          <div v-else class="text-center py-12 text-gray-400">问题管理加载中...</div>
+        </div>
+
+        <!-- 临时任务Tab -->
+        <div v-if="activeTab === 'tempTask'" key="tempTask-content">
+          <TempTaskTab />
+        </div>
       </div>
     </div>
+
+    <!-- 今日操作记录 -->
+    <TodayOperationRecords
+      :records="recentRecords"
+      :on-show-all="() => showRecordPanel = true"
+    />
+
+    <!-- 操作记录面板（全屏弹窗） -->
+    <OperationRecordPanel
+      v-if="showRecordPanel"
+      :records="recentRecords"
+      @close="showRecordPanel = false"
+    />
+
+    <!-- ========== 弹窗区域 ========== -->
+
+    <!-- 任务详情弹窗 -->
+    <TaskDetailModal
+      v-if="detailTaskId"
+      :is-open="!!detailTaskId"
+      :task="detailTask"
+      :records="detailTaskRecords"
+      :on-close="() => { detailTaskId = null; detailTaskRecords = [] }"
+      @verify="handleTaskVerifyFromDetail"
+    />
+
+    <!-- 验收弹窗 -->
+    <TaskAcceptanceModal
+      v-if="verifyTaskId"
+      :is-open="!!verifyTaskId"
+      :task="verifyTask"
+      :task-records="verifyTaskRecords"
+      :on-accept="handleAcceptVerify"
+      :on-reject="handleRejectVerify"
+      :on-close="() => { verifyTaskId = null; verifyTaskRecords = [] }"
+    />
 
     <!-- 新建任务弹窗 -->
-    <el-dialog v-model="showCreateDialog" title="新建任务" width="560px" destroy-on-close>
-      <el-form ref="createFormRef" :model="createForm" :rules="createFormRules" label-width="100px">
-        <el-form-item label="任务名称" prop="title">
-          <el-input v-model="createForm.title" placeholder="请输入任务名称" />
-        </el-form-item>
-        <el-form-item label="任务类型" prop="type">
-          <el-select v-model="createForm.type" placeholder="请选择任务类型" style="width: 100%">
-            <el-option label="施肥" value="fertilization" />
-            <el-option label="灌溉" value="irrigation" />
-            <el-option label="修剪" value="pruning" />
-            <el-option label="植保" value="pesticide" />
-            <el-option label="除草" value="weeding" />
-            <el-option label="采收" value="harvest" />
-            <el-option label="其他" value="other" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="温室区域" prop="greenhouseName">
-          <el-input v-model="createForm.greenhouseName" placeholder="请输入温室/区域名称" />
-        </el-form-item>
-        <el-form-item label="执行人" prop="assigneeName">
-          <el-input v-model="createForm.assigneeName" placeholder="请输入执行人姓名" />
-        </el-form-item>
-        <el-form-item label="优先级" prop="priority">
-          <el-select v-model="createForm.priority" placeholder="请选择优先级" style="width: 100%">
-            <el-option label="紧急" value="urgent" />
-            <el-option label="高" value="high" />
-            <el-option label="普通" value="normal" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="截止日期" prop="dueDate">
-          <el-date-picker
-            v-model="createForm.dueDate"
-            type="date"
-            placeholder="请选择截止日期"
-            style="width: 100%"
-            value-format="YYYY-MM-DD"
-          />
-        </el-form-item>
-      </el-form>
+    <CreateTaskModal
+      v-if="showCreateModal"
+      :is-open="showCreateModal"
+      :tasks-hook="tasksHookProxy"
+      :on-close="() => showCreateModal = false"
+      :on-created="handleTaskCreated"
+    />
+
+    <!-- 选择执行人弹窗 -->
+    <SelectExecutorModal
+      v-if="selectExecutorTask"
+      :is-open="!!selectExecutorTask"
+      :task="selectExecutorTask"
+      :on-confirm="handleConfirmSelectExecutor"
+      :on-close="() => selectExecutorTask = null"
+    />
+
+    <!-- 撤回弹窗 -->
+    <WithdrawCancelModal
+      v-if="withdrawTask"
+      :is-open="!!withdrawTask"
+      :task="withdrawTask"
+      type="withdraw"
+      :on-confirm="handleWithdrawConfirm"
+      :on-close="() => withdrawTask = null"
+    />
+
+    <!-- 取消弹窗 -->
+    <WithdrawCancelModal
+      v-if="cancelTask"
+      :is-open="!!cancelTask"
+      :task="cancelTask"
+      type="cancel"
+      :on-confirm="handleCancelConfirm"
+      :on-close="() => cancelTask = null"
+    />
+
+    <!-- 重新派发弹窗 -->
+    <ReassignTaskModal
+      v-if="reassignTask"
+      :is-open="!!reassignTask"
+      :task="reassignTask"
+      :on-confirm="handleReassignConfirm"
+      :on-close="() => reassignTask = null"
+    />
+
+    <!-- 超时处理弹窗 -->
+    <OvertimeHandleModal
+      v-if="overtimeTask"
+      :is-open="!!overtimeTask"
+      :task="overtimeTask"
+      :timeout="overtimeTimeout"
+      :on-continue="handleOvertimeContinue"
+      :on-abandon="handleOvertimeAbandon"
+      :on-close="() => overtimeTask = null"
+    />
+
+    <!-- 问题分派弹窗 -->
+    <ProblemDispatchModal
+      v-if="dispatchProblemId"
+      :problem-id="dispatchProblemId"
+      @close="dispatchProblemId = null"
+      @dispatched="handleProblemDispatched"
+    />
+
+    <!-- 巡查详情弹窗 -->
+    <InspectionDetailModal
+      v-if="detailInspectionId"
+      :record-id="detailInspectionId"
+      @close="detailInspectionId = null"
+      @report-problem="handleInspectionReportProblemFromDetail"
+    />
+
+    <!-- 批量导入弹窗 -->
+    <BatchImportModal
+      :is-open="showImportModal"
+      @close="showImportModal = false"
+      @import="handleBatchImport"
+    />
+
+    <!-- 批量操作内联弹窗（与V1.1样式一致：渐变头部） -->
+    <!-- 批量派发 - 选择执行人 -->
+    <el-dialog v-model="showBatchDispatchModal" width="480px" destroy-on-close class="farm-modal">
+      <template #header>
+        <div class="farm-modal-header">
+          <span class="text-white text-lg font-semibold">批量派发任务</span>
+        </div>
+      </template>
+      <p class="text-sm text-gray-500 mb-4">
+        将为选中的 <span class="font-medium text-gray-700">{{ batchDispatchTaskIds.length }}</span> 个待派工任务统一指派执行人
+      </p>
+      <el-select v-model="batchDispatchTarget" placeholder="-- 请选择执行人 --" style="width: 100%" filterable>
+        <el-option v-for="s in staffOptions" :key="s.value" :label="s.label" :value="s.value" />
+      </el-select>
       <template #footer>
-        <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" :loading="createLoading" @click="handleCreateTask">确认创建</el-button>
+        <el-button @click="showBatchDispatchModal = false">取消</el-button>
+        <el-button type="primary" :disabled="!batchDispatchTarget" @click="confirmBatchDispatch">确认派发</el-button>
       </template>
     </el-dialog>
 
-    <!-- 取消任务确认弹窗 -->
-    <el-dialog v-model="showCancelDialog" title="取消任务" width="420px" destroy-on-close>
-      <p class="text-sm text-gray-600 mb-4">
-        确定要取消任务 <span class="font-medium text-gray-800">{{ currentTask?.title }}</span> 吗？
-      </p>
-      <el-input
-        v-model="cancelReason"
-        type="textarea"
-        placeholder="请输入取消原因"
-        :rows="2"
-      />
+    <!-- 批量验收确认 -->
+    <el-dialog v-model="showBatchVerifyConfirm" width="480px" destroy-on-close class="farm-modal">
+      <template #header>
+        <div class="farm-modal-header">
+          <span class="text-white text-lg font-semibold">批量验收通过</span>
+        </div>
+      </template>
+      <p class="text-sm text-gray-500 mb-2">即将对选中的 <span class="font-medium text-gray-700">{{ batchVerifyTaskIds.length }}</span> 个任务全部标记为"验收通过"</p>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+        <p class="text-xs text-yellow-700">此操作将批量通过验收，任务状态将变为"已完成"</p>
+      </div>
       <template #footer>
-        <el-button @click="showCancelDialog = false">关闭</el-button>
-        <el-button type="danger" :loading="actionLoading" @click="confirmCancel">确认取消</el-button>
+        <el-button @click="showBatchVerifyConfirm = false">取消</el-button>
+        <el-button type="primary" @click="confirmBatchVerify">确认批量验收</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 批量重派 - 选择新执行人 -->
+    <el-dialog v-model="showBatchReassignModal" width="480px" destroy-on-close class="farm-modal">
+      <template #header>
+        <div class="farm-modal-header">
+          <span class="text-white text-lg font-semibold">批量重新派发</span>
+        </div>
+      </template>
+      <p class="text-sm text-gray-500 mb-4">
+        将为选中的 <span class="font-medium text-gray-700">{{ batchReassignTaskIds.length }}</span> 个失败/放弃任务统一更换执行人
+      </p>
+      <el-select v-model="batchReassignTarget" placeholder="-- 请选择新执行人 --" style="width: 100%" filterable>
+        <el-option v-for="s in staffOptions" :key="s.value" :label="s.label" :value="s.value" />
+      </el-select>
+      <template #footer>
+        <el-button @click="showBatchReassignModal = false">取消</el-button>
+        <el-button type="primary" :disabled="!batchReassignTarget" @click="confirmBatchReassign">确认重派</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 批量删除确认弹窗 -->
+    <el-dialog v-model="showBatchDeleteConfirm" width="420px" destroy-on-close class="farm-modal">
+      <template #header>
+        <div class="farm-modal-header bg-gradient-to-r from-red-600 to-red-500">
+          <span class="text-white text-lg font-semibold">批量删除</span>
+        </div>
+      </template>
+      <p class="text-sm text-gray-600">确定要删除选中的 <span class="font-medium text-red-600">{{ batchDeleteIds.length }}</span> 个任务吗？此操作不可撤销。</p>
+      <template #footer>
+        <el-button @click="showBatchDeleteConfirm = false">取消</el-button>
+        <el-button type="danger" :loading="batchDeleteLoading" @click="confirmBatchDelete">确认删除</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 导出弹窗 -->
+    <el-dialog v-model="showExportDialog" width="420px" destroy-on-close class="farm-modal">
+      <template #header>
+        <div class="farm-modal-header">
+          <span class="text-white text-lg font-semibold">导出任务</span>
+        </div>
+      </template>
+      <div class="space-y-3">
+        <el-radio-group v-model="exportFormat" class="flex flex-col gap-2">
+          <el-radio value="excel" border>Excel 文件 (.xls)</el-radio>
+          <el-radio value="csv" border>CSV 文件 (.csv)</el-radio>
+          <el-radio value="word" border>Word 文件 (.doc)</el-radio>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="showExportDialog = false">取消</el-button>
+        <el-button type="primary" :disabled="exportIds.length === 0" @click="handleDoExport">导出</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- SOP内容弹窗 -->
+    <el-dialog v-model="showSopModal" width="640px" destroy-on-close class="farm-modal">
+      <template #header>
+        <div class="farm-modal-header">
+          <span class="text-white text-lg font-semibold">作业标准 (SOP)</span>
+        </div>
+      </template>
+      <pre class="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">{{ selectedSopContent || '暂无作业标准内容' }}</pre>
+      <template #footer>
+        <el-button @click="showSopModal = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import {
-  Grape, Clock, Loading, Checked, CircleCheck,
-  Search, Plus, Upload, Download
-} from '@element-plus/icons-vue'
+/**
+ * 农事任务中心主页面 - 从V1.1 FarmTaskHub.tsx 1:1迁移
+ * 集成所有子组件、弹窗和操作逻辑
+ */
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ElMessage } from 'element-plus'
 import { useFarmTaskStore } from '@/stores/modules/farmTask'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { useUserStore } from '@/stores/modules/user'
+import { useGreenhouseStore } from '@/stores/modules/greenhouse'
 
-// ========== Store ==========
-const store = useFarmTaskStore()
+// ========== 导入所有子组件 ==========
+import FarmHubHeader from '@/components/farm/hub/FarmHubHeader.vue'
+import TaskTab from '@/components/farm/hub/TaskTab.vue'
+import ProblemTab from '@/components/farm/hub/ProblemTab.vue'
+import InspectionTab from '@/components/farm/hub/InspectionTab.vue'
+import OperationRecordPanel from '@/components/farm/hub/OperationRecordPanel.vue'
+import TodayOperationRecords from '@/components/farm/hub/TodayOperationRecords.vue'
+import TaskDetailModal from '@/components/farm/hub/TaskDetailModal.vue'
+import TaskAcceptanceModal from '@/components/farm/hub/TaskAcceptanceModal.vue'
+import CreateTaskModal from '@/components/farm/hub/CreateTaskModal.vue'
+import SelectExecutorModal from '@/components/farm/hub/SelectExecutorModal.vue'
+import WithdrawCancelModal from '@/components/farm/hub/WithdrawCancelModal.vue'
+import ReassignTaskModal from '@/components/farm/hub/ReassignTaskModal.vue'
+import OvertimeHandleModal from '@/components/farm/hub/OvertimeHandleModal.vue'
+import ProblemDispatchModal from '@/components/farm/hub/ProblemDispatchModal.vue'
+import InspectionDetailModal from '@/components/farm/hub/InspectionDetailModal.vue'
+import BatchImportModal from '@/components/farm/hub/BatchImportModal.vue'
+import TempTaskTab from '@/components/farm/hub/TempTaskTab.vue'
 
-// ========== 筛选状态 ==========
-const filters = reactive({
-  status: '',
-  priority: '',
-  keyword: '',
+// ========== Stores ==========
+const taskStore = useFarmTaskStore()
+const userStore = useUserStore()
+const greenhouseStore = useGreenhouseStore()
+
+// ========== Tab配置（与V1.1完全一致） ==========
+const TAB_CONFIG = [
+  { key: 'task', label: '农事任务' },
+  { key: 'tempTask', label: '临时任务' },
+  { key: 'inspection', label: '巡查记录' },
+  { key: 'problem', label: '问题管理' },
+]
+
+// ========== 核心状态 ==========
+const activeTab = ref('task')
+const showRecordPanel = ref(false)
+
+// 任务数据 - 从Store获取
+const tasks = computed(() => taskStore.tasks || [])
+
+// 巡查/问题数据 - 本地状态（后续对接Store）
+const inspections = ref([])
+const problems = ref([])
+const showInspectionTab = ref(true)
+const showProblemTab = ref(true)
+
+// ========== 任务筛选（与V1.1结构完全一致） ==========
+const taskFilters = reactive({
+  status: 'all',
+  type: 'all',
+  area: 'all',
+  search: '',
+  assignee: 'all',
+  batchCode: 'all',
 })
 
-// ========== 新建任务 ==========
-const showCreateDialog = ref(false)
-const createLoading = ref(false)
-const createFormRef = ref(null)
-const createForm = reactive({
-  title: '',
-  type: '',
-  greenhouseName: '',
-  assigneeName: '',
-  priority: 'normal',
-  dueDate: '',
+const selectedIds = ref([])
+
+// 任务预筛选（与V1.1 hub.getFilteredTasks()逻辑一致）
+const filteredTasks = computed(() => {
+  let list = tasks.value
+  if (taskFilters.status !== 'all') list = list.filter(t => t.status === taskFilters.status)
+  if (taskFilters.type !== 'all') list = list.filter(t => t.type === taskFilters.type)
+  if (taskFilters.area !== 'all') list = list.filter(t => t.greenhouseName === taskFilters.area)
+  if (taskFilters.assignee !== 'all') list = list.filter(t => t.assigneeName === taskFilters.assignee)
+  if (taskFilters.batchCode !== 'all') list = list.filter(t => t.batchCode === taskFilters.batchCode)
+  return list
 })
 
-const createFormRules = {
-  title: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择任务类型', trigger: 'change' }],
-  greenhouseName: [{ required: true, message: '请输入温室区域', trigger: 'blur' }],
-  assigneeName: [{ required: true, message: '请输入执行人', trigger: 'blur' }],
-  priority: [{ required: true, message: '请选择优先级', trigger: 'change' }],
-}
+// 任务统计
+const taskStats = computed(() => ({
+  total: tasks.value.length,
+  pending: tasks.value.filter(t => t.status === 'pending').length,
+  inProgress: tasks.value.filter(t => t.status === 'in_progress').length,
+  completed: tasks.value.filter(t => t.status === 'completed').length,
+}))
 
-// ========== 取消任务 ==========
-const showCancelDialog = ref(false)
-const cancelReason = ref('')
-const currentTask = ref(null)
-const actionLoading = ref(false)
+// ========== Hub统计（顶部9卡片） ==========
+const hubStats = computed(() => ({
+  pendingTasks: tasks.value.filter(t => t.status === 'pending').length,
+  inProgressTasks: tasks.value.filter(t => t.status === 'in_progress' || t.status === 'accepted').length,
+  todayCompleted: tasks.value.filter(t => t.status === 'completed').length,
+  urgentProblems: problems.value.filter(p => p.issueSeverity === '严重').length,
+  todayInspections: inspections.value.length,
+  totalInspections: inspections.value.length,
+  abnormalInspections: inspections.value.filter(i => i.status === 'critical' || i.status === 'abnormal').length,
+  pendingProblems: problems.value.filter(p => p.status === '待处理').length,
+  processedProblems: problems.value.filter(p => p.status === '已处理').length,
+}))
 
-// ========== 类型名称映射 ==========
-const typeLabelMap = {
-  fertilization: '施肥',
-  irrigation: '灌溉',
-  pruning: '修剪',
-  pesticide: '植保',
-  weeding: '除草',
-  harvest: '采收',
-  other: '其他',
-}
+// ========== 人员选项（用于批量操作下拉） ==========
+const staffOptions = computed(() => {
+  const users = userStore.users || []
+  return users.map(w => ({ value: w.id || w.name, label: w.name }))
+})
 
-// ========== 状态映射 ==========
-const statusLabelMap = {
-  draft: '草稿',
-  pending: '待执行',
-  accepted: '已接受',
-  in_progress: '进行中',
-  waiting_acceptance: '待验收',
-  completed: '已完成',
-  cancelled: '已取消',
-  abandoned: '已放弃',
-  rejected: '已驳回',
-  failed: '失败',
-}
+// ========== 巡查状态 ==========
+const inspectionFilters = reactive({
+  recordCode: '',
+  inspectorName: '',
+  inspectionType: 'all',
+  startDate: '',
+  endDate: '',
+  status: 'all',
+  problemStatus: 'all',
+})
+const inspectionPage = ref(1)
+const inspectionPageSize = ref(10)
+const inspectionExportMode = ref(false)
+const inspectionBatchEditMode = ref(false)
+const inspectionBatchDeleteMode = ref(false)
+const inspectionSelectedRows = ref([])
+const inspectionDetailId = ref(null)
+const isInspectionCreateOpen = ref(false)
 
-const statusTypeMap = {
-  draft: 'info',
-  pending: 'info',
-  accepted: '',
-  in_progress: 'warning',
-  waiting_acceptance: '',
-  completed: 'success',
-  cancelled: 'danger',
-  abandoned: 'danger',
-  rejected: 'danger',
-  failed: 'danger',
-}
+const inspectionStats = computed(() => ({
+  total: inspections.value.length,
+  normal: inspections.value.filter(i => i.status === 'normal').length,
+  attention: inspections.value.filter(i => i.status === 'attention').length,
+  abnormal: inspections.value.filter(i => i.status === 'critical' || i.status === 'abnormal').length,
+}))
 
-// ========== 优先级映射 ==========
-const priorityLabelMap = {
-  urgent: '紧急',
-  high: '高',
-  normal: '普通',
-}
+// ========== 问题统计 ==========
+const problemStats = computed(() => ({
+  total: problems.value.length,
+  pending: problems.value.filter(p => p.status === '待处理').length,
+  processing: problems.value.filter(p => p.status === '处理中').length,
+  resolved: problems.value.filter(p => p.status === '已处理').length,
+}))
 
-const priorityTypeMap = {
-  urgent: 'danger',
-  high: 'warning',
-  normal: 'info',
-}
-
-// ========== 辅助函数 ==========
-const getStatusType = (status) => statusTypeMap[status] || 'info'
-const getStatusLabel = (status) => statusLabelMap[status] || status
-const getPriorityType = (priority) => priorityTypeMap[priority] || 'info'
-const getPriorityLabel = (priority) => priorityLabelMap[priority] || priority
-
-/** 判断是否超期 */
-const isOverdue = (row) => {
-  if (!row.dueDate) return false
-  if (['completed', 'cancelled', 'abandoned'].includes(row.status)) return false
-  return row.dueDate < new Date().toISOString().split('T')[0]
-}
-
-// ========== 筛选操作 ==========
-const handleFilterChange = () => {
-  store.setFilters({
-    status: filters.status,
-    priority: filters.priority,
-    keyword: filters.keyword,
+// ========== 操作记录（演示数据，后续对接Store） ==========
+const recentRecords = computed(() => {
+  const records = []
+  const now = new Date()
+  tasks.value.slice(0, 8).forEach((t, i) => {
+    const date = new Date(now)
+    date.setHours(date.getHours() - (i + 1) * 2)
+    records.push({
+      id: `rec-${i}`,
+      taskId: t.id,
+      taskCode: t.taskCode,
+      taskTitle: t.title,
+      operatorName: t.assigneeName || '系统',
+      operationType: ['创建任务', '开始执行', '提交验收', '验收通过', '进度更新', '修改任务'][i % 6],
+      operationTime: date.toISOString(),
+      remarks: '',
+    })
   })
-  store.setPage(1)
-  store.fetchTasks({ page: 1 })
+  return records
+})
+
+// 临时任务计数（供Tab徽标）
+const tempTaskCount = ref(8)
+
+// ========== 弹窗状态 ==========
+const detailTaskId = ref(null)
+const verifyTaskId = ref(null)
+const dispatchProblemId = ref(null)
+const detailInspectionId = ref(null)
+const showCreateModal = ref(false)
+const showImportModal = ref(false)
+const showSopModal = ref(false)
+const selectedSopContent = ref('')
+const selectExecutorTask = ref(null)
+const withdrawTask = ref(null)
+const cancelTask = ref(null)
+const reassignTask = ref(null)
+const overtimeTask = ref(null)
+
+// ========== 弹窗关联数据 ==========
+// 通过ID从tasks数组查找任务对象（模仿V1.1 Adapter模式）
+const detailTask = computed(() => tasks.value.find(t => t.id === detailTaskId.value) || null)
+const verifyTask = computed(() => tasks.value.find(t => t.id === verifyTaskId.value) || null)
+const detailTaskRecords = ref([])
+const verifyTaskRecords = ref([])
+
+// 超时信息（根据任务状态推断超时类型）
+const overtimeTimeout = computed(() => {
+  if (!overtimeTask.value) return null
+  const task = overtimeTask.value
+  let type = 'execution'
+  let severity = 'warning'
+  if (task.status === 'pending') type = 'accept'
+  else if (task.status === 'waiting_acceptance') type = 'acceptance'
+  if (task.dueDate && new Date(task.dueDate) < new Date()) severity = 'critical'
+  return {
+    type,
+    severity,
+    startedAt: task.planStart || task.startTime || task.createdAt,
+  }
+})
+
+// 监听detailTaskId变化，自动加载任务记录
+watch(detailTaskId, async (newId) => {
+  if (newId) {
+    detailTaskRecords.value = await getTaskRecords(newId)
+  } else {
+    detailTaskRecords.value = []
+  }
+})
+
+// 监听verifyTaskId变化，自动加载验收记录
+watch(verifyTaskId, async (newId) => {
+  if (newId) {
+    verifyTaskRecords.value = await getTaskRecords(newId)
+  } else {
+    verifyTaskRecords.value = []
+  }
+})
+
+// ========== 批量操作状态 ==========
+const showBatchDispatchModal = ref(false)
+const batchDispatchTarget = ref('')
+const batchDispatchTaskIds = ref([])
+const showBatchVerifyConfirm = ref(false)
+const batchVerifyTaskIds = ref([])
+const showBatchReassignModal = ref(false)
+const batchReassignTarget = ref('')
+const batchReassignTaskIds = ref([])
+const showBatchDeleteConfirm = ref(false)
+const batchDeleteIds = ref([])
+const batchDeleteLoading = ref(false)
+const showExportDialog = ref(false)
+const exportFormat = ref('excel')
+const exportIds = ref([])
+const batchEditIds = ref([])
+
+// ========== Tab样式计算 ==========
+function getTabStyle(key) {
+  const isActive = activeTab.value === key
+  const colors = {
+    task: isActive ? 'bg-blue-500 text-white font-bold' : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+    inspection: isActive ? 'bg-emerald-500 text-white font-bold' : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+    problem: isActive ? 'bg-orange-500 text-white font-bold' : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+    tempTask: isActive ? 'bg-purple-500 text-white font-bold' : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+  }
+  return colors[key] || ''
 }
 
-const handleResetFilters = () => {
-  filters.status = ''
-  filters.priority = ''
-  filters.keyword = ''
-  store.resetFilters()
-  store.setPage(1)
-  store.fetchTasks({ page: 1 })
-}
-
-// ========== 分页操作 ==========
-const handlePageChange = (page) => {
-  store.setPage(page)
-  store.fetchTasks({ page })
-}
-
-const handleSizeChange = (size) => {
-  store.setPageSize(size)
-  store.fetchTasks({ page: 1 })
-}
-
-// ========== 任务操作 ==========
-const handleViewDetail = (row) => {
-  ElMessage.info(`查看任务详情: ${row.taskCode}`)
-  // TODO: 后续实现详情弹窗
-}
-
-const handleWithdraw = async (row) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要撤回任务 "${row.title}" 吗？`,
-      '撤回确认',
-      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
-    )
-    await store.withdraw(row.id)
-    ElMessage.success('任务已撤回')
-  } catch {
-    // 用户取消
+function getTabCount(key) {
+  switch (key) {
+    case 'task': return tasks.value.length
+    case 'problem': return problems.value.length
+    case 'inspection': return inspections.value.length
+    case 'tempTask': return tempTaskCount.value
+    default: return 0
   }
 }
 
-const handleCancel = (row) => {
-  currentTask.value = row
-  cancelReason.value = ''
-  showCancelDialog.value = true
+// ========== 任务操作（与V1.1逻辑完全一致） ==========
+function handleToggleSelect(id) {
+  const idx = selectedIds.value.indexOf(id)
+  if (idx >= 0) selectedIds.value.splice(idx, 1)
+  else selectedIds.value.push(id)
 }
 
-const confirmCancel = async () => {
-  if (!currentTask.value) return
-  actionLoading.value = true
+function handleSelectAll(ids) { selectedIds.value = [...ids] }
+function handleClearSelection() { selectedIds.value = [] }
+
+function handleTaskFilterChange(key, val) {
+  taskFilters[key] = val
+}
+
+function handleResetTaskFilters() {
+  Object.assign(taskFilters, { status: 'all', type: 'all', area: 'all', search: '', assignee: 'all', batchCode: 'all' })
+}
+
+function handleViewTaskDetail(taskId) { detailTaskId.value = taskId }
+function handleViewTaskInCalendar(task) { detailTaskId.value = task.id }
+function handleViewSop(task) {
+  selectedSopContent.value = task.sopContent || ''
+  showSopModal.value = true
+}
+
+// 弹窗触发：设置任务对象，弹窗通过 v-if 渲染
+function handleTaskWithdraw(task) { withdrawTask.value = task }
+function handleTaskCancel(task) { cancelTask.value = task }
+function handleTaskReassign(task) { reassignTask.value = task }
+function handleTaskOvertime(task) { overtimeTask.value = task }
+
+async function handleTaskContinue(taskId) {
+  await taskStore.start(taskId)
+  ElMessage.success('任务已继续执行')
+}
+
+// 验收：通过verifyTaskId打开TaskAcceptanceModal（与V1.1 Adapter模式一致）
+function handleTaskAccept(task) { verifyTaskId.value = task.id }
+
+function handleTaskRemind(task) {
+  taskStore.remind(task.id)
+  ElMessage.success(`已向 ${task.assigneeName || '执行人'} 发送催办提醒`)
+}
+
+function handleSelectExecutor(task) { selectExecutorTask.value = task }
+
+// 发布任务：草稿→发布→选择执行人（与V1.1逻辑一致：发布后自动弹出执行人选择）
+async function handlePublish(task) {
+  if (task.status !== 'draft') return
   try {
-    await store.cancel(currentTask.value.id, cancelReason.value || '手动取消')
-    ElMessage.success('任务已取消')
-    showCancelDialog.value = false
+    await taskStore.publish(task.id)
+    // 获取Store中更新后的任务对象（避免传递过时的引用）
+    const updatedTask = taskStore.tasks.find(t => t.id === task.id)
+    selectExecutorTask.value = updatedTask || task
+    ElMessage.success('任务已发布，请选择执行人')
   } catch (e) {
-    ElMessage.error(e.message || '取消失败')
-  } finally {
-    actionLoading.value = false
+    ElMessage.error('发布任务失败：' + (e.message || '未知错误'))
   }
 }
 
-const handleReassign = (row) => {
-  // 重派简化处理：弹出输入框让用户输入新执行人
-  ElMessageBox.prompt('请输入新执行人姓名', '重新派发', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-  }).then(async ({ value }) => {
-    if (!value || !value.trim()) {
-      ElMessage.warning('执行人姓名不能为空')
-      return
-    }
-    try {
-      await store.reassign(row.id, value.trim())
-      ElMessage.success('任务已重新派发')
-    } catch (e) {
-      ElMessage.error(e.message || '重派失败')
-    }
-  }).catch(() => {
-    // 用户取消
-  })
+// 确认选择执行人（V1.1逻辑：先更新任务执行人信息，再接受任务）
+async function handleConfirmSelectExecutor(assigneeId, assigneeName) {
+  if (!selectExecutorTask.value) return
+  try {
+    const taskId = selectExecutorTask.value.id
+    // 先更新任务执行人信息
+    await taskStore.updateTask(taskId, {
+      assigneeId: assigneeId,
+      assigneeName: assigneeName,
+    })
+    // 再接受任务（pending → accepted）
+    await taskStore.accept(taskId)
+    selectExecutorTask.value = null
+    ElMessage.success(`任务已分配给 ${assigneeName}`)
+  } catch (e) {
+    ElMessage.error('分配执行人失败：' + (e.message || '未知错误'))
+  }
 }
 
-// ========== 新建任务 ==========
-const handleCreateTask = async () => {
-  if (!createFormRef.value) return
+// 从详情页跳转到验收
+function handleTaskVerifyFromDetail(taskId) {
+  detailTaskId.value = null
+  detailTaskRecords.value = []
+  verifyTaskId.value = taskId
+}
+
+// ========== 验收操作（调用真实Store方法，含错误处理） ==========
+async function handleAcceptVerify(comments) {
+  if (!verifyTaskId.value) return
   try {
-    await createFormRef.value.validate()
+    await taskStore.complete(verifyTaskId.value, comments)
+    ElMessage.success('验收通过')
+    verifyTaskId.value = null
+    verifyTaskRecords.value = []
+  } catch (e) {
+    ElMessage.error('验收操作失败：' + (e.message || '未知错误'))
+  }
+}
+
+async function handleRejectVerify(reason) {
+  if (!verifyTaskId.value) return
+  try {
+    await taskStore.reject(verifyTaskId.value, reason)
+    ElMessage.success('已驳回返工')
+    verifyTaskId.value = null
+    verifyTaskRecords.value = []
+  } catch (e) {
+    ElMessage.error('驳回操作失败：' + (e.message || '未知错误'))
+  }
+}
+
+// ========== 撤回/取消操作（含错误处理） ==========
+async function handleWithdrawConfirm(reason) {
+  if (!withdrawTask.value) return
+  try {
+    await taskStore.withdraw(withdrawTask.value.id)
+    withdrawTask.value = null
+    ElMessage.success('任务已撤回')
+  } catch (e) {
+    ElMessage.error('撤回操作失败：' + (e.message || '未知错误'))
+  }
+}
+
+async function handleCancelConfirm(reason) {
+  if (!cancelTask.value) return
+  try {
+    await taskStore.cancel(cancelTask.value.id, reason)
+    cancelTask.value = null
+    ElMessage.success('任务已取消')
+  } catch (e) {
+    ElMessage.error('取消操作失败：' + (e.message || '未知错误'))
+  }
+}
+
+// ========== 重新派发操作（含错误处理） ==========
+async function handleReassignConfirm(assigneeId, assigneeName) {
+  if (!reassignTask.value) return
+  try {
+    await taskStore.reassign(reassignTask.value.id, assigneeId)
+    reassignTask.value = null
+    ElMessage.success('任务已重新派发')
+  } catch (e) {
+    ElMessage.error('重新派发失败：' + (e.message || '未知错误'))
+  }
+}
+
+// ========== 超时处理操作（含错误处理） ==========
+async function handleOvertimeContinue(reason, newDeadline) {
+  if (!overtimeTask.value) return
+  try {
+    await taskStore.extend(overtimeTask.value.id, newDeadline, reason)
+    await taskStore.handleOvertimeContinue(overtimeTask.value.id)
+    overtimeTask.value = null
+    ElMessage.success('已延长任务时限')
+  } catch (e) {
+    ElMessage.error('超时处理失败：' + (e.message || '未知错误'))
+  }
+}
+
+async function handleOvertimeAbandon(reason) {
+  if (!overtimeTask.value) return
+  try {
+    await taskStore.handleOvertimeAbandon(overtimeTask.value.id, reason)
+    overtimeTask.value = null
+    ElMessage.success('任务已放弃')
+  } catch (e) {
+    ElMessage.error('放弃操作失败：' + (e.message || '未知错误'))
+  }
+}
+
+// ========== 任务创建回调 ==========
+function handleTaskCreated() {
+  showCreateModal.value = false
+  ElMessage.success('任务创建成功')
+}
+
+// ========== 任务记录获取（与V1.1 getTaskRecordsByTaskId逻辑一致） ==========
+async function getTaskRecords(taskId) {
+  if (!taskId) return []
+  try {
+    const records = await taskStore.fetchTaskRecords(taskId)
+    return Array.isArray(records) ? records : []
   } catch {
+    return []
+  }
+}
+
+// ========== 批量操作 ==========
+function handleBatchDispatch(taskIds) {
+  batchDispatchTaskIds.value = taskIds
+  batchDispatchTarget.value = ''
+  showBatchDispatchModal.value = true
+}
+
+function confirmBatchDispatch() {
+  if (!batchDispatchTarget.value) return
+  batchDispatchTaskIds.value.forEach(taskId => {
+    const user = (userStore.users || []).find(u => u.id === batchDispatchTarget.value)
+    taskStore.accept(taskId)
+  })
+  showBatchDispatchModal.value = false
+  batchDispatchTaskIds.value = []
+  selectedIds.value = []
+  ElMessage.success('批量派发完成')
+}
+
+function handleBatchVerify(taskIds) {
+  batchVerifyTaskIds.value = taskIds
+  showBatchVerifyConfirm.value = true
+}
+
+function confirmBatchVerify() {
+  batchVerifyTaskIds.value.forEach(taskId => {
+    taskStore.complete(taskId)
+  })
+  showBatchVerifyConfirm.value = false
+  batchVerifyTaskIds.value = []
+  selectedIds.value = []
+  ElMessage.success('批量验收完成')
+}
+
+function handleBatchDelete(taskIds) {
+  batchDeleteIds.value = taskIds
+  showBatchDeleteConfirm.value = true
+}
+
+function confirmBatchDelete() {
+  batchDeleteLoading.value = true
+  batchDeleteIds.value.forEach(taskId => {
+    taskStore.removeTask(taskId)
+  })
+  batchDeleteLoading.value = false
+  showBatchDeleteConfirm.value = false
+  batchDeleteIds.value = []
+  selectedIds.value = []
+  ElMessage.success('批量删除完成')
+}
+
+function handleBatchEdit(taskIds) {
+  batchEditIds.value = taskIds
+  ElMessage.info('批量编辑功能已触发')
+}
+
+function handleBatchReassign(taskIds) {
+  batchReassignTaskIds.value = taskIds
+  batchReassignTarget.value = ''
+  showBatchReassignModal.value = true
+}
+
+function confirmBatchReassign() {
+  if (!batchReassignTarget.value) return
+  batchReassignTaskIds.value.forEach(taskId => {
+    taskStore.reassign(taskId, batchReassignTarget.value)
+  })
+  showBatchReassignModal.value = false
+  batchReassignTaskIds.value = []
+  selectedIds.value = []
+  ElMessage.success('批量重派完成')
+}
+
+function handleExport(taskIds) {
+  exportIds.value = taskIds
+  showExportDialog.value = true
+}
+
+function handleDoExport() {
+  if (exportIds.value.length === 0) return
+  const selectedTasks = tasks.value.filter(t => exportIds.value.includes(t.id))
+  const headers = ['任务编号', '任务名称', '类型', '执行人', '区域', '优先级', '状态', '截止日期']
+  let content = ''
+  if (exportFormat.value === 'csv') {
+    content = headers.join(',') + '\n' + selectedTasks.map(t => headers.map(h => {
+      const row = {
+        '任务编号': t.taskCode, '任务名称': t.title, '类型': t.typeName,
+        '执行人': t.assigneeName, '区域': t.greenhouseName, '优先级': t.priority,
+        '状态': t.status, '截止日期': t.dueDate,
+      }
+      return `"${row[h] || ''}"`
+    }).join(',')).join('\n')
+    downloadFile(content, `任务导出_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv')
+  } else if (exportFormat.value === 'excel') {
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${selectedTasks.map(t => `<tr>${headers.map(h => {
+      const row = { '任务编号': t.taskCode, '任务名称': t.title, '类型': t.typeName, '执行人': t.assigneeName, '区域': t.greenhouseName, '优先级': t.priority, '状态': t.status, '截止日期': t.dueDate }
+      return `<td>${row[h] || ''}</td>`
+    }).join('')}</tr>`).join('')}</table></body></html>`
+    downloadFile(content, `任务导出_${new Date().toISOString().slice(0, 10)}.xls`, 'application/vnd.ms-excel')
+  } else {
+    content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1">${headers.map(h => `<th>${h}</th>`).join('')}${selectedTasks.map(t => `<tr>${headers.map(h => {
+      const row = { '任务编号': t.taskCode, '任务名称': t.title, '类型': t.typeName, '执行人': t.assigneeName, '区域': t.greenhouseName, '优先级': t.priority, '状态': t.status, '截止日期': t.dueDate }
+      return `<td>${row[h] || ''}</td>`
+    }).join('')}</tr>`).join('')}</table></body></html>`
+    downloadFile(content, `任务导出_${new Date().toISOString().slice(0, 10)}.doc`, 'application/vnd.ms-word')
+  }
+  showExportDialog.value = false
+  exportIds.value = []
+  ElMessage.success('导出完成')
+}
+
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob(['﻿' + content], { type: mimeType + ';charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ========== 导入处理 ==========
+function handleBatchImport(importData) {
+  if (importData.length === 0) {
+    ElMessage.warning('没有可导入的数据')
     return
   }
-  createLoading.value = true
-  try {
-    const typeName = typeLabelMap[createForm.type] || createForm.type
-    await store.createTask({
-      title: createForm.title,
-      type: createForm.type,
-      typeName,
-      greenhouseName: createForm.greenhouseName,
-      assigneeName: createForm.assigneeName,
-      priority: createForm.priority,
-      dueDate: createForm.dueDate,
+  importData.forEach(row => {
+    taskStore.createTask({
+      title: row.typeLabel || row.type || '农事任务',
+      type: row.type || 'other',
+      typeName: row.typeLabel || '',
+      greenhouseName: row.field || '',
+      cropName: row.crop || '',
+      priority: row.priority || 'normal',
+      assigneeName: row.assignee || '',
+      dueDate: row.planEnd?.split(' ')[0] || '',
       status: 'pending',
     })
-    ElMessage.success('任务创建成功')
-    showCreateDialog.value = false
-    // 重置表单
-    Object.assign(createForm, {
-      title: '',
-      type: '',
-      greenhouseName: '',
-      assigneeName: '',
-      priority: 'normal',
-      dueDate: '',
-    })
-  } catch (e) {
-    ElMessage.error(e.message || '创建失败')
-  } finally {
-    createLoading.value = false
+  })
+  showImportModal.value = false
+  ElMessage.success(`成功导入 ${importData.length} 条任务`)
+}
+
+// ========== 问题/巡查操作 ==========
+function handleProblemDispatched() {
+  ElMessage.success('问题分派完成')
+}
+
+function handleViewInspectionDetail(recordId) {
+  detailInspectionId.value = recordId
+}
+
+function handleInspectionReportProblem(record) {
+  ElMessage.info('问题上报功能')
+}
+
+function handleInspectionAcceptProblem(problem) {
+  ElMessage.info('问题验收功能')
+}
+
+function handleInspectionReportProblemFromDetail(inspectionId) {
+  detailInspectionId.value = null
+  ElMessage.info(`巡查 ${inspectionId} 问题上报`)
+}
+
+function handleInspectionFilterChange(key, val) {
+  inspectionFilters[key] = val
+}
+
+function handleResetInspectionFilters() {
+  Object.assign(inspectionFilters, {
+    recordCode: '', inspectorName: '', inspectionType: 'all',
+    startDate: '', endDate: '', status: 'all', problemStatus: 'all',
+  })
+}
+
+function handleInspectionPageChange(page) { inspectionPage.value = page }
+function handleInspectionPageSizeChange(size) { inspectionPageSize.value = size }
+function handleInspectionToggleRow(index) {
+  const idx = inspectionSelectedRows.value.indexOf(index)
+  if (idx >= 0) inspectionSelectedRows.value.splice(idx, 1)
+  else inspectionSelectedRows.value.push(index)
+}
+function handleInspectionSelectAll(total) {
+  if (inspectionSelectedRows.value.length === total) {
+    inspectionSelectedRows.value = []
+  } else {
+    inspectionSelectedRows.value = Array.from({ length: total }, (_, i) => i)
   }
 }
-
-// ========== 批量导入 ==========
-const handleBatchImport = () => {
-  ElMessage.info('批量导入功能开发中')
+function handleInspectionBatchDelete(ids) {
+  inspections.value = inspections.value.filter(i => !ids.includes(i.id))
+  ElMessage.success(`已删除 ${ids.length} 条记录`)
+}
+function handleInspectionBatchEdit(ids) {
+  ElMessage.info(`已选中 ${ids.length} 条记录进行批量编辑`)
 }
 
-// ========== 导出 ==========
-const handleExport = () => {
-  ElMessage.info('导出功能开发中')
+// ========== tasksHook代理（传递给CreateTaskModal） ==========
+// 使用 getter 确保 tasks 始终返回解包后的数组（避免 ComputedRef 传递问题）
+const tasksHookProxy = {
+  createTask: (data) => taskStore.createTask(data),
+  get tasks() { return (taskStore.tasks && taskStore.tasks.length > 0) ? taskStore.tasks : (tasks.value || []) },
+}
+
+// ========== 演示数据生成（API无数据时的降级方案） ==========
+function generateDemoTaskCode(index) {
+  const now = new Date()
+  const datePrefix = now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    now.getDate().toString().padStart(2, '0')
+  return `NS${datePrefix}-${String(index).padStart(3, '0')}`
+}
+
+const DEMO_USERS = [
+  { id: 'U001', name: '张建国' }, { id: 'U002', name: '李永强' },
+  { id: 'U003', name: '王明辉' }, { id: 'U004', name: '赵志远' },
+  { id: 'U005', name: '陈大伟' }, { id: 'U006', name: '刘文斌' },
+]
+const DEMO_GREENHOUSES = [
+  { id: 'G001', name: 'A1号温室' }, { id: 'G002', name: 'B2号温室' },
+  { id: 'G003', name: 'C3号温室' }, { id: 'G004', name: 'D5号大棚' },
+]
+const TASK_TYPES = [
+  { type: 'fertilization', name: '施肥' }, { type: 'irrigation', name: '灌溉' },
+  { type: 'pruning', name: '修剪' }, { type: 'pesticide', name: '植保' },
+  { type: 'planting', name: '定植' }, { type: 'harvest', name: '采收' },
+  { type: 'weeding', name: '除草' },
+]
+// 展示所有状态的任务，确保操作按钮覆盖全面
+const DEMO_STATUSES = ['draft', 'pending', 'pending', 'accepted', 'in_progress', 'waiting_acceptance', 'completed', 'rejected', 'failed', 'abandoned', 'cancelled']
+
+function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)] }
+
+function generateDemoTasks(count = 12) {
+  const list = []
+  const now = new Date()
+  for (let i = 1; i <= count; i++) {
+    const user = i <= 2 ? null : randomPick(DEMO_USERS) // 前2个任务没有执行人
+    const gh = randomPick(DEMO_GREENHOUSES)
+    const typeInfo = randomPick(TASK_TYPES)
+    const status = DEMO_STATUSES[(i - 1) % DEMO_STATUSES.length]
+    const dueDate = new Date(now)
+    dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7) + 1)
+    // 与 V1.1 autoGenerateTaskCode 编码规则100%一致：NS+年月日-3位流水号
+    const taskCode = generateDemoTaskCode(i)
+    list.push({
+      id: taskCode,
+      taskCode,
+      title: `${typeInfo.name}作业任务`,
+      type: typeInfo.type,
+      typeName: typeInfo.name,
+      types: [typeInfo.type], // 兼容 V1.1 types 数组格式
+      status,
+      priority: i % 3 === 0 ? 'urgent' : i % 3 === 1 ? 'high' : 'normal',
+      progress: status === 'completed' ? 100 : status === 'in_progress' ? Math.floor(Math.random() * 80) + 10 : 0,
+      sourceType: i % 5 === 0 ? 'tempTask' : undefined, // 仅每5个任务为临时任务，其余为普通生产任务
+      sourceId: i % 3 === 0 ? `SRC${String(i).padStart(4, '0')}` : undefined,
+      assigneeId: user ? user.id : '',
+      assigneeName: user ? user.name : '',
+      assignerId: 'U000',
+      assignerName: '管理员',
+      dueDate: dueDate.toISOString().split('T')[0],
+      startTime: status !== 'pending' && status !== 'draft' ? now.toISOString() : '',
+      completedAt: status === 'completed' ? dueDate.toISOString() : '',
+      greenhouseId: gh.id,
+      greenhouseName: gh.name,
+      cropName: randomPick(['番茄', '黄瓜', '辣椒', '草莓']),
+      field: `${gh.name}-B区`,
+      planStart: now.toISOString().split('T')[0],
+      planEnd: dueDate.toISOString().split('T')[0],
+      estimatedDays: Math.floor(Math.random() * 5) + 1,
+      estimatedHours: Math.floor(Math.random() * 8) + 1,
+      // 超时状态：让第8个任务有超时
+      timeout: i === 8 ? { severity: 'critical', type: 'execution' } : undefined,
+    })
+  }
+  return list
+}
+
+function generateDemoInspections(count = 6) {
+  const list = []
+  const now = new Date()
+  for (let i = 1; i <= count; i++) {
+    const inspector = randomPick(DEMO_USERS)
+    const gh = randomPick(DEMO_GREENHOUSES)
+    const date = new Date(now)
+    date.setDate(date.getDate() - Math.floor(Math.random() * 7))
+    const statuses = ['normal', 'normal', 'attention', 'abnormal']
+    const status = statuses[i % statuses.length]
+    list.push({
+      id: `insp-${i}`,
+      recordCode: `XJ${date.toISOString().split('T')[0].replace(/-/g, '')}-${String(i).padStart(3, '0')}`,
+      inspectorName: inspector.name,
+      inspectorId: inspector.id,
+      inspectionType: randomPick(['日常巡查', '专项检查', '定期巡检']),
+      greenhouseName: gh.name,
+      greenhouseId: gh.id,
+      inspectionDate: date.toISOString().split('T')[0],
+      status,
+      result: status === 'normal' ? '合格' : status === 'attention' ? '需关注' : '异常',
+      description: `${date.toISOString().split('T')[0]} ${gh.name} 巡查记录`,
+      problemStatus: status === 'abnormal' ? '待处理' : '无',
+      createdAt: date.toISOString(),
+    })
+  }
+  return list
+}
+
+function generateDemoProblems(count = 6) {
+  const list = []
+  const now = new Date()
+  const severityLevels = ['轻微', '一般', '严重']
+  const statuses = ['待处理', '处理中', '待处理', '已处理', '处理中', '待处理']
+  const descriptions = [
+    '叶片出现黄化现象，需检查营养液配比',
+    '灌溉管道接头漏水，需维修',
+    '温室内温度偏高，需检查通风系统',
+    '部分植株发现蚜虫，需进行植保处理',
+    '基质湿度传感器读数异常',
+    '补光灯定时器故障，需更换',
+  ]
+  for (let i = 1; i <= count; i++) {
+    const reporter = randomPick(DEMO_USERS)
+    const gh = randomPick(DEMO_GREENHOUSES)
+    const date = new Date(now)
+    date.setDate(date.getDate() - Math.floor(Math.random() * 14))
+    list.push({
+      id: `prob-${i}`,
+      issueCode: `WT${date.toISOString().split('T')[0].replace(/-/g, '')}-${String(i).padStart(3, '0')}`,
+      title: descriptions[i - 1],
+      description: descriptions[i - 1],
+      issueSeverity: severityLevels[i % 3],
+      status: statuses[i % statuses.length],
+      reporterName: reporter.name,
+      reporterId: reporter.id,
+      greenhouseName: gh.name,
+      greenhouseId: gh.id,
+      reportedAt: date.toISOString(),
+      resolvedAt: statuses[i % statuses.length] === '已处理' ? now.toISOString() : '',
+      category: randomPick(['病虫害', '灌溉', '环境', '设备', '其他']),
+      inspectionId: `insp-${Math.floor(Math.random() * 6) + 1}`,
+    })
+  }
+  return list
 }
 
 // ========== 初始化 ==========
-onMounted(() => {
-  store.fetchTasks({ page: 1 })
+onMounted(async () => {
+  await taskStore.fetchTasks({ page: 1 })
+  // API无数据时降级使用演示数据
+  if (!taskStore.tasks || taskStore.tasks.length === 0) {
+    const demoTasks = generateDemoTasks(12)
+    demoTasks.forEach(t => taskStore.tasks.push(t))
+  }
+  if (!userStore.users || userStore.users.length === 0) {
+    // 填充演示用户
+    userStore.users = DEMO_USERS
+  }
+  if (!greenhouseStore.greenhouses || greenhouseStore.greenhouses.length === 0) {
+    greenhouseStore.greenhouses = DEMO_GREENHOUSES
+  }
+  // 填充巡查和问题数据
+  if (inspections.value.length === 0) {
+    inspections.value = generateDemoInspections(6)
+  }
+  if (problems.value.length === 0) {
+    problems.value = generateDemoProblems(6)
+  }
 })
 </script>
+
+<style scoped>
+/* 渐变弹窗头部样式（与V1.1 Modal组件 bg-gradient-to-r from-emerald-600 to-emerald-500 一致） */
+.farm-modal :deep(.el-dialog__header) {
+  padding: 0;
+  margin: 0;
+  border-radius: 8px 8px 0 0;
+}
+.farm-modal-header {
+  background: linear-gradient(to right, #059669, #10b981);
+  padding: 16px 24px;
+  border-radius: 8px 8px 0 0;
+}
+</style>

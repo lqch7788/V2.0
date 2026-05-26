@@ -64,9 +64,9 @@ export const menuGroups = [
     children: [
       { icon: 'DataLine', label: '农事任务中心', path: '/farm-hub' },
       { icon: 'List', label: '智能任务中心', path: '/task-center' },
-      { icon: 'Calendar', label: '排班调度', path: '/schedule' },
-      { icon: 'Folder', label: '班组分配', path: '/team' },
-      { icon: 'Calendar', label: '每日工单汇总', path: '/daily-work-summary' },
+      { icon: 'Calendar', label: '排班调度', path: '/farm/schedule' },
+      { icon: 'Folder', label: '班组分配', path: '/farm/team' },
+      { icon: 'Calendar', label: '每日工单汇总', path: '/farm/daily-summary' },
     ],
   },
   {

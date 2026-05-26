@@ -41,7 +41,13 @@
 <script setup>
 import { Document, ArrowRight } from '@element-plus/icons-vue'
 
-defineProps({})
+// 今日操作记录 - 从V1.1 TodayOperationRecords.tsx 1:1迁移
+defineProps({
+  /** 操作记录列表 */
+  records: { type: Array, default: () => [] },
+  /** 查看全部回调 */
+  onShowAll: { type: Function, default: null },
+})
 
 const formatTime = (timestamp) => {
   const date = new Date(timestamp)

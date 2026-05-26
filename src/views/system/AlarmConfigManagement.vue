@@ -321,7 +321,7 @@ const currentContacts = computed(() => {
 
 // 是否有未保存的更改
 const isDirty = computed(() => {
-  const original = levels.find(l => l.level === activeTab.value)
+  const original = levels.value.find(l => l.level === activeTab.value)
   if (!original) return true
   return (
     original.levelName !== currentEdit.value.levelName ||

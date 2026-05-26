@@ -1,29 +1,5 @@
 <template>
-  <div class="space-y-6">
-    <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-none">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <a
-            href="/settings"
-            class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
-            title="返回系统设置"
-          >
-            <el-icon :size="20" color="#4b5563">
-              <ArrowLeft />
-            </el-icon>
-          </a>
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><User /></el-icon>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">用户特殊权限配置</h1>
-            <p class="text-gray-500">对单个用户进行权限增强或限制，覆盖角色权限</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
+  <div class="space-y-4">
     <!-- 工具栏 -->
     <div class="flex items-center gap-3 flex-wrap bg-white rounded-xl p-4 shadow-sm">
       <label class="text-xs font-medium text-gray-600 whitespace-nowrap">选择用户:</label>
@@ -66,7 +42,7 @@
             工序-动作权限配置
           </h3>
           <p class="text-xs text-gray-400 mt-0.5">
-            灰=无权限 | 蓝=角色继承 | 点击循环: 角色→允许→拒绝→恢复角色
+            下拉选择：继承=继承角色权限 | 允许=强制允许 | 拒绝=强制拒绝
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -110,14 +86,16 @@
                 :key="act.code"
                 class="text-center py-1.5 px-1"
               >
-                <el-button
-                  size="small"
+                <select
+                  :value="getDropdownValue(proc.oid, act.code)"
+                  @change="setAuthValue(proc.oid, act.code, $event.target.value)"
                   :class="getAuthClass(proc.oid, act.code)"
-                  class-name="w-14 h-7 rounded text-xs font-medium transition-colors"
-                  @click="cycleValue(proc.oid, act.code)"
+                  class="h-7 px-1 text-xs border border-gray-300 rounded cursor-pointer font-medium"
                 >
-                  {{ getAuthLabel(proc.oid, act.code) }}
-                </el-button>
+                  <option value="inherit" class="text-blue-600 bg-white">继承角色权限</option>
+                  <option value="allow" class="text-emerald-600 bg-white">强制允许</option>
+                  <option value="deny" class="text-red-500 bg-white">强制拒绝</option>
+                </select>
               </td>
             </tr>
           </tbody>
@@ -140,15 +118,14 @@ import {
   User,
   Search,
   Refresh,
-  Check,
-  ArrowLeft
+  Check
 } from '@element-plus/icons-vue'
 import { useAuthorityStore } from '@/stores/modules/authority'
 import {
   getUserAuthority,
   saveUserAuthority,
-  getUserRolesAuthority,
-  getRoleAuthority
+  getRoleAuthority,
+  getUserRoles
 } from '@/api/system/authority'
 
 // 动作列表
@@ -207,53 +184,59 @@ const getAuthValue = (processOid, actionCode) => {
   }
   // 用户特殊权限
   const ua = userAuthorities.value.find(a => a.processOid === processOid && a.actionOid === actionCode)
-  if (ua) return { val: ua.value + 1, source: 'user_override' }
+  if (ua) return { val: ua.value, source: 'user_override' }
   // 角色权限
   const ra = roleAuthorities.value.find(a => a.processOid === processOid && a.actionOid === actionCode)
   if (ra && ra.value >= 1) return { val: 1, source: 'role' }
   return { val: 0, source: 'none' }
 }
 
-// 获取权限样式
+// 获取权限样式（匹配V1.1的3-way下拉样式）
 const getAuthClass = (processOid, actionCode) => {
   const { val, source } = getAuthValue(processOid, actionCode)
-  if (val === 1 && source === 'role') {
-    return 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-  } else if (source === 'user_override') {
-    return val === 2 ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' : 'bg-red-100 text-red-500 hover:bg-red-200'
-  } else if (source === 'local') {
-    return val === 1 ? 'bg-emerald-200 text-emerald-700 hover:bg-emerald-300' : 'bg-red-200 text-red-700 hover:bg-red-300'
+  if (source === 'role' || source === 'none') {
+    return 'bg-blue-50 text-blue-600'
+  } else if (source === 'user_override' || source === 'local') {
+    return val === 1 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'
   }
-  return 'bg-gray-50 text-gray-300 hover:bg-gray-100'
+  return 'bg-blue-50 text-blue-600'
 }
 
-// 获取权限标签
+// 获取权限标签（匹配V1.1的3-way下拉）
 const getAuthLabel = (processOid, actionCode) => {
   const { val, source } = getAuthValue(processOid, actionCode)
-  if (val === 1 && source === 'role') return '角色'
-  if (source === 'user_override') return val === 2 ? '允许' : '拒绝'
-  if (source === 'local') return val === 1 ? '允许' : '拒绝'
-  return '-'
+  if (source === 'role' || source === 'none') return '继承'
+  if (source === 'user_override' || source === 'local') {
+    return val === 1 ? '允许' : '拒绝'
+  }
+  return '继承'
 }
 
-// 循环切换权限值
-const cycleValue = (processOid, actionCode) => {
-  const current = getAuthValue(processOid, actionCode)
-  if (!authorityChanges.has(processOid)) {
-    authorityChanges.set(processOid, new Map())
+// 获取下拉框当前值（匹配V1.1的3-way逻辑）
+const getDropdownValue = (processOid, actionCode) => {
+  const { val, source } = getAuthValue(processOid, actionCode)
+  if (source === 'role' || source === 'none') return 'inherit'
+  if (source === 'user_override' || source === 'local') {
+    return val === 1 ? 'allow' : 'deny'
   }
+  return 'inherit'
+}
 
-  if (current.source === 'local') {
-    if (current.val === 1) {
-      authorityChanges.get(processOid).set(actionCode, 0)
-    } else {
+// 设置权限值（匹配V1.1: inherit=恢复角色, allow=强制允许, deny=强制拒绝）
+const setAuthValue = (processOid, actionCode, dropdownValue) => {
+  if (dropdownValue === 'inherit') {
+    // 清除本地覆盖，恢复继承角色权限
+    if (authorityChanges.has(processOid)) {
       authorityChanges.get(processOid).delete(actionCode)
       if (authorityChanges.get(processOid).size === 0) {
         authorityChanges.delete(processOid)
       }
     }
   } else {
-    authorityChanges.get(processOid).set(actionCode, 1)
+    if (!authorityChanges.has(processOid)) {
+      authorityChanges.set(processOid, new Map())
+    }
+    authorityChanges.get(processOid).set(actionCode, dropdownValue === 'allow' ? 1 : 0)
   }
   hasChanges.value = true
 }
@@ -303,12 +286,14 @@ watch(selectedUserOid, async (newOid) => {
 
   // 加载用户角色权限(用于对比展示)
   try {
-    // 从用户信息中获取角色OID列表
-    const roleOids = selectedUser.value?.roles?.map(r => r.oid) || []
+    // V1.1: 先调用getUserRoles获取角色OID列表，再逐个加载角色权限
+    const roleOids = await getUserRoles(newOid)
     const allAuths = []
-    for (const roleOid of roleOids) {
-      const auths = await getRoleAuthority(roleOid, 0)
-      allAuths.push(...auths.map(a => ({ ...a })))
+    for (const roleOid of (roleOids || [])) {
+      try {
+        const auths = await getRoleAuthority(roleOid, 0)
+        allAuths.push(...(auths || []).map(a => ({ ...a })))
+      } catch { /* 单个角色权限加载失败不影响其他 */ }
     }
     roleAuthorities.value = allAuths
   } catch {
@@ -324,5 +309,19 @@ onMounted(async () => {
   await loadUsers()
   await loadProcesses()
   await loadRoles()
+  // V1.1: 默认选择第一个用户，自动加载权限数据
+  if (!selectedUserOid.value && users.value.length > 0) {
+    selectedUserOid.value = users.value[0].oid
+  }
 })
 </script>
+
+<style scoped>
+/* 绿色主题按钮 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
+}
+</style>

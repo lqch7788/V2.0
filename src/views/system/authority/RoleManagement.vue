@@ -323,3 +323,23 @@ onMounted(async () => {
   await loadOrganizations()
 })
 </script>
+
+<style scoped>
+/* 弹窗头部渐变 - 与V1.1保持一致: 3-stop emerald渐变 */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+</style>

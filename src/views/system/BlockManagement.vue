@@ -418,7 +418,7 @@ const errors = reactive({
  */
 const baseOptions = computed(() => {
   return greenhouseStore.greenhouses.map(gh => ({
-    value: gh.id,
+    value: gh.id || gh.oid,
     label: gh.name || gh.greenhouseName || '未命名基地'
   }))
 })
@@ -428,7 +428,7 @@ const baseOptions = computed(() => {
  */
 const zonesWithBaseName = computed(() => {
   return zoneStore.zones.map(zone => {
-    const base = greenhouseStore.greenhouses.find(gh => gh.id === zone.baseOid)
+    const base = greenhouseStore.greenhouses.find(gh => gh.id === zone.baseOid || gh.oid === zone.baseOid)
     return {
       ...zone,
       baseName: base?.name || base?.greenhouseName || zone.baseOid || '-'

@@ -38,10 +38,11 @@ export interface UpdateCategoryPayload {
   nameEn?: string;
 }
 
-// 获取全部分类（扁平行列表，仅物料编码类型）
+// 获取全部分类（扁平行列表）
+// ruleType: 'material' | 'supplier'，默认为 'material'
 // enhancedApiClient 已自动解包 response.data，直接返回数组
-export async function fetchCategories(): Promise<MaterialCodeCategory[]> {
-  const data = await enhancedApiClient.get('/material-code-categories?rule_type=material');
+export async function fetchCategories(ruleType: string = 'material'): Promise<MaterialCodeCategory[]> {
+  const data = await enhancedApiClient.get(`/material-code-categories?rule_type=${ruleType}`);
   return (Array.isArray(data) ? data : []) as MaterialCodeCategory[];
 }
 

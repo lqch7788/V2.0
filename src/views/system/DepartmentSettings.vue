@@ -516,7 +516,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 与V1.1一致的样式 */
+/* 弹窗头部渐变 - 与V1.1保持一致: 3-stop emerald渐变 */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+/* 主按钮改为emerald绿色 - 与V1.1保持一致 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
+}
 .bg-gradient-to-br {
   background: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }

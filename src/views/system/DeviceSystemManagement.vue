@@ -135,10 +135,10 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="updatedAt" label="更新时间" width="160">
+        <el-table-column prop="updatedAt" label="更新时间" width="180">
           <template #default="{ row }">
             <span class="text-gray-500 text-xs">
-              {{ row.updatedAt || '-' }}
+              {{ formatDateTime(row.updatedAt) }}
             </span>
           </template>
         </el-table-column>
@@ -322,6 +322,22 @@ const filteredData = computed(() => {
   return filtered
 })
 
+// 格式化日期时间（与V1.1 toLocaleString('zh-CN')保持一致）
+const formatDateTime = (val) => {
+  if (!val) return '-'
+  try {
+    const d = new Date(val)
+    if (isNaN(d.getTime())) return val
+    return d.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch { return val }
+}
+
 // 弹窗标题
 const dialogTitle = computed(() => isEdit.value ? '编辑系统' : '新增系统')
 
@@ -432,3 +448,38 @@ const handleDelete = async () => {
   selectedItem.value = null
 }
 </script>
+
+<style scoped>
+/* 弹窗头部渐变 - 与V1.1保持一致: 3-stop emerald渐变 */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+
+/* 表格头部渐变 - 与V1.1保持一致 */
+:deep(.el-table th) {
+  background: linear-gradient(to right, #10b981, #059669) !important;
+  color: white !important;
+  font-weight: 500;
+}
+
+/* 主按钮改为emerald绿色 - 与V1.1 bg-emerald-600 保持一致 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
+}
+</style>

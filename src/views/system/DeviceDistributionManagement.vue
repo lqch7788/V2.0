@@ -478,6 +478,31 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 弹窗头部渐变 - 与V1.1保持一致: 3-stop BLUE渐变（本页面V1.1使用蓝色主题） */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #3b82f6, #2563eb, #3b82f6);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+/* 表格头部渐变 - 蓝色主题与V1.1 from-blue-500 to-blue-600 保持一致 */
+:deep(.el-table th) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: white !important;
+}
+</style>
+
+<style scoped>
 /* 表格头部渐变背景继承 */
 .bg-gradient-to-r {
   background: linear-gradient(to right, var(--el-color-primary), var(--el-color-primary-light-3));

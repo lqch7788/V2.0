@@ -15,7 +15,7 @@
           </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white">
-              <Document />
+              <List />
             </el-icon>
           </div>
           <div>
@@ -59,7 +59,7 @@
             placeholder="搜索日志..."
             clearable
             @clear="handleSearchClear('search')"
-            @keyup.enter="handleSearch"
+            @input="handleSearch"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
@@ -72,7 +72,7 @@
             placeholder="搜索用户..."
             clearable
             @clear="handleSearchClear('user')"
-            @keyup.enter="handleSearch"
+            @input="handleSearch"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
@@ -200,11 +200,13 @@
       <div class="text-sm text-gray-500">共 {{ filteredLogs.length }} 条</div>
       <el-pagination
         v-model:current-page="currentPage"
-        :page-size="pageSize"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50]"
         :total="totalPages * pageSize"
-        layout="prev, pager, next"
+        layout="total, sizes, prev, pager, next"
         background
         @current-change="handlePageChange"
+        @size-change="handlePageSizeChange"
       />
     </div>
 
@@ -267,7 +269,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import {
   ArrowLeft,
-  Document,
+  List,
   Search,
   Download,
   View,
@@ -294,7 +296,7 @@ const selectedLog = ref(null)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const loading = ref(true)
-const pageSize = 10
+const pageSize = ref(10)
 
 // 获取模块列表（去重）
 const modules = computed(() => {
@@ -357,7 +359,7 @@ const fetchData = async () => {
     // 构建查询参数
     const params = new URLSearchParams()
     params.set('page', String(currentPage.value))
-    params.set('limit', String(pageSize))
+    params.set('limit', String(pageSize.value))
     if (searchTerm.value) params.set('search', searchTerm.value)
     if (filterUser.value) params.set('username', filterUser.value)
     if (filterModule.value !== 'all') params.set('module', filterModule.value)
@@ -434,6 +436,13 @@ const handleFilterChange = () => {
 // 分页变化
 const handlePageChange = (page) => {
   currentPage.value = page
+  fetchData()
+}
+
+// 页码大小变化
+const handlePageSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
   fetchData()
 }
 

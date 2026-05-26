@@ -276,6 +276,7 @@ import { useApprovalWorkflowStore } from '@/stores/modules/approvalWorkflow'
 
 // ========== Store ==========
 const store = useApprovalWorkflowStore()
+const error = computed(() => store.error)
 
 // 模块选项 - 与V1.1保持一致
 const MODULE_OPTIONS = [
@@ -445,7 +446,10 @@ const handleDeleteWorkflow = async (id) => {
     await store.removeWorkflow(id)
     ElMessage.success('删除成功')
   } catch (err) {
-    // 用户取消或删除失败
+    if (err !== 'cancel') {
+      console.error('删除审批工作流失败:', err)
+      ElMessage.error('删除失败')
+    }
   }
 }
 
@@ -465,3 +469,30 @@ onMounted(() => {
   loadWorkflows()
 })
 </script>
+
+<style scoped>
+/* 弹窗头部渐变 - 与V1.1保持一致: 3-stop emerald渐变 */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+/* 主按钮改为emerald绿色 - 与V1.1保持一致 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
+}
+</style>

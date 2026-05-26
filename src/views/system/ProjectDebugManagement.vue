@@ -12,7 +12,7 @@
             <el-icon :size="20" class="text-gray-600"><ArrowLeft /></el-icon>
           </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" class="text-white"><Operation /></el-icon>
+            <el-icon :size="24" class="text-white"><Setting /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">工程调试</h1>
@@ -28,7 +28,7 @@
       <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
-            <el-icon :size="20" class="text-emerald-600"><Odometer /></el-icon>
+            <el-icon :size="20" class="text-emerald-600"><Monitor /></el-icon>
             <h3 class="font-semibold text-gray-900">HMI 版本信息</h3>
           </div>
           <button
@@ -292,8 +292,7 @@ import {
   Clock,
   Delete,
   Monitor,
-  Operation,
-  Odometer,
+  Setting,
   List,
   Document
 } from '@element-plus/icons-vue'

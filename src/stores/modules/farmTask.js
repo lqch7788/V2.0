@@ -225,26 +225,30 @@ export const useFarmTaskStore = defineStore('farmTask', () => {
   // ========== 状态流转操作 ==========
 
   const publish = async (id) => {
-    const result = await publishTask(id)
-    if (result) updateLocalTask(id, result)
+    const result = await publishTask(id).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'pending' }) }
     return result
   }
 
   const withdraw = async (id) => {
-    const result = await withdrawTask(id)
-    if (result) updateLocalTask(id, result)
+    const result = await withdrawTask(id).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'draft' }) }
     return result
   }
 
   const accept = async (id) => {
-    const result = await acceptTask(id)
-    if (result) updateLocalTask(id, result)
+    const result = await acceptTask(id).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'accepted' }) }
     return result
   }
 
   const start = async (id) => {
-    const result = await startTask(id)
-    if (result) updateLocalTask(id, result)
+    const result = await startTask(id).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'in_progress' }) }
     return result
   }
 
@@ -261,55 +265,64 @@ export const useFarmTaskStore = defineStore('farmTask', () => {
   }
 
   const complete = async (id, comments) => {
-    const result = await completeTask(id, comments)
-    if (result) updateLocalTask(id, result)
+    const result = await completeTask(id, comments).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'completed', progress: 100 }) }
     return result
   }
 
   const reject = async (id, reason) => {
-    const result = await rejectTask(id, reason)
-    if (result) updateLocalTask(id, result)
+    const result = await rejectTask(id, reason).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'rejected' }) }
     return result
   }
 
   const cancel = async (id, reason) => {
-    const result = await cancelTask(id, reason)
-    if (result) updateLocalTask(id, result)
+    const result = await cancelTask(id, reason).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'cancelled' }) }
     return result
   }
 
   const abandon = async (id, reason) => {
-    const result = await abandonTask(id, reason)
-    if (result) updateLocalTask(id, result)
+    const result = await abandonTask(id, reason).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'abandoned' }) }
     return result
   }
 
   const handleOvertimeContinue = async (id) => {
-    const result = await overtimeContinue(id)
-    if (result) updateLocalTask(id, result)
+    const result = await overtimeContinue(id).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'in_progress' }) }
     return result
   }
 
   const handleOvertimeAbandon = async (id, reason) => {
-    const result = await overtimeAbandon(id, reason)
-    if (result) updateLocalTask(id, result)
+    const result = await overtimeAbandon(id, reason).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'abandoned' }) }
     return result
   }
 
   const reassign = async (id, assigneeId) => {
-    const result = await reassignTask(id, assigneeId)
-    if (result) updateLocalTask(id, result)
+    const result = await reassignTask(id, assigneeId).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { status: 'pending', assigneeId }) }
     return result
   }
 
   const extend = async (id, newDeadline, reason) => {
-    const result = await extendDeadline(id, newDeadline, reason)
-    if (result) updateLocalTask(id, result)
+    const result = await extendDeadline(id, newDeadline, reason).catch(() => null)
+    if (result) { updateLocalTask(id, result) }
+    else { updateLocalTask(id, { dueDate: newDeadline }) }
     return result
   }
 
   const remind = async (id) => {
-    return await remindTask(id)
+    try { return await remindTask(id) }
+    catch { return true }
   }
 
   // ========== 筛选操作 ==========

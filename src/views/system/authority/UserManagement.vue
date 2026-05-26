@@ -85,10 +85,18 @@
             <td class="py-2 px-4 text-gray-700">{{ user.real_name || user.name }}</td>
             <td class="py-2 px-4 text-gray-500">{{ getOrgName(user.org_oid || user.orgOid) }}</td>
             <td class="py-2 px-4">
-              <el-tag v-if="user.department_oid || user.departmentOid" size="small" type="success">
-                {{ getDeptName(user.department_oid || user.departmentOid) }}
-              </el-tag>
-              <span v-else class="text-xs text-gray-400">-</span>
+              <!-- 3层显示: 直接部门 → 组织关联部门 → "-"（与V1.1 100%一致） -->
+              <template v-if="user.department_oid || user.departmentOid">
+                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs rounded">
+                  {{ getDeptName(user.department_oid || user.departmentOid) }}
+                </span>
+              </template>
+              <template v-else>
+                <span v-if="getOrgLinkedDept(user.org_oid || user.orgOid)" class="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded" title="保存后自动关联">
+                  {{ getOrgLinkedDept(user.org_oid || user.orgOid) }}
+                </span>
+                <span v-else class="text-xs text-gray-400">-</span>
+              </template>
             </td>
             <td class="py-2 px-4 text-xs text-gray-400">
               <span v-if="user.email">{{ user.email }}</span>
@@ -166,6 +174,10 @@
               :value="org.oid"
             />
           </el-select>
+          <!-- 自动关联部门提示（与V1.1 100%一致） -->
+          <p v-if="userForm.orgOid && getOrgLinkedDept(userForm.orgOid)" class="text-xs text-emerald-600 mt-1">
+            自动关联部门：{{ getOrgLinkedDept(userForm.orgOid) }}
+          </p>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -203,7 +215,7 @@
     <!-- ========== 修改密码弹窗 ========== -->
     <el-dialog
       v-model="passwordDialogVisible"
-      title="修改密码"
+      :title="'修改密码' + (passwordUser ? ' - ' + (passwordUser.real_name || passwordUser.name) : '')"
       width="400px"
       :close-on-click-modal="false"
     >
@@ -213,7 +225,7 @@
       </div>
       <template #footer>
         <el-button @click="passwordDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handlePasswordChange" :loading="saving">确认修改</el-button>
+        <el-button style="background:#f59e0b;border-color:#f59e0b;color:#fff" @click="handlePasswordChange" :loading="saving">确认修改</el-button>
       </template>
     </el-dialog>
 
@@ -324,8 +336,19 @@ const getOrgName = (orgOid) => {
   return org?.name || orgOid || '-'
 }
 
+// 获取组织关联的部门信息（与V1.1 getOrgLinkedDept 100%一致）
+const getOrgLinkedDept = (orgOid) => {
+  const org = organizations.value.find(o => o.oid === orgOid)
+  if (org?.departmentId) {
+    const dept = departments.value.find(d => (d.id || d.oid) === org.departmentId)
+    return dept?.name || org.departmentName || org.departmentId
+  }
+  return null
+}
+
 // 获取部门名称
 const getDeptName = (deptOid) => {
+  if (!deptOid) return null
   const dept = departments.value.find(d => (d.id || d.oid) === deptOid)
   return dept?.name || deptOid
 }
@@ -484,3 +507,23 @@ onMounted(async () => {
   await loadRoles()
 })
 </script>
+
+<style scoped>
+/* 弹窗头部渐变 - 与V1.1保持一致: 3-stop emerald渐变 */
+:deep(.el-dialog__header) {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 16px 20px;
+}
+:deep(.el-dialog__title) {
+  color: white;
+  font-weight: 600;
+}
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+}
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+</style>

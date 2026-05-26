@@ -4,15 +4,19 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <router-link to="/settings" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <el-icon :size="24"><ArrowLeft /></el-icon>
-          </router-link>
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Grid /></el-icon>
+          <a
+            href="/settings"
+            class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
+            title="返回系统设置"
+          >
+            <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
+          </a>
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+            <el-icon :size="24" color="white"><OfficeBuilding /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">仓库管理</h1>
-            <p class="text-gray-500">仓库信息与库存管理</p>
+            <p class="text-gray-500">管理仓库信息和配置</p>
           </div>
         </div>
       </div>
@@ -38,19 +42,28 @@
       </div>
     </div>
 
-    <!-- 搜索栏 -->
-    <div class="relative">
-      <el-input
-        v-model="searchTerm"
-        type="text"
-        placeholder="搜索仓库..."
-        clearable
-        class="w-full"
-      >
-        <template #prefix>
-          <el-icon><Search /></el-icon>
-        </template>
-      </el-input>
+    <!-- 操作栏（与V1.1一致：搜索 + 刷新 + 新增） -->
+    <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2 flex-1">
+          <div class="relative flex-1 max-w-md">
+            <el-icon class="absolute left-3 top-1/2 -translate-y-1/2" :size="16" color="#9ca3af"><Search /></el-icon>
+            <el-input
+              v-model="searchTerm"
+              placeholder="搜索仓库名称、编码或类型..."
+              clearable
+            />
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <el-button @click="loadWarehouses" :loading="isLoading">
+            <el-icon><Refresh /></el-icon> 刷新
+          </el-button>
+          <el-button type="primary" @click="openAddModal" style="background:linear-gradient(to right, #3b82f6, #06b6d4);border:none;">
+            <el-icon><Plus /></el-icon> 新增仓库
+          </el-button>
+        </div>
+      </div>
     </div>
 
     <!-- 仓库列表 -->
@@ -66,8 +79,8 @@
               <el-icon :size="20" color="#059669"><Grid /></el-icon>
             </div>
             <div>
-              <h3 class="font-semibold text-gray-900">{{ warehouse.name }}</h3>
-              <p class="text-xs text-gray-500">{{ warehouse.code }}</p>
+              <h3 class="font-semibold text-gray-900">{{ warehouse.warehouseName || warehouse.name }}</h3>
+              <p class="text-xs text-gray-500">{{ warehouse.warehouseCode || warehouse.code }}</p>
             </div>
           </div>
           <span
@@ -177,7 +190,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Search, Grid, Edit, Delete, ArrowLeft } from '@element-plus/icons-vue'
+import { Search, Grid, Edit, Delete, ArrowLeft, OfficeBuilding, Plus, Refresh } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from '@/services/apiBasicDataService'
 
@@ -220,9 +233,10 @@ const filteredWarehouses = computed(() => {
   if (!searchTerm.value) return allWarehouses.value
   const term = searchTerm.value.toLowerCase()
   return allWarehouses.value.filter(w =>
-    w.name.toLowerCase().includes(term) ||
-    w.code.toLowerCase().includes(term) ||
-    (w.location && w.location.toLowerCase().includes(term))
+    (w.warehouseName || w.name || '').toLowerCase().includes(term) ||
+    (w.warehouseCode || w.code || '').toLowerCase().includes(term) ||
+    (w.warehouseType || '').toLowerCase().includes(term) ||
+    (w.location || '').toLowerCase().includes(term)
   )
 })
 
@@ -322,7 +336,8 @@ const handleUpdate = async () => {
 // 删除仓库
 const handleDeleteWarehouse = async (id) => {
   try {
-    await ElMessageBox.confirm('确定删除该仓库吗？', '提示', {
+    const whName = warehouse.warehouseName || warehouse.name || ''
+    await ElMessageBox.confirm(`确定要删除仓库"${whName}"吗？`, '确认删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -333,6 +348,23 @@ const handleDeleteWarehouse = async (id) => {
   } catch {
     // 用户取消操作
   }
+}
+
+// 打开新增弹窗（与V1.1 handleAdd 100%一致）
+const openAddModal = () => {
+  editingWarehouse.value = null
+  Object.assign(formData, {
+    id: null,
+    name: '',
+    code: '',
+    warehouseType: '',
+    location: '',
+    capacity: undefined,
+    managerName: '',
+    status: 'active',
+    description: ''
+  })
+  showModal.value = true
 }
 
 // 打开编辑弹窗

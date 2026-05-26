@@ -161,14 +161,14 @@
       <el-form :model="editingGreenhouse" label-width="100px" class="space-y-4">
         <el-form-item label="温室编码" required>
           <el-input
-            v-model="editingGreenhouse.code"
+            v-model="editingGreenhouse.greenhouseCode"
             placeholder="例如：GH001"
           />
         </el-form-item>
 
         <el-form-item label="温室名称" required>
           <el-input
-            v-model="editingGreenhouse.name"
+            v-model="editingGreenhouse.greenhouseName"
             placeholder="例如：1号大棚"
           />
         </el-form-item>
@@ -182,7 +182,7 @@
             <el-option
               v-for="base in bases"
               :key="base.oid"
-              :label="base.name"
+              :label="base.baseName || base.name"
               :value="base.oid"
             />
           </el-select>
@@ -211,7 +211,7 @@
         <el-button
           type="primary"
           :loading="loading"
-          :disabled="!editingGreenhouse.code || !editingGreenhouse.name || !editingGreenhouse.baseOid"
+          :disabled="!editingGreenhouse.greenhouseCode || !editingGreenhouse.greenhouseName || !editingGreenhouse.baseOid"
           @click="handleSave"
         >
           保存
@@ -297,7 +297,7 @@ const paginatedGreenhouses = computed(() => {
 const getBaseName = (baseOid) => {
   if (!baseOid) return '-'
   const base = bases.value.find(b => b.oid === baseOid)
-  return base?.name || baseOid
+  return base?.baseName || base?.name || baseOid
 }
 
 // 搜索处理
@@ -313,11 +313,11 @@ const handlePageChange = (page) => {
 // 打开新增弹窗
 const handleAdd = () => {
   editingGreenhouse.value = {
-    code: '',
-    name: '',
+    greenhouseCode: '',
+    greenhouseName: '',
     baseOid: '',
     greenhouseType: '',
-    area: null
+    area: undefined
   }
   showModal.value = true
 }
@@ -361,7 +361,7 @@ const handleSave = async () => {
 const handleDelete = async (greenhouse) => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除温室"${greenhouse.name || greenhouse.greenhouseName}"吗？`,
+      `确定要删除温室"${greenhouse.greenhouseName || greenhouse.name}"吗？`,
       '确认删除',
       {
         confirmButtonText: '确定',

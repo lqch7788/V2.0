@@ -33,6 +33,12 @@
 </template>
 
 <script setup>
-
-defineProps({"totalImages":"5","placeholderText":"'（当前为占位图片）'"})
+defineProps({
+  isOpen: { type: Boolean, default: false },
+  imageIndex: { type: Number, default: 1 },
+  totalImages: { type: Number, default: 5 },
+  placeholderText: { type: String, default: '（当前为占位图片）' },
+})
+const emit = defineEmits(['close'])
+function onClose() { emit('close') }
 </script>

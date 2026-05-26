@@ -545,8 +545,6 @@ import {
   Close,
   Loading,
   Key,
-  Warning,
-  Check,
   CircleCheck,
   Lightning,
   User,
@@ -575,12 +573,12 @@ const LEVEL_COLORS = {
   strict: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' }
 }
 
-// 级别图标映射
+// 级别图标映射（返回组件对象，供 component :is 使用）
 const LEVEL_ICONS = {
-  exempt: 'CircleCheckFilled',
-  quick: 'Lightning',
-  standard: 'User',
-  strict: 'WarnTriangleFilled'
+  exempt: CircleCheck,
+  quick: Lightning,
+  standard: User,
+  strict: WarnTriangleFilled
 }
 
 // 获取级别颜色
@@ -588,9 +586,9 @@ const getLevelColors = (levelCode) => {
   return LEVEL_COLORS[levelCode] || LEVEL_COLORS.standard
 }
 
-// 获取级别图标
+// 获取级别图标组件（V1.1: CheckCircle/Zap/Users/AlertTriangle/Shield → Element Plus 近似映射）
 const getLevelIcon = (levelCode) => {
-  return LEVEL_ICONS[levelCode] || 'Key'
+  return LEVEL_ICONS[levelCode] || Key
 }
 
 // 格式化金额

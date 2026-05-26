@@ -403,14 +403,22 @@ const handleSubmit = async () => {
     status: 'active'
   }
 
-  if (isEditMode.value) {
-    await cameraStore.updateItem(selectedItem.value.oid, submitData)
-    ElMessage.success('编辑成功')
-  } else {
-    await cameraStore.createItem(submitData)
-    ElMessage.success('新增成功')
+  try {
+    if (isEditMode.value) {
+      await cameraStore.updateItem(selectedItem.value.oid, submitData)
+      ElMessage.success('编辑成功')
+    } else {
+      const result = await cameraStore.createItem(submitData)
+      if (result) {
+        ElMessage.success('新增成功')
+        closeModal()
+      }
+      return
+    }
+    closeModal()
+  } catch (err) {
+    ElMessage.error(isEditMode.value ? '编辑失败' : '新增失败')
   }
-  closeModal()
 }
 
 // 打开删除确认
@@ -455,7 +463,8 @@ onMounted(() => {
 
 /* 弹窗头部样式 */
 :deep(.el-dialog__header) {
-  background: linear-gradient(to right, #10b981, #059669);
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 8px 8px 0 0;
   color: white;
   margin: 0;
   padding: 16px 20px;
@@ -467,5 +476,12 @@ onMounted(() => {
 
 :deep(.el-dialog__headerbtn .el-dialog__close) {
   color: white !important;
+}
+/* 主按钮改为emerald绿色 - 与V1.1保持一致 */
+:deep(.el-button--primary) {
+  --el-button-bg-color: #059669;
+  --el-button-border-color: #059669;
+  --el-button-hover-bg-color: #047857;
+  --el-button-hover-border-color: #047857;
 }
 </style>
