@@ -229,49 +229,45 @@
         ref="tableRef"
         :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
       >
-        <el-table-column type="selection" width="50" v-if="hasActiveMode" />
-        <el-table-column type="expand" width="50">
+        <el-table-column type="selection" width="48" v-if="hasActiveMode" />
+        <el-table-column type="expand" width="40">
           <template #default="{ row }">
             <div class="p-4 bg-gray-50">
               <h4 class="text-sm font-semibold text-gray-700 mb-3">物料明细（共 {{ row.materials?.length || 0 }} 项）</h4>
               <el-table :data="row.materials || []" size="small" border :header-cell-style="{ background: 'linear-gradient(to right, #10b981, #059669)', color: 'white', fontWeight: '600' }">
                 <el-table-column prop="code" label="物料编码" width="150" />
-                <el-table-column prop="name" label="物料名称" min-width="120" />
+                <el-table-column prop="name" label="物料名称" width="150" />
                 <el-table-column prop="category" label="分类" width="120" />
                 <el-table-column prop="specification" label="规格" width="100" />
-                <el-table-column prop="quantity" label="数量" width="100" align="right">
+                <el-table-column label="数量" width="100" align="right">
                   <template #default="{ row: m }">{{ m.quantity }} {{ m.unit }}</template>
                 </el-table-column>
                 <el-table-column prop="price" label="单价" width="100" align="right" />
-                <el-table-column prop="batchNo" label="批次号" width="120">
-                  <template #default="{ row: m }">{{ m.batchNo || '-' }}</template>
-                </el-table-column>
-                <el-table-column prop="expiryDate" label="有效期至" width="120">
-                  <template #default="{ row: m }">{{ m.expiryDate || '-' }}</template>
-                </el-table-column>
+                <el-table-column prop="batchNo" label="批次号" width="120" />
+                <el-table-column prop="expiryDate" label="有效期至" width="120" />
               </el-table>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="入库单号" min-width="180">
+        <el-table-column label="入库单号">
           <template #default="{ row }">
             <span class="text-blue-600 cursor-pointer hover:text-blue-800 underline" @click="handleViewRecord(row)">{{ row.code }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="inboundDate" label="入库日期" width="120" />
-        <el-table-column prop="supplier" label="供应商" width="150" />
-        <el-table-column prop="operator" label="操作员" width="100" />
-        <el-table-column label="物料数量" width="120" align="center">
+        <el-table-column prop="inboundDate" label="入库日期" />
+        <el-table-column prop="supplier" label="供应商" />
+        <el-table-column prop="operator" label="操作员" />
+        <el-table-column label="物料数量" align="center">
           <template #default="{ row }">{{ row.materials?.length || 0 }} 种物料</template>
         </el-table-column>
-        <el-table-column label="状态" width="100" align="center">
+        <el-table-column label="状态" align="center">
           <template #default="{ row }">
             <el-tag :type="getStatusTagType(row.status)" size="small">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right" v-if="!hasActiveMode">
+        <el-table-column label="操作" width="80" fixed="right" v-if="!hasActiveMode">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleViewRecord(row)">查看</el-button>
           </template>
