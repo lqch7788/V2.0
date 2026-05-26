@@ -390,6 +390,7 @@ import { ElMessage } from 'element-plus'
 import { useFarmTaskStore } from '@/stores/modules/farmTask'
 import { useUserStore } from '@/stores/modules/user'
 import { useGreenhouseStore } from '@/stores/modules/greenhouse'
+import { useTempTaskStore } from '@/stores/modules/tempTask'
 import { useTasks } from '@/composables/useTasks'
 
 // ========== 导入所有子组件 ==========
@@ -578,8 +579,9 @@ const recentRecords = computed(() => {
   return records
 })
 
-// 临时任务计数（供Tab徽标）
-const tempTaskCount = ref(8)
+// 临时任务计数（供Tab徽标，从 tempTaskStore 实时读取）
+const tempTaskStore = useTempTaskStore()
+const tempTaskCount = computed(() => tempTaskStore.tasks.length)
 
 // ========== 弹窗状态 ==========
 const detailTaskId = ref(null)
@@ -1268,6 +1270,7 @@ function generateDemoProblems(count = 6) {
 // ========== 初始化 ==========
 onMounted(async () => {
   await taskStore.fetchTasks({ page: 1 })
+  tempTaskStore.fetchTasks() // 预加载临时任务计数
   // API无数据时降级使用演示数据
   if (!taskStore.tasks || taskStore.tasks.length === 0) {
     const demoTasks = generateDemoTasks(12)

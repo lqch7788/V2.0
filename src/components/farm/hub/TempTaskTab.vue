@@ -203,13 +203,14 @@
 
 <script setup>
 /**
- * 临时任务Tab组件 - 从V1.1 TempTaskTab.tsx 1:1迁移基础版本
- * 提供临时任务的创建、编辑、删除、筛选、批量操作功能
+ * 临时任务Tab组件 - 从V1.1 TempTaskTab.tsx 1:1迁移
+ * 使用 tempTaskStore 进行数据持久化，刷新不丢失
  */
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Download, Plus } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/modules/user'
+import { useTempTaskStore } from '@/stores/modules/tempTask'
 
 // ========== 常量 ==========
 const TEMP_TASK_TYPE_OPTIONS = [
@@ -223,20 +224,7 @@ const TEMP_TASK_TYPE_OPTIONS = [
   { value: '其他', label: '其他' },
 ]
 
-// ========== 演示数据生成 ==========
-function generateTempTaskCode(index) {
-  const now = new Date()
-  const datePrefix = now.getFullYear().toString() +
-    String(now.getMonth() + 1).padStart(2, '0') +
-    now.getDate().toString().padStart(2, '0')
-  return `LS${datePrefix}-${String(index).padStart(3, '0')}`
-}
-
-function generateTempTaskStatus(index) {
-  const statuses = ['pending', 'in_progress', 'waiting_acceptance', 'completed', 'pending', 'in_progress']
-  return statuses[index % statuses.length]
-}
-
+// ========== 演示数据（API无数据时的降级方案） ==========
 function generateDemoTempTasks(count = 8) {
   const names = ['张建国', '李永强', '王明辉', '赵志远']
   const locations = ['A1号温室', 'B2号温室', 'C3号温室', 'D5号大棚', '园区公共区域']
@@ -246,18 +234,22 @@ function generateDemoTempTasks(count = 8) {
   for (let i = 1; i <= count; i++) {
     const dueDate = new Date(now)
     dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7) + 1)
+    const datePrefix = now.getFullYear().toString() +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      now.getDate().toString().padStart(2, '0')
     list.push({
       id: `tmp-${i}`,
-      taskCode: generateTempTaskCode(i),
+      taskCode: `LS${datePrefix}-${String(i).padStart(3, '0')}`,
       title: `临时${types[i % types.length]}任务`,
       tempTaskType: types[i % types.length],
+      type: types[i % types.length],
       workLocation: locations[i % locations.length],
       assigneeId: `U00${(i % 4) + 1}`,
       assigneeName: names[i % names.length],
       assignerId: 'U000',
       assignerName: '管理员',
       urgency: ['normal', 'urgent', 'critical'][i % 3],
-      status: generateTempTaskStatus(i),
+      status: ['pending', 'in_progress', 'waiting_acceptance', 'completed', 'pending', 'in_progress'][i % 6],
       dueDate: dueDate.toISOString().split('T')[0],
       estimatedHours: Math.floor(Math.random() * 8) + 1,
       description: `临时${types[i % types.length]}作业任务描述`,
@@ -267,8 +259,11 @@ function generateDemoTempTasks(count = 8) {
   return list
 }
 
+// ========== Store ==========
+const tempTaskStore = useTempTaskStore()
+const userStore = useUserStore()
+
 // ========== 状态 ==========
-const tempTasks = ref(generateDemoTempTasks(8))
 const statusFilter = ref('all')
 const urgencyFilter = ref('all')
 const searchTerm = ref('')
@@ -290,7 +285,6 @@ const showDetailModal = ref(false)
 const selectedTask = ref(null)
 
 // 用户列表
-const userStore = useUserStore()
 const userOptions = computed(() => {
   const users = userStore.users || []
   if (users.length === 0) {
@@ -306,7 +300,7 @@ const userOptions = computed(() => {
 
 // ========== 计算属性 ==========
 const filteredList = computed(() => {
-  let list = tempTasks.value
+  let list = tempTaskStore.tasks || []
   if (statusFilter.value !== 'all') list = list.filter(t => t.status === statusFilter.value)
   if (urgencyFilter.value !== 'all') list = list.filter(t => t.urgency === urgencyFilter.value)
   if (searchTerm.value) {
@@ -361,14 +355,18 @@ function resetFilters() {
 function onSelectionChange(rows) {
   selectedIds.value = rows.map(r => r.id)
 }
-function confirmBatchAction() {
+async function confirmBatchAction() {
   if (batchMode.value === 'delete') {
-    ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 条临时任务吗？此操作不可撤销。`, '批量删除', { type: 'warning' })
-      .then(() => {
-        tempTasks.value = tempTasks.value.filter(t => !selectedIds.value.includes(t.id))
-        ElMessage.success('批量删除完成')
-        cancelBatchMode()
-      }).catch(() => {})
+    try {
+      await ElMessageBox.confirm(
+        `确定要删除选中的 ${selectedIds.value.length} 条临时任务吗？此操作不可撤销。`,
+        '批量删除',
+        { type: 'warning' }
+      )
+      await tempTaskStore.deleteTasks(selectedIds.value)
+      ElMessage.success('批量删除完成')
+      cancelBatchMode()
+    } catch { /* 用户取消 */ }
   }
 }
 function cancelBatchMode() {
@@ -376,7 +374,7 @@ function cancelBatchMode() {
   selectedIds.value = []
 }
 
-// ========== CRUD ==========
+// ========== CRUD（通过 tempTaskStore 调用 API 持久化） ==========
 function openCreateModal() {
   editingTask.value = null
   formData.value = {
@@ -387,35 +385,61 @@ function openCreateModal() {
 }
 function openEditModal(task) {
   editingTask.value = task
-  formData.value = { ...task }
+  formData.value = {
+    title: task.title || '',
+    tempTaskType: task.tempTaskType || task.type || '其他',
+    workLocation: task.workLocation || task.location || '',
+    assigneeId: task.assigneeId || '',
+    dueDate: task.dueDate || '',
+    urgency: task.urgency || 'normal',
+    estimatedHours: task.estimatedHours || 4,
+    description: task.description || '',
+    notes: task.notes || task.remarks || '',
+  }
   showFormModal.value = true
 }
 function handleFormDraft() {
-  saveTempTask('pending')
+  saveTempTask('draft')
 }
 function handleFormPublish() {
   saveTempTask('pending')
 }
-function saveTempTask(status) {
+async function saveTempTask(status) {
   if (!formData.value.title.trim()) {
     ElMessage.warning('请输入任务名称')
     return
   }
   const assigneeName = userOptions.value.find(u => u.value === formData.value.assigneeId)?.label || '待分配'
   if (editingTask.value) {
-    Object.assign(editingTask.value, formData.value, { assigneeName, status })
+    await tempTaskStore.updateTask(editingTask.value.id, {
+      ...formData.value,
+      assigneeName,
+      status,
+      type: formData.value.tempTaskType,
+    })
     ElMessage.success('任务已更新')
   } else {
-    const newTask = {
-      ...formData.value,
-      id: `tmp-${Date.now()}`,
-      taskCode: `LS${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${String(tempTasks.value.length + 1).padStart(3, '0')}`,
+    await tempTaskStore.createTask({
+      title: formData.value.title,
+      type: formData.value.tempTaskType,
+      tempTaskType: formData.value.tempTaskType,
+      workLocation: formData.value.workLocation,
+      location: formData.value.workLocation,
+      assigneeId: formData.value.assigneeId,
       assigneeName,
       assignerId: 'U000',
       assignerName: '管理员',
+      dueDate: formData.value.dueDate,
+      urgency: formData.value.urgency,
+      priority: formData.value.urgency === 'critical' ? 'high' : formData.value.urgency === 'urgent' ? 'high' : 'normal',
+      estimatedHours: formData.value.estimatedHours,
+      description: formData.value.description,
+      remarks: formData.value.notes,
+      notes: formData.value.notes,
       status,
-    }
-    tempTasks.value.unshift(newTask)
+      sourceType: 'tempTask',
+      dispatchMode: 'tempTask',
+    })
     ElMessage.success('任务已创建')
   }
   showFormModal.value = false
@@ -424,23 +448,34 @@ function openDetail(task) {
   selectedTask.value = task
   showDetailModal.value = true
 }
-function handleDelete(id) {
-  ElMessageBox.confirm('确定要删除该任务吗？', '删除确认', { type: 'warning' })
-    .then(() => {
-      tempTasks.value = tempTasks.value.filter(t => t.id !== id)
-      ElMessage.success('删除成功')
-    }).catch(() => {})
+async function handleDelete(id) {
+  try {
+    await ElMessageBox.confirm('确定要删除该任务吗？', '删除确认', { type: 'warning' })
+    await tempTaskStore.deleteTask(id)
+    ElMessage.success('删除成功')
+  } catch { /* 用户取消 */ }
 }
-function handleWithdraw(task) {
-  task.status = 'cancelled'
+async function handleWithdraw(task) {
+  await tempTaskStore.updateTask(task.id, { status: 'cancelled' })
   ElMessage.success('任务已撤回')
 }
-function handleCancel(task) {
-  task.status = 'cancelled'
+async function handleCancel(task) {
+  await tempTaskStore.updateTask(task.id, { status: 'cancelled' })
   ElMessage.success('任务已取消')
 }
-function handleAccept(task) {
-  task.status = 'completed'
+async function handleAccept(task) {
+  await tempTaskStore.updateTask(task.id, { status: 'completed' })
   ElMessage.success('验收通过')
 }
+
+// ========== 初始化：从 API 加载数据，无数据时降级演示数据 ==========
+onMounted(async () => {
+  await tempTaskStore.fetchTasks()
+  if (!tempTaskStore.tasks || tempTaskStore.tasks.length === 0) {
+    const demos = generateDemoTempTasks(8)
+    for (const t of demos) {
+      await tempTaskStore.createTask(t).catch(() => {})
+    }
+  }
+})
 </script>

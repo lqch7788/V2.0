@@ -57,6 +57,27 @@ export function getCategoryExtensions() {
 }
 
 /**
+ * 更新类别扩展
+ */
+export async function updateCategoryExtension(id, categoryName) {
+  const index = categoryExtensionsCache.findIndex(c => c.id === id);
+  if (index === -1) throw new Error('类别不存在');
+  categoryExtensionsCache[index] = {
+    ...categoryExtensionsCache[index],
+    category_name: categoryName
+  };
+  saveExtensions();
+}
+
+/**
+ * 删除类别扩展
+ */
+export async function deleteCategoryExtension(id) {
+  categoryExtensionsCache = categoryExtensionsCache.filter(c => c.id !== id);
+  saveExtensions();
+}
+
+/**
  * 添加类别扩展
  */
 export async function addCategoryExtension(categoryCode, categoryName) {

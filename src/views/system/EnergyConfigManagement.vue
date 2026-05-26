@@ -465,26 +465,23 @@ const handleSubmit = async () => {
       await energyConfigStore.updateItem(selectedItem.value.oid, {
         partitionOid: form.partitionOid,
         energyType: form.energyType,
-        deviceOid: form.deviceOid || null,
-        deviceName: form.deviceName || null,
-        meterCode: form.meterCode || null,
+        deviceOid: form.deviceOid || undefined,
+        deviceName: form.deviceName || undefined,
+        meterCode: form.meterCode || undefined,
         unit: form.unit,
-        description: form.description || null
+        description: form.description || undefined
       })
     } else {
       const result = await energyConfigStore.createItem({
         partitionOid: form.partitionOid,
         energyType: form.energyType,
-        deviceOid: form.deviceOid || null,
-        deviceName: form.deviceName || null,
-        meterCode: form.meterCode || null,
+        deviceOid: form.deviceOid || undefined,
+        deviceName: form.deviceName || undefined,
+        meterCode: form.meterCode || undefined,
         unit: form.unit,
-        description: form.description || null
+        description: form.description || undefined
       })
-      if (result) {
-        closeModal()
-      }
-      return
+      if (!result) return
     }
     closeModal()
   } catch (err) {

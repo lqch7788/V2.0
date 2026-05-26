@@ -454,6 +454,7 @@ const handleAdd = async () => {
 
     await departmentStore.addDepartment(payload)
     showModal.value = false
+    currentPage.value = 1
     resetForm()
   } finally {
     saving.value = false

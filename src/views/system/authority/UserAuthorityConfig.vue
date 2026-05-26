@@ -78,8 +78,8 @@
               class="border-b border-gray-100 hover:bg-blue-50"
             >
               <td class="py-1.5 px-3 text-gray-700">
-                <div>{{ proc.process_name }}</div>
-                <div class="text-xs text-gray-400 font-mono">{{ proc.process_code }}</div>
+                <div>{{ proc.name }}</div>
+                <div class="text-xs text-gray-400 font-mono">{{ proc.aid }}</div>
               </td>
               <td
                 v-for="act in ACTION_LIST"

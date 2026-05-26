@@ -157,6 +157,7 @@
       :title="editingOrg?.oid ? '编辑组织' : '新增组织'"
       width="500px"
       :close-on-click-modal="false"
+      draggable
     >
       <div class="space-y-4">
         <div>

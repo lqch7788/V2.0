@@ -215,7 +215,6 @@
       v-model="detailDialogVisible"
       title="日志详情"
       width="600px"
-      :close-on-click-modal="false"
     >
       <div v-if="selectedLog" class="space-y-4">
         <el-descriptions :column="2" border>
@@ -297,6 +296,7 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 const loading = ref(true)
 const pageSize = ref(10)
+let searchDebounceTimer = null
 
 // 获取模块列表（去重）
 const modules = computed(() => {
@@ -410,10 +410,13 @@ const fetchData = async () => {
   }
 }
 
-// 搜索
+// 搜索（300ms防抖）
 const handleSearch = () => {
-  currentPage.value = 1
-  fetchData()
+  clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(() => {
+    currentPage.value = 1
+    fetchData()
+  }, 300)
 }
 
 // 清除搜索

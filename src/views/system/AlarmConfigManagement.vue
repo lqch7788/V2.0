@@ -91,7 +91,7 @@
                     :size="16"
                     :color="currentEdit[item.key] === 1 ? '#10b981' : '#d1d5db'"
                   >
-                    <component :is="currentEdit[item.key] === 1 ? 'Bell' : 'BellFilled'" />
+                    <component :is="currentEdit[item.key] === 1 ? Bell : BellFilled" />
                   </el-icon>
                 </div>
                 <p
@@ -266,6 +266,7 @@ import { ElMessage } from 'element-plus'
 import {
   ArrowLeft,
   Bell,
+  BellFilled,
   WarnTriangleFilled,
   Plus,
   Delete,
@@ -296,9 +297,9 @@ const contactForm = reactive({
 
 // 通知方式配置项
 const notificationTypes = [
-  { key: 'notifyEmail', label: '邮件通知', icon: 'Message', desc: '通过电子邮件发送警报' },
-  { key: 'notifySms', label: '短信通知', icon: 'ChatDotRound', desc: '通过短信发送警报' },
-  { key: 'notifyPhone', label: '电话通知', icon: 'Phone', desc: '通过电话通知警报' }
+  { key: 'notifyEmail', label: '邮件通知', icon: Message, desc: '通过电子邮件发送警报' },
+  { key: 'notifySms', label: '短信通知', icon: ChatDotRound, desc: '通过短信发送警报' },
+  { key: 'notifyPhone', label: '电话通知', icon: Phone, desc: '通过电话通知警报' }
 ]
 
 // 联系人类型选项
@@ -383,8 +384,8 @@ const handleDeleteContact = async (oid) => {
 
 // 获取联系人类型图标
 const getContactTypeIcon = (type) => {
-  const iconMap = { email: 'Message', sms: 'ChatDotRound', phone: 'Phone' }
-  return iconMap[type] || 'Message'
+  const iconMap = { email: Message, sms: ChatDotRound, phone: Phone }
+  return iconMap[type] || Message
 }
 
 // 获取联系人类型标签

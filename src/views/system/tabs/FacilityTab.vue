@@ -184,10 +184,9 @@ const PAGE_SIZE = 10
 const greenhouseStore = useGreenhouseStore()
 const baseStore = useBaseStore()
 
-// 状态
-const greenhouses = ref([])
-const bases = ref([])
-const loading = ref(false)
+// 状态 — 直接从Store获取，保持响应式
+const bases = computed(() => baseStore.bases)
+const loading = computed(() => greenhouseStore.loading || baseStore.loading)
 const searchTerm = ref('')
 const baseFilter = ref('')
 const typeFilter = ref('')
@@ -199,6 +198,20 @@ const selectedItem = ref(null)
 
 // 设施类型选项（从字典加载）
 const greenhouseTypes = ref([])
+
+// 获取设施类型标签
+const getGreenhouseTypeLabel = (typeCode) => {
+  const found = greenhouseTypes.value.find(t => t.dictCode === typeCode)
+  return found ? found.dictLabel : typeCode || '-'
+}
+
+// 设施数据 — 从Store获取，保持响应式，自动转换类型代码为标签
+const greenhouses = computed(() => {
+  return greenhouseStore.greenhouses.map(gh => ({
+    ...gh,
+    greenhouseType: getGreenhouseTypeLabel(gh.greenhouseType)
+  }))
+})
 
 // 表单数据
 const formData = ref({
@@ -231,29 +244,15 @@ const paginated = computed(() => {
   return filtered.value.slice(start, start + PAGE_SIZE)
 })
 
-// 获取设施类型标签
-const getGreenhouseTypeLabel = (typeCode) => {
-  const found = greenhouseTypes.find(t => t.dictCode === typeCode)
-  return found ? found.dictLabel : typeCode || '-'
-}
-
 // 加载数据
 const loadData = async () => {
-  loading.value = true
   try {
     await Promise.all([
       greenhouseStore.loadGreenhouses(),
       baseStore.loadBases()
     ])
-    greenhouses.value = greenhouseStore.greenhouses.map(gh => ({
-      ...gh,
-      greenhouseType: getGreenhouseTypeLabel(gh.greenhouseType)
-    }))
-    bases.value = baseStore.bases
   } catch (err) {
     ElMessage.error('加载数据失败')
-  } finally {
-    loading.value = false
   }
 }
 
@@ -350,11 +349,7 @@ onMounted(async () => {
     // 忽略字典加载错误，继续加载设施数据
   }
 
-  // 确保 loadData 完成后 loading 始终被设置为 false
-  try {
-    await loadData()
-  } catch (err) {
-    loading.value = false
-  }
+  // 加载设施和基地数据
+  await loadData()
 })
 </script>

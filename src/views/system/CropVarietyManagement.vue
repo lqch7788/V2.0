@@ -285,10 +285,64 @@
               </el-input>
             </div>
 
+            <!-- 新增作物 -->
             <el-button type="primary" size="small" @click="openAddModal">
               <el-icon><Plus /></el-icon>
               新增作物
             </el-button>
+            <!-- 新增类别 -->
+            <el-button size="small" class="bg-purple-600 hover:bg-purple-700 text-white border-0" @click="handleAddCategory">
+              <el-icon><FolderAdd /></el-icon>
+              新增类别
+            </el-button>
+            <!-- 修改规则/退出编辑 -->
+            <el-button
+              v-if="!isTreeEditing"
+              type="warning"
+              size="small"
+              @click="isTreeEditing = true"
+            >
+              <el-icon><EditPen /></el-icon>
+              修改规则
+            </el-button>
+            <el-button
+              v-else
+              size="small"
+              class="bg-gray-500 hover:bg-gray-600 text-white border-0"
+              @click="isTreeEditing = false"
+            >
+              退出编辑
+            </el-button>
+          </div>
+
+          <!-- 展开控制栏 -->
+          <div v-show="viewMode === 'tree'" class="flex items-center justify-between mt-3">
+            <span class="text-xs text-gray-500">
+              共 {{ varietyTree.totalNodeCount.value }} 个节点
+            </span>
+            <div class="flex items-center gap-3">
+              <el-button text size="small" @click="varietyTree.expandToLevel('subVariety1')">
+                展开到子品种
+              </el-button>
+              <span class="text-gray-300">|</span>
+              <el-button text size="small" @click="varietyTree.expandAll()">
+                全部展开
+              </el-button>
+              <span class="text-gray-300">|</span>
+              <el-button text size="small" class="text-gray-500 hover:text-gray-700" @click="varietyTree.collapseAll()">
+                全部折叠
+              </el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 编辑模式提示 -->
+        <div v-if="isTreeEditing && viewMode === 'tree'" class="bg-blue-50 border-b border-blue-200 px-4 py-2">
+          <div class="flex items-center gap-2 text-sm text-blue-700">
+            <span class="font-medium">编辑模式：</span>
+            <span>· 点击展开图标查看下级分类</span>
+            <span>· 悬停到类型/品种/子品种名称上可显示编辑和删除按钮</span>
+            <span>· 点击新增按钮可添加子节点</span>
           </div>
         </div>
 
@@ -297,103 +351,161 @@
           <h3 class="text-lg font-semibold text-gray-900">作物编码列表</h3>
         </div>
         <div v-show="viewMode === 'table'" class="flex-1 overflow-auto">
-          <el-table
-            :data="paginatedData"
-            stripe
-            class="w-full"
-            @row-click="handleSelect"
-          >
-            <el-table-column prop="cropCode" label="编码" width="144">
-              <template #default="{ row }">
-                <span class="font-mono text-blue-600">{{ row.cropCode }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="varietyPath" label="品种路径" width="256">
-              <template #default="{ row }">
-                <span class="text-gray-400">{{ row.categoryName }}</span>
-                <span class="text-gray-400 mx-0.5">-</span>
-                <span class="text-gray-400">{{ row.typeName }}</span>
-                <span class="text-gray-400 mx-0.5">-</span>
-                <span class="text-gray-700">{{ row.varietyName }}</span>
-                <template v-if="row.subVariety1Name">
+          <table class="w-full" style="table-layout: fixed">
+            <thead class="bg-gradient-to-r from-emerald-500 to-green-600 text-white sticky top-0 z-10">
+              <tr>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-36">编码</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-64">品种路径</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-32">作物品种</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-20">状态</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr v-if="paginatedData.length === 0">
+                <td colspan="5" class="px-4 py-12 text-center text-gray-500">暂无数据</td>
+              </tr>
+              <tr
+                v-for="variety in paginatedData"
+                :key="variety.id"
+                class="hover:bg-blue-50 transition-colors cursor-pointer"
+                @click="handleSelect(variety)"
+              >
+                <td class="px-4 py-3 text-sm font-mono text-blue-600 whitespace-nowrap">
+                  {{ variety.cropCode }}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                  <span class="text-gray-400">{{ variety.categoryName }}</span>
                   <span class="text-gray-400 mx-0.5">-</span>
-                  <span class="text-gray-700">{{ row.subVariety1Name }}</span>
-                </template>
-              </template>
-            </el-table-column>
-            <el-table-column prop="varietyName" label="作物品种" width="128">
-              <template #default="{ row }">
-                {{ row.detailVarietyName || row.subVariety1Name || row.varietyName }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="status" label="状态" width="80">
-              <template #default="{ row }">
-                <el-tag
-                  :type="row.status === 'active' ? 'success' : 'info'"
-                  size="small"
-                >
-                  {{ row.status === 'active' ? '启用' : '停用' }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="144">
-              <template #default="{ row }">
-                <el-button link size="small" @click.stop="handleViewDetail(row)">
-                  详情
-                </el-button>
-                <el-button link size="small" @click.stop="handleEdit(row)">
-                  编辑
-                </el-button>
-                <el-button link type="danger" size="small" @click.stop="handleDelete(row)">
-                  删除
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+                  <span class="text-gray-400">{{ variety.typeName }}</span>
+                  <span class="text-gray-400 mx-0.5">-</span>
+                  <span class="text-gray-700">{{ variety.varietyName }}</span>
+                  <template v-if="variety.subVariety1Name">
+                    <span class="text-gray-400 mx-0.5">-</span>
+                    <span class="text-gray-700">{{ variety.subVariety1Name }}</span>
+                  </template>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-900 font-medium whitespace-nowrap">
+                  {{ variety.subVariety1Name || variety.varietyName || '-' }}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <span
+                    :class="[
+                      'px-2 py-1 rounded text-xs font-medium',
+                      variety.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                    ]"
+                  >
+                    {{ variety.status === 'active' ? '启用' : '停用' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="flex items-center gap-1">
+                    <el-button
+                      text
+                      @click.stop="handleViewDetail(variety)"
+                      class="p-1.5 hover:bg-gray-100 rounded"
+                      title="查看详情"
+                    >
+                      <el-icon :size="16"><View /></el-icon>
+                    </el-button>
+                    <el-button
+                      text
+                      @click.stop="handleEdit(variety)"
+                      class="p-1.5 hover:bg-gray-100 rounded"
+                      title="编辑品种"
+                    >
+                      <el-icon :size="16"><Edit /></el-icon>
+                    </el-button>
+                    <el-button
+                      text
+                      @click.stop="handleDelete(variety)"
+                      class="p-1.5 hover:bg-red-50 rounded"
+                      title="删除品种"
+                    >
+                      <el-icon :size="16" color="#dc2626"><Delete /></el-icon>
+                    </el-button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <!-- 树形视图 -->
-        <div v-show="viewMode === 'tree'" class="flex-1 overflow-auto p-4">
-          <el-tree
-            v-if="treeData.length > 0"
-            :data="treeData"
-            :props="treeProps"
-            node-key="id"
-            default-expand-all
-            @node-click="handleTreeNodeClick"
-          >
-            <template #default="{ node, data }">
-              <span class="flex items-center gap-2">
-                <span class="font-mono text-blue-600 text-sm">{{ data.cropCode || '' }}</span>
-                <span class="text-gray-900">{{ node.label }}</span>
-                <el-tag
-                  v-if="data.status"
-                  :type="data.status === 'active' ? 'success' : 'info'"
-                  size="small"
-                  class="ml-2"
-                >
-                  {{ data.status === 'active' ? '启用' : '停用' }}
-                </el-tag>
-              </span>
-            </template>
-          </el-tree>
-          <div v-else class="text-center text-gray-400 py-12">
-            暂无数据
+        <!-- 树形视图 - 表格式树形 -->
+        <div v-show="viewMode === 'tree'" class="flex-1 overflow-auto">
+          <div v-if="varietyTree.treeData.value.length === 0" class="py-12 text-center text-gray-500">
+            <el-icon :size="48" color="#d1d5db"><Link /></el-icon>
+            <p class="mt-3">暂无数据</p>
+            <p class="text-sm text-gray-400 mt-1">请调整筛选条件</p>
           </div>
+          <table v-else class="w-full" style="table-layout: fixed">
+            <thead class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white sticky top-0 z-10">
+              <tr>
+                <th class="py-2 px-4 text-sm font-semibold whitespace-nowrap w-24 text-left text-white">类别</th>
+                <th class="py-2 px-4 text-sm font-semibold whitespace-nowrap w-24 text-left text-white">类型</th>
+                <th class="py-2 px-4 text-sm font-semibold whitespace-nowrap w-28 text-left text-white">品种</th>
+                <th class="py-2 px-4 text-sm font-semibold whitespace-nowrap w-28 text-left text-white">子品种</th>
+                <th class="py-2 px-4 text-sm font-semibold whitespace-nowrap w-32 text-left text-white">作物品种</th>
+                <th class="py-2 px-4 text-sm font-semibold whitespace-nowrap w-36 text-left text-white">编码</th>
+                <th class="py-2 px-4 text-sm font-semibold whitespace-nowrap w-20 text-left text-white">状态</th>
+                <th class="py-2 px-4 text-sm font-semibold whitespace-nowrap w-24 text-left text-white">操作</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <VarietyTreeNode
+                v-for="node in varietyTree.treeData.value"
+                :key="node.key"
+                :node="node"
+                :expanded-keys="Array.from(varietyTree.expandedKeys.value)"
+                :is-tree-editing="isTreeEditing"
+                :inline-add-state="inlineAddState"
+                :inline-add-code="inlineAddCode"
+                :inline-add-name="inlineAddName"
+                @toggle-expand="varietyTree.toggleExpand"
+                @select="handleTreeSelect"
+                @add="handleTreeAdd"
+                @edit="handleTreeEdit"
+                @delete="handleTreeDelete"
+                @inline-add-code-change="code => inlineAddCode = code"
+                @inline-add-name-change="name => inlineAddName = name"
+                @inline-add-save="handleInlineAddSave"
+                @inline-add-cancel="handleInlineAddCancel"
+                @refresh="handleTreeRefresh"
+              />
+            </tbody>
+          </table>
         </div>
 
         <!-- 分页 -->
-        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-          <div class="text-sm text-gray-500">
-            共 {{ filteredData.length }} 条记录
+        <div class="px-4 py-3 border-t border-gray-100 flex-shrink-0">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-500">
+                共 {{ filteredData.length }} 条记录
+              </span>
+              <div class="flex items-center gap-1 text-sm text-gray-500">
+                <span>每页</span>
+                <el-select
+                  v-model="pageSize"
+                  size="small"
+                  class="w-16"
+                  @change="currentPage = 1"
+                >
+                  <el-option :value="10" label="10" />
+                  <el-option :value="20" label="20" />
+                  <el-option :value="50" label="50" />
+                </el-select>
+                <span>条</span>
+              </div>
+            </div>
+            <el-pagination
+              v-model:current-page="currentPage"
+              :page-size="pageSize"
+              :total="filteredData.length"
+              layout="prev, pager, next"
+              background
+            />
           </div>
-          <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="filteredData.length"
-            layout="prev, pager, next"
-            background
-          />
         </div>
       </div>
     </div>
@@ -475,11 +587,18 @@ import {
   Plus,
   RefreshRight,
   CopyDocument,
-  Check
+  Check,
+  View,
+  Edit,
+  Delete,
+  FolderAdd,
+  EditPen
 } from '@element-plus/icons-vue'
 import AddCropVarietyModal from './components/AddCropVarietyModal.vue'
 import EditCropVarietyModal from './components/EditCropVarietyModal.vue'
 import CropVarietyDetail from './components/CropVarietyDetail.vue'
+import VarietyTreeNode from './components/VarietyTreeNode.vue'
+import { useVarietyTree } from '@/composables/useVarietyTree'
 import { useCropVarietyStore } from '@/stores'
 import {
   getCategoryOptions,
@@ -489,6 +608,8 @@ import {
   generateCropCode as generateCode,
   getMaxDetailVarietyCode
 } from '@/services/cropVarietyService'
+import * as extensionService from '@/services/cropVarietyExtensionService'
+import { initExtensionCache } from '@/services/cropVarietyExtensionService'
 
 const router = useRouter()
 const store = useCropVarietyStore()
@@ -576,104 +697,131 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(start, end)
 })
 
-// 树形视图配置
-const treeProps = {
-  children: 'children',
-  label: 'label'
-}
+// 树形编辑模式
+const isTreeEditing = ref(false)
 
-// 将平铺数据转换为树形结构
-const treeData = computed(() => {
-  const tree = []
-  const categoryMap = new Map()
+// 内联新增状态
+const inlineAddState = ref({ active: false, level: 'type', parentKey: '' })
+const inlineAddCode = ref('')
+const inlineAddName = ref('')
 
-  for (const item of filteredData.value) {
-    // 类别层级
-    if (!categoryMap.has(item.categoryName)) {
-      const categoryNode = {
-        id: `cat_${item.categoryName}`,
-        label: item.categoryName,
-        children: []
-      }
-      categoryMap.set(item.categoryName, categoryNode)
-      tree.push(categoryNode)
-    }
+// 树形刷新标识
+const treeRefreshKey = ref(0)
 
-    const categoryNode = categoryMap.get(item.categoryName)
-
-    // 类型层级
-    const typeKey = `${item.categoryName}_${item.typeName}`
-    let typeNode = categoryNode.children.find(n => n.id === `type_${typeKey}`)
-    if (!typeNode) {
-      typeNode = {
-        id: `type_${typeKey}`,
-        label: item.typeName,
-        children: []
-      }
-      categoryNode.children.push(typeNode)
-    }
-
-    // 品种层级
-    const varietyKey = `${typeKey}_${item.varietyName}`
-    let varietyNode = typeNode.children.find(n => n.id === `var_${varietyKey}`)
-    if (!varietyNode) {
-      varietyNode = {
-        id: `var_${varietyKey}`,
-        label: item.varietyName,
-        children: []
-      }
-      typeNode.children.push(varietyNode)
-    }
-
-    // 子品种层级（可选）
-    if (item.subVariety1Name) {
-      const subKey = `${varietyKey}_${item.subVariety1Name}`
-      let subNode = varietyNode.children.find(n => n.id === `sub_${subKey}`)
-      if (!subNode) {
-        subNode = {
-          id: `sub_${subKey}`,
-          label: item.subVariety1Name,
-          children: []
-        }
-        varietyNode.children.push(subNode)
-      }
-
-      // 详细品种（叶子节点）
-      const leafNode = {
-        id: item.id || item.cropCode,
-        label: item.detailVarietyName || item.subVariety1Name,
-        cropCode: item.cropCode,
-        status: item.status,
-        ...item
-      }
-      subNode.children.push(leafNode)
-    } else {
-      // 没有子品种时，品种就是叶子节点
-      const leafNode = {
-        id: item.id || item.cropCode,
-        label: item.detailVarietyName || item.varietyName,
-        cropCode: item.cropCode,
-        status: item.status,
-        ...item
-      }
-      varietyNode.children.push(leafNode)
-    }
-  }
-
-  return tree
+// 树形搜索关键词（组合编码+名称搜索）
+const treeCombinedSearch = computed(() => {
+  return searchNameKeyword.value || searchCodeKeyword.value || ''
 })
 
-// 树形节点点击处理
-function handleTreeNodeClick(data) {
-  // 如果是叶子节点（包含完整数据），打开详情
-  if (data.id && (data.cropCode || data.status)) {
-    selectedVariety.value = data
-    isDetailModalOpen.value = true
+// 使用树形 composable
+const varietyTree = useVarietyTree(
+  treeCombinedSearch,
+  categoryFilter,
+  'all',
+  'subVariety1',
+  treeRefreshKey,
+  computed(() => store.items)
+)
+
+// 树形节点选择处理
+function handleTreeSelect(variety) {
+  selectedVariety.value = variety
+  isDetailModalOpen.value = true
+}
+
+// 树形节点新增处理
+function handleTreeAdd(node) {
+  inlineAddState.value = {
+    active: true,
+    level: node.level === 'category' ? 'type' : node.level === 'type' ? 'variety' : 'subVariety1',
+    parentKey: node.key
   }
+  inlineAddCode.value = ''
+  inlineAddName.value = ''
+}
+
+// 树形节点编辑处理
+function handleTreeEdit(variety) {
+  selectedVariety.value = variety
+  isEditModalOpen.value = true
+}
+
+// 树形节点删除处理
+function handleTreeDelete(variety) {
+  deleteTargetVariety.value = variety
+  deleteConfirmVisible.value = true
+}
+
+// 内联新增保存
+async function handleInlineAddSave() {
+  if (!inlineAddCode.value.trim() || !inlineAddName.value.trim()) return
+
+  const parentKey = inlineAddState.value.parentKey
+  const level = inlineAddState.value.level
+  const code = inlineAddCode.value.trim()
+  const name = inlineAddName.value.trim()
+
+  // 从树形数据中找到父节点以获取路径
+  const parentNode = findNodeByKey(varietyTree.treeData.value, parentKey)
+  if (!parentNode) return
+
+  const path = parentNode.path
+
+  try {
+    if (level === 'type') {
+      await extensionService.addTypeExtension(path.categoryCode, code, name)
+    } else if (level === 'variety') {
+      await extensionService.addVarietyExtension(path.categoryCode, parentNode.code, code, name)
+    } else if (level === 'subVariety1') {
+      await extensionService.addSubVariety1Extension(path.categoryCode, path.typeCode, parentNode.code, code, name)
+    }
+    handleInlineAddCancel()
+    handleTreeRefresh()
+  } catch (err) {
+    ElMessage.error('添加失败: ' + err.message)
+  }
+}
+
+// 内联新增取消
+function handleInlineAddCancel() {
+  inlineAddState.value = { active: false, level: 'type', parentKey: '' }
+  inlineAddCode.value = ''
+  inlineAddName.value = ''
+}
+
+// 新增类别
+function handleAddCategory() {
+  const code = prompt('请输入类别编码（2位大写字母，如：FR）：')
+  if (!code || !code.trim()) return
+  const name = prompt('请输入类别名称（如：水果类）：')
+  if (!name || !name.trim()) return
+  extensionService.addCategoryExtension(code.trim().toUpperCase(), name.trim())
+    .then(() => handleTreeRefresh())
+    .catch(err => ElMessage.error('新增类别失败: ' + err.message))
+}
+
+// 树形刷新
+function handleTreeRefresh() {
+  treeRefreshKey.value++
+  store.refreshItems()
+  updateStats()
+}
+
+// 在树形数据中查找节点
+function findNodeByKey(nodes, key) {
+  for (const node of nodes) {
+    if (node.key === key) return node
+    if (node.children?.length > 0) {
+      const found = findNodeByKey(node.children, key)
+      if (found) return found
+    }
+  }
+  return null
 }
 
 // 初始化
 onMounted(async () => {
+  await initExtensionCache()
   await store.loadItems()
   updateStats()
 

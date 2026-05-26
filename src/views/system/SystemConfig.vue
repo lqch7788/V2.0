@@ -226,6 +226,17 @@
       class="config-add-dialog"
       draggable
     >
+      <!-- 最大化/还原按钮 -->
+      <el-button
+        class="maximize-toggle"
+        :icon="isMaximized ? 'FullScreen' : 'FullScreen'"
+        text
+        size="small"
+        @click="isMaximized = !isMaximized"
+        :title="isMaximized ? '还原' : '最大化'"
+      >
+        <el-icon :size="18" color="white"><component :is="isMaximized ? 'SemiSelect' : 'FullScreen'" /></el-icon>
+      </el-button>
       <el-form :model="newConfig" label-width="80px" class="grid grid-cols-2 gap-4">
         <el-form-item label="配置键" required>
           <el-input
@@ -297,7 +308,9 @@ import {
   Close,
   Loading,
   WarningFilled,
-  Check
+  Check,
+  FullScreen,
+  SemiSelect
 } from '@element-plus/icons-vue'
 import { useSystemConfigStore, CATEGORY_TABS } from '@/stores/modules/systemConfig'
 import CropGrowthConfigPanel from './CropGrowthConfigPanel.vue'
@@ -488,5 +501,14 @@ import DelegationRulesEditor from './components/DelegationRulesEditor.vue'
 
 :deep(.config-add-dialog .el-dialog__body) {
   padding: 0;
+}
+
+/* 最大化按钮定位 */
+.maximize-toggle {
+  position: absolute;
+  top: 8px;
+  right: 44px;
+  z-index: 10;
+  color: white;
 }
 </style>

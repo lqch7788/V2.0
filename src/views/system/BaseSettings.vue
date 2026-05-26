@@ -239,6 +239,7 @@
       v-model="showConfirmModal"
       :title="confirmModalConfig.title"
       width="400px"
+      @close="resetConfirmModal"
     >
       <div class="flex items-center gap-3 mb-4">
         <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -605,6 +606,13 @@ const confirmDeleteBase = (item, company) => {
     }
   }
   showConfirmModal.value = true
+}
+
+const resetConfirmModal = () => {
+  confirmModalConfig.title = ''
+  confirmModalConfig.message = ''
+  confirmModalConfig.type = 'danger'
+  confirmModalConfig.onConfirm = null
 }
 
 const handleConfirmDelete = () => {

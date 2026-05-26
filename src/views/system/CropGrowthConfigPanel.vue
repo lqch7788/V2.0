@@ -139,7 +139,7 @@
                 <template #default="{ row }">
                   <el-select
                     :model-value="row.type"
-                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, row, 'type', v)"
+                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, $index, 'type', v)"
                     :disabled="!isEditing"
                     class="w-full"
                     placeholder="选择..."
@@ -157,7 +157,7 @@
                 <template #default="{ row }">
                   <el-input
                     :model-value="row.typeName"
-                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, row, 'typeName', v)"
+                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, $index, 'typeName', v)"
                     :disabled="!isEditing"
                     placeholder="如灌溉"
                   />
@@ -167,7 +167,7 @@
                 <template #default="{ row }">
                   <el-input-number
                     :model-value="row.frequency"
-                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, row, 'frequency', v)"
+                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, $index, 'frequency', v)"
                     :min="1"
                     :controls="false"
                     :disabled="!isEditing"
@@ -179,7 +179,7 @@
                 <template #default="{ row }">
                   <el-input-number
                     :model-value="row.estimatedHours"
-                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, row, 'estimatedHours', v)"
+                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, $index, 'estimatedHours', v)"
                     :min="0.5"
                     :step="0.5"
                     :controls="false"
@@ -192,7 +192,7 @@
                 <template #default="{ row }">
                   <el-select
                     :model-value="row.priority"
-                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, row, 'priority', v)"
+                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, $index, 'priority', v)"
                     :disabled="!isEditing"
                     class="w-full"
                   >
@@ -206,7 +206,7 @@
                 <template #default="{ row }">
                   <el-input
                     :model-value="(row.skillRequired || []).join(', ')"
-                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, row, 'skillRequired', v.split(',').map(s => s.trim()).filter(Boolean))"
+                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, $index, 'skillRequired', v.split(',').map(s => s.trim()).filter(Boolean))"
                     :disabled="!isEditing"
                     placeholder="用逗号分隔"
                   />
@@ -216,7 +216,7 @@
                 <template #default="{ row }">
                   <el-input
                     :model-value="row.description"
-                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, row, 'description', v)"
+                    @update:model-value="v => updateTask(activeCropIdx, stageIdx, $index, 'description', v)"
                     :disabled="!isEditing"
                     placeholder="任务说明"
                   />
@@ -257,7 +257,7 @@
           <template #default="{ row }">
             <el-input
               :model-value="row.id"
-              @update:model-value="v => updateRule(row, 'id', v)"
+              @update:model-value="v => updateRule($index, 'id', v)"
               :disabled="!isEditing"
               class="font-mono"
             />
@@ -267,7 +267,7 @@
           <template #default="{ row }">
             <el-input
               :model-value="row.name"
-              @update:model-value="v => updateRule(row, 'name', v)"
+              @update:model-value="v => updateRule($index, 'name', v)"
               :disabled="!isEditing"
             />
           </template>
@@ -276,7 +276,7 @@
           <template #default="{ row }">
             <el-input
               :model-value="(row.symptom || []).join(', ')"
-              @update:model-value="v => updateRule(row, 'symptom', v.split(',').map(s => s.trim()).filter(Boolean))"
+              @update:model-value="v => updateRule($index, 'symptom', v.split(',').map(s => s.trim()).filter(Boolean))"
               :disabled="!isEditing"
               placeholder="逗号分隔"
             />
@@ -286,7 +286,7 @@
           <template #default="{ row }">
             <el-input
               :model-value="(row.cropType || []).join(', ')"
-              @update:model-value="v => updateRule(row, 'cropType', v.split(',').map(s => s.trim()).filter(Boolean))"
+              @update:model-value="v => updateRule($index, 'cropType', v.split(',').map(s => s.trim()).filter(Boolean))"
               :disabled="!isEditing"
               placeholder="逗号分隔"
             />
@@ -296,7 +296,7 @@
           <template #default="{ row }">
             <el-select
               :model-value="row.severity"
-              @update:model-value="v => updateRule(row, 'severity', v)"
+              @update:model-value="v => updateRule($index, 'severity', v)"
               :disabled="!isEditing"
               class="w-full"
             >
@@ -310,7 +310,7 @@
           <template #default="{ row }">
             <el-select
               :model-value="row.priority"
-              @update:model-value="v => updateRule(row, 'priority', v)"
+              @update:model-value="v => updateRule($index, 'priority', v)"
               :disabled="!isEditing"
               class="w-full"
             >
@@ -324,7 +324,7 @@
           <template #default="{ row }">
             <el-input
               :model-value="row.suggestion"
-              @update:model-value="v => updateRule(row, 'suggestion', v)"
+              @update:model-value="v => updateRule($index, 'suggestion', v)"
               :disabled="!isEditing"
             />
           </template>
@@ -568,16 +568,15 @@ const updateStage = (cropIdx, stageIdx, field, value) => {
 }
 
 /** 更新任务 */
-const updateTask = (cropIdx, stageIdx, task, field, value) => {
+const updateTask = (cropIdx, stageIdx, taskIdx, field, value) => {
   const configs = [...editingConfigs.value]
   const stages = [...configs[cropIdx].stages]
-  const taskIdx = stages[stageIdx].tasks.findIndex(t => t === task)
-  if (taskIdx !== -1) {
-    stages[stageIdx].tasks[taskIdx] = { ...stages[stageIdx].tasks[taskIdx], [field]: value }
-    configs[cropIdx] = { ...configs[cropIdx], stages }
-    editingConfigs.value = configs
-    dirty.value = true
-  }
+  const tasks = [...stages[stageIdx].tasks]
+  tasks[taskIdx] = { ...tasks[taskIdx], [field]: value }
+  stages[stageIdx] = { ...stages[stageIdx], tasks }
+  configs[cropIdx] = { ...configs[cropIdx], stages }
+  editingConfigs.value = configs
+  dirty.value = true
 }
 
 /** 添加任务 */
@@ -639,13 +638,10 @@ const removeCrop = async (idx) => {
 }
 
 /** 更新虫害规则 */
-const updateRule = (rule, field, value) => {
-  const idx = editingRules.value.findIndex(r => r === rule)
-  if (idx !== -1) {
-    editingRules.value[idx] = { ...editingRules.value[idx], [field]: value }
-    editingRules.value = [...editingRules.value]
-    dirty.value = true
-  }
+const updateRule = (idx, field, value) => {
+  editingRules.value[idx] = { ...editingRules.value[idx], [field]: value }
+  editingRules.value = [...editingRules.value]
+  dirty.value = true
 }
 
 /** 添加虫害规则 */

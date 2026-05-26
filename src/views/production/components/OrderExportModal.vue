@@ -46,16 +46,16 @@ import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
-  exportFormat: { type: String, default: 'xlsx' },
+  exportFormat: { type: String, default: 'excel' },
   selectedCount: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['update:modelValue', 'update:exportFormat', 'confirm'])
 
-const localFormat = ref(props.exportFormat || 'xlsx')
+const localFormat = ref(props.exportFormat || 'excel')
 
 watch(() => props.exportFormat, (val) => {
-  localFormat.value = val || 'xlsx'
+  localFormat.value = val || 'excel'
 })
 
 watch(localFormat, (val) => {

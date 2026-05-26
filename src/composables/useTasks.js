@@ -458,6 +458,38 @@ export function useTasks() {
       sourceCode: taskData.sourceCode || '',
     }
 
+    // 根据 dispatchMode 路由到正确的 Store（修复：临时任务写入 tempTaskStore，刷新后不丢失）
+    const mode = apiData.dispatchMode || 'farm'
+    if (mode === 'tempTask') {
+      const tempData = {
+        title: apiData.title,
+        type: apiData.type,
+        typeName: apiData.typeName,
+        status: apiData.status,
+        priority: apiData.priority,
+        assigneeId: apiData.assigneeId,
+        assigneeName: apiData.assigneeName,
+        assignerId: apiData.assignerId,
+        assignerName: apiData.assignerName,
+        dueDate: apiData.dueDate,
+        greenhouseId: apiData.greenhouseId,
+        greenhouseName: apiData.greenhouseName,
+        location: apiData.field || apiData.greenhouseName,
+        description: apiData.description || apiData.remarks,
+        estimatedHours: apiData.estimatedHours,
+        estimatedDays: apiData.estimatedDays,
+        urgency: apiData.priority === 'urgent' ? 'urgent' : apiData.priority === 'high' ? 'urgent' : 'normal',
+        workerCount: 1,
+        remarks: apiData.remarks,
+        sourceType: 'tempTask',
+        dispatchMode: 'tempTask',
+      }
+      const result = await tempTaskStore.createTask(tempData)
+      return result
+    }
+    if (mode === 'inspection') {
+      return await inspectionDataStore.createRecord(apiData)
+    }
     const result = await farmTaskStore.createTask(apiData)
     return result
   }

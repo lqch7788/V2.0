@@ -208,7 +208,7 @@ const currentRecord = ref<any>(null)
 
 // 导出状态
 const exportMode = ref(false)
-const exportFormat = ref('xlsx')
+const exportFormat = ref('excel')
 const showExportModal = ref(false)
 
 // 工具栏模式状态

@@ -6,6 +6,7 @@ export const useOrderDataStore = defineStore('orderData', () => {
   // 状态
   const orders = ref([])
   const isLoading = ref(false)
+  const error = ref(null)
   const stats = ref(null)
 
   // 获取订单列表
@@ -14,9 +15,11 @@ export const useOrderDataStore = defineStore('orderData', () => {
     try {
       const data = await orderService.getOrders()
       orders.value = data || []
-    } catch (error) {
-      console.error('获取订单数据失败:', error)
+      error.value = null
+    } catch (err) {
+      console.error('获取订单数据失败:', err)
       orders.value = []
+      error.value = err?.message
     } finally {
       isLoading.value = false
     }
@@ -91,6 +94,7 @@ export const useOrderDataStore = defineStore('orderData', () => {
   return {
     orders,
     isLoading,
+    error,
     stats,
     fetchOrders,
     fetchStats,

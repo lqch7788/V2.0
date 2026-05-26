@@ -239,9 +239,9 @@ const PAGE_SIZE = 10
 // Store
 const baseStore = useBaseStore()
 
-// 状态
-const bases = ref([])
-const loading = ref(false)
+// 状态 — 直接从Store获取，保持响应式
+const bases = computed(() => baseStore.bases)
+const loading = computed(() => baseStore.loading)
 const searchTerm = ref('')
 const selectedCompanyId = ref('')
 const currentPage = ref(1)
@@ -310,10 +310,7 @@ const stats = computed(() => {
 
 // 加载数据
 const loadData = async () => {
-  loading.value = true
   await baseStore.loadBases()
-  bases.value = baseStore.bases
-  loading.value = false
 }
 
 // 新增
