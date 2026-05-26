@@ -448,7 +448,6 @@ const saveAuthority = async () => {
     hasChanges.value = false
     authorityChanges.clear()
     await loadRoleAuthority()
-    ElMessage.success('保存成功')
   } catch (err) {
     ElMessage.error('保存失败')
   }

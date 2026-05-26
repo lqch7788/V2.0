@@ -144,7 +144,6 @@
                 <div class="flex items-center justify-center gap-1">
                   <el-button
                     link
-                    type="primary"
                     size="small"
                     @click="openEditModal(item)"
                     class="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -406,11 +405,9 @@ const handleSubmit = async () => {
   try {
     if (isEditMode.value) {
       await cameraStore.updateItem(selectedItem.value.oid, submitData)
-      ElMessage.success('编辑成功')
     } else {
       const result = await cameraStore.createItem(submitData)
       if (result) {
-        ElMessage.success('新增成功')
         closeModal()
       }
       return
@@ -433,7 +430,6 @@ const handleDelete = async () => {
   await cameraStore.deleteItem(selectedItem.value.oid)
   deleteDialogVisible.value = false
   selectedItem.value = null
-  ElMessage.success('删除成功')
 }
 
 // 重置筛选

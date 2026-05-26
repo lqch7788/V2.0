@@ -471,7 +471,6 @@ const handleSubmit = async () => {
         unit: form.unit,
         description: form.description || null
       })
-      ElMessage.success('更新成功')
     } else {
       const result = await energyConfigStore.createItem({
         partitionOid: form.partitionOid,
@@ -483,7 +482,6 @@ const handleSubmit = async () => {
         description: form.description || null
       })
       if (result) {
-        ElMessage.success('创建成功')
         closeModal()
       }
       return
@@ -505,7 +503,6 @@ const handleDelete = async () => {
   if (!selectedItem.value) return
 
   await energyConfigStore.deleteItem(selectedItem.value.oid)
-  ElMessage.success('删除成功')
   showDeleteDialog.value = false
   selectedItem.value = null
 }

@@ -710,10 +710,8 @@ const handleSaveThreshold = async () => {
     }
     if (editingThreshold.value) {
       await updateAmountThreshold(editingThreshold.value.id, data)
-      ElMessage.success('更新成功')
     } else {
       await addAmountThreshold(data)
-      ElMessage.success('创建成功')
     }
     thresholdDialogVisible.value = false
   } catch (err) {
@@ -739,7 +737,6 @@ const handleDeleteThreshold = async () => {
   saving.value = true
   try {
     await removeAmountThreshold(deleteTarget.value.id)
-    ElMessage.success('删除成功')
     deleteDialogVisible.value = false
     deleteTarget.value = null
   } catch (err) {
@@ -790,7 +787,6 @@ const handleSaveLevel = async () => {
       requireMultiApprover: levelForm.requireMultiApprover ? 1 : 0,
       approverRoles: roles.length > 0 ? roles : null
     })
-    ElMessage.success('保存成功')
     levelDialogVisible.value = false
   } catch (err) {
     ElMessage.error(err.message || '保存失败')
@@ -854,7 +850,6 @@ const handleSaveRule = async () => {
       batchApprovalSupported: ruleForm.batchApprovalSupported ? 1 : 0,
       remark: ruleForm.remark.trim()
     })
-    ElMessage.success('保存成功')
     ruleDialogVisible.value = false
   } catch (err) {
     ElMessage.error(err.message || '保存失败')

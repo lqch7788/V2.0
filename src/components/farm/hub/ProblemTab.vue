@@ -596,6 +596,7 @@ import {
   UserFilled, Clock, Camera, CircleCheck,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useProblemStore } from '@/stores/modules/problem'
 
 // ========== Props ==========
 const props = defineProps({
@@ -641,49 +642,13 @@ const mockWorkerList = [
   { id: 'W004', name: '赵六', position: '管理员', skillTags: ['管理'] },
 ]
 
-// ========== Mock问题数据 ==========
-function createMockProblems() {
-  return [
-    {
-      id: 1, problemCode: 'PD20260516001', greenhouseId: 'G001', greenhouseName: '1号温室',
-      cropName: '番茄', inspectorName: '巡查员A', checkDate: '2026-05-16', checkTime: '09:30',
-      weather: '晴', temperature: 28, humidity: 65, cropStatus: '正常',
-      issueText: '叶片出现黄斑，疑似霜霉病感染', issueSeverity: '严重',
-      status: 'pending', sourceModule: 'inspection', sourceTaskId: null,
-      handler: '', handleDate: '', flowRecords: [],
-    },
-    {
-      id: 2, problemCode: 'PD20260515001', greenhouseId: 'G002', greenhouseName: '2号温室',
-      cropName: '黄瓜', inspectorName: '巡查员B', checkDate: '2026-05-15', checkTime: '10:00',
-      weather: '阴', temperature: 25, humidity: 70, cropStatus: '正常',
-      issueText: '土壤湿度不足，需加强灌溉', issueSeverity: '中等',
-      status: 'in_progress', sourceModule: 'inspection', sourceTaskId: null,
-      handler: '张三', handleDate: '2026-05-15',
-      flowRecords: [
-        { id: 'FR-1', operatorName: '巡查员B', action: 'report', actionTime: '2026-05-15T10:00:00' },
-        { id: 'FR-2', operatorName: '管理员', action: 'dispatch', actionTime: '2026-05-15T11:00:00' },
-      ],
-    },
-    {
-      id: 3, problemCode: 'PD20260514001', greenhouseId: 'G003', greenhouseName: '3号温室',
-      cropName: '辣椒', inspectorName: '巡查员A', checkDate: '2026-05-14', checkTime: '08:45',
-      weather: '晴', temperature: 30, humidity: 55, cropStatus: '良好',
-      issueText: '发现蚜虫幼虫，需立即处理', issueSeverity: '严重',
-      status: '已处理', sourceModule: 'manual', sourceTaskId: null,
-      handler: '李四', handleDate: '2026-05-15', handleResult: '已喷洒杀虫剂',
-      flowRecords: [
-        { id: 'FR-3', operatorName: '巡查员A', action: 'report', actionTime: '2026-05-14T08:45:00' },
-        { id: 'FR-4', operatorName: '管理员', action: 'dispatch', actionTime: '2026-05-14T09:00:00' },
-        { id: 'FR-5', operatorName: '李四', action: 'submit', actionTime: '2026-05-15T14:00:00' },
-        { id: 'FR-6', operatorName: '管理员', action: 'approve', actionTime: '2026-05-15T16:00:00' },
-      ],
-    },
-  ]
-}
+
+// ========== Store ==========
+const problemStore = useProblemStore()
 
 // ========== 核心状态 ==========
 const activeSubTab = ref('problems')
-const allProblems = ref(createMockProblems())
+const allProblems = computed(() => problemStore.problems)
 
 // 筛选状态
 const statusFilter = ref('all')
@@ -943,38 +908,42 @@ function handleCloseDispatch() {
   dispatchAssignMode.value = 'ai_assisted'
 }
 
-function handleDispatch() {
+async function handleDispatch() {
   if (selectedWorkers.value.length === 0) return
   const dueDate = calculateDueDate()
 
   if (dispatchModal.batchMode) {
-    selectedProblems.value.forEach(problemId => {
+    for (const problemId of selectedProblems.value) {
       const problem = allProblems.value.find(p => p.id === problemId)
       if (problem) {
-        problem.status = 'in_progress'
-        problem.handler = selectedWorkers.value.map(w => w.name).join('、')
-        problem.expectedCompletion = dueDate
-        problem.flowRecords = problem.flowRecords || []
-        problem.flowRecords.push({
+        const newFlowRecords = [...(problem.flowRecords || []), {
           id: `FR-${Date.now()}`,
           operatorName: '系统管理员',
           action: 'dispatch',
           actionTime: new Date().toISOString(),
+        }]
+        await problemStore.updateProblem(problem.id, {
+          status: 'in_progress',
+          handler: selectedWorkers.value.map(w => w.name).join('、'),
+          expectedCompletion: dueDate,
+          flowRecords: newFlowRecords,
         })
       }
-    })
+    }
   } else if (dispatchModal.problem) {
     const problem = allProblems.value.find(p => p.id === dispatchModal.problem.id)
     if (problem) {
-      problem.status = 'in_progress'
-      problem.handler = selectedWorkers.value.map(w => w.name).join('、')
-      problem.expectedCompletion = dueDate
-      problem.flowRecords = problem.flowRecords || []
-      problem.flowRecords.push({
+      const newFlowRecords = [...(problem.flowRecords || []), {
         id: `FR-${Date.now()}`,
         operatorName: '系统管理员',
         action: 'dispatch',
         actionTime: new Date().toISOString(),
+      }]
+      await problemStore.updateProblem(problem.id, {
+        status: 'in_progress',
+        handler: selectedWorkers.value.map(w => w.name).join('、'),
+        expectedCompletion: dueDate,
+        flowRecords: newFlowRecords,
       })
     }
   }
@@ -1026,19 +995,19 @@ function handleCreateClose() {
   })
 }
 
-function handleCreateSubmit() {
+async function handleCreateSubmit() {
   if (!createForm.greenhouseId || !createForm.cropName || !createForm.issueText) {
     ElMessage.warning('请填写必填项')
     return
   }
   const gh = mockGreenhouses.find(g => g.id === createForm.greenhouseId)
   const newProblem = {
-    id: Math.max(0, ...allProblems.value.map(p => p.id)) + 1,
     problemCode: `PD${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${String(Date.now()).slice(-3)}`,
     greenhouseId: createForm.greenhouseId,
     greenhouseName: gh?.name || '',
     cropName: createForm.cropName,
     inspectorName: createForm.inspectorName,
+    inspectorId: createForm.inspectorId,
     checkDate: createForm.checkDate,
     checkTime: createForm.checkTime,
     weather: '晴',
@@ -1051,22 +1020,22 @@ function handleCreateSubmit() {
     sourceModule: 'manual',
     sourceTaskId: null,
     handler: '',
-    flowRecords: [{
+    flowRecords: JSON.stringify([{
       id: `FR-${Date.now()}`,
       operatorName: createForm.inspectorName,
       action: 'report',
       actionTime: new Date().toISOString(),
-    }],
+    }]),
   }
-  allProblems.value.unshift(newProblem)
+  await problemStore.createProblem(newProblem)
   handleCreateClose()
   ElMessage.success('问题创建成功')
 }
 
 // ========== 删除 ==========
-function handleDeleteConfirm() {
+async function handleDeleteConfirm() {
   const idsToDelete = new Set(selectedRows.value)
-  allProblems.value = allProblems.value.filter(p => !idsToDelete.has(p.id))
+  await problemStore.deleteProblems([...idsToDelete])
   showDeleteWarning.value = false
   batchDeleteMode.value = false
   selectedRows.value = []
@@ -1115,7 +1084,7 @@ function downloadFile(content, filename, mimeType) {
 
 // ========== 初始化 ==========
 onMounted(() => {
-  // 问题数据已在本地初始化
+  problemStore.fetchProblems()
 })
 </script>
 

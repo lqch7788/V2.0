@@ -146,43 +146,7 @@
 <script setup>
 import { computed } from 'vue'
 import { Clock, User, Document, Picture, Location, Microphone, Box } from '@element-plus/icons-vue'
-
-// 操作行为配置映射
-const ACTION_CONFIG = {
-  create: { label: '创建任务', bg: 'bg-blue-50', color: 'text-blue-600' },
-  publish: { label: '派发任务', bg: 'bg-blue-50', color: 'text-blue-600' },
-  assign: { label: '派发任务', bg: 'bg-purple-50', color: 'text-purple-600' },
-  accept: { label: '接受任务', bg: 'bg-emerald-50', color: 'text-emerald-600' },
-  start: { label: '开始执行', bg: 'bg-green-50', color: 'text-green-600' },
-  reject: { label: '拒绝任务', bg: 'bg-red-50', color: 'text-red-600' },
-  progress: { label: '进度更新', bg: 'bg-amber-50', color: 'text-amber-600' },
-  submit: { label: '提交验收', bg: 'bg-indigo-50', color: 'text-indigo-600' },
-  complete: { label: '验收通过', bg: 'bg-green-50', color: 'text-green-600' },
-  verify: { label: '验收通过', bg: 'bg-green-50', color: 'text-green-600' },
-  rework: { label: '驳回返工', bg: 'bg-orange-50', color: 'text-orange-600' },
-  withdraw: { label: '撤回任务', bg: 'bg-gray-50', color: 'text-gray-600' },
-  cancel: { label: '取消任务', bg: 'bg-red-50', color: 'text-red-600' },
-  continue: { label: '继续执行', bg: 'bg-blue-50', color: 'text-blue-600' },
-  reassign: { label: '重新派发', bg: 'bg-purple-50', color: 'text-purple-600' },
-  remind: { label: '催办', bg: 'bg-red-50', color: 'text-red-600' },
-  extend_deadline: { label: '延期', bg: 'bg-amber-50', color: 'text-amber-600' },
-  overtime_continue: { label: '超时继续', bg: 'bg-amber-50', color: 'text-amber-600' },
-  overtime_abandon: { label: '超时放弃', bg: 'bg-red-50', color: 'text-red-600' },
-}
-
-// 状态配置映射
-const STATUS_CONFIG = {
-  draft: { label: '草稿', bg: 'bg-gray-100', color: 'text-gray-500' },
-  pending: { label: '待接受', bg: 'bg-gray-100', color: 'text-gray-600' },
-  accepted: { label: '已接受', bg: 'bg-blue-50', color: 'text-blue-600' },
-  in_progress: { label: '处理中', bg: 'bg-blue-100', color: 'text-blue-700' },
-  waiting_acceptance: { label: '待验收', bg: 'bg-orange-50', color: 'text-orange-600' },
-  completed: { label: '已完成', bg: 'bg-green-50', color: 'text-green-600' },
-  rejected: { label: '返工中', bg: 'bg-red-50', color: 'text-red-600' },
-  failed: { label: '已失败', bg: 'bg-purple-50', color: 'text-purple-600' },
-  cancelled: { label: '已取消', bg: 'bg-gray-100', color: 'text-gray-500' },
-  abandoned: { label: '已放弃', bg: 'bg-red-50', color: 'text-red-400' },
-}
+import { TASK_ACTION_CONFIG, TASK_STATUS_CONFIG } from '@/config/taskConfig'
 
 const props = defineProps({
   records: {
@@ -218,23 +182,11 @@ const formatTime = (time) => {
   return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-// 使用配置映射获取标签
-const getActionLabel = (action) => {
-  return ACTION_CONFIG[action]?.label || action
-}
-const getActionBg = (action) => {
-  return ACTION_CONFIG[action]?.bg || 'bg-gray-100'
-}
-const getActionColor = (action) => {
-  return ACTION_CONFIG[action]?.color || 'text-gray-600'
-}
-const getStatusLabel = (status) => {
-  return STATUS_CONFIG[status]?.label || status
-}
-const getStatusBg = (status) => {
-  return STATUS_CONFIG[status]?.bg || 'bg-gray-100'
-}
-const getStatusColor = (status) => {
-  return STATUS_CONFIG[status]?.color || 'text-gray-600'
-}
+// 使用全局配置映射获取标签（与V1.1完全一致）
+const getActionLabel = (action) => TASK_ACTION_CONFIG[action]?.label || action
+const getActionBg = (action) => TASK_ACTION_CONFIG[action]?.bg || 'bg-gray-100'
+const getActionColor = (action) => TASK_ACTION_CONFIG[action]?.color || 'text-gray-600'
+const getStatusLabel = (status) => TASK_STATUS_CONFIG[status]?.label || status
+const getStatusBg = (status) => TASK_STATUS_CONFIG[status]?.bg || 'bg-gray-100'
+const getStatusColor = (status) => TASK_STATUS_CONFIG[status]?.color || 'text-gray-600'
 </script>

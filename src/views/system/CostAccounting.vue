@@ -4,13 +4,13 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <router-link
-            to="/settings"
+          <a
+            href="/settings"
             class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
             title="返回系统设置"
           >
             <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
-          </router-link>
+          </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="#fff"><Coin /></el-icon>
           </div>
@@ -488,10 +488,8 @@ const handleSaveCategory = async () => {
   try {
     if (editingCategory.value) {
       await updateCategory(editingCategory.value.id, { ...categoryForm })
-      ElMessage.success('更新成功')
     } else {
       await addCategory({ ...categoryForm })
-      ElMessage.success('创建成功')
     }
     showCategoryModal.value = false
   } catch (err) {
@@ -508,7 +506,6 @@ const handleDeleteCategory = async (id) => {
       type: 'warning'
     })
     await removeCategory(id)
-    ElMessage.success('删除成功')
   } catch {
     // 用户取消
   }
@@ -523,10 +520,8 @@ const handleSaveBudget = async () => {
   try {
     if (editingBudget.value) {
       await updateBudget(editingBudget.value.id, { ...budgetForm })
-      ElMessage.success('更新成功')
     } else {
       await addBudget({ ...budgetForm })
-      ElMessage.success('创建成功')
     }
     showBudgetModal.value = false
   } catch (err) {
@@ -543,7 +538,6 @@ const handleDeleteBudget = async (id) => {
       type: 'warning'
     })
     await removeBudget(id)
-    ElMessage.success('删除成功')
   } catch {
     // 用户取消
   }

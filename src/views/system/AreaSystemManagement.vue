@@ -348,7 +348,6 @@ const handleSubmit = async () => {
       deviceOid: form.value.deviceOid || undefined,
       description: form.value.description || undefined
     })
-    ElMessage.success('更新成功')
   } else {
     const result = await areaSystemStore.createItem({
       partitionOid: form.value.partitionOid,
@@ -357,7 +356,6 @@ const handleSubmit = async () => {
       description: form.value.description || undefined
     })
     if (result) {
-      ElMessage.success('创建成功')
     }
   }
   closeModal()
@@ -368,7 +366,6 @@ const handleDelete = async () => {
   if (!selectedItem.value) return
   const success = await areaSystemStore.deleteItem(selectedItem.value.oid)
   if (success) {
-    ElMessage.success('删除成功')
     showDeleteConfirm.value = false
     selectedItem.value = null
   }

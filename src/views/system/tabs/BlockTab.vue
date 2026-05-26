@@ -492,7 +492,6 @@ const handleDelete = async () => {
     } else {
       await blockStore.removeBlock(deleteItem.value.oid)
     }
-    ElMessage.success('删除成功')
     deleteDialogVisible.value = false
     await loadData()
   } catch (err) {

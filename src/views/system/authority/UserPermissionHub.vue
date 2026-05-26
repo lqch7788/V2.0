@@ -3,15 +3,15 @@
     <!-- 页面头部 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
-        <router-link
-          to="/settings"
+        <a
+          href="/settings"
           class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
           title="返回系统设置"
         >
           <el-icon :size="20" color="#4b5563">
             <ArrowLeft />
           </el-icon>
-        </router-link>
+        </a>
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <el-icon :size="24" color="white"><Lock /></el-icon>
         </div>
@@ -59,6 +59,7 @@ import {
   OfficeBuilding,
   User,
   Share,
+  Key,
   ArrowLeft
 } from '@element-plus/icons-vue'
 
@@ -73,7 +74,7 @@ import UserAuthorityConfig from './UserAuthorityConfig.vue'
 const TABS = [
   { key: 'organizations', label: '组织管理', icon: OfficeBuilding },
   { key: 'roles', label: '角色管理', icon: Lock },
-  { key: 'authority', label: '权限配置', icon: Lock },
+  { key: 'authority', label: '权限配置', icon: Key },
   { key: 'users', label: '用户管理', icon: User },
   { key: 'user-authority', label: '用户权限覆盖', icon: Share }
 ]

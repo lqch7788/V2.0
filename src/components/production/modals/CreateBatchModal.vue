@@ -79,12 +79,20 @@
         </div>
 
         <div>
-          <label class="text-sm font-medium text-gray-700 block mb-1">种植面积（m²） <span class="text-red-500">*</span></label>
-          <el-input
-            v-model="formData.plantingArea"
-            placeholder="例如：1000或1500.50"
-            @input="handlePlantingAreaInput"
-          />
+          <label class="text-sm font-medium text-gray-700 block mb-1">种植面积 <span class="text-red-500">*</span></label>
+          <div class="grid grid-cols-2 gap-2">
+            <el-input
+              v-model="formData.plantingArea"
+              placeholder="例如：1000"
+              @input="handlePlantingAreaInput"
+            />
+            <el-select v-model="formData.plantingAreaUnit" placeholder="选择单位" @change="(v) => emit('formChange', 'plantingAreaUnit', v)">
+              <el-option label="m²" value="m²" />
+              <el-option label="亩" value="亩" />
+              <el-option label="公顷" value="公顷" />
+              <el-option label="km²" value="km²" />
+            </el-select>
+          </div>
           <p v-if="errors.plantingArea" class="text-red-500 text-xs mt-1">{{ errors.plantingArea }}</p>
         </div>
 
@@ -115,7 +123,15 @@
 
         <div>
           <label class="text-sm font-medium text-gray-700 block mb-1">目标产量 <span class="text-red-500">*</span></label>
-          <el-input v-model="formData.targetYield" placeholder="例如：10000或10000kg" />
+          <div class="grid grid-cols-2 gap-2">
+            <el-input v-model="formData.targetYield" placeholder="例如：10000" />
+            <el-select v-model="formData.unit" placeholder="选择单位" @change="(v) => emit('formChange', 'unit', v)">
+              <el-option label="kg" value="kg" />
+              <el-option label="吨" value="吨" />
+              <el-option label="g" value="g" />
+              <el-option label="株" value="株" />
+            </el-select>
+          </div>
           <p v-if="errors.targetYield" class="text-red-500 text-xs mt-1">{{ errors.targetYield }}</p>
         </div>
 

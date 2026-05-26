@@ -86,7 +86,7 @@
                 <el-button link type="info" size="small" @click="toggleRuleActive(rule.id)">
                   {{ rule.isActive ? '停用' : '启用' }}
                 </el-button>
-                <el-button link type="primary" size="small" @click="editRule(rule)">
+                <el-button link size="small" @click="editRule(rule)">
                   <el-icon><Edit /></el-icon>
                 </el-button>
                 <el-button link type="danger" size="small" @click="handleDeleteRule(rule.id)">
@@ -147,7 +147,7 @@
                     :class="ch.isActive ? 'left-7' : 'left-1'"
                   ></span>
                 </button>
-                <el-button link type="primary" @click="editChannel(ch)">
+                <el-button link @click="editChannel(ch)">
                   <el-icon><Edit /></el-icon>
                 </el-button>
                 <el-button link type="danger" @click="handleDeleteChannel(ch.id)">
@@ -224,8 +224,7 @@
 
           <!-- 保存按钮 -->
           <div class="flex justify-end pt-4 border-t">
-            <el-button type="primary" @click="handleSavePrefs" :disabled="!prefsDirty">
-              <el-icon><Select /></el-icon>
+            <el-button @click="handleSavePrefs" :disabled="!prefsDirty">
               {{ prefsDirty ? '保存偏好设置' : '已保存' }}
             </el-button>
           </div>
@@ -244,7 +243,7 @@
         <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl text-white">
           <h3 class="text-lg font-semibold">{{ editingChannel ? '编辑通知渠道' : '新增通知渠道' }}</h3>
           <button @click="closeChannelModal" class="p-1 hover:bg-white/20 rounded">
-            <el-icon :size="20"><Plus /></el-icon>
+            <el-icon :size="20"><Close /></el-icon>
           </button>
         </div>
       </template>
@@ -290,7 +289,7 @@
         <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl text-white">
           <h3 class="text-lg font-semibold">{{ editingRule ? '编辑通知规则' : '新增通知规则' }}</h3>
           <button @click="closeRuleModal" class="p-1 hover:bg-white/20 rounded">
-            <el-icon :size="20"><Plus /></el-icon>
+            <el-icon :size="20"><Close /></el-icon>
           </button>
         </div>
       </template>
@@ -494,7 +493,6 @@ const handleSavePrefs = async () => {
   const userId = localStorage.getItem('yuanxingtu_user_oid') || 'default'
   await saveUserPreferences(userId, localPrefs)
   prefsDirty.value = false
-  ElMessage.success('保存成功')
 }
 
 // 打开渠道弹窗
@@ -548,7 +546,6 @@ const handleSaveChannel = async () => {
       })
     }
     closeChannelModal()
-    ElMessage.success('保存成功')
   } finally {
     saving.value = false
   }
@@ -563,7 +560,6 @@ const handleDeleteChannel = async (id) => {
       type: 'warning'
     })
     await removeChannel(id)
-    ElMessage.success('删除成功')
   } catch {
     // 用户取消
   }
@@ -614,7 +610,6 @@ const handleSaveRule = async () => {
       await addRule(payload)
     }
     closeRuleModal()
-    ElMessage.success('保存成功')
   } finally {
     saving.value = false
   }
@@ -629,7 +624,6 @@ const handleDeleteRule = async (id) => {
       type: 'warning'
     })
     await removeRule(id)
-    ElMessage.success('删除成功')
   } catch {
     // 用户取消
   }

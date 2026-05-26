@@ -430,7 +430,6 @@ const handleUserSave = async () => {
 
     userDialogVisible.value = false
     await loadUsers()
-    ElMessage.success('保存成功')
   } catch (err) {
     ElMessage.error('保存失败')
   } finally {
@@ -451,7 +450,6 @@ const confirmDelete = async () => {
     deleteDialogVisible.value = false
     deleteTarget.value = null
     await loadUsers()
-    ElMessage.success('删除成功')
   } catch (err) {
     ElMessage.error('删除失败')
   } finally {
@@ -471,7 +469,6 @@ const handlePasswordChange = async () => {
   try {
     await updateUserPassword(passwordUser.value.oid, newPassword.value)
     passwordDialogVisible.value = false
-    ElMessage.success('修改成功')
   } catch (err) {
     ElMessage.error('修改失败')
   } finally {
@@ -484,7 +481,6 @@ const handleToggleStatus = async (user) => {
   try {
     await updateUserStatus(user.oid, newStatus)
     await loadUsers()
-    ElMessage.success(`已${newStatus === 'active' ? '启用' : '禁用'}`)
   } catch (err) {
     ElMessage.error('操作失败')
   }

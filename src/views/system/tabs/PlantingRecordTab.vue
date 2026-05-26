@@ -401,7 +401,6 @@ const handleSaveCreate = async () => {
       ...createForm.value,
       facilityName: facility?.name || ''
     })
-    ElMessage.success('创建成功')
     createDialogVisible.value = false
     await loadData()
   } catch (err) {
@@ -426,7 +425,6 @@ const handleSaveEdit = async () => {
   if (!currentRecord.value) return
   try {
     await plantingRecordStore.editRecord(currentRecord.value.oid, editForm.value)
-    ElMessage.success('更新成功')
     editDialogVisible.value = false
     await loadData()
   } catch (err) {
@@ -474,7 +472,6 @@ const handleDelete = async () => {
   if (!deleteRecord.value) return
   try {
     await plantingRecordStore.removeRecord(deleteRecord.value.oid)
-    ElMessage.success('删除成功')
     deleteDialogVisible.value = false
     await loadData()
   } catch (err) {

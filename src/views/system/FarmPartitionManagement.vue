@@ -51,7 +51,7 @@
           </div>
           <div class="flex items-end gap-2">
             <el-button @click="handleReset">重置</el-button>
-            <el-button type="primary" @click="expandAll">全部展开</el-button>
+            <el-button @click="expandAll">全部展开</el-button>
             <el-button @click="collapseAll">全部折叠</el-button>
           </div>
         </div>
@@ -531,7 +531,6 @@ const handleSubmit = async () => {
       address: form.address || undefined,
       description: form.description || undefined,
     })
-    ElMessage.success('编辑成功')
   } else {
     // 新增模式 - 调用store创建
     await farmPartitionStore.createItem({
@@ -545,7 +544,6 @@ const handleSubmit = async () => {
       description: form.description || undefined,
       parentOid: parentForAdd.value,
     })
-    ElMessage.success('新增成功')
   }
 
   dialogVisible.value = false
@@ -561,7 +559,6 @@ const handleDelete = async () => {
 
   const success = await farmPartitionStore.deleteItem(selectedItem.value.oid)
   if (success) {
-    ElMessage.success('删除成功')
     deleteDialogVisible.value = false
     selectedItem.value = null
   }

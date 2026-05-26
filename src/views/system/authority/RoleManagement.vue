@@ -291,7 +291,6 @@ const handleSave = async () => {
       oid: editingRole.value?.oid || undefined
     }
     await saveRole(payload)
-    ElMessage.success('保存成功')
     dialogVisible.value = false
   } catch (err) {
     ElMessage.error('保存失败')
@@ -309,7 +308,6 @@ const handleDelete = async (oid) => {
       type: 'warning'
     })
     await deleteRole(oid)
-    ElMessage.success('删除成功')
   } catch (err) {
     if (err !== 'cancel') {
       ElMessage.error('删除失败')

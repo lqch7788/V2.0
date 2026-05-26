@@ -266,7 +266,6 @@
             <td class="px-4 py-3 text-center">
               <el-button
                 link
-                type="primary"
                 size="small"
                 @click="openDetailModal(service)"
                 title="查看详情"

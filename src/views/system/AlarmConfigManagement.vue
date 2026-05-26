@@ -354,7 +354,6 @@ const handleSaveLevel = async () => {
     notifyPhone: currentEdit.value.notifyPhone
   })
   savingLevel.value = null
-  ElMessage.success('保存成功')
 }
 
 // 打开添加联系人弹窗
@@ -375,13 +374,11 @@ const handleAddContact = async () => {
     contactType: contactForm.contactType
   })
   showContactModal.value = false
-  ElMessage.success('添加成功')
 }
 
 // 删除联系人
 const handleDeleteContact = async (oid) => {
   await removeContact(oid)
-  ElMessage.success('删除成功')
 }
 
 // 获取联系人类型图标

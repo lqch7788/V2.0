@@ -338,10 +338,10 @@
             </el-table-column>
             <el-table-column label="操作" width="144">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" @click.stop="handleViewDetail(row)">
+                <el-button link size="small" @click.stop="handleViewDetail(row)">
                   详情
                 </el-button>
-                <el-button link type="primary" size="small" @click.stop="handleEdit(row)">
+                <el-button link size="small" @click.stop="handleEdit(row)">
                   编辑
                 </el-button>
                 <el-button link type="danger" size="small" @click.stop="handleDelete(row)">
@@ -812,7 +812,6 @@ function openAddModal() {
 function handleAddSuccess() {
   store.refreshItems()
   updateStats()
-  ElMessage.success('新增成功')
 }
 
 // 编辑品种
@@ -827,7 +826,6 @@ function handleEditSuccess() {
   store.refreshItems()
   updateStats()
   selectedVariety.value = null
-  ElMessage.success('编辑成功')
 }
 
 // 删除品种
@@ -846,7 +844,6 @@ async function confirmDelete() {
         selectedVariety.value = null
       }
       deleteConfirmVisible.value = false
-      ElMessage.success('删除成功')
     } catch (error) {
       ElMessage.error('删除失败，请重试')
     }

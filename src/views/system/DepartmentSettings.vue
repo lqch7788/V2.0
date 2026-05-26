@@ -455,7 +455,6 @@ const handleAdd = async () => {
     await departmentStore.addDepartment(payload)
     showModal.value = false
     resetForm()
-    ElMessage.success('新增成功')
   } finally {
     saving.value = false
   }
@@ -472,7 +471,6 @@ const handleEdit = async () => {
     showModal.value = false
     editItem.value = null
     resetForm()
-    ElMessage.success('编辑成功')
   } finally {
     saving.value = false
   }
@@ -497,7 +495,6 @@ const handleDelete = async () => {
   if (success) {
     showDeleteDialog.value = false
     deleteTarget.value = null
-    ElMessage.success('删除成功')
 
     // 调整当前页码
     const newTotal = Math.ceil((filteredData.value.length - 1) / pageSize)

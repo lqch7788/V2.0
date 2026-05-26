@@ -615,7 +615,6 @@ const handleSubmit = async () => {
         status: formData.status,
         description: formData.description
       })
-      ElMessage.success('保存区域成功')
     } else {
       // 新增模式
       await zoneStore.addZone({
@@ -627,7 +626,6 @@ const handleSubmit = async () => {
         sortOrder: formData.sortOrder,
         description: formData.description
       })
-      ElMessage.success('新增区域成功')
     }
     handleCloseModal()
   } catch (err) {

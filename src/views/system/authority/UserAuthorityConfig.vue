@@ -256,7 +256,6 @@ const saveChanges = async () => {
     // 重新加载
     const data = await getUserAuthority(selectedUserOid.value)
     userAuthorities.value = data || []
-    ElMessage.success('保存成功')
   } catch (err) {
     ElMessage.error('保存失败')
   }

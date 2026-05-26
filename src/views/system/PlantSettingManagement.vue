@@ -397,7 +397,6 @@ const handleAdd = async () => {
   if (result) {
     showModal.value = false
     resetForm()
-    ElMessage.success('新增成功')
   }
 }
 
@@ -416,7 +415,6 @@ const handleEdit = async () => {
   showModal.value = false
   selectedItem.value = null
   resetForm()
-  ElMessage.success('编辑成功')
 }
 
 // 提交表单
@@ -436,7 +434,6 @@ const handleDelete = async () => {
   if (success) {
     showDeleteDialog.value = false
     selectedItem.value = null
-    ElMessage.success('删除成功')
   }
 }
 

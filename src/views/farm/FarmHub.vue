@@ -55,6 +55,7 @@
             :on-continue="handleTaskContinue"
             :on-accept="handleTaskAccept"
             :on-remind="handleTaskRemind"
+            :can-remind="canRemind"
             :on-select-executor="handleSelectExecutor"
             :on-publish="handlePublish"
             :on-view-sop="handleViewSop"
@@ -356,6 +357,7 @@ import { ElMessage } from 'element-plus'
 import { useFarmTaskStore } from '@/stores/modules/farmTask'
 import { useUserStore } from '@/stores/modules/user'
 import { useGreenhouseStore } from '@/stores/modules/greenhouse'
+import { useTasks } from '@/composables/useTasks'
 
 // ========== 导入所有子组件 ==========
 import FarmHubHeader from '@/components/farm/hub/FarmHubHeader.vue'
@@ -380,6 +382,9 @@ import TempTaskTab from '@/components/farm/hub/TempTaskTab.vue'
 const taskStore = useFarmTaskStore()
 const userStore = useUserStore()
 const greenhouseStore = useGreenhouseStore()
+
+// ========== useTasks 业务逻辑层（与V1.1 useTasks 完全一致） ==========
+const tasksHook = useTasks()
 
 // ========== Tab配置（与V1.1完全一致） ==========
 const TAB_CONFIG = [
@@ -422,6 +427,15 @@ const filteredTasks = computed(() => {
   if (taskFilters.area !== 'all') list = list.filter(t => t.greenhouseName === taskFilters.area)
   if (taskFilters.assignee !== 'all') list = list.filter(t => t.assigneeName === taskFilters.assignee)
   if (taskFilters.batchCode !== 'all') list = list.filter(t => t.batchCode === taskFilters.batchCode)
+  // 搜索维度（与V1.1一致：搜索任务编号/标题/执行人）
+  if (taskFilters.search && taskFilters.search.trim()) {
+    const keyword = taskFilters.search.trim().toLowerCase()
+    list = list.filter(t =>
+      (t.taskCode && t.taskCode.toLowerCase().includes(keyword)) ||
+      (t.title && t.title.toLowerCase().includes(keyword)) ||
+      (t.assigneeName && t.assigneeName.toLowerCase().includes(keyword))
+    )
+  }
   return list
 })
 
@@ -429,7 +443,9 @@ const filteredTasks = computed(() => {
 const taskStats = computed(() => ({
   total: tasks.value.length,
   pending: tasks.value.filter(t => t.status === 'pending').length,
+  accepted: tasks.value.filter(t => t.status === 'accepted').length,
   inProgress: tasks.value.filter(t => t.status === 'in_progress').length,
+  waitingAcceptance: tasks.value.filter(t => t.status === 'waiting_acceptance').length,
   completed: tasks.value.filter(t => t.status === 'completed').length,
 }))
 
@@ -437,6 +453,7 @@ const taskStats = computed(() => ({
 const hubStats = computed(() => ({
   pendingTasks: tasks.value.filter(t => t.status === 'pending').length,
   inProgressTasks: tasks.value.filter(t => t.status === 'in_progress' || t.status === 'accepted').length,
+  acceptedTasks: tasks.value.filter(t => t.status === 'accepted').length,
   todayCompleted: tasks.value.filter(t => t.status === 'completed').length,
   urgentProblems: problems.value.filter(p => p.issueSeverity === '严重').length,
   todayInspections: inspections.value.length,
@@ -486,22 +503,43 @@ const problemStats = computed(() => ({
   resolved: problems.value.filter(p => p.status === '已处理').length,
 }))
 
-// ========== 操作记录（演示数据，后续对接Store） ==========
+// ========== 操作记录（与 V1.1 useFarmHub.recentRecords 格式一致） ==========
+const WORKER_NAMES = ['陆启闯', '郭靖', '杨过', '张无忌', '令狐冲', '段誉', '黄蓉', '陈家洛', '任盈盈']
+const OPERATION_ACTIONS = [
+  { type: 'create', text: '创建了任务' },
+  { type: 'accept', text: '接受了任务' },
+  { type: 'start', text: '开始执行任务' },
+  { type: 'progress', text: '提交了进度反馈' },
+  { type: 'submit_acceptance', text: '提交了验收申请' },
+  { type: 'verify', text: '验收通过了任务' },
+]
+
 const recentRecords = computed(() => {
+  // 优先使用操作记录（通过 useTasks 管理），降级使用演示数据
+  const opRecords = tasksHook.taskRecords.value
+  if (opRecords && opRecords.length > 0) {
+    return opRecords.slice(0, 10).map(r => ({
+      id: r.id,
+      timestamp: new Date(r.actionTime), // Date 对象
+      operatorType: r.operatorName === '系统' ? 'system' : 'user',
+      operatorName: r.operatorName || '未知',
+      content: `${r.operatorName} ${r.actionName}【${r.taskTitle || r.taskCode}】`,
+    }))
+  }
+  // 降级：从当前任务生成演示记录
   const records = []
   const now = new Date()
   tasks.value.slice(0, 8).forEach((t, i) => {
     const date = new Date(now)
-    date.setHours(date.getHours() - (i + 1) * 2)
+    date.setHours(date.getHours() - i * 2)
+    const action = OPERATION_ACTIONS[i % OPERATION_ACTIONS.length]
+    const operatorName = t.assigneeName && t.assigneeName !== '系统' ? t.assigneeName : WORKER_NAMES[i % WORKER_NAMES.length]
     records.push({
       id: `rec-${i}`,
-      taskId: t.id,
-      taskCode: t.taskCode,
-      taskTitle: t.title,
-      operatorName: t.assigneeName || '系统',
-      operationType: ['创建任务', '开始执行', '提交验收', '验收通过', '进度更新', '修改任务'][i % 6],
-      operationTime: date.toISOString(),
-      remarks: '',
+      timestamp: date,
+      operatorType: action.type === 'verify' ? 'system' : 'user',
+      operatorName: action.type === 'verify' ? '系统' : operatorName,
+      content: `${action.type === 'verify' ? '系统' : operatorName} ${action.text}【${t.title || t.taskCode}】`,
     })
   })
   return records
@@ -637,7 +675,7 @@ function handleTaskReassign(task) { reassignTask.value = task }
 function handleTaskOvertime(task) { overtimeTask.value = task }
 
 async function handleTaskContinue(taskId) {
-  await taskStore.start(taskId)
+  await tasksHook.continueExecution(taskId)
   ElMessage.success('任务已继续执行')
 }
 
@@ -645,8 +683,36 @@ async function handleTaskContinue(taskId) {
 function handleTaskAccept(task) { verifyTaskId.value = task.id }
 
 function handleTaskRemind(task) {
-  taskStore.remind(task.id)
+  tasksHook.sendReminder(task.id)
   ElMessage.success(`已向 ${task.assigneeName || '执行人'} 发送催办提醒`)
+}
+
+// 催办冷却检查（与V1.1 useReminder.canSendReminder 逻辑一致）
+function canRemind(taskId) {
+  const reminderRecords = tasksHook.reminderRecords.value || []
+  const now = new Date()
+  const today = now.toISOString().split('T')[0]
+
+  // 检查今日催办次数
+  const todayReminders = reminderRecords.filter(
+    r => r.taskId === taskId && (r.remindedAt || '').startsWith(today)
+  )
+  if (todayReminders.length >= 5) {
+    return { allowed: false, reason: '今日催办次数已达上限(5次)' }
+  }
+
+  // 检查催办间隔
+  const lastReminder = reminderRecords.find(r => r.taskId === taskId)
+  if (lastReminder) {
+    const lastTime = new Date(lastReminder.remindedAt).getTime()
+    const intervalMs = now.getTime() - lastTime
+    if (intervalMs < 60 * 60 * 1000) {
+      const minutesLeft = Math.ceil((60 * 60 * 1000 - intervalMs) / 60000)
+      return { allowed: false, reason: `催办间隔需大于1小时，还需等待${minutesLeft}分钟` }
+    }
+  }
+
+  return { allowed: true }
 }
 
 function handleSelectExecutor(task) { selectExecutorTask.value = task }
@@ -655,7 +721,7 @@ function handleSelectExecutor(task) { selectExecutorTask.value = task }
 async function handlePublish(task) {
   if (task.status !== 'draft') return
   try {
-    await taskStore.publish(task.id)
+    await tasksHook.publishTask(task.id)
     // 获取Store中更新后的任务对象（避免传递过时的引用）
     const updatedTask = taskStore.tasks.find(t => t.id === task.id)
     selectExecutorTask.value = updatedTask || task
@@ -670,15 +736,10 @@ async function handleConfirmSelectExecutor(assigneeId, assigneeName) {
   if (!selectExecutorTask.value) return
   try {
     const taskId = selectExecutorTask.value.id
-    // 先更新任务执行人信息
-    await taskStore.updateTask(taskId, {
-      assigneeId: assigneeId,
-      assigneeName: assigneeName,
-    })
-    // 再接受任务（pending → accepted）
-    await taskStore.accept(taskId)
+    // 原子操作：设置执行人 + 状态设为 pending（与V1.1 acceptAndAssign 完全一致）
+    await tasksHook.acceptAndAssign(taskId, assigneeId, assigneeName)
     selectExecutorTask.value = null
-    ElMessage.success(`任务已分配给 ${assigneeName}`)
+    ElMessage.success(`任务已分配给 ${assigneeName}，等待执行人接受`)
   } catch (e) {
     ElMessage.error('分配执行人失败：' + (e.message || '未知错误'))
   }
@@ -695,7 +756,7 @@ function handleTaskVerifyFromDetail(taskId) {
 async function handleAcceptVerify(comments) {
   if (!verifyTaskId.value) return
   try {
-    await taskStore.complete(verifyTaskId.value, comments)
+    await tasksHook.acceptCompletion(verifyTaskId.value, comments)
     ElMessage.success('验收通过')
     verifyTaskId.value = null
     verifyTaskRecords.value = []
@@ -707,7 +768,7 @@ async function handleAcceptVerify(comments) {
 async function handleRejectVerify(reason) {
   if (!verifyTaskId.value) return
   try {
-    await taskStore.reject(verifyTaskId.value, reason)
+    await tasksHook.rejectForRework(verifyTaskId.value, reason)
     ElMessage.success('已驳回返工')
     verifyTaskId.value = null
     verifyTaskRecords.value = []
@@ -720,7 +781,7 @@ async function handleRejectVerify(reason) {
 async function handleWithdrawConfirm(reason) {
   if (!withdrawTask.value) return
   try {
-    await taskStore.withdraw(withdrawTask.value.id)
+    await tasksHook.withdrawTask(withdrawTask.value.id, reason)
     withdrawTask.value = null
     ElMessage.success('任务已撤回')
   } catch (e) {
@@ -731,7 +792,7 @@ async function handleWithdrawConfirm(reason) {
 async function handleCancelConfirm(reason) {
   if (!cancelTask.value) return
   try {
-    await taskStore.cancel(cancelTask.value.id, reason)
+    await tasksHook.cancelTask(cancelTask.value.id, reason)
     cancelTask.value = null
     ElMessage.success('任务已取消')
   } catch (e) {
@@ -743,7 +804,7 @@ async function handleCancelConfirm(reason) {
 async function handleReassignConfirm(assigneeId, assigneeName) {
   if (!reassignTask.value) return
   try {
-    await taskStore.reassign(reassignTask.value.id, assigneeId)
+    await tasksHook.reassignTask(reassignTask.value.id, assigneeId, assigneeName)
     reassignTask.value = null
     ElMessage.success('任务已重新派发')
   } catch (e) {
@@ -755,8 +816,7 @@ async function handleReassignConfirm(assigneeId, assigneeName) {
 async function handleOvertimeContinue(reason, newDeadline) {
   if (!overtimeTask.value) return
   try {
-    await taskStore.extend(overtimeTask.value.id, newDeadline, reason)
-    await taskStore.handleOvertimeContinue(overtimeTask.value.id)
+    await tasksHook.handleOvertime(overtimeTask.value.id, 'continue', { reason, newDeadline })
     overtimeTask.value = null
     ElMessage.success('已延长任务时限')
   } catch (e) {
@@ -767,7 +827,7 @@ async function handleOvertimeContinue(reason, newDeadline) {
 async function handleOvertimeAbandon(reason) {
   if (!overtimeTask.value) return
   try {
-    await taskStore.handleOvertimeAbandon(overtimeTask.value.id, reason)
+    await tasksHook.handleOvertime(overtimeTask.value.id, 'abandon', { reason })
     overtimeTask.value = null
     ElMessage.success('任务已放弃')
   } catch (e) {
@@ -801,14 +861,18 @@ function handleBatchDispatch(taskIds) {
 
 function confirmBatchDispatch() {
   if (!batchDispatchTarget.value) return
+  const targetId = batchDispatchTarget.value
+  const selectedStaff = staffOptions.value.find(s => s.value === targetId)
+  const assigneeId = selectedStaff?.value || targetId
+  const assigneeName = selectedStaff?.label || targetId
+  const count = batchDispatchTaskIds.value.length
   batchDispatchTaskIds.value.forEach(taskId => {
-    const user = (userStore.users || []).find(u => u.id === batchDispatchTarget.value)
-    taskStore.accept(taskId)
+    tasksHook.acceptAndAssign(taskId, assigneeId, assigneeName)
   })
   showBatchDispatchModal.value = false
   batchDispatchTaskIds.value = []
   selectedIds.value = []
-  ElMessage.success('批量派发完成')
+  ElMessage.success(`已将 ${count} 个任务批量派发给 ${assigneeName}`)
 }
 
 function handleBatchVerify(taskIds) {
@@ -818,7 +882,7 @@ function handleBatchVerify(taskIds) {
 
 function confirmBatchVerify() {
   batchVerifyTaskIds.value.forEach(taskId => {
-    taskStore.complete(taskId)
+    tasksHook.acceptCompletion(taskId)
   })
   showBatchVerifyConfirm.value = false
   batchVerifyTaskIds.value = []
@@ -834,7 +898,7 @@ function handleBatchDelete(taskIds) {
 function confirmBatchDelete() {
   batchDeleteLoading.value = true
   batchDeleteIds.value.forEach(taskId => {
-    taskStore.removeTask(taskId)
+    tasksHook.deleteTask(taskId)
   })
   batchDeleteLoading.value = false
   showBatchDeleteConfirm.value = false
@@ -856,13 +920,17 @@ function handleBatchReassign(taskIds) {
 
 function confirmBatchReassign() {
   if (!batchReassignTarget.value) return
+  const targetId = batchReassignTarget.value
+  const selectedStaff = staffOptions.value.find(s => s.value === targetId)
+  const assigneeId = selectedStaff?.value || targetId
+  const assigneeName = selectedStaff?.label || targetId
   batchReassignTaskIds.value.forEach(taskId => {
-    taskStore.reassign(taskId, batchReassignTarget.value)
+    tasksHook.reassignTask(taskId, assigneeId, assigneeName)
   })
   showBatchReassignModal.value = false
   batchReassignTaskIds.value = []
   selectedIds.value = []
-  ElMessage.success('批量重派完成')
+  ElMessage.success(`已将任务批量重派给 ${assigneeName}`)
 }
 
 function handleExport(taskIds) {
@@ -920,7 +988,7 @@ function handleBatchImport(importData) {
     return
   }
   importData.forEach(row => {
-    taskStore.createTask({
+    tasksHook.createTask({
       title: row.typeLabel || row.type || '农事任务',
       type: row.type || 'other',
       typeName: row.typeLabel || '',
@@ -994,7 +1062,7 @@ function handleInspectionBatchEdit(ids) {
 // ========== tasksHook代理（传递给CreateTaskModal） ==========
 // 使用 getter 确保 tasks 始终返回解包后的数组（避免 ComputedRef 传递问题）
 const tasksHookProxy = {
-  createTask: (data) => taskStore.createTask(data),
+  createTask: (data) => tasksHook.createTask(data),
   get tasks() { return (taskStore.tasks && taskStore.tasks.length > 0) ? taskStore.tasks : (tasks.value || []) },
 }
 
@@ -1008,9 +1076,9 @@ function generateDemoTaskCode(index) {
 }
 
 const DEMO_USERS = [
-  { id: 'U001', name: '张建国' }, { id: 'U002', name: '李永强' },
-  { id: 'U003', name: '王明辉' }, { id: 'U004', name: '赵志远' },
-  { id: 'U005', name: '陈大伟' }, { id: 'U006', name: '刘文斌' },
+  { id: 'U001', name: '陆启闯' }, { id: 'S001', name: '郭靖' },
+  { id: 'S002', name: '杨过' }, { id: 'S003', name: '张无忌' },
+  { id: 'S004', name: '令狐冲' }, { id: 'S005', name: '段誉' },
 ]
 const DEMO_GREENHOUSES = [
   { id: 'G001', name: 'A1号温室' }, { id: 'G002', name: 'B2号温室' },

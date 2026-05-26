@@ -86,7 +86,7 @@
               <span class="px-3 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
                 {{ getModuleLabel(workflow.module) }}
               </span>
-              <el-button link type="primary" size="small" @click="handleToggleStatus(workflow.id)">
+              <el-button link size="small" @click="handleToggleStatus(workflow.id)">
                 {{ workflow.status === 'active' ? '停用' : '启用' }}
               </el-button>
               <el-button link size="small" @click="editWorkflowAction(workflow)">
@@ -105,7 +105,6 @@
           <!-- 展开/收起按钮 -->
           <el-button
             link
-            type="primary"
             size="small"
             @click="toggleExpand(workflow.id)"
             class="flex items-center gap-2"
@@ -421,11 +420,9 @@ const handleSaveWorkflow = async () => {
     if (editingWorkflow.value) {
       // 编辑模式 - 调用Store
       await store.editWorkflow(editingWorkflow.value.id, payload)
-      ElMessage.success('编辑成功')
     } else {
       // 新增模式 - 调用Store
       await store.addWorkflow(payload)
-      ElMessage.success('新增成功')
     }
 
     closeModal()
@@ -444,7 +441,6 @@ const handleDeleteWorkflow = async (id) => {
       type: 'warning'
     })
     await store.removeWorkflow(id)
-    ElMessage.success('删除成功')
   } catch (err) {
     if (err !== 'cancel') {
       console.error('删除审批工作流失败:', err)
@@ -457,7 +453,6 @@ const handleDeleteWorkflow = async (id) => {
 const handleToggleStatus = async (id) => {
   try {
     await store.toggleWorkflowStatus(id)
-    ElMessage.success('切换状态成功')
   } catch (err) {
     console.error('切换审批工作流状态失败:', err)
     ElMessage.error('切换状态失败')

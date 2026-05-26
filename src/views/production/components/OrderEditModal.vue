@@ -68,6 +68,7 @@
                 :class="errors.cropVariety ? 'border-red-500' : ''"
                 class="pl-10"
                 @focus="showDropdown = true"
+                @input="handleSearchChange"
               />
               <button
                 v-if="searchKeyword"
@@ -301,6 +302,13 @@ function handleSelectVariety(variety) {
   searchKeyword.value = variety.label
   showDropdown.value = false
   errors.value.cropVariety = ''
+}
+
+function handleSearchChange(value) {
+  if (!value || !value.trim()) {
+    formData.value.cropVariety = ''
+    formData.value.cropCategory = ''
+  }
 }
 
 function clearSearch() {

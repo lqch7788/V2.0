@@ -455,7 +455,6 @@ const handleSaveTeam = async () => {
         description: teamForm.value.description,
         status: teamForm.value.status,
       })
-      ElMessage.success('编辑成功')
     } else {
       // 新增模式
       await createTeam({
@@ -469,7 +468,6 @@ const handleSaveTeam = async () => {
         description: teamForm.value.description,
         status: teamForm.value.status,
       })
-      ElMessage.success('新增成功')
     }
     closeTeamModal()
     loadTeams()
@@ -491,7 +489,6 @@ const handleDeleteTeam = async (id) => {
     })
     await deleteTeam(id)
     teams.value = teams.value.filter(t => t.id !== id)
-    ElMessage.success('删除成功')
   } catch {
     // 用户取消
   }
@@ -552,7 +549,6 @@ const handleSaveShift = async () => {
         description: shiftForm.value.description,
         status: shiftForm.value.status,
       })
-      ElMessage.success('编辑成功')
     } else {
       // 新增模式
       await createShift({
@@ -564,7 +560,6 @@ const handleSaveShift = async () => {
         description: shiftForm.value.description,
         status: shiftForm.value.status,
       })
-      ElMessage.success('新增成功')
     }
     closeShiftModal()
     loadShifts()
@@ -586,7 +581,6 @@ const handleDeleteShift = async (id) => {
     })
     await deleteShift(id)
     shifts.value = shifts.value.filter(s => s.id !== id)
-    ElMessage.success('删除成功')
   } catch {
     // 用户取消
   }

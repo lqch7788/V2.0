@@ -89,13 +89,13 @@
           </div>
 
           <!-- 左下角提示 -->
-          <div v-if="mapLoaded" class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+          <div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
             <p class="text-xs text-gray-500 mb-1">📍 点击标记查看详情</p>
             <p class="text-xs text-gray-400">🖱️ 滚轮缩放 · 拖拽移动</p>
           </div>
 
           <!-- 右上角基地列表 -->
-          <div v-if="mapLoaded" class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm max-h-80 overflow-y-auto w-48">
+          <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm max-h-80 overflow-y-auto w-48">
             <div class="p-2">
               <p class="text-sm font-semibold text-gray-700 mb-2 px-1">基地列表</p>
               <div v-for="base in allBases" :key="base.id" class="mb-1">
@@ -322,34 +322,35 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, ArrowDown, ArrowRight, Location, MapLocation, Back, Close, FullScreen, Rank } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Search, ArrowDown, ArrowRight, Location, MapLocation, Back, FullScreen, Rank } from '@element-plus/icons-vue'
 
 // localStorage key - 与 V1.1 保持一致
 const COMPANY_GROUPS_KEY = 'yuanxingtu_company_groups'
 
-// 园区/地块数据 - 与 V1.1 保持一致
+// 园区/地块数据 - 与 V1.1 完全一致（base ID、growthDay等所有字段）
 const initialCompanyGroups = [
   {
     id: 1,
     name: '宁波帮帮忙公司',
     bases: [
-      { id: 1, name: '上海松江基地', area: 300, unit: '亩', crop: '水稻', growthDay: 120, status: 'planting', statusText: '种植中', manager: '郭靖', phone: '13800138002', soilType: '沙壤土', ph: 6.8, coords: '121.2234,31.0342', city: '上海', province: '上海', lng: 121.2234, lat: 31.0342, intro: '总种植面积300亩，包含玻璃温室2个，连栋薄膜温室5个，日光拱棚10个，大田200亩。', greenhouseCount: 17, fieldArea: 200 },
-      { id: 2, name: '上海崇明基地', area: 800, unit: '亩', crop: '小麦', growthDay: 180, status: 'fallow', statusText: '休耕中', manager: '萧峰', phone: '13800138003', soilType: '黏土', ph: 6.2, coords: '121.24416,31.73610', city: '上海', province: '上海', lng: 121.24416, lat: 31.73610, intro: '总种植面积800亩，包含玻璃温室3个，连栋薄膜温室8个，日光拱棚15个，大田650亩。', greenhouseCount: 26, fieldArea: 650 },
-      { id: 3, name: '上海嘉定基地', area: 350, unit: '亩', crop: '蔬菜', growthDay: 90, status: 'planting', statusText: '种植中', manager: '杨过', phone: '13800138007', soilType: '沙土', ph: 7.0, coords: '121.2654,31.3754', city: '上海', province: '上海', lng: 121.2654, lat: 31.3754, intro: '总种植面积350亩，包含玻璃温室4个，连栋薄膜温室6个，日光拱棚8个，大田200亩。', greenhouseCount: 18, fieldArea: 200 },
-      { id: 4, name: '上海奉贤基地', area: 550, unit: '亩', crop: '玉米', growthDay: 100, status: 'planting', statusText: '种植中', manager: '张无忌', phone: '13800138012', soilType: '黏土', ph: 6.8, coords: '121.4745,30.9123', city: '上海', province: '上海', lng: 121.4745, lat: 30.9123, intro: '总种植面积550亩，包含玻璃温室2个，连栋薄膜温室4个，日光拱棚12个，大田450亩。', greenhouseCount: 18, fieldArea: 450 },
+      { id: 2, name: '上海松江基地', area: 300, unit: '亩', crop: '水稻', growthDay: 30, status: 'planting', statusText: '种植中', manager: '郭靖', phone: '13800138002', soilType: '沙壤土', ph: 6.8, coords: '121.2234,31.0342', city: '上海', province: '上海', lng: 121.2234, lat: 31.0342, intro: '总种植面积300亩，包含玻璃温室2个，连栋薄膜温室5个，日光拱棚10个，大田200亩。', greenhouseCount: 17, fieldArea: 200 },
+      { id: 3, name: '上海崇明基地', area: 800, unit: '亩', crop: '小麦', growthDay: 0, status: 'fallow', statusText: '休耕中', manager: '萧峰', phone: '13800138003', soilType: '黏土', ph: 6.2, coords: '121.24416,31.73610', city: '上海', province: '上海', lng: 121.24416, lat: 31.73610, intro: '总种植面积800亩，包含玻璃温室3个，连栋薄膜温室8个，日光拱棚15个，大田650亩。', greenhouseCount: 26, fieldArea: 650 },
+      { id: 7, name: '上海嘉定基地', area: 350, unit: '亩', crop: '蔬菜', growthDay: 25, status: 'planting', statusText: '种植中', manager: '杨过', phone: '13800138007', soilType: '沙土', ph: 7.0, coords: '121.2654,31.3754', city: '上海', province: '上海', lng: 121.2654, lat: 31.3754, intro: '总种植面积350亩，包含玻璃温室4个，连栋薄膜温室6个，日光拱棚8个，大田200亩。', greenhouseCount: 18, fieldArea: 200 },
+      { id: 12, name: '上海奉贤基地', area: 550, unit: '亩', crop: '玉米', growthDay: 50, status: 'planting', statusText: '种植中', manager: '张无忌', phone: '13800138012', soilType: '黏土', ph: 6.8, coords: '121.4745,30.9123', city: '上海', province: '上海', lng: 121.4745, lat: 30.9123, intro: '总种植面积550亩，包含玻璃温室2个，连栋薄膜温室4个，日光拱棚12个，大田450亩。', greenhouseCount: 18, fieldArea: 450 },
     ]
   },
   {
     id: 2,
     name: '成都帮帮您公司',
     bases: [
-      { id: 5, name: '西安雁塔基地', area: 500, unit: '亩', crop: '番茄', growthDay: 110, status: 'planting', statusText: '种植中', manager: '令狐冲', phone: '13800138001', soilType: '壤土', ph: 6.5, coords: '108.9470,34.2194', city: '西安', province: '陕西', lng: 108.9470, lat: 34.2194, intro: '总种植面积500亩，包含玻璃温室3个，连栋薄膜温室7个，日光拱棚12个，大田380亩。', greenhouseCount: 22, fieldArea: 380 },
-      { id: 6, name: '西安高新基地', area: 200, unit: '亩', crop: '草莓', growthDay: 150, status: 'planting', statusText: '种植中', manager: '狄云', phone: '13800138006', soilType: '营养土', ph: 6.4, coords: '108.8789,34.2181', city: '西安', province: '陕西', lng: 108.8789, lat: 34.2181, intro: '总种植面积200亩，包含玻璃温室5个，连栋薄膜温室3个，日光拱棚5个，大田100亩。', greenhouseCount: 13, fieldArea: 100 },
-      { id: 7, name: '宁波北仑基地', area: 600, unit: '亩', crop: '茶叶', growthDay: 200, status: 'planting', statusText: '种植中', manager: '石破天', phone: '13800138004', soilType: '壤土', ph: 6.6, coords: '121.9701,29.8947', city: '宁波', province: '浙江', lng: 121.9701, lat: 29.8947, intro: '总种植面积600亩，包含玻璃温室1个，连栋薄膜温室4个，日光拱棚8个，大田550亩。', greenhouseCount: 13, fieldArea: 550 },
-      { id: 8, name: '宁波镇海基地', area: 280, unit: '亩', crop: '水稻', growthDay: 120, status: 'planting', statusText: '种植中', manager: '陈家洛', phone: '13800138008', soilType: '壤土', ph: 6.7, coords: '121.7532,29.9543', city: '宁波', province: '浙江', lng: 121.7532, lat: 29.9543, intro: '总种植面积280亩，包含玻璃温室2个，连栋薄膜温室3个，日光拱棚6个，大田220亩。', greenhouseCount: 11, fieldArea: 220 },
-      { id: 9, name: '宁波慈溪基地', area: 420, unit: '亩', crop: '葡萄', growthDay: 140, status: 'planting', statusText: '种植中', manager: '袁承志', phone: '13800138010', soilType: '壤土', ph: 6.5, coords: '121.2678,30.1543', city: '宁波', province: '浙江', lng: 121.2678, lat: 30.1543, intro: '总种植面积420亩，包含玻璃温室3个，连栋薄膜温室5个，日光拱棚10个，大田320亩。', greenhouseCount: 18, fieldArea: 320 },
+      { id: 1, name: '西安雁塔基地', area: 500, unit: '亩', crop: '番茄', growthDay: 45, status: 'planting', statusText: '种植中', manager: '令狐冲', phone: '13800138001', soilType: '壤土', ph: 6.5, coords: '108.9470,34.2194', city: '西安', province: '陕西', lng: 108.9470, lat: 34.2194, intro: '总种植面积500亩，包含玻璃温室3个，连栋薄膜温室7个，日光拱棚12个，大田380亩。', greenhouseCount: 22, fieldArea: 380 },
+      { id: 6, name: '西安高新基地', area: 200, unit: '亩', crop: '草莓', growthDay: 55, status: 'planting', statusText: '种植中', manager: '狄云', phone: '13800138006', soilType: '营养土', ph: 6.4, coords: '108.8789,34.2181', city: '西安', province: '陕西', lng: 108.8789, lat: 34.2181, intro: '总种植面积200亩，包含玻璃温室5个，连栋薄膜温室3个，日光拱棚5个，大田100亩。', greenhouseCount: 13, fieldArea: 100 },
+      { id: 4, name: '宁波北仑基地', area: 600, unit: '亩', crop: '茶叶', growthDay: 60, status: 'planting', statusText: '种植中', manager: '石破天', phone: '13800138004', soilType: '壤土', ph: 6.6, coords: '121.9701,29.8947', city: '宁波', province: '浙江', lng: 121.9701, lat: 29.8947, intro: '总种植面积600亩，包含玻璃温室1个，连栋薄膜温室4个，日光拱棚8个，大田550亩。', greenhouseCount: 13, fieldArea: 550 },
+      { id: 8, name: '宁波镇海基地', area: 280, unit: '亩', crop: '水稻', growthDay: 40, status: 'planting', statusText: '种植中', manager: '陈家洛', phone: '13800138008', soilType: '壤土', ph: 6.7, coords: '121.7532,29.9543', city: '宁波', province: '浙江', lng: 121.7532, lat: 29.9543, intro: '总种植面积280亩，包含玻璃温室2个，连栋薄膜温室3个，日光拱棚6个，大田220亩。', greenhouseCount: 11, fieldArea: 220 },
+      { id: 10, name: '宁波慈溪基地', area: 420, unit: '亩', crop: '葡萄', growthDay: 75, status: 'planting', statusText: '种植中', manager: '袁承志', phone: '13800138010', soilType: '壤土', ph: 6.5, coords: '121.2678,30.1543', city: '宁波', province: '浙江', lng: 121.2678, lat: 30.1543, intro: '总种植面积420亩，包含玻璃温室3个，连栋薄膜温室5个，日光拱棚10个，大田320亩。', greenhouseCount: 18, fieldArea: 320 },
     ]
   },
 ]
@@ -371,6 +372,7 @@ const router = useRouter()
 const mapRef = ref(null)
 const mapLoaded = ref(false)
 let mapInstance = null
+let mapInitTimer = null // V1.1: useEffect cleanup 中的 clearTimeout(timer)
 
 const companyGroups = ref(loadCompanyGroupsFromStorage())
 
@@ -378,6 +380,7 @@ const searchName = ref('')
 const statusFilter = ref('all')
 const cropFilter = ref('all')
 const expandedCompanies = ref(companyGroups.value.map(g => g.id))
+const selectedBase = ref(null) // V1.1: 追踪当前选中的基地（地图标记点击时设置）
 const showDetailModal = ref(false)
 const selectedField = ref(null)
 const isFullscreen = ref(false)
@@ -445,11 +448,10 @@ const handleCompanySelect = (company, checked) => {
   })
 }
 
-// 导出功能
+// 导出功能 - V1.1: showAlert('导出功能'), setExportMode(false)
 const handleExport = () => {
-  console.log('导出已选择的基地:', selectedRows.value)
+  ElMessage.info('导出功能')
   exportMode.value = false
-  selectedRows.value = []
 }
 
 // 切换全屏
@@ -464,8 +466,8 @@ const initMap = () => {
   try {
     const map = window.L.map(mapRef.value, {
       center: [30.5, 113.5],
-      zoom: 8,
-      zoomControl: true,
+      zoom: 5,
+      zoomControl: false, // V1.1: zoomControl 手动添加在 bottomright
       crs: window.L.CRS.EPSG3857
     })
 
@@ -547,7 +549,8 @@ const initMap = () => {
         '">查看详情</' + 'button>' +
       '</' + 'div>'
 
-      marker.bindPopup(popupContent, { maxWidth: 300, className: 'custom-popup' })
+      marker.bindPopup(popupContent, { maxWidth: 280, className: 'custom-popup' })
+      marker.on('click', () => { selectedBase.value = base }) // V1.1: 点击标记时设置selectedBase
     })
 
     mapInstance = map
@@ -557,10 +560,11 @@ const initMap = () => {
   }
 }
 
-// 定位到地图
+// 定位到地图 - V1.1: flyTo + setSelectedBase(base)
 const flyToBase = (base) => {
   if (mapInstance) {
     mapInstance.flyTo([base.lat, base.lng], 10, { duration: 1.5 })
+    selectedBase.value = base
   }
 }
 
@@ -589,43 +593,31 @@ const handleViewDetail = (field) => {
   }
 }
 
-// 进入基地总览
+// 进入基地总览 - V1.1: navigate('/dashboard', { state: { baseId, baseName } })
 const goToDashboard = (base) => {
   if (base) {
-    router.push({ path: '/dashboard', query: { baseId: String(base.id), baseName: base.name } })
+    router.push({ path: '/dashboard', state: { baseId: base.id, baseName: base.name } })
   }
 }
 
-// 处理从地图弹窗触发的详情事件
+// 处理从地图弹窗触发的详情事件 - V1.1: setSelectedBase + setSelectedField + setShowDetailModal
 const handleShowBaseDetail = (e) => {
   const base = allBases.value.find(b => b.id === e.detail)
   if (base) {
+    selectedBase.value = base
     selectedField.value = base
     showDetailModal.value = true
   }
 }
 
-// 监听基地设置更新事件
+// 监听基地设置更新事件 - V1.1: window.addEventListener('companyGroupsUpdated', ...)
 const handleUpdate = () => {
   companyGroups.value = loadCompanyGroupsFromStorage()
 }
 
-// 监听公司数据更新
-watch(() => companyGroups.value, () => {
-  // 数据更新后重新初始化地图
-  if (mapInstance) {
-    mapInstance.remove()
-    mapInstance = null
-    mapLoaded.value = false
-    nextTick(() => {
-      initMap()
-    })
-  }
-}, { deep: true })
-
 onMounted(() => {
-  // 等待 Leaflet 加载完成后初始化地图
-  const timer = setTimeout(() => {
+  // V1.1: setTimeout → 检查 window.L → initMap
+  mapInitTimer = setTimeout(() => {
     if (window.L) {
       initMap()
     } else {
@@ -633,17 +625,18 @@ onMounted(() => {
     }
   }, 500)
 
-  // 监听地图弹窗中的查看详情按钮点击
+  // V1.1: 监听地图弹窗中的查看详情按钮点击
   window.addEventListener('showBaseDetail', handleShowBaseDetail)
-  // 监听基地设置更新事件
+  // V1.1: 监听基地设置更新事件
   window.addEventListener('companyGroupsUpdated', handleUpdate)
-
-  return () => {
-    clearTimeout(timer)
-  }
 })
 
 onUnmounted(() => {
+  // V1.1: useEffect cleanup - clearTimeout + mapInstance.remove()
+  if (mapInitTimer) {
+    clearTimeout(mapInitTimer)
+    mapInitTimer = null
+  }
   if (mapInstance) {
     mapInstance.remove()
     mapInstance = null

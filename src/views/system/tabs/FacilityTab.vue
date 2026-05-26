@@ -310,10 +310,8 @@ const handleSave = async () => {
 
     if (editingItem.value) {
       await greenhouseStore.editGreenhouse(editingItem.value.id, dataToSave)
-      ElMessage.success('编辑成功')
     } else {
       await greenhouseStore.addGreenhouse(dataToSave)
-      ElMessage.success('新增成功')
     }
     dialogVisible.value = false
     await loadData()
@@ -332,7 +330,6 @@ const handleDeleteConfirm = (gh) => {
 const handleDelete = async () => {
   try {
     await greenhouseStore.removeGreenhouse(selectedItem.value.id)
-    ElMessage.success('删除成功')
     deleteDialogVisible.value = false
     await loadData()
   } catch (err) {

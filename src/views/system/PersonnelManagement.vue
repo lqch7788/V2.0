@@ -130,7 +130,7 @@
         <!-- 重置和搜索按钮 -->
         <div class="flex gap-2">
           <el-button @click="handleResetFilters">重置</el-button>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleSearch">搜索</el-button>
         </div>
       </div>
     </div>
@@ -536,7 +536,6 @@ const handleAdd = async () => {
     await positionStore.addPosition(payload)
     showModal.value = false
     resetForm()
-    ElMessage.success('新增成功')
   } catch (err) {
     console.error('新增职务失败:', err)
   } finally {
@@ -555,7 +554,6 @@ const handleEdit = async () => {
     showModal.value = false
     editItem.value = null
     resetForm()
-    ElMessage.success('编辑成功')
   } catch (err) {
     console.error('编辑职务失败:', err)
   } finally {
@@ -619,7 +617,6 @@ const confirmDelete = async () => {
   try {
     const id = deletingItem.value.id || deletingItem.value.oid
     await positionStore.removePosition(id)
-    ElMessage.success('删除成功')
     showDeleteDialog.value = false
     deletingItem.value = null
   } catch (err) {

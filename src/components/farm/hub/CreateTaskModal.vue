@@ -1113,6 +1113,12 @@ onMounted(async () => {
   if ((greenhouseStore.greenhouses || []).length === 0) {
     greenhouseStore.loadGreenhouses()
   }
+  // 加载班组数据（与V1.1 teamFetchData() 一致，确保班组下拉框有数据）
+  if ((teamStore.teams || []).length === 0) {
+    teamStore.fetchData().catch(() => {
+      console.warn('加载班组数据失败，班组下拉框可能为空')
+    })
+  }
 })
 </script>
 

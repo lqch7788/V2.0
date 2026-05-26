@@ -144,6 +144,7 @@
 import { ref, computed } from 'vue'
 import { Clock, CircleCheckFilled, CircleCloseFilled } from '@element-plus/icons-vue'
 import TaskProgressTimeline from './TaskProgressTimeline.vue'
+import { TASK_STATUS_CONFIG } from '@/config/taskConfig'
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -156,24 +157,10 @@ const props = defineProps({
 const handleType = ref(null) // 'approve' | 'reject' | null
 const comments = ref('')
 
-/** 状态配置 */
-const STATUS_CONFIG = {
-  draft: { label: '草稿', bg: 'bg-gray-100', color: 'text-gray-500' },
-  pending: { label: '待接受', bg: 'bg-gray-100', color: 'text-gray-600' },
-  accepted: { label: '已接受', bg: 'bg-blue-50', color: 'text-blue-600' },
-  in_progress: { label: '处理中', bg: 'bg-blue-100', color: 'text-blue-700' },
-  waiting_acceptance: { label: '待验收', bg: 'bg-orange-50', color: 'text-orange-600' },
-  completed: { label: '已完成', bg: 'bg-green-50', color: 'text-green-600' },
-  rejected: { label: '返工中', bg: 'bg-red-50', color: 'text-red-600' },
-  failed: { label: '已失败', bg: 'bg-purple-50', color: 'text-purple-600' },
-  cancelled: { label: '已取消', bg: 'bg-gray-100', color: 'text-gray-500' },
-  abandoned: { label: '已放弃', bg: 'bg-red-50', color: 'text-red-400' },
-}
-
 /** 当前任务状态配置 */
 const statusConfig = computed(() => {
   if (!props.task) return { label: '', bg: '', color: '' }
-  return STATUS_CONFIG[props.task.status] || { label: props.task.status, bg: 'bg-gray-100', color: 'text-gray-600' }
+  return TASK_STATUS_CONFIG[props.task.status] || { label: props.task.status, bg: 'bg-gray-100', color: 'text-gray-600' }
 })
 
 /** 提交验收 */

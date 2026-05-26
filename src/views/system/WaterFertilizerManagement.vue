@@ -548,13 +548,9 @@ const handleSubmit = async () => {
 
   try {
     if (isEdit.value && selectedItem.value) {
-      const result = await waterFertilizerStore.updateItem(selectedItem.value.oid, itemData)
-      if (result || result === undefined) ElMessage.success('更新成功')
-      else ElMessage.error('更新失败')
+      await waterFertilizerStore.updateItem(selectedItem.value.oid, itemData)
     } else {
-      const result = await waterFertilizerStore.createItem(itemData)
-      if (result) ElMessage.success('新增成功')
-      else ElMessage.error('新增失败')
+      await waterFertilizerStore.createItem(itemData)
     }
     closeModal()
   } catch (err) {
@@ -576,7 +572,6 @@ const openDeleteConfirm = (item) => {
 const handleDelete = async () => {
   if (!selectedItem.value) return
   await waterFertilizerStore.deleteItem(selectedItem.value.oid)
-  ElMessage.success('删除成功')
   showDeleteDialog.value = false
   selectedItem.value = null
 }

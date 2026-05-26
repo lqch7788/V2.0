@@ -353,11 +353,9 @@ const handleSave = async () => {
   try {
     if (editingBase.value) {
       await baseStore.editBase(editingBase.value.oid, formData.value)
-      ElMessage.success('编辑成功')
     } else {
       const companyOid = formData.value.companyOid || `company_${Date.now()}`
       await baseStore.addBase({ ...formData.value, companyOid })
-      ElMessage.success('新增成功')
     }
     dialogVisible.value = false
     await loadData()
@@ -376,7 +374,6 @@ const handleDeleteConfirm = (base) => {
 const handleDelete = async () => {
   try {
     await baseStore.removeBase(selectedBase.value.oid)
-    ElMessage.success('删除成功')
     deleteDialogVisible.value = false
     await loadData()
   } catch (err) {

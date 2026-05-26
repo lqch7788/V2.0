@@ -4,15 +4,15 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <router-link
-            to="/settings"
+          <a
+            href="/settings"
             class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
             title="返回系统设置"
           >
             <el-icon :size="20" color="#525252">
               <ArrowLeft />
             </el-icon>
-          </router-link>
+          </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white">
               <Monitor />
@@ -148,7 +148,6 @@
         <div class="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
           <el-button
             link
-            type="primary"
             size="small"
             @click="editDeviceAction(device)"
             class="p-1 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -427,7 +426,6 @@ const handleDeleteDevice = async (oid) => {
       type: 'warning'
     })
     await deviceStore.removeDevice(oid)
-    ElMessage.success('删除成功')
   } catch (err) {
     if (err !== 'cancel') {
       console.error('删除设备失败:', err)
@@ -458,7 +456,6 @@ const handleSaveDevice = async () => {
         description: newDevice.description || undefined,
         status: newDevice.status
       })
-      ElMessage.success('更新成功')
     } else {
       // 新增模式
       await deviceStore.addDevice({
@@ -473,7 +470,6 @@ const handleSaveDevice = async () => {
         description: newDevice.description || undefined,
         status: newDevice.status
       })
-      ElMessage.success('创建成功')
     }
     handleModalClose()
   } catch (err) {

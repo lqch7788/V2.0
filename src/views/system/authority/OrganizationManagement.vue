@@ -410,7 +410,6 @@ const handleSave = async () => {
       ...(formData.orgType !== 'department' ? { departmentId: undefined, departmentName: undefined } : {})
     }
     await saveOrganization(payload)
-    ElMessage.success('保存成功')
     dialogVisible.value = false
   } catch (err) {
     ElMessage.error('保存失败')
@@ -428,7 +427,6 @@ const handleDelete = async (oid) => {
       type: 'warning'
     })
     await deleteOrganization(oid)
-    ElMessage.success('删除成功')
   } catch (err) {
     if (err !== 'cancel') {
       ElMessage.error('删除失败')

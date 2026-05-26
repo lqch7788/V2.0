@@ -147,7 +147,6 @@
             <div class="flex items-center justify-center gap-1">
               <el-button
                 link
-                type="primary"
                 size="small"
                 @click="openEditModal(row)"
                 class="p-1 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -422,12 +421,10 @@ const handleSubmit = async () => {
   if (isEdit.value && selectedItem.value) {
     // 编辑
     await deviceSystemStore.updateItem(selectedItem.value.oid, data)
-    ElMessage.success('更新成功')
   } else {
     // 新增
     const result = await deviceSystemStore.createItem(data)
     if (result) {
-      ElMessage.success('创建成功')
     }
   }
 
@@ -441,7 +438,6 @@ const handleDelete = async () => {
 
   const success = await deviceSystemStore.deleteItem(selectedItem.value.oid)
   if (success) {
-    ElMessage.success('删除成功')
   }
 
   deleteDialogVisible.value = false

@@ -186,7 +186,6 @@
             <div class="flex items-center justify-center gap-1">
               <el-button
                 link
-                type="primary"
                 :disabled="row.status !== 'success'"
                 @click="openRestoreModal(row)"
                 :title="row.status !== 'success' ? '仅成功的备份可恢复' : '恢复'"
@@ -196,7 +195,6 @@
               </el-button>
               <el-button
                 link
-                type="primary"
                 @click="handleDownload(row)"
                 title="下载"
                 size="small"
@@ -260,7 +258,6 @@
             <div class="flex items-center justify-center gap-1">
               <el-button
                 link
-                type="primary"
                 @click="handleToggleStrategy(row)"
                 :title="row.status === 'active' ? '暂停' : '启动'"
                 size="small"
@@ -533,7 +530,6 @@ const handleCreateBackup = async () => {
   backingUp.value = true
   try {
     await enhancedApiClient.post('/backup/create', { remark: '手动备份' })
-    ElMessage.success('备份创建成功')
     await fetchData()
   } catch (err) {
     console.error('备份失败:', err)
@@ -555,7 +551,6 @@ const handleDeleteBackup = async (record) => {
     if (filename) {
       await enhancedApiClient.delete(`/backup/${filename}`)
     }
-    ElMessage.success('删除成功')
     await fetchData()
   } catch (err) {
     if (err !== 'cancel') {
@@ -600,7 +595,6 @@ const handleAddStrategy = async () => {
   try {
     await strategyFormRef.value.validate()
     await enhancedApiClient.post('/backup/strategies', strategyForm)
-    ElMessage.success('创建策略成功')
     showStrategyModal.value = false
     // 重置表单
     Object.assign(strategyForm, {
@@ -623,7 +617,6 @@ const handleAddStrategy = async () => {
 const handleToggleStrategy = async (strategy) => {
   try {
     await enhancedApiClient.put(`/backup/strategies/${strategy.id}/toggle`)
-    ElMessage.success(strategy.status === 'active' ? '策略已暂停' : '策略已启动')
     await fetchData()
   } catch (err) {
     console.error('切换策略状态失败:', err)
@@ -640,7 +633,6 @@ const handleDeleteStrategy = async (strategy) => {
       type: 'warning'
     })
     await enhancedApiClient.delete(`/backup/strategies/${strategy.id}`)
-    ElMessage.success('删除成功')
     await fetchData()
   } catch (err) {
     if (err !== 'cancel') {
@@ -672,7 +664,6 @@ const handleExportRecords = () => {
   a.download = `备份记录_${new Date().toISOString().slice(0, 10)}.csv`
   a.click()
   URL.revokeObjectURL(url)
-  ElMessage.success('导出成功')
 }
 
 // 组件挂载时加载数据

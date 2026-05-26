@@ -197,18 +197,9 @@ import {
 import CalendarView from '@/components/farm/hub/CalendarView.vue'
 import TaskTable from '@/components/farm/hub/TaskTable.vue'
 
-// ========== 任务类型选项（与 taskDispatch 常量保持一致） ==========
-const TASK_TYPE_OPTIONS = [
-  { value: 'fertilization', label: '施肥' },
-  { value: 'irrigation', label: '灌溉' },
-  { value: 'pruning', label: '修剪' },
-  { value: 'pesticide', label: '植保' },
-  { value: 'rootIrrigation', label: '灌根' },
-  { value: 'planting', label: '定植' },
-  { value: 'harvest', label: '采收' },
-  { value: 'weeding', label: '除草' },
-  { value: 'other', label: '其他' },
-]
+// ========== 任务类型选项（与V1.1 FARM_OPERATION_TYPES 完全一致，从 config 导入） ==========
+import { FARM_OPERATION_TYPES } from '@/config/taskConfig'
+const TASK_TYPE_OPTIONS = FARM_OPERATION_TYPES
 
 // 可批量验收的状态
 const BATCH_ACCEPT_STATUSES = ['waiting_acceptance']
@@ -241,6 +232,7 @@ const props = defineProps({
   onContinue: { type: Function, default: null },
   onAccept: { type: Function, default: null },
   onRemind: { type: Function, default: null },
+  canRemind: { type: Function, default: null },
   onViewSop: { type: Function, default: null },
   onSelectExecutor: { type: Function, default: null },
   onPublish: { type: Function, default: null },
@@ -437,8 +429,11 @@ const handlePageSizeChange = (size) => {
   currentPage.value = 1
 }
 
-// ========== 催办功能 ==========
-const canRemindFn = () => {
+// ========== 催办功能（优先使用父组件传入的 canRemind，降级使用兜底） ==========
+const canRemindFn = (taskId) => {
+  if (typeof props.canRemind === 'function') {
+    return props.canRemind(taskId)
+  }
   return { allowed: true }
 }
 

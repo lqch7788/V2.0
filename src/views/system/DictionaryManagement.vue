@@ -1,15 +1,16 @@
 <template>
-  <div class="space-y-6 p-6">
+  <div class="space-y-6">
     <!-- 页面头部 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <router-link
-            to="/system"
-            class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          <a
+            href="/settings"
+            class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
+            title="返回系统设置"
           >
-            <el-icon :size="24" color="#4B5563"><ArrowLeft /></el-icon>
-          </router-link>
+            <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
+          </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white"><Notebook /></el-icon>
           </div>
@@ -41,7 +42,6 @@
             刷新
           </el-button>
           <el-button
-            type="primary"
             @click="showAddCategoryModal = true"
             class="h-10 px-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-lg transition-shadow"
           >
@@ -60,7 +60,6 @@
           type="text"
           placeholder="搜索字典名称或编码..."
           v-model="searchTerm"
-          @input="handleSearch"
           class="w-full"
         />
       </div>
@@ -285,13 +284,11 @@
         <div class="flex items-center justify-end gap-2 p-4 border-t border-gray-100">
           <el-button @click="isModalOpen = false">取消</el-button>
           <el-button
-            type="primary"
             @click="handleSave"
             :loading="loading"
             :disabled="!editingItem.code || !editingItem.name"
             class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium flex items-center gap-1"
           >
-            <el-icon><Check /></el-icon>
             保存
           </el-button>
         </div>
@@ -332,11 +329,9 @@
       <template #footer>
         <el-button @click="showAddCategoryModal = false">取消</el-button>
         <el-button
-          type="primary"
           @click="handleSaveNewCategory"
           class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium flex items-center gap-1"
         >
-          <el-icon><Check /></el-icon>
           保存
         </el-button>
       </template>
@@ -586,29 +581,6 @@ const handleSaveNewCategory = () => {
   showAddCategoryModal.value = false
   isNewItem.value = true
   isModalOpen.value = true
-}
-
-// 搜索处理
-const handleSearch = () => {
-  // 搜索时自动展开匹配的模块
-  if (searchTerm.value) {
-    const searchLower = searchTerm.value.toLowerCase()
-    const matchingModules = new Set()
-    DICTIONARY_MODULES.forEach(mod => {
-      const moduleCategories = getCategoriesInModule(mod.code)
-      const hasMatch = moduleCategories.some(cat => {
-        const catName = getCategoryChineseName(cat)
-        if (catName.toLowerCase().includes(searchLower) || cat.toLowerCase().includes(searchLower)) return true
-        const items = getDictionariesByCategory(cat)
-        return items.some(d =>
-          d.name.toLowerCase().includes(searchLower) ||
-          d.code.toLowerCase().includes(searchLower)
-        )
-      })
-      if (hasMatch) matchingModules.add(mod.code)
-    })
-    expandedModules.value = matchingModules
-  }
 }
 
 // 模块是否有匹配项（用于搜索过滤）

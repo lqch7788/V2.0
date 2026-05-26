@@ -693,7 +693,6 @@ const handleSave = async () => {
 
     dirty.value = false
     isEditing.value = false
-    ElMessage.success('保存成功')
     // 保存成功后重新加载数据确保一致性
     await store.loadConfigs()
     loadData()

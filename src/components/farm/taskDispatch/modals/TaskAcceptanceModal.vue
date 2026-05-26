@@ -110,13 +110,25 @@
 
       <!-- 验收操作区 -->
       <div class="border-t border-gray-200 pt-4">
-        <div v-if="!showRejectForm" class="flex gap-3 justify-end">
-          <el-button type="danger" plain @click="showRejectForm = true">
-            <el-icon><Close /></el-icon>驳回
-          </el-button>
-          <el-button type="primary" @click="handleAccept">
-            <el-icon><CircleCheck /></el-icon>通过验收
-          </el-button>
+        <div v-if="!showRejectForm" class="space-y-3">
+          <!-- 验收备注（可选） -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">验收备注（可选）</label>
+            <el-input
+              v-model="acceptComments"
+              type="textarea"
+              :rows="2"
+              placeholder="可填写验收意见或备注..."
+            />
+          </div>
+          <div class="flex gap-3 justify-end">
+            <el-button type="danger" plain @click="showRejectForm = true">
+              <el-icon><Close /></el-icon>驳回
+            </el-button>
+            <el-button type="primary" @click="handleAccept">
+              <el-icon><CircleCheck /></el-icon>通过验收
+            </el-button>
+          </div>
         </div>
         <div v-else class="bg-red-50 rounded-lg p-4">
           <h5 class="font-medium text-red-700 mb-3">驳回原因（必填）</h5>
@@ -135,6 +147,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Clock, User, Files, Camera, MapLocation, Microphone, CircleCheck, Close } from '@element-plus/icons-vue'
+import { TASK_ACTION_CONFIG, TASK_STATUS_CONFIG } from '@/config/taskConfig'
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -152,32 +165,8 @@ const sortedRecords = computed(() =>
   [...props.taskRecords].sort((a, b) => new Date(b.actionTime).getTime() - new Date(a.actionTime).getTime())
 )
 
-const actionConfigMap = {
-  create: { label: '创建', bg: 'bg-blue-100', color: 'text-blue-700' },
-  assign: { label: '派发', bg: 'bg-purple-100', color: 'text-purple-700' },
-  accept: { label: '接受', bg: 'bg-green-100', color: 'text-green-700' },
-  execute: { label: '执行', bg: 'bg-indigo-100', color: 'text-indigo-700' },
-  submit: { label: '提交验收', bg: 'bg-amber-100', color: 'text-amber-700' },
-  verify: { label: '验收通过', bg: 'bg-emerald-100', color: 'text-emerald-700' },
-  reject: { label: '驳回', bg: 'bg-red-100', color: 'text-red-700' },
-  withdraw: { label: '撤回', bg: 'bg-gray-100', color: 'text-gray-700' },
-  cancel: { label: '取消', bg: 'bg-red-100', color: 'text-red-700' },
-  reassign: { label: '重分派', bg: 'bg-orange-100', color: 'text-orange-700' },
-}
-
-const statusConfigMap = {
-  draft: { label: '草稿', bg: 'bg-gray-100', color: 'text-gray-600' },
-  pending: { label: '待接受', bg: 'bg-blue-100', color: 'text-blue-700' },
-  accepted: { label: '已接受', bg: 'bg-indigo-100', color: 'text-indigo-700' },
-  in_progress: { label: '处理中', bg: 'bg-amber-100', color: 'text-amber-700' },
-  waiting_acceptance: { label: '待验收', bg: 'bg-purple-100', color: 'text-purple-700' },
-  completed: { label: '已完成', bg: 'bg-emerald-100', color: 'text-emerald-700' },
-  rejected: { label: '已驳回', bg: 'bg-red-100', color: 'text-red-700' },
-  cancelled: { label: '已取消', bg: 'bg-gray-100', color: 'text-gray-600' },
-}
-
-const actionConfig = (action) => actionConfigMap[action] || { label: action, bg: 'bg-gray-100', color: 'text-gray-600' }
-const statusConfig = (status) => statusConfigMap[status] || { label: status, bg: 'bg-gray-100', color: 'text-gray-600' }
+const actionConfig = (action) => TASK_ACTION_CONFIG[action] || { label: action, bg: 'bg-gray-100', color: 'text-gray-600' }
+const statusConfig = (status) => TASK_STATUS_CONFIG[status] || { label: status, bg: 'bg-gray-100', color: 'text-gray-600' }
 
 const formatTime = (time) => {
   try { return new Date(time).toLocaleString('zh-CN') } catch { return time }

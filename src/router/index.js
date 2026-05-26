@@ -224,6 +224,12 @@ const routes = [
     meta: { title: '班组管理' }
   },
   {
+    path: '/settings/personnel',
+    name: 'PersonnelManagement',
+    component: () => import('@/views/system/PersonnelManagement.vue'),
+    meta: { title: '人事管理' }
+  },
+  {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('@/views/dashboard/Dashboard.vue'),

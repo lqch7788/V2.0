@@ -87,7 +87,7 @@
               </div>
             </div>
             <div class="flex items-center gap-2 border-l border-gray-200 pl-4">
-              <el-button type="primary" @click="openAddDialog">
+              <el-button @click="openAddDialog">
                 <el-icon><Plus /></el-icon> 新增
               </el-button>
               <el-button @click="toggleEditMode">
@@ -139,7 +139,6 @@
                   <div v-if="isEditing" class="flex items-center gap-2">
                     <el-button
                       link
-                      type="primary"
                       @click.stop="openEditCompanyDialog(company)"
                     >
                       <el-icon><Edit /></el-icon> 编辑
@@ -165,7 +164,6 @@
                   <td class="px-4 py-3">
                     <el-button
                       link
-                      type="primary"
                       class="text-sm font-bold hover:underline cursor-pointer"
                       @click="navigateToPark(item)"
                     >
@@ -191,7 +189,6 @@
                       <template v-if="isEditing">
                         <el-button
                           link
-                          type="primary"
                           @click="openEditBaseDialog(item, company.id)"
                         >
                           <el-icon><Edit /></el-icon>
@@ -206,7 +203,6 @@
                       </template>
                       <el-button
                         link
-                        type="primary"
                         @click="openViewBaseDialog(item, company.id)"
                       >
                         <el-icon><View /></el-icon>
@@ -584,7 +580,6 @@ const confirmDeleteCompany = (company) => {
     confirmModalConfig.onConfirm = () => {
       companyGroups.value = companyGroups.value.filter(c => c.id !== company.id)
       saveCompanyGroups(companyGroups.value)
-      ElMessage.success('公司已删除')
       showConfirmModal.value = false
     }
   }
@@ -606,7 +601,6 @@ const confirmDeleteBase = (item, company) => {
         return c
       })
       saveCompanyGroups(companyGroups.value)
-      ElMessage.success('基地已删除')
       showConfirmModal.value = false
     }
   }
@@ -665,7 +659,6 @@ const submitForm = () => {
         name: formData.name,
         bases: []
       })
-      ElMessage.success('公司已新增')
     } else {
       if (!selectedCompanyId.value) {
         ElMessage.error('请选择公司')
@@ -699,7 +692,6 @@ const submitForm = () => {
         }
         return c
       })
-      ElMessage.success('基地已新增')
       selectedCompanyId.value = null
     }
   }

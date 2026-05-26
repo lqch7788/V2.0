@@ -437,12 +437,10 @@ const handleSubmit = async () => {
   if (isEdit.value && selectedItem.value) {
     // 编辑
     await store.updateItem(selectedItem.value.oid, { ...form, showCurve: form.showCurve || 0 })
-    ElMessage.success('更新成功')
   } else {
     // 新增
     const result = await store.createItem({ ...form, showCurve: form.showCurve || 0 })
     if (result) {
-      ElMessage.success('创建成功')
     }
   }
 
@@ -456,7 +454,6 @@ const handleDelete = async () => {
 
   const success = await store.deleteItem(selectedItem.value.oid)
   if (success) {
-    ElMessage.success('删除成功')
   } else {
     ElMessage.error('删除失败')
   }

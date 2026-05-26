@@ -389,6 +389,7 @@ const INITIAL_FILTERS = {
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { WarningFilled, CircleCheck, CircleClose } from '@element-plus/icons-vue'
+import { useInspectionDataStore } from '@/stores/modules/inspectionData'
 import InspectionSearch from './InspectionSearch.vue'
 import InspectionToolbar from './InspectionToolbar.vue'
 import CreateInspectionModal from './CreateInspectionModal.vue'
@@ -543,15 +544,23 @@ const emit = defineEmits([
 ])
 
 // ============================================
+// Store
+// ============================================
+const inspectionStore = useInspectionDataStore()
+
+// ============================================
 // 本地状态
 // ============================================
-// 巡查记录本地副本（从prop同步）
-const inspectionRecords = ref(generateMockRecords())
+// 巡查记录从 Store 获取
+const inspectionRecords = computed({
+  get: () => inspectionStore.records,
+  set: (val) => { /* store 管理数据，外部不直接赋值 */ },
+})
 
-// 同步外部数据
+// 同步外部数据（外部 prop 优先）
 watch(() => props.inspections, (val) => {
   if (val && val.length > 0) {
-    inspectionRecords.value = val
+    // 外部传入时暂不覆盖 store，保留 store 数据
   }
 }, { immediate: true })
 
@@ -943,7 +952,7 @@ function handleCreateRecord() {
     problemId: newProblemId,
   }
 
-  inspectionRecords.value = [record, ...inspectionRecords.value]
+  inspectionStore.createRecord(record)
   handleCloseCreateModal()
 }
 
@@ -967,26 +976,23 @@ function onBatchRecordSelect(id) {
   }
 }
 
-function handleConfirmBatchEdit() {
-  const updatedRecords = [...inspectionRecords.value]
-  editedRecordIds.value.forEach(id => {
-    const index = updatedRecords.findIndex(r => String(r.id) === String(id))
-    if (index !== -1 && editedRecords.value[id]) {
-      const record = updatedRecords[index]
+async function handleConfirmBatchEdit() {
+  for (const id of editedRecordIds.value) {
+    if (editedRecords.value[id]) {
+      const record = inspectionRecords.value.find(r => String(r.id) === String(id))
       const edits = editedRecords.value[id]
-      if (edits.greenhouseId && edits.greenhouseId !== record.greenhouseId) {
+      const updates = { ...edits }
+      if (edits.greenhouseId && edits.greenhouseId !== record?.greenhouseId) {
         const gh = mockGreenhouses.find(g => g.id === edits.greenhouseId)
-        updatedRecords[index] = { ...record, ...edits, greenhouseName: gh?.name || record.greenhouseName }
-      } else {
-        updatedRecords[index] = { ...record, ...edits }
+        updates.greenhouseName = gh?.name || record?.greenhouseName
       }
-      if (edits.inspectorId && edits.inspectorId !== record.inspectorId) {
+      if (edits.inspectorId && edits.inspectorId !== record?.inspectorId) {
         const user = mockUsers.find(u => u.id === edits.inspectorId)
-        updatedRecords[index] = { ...updatedRecords[index], inspectorName: user?.name || record.inspectorName }
+        updates.inspectorName = user?.name || record?.inspectorName
       }
+      await inspectionStore.updateRecord(id, updates).catch(() => {})
     }
-  })
-  inspectionRecords.value = updatedRecords
+  }
   showBatchEditModal.value = false
   cancelBatchEdit()
 }
@@ -994,9 +1000,11 @@ function handleConfirmBatchEdit() {
 // ============================================
 // 批量删除
 // ============================================
-function handleConfirmBatchDelete() {
+async function handleConfirmBatchDelete() {
   const idsToDelete = new Set(selectedIds.value)
-  inspectionRecords.value = inspectionRecords.value.filter(r => !idsToDelete.has(String(r.id)))
+  for (const id of idsToDelete) {
+    await inspectionStore.deleteRecord(id).catch(() => {})
+  }
   emit('batchDelete', [...idsToDelete])
   showDeleteWarning.value = false
   emit('toggleBatchDeleteMode')
