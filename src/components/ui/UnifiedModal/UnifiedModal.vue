@@ -1,81 +1,45 @@
-<template>
-  <Dialog
-    v-model="visible"
+﻿<template>
+  <ElModal
+    :model-value="modelValue"
     :title="title"
-    :width="width"
-    :height="height"
-    :min-width="minWidth"
-    :min-height="minHeight"
-    :enable-drag="enableDrag"
-    :enable-resize="enableResize"
-    :show-maximize="showMaximize"
+    :size="size"
     :show-footer="showFooter"
-    :ok-text="okText"
+    :show-submit="showSubmit"
+    :show-close="showClose"
+    :submit-text="submitText"
     :cancel-text="cancelText"
+    :submit-loading="submitLoading"
     :close-on-click-modal="closeOnClickModal"
-    :close-on-press-escape="closeOnPressEscape"
-    @ok="handleOk"
-    @close="handleClose"
+    @update:model-value="$emit('update:modelValue', $event)"
+    @close="$emit('close')"
+    @submit="$emit('submit')"
+    @cancel="$emit('cancel')"
   >
     <slot />
-    <template #footer>
-      <slot name="footer">
-        <div class="modal-footer-content">
-          <slot name="pre-footer" />
-          <el-button @click="handleCancel">{{ cancelText }}</el-button>
-          <el-button v-if="showOk" type="primary" :loading="submitting" @click="handleOk">
-            {{ okText }}
-          </el-button>
-        </div>
-      </slot>
+    <template v-if="$slots.footer" #footer>
+      <slot name="footer" />
     </template>
-  </Dialog>
+    <template v-if="$slots['header-action']" #header-action>
+      <slot name="header-action" />
+    </template>
+  </ElModal>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import Dialog from '@/components/ui/Dialog/Dialog.vue'
+import ElModal from '../ElModal.vue'
 
-const props = defineProps({
+defineProps({
   modelValue: { type: Boolean, default: false },
   title: { type: String, default: '' },
-  width: { type: String, default: '500px' },
-  height: { type: String, default: '400px' },
-  minWidth: { type: Number, default: 300 },
-  minHeight: { type: Number, default: 200 },
-  enableDrag: { type: Boolean, default: true },
-  enableResize: { type: Boolean, default: true },
-  showMaximize: { type: Boolean, default: true },
+  size: { type: String, default: 'md' },
   showFooter: { type: Boolean, default: true },
-  showOk: { type: Boolean, default: true },
-  okText: { type: String, default: '保存' },
+  showSubmit: { type: Boolean, default: true },
+  showClose: { type: Boolean, default: true },
+  submitText: { type: String, default: '保存' },
   cancelText: { type: String, default: '取消' },
-  submitting: { type: Boolean, default: false },
-  closeOnClickModal: { type: Boolean, default: false },
-  closeOnPressEscape: { type: Boolean, default: true }
+  submitLoading: { type: Boolean, default: false },
+  closeOnClickModal: { type: Boolean, default: true }
 })
 
-const emit = defineEmits([
-  'update:modelValue',
-  'ok',
-  'cancel',
-  'close'
-])
-
-const visible = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
-})
-
-const handleOk = () => emit('ok')
-const handleCancel = () => emit('cancel')
-const handleClose = () => emit('close')
+defineEmits(['update:modelValue', 'close', 'submit', 'cancel'])
 </script>
-
-<style scoped>
-.modal-footer-content {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-</style>

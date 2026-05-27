@@ -1,5 +1,5 @@
-<template>
-  <span :class="['ui-badge', variantClass, sizeClass]">
+﻿<template>
+  <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-sm font-semibold transition-colors" :class="variantClasses">
     <slot />
   </span>
 </template>
@@ -8,48 +8,18 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  variant: {
-    type: String,
-    default: 'default' // default, success, warning, danger, info
-  },
-  size: {
-    type: String,
-    default: 'default' // default, sm, lg
-  }
+  variant: { type: String, default: 'default' }
 })
 
-const variantClass = computed(() => {
-  const variants = {
-    default: 'bg-gray-100 text-gray-600',
-    success: 'bg-emerald-100 text-emerald-700',
-    warning: 'bg-yellow-100 text-yellow-700',
-    danger: 'bg-red-100 text-red-700',
-    info: 'bg-blue-100 text-blue-700',
-    processing: 'bg-blue-100 text-blue-700',
-    pending: 'bg-yellow-100 text-yellow-700',
-    rejected: 'bg-red-100 text-red-700',
-    disabled: 'bg-gray-100 text-gray-400',
-    cancelled: 'bg-gray-100 text-gray-400'
-  }
-  return variants[props.variant] || variants.default
-})
-
-const sizeClass = computed(() => {
-  const sizes = {
-    default: 'px-2 py-0.5 text-xs',
-    sm: 'px-1.5 py-0.5 text-xs',
-    lg: 'px-2.5 py-1 text-sm'
-  }
-  return sizes[props.size] || sizes.default
-})
-</script>
-
-<style scoped>
-.ui-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 9999px;
-  font-weight: 500;
-  white-space: nowrap;
+const variantMap = {
+  default: 'border-transparent bg-gray-900 text-gray-50',
+  secondary: 'border-transparent bg-gray-100 text-gray-900',
+  destructive: 'border-transparent bg-red-500 text-gray-50',
+  outline: 'text-gray-950',
+  success: 'border-transparent bg-green-100 text-green-800',
+  warning: 'border-transparent bg-yellow-100 text-yellow-800',
+  info: 'border-transparent bg-blue-100 text-blue-800'
 }
-</style>
+
+const variantClasses = computed(() => variantMap[props.variant] || variantMap.default)
+</script>

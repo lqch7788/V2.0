@@ -39,7 +39,7 @@
 
         <!-- 状态筛选 -->
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">状态:</span>
+          <span class="text-sm text-gray-500">状态</span>
           <el-select v-model="filters.status" placeholder="请选择状态" clearable class="w-[140px]">
             <el-option v-for="item in SALARY_STATUS_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
@@ -58,7 +58,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table v-loading="loading" :data="tableData" border stripe @selection-change="handleSelectionChange" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table v-loading="loading" :data="tableData" border stripe @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="department" label="部门" width="120" />
         <el-table-column prop="month" label="月份" width="100" />
@@ -106,7 +106,7 @@
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
         <div class="text-sm text-gray-500">
-          共 {{ pagination.total }} 条记录，第 {{ pagination.current }} / {{ Math.ceil(pagination.total / pagination.pageSize) }} 页
+共 {{ pagination.total }} 条记录，第 {{ pagination.current }} / {{ Math.ceil(pagination.total / pagination.pageSize) }} 页
         </div>
         <el-pagination
           v-model:current-page="pagination.current"
@@ -217,7 +217,7 @@
 
         <div>
           <h4 class="text-sm font-medium text-gray-700 mb-3">按部门汇总</h4>
-          <el-table :data="summaryData.byDepartment" border size="small" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '12px' }">
+          <el-table :data="summaryData.byDepartment" border size="small">
             <el-table-column prop="department" label="部门" />
             <el-table-column prop="count" label="记录数" width="100" align="center" />
             <el-table-column prop="totalAmount" label="预算总额" width="150" align="right">
@@ -267,7 +267,7 @@ import { DEPT_OPTIONS, SALARY_STATUS_OPTIONS } from '@/data/laborData'
 const laborStore = useLaborStore()
 const { exportWithFormatSelect } = useExport({ fileName: '工资预算' })
 
-// 工资预算导出列配置（与表格列对应）
+// 工资预算导出列配置（与表格列对应
 const budgetExportColumns = [
   { key: 'department', label: '部门' },
   { key: 'month', label: '月份' },

@@ -89,10 +89,10 @@
       </div>
     </div>
 
-    <!-- 最近操作 -->
+    <!-- 最近操作-->
     <div class="bg-white rounded-xl p-6 shadow-sm" v-if="recentRecords.length > 0">
       <h3 class="text-base font-semibold text-gray-800 mb-4">最近考勤记录</h3>
-      <el-table :data="recentRecords" size="small" stripe :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="recentRecords" size="small" stripe>
         <el-table-column prop="workerName" label="姓名" width="100" />
         <el-table-column prop="department" label="部门" width="100" />
         <el-table-column prop="date" label="日期" width="120" />
@@ -155,7 +155,7 @@ const todayAbsentCount = computed(() => {
 
 const totalWorkers = computed(() => laborStore.workerTotal)
 
-// 最近考勤记录（最近10条）
+// 最近考勤记录（最新10条）
 const recentRecords = computed(() => {
   return laborStore.attendanceList.slice(0, 10).map(r => ({
     workerName: r.name || r.workerName || r.worker_name || '',

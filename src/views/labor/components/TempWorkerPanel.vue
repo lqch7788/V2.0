@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮栏 -->
+    <!-- 操作按钮区-->
     <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-end">
       <el-button type="primary" size="small" @click="openFormModal">
         <el-icon><Plus /></el-icon> 登记临时工
@@ -24,7 +24,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" stripe v-loading="loading">
         <el-table-column prop="employeeCode" label="工号" min-width="140" />
         <el-table-column prop="name" label="姓名" min-width="100" />
         <el-table-column prop="phone" label="手机号" min-width="120" />
@@ -192,7 +192,7 @@ const loadData = async () => {
     allData.value = laborStore.workerList
     pagination.total = laborStore.workerTotal
   } catch (e) {
-    console.error('加载临时工数据失败:', e)
+    console.error('加载临时工数据失败', e)
     error.value = '加载数据失败'
     ElMessage.error('加载数据失败')
   } finally {

@@ -1,120 +1,43 @@
-<template>
-  <div v-if="show" :class="['ui-alert', variantClass]" role="alert">
-    <div class="alert-content">
-      <div class="alert-icon">
-        <el-icon :size="20"><component :is="iconComponent" /></el-icon>
+﻿<template>
+  <div class="relative flex gap-3 p-4 rounded-lg border" :class="alertClass" role="alert">
+    <!-- Icon -->
+    <component :is="iconComp" class="w-5 h-5 flex-shrink-0 mt-0.5" :class="iconColor" />
+    <!-- Content -->
+    <div class="flex-1 space-y-1">
+      <h4 v-if="title" class="text-sm font-medium text-gray-900">{{ title }}</h4>
+      <p v-if="description" class="text-sm text-gray-600">{{ description }}</p>
+      <div v-if="$slots.action" class="pt-2">
+        <slot name="action" />
       </div>
-      <div class="alert-body">
-        <div v-if="title" class="alert-title">{{ title }}</div>
-        <div class="alert-message">
-          <slot />
-        </div>
-      </div>
-      <button v-if="closable" class="alert-close" @click="handleClose">
-        <el-icon :size="16"><Close /></el-icon>
-      </button>
     </div>
+    <!-- Close button -->
+    <button v-if="onClose" class="absolute top-4 right-4 p-1 rounded hover:bg-black/5 transition-colors" @click="onClose">
+      <el-icon :size="16"><Close /></el-icon>
+    </button>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { Close, WarningFilled, CircleCheckFilled, InfoFilled, WarningOutlined } from '@element-plus/icons-vue'
+import { computed } from 'vue'
+import { Close, InfoFilled, CircleCheckFilled, WarningFilled, CircleCloseFilled } from '@element-plus/icons-vue'
 
 const props = defineProps({
-  type: {
-    type: String,
-    default: 'info' // success, warning, error, info
-  },
-  title: {
-    type: String,
-    default: ''
-  },
-  closable: {
-    type: Boolean,
-    default: false
-  },
-  show: {
-    type: Boolean,
-    default: true
-  }
+  variant: { type: String, default: 'default' },
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
+  onClose: Function
 })
 
-const emit = defineEmits(['close'])
-
-const variantClass = computed(() => {
-  const variants = {
-    success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    error: 'bg-red-50 border-red-200 text-red-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800'
-  }
-  return variants[props.type] || variants.info
-})
-
-const iconComponent = computed(() => {
-  const icons = {
-    success: 'CircleCheckFilled',
-    warning: 'WarningFilled',
-    error: 'WarningFilled',
-    info: 'InfoFilled'
-  }
-  return icons[props.type] || icons.info
-})
-
-const handleClose = () => {
-  emit('close')
+const config = {
+  default:  { bg: 'bg-gray-50', border: 'border-gray-200', icon: InfoFilled, iconColor: 'text-gray-500' },
+  success:  { bg: 'bg-green-50', border: 'border-green-200', icon: CircleCheckFilled, iconColor: 'text-green-600' },
+  warning:  { bg: 'bg-orange-50', border: 'border-orange-200', icon: WarningFilled, iconColor: 'text-orange-600' },
+  destructive: { bg: 'bg-red-50', border: 'border-red-200', icon: CircleCloseFilled, iconColor: 'text-red-600' },
+  info:     { bg: 'bg-blue-50', border: 'border-blue-200', icon: InfoFilled, iconColor: 'text-blue-600' }
 }
+
+const current = computed(() => config[props.variant] || config.default)
+const alertClass = computed(() => [current.value.bg, current.value.border])
+const iconComp = computed(() => current.value.icon)
+const iconColor = computed(() => current.value.iconColor)
 </script>
-
-<style scoped>
-.ui-alert {
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid;
-}
-
-.alert-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.alert-icon {
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-}
-
-.alert-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.alert-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.alert-message {
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.alert-close {
-  flex-shrink: 0;
-  padding: 0.125rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  opacity: 0.6;
-  border-radius: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.alert-close:hover {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.05);
-}
-</style>

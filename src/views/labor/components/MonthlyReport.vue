@@ -95,7 +95,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" border stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" border stripe v-loading="loading">
         <template #empty>
           <div class="text-center py-8">
             <p class="text-gray-400">{{ error || '暂无月报数据' }}</p>
@@ -126,7 +126,7 @@
         </el-table-column>
         <el-table-column prop="status" label="状态" width="90" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === '已发布' ? 'success' : 'info'" size="small">{{ row.status }}</el-tag>
+            <el-tag :type="row.status === '已发放' ? 'success' : 'info'" size="small">{{ row.status }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="120" fixed="right">
@@ -176,7 +176,7 @@
           <el-descriptions-item label="月份">{{ selectedReport.month }}</el-descriptions-item>
           <el-descriptions-item label="部门">{{ selectedReport.dept }}</el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag :type="selectedReport.status === '已发布' ? 'success' : 'info'" size="small">{{ selectedReport.status }}</el-tag>
+            <el-tag :type="selectedReport.status === '已发放' ? 'success' : 'info'" size="small">{{ selectedReport.status }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="总工日数">{{ selectedReport.totalWorkdays }}</el-descriptions-item>
           <el-descriptions-item label="总工时">{{ selectedReport.totalWorkhours }}</el-descriptions-item>
@@ -226,7 +226,7 @@
             <el-form-item label="状态">
               <el-select v-model="formData.status" class="w-full">
                 <el-option label="草稿" value="草稿" />
-                <el-option label="已发布" value="已发布" />
+                <el-option label="已发放" value="已发放" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -323,9 +323,9 @@
     </el-dialog>
 
     <!-- 月报生成弹窗 -->
-    <el-dialog v-model="reportDialogVisible" title="月度工作汇总报告" width="700px">
+    <el-dialog v-model="reportDialogVisible" title="月度工作汇总报表" width="700px">
       <div v-if="generatedReport" class="space-y-6">
-        <!-- 报告头 -->
+        <!-- 报告标题-->
         <div class="bg-emerald-50 rounded-lg p-4">
           <p class="text-sm text-gray-500">报告周期</p>
           <p class="text-lg font-bold text-gray-900">{{ generatedReport.month }} / {{ generatedReport.dept }}</p>
@@ -441,7 +441,7 @@ const loadData = async () => {
     if (filters.month) params.month = filters.month
     if (filters.dept) params.dept = filters.dept
     await laborStore.fetchMonthlyReportList(params)
-    // 计算汇总统计
+    // 计算汇总数据
     const list = laborStore.monthlyReportList
     currentStats.completedTasks = list.reduce((sum, r) => sum + (r.completedTasks || 0), 0)
     currentStats.avgDailyWorkers = list.reduce((sum, r) => sum + (r.avgDailyWorkers || 0), 0)
@@ -504,7 +504,7 @@ const getRateClass = (rate) => {
 // 查询
 const handleSearch = () => { pagination.currentPage = 1; loadData() }
 
-// 生成月报 - 根据当前筛选数据生成月度汇总报告
+// 生成月报 - 根据当前筛选数据生成月度汇总报表
 const handleGenerate = () => {
   const list = reports.value
   if (list.length === 0) {

@@ -93,7 +93,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <el-table :data="paginatedData" border stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" border stripe v-loading="loading">
         <el-table-column prop="workDate" label="日期" width="120" />
         <el-table-column prop="workerName" label="员工" width="100" />
         <el-table-column prop="taskName" label="任务" width="150" />
@@ -325,7 +325,7 @@ const selectedRecord = ref(null)
 const formData = reactive({
   workerName: '',
   taskName: '',
-  unit: '斤',
+  unit: '件',
   quantity: 0,
   unitPrice: 0,
   workDate: '',
@@ -358,7 +358,7 @@ const handleAdd = () => {
   Object.assign(formData, {
     workerName: '',
     taskName: '',
-    unit: '斤',
+    unit: '件',
     quantity: 0,
     unitPrice: 0,
     workDate: '',
@@ -447,7 +447,7 @@ const handleConfirm = async (row) => {
 // 删除
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除 "${row.workerName} - ${row.taskName}" 的计件记录吗？`, '删除确认', {
+    await ElMessageBox.confirm(`确定要删除"${row.workerName} - ${row.taskName}" 的计件记录吗？`, '删除确认', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'

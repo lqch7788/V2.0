@@ -1,60 +1,30 @@
-<template>
-  <div class="ui-qrcode" :style="{ width: size + 'px', height: size + 'px' }">
-    <canvas ref="canvasRef" />
-    <div v-if="$slots.default" class="qrcode-content">
-      <slot />
-    </div>
+﻿<template>
+  <div class="inline-block bg-white p-2 rounded-lg border border-gray-200" :class="className">
+    <canvas ref="canvasRef" :width="size" :height="size" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import QRCode from 'qrcode'
+import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
-  value: { type: String, required: true },
+  value: { type: String, default: '' },
   size: { type: Number, default: 128 },
-  colorDark: { type: String, default: '#000000' },
-  colorLight: { type: String, default: '#ffffff' },
-  errorCorrectionLevel: { type: String, default: 'M' } // L, M, Q, H
+  className: { type: String, default: '' }
 })
 
 const canvasRef = ref(null)
 
-const generateQR = () => {
-  if (!canvasRef.value) return
-
-  QRCode.toCanvas(canvasRef.value, props.value, {
-    width: props.size,
-    margin: 2,
-    color: {
-      dark: props.colorDark,
-      light: props.colorLight
-    },
-    errorCorrectionLevel: props.errorCorrectionLevel
-  })
+async function renderQR() {
+  if (!canvasRef.value || !props.value) return
+  try {
+    const QRCode = await import('qrcode')
+    await QRCode.toCanvas(canvasRef.value, props.value, { width: props.size, margin: 2 })
+  } catch (e) {
+    // qrcode not available
+  }
 }
 
-onMounted(() => {
-  generateQR()
-})
-
-watch(() => [props.value, props.size], () => {
-  generateQR()
-})
+onMounted(renderQR)
+watch(() => props.value, renderQR)
 </script>
-
-<style scoped>
-.ui-qrcode {
-  position: relative;
-  display: inline-block;
-}
-
-.qrcode-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-</style>

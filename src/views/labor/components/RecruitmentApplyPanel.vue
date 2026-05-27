@@ -61,7 +61,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮栏 -->
+    <!-- 操作按钮区-->
     <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-end gap-2">
       <el-button type="primary" size="small" @click="openApplyForm">
         <el-icon><Plus /></el-icon> 新增申请
@@ -70,7 +70,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" stripe v-loading="loading">
         <el-table-column prop="applicant" label="申请人" min-width="100" />
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="position" label="申请职位" min-width="120" />

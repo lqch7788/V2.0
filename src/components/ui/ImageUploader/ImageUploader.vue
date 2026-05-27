@@ -1,118 +1,48 @@
-<template>
-  <div class="ui-image-uploader">
-    <el-upload
-      v-model:file-list="fileList"
-      :action="action"
-      :accept="accept"
-      :limit="limit"
-      :multiple="multiple"
-      :disabled="disabled"
-      :list-type="listType"
-      :auto-upload="autoUpload"
-      :show-upload-list="showUploadList"
-      :before-upload="handleBeforeUpload"
-      :on-success="handleSuccess"
-      :on-error="handleError"
-      :on-remove="handleRemove"
-      :on-preview="handlePreview"
-    >
-      <div v-if="listType === 'picture-card'" class="upload-trigger">
-        <el-icon :size="24"><Plus /></el-icon>
-        <span class="upload-text">上传图片</span>
-      </div>
-      <el-button v-else type="primary" size="small">
-        <el-icon><Upload /></el-icon>
-        点击上传
+﻿<template>
+  <el-upload
+    :action="action"
+    :list-type="listType"
+    :file-list="fileList"
+    :limit="limit"
+    :accept="accept"
+    :disabled="disabled"
+    :multiple="multiple"
+    :class="className"
+    :on-success="handleSuccess"
+    :on-error="handleError"
+    :on-remove="handleRemove"
+    :before-upload="handleBeforeUpload"
+    :http-request="customRequest"
+  >
+    <slot>
+      <el-button type="primary" :disabled="disabled">
+        <el-icon :size="16"><Upload /></el-icon>
+        <span>{{ uploadText }}</span>
       </el-button>
-    </el-upload>
-
-    <!-- 图片预览 -->
-    <el-dialog v-model="previewVisible" title="图片预览" width="600px">
-      <img :src="previewUrl" alt="preview" style="width: 100%;" />
-    </el-dialog>
-  </div>
+    </slot>
+  </el-upload>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { Plus, Upload } from '@element-plus/icons-vue'
+import { Upload } from '@element-plus/icons-vue'
 
 const props = defineProps({
-  modelValue: { type: Array, default: () => [] },
-  action: { type: String, default: '/api/upload' },
-  accept: { type: String, default: 'image/*' },
-  limit: { type: Number, default: 5 },
-  multiple: { type: Boolean, default: true },
+  action: { type: String, default: '' },
+  fileList: { type: Array, default: () => [] },
+  listType: { type: String, default: 'text' },
+  limit: { type: Number, default: undefined },
+  accept: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
-  listType: { type: String, default: 'picture-card' }, // text, picture, picture-card
-  autoUpload: { type: Boolean, default: true },
-  showUploadList: { type: Boolean, default: true }
+  multiple: { type: Boolean, default: false },
+  uploadText: { type: String, default: '上传文件' },
+  customRequest: { type: Function, default: undefined },
+  className: { type: String, default: '' }
 })
 
-const emit = defineEmits(['update:modelValue', 'change', 'success', 'error', 'remove', 'preview'])
+const emit = defineEmits(['success', 'error', 'remove', 'before-upload'])
 
-const fileList = ref(props.modelValue.map(url => ({ url })))
-const previewVisible = ref(false)
-const previewUrl = ref('')
-
-const handleBeforeUpload = (file) => {
-  const isImage = file.type.startsWith('image/')
-  const isLt5M = file.size / 1024 / 1024 < 5
-
-  if (!isImage) {
-    console.error('只能上传图片文件')
-    return false
-  }
-  if (!isLt5M) {
-    console.error('图片大小不能超过 5MB')
-    return false
-  }
-  return true
-}
-
-const handleSuccess = (response, file) => {
-  emit('success', response, file)
-  emit('change', fileList.value)
-}
-
-const handleError = (err, file) => {
-  emit('error', err, file)
-}
-
-const handleRemove = (file) => {
-  emit('remove', file)
-  emit('change', fileList.value)
-}
-
-const handlePreview = (file) => {
-  previewUrl.value = file.url
-  previewVisible.value = true
-  emit('preview', file)
-}
+const handleSuccess = (res, file, fileList) => emit('success', res, file, fileList)
+const handleError = (err, file, fileList) => emit('error', err, file, fileList)
+const handleRemove = (file, fileList) => emit('remove', file, fileList)
+const handleBeforeUpload = (file) => emit('before-upload', file)
 </script>
-
-<style scoped>
-.upload-trigger {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  border: 2px dashed #d1d5db;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  color: #6b7280;
-  transition: all 0.15s;
-}
-
-.upload-trigger:hover {
-  border-color: #10b981;
-  color: #10b981;
-}
-
-.upload-text {
-  font-size: 0.75rem;
-  margin-top: 0.5rem;
-}
-</style>

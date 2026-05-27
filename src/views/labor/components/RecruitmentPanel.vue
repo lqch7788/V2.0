@@ -63,7 +63,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮栏 -->
+    <!-- 操作按钮区-->
     <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-end gap-2">
       <el-button size="small" @click="handleExportClick">
         <el-icon><Download /></el-icon> 导出
@@ -75,7 +75,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" stripe v-loading="loading">
         <template #empty>
           <div class="text-center py-8">
             <p class="text-gray-400">{{ error || '暂无招聘数据' }}</p>
@@ -182,7 +182,7 @@
           <el-col :span="12">
             <el-form-item label="用工类型" prop="employmentType">
               <el-select v-model="formData.employmentType" placeholder="请选择用工类型">
-                <el-option label="正式工" value="正式工" />
+                <el-option label="正式员工" value="正式员工" />
                 <el-option label="临时工" value="临时工" />
                 <el-option label="季节工" value="季节工" />
                 <el-option label="实习生" value="实习生" />
@@ -209,7 +209,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="优先级" prop="priority">
+            <el-form-item label="优先类" prop="priority">
               <el-select v-model="formData.priority" placeholder="请选择">
                 <el-option v-for="item in RECRUITMENT_PRIORITY_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
               </el-select>
@@ -249,7 +249,7 @@
           <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入职位描述" />
         </el-form-item>
         <el-form-item label="岗位要求" prop="requirements">
-          <el-input v-model="formData.requirements" type="textarea" :rows="3" placeholder="请输入岗位要求/任职要求" />
+          <el-input v-model="formData.requirements" type="textarea" :rows="3" placeholder="请输入岗位要求" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -376,10 +376,10 @@ const toggleStatus = async (row) => {
   try {
     const targetStatus = row.status === '招聘中' ? '已暂停' : '招聘中'
     await laborStore.updateRecruitment(row.id, { status: targetStatus })
-    ElMessage.success(`已${row.status === '招聘中' ? '暂停' : '开启'}招聘`)
+    ElMessage.success(row.status === '招聘中' ? '暂停招聘' : '开启招聘')
     loadData()
   } catch (e) {
-    console.error('切换状态失败:', e)
+    console.error('切换状态失败', e)
   }
 }
 

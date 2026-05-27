@@ -1,130 +1,48 @@
-<template>
-  <div :class="['ui-statistic', { 'text-center': centered }]">
-    <div v-if="$slots.header || title" class="statistic-header">
-      <slot name="header">
-        <span class="statistic-title">{{ title }}</span>
-      </slot>
+﻿<template>
+  <div class="space-y-2" :class="className">
+    <p v-if="title" class="text-sm text-gray-500">{{ title }}</p>
+    <div class="flex items-baseline gap-2">
+      <span v-if="prefix" class="text-lg text-gray-600">{{ prefix }}</span>
+      <span class="text-3xl font-bold text-gray-900">{{ displayValue }}</span>
+      <span v-if="suffix" class="text-lg text-gray-600">{{ suffix }}</span>
     </div>
-    <div class="statistic-content">
-      <div class="statistic-value" :style="{ color: valueColor }">
-        <span v-if="prefix" class="statistic-prefix">{{ prefix }}</span>
-        <span class="statistic-number">{{ displayValue }}</span>
-        <span v-if="suffix" class="statistic-suffix">{{ suffix }}</span>
-      </div>
-      <div v-if="description || $slots.description" class="statistic-description">
-        <slot name="description">{{ description }}</slot>
-      </div>
-    </div>
-    <div v-if="$slots.footer" class="statistic-footer">
-      <slot name="footer" />
+    <div v-if="trend !== undefined" class="flex items-center gap-1 text-sm" :class="trendClass">
+      <el-icon :size="16"><component :is="trendIcon" /></el-icon>
+      <span>{{ trend > 0 ? '+' : '' }}{{ trend }}%</span>
+      <span class="text-gray-400">较上期</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { Top, Bottom } from '@element-plus/icons-vue'
 
 const props = defineProps({
-  title: {
-    type: String,
-    default: ''
-  },
-  value: {
-    type: [Number, String],
-    default: 0
-  },
-  precision: {
-    type: Number,
-    default: 0
-  },
-  prefix: {
-    type: String,
-    default: ''
-  },
-  suffix: {
-    type: String,
-    default: ''
-  },
-  description: {
-    type: String,
-    default: ''
-  },
-  valueColor: {
-    type: String,
-    default: '#059669'
-  },
-  centered: {
-    type: Boolean,
-    default: false
-  },
-  loading: {
-    type: Boolean,
-    default: false
-  }
+  title: { type: String, default: '' },
+  value: { type: [Number, String], default: 0 },
+  prefix: { type: String, default: '' },
+  suffix: { type: String, default: '' },
+  trend: { type: Number, default: undefined },
+  trendDirection: { type: String, default: undefined },
+  format: { type: Function, default: undefined },
+  className: { type: String, default: '' }
 })
 
 const displayValue = computed(() => {
-  if (typeof props.value === 'number') {
-    return props.value.toLocaleString('zh-CN', {
-      minimumFractionDigits: props.precision,
-      maximumFractionDigits: props.precision
-    })
-  }
+  if (props.format) return props.format(props.value)
+  if (typeof props.value === 'number') return props.value.toLocaleString()
   return props.value
 })
+
+const trendUp = computed(() => props.trendDirection === 'up' || (!props.trendDirection && props.trend > 0))
+const trendDown = computed(() => props.trendDirection === 'down' || (!props.trendDirection && props.trend < 0))
+
+const trendClass = computed(() => ({
+  'text-emerald-600': trendUp.value,
+  'text-red-600': trendDown.value,
+  'text-gray-500': !trendUp.value && !trendDown.value
+}))
+
+const trendIcon = computed(() => trendUp.value ? Top : Bottom)
 </script>
-
-<style scoped>
-.ui-statistic {
-  display: flex;
-  flex-direction: column;
-}
-
-.statistic-header {
-  margin-bottom: 0.5rem;
-}
-
-.statistic-title {
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.statistic-content {
-  flex: 1;
-}
-
-.statistic-value {
-  display: flex;
-  align-items: baseline;
-  gap: 0.25rem;
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.statistic-prefix {
-  font-size: 1rem;
-  margin-right: 0.125rem;
-}
-
-.statistic-suffix {
-  font-size: 1rem;
-  margin-left: 0.125rem;
-}
-
-.statistic-number {
-  font-variant-numeric: tabular-nums;
-}
-
-.statistic-description {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #9ca3af;
-}
-
-.statistic-footer {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-}
-</style>

@@ -39,7 +39,7 @@
           <el-option label="全部状态" value="" />
           <el-option label="待提交" value="待提交" />
           <el-option label="已提交" value="已提交" />
-          <el-option label="已审批" value="已审批" />
+          <el-option label="已审核" value="已审核" />
           <el-option label="已驳回" value="已驳回" />
           <el-option label="已取消" value="已取消" />
         </el-select>
@@ -63,9 +63,9 @@
         </p>
       </div>
       <div class="bg-white rounded-xl shadow-sm p-4">
-        <p class="text-sm text-gray-500">已审批</p>
+        <p class="text-sm text-gray-500">已审核</p>
         <p class="text-2xl font-bold text-green-600 mt-1">
-          {{ data.filter(r => r.status === '已审批').length }}
+          {{ data.filter(r => r.status === '已审核').length }}
         </p>
       </div>
       <div class="bg-white rounded-xl shadow-sm p-4">
@@ -78,7 +78,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" border stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" border stripe v-loading="loading">
         <el-table-column prop="budgetCode" label="预算编号" width="140" />
         <el-table-column prop="deptId" label="部门" width="120" />
         <el-table-column prop="budgetMonth" label="月份" width="100" />
@@ -251,7 +251,7 @@ const exportColumns = [
 const statusMap = {
   '待提交': { label: '待提交', type: 'info' },
   '已提交': { label: '已提交', type: 'warning' },
-  '已审批': { label: '已审批', type: 'success' },
+  '已审核': { label: '已审核', type: 'success' },
   '已驳回': { label: '已驳回', type: 'danger' },
   '已取消': { label: '已取消', type: 'info' }
 }
@@ -393,7 +393,7 @@ const handleApprove = async (row) => {
       cancelButtonText: '取消',
       type: 'success'
     })
-    await laborStore.updateBudget(row.id, { ...row, status: '已审批' })
+    await laborStore.updateBudget(row.id, { ...row, status: '已审核' })
     ElMessage.success('审批成功')
     detailModalVisible.value = false
     loadData()

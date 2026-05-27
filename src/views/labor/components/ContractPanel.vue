@@ -18,7 +18,7 @@
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="bg-green-50 rounded-xl p-4 shadow-sm">
-        <p class="text-sm text-green-700 font-medium">生效中</p>
+        <p class="text-sm text-green-700 font-medium">生效</p>
         <p class="text-2xl font-bold text-green-600 mt-1">{{ statusCounts.normal }}</p>
       </div>
       <div class="bg-amber-50 rounded-xl p-4 shadow-sm">
@@ -64,7 +64,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮栏 -->
+    <!-- 操作按钮 -->
     <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-end gap-2">
       <el-button size="small" @click="handleExportClick">
         <el-icon><Download /></el-icon> 导出
@@ -76,7 +76,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" stripe v-loading="loading">
         <template #empty>
           <div class="text-center py-8">
             <p class="text-gray-400">{{ error || '暂无合同数据' }}</p>
@@ -271,7 +271,7 @@ const error = ref('')
 
 // 状态映射（中文状态值）
 const statusMap = {
-  '生效中': { label: '生效中', type: 'success' },
+  '生效': { label: '生效', type: 'success' },
   '即将到期': { label: '即将到期', type: 'warning' },
   '已到期': { label: '已到期', type: 'danger' },
   '已终止': { label: '已终止', type: 'info' }
@@ -368,7 +368,7 @@ const loadData = async () => {
 
 // 统计
 const statusCounts = computed(() => ({
-  normal: allData.value.filter(r => r.status === '生效中').length,
+  normal: allData.value.filter(r => r.status === '生效').length,
   expiring: allData.value.filter(r => r.status === '即将到期').length,
   expired: allData.value.filter(r => r.status === '已到期').length,
   terminated: allData.value.filter(r => r.status === '已终止').length
@@ -518,7 +518,7 @@ const submitForm = async () => {
         } else {
           await laborStore.createContract({
             ...payload,
-            status: '生效中',
+            status: '生效',
             archiveNo: ''
           })
           ElMessage.success('创建成功')

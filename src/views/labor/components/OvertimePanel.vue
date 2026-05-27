@@ -74,7 +74,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮栏 -->
+    <!-- 操作按钮 -->
     <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-between">
       <div class="flex gap-2">
         <el-button v-if="!batchMode" type="primary" size="small" @click="openFormModal">
@@ -92,7 +92,7 @@
       </div>
       <div v-if="batchMode" class="flex items-center gap-2">
         <span class="text-sm text-gray-600">
-          已选择 <strong class="text-emerald-600">{{ selectedRows.length }}</strong> 项
+          已选择 <strong class="text-emerald-600">{{ selectedRows.length }}</strong> 条
           <span v-if="batchMode === 'edit'">（点击批量编辑进入编辑模式）</span>
           <span v-if="batchMode === 'delete'">（确认删除选中的记录）</span>
         </span>
@@ -108,7 +108,6 @@
         :data="paginatedData"
         stripe
         v-loading="loading"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }"
         @selection-change="handleSelectionChange"
       >
         <template #empty>
@@ -181,7 +180,7 @@
           <el-descriptions-item label="日期">{{ currentRecord.date }}</el-descriptions-item>
           <el-descriptions-item label="加班类型">{{ getOvertimeTypeLabel(currentRecord.overtimeType) }}</el-descriptions-item>
           <el-descriptions-item label="时长(小时)">{{ currentRecord.hours }}</el-descriptions-item>
-          <el-descriptions-item label="加班费(元)">{{ currentRecord.totalPay ? `¥${currentRecord.totalPay.toFixed(2)}` : '-' }}</el-descriptions-item>
+          <el-descriptions-item label="加班费">{{ currentRecord.totalPay ? `¥${currentRecord.totalPay.toFixed(2)}` : '-' }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="getStatusType(currentRecord.status)" size="small">
               {{ getStatusLabel(currentRecord.status) }}
@@ -228,7 +227,7 @@
         <el-form-item label="时长(小时)" prop="hours">
           <el-input-number v-model="formData.hours" :min="0.5" :max="24" :step="0.5" />
         </el-form-item>
-        <el-form-item label="加班费(元)">
+        <el-form-item label="加班费">
           <el-input-number v-model="formData.totalPay" :min="0" :precision="2" />
         </el-form-item>
         <el-form-item label="原因" prop="reason">
@@ -394,7 +393,7 @@ const handlePageSizeChange = () => { pagination.currentPage = 1; loadData() }
 const confirmBatchDelete = async () => {
   if (selectedRows.value.length === 0) { ElMessage.warning('请先选择记录'); return }
   try {
-    await ElMessageBox.confirm(`确定删除选中的${selectedRows.value.length}条记录？`, '批量删除', {
+    await ElMessageBox.confirm(`确定删除选中${selectedRows.value.length}条记录？`, '批量删除', {
       confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
     for (const row of selectedRows.value) {
@@ -403,7 +402,7 @@ const confirmBatchDelete = async () => {
     ElMessage.success(`已删除${selectedRows.value.length}条记录`)
     cancelBatchMode()
     loadData()
-  } catch { /* 用户取消或错误 */ }
+  } catch { /* 用户取消或错误*/ }
 }
 
 // 导出

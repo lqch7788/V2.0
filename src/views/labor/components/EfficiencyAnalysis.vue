@@ -45,10 +45,10 @@
           class="w-[160px]"
         />
         <el-select v-model="filters.department" placeholder="部门" clearable class="w-[160px]">
-          <el-option label="生产部" value="生产部" />
+          <el-option label="生产部门" value="生产部门" />
           <el-option label="技术部" value="技术部" />
-          <el-option label="质量部" value="质量部" />
-          <el-option label="采购部" value="采购部" />
+          <el-option label="质量部门" value="质量部门" />
+          <el-option label="采购部门" value="采购部门" />
           <el-option label="销售部" value="销售部" />
         </el-select>
         <el-button @click="handleReset">重置</el-button>
@@ -56,17 +56,17 @@
       </div>
     </div>
 
-    <!-- 核心指标仪表盘 -->
+    <!-- 核心指标仪表盘-->
     <div class="grid grid-cols-5 gap-4">
       <div class="bg-white rounded-xl shadow-sm p-4">
-        <p class="text-sm text-gray-500">总产出</p>
+        <p class="text-sm text-gray-500">总产量</p>
         <p class="text-2xl font-bold text-emerald-600 mt-1">{{ summaryMetrics.totalOutput.toLocaleString() }}</p>
-        <p class="text-xs text-gray-400 mt-1">件/斤</p>
+        <p class="text-xs text-gray-400 mt-1">公斤/人</p>
       </div>
       <div class="bg-white rounded-xl shadow-sm p-4">
         <p class="text-sm text-gray-500">人均产出</p>
         <p class="text-2xl font-bold text-blue-600 mt-1">{{ summaryMetrics.avgOutputPerWorker.toFixed(1) }}</p>
-        <p class="text-xs text-gray-400 mt-1">件/斤每人</p>
+        <p class="text-xs text-gray-400 mt-1">斤/每人</p>
       </div>
       <div class="bg-white rounded-xl shadow-sm p-4">
         <p class="text-sm text-gray-500">工时效率</p>
@@ -95,11 +95,11 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" border stripe :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" border stripe>
         <el-table-column prop="date" label="月份" width="100" />
         <el-table-column prop="department" label="部门" width="100" />
         <el-table-column prop="totalWorkers" label="总人数" width="80" align="center" />
-        <el-table-column prop="totalOutput" label="总产出" width="100" align="right">
+        <el-table-column prop="totalOutput" label="总产量" width="100" align="right">
           <template #default="{ row }">
             {{ row.totalOutput.toLocaleString() }}
           </template>
@@ -160,7 +160,7 @@
           <el-descriptions-item label="月份">{{ selectedRecord.date }}</el-descriptions-item>
           <el-descriptions-item label="部门">{{ selectedRecord.department }}</el-descriptions-item>
           <el-descriptions-item label="总人数">{{ selectedRecord.totalWorkers }}</el-descriptions-item>
-          <el-descriptions-item label="总产出">{{ selectedRecord.totalOutput.toLocaleString() }}</el-descriptions-item>
+          <el-descriptions-item label="总产量">{{ selectedRecord.totalOutput.toLocaleString() }}</el-descriptions-item>
           <el-descriptions-item label="人均产出">{{ selectedRecord.avgOutputPerWorker.toFixed(1) }}</el-descriptions-item>
           <el-descriptions-item label="总工时">{{ selectedRecord.totalHours.toLocaleString() }}</el-descriptions-item>
           <el-descriptions-item label="工时效率">{{ (selectedRecord.avgEfficiency * 100).toFixed(1) }}%</el-descriptions-item>
@@ -205,15 +205,15 @@
         <el-form-item label="部门">
           <el-select v-model="formData.department" class="w-full">
             <el-option label="技术部" value="技术部" />
-            <el-option label="运营部" value="运营部" />
-            <el-option label="市场部" value="市场部" />
-            <el-option label="生产部" value="生产部" />
+            <el-option label="运营部门" value="运营部门" />
+            <el-option label="市场部门" value="市场部门" />
+            <el-option label="生产部门" value="生产部门" />
           </el-select>
         </el-form-item>
         <el-form-item label="总人数">
           <el-input-number v-model="formData.totalWorkers" :min="0" class="w-full" />
         </el-form-item>
-        <el-form-item label="总产出">
+        <el-form-item label="总产量">
           <el-input-number v-model="formData.totalOutput" :min="0" class="w-full" />
         </el-form-item>
         <el-form-item label="总工时">
@@ -340,7 +340,7 @@ const exportColumns = [
   { key: 'date', label: '月份' },
   { key: 'department', label: '部门' },
   { key: 'totalWorkers', label: '总人数' },
-  { key: 'totalOutput', label: '总产出' },
+  { key: 'totalOutput', label: '总产量' },
   { key: 'avgOutputPerWorker', label: '人均产出' },
   { key: 'totalHours', label: '总工时' },
   { key: 'avgEfficiency', label: '工时效率' },

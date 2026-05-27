@@ -145,9 +145,9 @@
       </div>
     </div>
 
-    <!-- 月度明细表 -->
+    <!-- 月度明细 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="monthlyBudget" border stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="monthlyBudget" border stripe v-loading="loading">
         <el-table-column prop="month" label="月份" width="100" />
         <el-table-column prop="totalCost" label="总成本(万元)" width="130" align="right">
           <template #default="{ row }">

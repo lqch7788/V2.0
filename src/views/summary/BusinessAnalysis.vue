@@ -1,5 +1,5 @@
 <template>
-  <!-- 经营分析页面 - 产量分析/成本分析/人工分析/多维度对比 四合一 TAB页 -->
+  <!-- 经营分析页面 - 产量分析/成本分析/人工分析/多维度对比四合一 TAB切换 -->
   <div class="space-y-4">
     <PageHeader
       title="经营分析"
@@ -60,7 +60,7 @@
                   <el-checkbox-group v-model="selectedDimensions">
                     <el-checkbox label="crop">按作物</el-checkbox>
                     <el-checkbox label="greenhouse">按温室</el-checkbox>
-                    <el-checkbox label="time">按时段</el-checkbox>
+                    <el-checkbox label="time">按时间</el-checkbox>
                     <el-checkbox label="labor">按人工</el-checkbox>
                   </el-checkbox-group>
                 </div>
@@ -112,22 +112,22 @@
                   <el-checkbox v-model="comparisonMetrics.yield" />产量(kg)
                 </div>
                 <div class="flex items-center gap-2">
-                  <el-checkbox v-model="comparisonMetrics.amount" />产值(元)
+                  <el-checkbox v-model="comparisonMetrics.amount" />金额(万元)
                 </div>
                 <div class="flex items-center gap-2">
-                  <el-checkbox v-model="comparisonMetrics.cost" />成本(元)
+                  <el-checkbox v-model="comparisonMetrics.cost" />成本(万元)
                 </div>
                 <div class="flex items-center gap-2">
-                  <el-checkbox v-model="comparisonMetrics.profit" />利润(元)
+                  <el-checkbox v-model="comparisonMetrics.profit" />利润(万元)
                 </div>
                 <div class="flex items-center gap-2">
-                  <el-checkbox v-model="comparisonMetrics.yieldRate" />亩产量(kg/亩)
+                  <el-checkbox v-model="comparisonMetrics.yieldRate" />亩产(kg/亩)
                 </div>
                 <div class="flex items-center gap-2">
                   <el-checkbox v-model="comparisonMetrics.laborHours" />工时(h)
                 </div>
                 <div class="flex items-center gap-2">
-                  <el-checkbox v-model="comparisonMetrics.laborCost" />人工成本(元)
+                  <el-checkbox v-model="comparisonMetrics.laborCost" />人工成本(万元)
                 </div>
                 <div class="flex items-center gap-2">
                   <el-checkbox v-model="comparisonMetrics.unitPrice" />单价(元/kg)
@@ -138,7 +138,7 @@
             <!-- 对比结果表格 -->
             <div class="bg-white rounded-xl p-4 border border-gray-100">
               <h4 class="text-sm font-semibold text-gray-700 mb-3">对比结果</h4>
-              <el-table :data="tableData" stripe style="width: 100%" :header-cell-style="headerCellStyle">
+              <el-table :data="tableData" stripe style="width: 100%">
                 <el-table-column v-if="selectedDimensions.includes('crop')" prop="cropName" label="作物" width="100" />
                 <el-table-column v-if="selectedDimensions.includes('greenhouse')" prop="greenhouse" label="温室" width="100" />
                 <el-table-column v-if="selectedDimensions.includes('time')" prop="period" label="时段" width="120" />
@@ -148,24 +148,24 @@
                     {{ row.yield?.toLocaleString() || '--' }}
                   </template>
                 </el-table-column>
-                <el-table-column v-if="comparisonMetrics.amount" prop="amount" label="产值(元)" width="120">
+                <el-table-column v-if="comparisonMetrics.amount" prop="amount" label="金额(万元)" width="120">
                   <template #default="{ row }">
                     {{ row.amount ? '¥' + row.amount.toLocaleString() : '--' }}
                   </template>
                 </el-table-column>
-                <el-table-column v-if="comparisonMetrics.cost" prop="cost" label="成本(元)" width="120">
+                <el-table-column v-if="comparisonMetrics.cost" prop="cost" label="成本(万元)" width="120">
                   <template #default="{ row }">
                     {{ row.cost ? '¥' + row.cost.toLocaleString() : '--' }}
                   </template>
                 </el-table-column>
-                <el-table-column v-if="comparisonMetrics.profit" prop="profit" label="利润(元)" width="120">
+                <el-table-column v-if="comparisonMetrics.profit" prop="profit" label="利润(万元)" width="120">
                   <template #default="{ row }">
                     <span :class="row.profit >= 0 ? 'text-emerald-600' : 'text-red-600'">
                       {{ row.profit ? '¥' + row.profit.toLocaleString() : '--' }}
                     </span>
                   </template>
                 </el-table-column>
-                <el-table-column v-if="comparisonMetrics.yieldRate" prop="yieldRate" label="亩产量" width="100">
+                <el-table-column v-if="comparisonMetrics.yieldRate" prop="yieldRate" label="亩产(kg/亩)" width="100">
                   <template #default="{ row }">
                     {{ row.yieldRate ? row.yieldRate + 'kg/亩' : '--' }}
                   </template>
@@ -206,27 +206,27 @@
                   <div ref="yieldChartRef" class="h-48"></div>
                 </div>
 
-                <!-- 产值对比 -->
+                <!-- 产值对�?-->
                 <div v-if="comparisonMetrics.amount" class="h-64">
-                  <p class="text-xs text-gray-500 mb-2">产值对比 (元)</p>
+                  <p class="text-xs text-gray-500 mb-2">产值对比(万元)</p>
                   <div ref="amountChartRef" class="h-48"></div>
                 </div>
 
                 <!-- 成本对比 -->
                 <div v-if="comparisonMetrics.cost" class="h-64">
-                  <p class="text-xs text-gray-500 mb-2">成本对比 (元)</p>
+                  <p class="text-xs text-gray-500 mb-2">成本对比(万元)</p>
                   <div ref="costChartRef" class="h-48"></div>
                 </div>
 
                 <!-- 利润对比 -->
                 <div v-if="comparisonMetrics.profit" class="h-64">
-                  <p class="text-xs text-gray-500 mb-2">利润对比 (元)</p>
+                  <p class="text-xs text-gray-500 mb-2">利润对比(万元)</p>
                   <div ref="profitChartRef" class="h-48"></div>
                 </div>
 
-                <!-- 亩产量对比 -->
+                <!-- 亩产量对�?-->
                 <div v-if="comparisonMetrics.yieldRate" class="h-64">
-                  <p class="text-xs text-gray-500 mb-2">亩产量对比 (kg/亩)</p>
+                  <p class="text-xs text-gray-500 mb-2">亩产量对比(kg/亩)</p>
                   <div ref="yieldRateChartRef" class="h-48"></div>
                 </div>
 
@@ -238,13 +238,13 @@
 
                 <!-- 人工成本对比 -->
                 <div v-if="comparisonMetrics.laborCost" class="h-64">
-                  <p class="text-xs text-gray-500 mb-2">人工成本对比 (元)</p>
+                  <p class="text-xs text-gray-500 mb-2">人工成本对比(万元)</p>
                   <div ref="laborCostChartRef" class="h-48"></div>
                 </div>
 
                 <!-- 单价对比 -->
                 <div v-if="comparisonMetrics.unitPrice" class="h-64">
-                  <p class="text-xs text-gray-500 mb-2">单价对比 (元/kg)</p>
+                  <p class="text-xs text-gray-500 mb-2">单价对比(元/kg)</p>
                   <div ref="unitPriceChartRef" class="h-48"></div>
                 </div>
               </div>
@@ -271,7 +271,7 @@
 
               <!-- 表格模式 -->
               <div v-else-if="chartMode === 'table'" class="overflow-x-auto">
-                <el-table :data="processedChartData" stripe style="width: 100%" :header-cell-style="headerCellStyle">
+                <el-table :data="processedChartData" stripe style="width: 100%">
                   <el-table-column prop="cropName" label="作物" width="100" />
                   <el-table-column prop="greenhouse" label="温室" width="120" />
                   <el-table-column prop="period" label="时段" width="120" />
@@ -279,13 +279,13 @@
                   <el-table-column v-if="comparisonMetrics.yield" prop="yield" label="产量(kg)" width="120">
                     <template #default="{ row }">{{ row.yield?.toLocaleString() || '--' }}</template>
                   </el-table-column>
-                  <el-table-column v-if="comparisonMetrics.amount" prop="amount" label="产值(元)" width="120">
+                  <el-table-column v-if="comparisonMetrics.amount" prop="amount" label="金额(万元)" width="120">
                     <template #default="{ row }">{{ row.amount ? '¥' + row.amount.toLocaleString() : '--' }}</template>
                   </el-table-column>
-                  <el-table-column v-if="comparisonMetrics.cost" prop="cost" label="成本(元)" width="120">
+                  <el-table-column v-if="comparisonMetrics.cost" prop="cost" label="成本(万元)" width="120">
                     <template #default="{ row }">{{ row.cost ? '¥' + row.cost.toLocaleString() : '--' }}</template>
                   </el-table-column>
-                  <el-table-column v-if="comparisonMetrics.profit" prop="profit" label="利润(元)" width="120">
+                  <el-table-column v-if="comparisonMetrics.profit" prop="profit" label="利润(万元)" width="120">
                     <template #default="{ row }">
                       <span :class="row.profit >= 0 ? 'text-emerald-600' : 'text-red-600'">
                         {{ row.profit ? '¥' + row.profit.toLocaleString() : '--' }}
@@ -323,12 +323,6 @@ import LaborAnalysis from './sub/LaborAnalysis.vue'
 import { PageHeader } from '@/components/summary'
 
 /** 表格表头蓝色渐变样式（与V1.1一致） */
-const headerCellStyle = {
-  background: 'linear-gradient(to right, #3b82f6, #2563eb)',
-  color: '#ffffff',
-  fontWeight: '600',
-  fontSize: '14px'
-}
 
 const summaryStore = useSummaryStore()
 const activeTab = ref('yield')
@@ -382,11 +376,11 @@ const comparisonMetrics = ref({
 })
 const isLoadingComparison = computed(() => summaryStore.comparisonLoading)
 
-// 对比数据 - 从 Store 获取（与V1.1逻辑完全一致）
+// 对比数据 - 从Store获取（与V1.1逻辑完全一致）
 const rawComparisonData = computed(() => {
   const data = summaryStore.comparisonData
   if (!data || !Array.isArray(data)) return []
-  // 规范化数据（snake_case → camelCase）
+  // 规范化数据（snake_case 转 camelCase）
   return data.map(item => ({
     cropName: item.cropName || item.crop_name || '',
     greenhouse: item.greenhouse || item.greenhouse_name || '',
@@ -456,7 +450,7 @@ const chartData = computed(() => {
   }))
 })
 
-// 图表数据最终处理（直接使用chartData的值，不做重复平均）
+// 图表数据最终处理（直接使用chartData的值，不做重复平均计算）
 const processedChartData = computed(() => {
   return chartData.value.map(item => ({
     ...item,
@@ -498,10 +492,10 @@ const tableColumns = computed(() => {
 const metricColumns = computed(() => {
   const cols = []
   if (comparisonMetrics.value.yield) cols.push({ prop: 'yield', label: '产量(kg)', format: v => v?.toLocaleString() || '--' })
-  if (comparisonMetrics.value.amount) cols.push({ prop: 'amount', label: '产值(元)', format: v => v != null ? '¥' + v.toLocaleString() : '--' })
-  if (comparisonMetrics.value.cost) cols.push({ prop: 'cost', label: '成本(元)', format: v => v != null ? '¥' + v.toLocaleString() : '--' })
-  if (comparisonMetrics.value.profit) cols.push({ prop: 'profit', label: '利润(元)', format: v => v != null ? '¥' + v.toLocaleString() : '--', class: v => v >= 0 ? 'text-emerald-600' : 'text-red-600' })
-  if (comparisonMetrics.value.yieldRate) cols.push({ prop: 'yieldRate', label: '亩产量', format: v => v ? v + 'kg/亩' : '--' })
+  if (comparisonMetrics.value.amount) cols.push({ prop: 'amount', label: '金额(万元)', format: v => v != null ? '¥' + v.toLocaleString() : '--' })
+  if (comparisonMetrics.value.cost) cols.push({ prop: 'cost', label: '成本(万元)', format: v => v != null ? '¥' + v.toLocaleString() : '--' })
+  if (comparisonMetrics.value.profit) cols.push({ prop: 'profit', label: '利润(万元)', format: v => v != null ? '¥' + v.toLocaleString() : '--', class: v => v >= 0 ? 'text-emerald-600' : 'text-red-600' })
+  if (comparisonMetrics.value.yieldRate) cols.push({ prop: 'yieldRate', label: '亩产(kg/亩)', format: v => v ? v + 'kg/亩' : '--' })
   if (comparisonMetrics.value.laborHours) cols.push({ prop: 'laborHours', label: '工时(h)', format: v => v != null ? v + 'h' : '--' })
   if (comparisonMetrics.value.laborCost) cols.push({ prop: 'laborCost', label: '人工成本', format: v => v != null ? '¥' + v.toLocaleString() : '--' })
   if (comparisonMetrics.value.unitPrice) cols.push({ prop: 'unitPrice', label: '单价', format: v => v ? '¥' + v + '/kg' : '--' })
@@ -580,7 +574,7 @@ const getBarLineOption = (data, label, color, maxValue) => ({
   series: [{
     type: chartMode.value,
     data: data.map(d => {
-      const keyMap = { '产量': 'yield', '产值': 'amount', '成本': 'cost', '利润': 'profit', '亩产量': 'yieldRate', '工时': 'laborHours', '人工成本': 'laborCost', '单价': 'unitPrice' }
+      const keyMap = { '产量': 'yield', '金额': 'amount', '成本': 'cost', '利润': 'profit', '亩产': 'yieldRate', '工时': 'laborHours', '人工成本': 'laborCost', '单价': 'unitPrice' }
       const key = keyMap[label] || 'yield'
       return d[key] || 0
     }),
@@ -643,10 +637,10 @@ const initCharts = () => {
   if (chartMode.value === 'bar' || chartMode.value === 'line') {
     const chartConfigs = [
       { ref: yieldChartRef, key: 'yield', label: '产量', color: CHART_COLORS.yield },
-      { ref: amountChartRef, key: 'amount', label: '产值', color: CHART_COLORS.amount },
+      { ref: amountChartRef, key: 'amount', label: '金额', color: CHART_COLORS.amount },
       { ref: costChartRef, key: 'cost', label: '成本', color: CHART_COLORS.cost },
       { ref: profitChartRef, key: 'profit', label: '利润', color: CHART_COLORS.profit },
-      { ref: yieldRateChartRef, key: 'yieldRate', label: '亩产量', color: CHART_COLORS.yieldRate },
+      { ref: yieldRateChartRef, key: 'yieldRate', label: '亩产', color: CHART_COLORS.yieldRate },
       { ref: laborHoursChartRef, key: 'laborHours', label: '工时', color: CHART_COLORS.laborHours },
       { ref: laborCostChartRef, key: 'laborCost', label: '人工成本', color: CHART_COLORS.laborCost },
       { ref: unitPriceChartRef, key: 'unitPrice', label: '单价', color: CHART_COLORS.unitPrice }
@@ -716,7 +710,7 @@ const handleExport = () => {
 
   try {
     // 构建 CSV 内容
-    const headers = ['作物', '温室', '时段', '人工', '产量(kg)', '产值(元)', '成本(元)', '利润(元)', '亩产量(kg/亩)', '工时(h)', '人工成本(元)', '单价(元/kg)']
+    const headers = ['作物', '温室', '时段', '人工', '产量(kg)', '金额(万元)', '成本(万元)', '利润(万元)', '亩产(kg/亩)', '工时(h)', '人工成本(万元)', '单价(元/kg)']
     const rows = processedChartData.value.map(item => [
       item.cropName || '',
       item.greenhouse || '',
@@ -735,7 +729,7 @@ const handleExport = () => {
     // 添加表头
     rows.unshift(headers)
 
-    // 转换为 CSV 字符串
+    // 转换为CSV字符串
     const csvContent = rows.map(row =>
       row.map(cell => {
         // 如果包含逗号、引号或换行符，需要用引号包裹
@@ -747,7 +741,7 @@ const handleExport = () => {
       }).join(',')
     ).join('\n')
 
-    // 添加 BOM 以支持 Excel 打开中文
+    // 添加 BOM 以支持Excel打开中文
     const bom = '﻿'
     const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)

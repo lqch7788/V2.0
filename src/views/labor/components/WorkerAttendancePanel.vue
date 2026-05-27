@@ -7,7 +7,7 @@
           <Calendar />
         </el-icon>
         <span class="text-sm font-medium text-gray-700">今日排班对比（{{ todayStr }}）</span>
-        <span class="text-xs text-gray-400">数据来源：农事管理 → 排班调度</span>
+        <span class="text-xs text-gray-400">数据来源：农事管理系统-排班调度</span>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="bg-blue-50 rounded-lg p-3">
@@ -94,7 +94,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮栏 -->
+    <!-- 操作按钮区-->
     <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-between">
       <div class="flex gap-2">
         <el-button v-if="!batchMode" type="primary" size="small" @click="openFormModal">
@@ -112,8 +112,7 @@
       </div>
       <div v-if="batchMode" class="flex items-center gap-2">
         <span class="text-sm text-gray-600">
-          已选择 <strong class="text-emerald-600">{{ selectedRows.length }}</strong> 项
-        </span>
+          已选择 <strong class="text-emerald-600">{{ selectedRows.length }}</strong> 条        </span>
         <el-button size="small" @click="cancelBatchMode">取消</el-button>
       </div>
     </div>
@@ -125,7 +124,6 @@
         v-loading="loading"
         :data="paginatedData"
         stripe
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }"
         @selection-change="handleSelectionChange"
       >
         <template #empty>
@@ -405,7 +403,7 @@ const paginatedData = computed(() => {
 
 // 排班对比数据（从排班调度Store读取排班，与考勤数据交叉对比）
 const scheduleComparison = computed(() => {
-  // 今日排班数据（来自农事管理-排班调度）
+  // 今日排班数据（来自农事管理排班调度）
   const todaySchedules = scheduleStore.schedules.filter(s => s.date === todayStr)
   const scheduledIds = new Set(todaySchedules.map(s => s.staffId))
   // 今日考勤数据
@@ -536,7 +534,7 @@ const submitForm = async () => {
 // 初始化加载
 onMounted(async () => {
   await loadData()
-  // 加载排班数据用于排班对比（来自农事管理-排班调度）
+  // 加载排班数据用于排班对比（来自农事管理排班调度）
   if (scheduleStore.schedules.length === 0) {
     await scheduleStore.fetchSchedules()
   }

@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+﻿import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import 'element-plus/dist/index.css'
@@ -8,6 +8,7 @@ import router from './router'
 import pinia from './stores'
 import './styles/variables.css'
 import './styles/base.css'
+import './styles/element-plus.css'
 
 const app = createApp(App)
 

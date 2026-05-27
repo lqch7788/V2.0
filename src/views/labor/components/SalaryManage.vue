@@ -74,7 +74,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" border stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" border stripe v-loading="loading">
         <el-table-column prop="staffId" label="工号" width="100" />
         <el-table-column prop="staffName" label="姓名" width="100" />
         <el-table-column prop="month" label="月份" width="100" />
@@ -114,7 +114,7 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button size="small" :icon="View" circle @click="handleViewDetail(row)" />
-            <el-button v-if="row.calcType === '日薪制' || row.calcType === '时薪制'" size="small" :icon="Coin" circle type="warning" @click="handleCalculate(row)" />
+            <el-button v-if="row.calcType === '日薪' || row.calcType === '时薪'" size="small" :icon="Coin" circle type="warning" @click="handleCalculate(row)" />
             <el-button v-if="row.status === '已发放'" size="small" :icon="Download" circle @click="handleExport(row)" />
           </template>
         </el-table-column>
@@ -331,7 +331,7 @@ const formData = reactive({
   staffId: '',
   staffName: '',
   month: '',
-  calcType: '月薪制',
+  calcType: '月薪',
   baseSalary: 0,
   overtimePay: 0,
   bonus: 0,
@@ -375,7 +375,7 @@ const handleAdd = () => {
     staffId: '',
     staffName: '',
     month: '',
-    calcType: '月薪制',
+    calcType: '月薪',
     baseSalary: 0,
     overtimePay: 0,
     bonus: 0,

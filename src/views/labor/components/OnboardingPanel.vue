@@ -106,7 +106,7 @@
         </div>
       </div>
 
-      <el-table v-loading="loading" :data="paginatedData" stripe :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }" @selection-change="handleSelectionChange">
+      <el-table v-loading="loading" :data="paginatedData" stripe @selection-change="handleSelectionChange">
         <el-table-column v-if="batchMode" type="selection" width="50" />
         <el-table-column prop="name" label="姓名" min-width="120">
           <template #default="{ row }">
@@ -225,12 +225,12 @@
             style="width: 100%"
           />
         </el-form-item>
-        <!-- 劳务合同 → 日工资 -->
+        <!-- 劳务合同 日工资-->
         <el-form-item v-if="formData.contractType === '劳务合同'" label="日工资" prop="dailyWage">
           <el-input-number v-model="formData.dailyWage" :min="0" :precision="2" style="width: 100%" />
         </el-form-item>
-        <!-- 实习协议 → 时工资 -->
-        <el-form-item v-if="formData.contractType === '实习协议'" label="时工资" prop="hourlyWage">
+        <!-- 实习协议 计时工资-->
+        <el-form-item v-if="formData.contractType === '实习协议'" label="计时工资" prop="hourlyWage">
           <el-input-number v-model="formData.hourlyWage" :min="0" :precision="2" style="width: 100%" />
         </el-form-item>
       </el-form>

@@ -81,7 +81,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" stripe>
         <el-table-column prop="employeeName" label="员工姓名" min-width="100" />
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="approvalType" label="审批类型" min-width="120">

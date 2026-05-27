@@ -1,91 +1,32 @@
-<template>
-  <div :class="['ui-avatar', sizeClass, shapeClass, { 'avatar-group': isGroup }]" :style="containerStyle">
-    <img
-      v-if="src && !imageError"
-      :src="src"
-      :alt="name || 'avatar'"
-      class="avatar-image"
-      @error="handleImageError"
-    />
-    <span v-else class="avatar-initials">{{ initials }}</span>
-    <span v-if="status" :class="['avatar-status', statusClass]" />
+﻿<template>
+  <div class="relative inline-flex" :class="className">
+    <div class="inline-flex items-center justify-center rounded-full bg-gray-200 ring-2 ring-white overflow-hidden" :class="sizeClass" :style="src ? {} : {}">
+      <img v-if="src" :src="src" :alt="alt" class="w-full h-full object-cover" />
+      <span v-else class="font-medium text-gray-600" :class="textSize">{{ fallback }}</span>
+    </div>
+    <span v-if="status" class="absolute bottom-0 right-0 rounded-full border-2 border-white" :class="[statusSize, statusColor]" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   src: { type: String, default: '' },
-  name: { type: String, default: '' },
-  size: { type: String, default: 'md' }, // sm, md, lg, xl
-  status: { type: String, default: '' }, // online, offline, away
-  shape: { type: String, default: 'circle' }, // circle, square
-  isGroup: { type: Boolean, default: false }
+  alt: { type: String, default: '' },
+  fallback: { type: String, default: '' },
+  size: { type: String, default: 'md' },
+  status: { type: String, default: '' },
+  className: { type: String, default: '' }
 })
 
-const imageError = ref(false)
+const sizeMap = { sm: 'w-8 h-8', md: 'w-10 h-10', lg: 'w-12 h-12', xl: 'w-16 h-16' }
+const textSizeMap = { sm: 'text-xs', md: 'text-sm', lg: 'text-base', xl: 'text-lg' }
+const statusSizeMap = { sm: 'w-2 h-2', md: 'w-2.5 h-2.5', lg: 'w-3 h-3', xl: 'w-3.5 h-3.5' }
+const statusColorMap = { online: 'bg-green-500', offline: 'bg-gray-400', away: 'bg-yellow-500' }
 
-const sizeClass = computed(() => {
-  const sizes = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-12 h-12 text-base', xl: 'w-16 h-16 text-lg' }
-  return sizes[props.size] || sizes.md
-})
-
-const shapeClass = computed(() => props.shape === 'square' ? 'rounded-lg' : 'rounded-full')
-
-const statusClass = computed(() => {
-  const statusMap = { online: 'bg-green-500', offline: 'bg-gray-400', away: 'bg-yellow-500' }
-  return statusMap[props.status] || ''
-})
-
-const containerStyle = computed(() => ({
-  position: props.status ? 'relative' : undefined
-}))
-
-const initials = computed(() => {
-  if (!props.name) return '?'
-  return props.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
-})
-
-const handleImageError = () => {
-  imageError.value = true
-}
+const sizeClass = computed(() => sizeMap[props.size] || sizeMap.md)
+const textSize = computed(() => textSizeMap[props.size] || textSizeMap.md)
+const statusSize = computed(() => statusSizeMap[props.size] || statusSizeMap.md)
+const statusColor = computed(() => statusColorMap[props.status] || '')
 </script>
-
-<style scoped>
-.ui-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: #f3f4f6;
-  flex-shrink: 0;
-}
-
-.avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-initials {
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.avatar-status {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  border-radius: 50%;
-  border: 2px solid white;
-}
-
-.avatar-group {
-  margin-left: -0.5rem;
-}
-
-.avatar-group:first-child {
-  margin-left: 0;
-}
-</style>

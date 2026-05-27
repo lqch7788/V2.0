@@ -98,7 +98,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮栏 -->
+    <!-- 操作按钮-->
     <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-between">
       <div class="flex gap-2">
         <el-button v-if="!batchMode" type="primary" size="small" @click="openFormModal">
@@ -116,7 +116,7 @@
       </div>
       <div v-if="batchMode" class="flex items-center gap-2">
         <span class="text-sm text-gray-600">
-          已选择 <strong class="text-emerald-600">{{ selectedRows.length }}</strong> 项
+          已选择 <strong class="text-emerald-600">{{ selectedRows.length }}</strong> 
         </span>
         <el-button size="small" @click="cancelBatchMode">取消</el-button>
       </div>
@@ -129,7 +129,6 @@
         :data="paginatedData"
         stripe
         v-loading="loading"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }"
         row-class-name="staff-table-row"
         @selection-change="handleSelectionChange"
       >
@@ -139,7 +138,7 @@
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="position" label="岗位" min-width="100" />
         <el-table-column prop="team" label="班组" min-width="100" />
-        <el-table-column prop="phone" label="手机号" min-width="120" />
+        <el-table-column prop="phone" label="手机" min-width="120" />
         <el-table-column prop="joinDate" label="入职日期" min-width="120" />
         <el-table-column prop="skillLevel" label="技能等级" min-width="100" />
         <el-table-column prop="contractStatus" label="合同状态" min-width="100">
@@ -178,9 +177,9 @@
         <div class="flex items-center gap-2 text-sm text-gray-500">
           <span>每页</span>
           <el-select v-model="pagination.pageSize" size="small" style="width: 80px" @change="handlePageSizeChange">
-            <el-option :value="10" label="10条" />
-            <el-option :value="20" label="20条" />
-            <el-option :value="50" label="50条" />
+            <el-option :value="10" label="10" />
+            <el-option :value="20" label="20" />
+            <el-option :value="50" label="50" />
           </el-select>
         </div>
         <el-pagination
@@ -200,7 +199,7 @@
           <el-descriptions-item label="工号">{{ currentRecord.code }}</el-descriptions-item>
           <el-descriptions-item label="姓名">{{ currentRecord.name }}</el-descriptions-item>
           <el-descriptions-item label="性别">{{ currentRecord.gender }}</el-descriptions-item>
-          <el-descriptions-item label="手机号">{{ currentRecord.phone }}</el-descriptions-item>
+          <el-descriptions-item label="手机">{{ currentRecord.phone }}</el-descriptions-item>
           <el-descriptions-item label="部门">{{ currentRecord.department }}</el-descriptions-item>
           <el-descriptions-item label="岗位">{{ currentRecord.position }}</el-descriptions-item>
           <el-descriptions-item label="入职日期">{{ currentRecord.joinDate }}</el-descriptions-item>
@@ -241,13 +240,13 @@
           <el-col :span="12">
             <el-form-item label="性别" prop="gender">
               <el-radio-group v-model="formData.gender">
-                <el-radio label="男">男</el-radio>
-                <el-radio label="女">女</el-radio>
+                <el-radio label="男" value="男" />
+                <el-radio label="女" value="女" />
               </el-radio-group>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="手机号" prop="phone">
+            <el-form-item label="手机" prop="phone">
               <el-input v-model="formData.phone" placeholder="请输入手机号" />
             </el-form-item>
           </el-col>
@@ -342,17 +341,17 @@
         <el-row :gutter="16">
           <el-col :span="8">
             <el-form-item label="联系人姓名">
-              <el-input v-model="formData.emergencyName" placeholder="请输入" />
+              <el-input v-model="formData.emergencyName" placeholder="请输入联系人姓名" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="关系">
-              <el-input v-model="formData.emergencyRelation" placeholder="如: 配偶" />
+              <el-input v-model="formData.emergencyRelation" placeholder="如：配偶" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="联系电话">
-              <el-input v-model="formData.emergencyPhone" placeholder="请输入" />
+              <el-input v-model="formData.emergencyPhone" placeholder="请输入联系电话" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -381,7 +380,7 @@
           <el-col :span="12">
             <el-form-item label="合同状态">
               <el-select v-model="formData.contractStatus" placeholder="请选择合同状态">
-                <el-option label="生效中" value="生效中" />
+                <el-option label="生效" value="生效" />
                 <el-option label="即将到期" value="即将到期" />
                 <el-option label="已到期" value="已到期" />
                 <el-option label="已终止" value="已终止" />
@@ -389,7 +388,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="合同到期日">
+            <el-form-item label="合同到期日期">
               <el-date-picker
                 v-model="formData.contractEndDate"
                 type="date"
@@ -420,7 +419,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="毕业院校">
-              <el-input v-model="formData.graduatedSchool" placeholder="请输入" />
+              <el-input v-model="formData.graduatedSchool" placeholder="请输入毕业院校" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -452,11 +451,11 @@ import { DEPT_OPTIONS, POSITIONS } from '@/data/laborData'
 
 const laborStore = useLaborStore()
 
-// 部门/岗位列表 - 从配置获取
+// 部门/岗位列表 - 从配置获
 const departments = computed(() => DEPT_OPTIONS.filter(d => d.value).map(d => ({ dictLabel: d.label, value: d.value })))
 const positionOptions = computed(() => POSITIONS.map(p => ({ dictLabel: p, value: p })))
 
-// 状态映射
+// 状态映
 const statusMap = {
   active: { label: '在职', type: 'success' },
   trial: { label: '试用期', type: 'warning' },
@@ -465,13 +464,13 @@ const statusMap = {
 
 const getStatusLabel = (status) => statusMap[status]?.label || status
 const getStatusType = (status) => statusMap[status]?.type || 'info'
-// 合同状态标签类型映射
+// 合同状态标签类型映
 const getContractStatusType = (status) => {
-  const map = { '生效中': 'success', '即将到期': 'warning', '已到期': 'danger', '已终止': 'info' }
+  const map = { '生效': 'success', '即将到期': 'warning', '已到期': 'danger', '已终止': 'info' }
   return map[status] || 'info'
 }
 
-// 筛选条件
+// 筛选条
 const filters = reactive({
   keyword: '',
   department: '',
@@ -574,7 +573,7 @@ const loadWorkers = async () => {
   }
 }
 
-// 组件挂载时加载数据
+// 组件挂载时加载数
 onMounted(() => { loadWorkers() })
 
 // 统计
@@ -583,7 +582,7 @@ const activeCount = computed(() => allData.value.filter(r => r.status === 'activ
 const trialCount = computed(() => allData.value.filter(r => r.status === 'trial').length)
 const leaveCount = computed(() => allData.value.filter(r => r.status === 'inactive').length)
 
-// 筛选后的数据
+// 筛选后的数
 const filteredData = computed(() => {
   return allData.value.filter(record => {
     if (filters.keyword && !record.name.includes(filters.keyword) && !record.code.includes(filters.keyword)) return false

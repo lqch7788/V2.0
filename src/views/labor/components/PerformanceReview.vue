@@ -53,7 +53,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.evaluated }}</p>
-            <p class="text-xs text-gray-500">已评估</p>
+            <p class="text-xs text-gray-500">已评分</p>
           </div>
         </div>
       </div>
@@ -90,8 +90,8 @@
         />
         <el-select v-model="filters.status" placeholder="状态" clearable class="w-[140px]">
           <el-option label="全部" value="" />
-          <el-option label="待评估" value="待评估" />
-          <el-option label="已评估" value="已评估" />
+          <el-option label="待评分" value="待评分" />
+          <el-option label="已评分" value="已评分" />
         </el-select>
         <el-button @click="handleReset">重置</el-button>
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -108,7 +108,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <!-- 批量操作栏 -->
+      <!-- 批量操作 -->
       <div v-if="batchMode" class="flex items-center gap-3 px-4 py-2.5 bg-blue-50 border-b border-blue-200">
         <span class="text-sm text-blue-700 font-medium">已选择 {{ selectedRows.length }} 条记录</span>
         <el-button type="warning" size="small" @click="handleConfirmBatchEdit" :disabled="selectedRows.length === 0">批量编辑</el-button>
@@ -116,7 +116,7 @@
         <el-button size="small" @click="handleCancelBatch">取消批量模式</el-button>
       </div>
 
-      <el-table ref="tableRef" :data="paginatedData" border stripe @selection-change="handleSelectionChange" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table ref="tableRef" :data="paginatedData" border stripe @selection-change="handleSelectionChange">
         <el-table-column v-if="batchMode" type="selection" width="55" />
         <el-table-column prop="staffId" label="工号" width="100" />
         <el-table-column prop="staffName" label="姓名" width="100" />
@@ -159,7 +159,7 @@
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.status === '已评估' ? 'success' : 'warning'" size="small">{{ row.status }}</el-tag>
+            <el-tag :type="row.status === '已评分' ? 'success' : 'warning'" size="small">{{ row.status }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
@@ -256,8 +256,8 @@
           <el-col :span="12">
             <el-form-item label="状态">
               <el-select v-model="formData.status" class="w-full">
-                <el-option label="待评估" value="待评估" />
-                <el-option label="已评估" value="已评估" />
+                <el-option label="待评分" value="待评分" />
+                <el-option label="已评分" value="已评分" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -304,7 +304,7 @@
           </el-descriptions-item>
           <el-descriptions-item label="排名">{{ selectedRecord.rank }}</el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag :type="selectedRecord.status === '已评估' ? 'success' : 'warning'" size="small">{{ selectedRecord.status }}</el-tag>
+            <el-tag :type="selectedRecord.status === '已评分' ? 'success' : 'warning'" size="small">{{ selectedRecord.status }}</el-tag>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -351,8 +351,8 @@ const loadData = async () => {
     allData.value = laborStore.performanceList
     const list = allData.value
     stats.total = list.length
-    stats.evaluated = list.filter(r => r.status === '已评估').length
-    const evaluated = list.filter(r => r.status === '已评估' && r.totalScore > 0)
+    stats.evaluated = list.filter(r => r.status === '已评分').length
+    const evaluated = list.filter(r => r.status === '已评分' && r.totalScore > 0)
     stats.avgScore = evaluated.length ? Math.round(evaluated.reduce((s, r) => s + Number(r.totalScore), 0) / evaluated.length) : 0
   } catch (e) {
     console.error('加载绩效数据失败:', e)
@@ -375,7 +375,7 @@ const getDefaultMonth = () => new Date().toISOString().slice(0, 7)
 const formData = reactive({
   id: null, staffId: '', staffName: '', department: '生产部', month: getDefaultMonth(),
   taskCompletionRate: 0, attendanceRate: 0, workQuality: 0,
-  safetyCompliance: 0, teamworkAttitude: 0, status: '待评估'
+  safetyCompliance: 0, teamworkAttitude: 0, status: '待评分'
 })
 
 // 重置
@@ -395,7 +395,7 @@ const handleAdd = () => {
   Object.assign(formData, {
     id: null, staffId: '', staffName: '', department: '生产部', month: getDefaultMonth(),
     taskCompletionRate: 0, attendanceRate: 0, workQuality: 0,
-    safetyCompliance: 0, teamworkAttitude: 0, status: '待评估'
+    safetyCompliance: 0, teamworkAttitude: 0, status: '待评分'
   })
   modalVisible.value = true
 }
@@ -454,7 +454,7 @@ const handleView = (row) => { selectedRecord.value = row; detailModalVisible.val
 // 删除
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除 "${row.staffName} - ${row.month}" 的考核记录吗？`, '删除确认', {
+    await ElMessageBox.confirm(`确定要删除"${row.staffName} - ${row.month}" 的考核记录吗？`, '删除确认', {
       confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
     await laborStore.deletePerformance(row.id)
@@ -463,7 +463,7 @@ const handleDelete = async (row) => {
   } catch { /* 用户取消 */ }
 }
 
-// 批量操��模式
+// 批量操作模式
 const batchMode = ref(false)
 const tableRef = ref(null)
 const selectedRows = ref([])
@@ -500,7 +500,7 @@ const handleConfirmBatchDelete = async () => {
   }
   try {
     await ElMessageBox.confirm(
-      `确定要删除选中的 ${selectedRows.value.length} 条考核记录吗？`,
+      `确定要删除选中${selectedRows.value.length} 条考核记录吗？`,
       '批量删除确认',
       { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
     )

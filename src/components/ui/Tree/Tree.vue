@@ -1,74 +1,42 @@
-<template>
-  <div class="ui-tree">
-    <TreeNode
-      v-for="node in data"
-      :key="node.key"
-      :node="node"
-      :level="0"
-      :selectable="selectable"
-      :checkable="checkable"
-      :expanded-keys="expandedKeys"
-      :checked-keys="checkedKeys"
-      :selected-keys="selectedKeys"
-      @toggle="handleToggle"
-      @check="handleCheck"
-      @select="handleSelect"
-    />
-  </div>
+﻿<template>
+  <el-tree
+    :data="data"
+    :props="treeProps"
+    :node-key="nodeKey"
+    :default-expanded-keys="defaultExpandedKeys"
+    :default-checked-keys="defaultCheckedKeys"
+    :show-checkbox="showCheckbox"
+    :highlight-current="highlightCurrent"
+    :expand-on-click-node="expandOnClickNode"
+    :check-on-click-node="checkOnClickNode"
+    :class="className"
+    @node-click="handleNodeClick"
+    @check="handleCheck"
+  >
+    <template #default="{ node, data: nodeData }">
+      <slot :node="node" :data="nodeData" />
+    </template>
+  </el-tree>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import TreeNode from './TreeNode.vue'
+import { ElTree } from 'element-plus'
 
 const props = defineProps({
   data: { type: Array, default: () => [] },
-  selectable: { type: Boolean, default: false },
-  checkable: { type: Boolean, default: false },
-  expandedKeys: { type: Array, default: () => [] },
-  checkedKeys: { type: Array, default: () => [] },
-  selectedKeys: { type: Array, default: () => [] }
+  treeProps: { type: Object, default: () => ({ children: 'children', label: 'label' }) },
+  nodeKey: { type: String, default: 'id' },
+  defaultExpandedKeys: { type: Array, default: () => [] },
+  defaultCheckedKeys: { type: Array, default: () => [] },
+  showCheckbox: { type: Boolean, default: false },
+  highlightCurrent: { type: Boolean, default: false },
+  expandOnClickNode: { type: Boolean, default: true },
+  checkOnClickNode: { type: Boolean, default: false },
+  className: { type: String, default: '' }
 })
 
-const emit = defineEmits(['expand', 'check', 'select', 'update:expandedKeys', 'update:checkedKeys', 'update:selectedKeys'])
+const emit = defineEmits(['node-click', 'check'])
 
-const internalExpandedKeys = ref([...props.expandedKeys])
-const internalCheckedKeys = ref([...props.checkedKeys])
-const internalSelectedKeys = ref([...props.selectedKeys])
-
-const handleToggle = (key) => {
-  const index = internalExpandedKeys.value.indexOf(key)
-  if (index > -1) {
-    internalExpandedKeys.value.splice(index, 1)
-  } else {
-    internalExpandedKeys.value.push(key)
-  }
-  emit('update:expandedKeys', internalExpandedKeys.value)
-  emit('expand', internalExpandedKeys.value)
-}
-
-const handleCheck = (key) => {
-  const index = internalCheckedKeys.value.indexOf(key)
-  if (index > -1) {
-    internalCheckedKeys.value.splice(index, 1)
-  } else {
-    internalCheckedKeys.value.push(key)
-  }
-  emit('update:checkedKeys', internalCheckedKeys.value)
-  emit('check', internalCheckedKeys.value)
-}
-
-const handleSelect = (key) => {
-  internalSelectedKeys.value = [key]
-  emit('update:selectedKeys', internalSelectedKeys.value)
-  emit('select', internalSelectedKeys.value)
-}
+const handleNodeClick = (data, node) => emit('node-click', data, node)
+const handleCheck = (data, checkedInfo) => emit('check', data, checkedInfo)
 </script>
-
-<style scoped>
-.ui-tree {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-}
-</style>
