@@ -25,7 +25,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-xs text-gray-500">待审核</p>
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@
           <el-select v-model="typeFilter" placeholder="全部" style="width: 100%">
             <el-option label="全部" value="全部" />
             <el-option label="补签卡" value="补签卡" />
-            <el-option label="请假条" value="请假条" />
+            <el-option label="请假单" value="请假单" />
             <el-option label="加班单" value="加班单" />
             <el-option label="出差单" value="出差单" />
           </el-select>
@@ -70,7 +70,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
           <el-select v-model="statusFilter" placeholder="全部" style="width: 100%">
             <el-option label="全部" value="全部" />
-            <el-option label="待审批" value="待审批" />
+            <el-option label="待审核" value="待审核" />
             <el-option label="已通过" value="已通过" />
             <el-option label="已拒绝" value="已拒绝" />
           </el-select>
@@ -97,7 +97,6 @@
         <el-table
           :data="paginatedData"
           style="width: 100%"
-          :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
         >
           <el-table-column prop="code" label="单据编号" min-width="140" />
           <el-table-column prop="type" label="单据类型" min-width="100" />
@@ -141,7 +140,7 @@
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-        <div class="text-sm text-gray-500">共 {{ filteredData.length }} 条记录</div>
+        <div class="text-sm text-gray-500">共 {{ filteredData.length }} 条记录/div>
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-500">每页</span>
           <el-select v-model="pageSize" @change="currentPage = 1" style="width: 80px">
@@ -180,11 +179,11 @@ import {
 
 // 考勤单据模拟数据（与V1.1完全一致）
 const hrDocuments = ref([
-  { id: 1, code: 'DOC20240315', type: '补签卡', applicant: '李明轩', dept: '生产部', applyDate: '2024-03-15', targetTime: '2024-03-15 08:15', reason: '上班途中遇到交通事故', status: '待审批', statusClass: 'pending' },
-  { id: 2, code: 'DOC20240314', type: '请假条', applicant: '张伟民', dept: '生产部', applyDate: '2024-03-14', targetTime: '2024-03-18 至 2024-03-20', reason: '家中急事需要处理', status: '已通过', statusClass: 'success' },
-  { id: 3, code: 'DOC20240313', type: '加班单', applicant: '王建国', dept: '技术部', applyDate: '2024-03-13', targetTime: '2024-03-14 18:00-21:00', reason: '完成技术方案文档', status: '已通过', statusClass: 'success' },
-  { id: 4, code: 'DOC20240312', type: '出差单', applicant: '赵俊杰', dept: '技术部', applyDate: '2024-03-12', targetTime: '2024-03-20 至 2024-03-22', reason: '参加农业技术交流会', status: '已拒绝', statusClass: 'danger' },
-  { id: 5, code: 'DOC20240311', type: '补签卡', applicant: '钱文涛', dept: '生产部', applyDate: '2024-03-11', targetTime: '2024-03-11 09:00', reason: '突发身体不适迟到', status: '已通过', statusClass: 'success' },
+  { id: 1, code: 'DOC20240315', type: '补签卡', applicant: '李明', dept: '生产部', applyDate: '2024-03-15', targetTime: '2024-03-15 08:15', reason: '上班途中遇到交通事故', status: '待审核', statusClass: 'pending' },
+  { id: 2, code: 'DOC20240314', type: '请假单', applicant: '张伟', dept: '生产部', applyDate: '2024-03-14', targetTime: '2024-03-18至2024-03-20', reason: '家中急事需要处理', status: '已通过', statusClass: 'success' },
+  { id: 3, code: 'DOC20240313', type: '加班单', applicant: '王建', dept: '技术部', applyDate: '2024-03-13', targetTime: '2024-03-14 18:00-21:00', reason: '完成技术方案文档', status: '已通过', statusClass: 'success' },
+  { id: 4, code: 'DOC20240312', type: '出差单', applicant: '赵俊', dept: '技术部', applyDate: '2024-03-12', targetTime: '2024-03-20至2024-03-22', reason: '参加农业技术交流会', status: '已拒绝', statusClass: 'danger' },
+  { id: 5, code: 'DOC20240311', type: '补签卡', applicant: '钱文', dept: '生产部', applyDate: '2024-03-11', targetTime: '2024-03-11 09:00', reason: '突发身体不适迟到', status: '已通过', statusClass: 'success' },
 ])
 
 // 筛选
@@ -199,7 +198,7 @@ const pageSize = ref(5)
 const stats = computed(() => {
   const all = hrDocuments.value
   return {
-    pending: all.filter(d => d.status === '待审批').length,
+    pending: all.filter(d => d.status === '待审核').length,
     approved: all.filter(d => d.status === '已通过').length,
     rejected: all.filter(d => d.status === '已拒绝').length
   }
@@ -227,6 +226,6 @@ const handleSearch = () => {
 
 // 新增单据
 const handleAdd = () => {
-  // 待实现
+  // TODO: 待实现
 }
 </script>

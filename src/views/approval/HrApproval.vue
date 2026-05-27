@@ -22,7 +22,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-xs text-gray-500">待审核</p>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@
     <!-- 筛选栏 - V1.1: bg-[#F2F6FA] -->
     <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap gap-4 items-end">
-        <!-- 关键词搜索 -->
+        <!-- 关键词搜索-->
         <div class="flex-1 min-w-[180px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">关键词搜索</label>
           <el-input
@@ -73,7 +73,7 @@
             clearable
           />
         </div>
-        <!-- 类型筛选 -->
+        <!-- 类型筛选-->
         <div class="min-w-[150px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">审批类型</label>
           <el-select v-model="typeFilter" placeholder="全部类型" class="w-full">
@@ -90,17 +90,17 @@
             <el-option label="转岗申请" value="transfer" />
           </el-select>
         </div>
-        <!-- 状态筛选 -->
+        <!-- 状态筛选-->
         <div class="min-w-[150px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
           <el-select v-model="statusFilter" placeholder="全部状态" class="w-full">
             <el-option label="全部状态" value="all" />
-            <el-option label="待审批" value="pending" />
+            <el-option label="待审核" value="pending" />
             <el-option label="已通过" value="approved" />
             <el-option label="已拒绝" value="rejected" />
           </el-select>
         </div>
-        <!-- 开始日期 -->
+        <!-- 开始日期-->
         <div class="min-w-[150px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
           <el-date-picker
@@ -134,7 +134,7 @@
 
     <!-- 数据列表 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <!-- 表格标题栏 -->
+      <!-- 表格标题行-->
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900">人事审批</h3>
         <!-- 批量操作按钮 -->
@@ -182,7 +182,6 @@
       <el-table
         :data="paginatedData"
         style="width: 100%"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
         @selection-change="handleRowSelectionChange"
       >
         <el-table-column type="selection" width="50" align="center" />
@@ -326,7 +325,7 @@
         </div>
         <!-- 审批流程 -->
         <div v-if="currentRecord.approvers && currentRecord.approvers.length > 0" class="border-t pt-4 mt-4">
-          <h4 class="font-medium mb-3">审批人</h4>
+          <h4 class="font-medium mb-3">审批意见</h4>
           <div class="space-y-2">
             <div v-for="(approver, index) in currentRecord.approvers" :key="index" class="flex items-center justify-between p-2 bg-gray-50 rounded">
               <div>
@@ -356,7 +355,7 @@
       <p class="text-gray-700">确定要通过该审批申请吗？</p>
       <div v-if="currentRecord" class="mt-3 p-3 bg-gray-50 rounded">
         <p><strong>申请人：</strong>{{ currentRecord.applicantName }}</p>
-        <p><strong>类型：</strong>{{ currentRecord.typeName }}</p>
+        <p><strong>类型名称：</strong>{{ currentRecord.typeName }}</p>
       </div>
       <div class="mt-4">
         <label class="block text-sm font-medium text-gray-700 mb-1">审批意见（可选）</label>
@@ -378,7 +377,7 @@
       <p class="text-gray-700">确定要驳回该审批申请吗？</p>
       <div v-if="currentRecord" class="mt-3 p-3 bg-gray-50 rounded">
         <p><strong>申请人：</strong>{{ currentRecord.applicantName }}</p>
-        <p><strong>类型：</strong>{{ currentRecord.typeName }}</p>
+        <p><strong>类型名称：</strong>{{ currentRecord.typeName }}</p>
       </div>
       <template #footer>
         <el-button @click="rejectModalOpen = false">取消</el-button>
@@ -389,7 +388,7 @@
     <!-- 批量通过确认弹窗 -->
     <el-dialog v-model="batchApproveModalOpen" title="批量审批确认" width="400px" destroy-on-close>
       <p class="text-gray-700">
-        确定要通过选中的 <strong class="text-green-600">{{ selectedRowKeys.length }}</strong> 项审批吗？
+        确定要通过选中项<strong class="text-green-600">{{ selectedRowKeys.length }}</strong> 项审批吗？
       </p>
       <div class="mt-4">
         <label class="block text-sm font-medium text-gray-700 mb-1">审批意见（可选）</label>
@@ -409,7 +408,7 @@
     <!-- 批量驳回确认弹窗 -->
     <el-dialog v-model="batchRejectModalOpen" title="批量驳回确认" width="400px" destroy-on-close>
       <p class="text-gray-700">
-        确定要驳回选中的 <strong class="text-red-600">{{ selectedRowKeys.length }}</strong> 项审批吗？
+        确定要驳回选中项<strong class="text-red-600">{{ selectedRowKeys.length }}</strong> 项审批吗？
       </p>
       <template #footer>
         <el-button @click="batchRejectModalOpen = false">取消</el-button>
@@ -733,7 +732,7 @@ const handleExport = () => {
   ElMessage.success('导出成功')
 }
 
-// 初始化 - 从API加载数据
+// 初始加载 - 从API加载数据
 onMounted(async () => {
   await approvalStore.fetchApprovals()
 })

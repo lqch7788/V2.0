@@ -131,7 +131,7 @@ const routes = [
     path: '/settings/crop-variety',
     name: 'CropVariety',
     component: () => import('@/views/system/CropVarietyManagement.vue'),
-    meta: { title: '作物品种库' }
+    meta: { title: '作物品种' },
   },
   {
     path: '/settings/processes',
@@ -143,13 +143,13 @@ const routes = [
     path: '/settings/plant-settings',
     name: 'PlantSettings',
     component: () => import('@/views/system/PlantSettingManagement.vue'),
-    meta: { title: '种植设置' }
+    meta: { title: '品种设置' }
   },
   {
     path: '/settings/cost-accounting',
     name: 'CostAccounting',
     component: () => import('@/views/system/CostAccounting.vue'),
-    meta: { title: '成本核算' }
+    meta: { title: '成本计算' }
   },
   {
     path: '/settings/device-systems',
@@ -167,7 +167,7 @@ const routes = [
     path: '/settings/water-fertilizer',
     name: 'WaterFertilizer',
     component: () => import('@/views/system/WaterFertilizerManagement.vue'),
-    meta: { title: '水肥一体机' }
+    meta: { title: '水肥一体化机' }
   },
   {
     path: '/settings/device',
@@ -209,7 +209,7 @@ const routes = [
     path: '/settings/alarm-configs',
     name: 'AlarmConfigs',
     component: () => import('@/views/system/AlarmConfigManagement.vue'),
-    meta: { title: '警报管理' }
+    meta: { title: '报表管理' }
   },
   {
     path: '/settings/warehouse',
@@ -221,7 +221,7 @@ const routes = [
     path: '/settings/team',
     name: 'TeamManagement',
     component: () => import('@/views/system/TeamManagement.vue'),
-    meta: { title: '班组管理' }
+    meta: { title: '小组管理' }
   },
   {
     path: '/settings/personnel',
@@ -239,7 +239,7 @@ const routes = [
     path: '/park-archive',
     name: 'ParkArchive',
     component: () => import('@/views/park/ParkArchive.vue'),
-    meta: { title: '园区导览' }
+    meta: { title: '分区浏览' }
   },
   {
     path: '/park',
@@ -249,7 +249,7 @@ const routes = [
     path: '/farm',
     name: 'Farm',
     component: () => import('@/views/farm/FarmHub.vue'),
-    meta: { title: '农事管理' }
+    meta: { title: '农业管理' }
   },
   {
     path: '/farm/task',
@@ -267,7 +267,7 @@ const routes = [
     path: '/farm/team',
     name: 'FarmTeam',
     component: () => import('@/views/farm/Team.vue'),
-    meta: { title: '班组分配' }
+    meta: { title: '小组分配' }
   },
   {
     path: '/farm/daily-summary',
@@ -303,7 +303,7 @@ const routes = [
     path: '/crop/seedling',
     name: 'Seedling',
     component: () => import('@/views/crop/Seedling.vue'),
-    meta: { title: '育苗管理' }
+    meta: { title: '品牌管理' }
   },
   {
     path: '/crop/planting',
@@ -315,13 +315,13 @@ const routes = [
     path: '/crop/harvest',
     name: 'Harvest',
     component: () => import('@/views/crop/Harvest.vue'),
-    meta: { title: '采收入库' }
+    meta: { title: '收获入库' }
   },
   {
     path: '/crop/harvest-inbound',
     name: 'HarvestInbound',
     component: () => import('@/views/crop/Harvest.vue'),
-    meta: { title: '采收入库' }
+    meta: { title: '收获入库' }
   },
   // 仓库物料模块
   {
@@ -344,7 +344,7 @@ const routes = [
       }
     ]
   },
-  // 库存管理模块路由（与侧边栏菜单对应）
+  // 库存管理模块路由（与仓库边线菜单对应）
   {
     path: '/warehouse-inbound',
     name: 'WarehouseInboundDirect',
@@ -395,7 +395,7 @@ const routes = [
     path: '/material-receiving',
     name: 'MaterialReceiving',
     component: () => import('@/views/material/MaterialReceiving.vue'),
-    meta: { title: '生产领料' }
+    meta: { title: '生产退料' }
   },
   {
     path: '/approval',
@@ -413,7 +413,7 @@ const routes = [
     path: '/farm-approval',
     name: 'FarmApproval',
     component: () => import('@/views/approval/FarmApproval.vue'),
-    meta: { title: '农事审批' }
+    meta: { title: '农业审批' }
   },
   {
     path: '/material-approval',
@@ -427,7 +427,7 @@ const routes = [
     component: () => import('@/views/production/Production.vue'),
     meta: { title: '生产计划' }
   },
-  // 计划管理子路由（/production/list 重定向到 /production，与V1.1对齐）
+  // 计划管理子路由（/production/list 重新定向到 /production，与V1.1对齐）
   {
     path: '/production/list',
     redirect: '/production'
@@ -448,19 +448,19 @@ const routes = [
     path: '/crop/fertilizer',
     name: 'CropFertilizer',
     component: () => import('@/views/crop/Fertilizer.vue'),
-    meta: { title: '施肥管理' }
+    meta: { title: '新闻管理' }
   },
   {
     path: '/crop-inventory',
     name: 'CropInventory',
     component: () => import('@/views/crop/CropInventory.vue'),
-    meta: { title: '作物库存' }
+    meta: { title: '物料库存' }
   },
   {
     path: '/crop/instance',
     name: 'CropInstance',
     component: () => import('@/views/crop/Instance.vue'),
-    meta: { title: '作物实例' }
+    meta: { title: '物料实例' }
   },
   {
     path: '/tech-solution',
@@ -478,7 +478,7 @@ const routes = [
     path: '/labor/compensation',
     name: 'LaborCompensation',
     component: () => import('@/views/labor/Compensation.vue'),
-    meta: { title: '薪酬管理' }
+    meta: { title: '薪资管理' }
   },
   {
     path: '/labor/analytics',
@@ -496,7 +496,7 @@ const routes = [
     path: '/farm-hub',
     name: 'FarmHub',
     component: () => import('@/views/farm/FarmHub.vue'),
-    meta: { title: '农事中心' }
+    meta: { title: '农业中心' }
   },
   {
     path: '/problem-dispatch',
@@ -516,7 +516,7 @@ const routes = [
     component: () => import('@/views/indicators/Indicators.vue'),
     meta: { title: '指标数据' }
   },
-  // 生产汇总表模块
+  // 生产汇总表单模块
   {
     path: '/summary',
     name: 'Summary',
@@ -567,7 +567,7 @@ const routes = [
     path: '/worker-attendance',
     name: 'WorkerAttendance',
     component: () => import('@/views/labor/WorkerAttendance.vue'),
-    meta: { title: '工人考勤' }
+    meta: { title: '人工考勤' }
   },
   {
     path: '/work-log',
@@ -609,7 +609,7 @@ const routes = [
     path: '/leave',
     name: 'Leave',
     component: () => import('@/views/labor/Leave.vue'),
-    meta: { title: '请假管理' }
+    meta: { title: '应聘管理' }
   },
   {
     path: '/temp-worker',
@@ -621,7 +621,7 @@ const routes = [
     path: '/salary',
     name: 'Salary',
     component: () => import('@/views/labor/Salary.vue'),
-    meta: { title: '工资管理' }
+    meta: { title: '薪资管理' }
   },
   {
     path: '/recruitment',
@@ -687,7 +687,7 @@ const routes = [
     path: '/salary-budget',
     name: 'SalaryBudget',
     component: () => import('@/views/labor/SalaryBudget.vue'),
-    meta: { title: '工资预算' }
+    meta: { title: '薪资预算' }
   },
   {
     path: '/onboarding',
@@ -717,7 +717,7 @@ const routes = [
     path: '/harvest',
     name: 'HarvestOld',
     component: () => import('@/views/crop/Harvest.vue'),
-    meta: { title: '采收管理' }
+    meta: { title: '收获管理' }
   },
   {
     path: '/produce-code-rule',
@@ -741,7 +741,7 @@ const routes = [
     path: '/agriculture-record',
     name: 'AgricultureRecord',
     component: () => import('@/views/farm/AgricultureRecord.vue'),
-    meta: { title: '农事记录' }
+    meta: { title: '农业记录' }
   },
   {
     path: '/device-monitor',
@@ -753,7 +753,7 @@ const routes = [
     path: '/alert-info',
     name: 'AlertInfo',
     component: () => import('@/views/monitor/AlertInfo.vue'),
-    meta: { title: '告警信息' }
+    meta: { title: '预警信息' }
   },
   {
     path: '/production-approval',
@@ -807,7 +807,7 @@ const routes = [
     path: '/settings/personnel/hr-documents',
     name: 'HrApprovalDocuments',
     component: () => import('@/views/approval/HrApprovalDocuments.vue'),
-    meta: { title: '考勤单据' }
+    meta: { title: '考勤数据' }
   },
   {
     path: '/messages',
@@ -869,9 +869,9 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach((to, from, next) => {
   // 设置页面标题
-  document.title = `${to.meta.title || '智慧种植系统'} - V2.0`
+  document.title = `${to.meta.title || '智慧种植管理系统'} - V2.0`
 
-  // 这里可以添加权限验证逻辑
+  // 权限验证逻辑
   // const token = localStorage.getItem('token')
   // if (to.path !== '/login' && !token) {
   //   next('/login')

@@ -8,7 +8,7 @@
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">工单管理</h1>
-          <p class="text-gray-500">工单列表与发布 - 支持玻璃温室/日光温室/大田三种模式</p>
+          <p class="text-gray-500">工单列表与发起 - 支持玻璃温室/日光温室/大田三种模式</p>
         </div>
       </div>
     </div>
@@ -130,7 +130,7 @@
           {{ modeLabel }}工单列表
         </h3>
       </div>
-      <el-table :data="paginatedData" style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }">
+      <el-table :data="paginatedData" style="width: 100%">
         <el-table-column prop="code" label="工单编号" min-width="120" />
         <el-table-column prop="name" label="工人姓名" min-width="100" />
         <el-table-column prop="workerId" label="工号" min-width="80" />
@@ -280,14 +280,14 @@ const stats = reactive({
   pending: 5
 })
 
-// 状态类型映射 - V1.1: inline pill classes
+// 状态类型映�?- V1.1: inline pill classes
 const statusTypeMap = {
   'normal': 'success',
   'pending': 'warning',
   'draft': 'info'
 }
 
-// 状态样式 - V1.1: inline pills
+// 状态样�?- V1.1: inline pills
 const getStatusClass = (statusClass) => {
   switch (statusClass) {
     case 'normal':
@@ -304,12 +304,12 @@ const getStatusClass = (statusClass) => {
 // 当前模式
 const workOrderMode = ref('glass')
 
-// 筛选条件
+// 筛选条�?
 const code = ref('')
 const name = ref('')
 const date = ref('')
 
-// 弹窗状态
+// 弹窗状�?
 const detailVisible = ref(false)
 const approveVisible = ref(false)
 const currentOrder = ref(null)
@@ -324,11 +324,11 @@ const pageSize = ref(10)
 
 // 工单数据
 const workOrders = ref([
-  { id: '1', code: 'WO20240301', name: '张伟民', workerId: 'W001', area: '1号棚', process: '授粉', workload: '500株', date: '2024-03-01', status: '已完成', statusClass: 'normal' },
-  { id: '2', code: 'WO20240302', name: '李明轩', workerId: 'W002', area: '2号棚', process: '浇水', workload: '800㎡', date: '2024-03-01', status: '进行中', statusClass: 'pending' },
-  { id: '3', code: 'WO20240303', name: '王建国', workerId: 'W003', area: '3号棚', process: '施肥', workload: '200kg', date: '2024-03-01', status: '已完成', statusClass: 'normal' },
-  { id: '4', code: 'WO20240304', name: '赵俊杰', workerId: 'W004', area: '1号棚', process: '疏果', workload: '300株', date: '2024-03-02', status: '待开始', statusClass: 'draft' },
-  { id: '5', code: 'WO20240305', name: '钱文涛', workerId: 'W005', area: '2号棚', process: '病虫害防治', workload: '600㎡', date: '2024-03-02', status: '进行中', statusClass: 'pending' },
+  { id: '1', code: 'WO20240301', name: '张伟', workerId: 'W001', area: '1号棚', process: '授粉', workload: '500株', date: '2024-03-01', status: '已完成', statusClass: 'normal' },
+  { id: '2', code: 'WO20240302', name: '李明', workerId: 'W002', area: '2号棚', process: '浇水', workload: '800升', date: '2024-03-01', status: '进行中', statusClass: 'pending' },
+  { id: '3', code: 'WO20240303', name: '王建', workerId: 'W003', area: '3号棚', process: '施肥', workload: '200kg', date: '2024-03-01', status: '已完成', statusClass: 'normal' },
+  { id: '4', code: 'WO20240304', name: '赵俊', workerId: 'W004', area: '1号棚', process: '疏果', workload: '300株', date: '2024-03-02', status: '待开始', statusClass: 'draft' },
+  { id: '5', code: 'WO20240305', name: '钱文', workerId: 'W005', area: '2号棚', process: '病虫害防治', workload: '600升', date: '2024-03-02', status: '进行中', statusClass: 'pending' },
 ])
 
 // 计算当前模式标签
@@ -349,7 +349,7 @@ const paginatedData = computed(() => {
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1
-  // 实际项目中这里会根据筛选条件过滤数据
+  // 实际项目中这里会根据筛选条件过滤数�?
 }
 
 // 新建工单
@@ -365,7 +365,7 @@ const handleView = (row) => {
 
 // 编辑
 const handleEdit = (row) => {
-  ElMessage.info('编辑工单功能开发中：' + row.code)
+  ElMessage.info('编辑工单功能开发中' + row.code)
 }
 
 // 审批

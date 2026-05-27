@@ -58,7 +58,7 @@
           <el-input v-model="filters.name" placeholder="请输入" size="small" style="width: 140px" clearable />
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500 whitespace-nowrap">负责人:</span>
+          <span class="text-sm text-gray-500 whitespace-nowrap">负责人</span>
           <el-input v-model="filters.leaderName" placeholder="请输入" size="small" style="width: 140px" clearable />
         </div>
         <div class="flex items-center gap-2">
@@ -102,7 +102,6 @@
         <el-table
           :data="filteredTeams"
           style="width: 100%"
-          :header-cell-style="{ background: 'linear-gradient(to right, #3B82F6, #2563EB)', color: '#fff' }"
           @selection-change="handleSelectionChange"
         >
           <el-table-column
@@ -126,8 +125,7 @@
           <el-table-column label="成员数量" width="100">
             <template #default="{ row }">
               <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                {{ row.memberCount }}人
-              </span>
+                {{ row.memberCount }}人</span>
             </template>
           </el-table-column>
           <el-table-column label="描述" min-width="120">
@@ -164,8 +162,7 @@
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
         <div class="text-sm text-gray-500">
-          共 {{ filteredTeams.length }} 条记录
-        </div>
+          共 {{ filteredTeams.length }} 条记录</div>
         <el-pagination
           v-model:current-page="pagination.currentPage"
           v-model:page-size="pagination.pageSize"

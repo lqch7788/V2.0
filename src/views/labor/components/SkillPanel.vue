@@ -41,7 +41,7 @@
         <div class="flex-1">
           <el-input
             v-model="filters.keyword"
-            placeholder="搜索员工姓名、证书名称..."
+            placeholder="搜索员工姓名、证书名.."
             clearable
             @clear="handleSearch"
           >
@@ -52,7 +52,7 @@
         </div>
         <el-select v-model="filters.skillType" placeholder="技能类别" clearable class="w-full sm:w-36">
           <el-option label="全部类别" value="" />
-          <el-option label="农业技能" value="农业技能" />
+          <el-option label="农业技术" value="农业技术" />
           <el-option label="安全证书" value="安全证书" />
           <el-option label="操作证书" value="操作证书" />
           <el-option label="管理证书" value="管理证书" />
@@ -70,7 +70,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮栏 -->
+    <!-- 操作按钮-->
     <div class="bg-white rounded-xl p-3 shadow-sm flex items-center justify-end">
       <el-button type="primary" size="small" @click="openFormModal">
         <el-icon><Plus /></el-icon> 添加证书
@@ -79,7 +79,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedData" stripe v-loading="loading" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#fff', fontWeight: '600', fontSize: '14px' }">
+      <el-table :data="paginatedData" stripe v-loading="loading">
         <el-table-column prop="employeeName" label="员工姓名" min-width="100" />
         <el-table-column prop="department" label="部门" min-width="100" />
         <el-table-column prop="skillName" label="证书名称" min-width="150" />
@@ -170,7 +170,7 @@
         </el-form-item>
         <el-form-item label="技能类别" prop="skillType">
           <el-select v-model="formData.skillType" placeholder="请选择技能类别">
-            <el-option label="农业技能" value="农业技能" />
+            <el-option label="农业技术" value="农业技术" />
             <el-option label="安全证书" value="安全证书" />
             <el-option label="操作证书" value="操作证书" />
             <el-option label="管理证书" value="管理证书" />
@@ -223,7 +223,7 @@ const laborStore = useLaborStore()
 
 // 技能类别映射（中文键值）
 const skillTypeMap = {
-  '农业技能': '农业技能',
+  '农业技术': '农业技术',
   '安全证书': '安全证书',
   '操作证书': '操作证书',
   '管理证书': '管理证书'
@@ -241,7 +241,7 @@ const statusMap = {
 const getStatusLabel = (status) => statusMap[status]?.label || status
 const getStatusType = (status) => statusMap[status]?.type || 'info'
 
-// 筛选条件
+// 筛选条
 const filters = reactive({
   keyword: '',
   skillType: '',
@@ -266,7 +266,7 @@ const formData = reactive({
   employeeName: '',
   department: '',
   skillName: '',
-  skillType: '农业技能',
+  skillType: '农业技术',
   certNo: '',
   issuer: '',
   issueDate: '',
@@ -278,7 +278,7 @@ const formRules = {
   employeeName: [{ required: true, message: '请输入员工姓名', trigger: 'blur' }],
   department: [{ required: true, message: '请输入部门', trigger: 'blur' }],
   skillName: [{ required: true, message: '请输入证书名称', trigger: 'blur' }],
-  skillType: [{ required: true, message: '请选择技能类别', trigger: 'change' }],
+  skillType: [{ required: true, message: '请选择技能类型', trigger: 'change' }],
   certNo: [{ required: true, message: '请输入证书编号', trigger: 'blur' }],
   issuer: [{ required: true, message: '请输入颁发机构', trigger: 'blur' }],
   issueDate: [{ required: true, message: '请选择发证日期', trigger: 'change' }],
@@ -298,14 +298,14 @@ const loadData = async () => {
     const params = { page: pagination.currentPage, pageSize: pagination.pageSize }
     if (filters.keyword) params.name = filters.keyword
     await laborStore.fetchWorkers(params)
-    // 将员工数据映射为技能展示格式
+    // 将员工数据映射为技能展示格
     const workers = laborStore.workerList || []
     allData.value = workers.map(w => ({
       id: w.id,
       employeeName: w.name || w.staffName || '',
       department: w.department || w.deptName || '',
       skillName: w.skillName || w.skills?.[0] || '',
-      skillType: w.skillType || '农业技能',
+      skillType: w.skillType || '农业技术',
       certNo: w.certNo || '',
       issuer: w.issuer || '',
       issueDate: w.issueDate || '',
@@ -315,7 +315,7 @@ const loadData = async () => {
     }))
     pagination.total = laborStore.workerTotal
   } catch (e) {
-    console.error('加载技能数据失败:', e)
+    console.error('加载技能数据失', e)
     error.value = '加载数据失败'
     ElMessage.error('加载数据失败')
   } finally {
@@ -372,13 +372,13 @@ const viewDetail = (row) => {
   detailDialogVisible.value = true
 }
 
-// 续期 - 打开表单弹窗并填充当前行数据，清空日期/编号字段以便重新填写
+// 续期 - 打开表单弹窗并填充当前行数据，清空日编号字段以便重新填写
 const renewSkill = (row) => {
   Object.assign(formData, {
     employeeName: row.employeeName || '',
     department: row.department || '',
     skillName: row.skillName || '',
-    skillType: row.skillType || '农业技能',
+    skillType: row.skillType || '农业技术',
     certNo: '',        // 续期需重新录入证书编号
     issuer: row.issuer || '',
     issueDate: '',     // 续期需重新选择发证日期
@@ -407,7 +407,7 @@ const downloadCert = (row) => {
     '========================================',
     `导出时间：${new Date().toLocaleString('zh-CN')}`
   ].join('\n')
-  const blob = new Blob(['﻿' + content], { type: 'text/plain;charset=utf-8' })
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -425,7 +425,7 @@ const openFormModal = () => {
     employeeName: '',
     department: '',
     skillName: '',
-    skillType: '农业技能',
+    skillType: '农业技术',
     certNo: '',
     issuer: '',
     issueDate: '',
@@ -441,7 +441,7 @@ const submitForm = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        // 使用通用labor API创建技能记录
+        // 使用通用labor API创建技能记
         await laborStore.createLaborRecord('skills', {
           employeeName: formData.employeeName,
           department: formData.department,
@@ -458,7 +458,7 @@ const submitForm = async () => {
         formDialogVisible.value = false
         loadData()
       } catch (e) {
-        console.error('提交技能数据失败:', e)
+        console.error('提交技能数据失败', e)
         ElMessage.error('添加失败')
       }
     }

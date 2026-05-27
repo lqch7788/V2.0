@@ -22,7 +22,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ pendingApprovals.length }}</p>
-            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-xs text-gray-500">待审核</p>
           </div>
         </div>
       </div>
@@ -50,7 +50,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">审批类型</label>
           <el-select v-model="typeFilter" placeholder="全部" style="width: 100%">
             <el-option label="全部" value="全部" />
-            <el-option label="领料单" value="领料单" />
+            <el-option label="领料" value="领料" />
             <el-option label="采购申请" value="采购申请" />
             <el-option label="退料单" value="退料单" />
           </el-select>
@@ -69,7 +69,6 @@
       <el-table
         :data="paginatedApprovals"
         style="width: 100%"
-        :header-cell-style="{ background: '#f9fafb', color: '#111827', fontWeight: '600', fontSize: '14px' }"
       >
         <el-table-column prop="code" label="审批单号" min-width="140" align="center" />
         <el-table-column prop="typeName" label="类型" min-width="100" align="center" />
@@ -91,8 +90,7 @@
         <el-table-column label="状态" width="100" align="center">
           <template #default="{ row }">
             <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-              待审批
-            </span>
+              待审核            </span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="120" align="center">
@@ -113,8 +111,7 @@
       </el-table>
 
       <div v-if="filteredApprovals.length === 0" class="p-8 text-center text-gray-500">
-        暂无待审批单据
-      </div>
+        暂无待审批单据      </div>
 
       <!-- 分页 - V1.1 pageSizeOptions: [5,10,20,50] -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
@@ -129,7 +126,7 @@
           <span class="text-sm text-gray-500">条</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">共 {{ filteredApprovals.length }} 条</span>
+          <span class="text-sm text-gray-500">共{{ filteredApprovals.length }}条</span>
           <el-button :disabled="currentPage === 1" size="small" circle @click="currentPage--">
             <el-icon><ArrowLeft /></el-icon>
           </el-button>

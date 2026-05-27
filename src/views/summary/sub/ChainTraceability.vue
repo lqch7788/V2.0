@@ -1,5 +1,5 @@
 <template>
-  <!-- 全链条追溯页面 - 从种源到采收入库完整追溯链 -->
+  <!-- 全链条追溯页面 - 从种源到采收入库完整追溯-->
   <div class="space-y-6">
     <!-- 页面头部 -->
     <div v-if="!hideHeader" class="flex items-center gap-3">
@@ -14,7 +14,7 @@
 
     <!-- KPI 指标卡片 -->
     <KpiCardGrid :columns="4" :compact="true">
-      <KpiCard :icon="TrendCharts" label="追踪批次数" :value="totalBatches" colorScheme="blue" :compact="true" />
+      <KpiCard :icon="TrendCharts" label="追踪批次" :value="totalBatches" colorScheme="blue" :compact="true" />
       <KpiCard :icon="CircleCheckFilled" label="已完成" :value="completedBatches" colorScheme="emerald" :compact="true" />
       <KpiCard :icon="Clock" label="进行中" :value="inProgressBatches" colorScheme="blue" :compact="true" />
       <KpiCard :icon="Link" label="追溯环节" :value="6" colorScheme="purple" :compact="true" />
@@ -33,8 +33,7 @@
     <div v-else class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 overflow-x-auto">
       <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <el-icon :size="20" color="#14b8a6"><Link /></el-icon>
-        全链条流程示意
-      </h3>
+        全链条流程示意      </h3>
       <div class="flex items-start gap-0 min-w-[900px] py-4">
         <div v-for="(stage, idx) in stageStats" :key="stage.key" class="flex items-start flex-1">
           <div class="flex flex-col items-center flex-1">
@@ -55,7 +54,7 @@
               <p class="text-lg font-bold">{{ stage.count }}</p>
               <p class="text-xs text-gray-500">批次</p>
             </div>
-            <!-- 进度条 -->
+            <!-- 进度条-->
             <div class="w-full px-2 mt-1">
               <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
@@ -123,7 +122,7 @@
                 <el-icon :size="16" color="#d1d5db"><ArrowRight /></el-icon>
               </div>
             </button>
-            <!-- 环节记录卡片（种源/育苗/种植/采收/库存） -->
+            <!-- 环节记录卡片（种源/育苗/种植/采收/库存）-->
             <div
               v-for="item in stage.items"
               :key="item.id || item.code"
@@ -159,14 +158,14 @@
       </div>
     </div>
 
-    <!-- 全批次追溯列表 -->
+    <!-- 全批次追溯列表-->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100">
         <h3 class="font-semibold text-gray-900">全批次追溯列表</h3>
         <p class="text-xs text-gray-400 mt-1">所有批次按环节归类，点击查看批次详情</p>
       </div>
       <div class="overflow-x-auto">
-        <el-table :data="paginatedBatches" style="width: 100%" :row-class-name="tableRowClassName" :header-cell-style="headerCellStyle" @row-click="handleRowClick">
+        <el-table :data="paginatedBatches" style="width: 100%" :row-class-name="tableRowClassName" @row-click="handleRowClick">
           <el-table-column prop="batchCode" label="批次编号" min-width="120" />
           <el-table-column prop="batchName" label="批次名称" min-width="120" />
           <el-table-column prop="cropName" label="作物" min-width="80" />
@@ -188,7 +187,7 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column label="完成率" min-width="120">
+          <el-table-column label="完成度" min-width="120">
             <template #default="{ row }">
               <div class="flex items-center gap-2">
                 <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[50px]">
@@ -216,7 +215,6 @@
       <div v-if="totalCount > 0" class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
         <div class="text-sm text-gray-500">
           显示 {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, totalCount) }} 条，共 {{ totalCount }} 条
-        </div>
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
@@ -286,7 +284,7 @@
           </el-descriptions>
           <div class="mt-2">
             <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-              <span>完成率</span>
+              <span>完成度</span>
               <span>{{ (selectedBatch.completionRate || 0).toFixed(1) }}%</span>
             </div>
             <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -338,7 +336,7 @@
               </span>
             </div>
             <div>
-              <span class="text-gray-400">人工成本：</span>
+              <span class="text-gray-400">人工成本:</span>
               <span class="text-gray-900 font-medium">
                 {{ selectedBatch.laborCost ? formatCurrency(selectedBatch.laborCost) : '-' }}
               </span>
@@ -381,7 +379,7 @@ const error = computed(() => summaryStore.error)
 
 // ========== 常量 ==========
 
-/** 6个追溯环节配置 */
+/** 6个追溯环节配置*/
 const CHAIN_STAGES_CONFIG = [
   {
     key: 'plan',
@@ -468,7 +466,7 @@ const STATUS_BADGE = {
 
 /** 格式化金额为千分位 */
 function formatCurrency(value) {
-  return value.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' 元'
+  return value.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + '元'
 }
 
 /**
@@ -484,8 +482,7 @@ function getBatchStage(batch) {
 }
 
 /**
- * 获取批次的环节信息
- */
+ * 获取批次的环节信息 */
 function getBatchStageInfo(batch) {
   const stageKey = getBatchStage(batch)
   return CHAIN_STAGES_CONFIG.find(s => s.key === stageKey)
@@ -572,12 +569,6 @@ function tableRowClassName({ row }) {
 }
 
 // 表格表头样式 - 与V1.1一致，使用蓝色渐变
-const headerCellStyle = {
-  background: 'linear-gradient(to right, #3b82f6, #2563eb)',
-  color: '#ffffff',
-  fontWeight: '600',
-  fontSize: '14px'
-}
 
 // ========== 生命周期 ==========
 
@@ -597,7 +588,7 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
-/* 抽屉内边距调整 */
+/* 抽屉内边距调整*/
 :deep(.el-drawer__body) {
   padding: 16px;
 }

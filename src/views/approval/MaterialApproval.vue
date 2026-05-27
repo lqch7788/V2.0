@@ -33,7 +33,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-xs text-gray-500">待审核</p>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@
       </el-button>
     </div>
 
-    <!-- 筛选区域 -->
+    <!-- 筛选区域-->
     <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="grid grid-cols-8 gap-3 items-end">
         <!-- 领料单号 -->
@@ -84,10 +84,10 @@
           <el-input v-model="searchTerm" placeholder="单号..." clearable />
         </div>
 
-        <!-- 申领人 -->
+        <!-- 申领人-->
         <div>
           <label class="text-xs text-gray-700 block mb-1">申领人</label>
-          <el-input v-model="searchApplicant" placeholder="申请人..." clearable />
+          <el-input v-model="searchApplicant" placeholder="申请人.." clearable />
         </div>
 
         <!-- 部门 -->
@@ -102,13 +102,13 @@
           </el-select>
         </div>
 
-        <!-- 生产批次号 -->
+        <!-- 生产批次-->
         <div>
           <label class="text-xs text-gray-700 block mb-1">生产批次号</label>
-          <el-input v-model="searchBatchCode" placeholder="批次号..." clearable />
+          <el-input v-model="searchBatchCode" placeholder="批次号.." clearable />
         </div>
 
-        <!-- 开始日期 -->
+        <!-- 开始日期-->
         <div>
           <label class="text-xs text-gray-700 block mb-1">开始日期</label>
           <el-date-picker
@@ -134,12 +134,12 @@
           />
         </div>
 
-        <!-- 状态 -->
+        <!-- 状态-->
         <div>
           <label class="text-xs text-gray-700 block mb-1">状态</label>
           <el-select v-model="statusFilter" placeholder="全部" class="w-full">
             <el-option label="全部" value="全部" />
-            <el-option label="待审批" value="待审批" />
+            <el-option label="待审核" value="待审核" />
             <el-option label="已通过" value="已通过" />
             <el-option label="已拒绝" value="已拒绝" />
           </el-select>
@@ -158,7 +158,7 @@
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <!-- 表格标题栏 -->
+      <!-- 表格标题行-->
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900">{{ currentTabLabel }}</h3>
         <!-- 批量操作按钮 -->
@@ -209,7 +209,6 @@
       <el-table
         v-loading="loading"
         :data="paginatedData"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
         row-class-name="hover:bg-blue-50"
         :expand-row-keys="hasSpecialTable(activeTab) ? expandedRows : []"
         row-key="id"
@@ -257,7 +256,7 @@
                   <el-table-column prop="remark" label="备注" />
                 </el-table>
                 <div v-if="props.row.description" class="text-gray-600 mt-3">
-                  <span class="font-medium">申请说明：</span>{{ props.row.description }}
+                  <span class="font-medium">申请说明：/span>{{ props.row.description }}
                 </div>
               </div>
             </template>
@@ -276,7 +275,7 @@
               {{ scope.row.materials?.length > 0 ? `${scope.row.materials.length}种` : '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="plantArea" label="种植区域/用途" width="120" />
+          <el-table-column prop="plantArea" label="种植区域/用地 width="120" />
           <el-table-column label="审核人" width="100">
             <template #default="scope">
               {{ scope.row.approvers?.[0]?.userName || '-' }}
@@ -328,7 +327,7 @@
           </el-table-column>
         </template>
 
-        <!-- 退料审批表格 -->
+        <!-- 退料审批表-->
         <template v-else-if="activeTab === 'return'">
           <el-table-column width="50" align="center">
             <template #default="{ row }">
@@ -347,7 +346,7 @@
           <el-table-column type="expand" width="50">
             <template #default="props">
               <div class="p-4 bg-gray-50">
-                <div class="font-medium text-blue-800 mb-2">退料物料明细</div>
+                <div class="font-medium text-blue-800 mb-2">退料物料明细/div>
                 <el-table :data="props.row.materials" size="small" class="mb-3">
                   <el-table-column prop="sourceApplicationCode" label="来源领料单号" width="140" />
                   <el-table-column prop="materialCode" label="物料编码" width="120" />
@@ -355,7 +354,7 @@
                   <el-table-column prop="materialName" label="物料名称" />
                   <el-table-column prop="spec" label="规格" />
                   <el-table-column prop="unit" label="单位" width="80" />
-                  <el-table-column label="退料数量" width="100">
+                  <el-table-column label="退料数量 width="100">
                     <template #default="scope">
                       {{ scope.row.returnQuantity || scope.row.requestedQuantity || 0 }}
                     </template>
@@ -371,7 +370,7 @@
                     </template>
                   </el-table-column>
                   <el-table-column prop="warehousePosition" label="仓库货位" />
-                  <el-table-column prop="reason" label="退料原因" />
+                  <el-table-column prop="reason" label="退料原因 />
                 </el-table>
                 <div v-if="props.row.description" class="text-gray-600 mt-3">
                   <span class="font-medium">退料说明：</span>{{ props.row.description }}
@@ -379,19 +378,19 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="code" label="退料单号" width="150">
+          <el-table-column prop="code" label="退料单号 width="150">
             <template #default="scope">
               <el-link type="primary" :underline="false" class="font-medium">{{ scope.row.code }}</el-link>
             </template>
           </el-table-column>
-          <el-table-column prop="applyDate" label="退料日期" width="120" />
-          <el-table-column label="退料类型" width="100">
+          <el-table-column prop="applyDate" label="退料日期 width="120" />
+          <el-table-column label="退料类型 width="100">
             <template #default="scope">
               {{ getReturnType(scope.row) }}
             </template>
           </el-table-column>
           <el-table-column prop="applicantName" label="申请人" width="100" />
-          <el-table-column prop="applicantDepartment" label="退料部门" width="100" />
+          <el-table-column prop="applicantDepartment" label="退料部门 width="100" />
           <el-table-column prop="warehouseLocation" label="仓库位置" width="120" />
           <el-table-column label="审批状态" width="120">
             <template #default="scope">
@@ -468,12 +467,12 @@
           </el-table-column>
           <el-table-column prop="applicantName" label="申请人" width="100" />
           <el-table-column prop="applyDate" label="申请日期" width="120" />
-          <el-table-column prop="amount" label="总金额" width="120">
+          <el-table-column prop="amount" label="总金额 width="120">
             <template #default="scope">
               <span class="font-medium">{{ scope.row.amount || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="供应商" width="120">
+          <el-table-column label="供应商 width="120">
             <template #default="scope">
               {{ scope.row.businessLink?.items?.[0]?.supplier || '-' }}
             </template>
@@ -489,7 +488,7 @@
                 :type="scope.row.priority === 'urgent' ? 'danger' : scope.row.priority === 'high' ? 'warning' : scope.row.priority === 'normal' ? 'primary' : 'info'"
                 size="small"
               >
-                {{ scope.row.priority === 'urgent' ? '紧急' : scope.row.priority === 'high' ? '高' : scope.row.priority === 'normal' ? '中' : '低' }}
+                {{ scope.row.priority === 'urgent' ? '紧急' : scope.row.priority === 'high' ? '高' : scope.row.priority === 'normal' ? '普通' : '低' }}
               </el-tag>
             </template>
           </el-table-column>
@@ -537,7 +536,7 @@
           </el-table-column>
         </template>
 
-        <!-- 通用表格（物料入库/库存调拨/种源入库/育苗计划/种植计划/订单管理/补录审批） -->
+        <!-- 通用表格（物料入库库存调拨/种源入库/育苗计划/种植计划/订单管理/补录审批-->
         <template v-else>
           <el-table-column width="50" align="center">
             <template #default="{ row }">
@@ -607,17 +606,17 @@
         </template>
       </el-table>
 
-      <!-- 空状态 -->
+      <!-- 空状态-->
       <div v-if="filteredData.length === 0" class="p-12 text-center text-gray-500">
         <el-icon :size="48" class="text-gray-300 mb-3"><Clipboard /></el-icon>
         <p>暂无审批记录</p>
-        <p class="text-sm text-gray-400 mt-2">在领料/退料/采购页面提交申请后，这里将显示审批列表</p>
+        <p class="text-sm text-gray-400 mt-2">在领料退料采购页面提交申请后，这里将显示审批列表/p>
       </div>
 
       <!-- 分页 -->
       <div v-if="filteredData.length > 0" class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
         <div class="text-sm text-gray-500">
-          共 {{ filteredData.length }} 条记录，第 {{ currentPage }}/{{ totalPages || 1 }} 页
+          共{{ filteredData.length }} 条记录，第{{ currentPage }}/{{ totalPages || 1 }}页
         </div>
         <el-pagination
           v-model:current-page="currentPage"
@@ -665,7 +664,7 @@
             <p class="font-semibold text-gray-900">{{ detailModal.item.applicantDepartment }}</p>
           </div>
           <div>
-            <label class="text-xs text-gray-500 block">审核人</label>
+            <label class="text-xs text-gray-500 block">审核人/label>
             <p class="font-semibold text-gray-900">{{ detailModal.item.approvers?.[0]?.userName || '-' }}</p>
           </div>
           <template v-if="activeTab === 'material' && detailModal.item.businessLink">
@@ -674,7 +673,7 @@
               <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.warehouseLocation || '-' }}</p>
             </div>
             <div>
-              <label class="text-xs text-gray-500 block">生产计划批次号</label>
+              <label class="text-xs text-gray-500 block">生产计划批次号/label>
               <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.batchCode || '-' }}</p>
             </div>
             <div>
@@ -684,7 +683,7 @@
               </p>
             </div>
             <div>
-              <label class="text-xs text-gray-500 block">种植区域/用途</label>
+              <label class="text-xs text-gray-500 block">种植区域/用地</label>
               <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.plantArea || '-' }}</p>
             </div>
           </template>
@@ -776,14 +775,14 @@
         <p class="text-sm text-gray-600 mb-2">
           确定要拒绝「<span class="font-medium text-gray-900">{{ rejectModal.item.title }}</span>」吗？
         </p>
-        <p class="text-xs text-gray-500 mb-4">拒绝后，申请人可以在领料页面修改料单后重新提交审批。</p>
+        <p class="text-xs text-gray-500 mb-4">拒绝后，申请人可以在领料页面修改料单后重新提交审批</p>
         <div class="mb-4">
           <label class="text-xs text-gray-700 block mb-1">拒绝原因（必填）</label>
           <el-input
             v-model="rejectModal.reason"
             type="textarea"
             :rows="3"
-            placeholder="请输入拒绝原因..."
+            placeholder="请输入拒绝原因.."
           />
         </div>
       </div>
@@ -827,7 +826,7 @@ import { storeToRefs } from 'pinia'
 const approvalStore = useApprovalStore()
 const { approvals } = storeToRefs(approvalStore)
 
-// 审批类型常量（与V1.1对齐）
+// 审批类型常量（与V1.1对齐
 const ApprovalType = {
   MATERIAL_REQUEST: 'material_request',
   RETURN_MATERIAL: 'return_material',
@@ -844,7 +843,7 @@ const ApprovalType = {
   CROP_STORAGE_SUPPLEMENTARY: 'crop_storage_supplementary',
 }
 
-// Tab配置（10个Tab与V1.1完全对齐）
+// Tab配置：10个Tab与V1.1完全对齐
 const tabs = [
   { key: 'material', label: '领料审批', icon: Document, types: [ApprovalType.MATERIAL_REQUEST] },
   { key: 'return', label: '退料审批', icon: RefreshLeft, types: [ApprovalType.RETURN_MATERIAL] },
@@ -947,7 +946,7 @@ const handleBatchApprove = async () => {
 const handleBatchReject = async () => {
   if (selectedIds.value.size === 0) return
   try {
-    await ElMessageBox.confirm(`确定要批量拒绝 ${selectedIds.value.size} 项审批吗？`, '批量审核确认', {
+    await ElMessageBox.confirm(`确定要批量拒绝${selectedIds.value.size} 项审批吗？`, '批量审核确认', {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'warning',
@@ -1004,7 +1003,7 @@ const filteredData = computed(() => {
       item.code?.includes(searchTerm.value)
     const matchStatus =
       statusFilter.value === '全部' ||
-      (statusFilter.value === '待审批' && item.status === 'pending') ||
+      (statusFilter.value === '待审核' && item.status === 'pending') ||
       (statusFilter.value === '已通过' && item.status === 'approved') ||
       (statusFilter.value === '已拒绝' && item.status === 'rejected')
     const matchApplicant = !searchApplicant.value || item.applicantName?.includes(searchApplicant.value)
@@ -1129,7 +1128,7 @@ const getStatusText = (status) => {
   const statusMap = {
     approved: '已通过',
     rejected: '已拒绝',
-    pending: '待审批',
+    pending: '待审核',
     cancelled: '已取消',
     draft: '草稿',
   }
@@ -1152,7 +1151,7 @@ const getReturnStatusText = (status) => {
   const statusMap = {
     approved: '已完成',
     rejected: '已驳回',
-    pending: '待审批',
+    pending: '待审核',
     cancelled: '已取消',
   }
   return statusMap[status] || status
@@ -1181,7 +1180,7 @@ watch(currentPage, () => {
   expandedRows.value = []
 })
 
-// 初始化 - 从API加载数据
+// 初始加载 - 从API加载数据
 onMounted(async () => {
   await approvalStore.fetchApprovals()
   updateStats()

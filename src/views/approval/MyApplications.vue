@@ -22,7 +22,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-xs text-gray-500">待审核</p>
           </div>
         </div>
       </div>
@@ -112,7 +112,7 @@
         <h3 class="text-lg font-semibold text-gray-900">我的申请列表</h3>
       </div>
 
-      <el-table :data="paginatedData" style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600', borderBottom: 'none' }">
+      <el-table :data="paginatedData" style="width: 100%">
         <el-table-column prop="code" label="审批单号" width="120" />
         <el-table-column prop="title" label="标题" width="150" />
         <el-table-column prop="typeName" label="类型" width="100" />
@@ -185,7 +185,7 @@ const ApprovalStatus = {
 
 const tabs = [
   { key: 'all', label: '全部', icon: Grid },
-  { key: 'pending', label: '待审批', icon: Clock },
+  { key: 'pending', label: '待审核', icon: Clock },
   { key: 'approved', label: '已通过', icon: CircleCheck },
   { key: 'rejected', label: '已拒绝', icon: Close }
 ]
@@ -234,7 +234,7 @@ const paginatedData = computed(() => {
 const handleTabChange = (key) => { activeTab.value = key; currentPage.value = 1 }
 const handleSearch = () => { currentPage.value = 1 }
 
-// V1.1状态样式: 内联pills
+// V1.1状态样式 内联pills
 const getStatusClass = (status) => {
   switch (status) {
     case ApprovalStatus.APPROVED: return 'bg-emerald-100 text-emerald-700'
@@ -248,7 +248,7 @@ const getStatusText = (status) => {
   switch (status) {
     case ApprovalStatus.APPROVED: return '已通过'
     case ApprovalStatus.REJECTED: return '已拒绝'
-    case ApprovalStatus.PENDING: return '待审批'
+    case ApprovalStatus.PENDING: return '待审核'
     default: return status
   }
 }

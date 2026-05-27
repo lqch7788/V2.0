@@ -1,7 +1,7 @@
 <template>
   <!-- 批次汇总子页面 -->
   <div class="space-y-6">
-    <!-- 页面标题 - 仅当hideHeader为false时显示 -->
+    <!-- 页面标题 - 仅当hideHeader为false时显示-->
     <div v-if="!hideHeader" class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div
@@ -83,7 +83,7 @@
       </el-button>
     </div>
 
-    <!-- 批次甘特图（纯 CSS 实现） -->
+    <!-- 批次甘特图（纯CSS 实现）-->
     <div
       v-if="ganttData.bars.length > 0"
       class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
@@ -92,28 +92,24 @@
         class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"
       >
         <el-icon :size="20" color="#8b5cf6"><Calendar /></el-icon>
-        批次甘特图
-      </h2>
+        批次甘特图      </h2>
       <!-- 图例 -->
       <div class="flex items-center gap-4 mb-4">
         <div class="flex items-center gap-1.5 text-xs text-gray-500">
           <div class="w-3 h-3 rounded bg-purple-500" />
-          进行中
-        </div>
+          进行中        </div>
         <div class="flex items-center gap-1.5 text-xs text-gray-500">
           <div class="w-3 h-3 rounded bg-emerald-500" />
-          已完成
-        </div>
+          已完成        </div>
         <div class="flex items-center gap-1.5 text-xs text-gray-500">
           <div class="w-3 h-3 rounded bg-red-500" />
           逾期
         </div>
         <div class="flex items-center gap-1.5 text-xs text-gray-500">
           <div class="w-3 h-3 rounded bg-gray-400" />
-          规划中
-        </div>
+          规划中        </div>
       </div>
-      <!-- 甘特图主体 -->
+      <!-- 甘特图主体-->
       <div class="overflow-x-auto">
         <div class="min-w-[700px]">
           <div
@@ -128,11 +124,11 @@
             >
               {{ bar.batchCode || bar.batchName }}
             </div>
-            <!-- 甘特条轨道 -->
+            <!-- 甘特条轨道-->
             <div
               class="flex-1 h-8 relative bg-gray-100 rounded-full overflow-hidden"
             >
-              <!-- 甘特条 -->
+              <!-- 甘特条-->
               <div
                 :class="[
                   'absolute top-1/2 -translate-y-1/2 h-6 rounded-full',
@@ -150,12 +146,12 @@
                   v-if="bar.widthPct > 8"
                   class="absolute inset-0 flex items-center justify-center text-[10px] text-white font-medium truncate px-1"
                 >
-                  {{ bar.startStr }} → {{ bar.endStr }}
+                  {{ bar.startStr }} ~ {{ bar.endStr }}
                 </span>
               </div>
             </div>
           </div>
-          <!-- 时间轴 -->
+          <!-- 时间轴-->
           <div class="flex items-center mt-3">
             <div class="w-32 flex-shrink-0" />
             <div class="flex-1 flex justify-between text-[10px] text-gray-400">
@@ -167,7 +163,7 @@
       </div>
     </div>
 
-    <!-- 无数据提示 -->
+    <!-- 无数据提示-->
     <div
       v-else-if="!isLoading"
       class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400"
@@ -175,7 +171,7 @@
       暂无批次数据
     </div>
 
-    <!-- 加载状态 -->
+    <!-- 加载状态-->
     <div
       v-if="isLoading && batchItems.length === 0"
       class="flex items-center justify-center h-64"
@@ -197,7 +193,6 @@
         <el-table
           :data="paginatedBatches"
           style="width: 100%"
-          :header-cell-style="headerCellStyle"
           @row-click="handleViewDetail"
         >
           <el-table-column prop="batchCode" label="批次编号" min-width="120" />
@@ -310,9 +305,7 @@
         class="px-4 py-3 border-t border-gray-100 flex items-center justify-between"
       >
         <div class="text-sm text-gray-500">
-          显示 {{ paginationStart }} - {{ paginationEnd }} 条，共
-          {{ totalCount }} 条
-        </div>
+          显示 {{ paginationStart }} - {{ paginationEnd }} 条，共 {{ totalCount }} 条        </div>
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
@@ -345,31 +338,31 @@
           </h3>
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <span class="text-gray-400">批次编号：</span>
+              <span class="text-gray-400">批次编号:</span>
               <span class="text-gray-900 font-medium">{{
                 selectedBatch.batchCode
               }}</span>
             </div>
             <div>
-              <span class="text-gray-400">批次名称：</span>
+              <span class="text-gray-400">批次名称:</span>
               <span class="text-gray-900">{{ selectedBatch.batchName }}</span>
             </div>
             <div>
-              <span class="text-gray-400">作物品种：</span>
+              <span class="text-gray-400">作物品种:</span>
               <span class="text-gray-900">{{ selectedBatch.cropName }}</span>
             </div>
             <div>
-              <span class="text-gray-400">品种：</span>
+              <span class="text-gray-400">品种:</span>
               <span class="text-gray-900">{{
                 selectedBatch.variety || "-"
               }}</span>
             </div>
             <div>
-              <span class="text-gray-400">温室：</span>
+              <span class="text-gray-400">温室:</span>
               <span class="text-gray-900">{{ selectedBatch.greenhouse }}</span>
             </div>
             <div>
-              <span class="text-gray-400">种植面积：</span>
+              <span class="text-gray-400">种植面积:</span>
               <span class="text-gray-900">{{
                 selectedBatch.plantingArea || "-"
               }}</span>
@@ -398,25 +391,25 @@
           </h3>
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <span class="text-gray-400">目标产量：</span>
+              <span class="text-gray-400">目标产量:</span>
               <span class="text-gray-900 font-medium"
                 >{{ formatNumber(selectedBatch.targetYield) }} kg</span
               >
             </div>
             <div>
-              <span class="text-gray-400">实际产量：</span>
+              <span class="text-gray-400">实际产量:</span>
               <span class="text-gray-900 font-medium"
                 >{{ formatNumber(selectedBatch.actualQuantity) }} kg</span
               >
             </div>
             <div>
-              <span class="text-gray-400">采收数量：</span>
+              <span class="text-gray-400">采收数量:</span>
               <span class="text-gray-900"
                 >{{ formatNumber(selectedBatch.harvestQuantity) }} kg</span
               >
             </div>
             <div>
-              <span class="text-gray-400">剩余产量：</span>
+              <span class="text-gray-400">剩余产量:</span>
               <span class="text-gray-900"
                 >{{ formatNumber(selectedBatch.remainingYield) }} kg</span
               >
@@ -449,19 +442,19 @@
           </h3>
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <span class="text-gray-400">种植日期：</span>
+              <span class="text-gray-400">种植日期:</span>
               <span class="text-gray-900">{{
                 selectedBatch.plantingDate || "-"
               }}</span>
             </div>
             <div>
-              <span class="text-gray-400">预计采收：</span>
+              <span class="text-gray-400">预计采收:</span>
               <span class="text-gray-900">{{
                 selectedBatch.expectedHarvestDate || "-"
               }}</span>
             </div>
             <div>
-              <span class="text-gray-400">实际采收：</span>
+              <span class="text-gray-400">实际采收:</span>
               <span class="text-gray-900">{{
                 selectedBatch.actualHarvestDate || "-"
               }}</span>
@@ -517,7 +510,7 @@
               </span>
             </div>
             <div>
-              <span class="text-gray-400">人工成本：</span>
+              <span class="text-gray-400">人工成本:</span>
               <span class="text-gray-900 font-medium">
                 {{
                   selectedBatch.laborCost
@@ -553,7 +546,7 @@ const props = defineProps({
   }
 });
 
-// ========== 状态 Badge 样式映射 ==========
+// ========== 状态Badge 样式映射 ==========
 const STATUS_BADGE = {
   draft: "bg-gray-100 text-gray-600",
   planning: "bg-gray-100 text-gray-700",
@@ -573,14 +566,8 @@ const STATUS_LABEL = {
 };
 
 // 表格表头样式 - 与V1.1一致，使用蓝色渐变
-const headerCellStyle = {
-  background: 'linear-gradient(to right, #3b82f6, #2563eb)',
-  color: '#ffffff',
-  fontWeight: '600',
-  fontSize: '14px'
-}
 
-// ========== 甘特图颜色映射 ==========
+// ========== 甘特图颜色映射==========
 const GANTT_COLORS = {
   draft: { bg: "bg-gray-300" },
   planning: { bg: "bg-gray-400" },
@@ -596,12 +583,12 @@ const summaryStore = useSummaryStore();
 const batchItems = computed(() => summaryStore.batchItems);
 const isLoading = computed(() => summaryStore.isLoading);
 
-// ========== 本地状态 ==========
+// ========== 本地状态==========
 const statusFilter = ref("");
 const selectedBatch = ref(null);
 const drawerVisible = ref(false);
 
-// ========== 分页状态 ==========
+// ========== 分页状态==========
 const currentPage = ref(1);
 const pageSize = ref(10);
 
@@ -612,11 +599,11 @@ function formatCurrency(value) {
     value.toLocaleString("zh-CN", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }) + " 元"
+    }) + "元"
   );
 }
 
-/** 格式化数字 */
+/** 格式化数量 */
 function formatNumber(value) {
   return value?.toLocaleString("zh-CN") || "0";
 }
@@ -628,7 +615,7 @@ function parseDate(dateStr) {
   return isNaN(d.getTime()) ? null : d;
 }
 
-/** 日期天数差 */
+/** 日期天数计算*/
 function daysBetween(a, b) {
   return Math.ceil((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
 }
@@ -662,7 +649,7 @@ const kpiCounts = computed(() => {
   };
 });
 
-// ========== 筛选后的批次数据 ==========
+// ========== 筛选后的批次数据==========
 const filteredBatches = computed(() => {
   if (!statusFilter.value) return batchItems.value;
   return batchItems.value.filter((b) => b.status === statusFilter.value);
@@ -685,7 +672,7 @@ const paginationEnd = computed(() =>
   Math.min(currentPage.value * pageSize.value, totalCount.value),
 );
 
-// ========== 甘特图计算 ==========
+// ========== 甘特图计算==========
 const ganttData = computed(() => {
   if (filteredBatches.value.length === 0) {
     return {
@@ -698,8 +685,7 @@ const ganttData = computed(() => {
     };
   }
 
-  // 找到最早和最晚日期
-  let minDate = null;
+  // 找到最早和最晚日期  let minDate = null;
   let maxDate = null;
 
   const bars = filteredBatches.value.map((batch) => {
@@ -776,7 +762,7 @@ const handlePageSizeChange = (size) => {
   currentPage.value = 1;
 };
 
-// ========== 筛选变更 ==========
+// ========== 筛选变化==========
 const handleStatusFilter = (status) => {
   currentPage.value = 1;
   summaryStore.fetchBatchStats(status ? { status } : {});

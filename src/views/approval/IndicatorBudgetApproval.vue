@@ -75,7 +75,7 @@
       </el-button>
     </div>
 
-    <!-- 搜索筛选 - V1.1: bg-[#F2F6FA] -->
+    <!-- 搜索筛选栏 - V1.1: bg-[#F2F6FA] -->
     <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="flex gap-4 items-end">
         <div class="flex-1">
@@ -150,7 +150,7 @@
       </div>
 
       <!-- 表格 -->
-      <el-table :data="paginatedData" style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }">
+      <el-table :data="paginatedData" style="width: 100%">
         <el-table-column width="50" align="center">
           <template #default="{ row }">
             <el-button
@@ -278,7 +278,7 @@ const ApprovalType = {
   BUDGET_ADJUST: 'budget_adjust'
 }
 
-// 审批状态
+// 审批状�?
 const ApprovalStatus = {
   PENDING: 'pending',
   APPROVED: 'approved',
@@ -296,7 +296,7 @@ const tabs = [
 // 当前Tab
 const activeTab = ref('indicator')
 
-// 搜索和筛选
+// 搜索和筛�?
 const searchTerm = ref('')
 const statusFilter = ref('全部')
 
@@ -341,7 +341,7 @@ const filteredData = computed(() => {
       item.code?.includes(searchTerm.value)
     const matchStatus =
       statusFilter.value === '全部' ||
-      (statusFilter.value === '待审批' && item.status === ApprovalStatus.PENDING) ||
+      (statusFilter.value === '待审核' && item.status === ApprovalStatus.PENDING) ||
       (statusFilter.value === '已通过' && item.status === ApprovalStatus.APPROVED) ||
       (statusFilter.value === '已拒绝' && item.status === ApprovalStatus.REJECTED)
     return matchSearch && matchStatus
@@ -379,7 +379,7 @@ const handleSearch = () => {
   updateStats()
 }
 
-// 状态显示 - V1.1: inline pills with tailwind classes
+// 状态显�?- V1.1: inline pills with tailwind classes
 const getStatusClass = (status) => {
   switch (status) {
     case ApprovalStatus.APPROVED:
@@ -413,7 +413,7 @@ const getStatusText = (status) => {
     case ApprovalStatus.REJECTED:
       return '已拒绝'
     case ApprovalStatus.PENDING:
-      return '待审批'
+      return '待审核'
     default:
       return status
   }
@@ -539,7 +539,7 @@ const confirmApprovalAction = async () => {
   }
 }
 
-// 初始化 - 从API加载数据
+// 初始�?- 从API加载数据
 onMounted(async () => {
   await approvalStore.fetchApprovals()
   updateStats()

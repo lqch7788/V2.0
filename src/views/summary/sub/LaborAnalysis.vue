@@ -1,5 +1,5 @@
 <template>
-  <!-- 人工分析子页面 - 完整功能版 -->
+  <!-- 人工分析子页面 - 完整功能-->
   <div class="space-y-4">
     <!-- 筛选栏：日期筛选 + 分组切换 -->
     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
@@ -12,12 +12,12 @@
           @change="handleDateChange"
         />
 
-        <!-- 分隔线 -->
+        <!-- 分隔线-->
         <div class="w-px h-6 bg-gray-200 hidden sm:block" />
 
         <!-- 分组维度切换 -->
         <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-400 mr-1">分组：</span>
+          <span class="text-xs text-gray-400 mr-1">分组:</span>
           <div class="inline-flex rounded-lg border border-gray-200 bg-white p-0.5">
             <el-button
               v-for="opt in GROUP_BY_OPTIONS"
@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <!-- 加载状态 -->
+      <!-- 加载状态-->
       <div v-if="isLoading" class="flex items-center gap-2 text-sm text-gray-400">
         <el-icon class="is-loading"><Loading /></el-icon>
         加载中...
@@ -119,7 +119,7 @@
       </div>
     </div>
 
-    <!-- 用工明细表 -->
+    <!-- 用工明细表-->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <!-- 表头 -->
       <div class="px-6 py-4 border-b border-gray-100">
@@ -131,7 +131,7 @@
 
       <!-- 表格 -->
       <div class="overflow-x-auto">
-        <el-table :data="sortedItems" stripe style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }">
+        <el-table :data="sortedItems" stripe style="width: 100%">
           <el-table-column prop="name" label="名称" min-width="120" show-overflow-tooltip>
             <template #default="{ row }">
               <span class="font-medium text-gray-800">{{ row.name || '-' }}</span>
@@ -179,10 +179,10 @@
           总金额：<span class="font-bold text-blue-700">{{ formatMoney(totalAmount) }}</span>
         </span>
         <span class="text-xs text-gray-400">
-          总工人 {{ totalWorkers }} / 总出勤 {{ totalWorkCounts }} / 总任务 {{ totalTasks }}
+          总工时: {{ totalWorkers }} / 总出勤: {{ totalWorkCounts }} / 总任务: {{ totalTasks }}
         </span>
         <span class="text-xs text-gray-400">
-          均时薪 {{ totalHours > 0 ? formatMoney(totalAmount / totalHours) : '--' }}/h
+          均时薪: {{ totalHours > 0 ? formatMoney(totalAmount / totalHours) : '--' }}/h
         </span>
       </div>
     </div>
@@ -208,13 +208,13 @@ defineProps({
 
 /** 分组维度选项 */
 const GROUP_BY_OPTIONS = [
-  { value: 'month', label: '月', icon: Calendar },
+  { value: 'month', label: '月份', icon: Calendar },
   { value: 'worker', label: '工人', icon: User },
   { value: 'greenhouse', label: '温室', icon: Key },
   { value: 'task', label: '任务', icon: DataAnalysis },
 ]
 
-/** 蓝色渐变色阶（用于柱状图） */
+/** 蓝色渐变色阶（用于柱状图）*/
 const BLUE_GRADIENT = ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a']
 
 // ========== Store ==========
@@ -226,7 +226,7 @@ const laborGroupBy = computed(() => summaryStore.laborGroupBy)
 const isLoading = computed(() => summaryStore.isLoading)
 const error = computed(() => summaryStore.error)
 
-// ========== 筛选状态 ==========
+// ========== 筛选状态==========
 const filterMode = ref('year')
 const startDate = ref('')
 const endDate = ref('')
@@ -234,12 +234,12 @@ const groupBy = ref(laborGroupBy.value || 'month')
 
 // ========== 工具函数 ==========
 
-/** 格式化金额 */
+/** 格式化金额*/
 function formatMoney(v) {
   return `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-/** 格式化工时 */
+/** 格式化工时*/
 function formatHours(v) {
   if (v >= 10000) return `${(v / 10000).toFixed(1)}万h`
   return `${v.toFixed(1)}h`
@@ -442,8 +442,7 @@ const initTrendChart = () => {
 
 /**
  * 初始化分组对比柱状图
- * 横向柱状图，按工时排序
- */
+ * 横向柱状图，按工时排名 */
 const initBarChart = () => {
   if (!barChartRef.value || barChartData.value.length === 0) return
 
@@ -527,8 +526,7 @@ const handleGroupByChange = (newGroupBy) => {
 
 // 日期变化
 const handleDateChange = (mode, start, end) => {
-  // 同步状态，确保数据获取使用正确的日期参数
-  if (mode !== undefined) filterMode.value = mode
+  // 同步状态，确保数据获取使用正确的日期参数  if (mode !== undefined) filterMode.value = mode
   if (start !== undefined) startDate.value = start
   if (end !== undefined) endDate.value = end
   fetchData()
@@ -563,7 +561,7 @@ const handleResize = () => {
   barChartInstance?.resize()
 }
 
-// 初始化
+// 初始加载
 onMounted(() => {
   // 设置默认日期范围（年度）
   const now = new Date()

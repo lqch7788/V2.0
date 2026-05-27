@@ -22,7 +22,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ pendingCount }}</p>
-            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-xs text-gray-500">待审核</p>
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
           <el-select v-model="statusFilter" placeholder="全部" style="width: 100%">
             <el-option label="全部" value="全部" />
-            <el-option label="待审批" value="待审批" />
+            <el-option label="待审核" value="待审核" />
             <el-option label="已通过" value="已通过" />
             <el-option label="已拒绝" value="已拒绝" />
           </el-select>
@@ -80,13 +80,6 @@
       <el-table
         :data="paginatedList"
         style="width: 100%"
-        :header-cell-style="{
-          background: 'linear-gradient(to right, #3b82f6, #2563eb)',
-          color: '#ffffff',
-          fontWeight: '600',
-          fontSize: '14px',
-          borderBottom: 'none'
-        }"
       >
         <el-table-column prop="code" label="申请单号" min-width="140" align="center" />
         <el-table-column prop="typeName" label="类型" min-width="100" align="center" />
@@ -155,7 +148,7 @@
           <span class="text-sm text-gray-500">条</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">共 {{ filteredList.length }} 条</span>
+          <span class="text-sm text-gray-500">共{{ filteredList.length }} 条</span>
           <el-button :disabled="currentPage === 1" size="small" circle @click="currentPage--">
             <el-icon><ArrowLeft /></el-icon>
           </el-button>
@@ -203,7 +196,7 @@ const filteredList = computed(() => {
       a.code?.toLowerCase().includes(searchTerm.value)
     const matchStatus =
       statusFilter.value === '全部' ||
-      (statusFilter.value === '待审批' && a.status === 'pending') ||
+      (statusFilter.value === '待审核' && a.status === 'pending') ||
       (statusFilter.value === '已通过' && a.status === 'approved') ||
       (statusFilter.value === '已拒绝' && a.status === 'rejected')
     return matchSearch && matchStatus
@@ -241,7 +234,7 @@ const statusClass = (status) => {
 }
 
 const statusLabel = (status) => {
-  if (status === 'pending') return '待审批'
+  if (status === 'pending') return '待审核'
   if (status === 'approved') return '已通过'
   if (status === 'rejected') return '已拒绝'
   return status

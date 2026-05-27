@@ -71,7 +71,7 @@
       </div>
     </div>
 
-    <!-- 数据表格 - V1.1: 灰色表头, 无批量操作 -->
+    <!-- 数据表格 - V1.1: 灰色表头, 无批量操作-->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <div class="p-4 border-b border-gray-100">
         <h3 class="text-lg font-semibold text-gray-900">已审批列表</h3>
@@ -79,7 +79,6 @@
       <el-table
         :data="paginatedList"
         style="width: 100%"
-        :header-cell-style="{ background: '#f9fafb', color: '#111827', fontWeight: '600', fontSize: '14px' }"
       >
         <el-table-column prop="code" label="审批单号" width="140" align="center" />
         <el-table-column prop="typeName" label="类型" width="100" align="center" />
@@ -122,8 +121,7 @@
       </el-table>
 
       <div v-if="filteredList.length === 0" class="p-8 text-center text-gray-500">
-        暂无已审批记录
-      </div>
+        暂无已审批记录      </div>
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
@@ -138,7 +136,7 @@
           <span class="text-sm text-gray-500">条</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">共 {{ filteredList.length }} 条</span>
+          <span class="text-sm text-gray-500">共{{ filteredList.length }}条</span>
           <el-button :disabled="currentPage === 1" size="small" circle @click="currentPage--">
             <el-icon><ArrowLeft /></el-icon>
           </el-button>

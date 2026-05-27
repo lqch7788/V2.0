@@ -33,7 +33,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审批</p>
+            <p class="text-xs text-gray-500">待审核</p>
           </div>
         </div>
       </div>
@@ -92,7 +92,7 @@
         </div>
         <el-select v-model="statusFilter" placeholder="全部状态" style="width: 140px" @change="handleSearch">
           <el-option label="全部状态" value="全部" />
-          <el-option label="待审批" value="待审批" />
+          <el-option label="待审核" value="待审核" />
           <el-option label="已通过" value="已通过" />
           <el-option label="已拒绝" value="已拒绝" />
         </el-select>
@@ -105,7 +105,7 @@
 
     <!-- 数据列表 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <!-- 表格标题栏 -->
+      <!-- 表格标题 -->
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900">{{ currentTabLabel }}</h3>
         <!-- 批量操作按钮 -->
@@ -150,7 +150,7 @@
       </div>
 
       <!-- 表格 -->
-      <el-table :data="paginatedData" style="width: 100%" :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }">
+      <el-table :data="paginatedData" style="width: 100%">
         <el-table-column width="50" align="center">
           <template #default="{ row }">
             <el-button
@@ -279,7 +279,7 @@
                   <p class="text-sm text-gray-900">
                     <span class="font-medium">{{ record.approverName }}</span>
                     <span class="text-gray-500 mx-1">
-                      {{ record.action === 'approve' ? '通过了申请' : record.action === 'reject' ? '拒绝了申请' : record.action === 'partially_approve' ? '部分通过了' : '操作了' }}
+                      {{ record.action === 'approve' ? '通过了申请' : record.action === 'reject' ? '拒绝了申请' : record.action === 'partially_approve' ? '部分通过' : '操作' }}
                     </span>
                   </p>
                   <p v-if="record.comment" class="text-xs text-gray-500 mt-1">备注：{{ record.comment }}</p>
@@ -437,7 +437,7 @@ const filteredData = computed(() => {
       item.code?.includes(searchTerm.value)
     const matchStatus =
       statusFilter.value === '全部' ||
-      (statusFilter.value === '待审批' && item.status === ApprovalStatus.PENDING) ||
+      (statusFilter.value === '待审核' && item.status === ApprovalStatus.PENDING) ||
       (statusFilter.value === '已通过' && item.status === ApprovalStatus.APPROVED) ||
       (statusFilter.value === '已拒绝' && item.status === ApprovalStatus.REJECTED)
     return matchSearch && matchStatus
@@ -509,7 +509,7 @@ const getStatusText = (status) => {
     case ApprovalStatus.REJECTED:
       return '已拒绝'
     case ApprovalStatus.PENDING:
-      return '待审批'
+      return '待审核'
     default:
       return status
   }
@@ -683,7 +683,7 @@ const getFieldLabel = (key) => {
   return labels[key] || key
 }
 
-// 格式化业务数据值
+// 格式化业务数据
 const formatBusinessValue = (key, value) => {
   if (key === 'type') {
     const typeMap = {
@@ -698,16 +698,16 @@ const formatBusinessValue = (key, value) => {
   if (key === 'plantingArea') return `${value} m²`
   if (key === 'plantingMode') {
     const modeMap = {
-      internal_seed: '自育苗', external_purchase: '外购苗',
+      internal_seed: '自育种', external_purchase: '外购',
       open_field: '露天栽培', greenhouse: '温室栽培',
       hydroponics: '水培', aeroponics: '气雾培',
-      substrate: '基质培', soil: '土培',
+      substrate: '基质栽培', soil: '土培',
     }
     return modeMap[value] || value
   }
   if (key === 'stage') {
     const stageMap = {
-      seedling: '苗期', vegetative: '营养生长期',
+      seedling: '苗期', vegetative: '营养生长',
       flowering: '开花期', fruiting: '结果期',
       harvest: '采收期', entire: '整个生命周期', whole_lifecycle: '整个生命周期',
     }
@@ -716,7 +716,7 @@ const formatBusinessValue = (key, value) => {
   return String(value)
 }
 
-// 初始化 - 从API加载数据
+// 初始加载 - 从API加载数据
 onMounted(async () => {
   await approvalStore.fetchApprovals()
   updateStats()

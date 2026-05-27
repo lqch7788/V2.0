@@ -1,5 +1,5 @@
 <template>
-  <!-- 成本分析子页面 -->
+  <!-- 成本分析子页面-->
   <div class="space-y-6">
     <!-- 页面标题 -->
     <PageHeader
@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <!-- 错误状态 -->
+    <!-- 错误状态-->
     <div v-if="error" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 text-red-700">
       <el-icon :size="20"><WarningFilled /></el-icon>
       <span class="text-sm">数据加载失败：{{ error }}</span>
@@ -93,7 +93,7 @@
         </div>
       </div>
 
-      <!-- 成本趋势面积图 -->
+      <!-- 成本趋势面积图-->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="font-semibold text-gray-900 mb-1">成本趋势变化</h3>
         <p class="text-xs text-gray-400 mb-4">按月统计，三类成本堆叠展示</p>
@@ -109,7 +109,7 @@
       </div>
     </div>
 
-    <!-- 成本明细表 -->
+    <!-- 成本明细表-->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <!-- 表头 -->
       <div class="px-6 py-4 border-b border-gray-100">
@@ -119,7 +119,7 @@
 
       <div class="divide-y divide-gray-100">
         <div v-for="meta in categoryMeta" :key="meta.key">
-          <!-- 分组标题行 -->
+          <!-- 分组标题-->
           <button
             @click="toggleExpand(meta.key)"
             class="w-full flex items-center justify-between px-6 py-3 hover:opacity-90 transition-opacity"
@@ -139,9 +139,9 @@
             </span>
           </button>
 
-          <!-- 明细行 -->
+          <!-- 明细行-->
           <div v-if="expanded[meta.key]" class="overflow-x-auto">
-            <el-table :data="getGroupedItems(meta.key)" style="width: 100%" :header-cell-style="headerCellStyle">
+            <el-table :data="getGroupedItems(meta.key)" style="width: 100%">
               <el-table-column prop="costName" label="成本类型" min-width="120" />
               <el-table-column prop="month" label="月份" min-width="100" />
               <el-table-column label="金额" min-width="120" align="right">
@@ -172,13 +172,13 @@
       <!-- 汇总行 -->
       <div v-if="costSummary" class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-x-8 gap-y-1">
         <span class="text-sm text-gray-500">
-          合计：<span class="font-bold text-gray-900">{{ formatMoney(costSummary.totalCost) }}</span>
+          合计: <span class="font-bold text-gray-900">{{ formatMoney(costSummary.totalCost) }}</span>
         </span>
         <span class="text-xs text-gray-400">
           人工{{ formatMoney(costSummary.totalLaborCost) }} / 物料{{ formatMoney(costSummary.totalMaterialCost) }} / 能源{{ formatMoney(costSummary.totalEnergyCost) }}
         </span>
         <span class="text-xs text-gray-400">
-          总工时 {{ costSummary.totalWorkHours.toFixed(1) }}h / 均时薪 {{ formatMoney(costSummary.avgHourlyRate) }}/h
+          总工时{{ costSummary.totalWorkHours.toFixed(1) }}h / 均时{{ formatMoney(costSummary.avgHourlyRate) }}/h
         </span>
       </div>
     </div>
@@ -193,12 +193,6 @@ import { useSummaryStore } from '@/stores/modules/summary'
 import { PageHeader, KpiCard, KpiCardGrid, SummaryDateFilter } from '@/components/summary'
 
 /** 表格表头蓝色渐变样式（与V1.1一致） */
-const headerCellStyle = {
-  background: 'linear-gradient(to right, #3b82f6, #2563eb)',
-  color: '#ffffff',
-  fontWeight: '600',
-  fontSize: '14px'
-}
 
 // ========== Props ==========
 const props = defineProps({
@@ -211,7 +205,7 @@ const props = defineProps({
 // ========== Store ==========
 const summaryStore = useSummaryStore()
 
-// ========== 图标组件（用于KpiCard）==========
+// ========== 图标组件（用于KpiCard）=========
 const DollarSignIcon = { render: () => h(Money, { size: 16, color: 'white' }) }
 const UsersIcon = { render: () => h(User, { size: 16, color: 'white' }) }
 const BoxIcon = { render: () => h(Box, { size: 16, color: 'white' }) }
@@ -230,7 +224,7 @@ const COST_LABELS = {
   energy: '能源成本',
 }
 
-// ========== 计算属性 ==========
+// ========== 计算属性==========
 const costDetailItems = computed(() => summaryStore.costDetailItems || [])
 const costSummary = computed(() => summaryStore.costSummary)
 const isLoading = computed(() => summaryStore.isLoading)
@@ -242,12 +236,12 @@ const trendChartRef = ref()
 let pieChart = null
 let trendChart = null
 
-// ========== 筛选状态 ==========
+// ========== 筛选状态==========
 const filterMode = ref('year')
 const startDate = ref('')
 const endDate = ref('')
 
-// ========== 展开/收起状态 ==========
+// ========== 展开/收起状态==========
 const expanded = ref({
   labor: true,
   material: true,
@@ -279,7 +273,7 @@ const pieData = computed(() => {
 
 const totalCost = computed(() => pieData.value.reduce((s, d) => s + d.value, 0))
 
-// ========== 堆叠面积图数据构建 ==========
+// ========== 堆叠面积图数据构建==========
 const stackedData = computed(() => {
   const monthMap = {}
   for (const item of costDetailItems.value) {
@@ -413,7 +407,7 @@ function getTrendOption() {
   }
 }
 
-// ========== 初始化图表 ==========
+// ========== 初始化图表==========
 function initCharts() {
   // 饼图
   if (pieChartRef.value) {
@@ -422,7 +416,7 @@ function initCharts() {
     pieChart.setOption(getPieOption())
   }
 
-  // 趋势图
+  // 趋势图初始化
   if (trendChartRef.value) {
     if (trendChart) trendChart.dispose()
     trendChart = echarts.init(trendChartRef.value)

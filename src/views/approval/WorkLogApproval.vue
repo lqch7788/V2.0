@@ -8,7 +8,7 @@
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">工作日志</h1>
-          <p class="text-gray-500">工作日志记录与审批</p>
+          <p class="text-gray-500">工作日志记录与审核</p>
         </div>
       </div>
     </div>
@@ -161,7 +161,6 @@
       <el-table
         :data="paginatedData"
         style="width: 100%"
-        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600' }"
         @selection-change="handleSelectionChange"
       >
         <el-table-column v-if="batchEditMode || batchDeleteMode || exportMode" type="selection" width="50" align="center" />
@@ -440,20 +439,17 @@ const pagination = reactive({
   total: 0
 })
 
-// 批量操作状态
-const batchEditMode = ref(false)
+// 批量操作状�?const batchEditMode = ref(false)
 const batchDeleteMode = ref(false)
 const exportMode = ref(false)
 const selectedRows = ref([])
 
-// 弹窗状态
-const detailVisible = ref(false)
+// 弹窗状�?const detailVisible = ref(false)
 const formVisible = ref(false)
 const deleteVisible = ref(false)
 const exportVisible = ref(false)
 
-// 当前操作的日志
-const currentLog = ref(null)
+// 当前操作的日�?const currentLog = ref(null)
 const isEdit = ref(false)
 
 // 表单数据
@@ -480,11 +476,11 @@ const exportFormats = [
 
 // 工作日志数据
 const workLogs = ref([
-  { id: '1', code: 'WL2024030101', date: '2024-03-01', worker: '张伟民', weather: '晴', temperature: 25, crop: '番茄', greenhouse: '1号棚', growthStatus: '良好', tasks: '浇水、施肥', problems: '', solutions: '' },
-  { id: '2', code: 'WL2024030102', date: '2024-03-01', worker: '李明轩', weather: '多云', temperature: 22, crop: '黄瓜', greenhouse: '2号棚', growthStatus: '一般', tasks: '除草、松土', problems: '发现少量虫害', solutions: '已喷洒农药' },
-  { id: '3', code: 'WL2024030103', date: '2024-03-02', worker: '王建国', weather: '晴', temperature: 26, crop: '茄子', greenhouse: '3号棚', growthStatus: '良好', tasks: '修剪、浇水', problems: '', solutions: '' },
-  { id: '4', code: 'WL2024030104', date: '2024-03-02', worker: '赵俊杰', weather: '阴', temperature: 20, crop: '辣椒', greenhouse: '4号棚', growthStatus: '较差', tasks: '施肥、病虫害防治', problems: '生长缓慢', solutions: '增加施肥频次' },
-  { id: '5', code: 'WL2024030105', date: '2024-03-03', worker: '钱文涛', weather: '晴', temperature: 28, crop: '番茄', greenhouse: '1号棚', growthStatus: '良好', tasks: '采收、浇水', problems: '', solutions: '' },
+  { id: '1', code: 'WL2024030101', date: '2024-03-01', worker: '张伟', weather: '晴', temperature: 25, crop: '番茄', greenhouse: '1号棚', growthStatus: '良好', tasks: '浇水、施肥', problems: '', solutions: '' },
+  { id: '2', code: 'WL2024030102', date: '2024-03-01', worker: '李明', weather: '多云', temperature: 22, crop: '黄瓜', greenhouse: '2号棚', growthStatus: '一般', tasks: '除草、松土', problems: '发现少量虫害', solutions: '已喷洒农药' },
+  { id: '3', code: 'WL2024030103', date: '2024-03-02', worker: '王建', weather: '阴', temperature: 26, crop: '茄子', greenhouse: '3号棚', growthStatus: '良好', tasks: '修剪、浇水', problems: '', solutions: '' },
+  { id: '4', code: 'WL2024030104', date: '2024-03-02', worker: '赵俊', weather: '雨', temperature: 20, crop: '辣椒', greenhouse: '4号棚', growthStatus: '较差', tasks: '施肥、病虫害防治', problems: '生长缓慢', solutions: '增加施肥频次' },
+  { id: '5', code: 'WL2024030105', date: '2024-03-03', worker: '钱文华', weather: '晴', temperature: 28, crop: '番茄', greenhouse: '1号棚', growthStatus: '良好', tasks: '采收、浇水', problems: '', solutions: '' },
 ])
 
 // 筛选后的数据
@@ -500,8 +496,7 @@ const filteredData = computed(() => {
 // 更新总数
 pagination.total = filteredData.value.length
 
-// 总页数
-const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.pageSize) || 1)
+// 总页�?const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.pageSize) || 1)
 
 // 分页数据
 const paginatedData = computed(() => {
