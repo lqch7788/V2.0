@@ -292,7 +292,9 @@ import {
   Warning,
   Box,
   User,
-  Calendar
+  Calendar,
+  Sugar,
+  WarnTriangleFilled
 } from '@element-plus/icons-vue'
 
 // 路由
@@ -327,8 +329,10 @@ const permissionSections = [
 const productionSections = [
   { icon: Goods, label: '作物品种库', path: '/settings/crop-variety', desc: '统一管理系统作物品种编码' },
   { icon: List, label: '工序管理', path: '/settings/processes', desc: '定义标准农事工序' },
-  { icon: Van, label: '种植设置', path: '/settings/plant-settings', desc: '种植图标和品种种植参数配置' },
   { icon: Coin, label: '成本核算', path: '/settings/cost-accounting', desc: '成本类别和预算管理' },
+  { icon: Warning, label: '药剂库', path: '/settings/pesticide-library', desc: '管理药剂信息、规格参数和生产厂家' },
+  { icon: WarnTriangleFilled, label: '病虫害字典', path: '/settings/pest-disease-dict', desc: '管理病虫害类型、名称和防治方法' },
+  { icon: Sugar, label: '肥料库', path: '/settings/fertilizer-library', desc: '管理肥料信息、规格参数和供应商' },
 ]
 
 // 组5: IoT设备
@@ -339,6 +343,7 @@ const iotDeviceSections = [
   { icon: Odometer, label: '设备管理', path: '/settings/device', desc: 'IoT设备注册与监控配置' },
   { icon: CircleCheck, label: '设备分配', path: '/settings/device-distribution', desc: 'IoT设备分配到温室区域 + 运行参数' },
   { icon: Tools, label: '工程调试', path: '/settings/project-debug', desc: 'HMI版本、数据库测试、系统诊断工具' },
+  { icon: Van, label: '种植设置', path: '/settings/plant-settings', desc: '种植图标和品种种植参数配置' },
 ]
 
 // 组6: 监控告警

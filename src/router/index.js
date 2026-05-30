@@ -128,6 +128,18 @@ const routes = [
     meta: { title: '作物品种' },
   },
   {
+    path: '/settings/pest-disease-dict',
+    name: 'PestDiseaseDict',
+    component: () => import('@/views/system/pest-disease-dict/index.vue'),
+    meta: { title: '病虫害字典' }
+  },
+  {
+    path: '/settings/pesticide-library',
+    name: 'PesticideLibrary',
+    component: () => import('@/views/system/pesticide-library/index.vue'),
+    meta: { title: '药剂库' }
+  },
+  {
     path: '/settings/processes',
     name: 'ProcessManagement',
     component: () => import('@/views/system/ProcessManagement.vue'),
@@ -222,6 +234,12 @@ const routes = [
     name: 'PersonnelManagement',
     component: () => import('@/views/system/PersonnelManagement.vue'),
     meta: { title: '人事管理' }
+  },
+  {
+    path: '/settings/fertilizer-library',
+    name: 'FertilizerLibrary',
+    component: () => import('@/views/system/fertilizer-library/index.vue'),
+    meta: { title: '肥料库' }
   },
   {
     path: '/dashboard',
