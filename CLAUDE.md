@@ -21,6 +21,22 @@
 
 ---
 
+## ⚠️ 必读：重构检查标准
+
+**【强制】每次进行V1.1→V2.0功能对比时，必须执行完整检查：**
+
+1. **首先读取**：`docs/superpowers/specs/V2-MIGRATION-CHECKLIST.md`（89维度完整检查清单）
+2. **按模块检查**：每个模块产出差异报告，分类P0/P1/P2
+3. **P0必须修复**：阻断级差异（功能缺失/数据丢失）修复后才能通过
+4. **禁止跳过**：不能只检查UI，必须检查全部89维度
+
+**检查清单路径**：
+```
+D:\TMcrop\yuanxingtu\V2.0\docs\superpowers\specs\V2-MIGRATION-CHECKLIST.md
+```
+
+---
+
 ## 技术栈
 
 - 前端：Vue3 + TypeScript + Vite + Element Plus + Tailwind CSS
@@ -118,71 +134,158 @@
 
 ---
 
-## 🧪 深度对比检查清单（铁律 - 每次文件对比强制执行）
+## 🧪 扩展对比检查清单（V2.0 深度校验框架）
 
 **【强制规则】每次对比V1.1和V2.0文件时，必须逐维度检查，禁止只检查UI/样式差异：**
 
-### 12维度检查清单
+> 📌 **检查清单文档位置**：`docs/superpowers/specs/V2-MIGRATION-CHECKLIST.md`
+>
+> 该文档包含完整的**13大类 × 96维度 × 200+检查点**清单，是本章节的完整版本。
+> 本章节仅为摘要导读，完整检查必须参照上述文档。
+>
+> ⚠️ **【强制】必须执行U系列UI元素完整性检查**：
+> - 逐个统计V1.1页面的button/可点击元素数量
+> - 逐个对比每个按钮的文案和位置
+> - 检查每个功能入口是否存在（配置基地架构等按钮遗漏）
+> - U系列是防止按钮/入口丢失的关键检查
 
-**【强制规则】迁移任何文件前，必须先读取系统全景地图 `docs/superpowers/specs/V1.1-SYSTEM-MAP.md`，确认当前文件在系统中的位置、上下游依赖、所属路由。**
+---
 
-#### 单文件级（维度1-6）
+### 一、数据正确性（Data Integrity）
 
-| 维度 | 检查内容 | 检查方法 |
-|------|---------|---------|
-| **1. 数据源** | API调用端点、参数名、参数个数、Store使用、props传递、computed依赖 | 对比每个API调用：URL路径、query/body参数名是否一致；Store中的state/getter/action是否对应 |
-| **2. 状态流转** | 所有state/props的初始值、所有可能状态分支 | 对比 ref/reactive 初始值；确认加载态/空态/错误态/边界值/正常态5种状态是否都有处理 |
-| **3. 弹窗逻辑** | 每个弹窗的所有字段、校验规则、提交/取消行为、弹窗嵌套 | 逐字段对比弹窗表单：字段名、label、placeholder、校验条件、提交API参数映射、关闭后的状态清理 |
-| **4. 事件处理** | 每个@click/@change的完整链路：调了什么API → 更新了什么状态 → UI如何响应 | 从V1.1的事件处理函数追踪到API调用→state更新→UI更新的完整链路，逐链对比V2.0 |
-| **5. 条件渲染** | 所有v-if/v-show/v-for的条件表达式、分支逻辑 | 对比每个条件分支的触发条件和渲染结果，确认边界条件完整 |
-| **6. 错误处理** | try/catch、fallback数据、ElMessage提示、空数组兜底 | 对比每个API调用的错误处理：catch中有没有fallback、有没有用户提示、有没有localStorage回退 |
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **D1. API端点** | URL路径、HTTP方法、query参数、body参数名/个数完全一致 | P0 |
+| **D2. API响应结构** | 响应数据的字段名、类型、嵌套结构与前端消费完全匹配 | P0 |
+| **D3. Store状态** | state初始值、getter计算逻辑、action处理逻辑与V1.1一致 | P0 |
+| **D4. 数据边界** | 超长字符串(>255)、超大数字、超大数组(>1000)、特殊Unicode字符 | P1 |
+| **D5. 数值精度** | 货币计算精度(0.1+0.2问题)、浮点数比较、百分号处理 | P1 |
+| **D6. 时间日期** | 时区、夏令时、跨年/跨月边界、日期格式化字符串 | P1 |
+| **D7. 乐观更新** | 成功/失败回滚逻辑、并发冲突处理 | P1 |
 
-#### 跨文件/系统级（维度7-12）
+### 二、业务逻辑正确性（Business Logic）
 
-| 维度 | 检查内容 | 检查方法 |
-|------|---------|---------|
-| **7. 路由拓扑** | 135条路由的完整层级、嵌套路由、路由守卫、redirect规则、URL参数约定 | 对比V1.1 App.tsx中每个Route的path与V2.0 router/index.js；确认嵌套路由的父子关系、layout组件包裹、权限守卫完全一致 |
-| **8. 组件依赖图** | 每个文件的import链：被谁引用、引用了谁、Store依赖链、composable依赖链 | 从系统地图确认：迁移组件A前，A依赖的所有Store/Composable/子组件必须先完成迁移并验证通过；迁移后更新地图标记 |
-| **9. 跨页面数据流** | 页面跳转时的数据传递方式（route params / query string / Store共享 / localStorage / sessionStorage）、返回上一页时的状态恢复逻辑 | 追踪V1.1中每个`navigate()`调用：跳转目标页面、传递的参数名和类型、目标页面如何消费参数、返回时源页面如何恢复状态 |
-| **10. API契约一致性** | 同一API端点在不同组件中的调用方式（方法、参数名、请求体结构、响应结构、错误码处理）必须一致 | 从系统地图的API索引反向检查：列出所有调用同一API的组件，对比它们的入参/出参处理逻辑 |
-| **11. 权限/角色分支** | 不同角色看到的UI差异、可执行的操作差异、路由守卫的权限规则 | 枚举V1.1中所有权限检查点（ActionGuard/PermissionGuard/条件渲染），逐点对比V2.0是否实现 |
-| **12. 生命周期副作用** | onMounted/onUnmounted/watch/watchEffect中触发的异步请求、定时器/interval、事件订阅/取消订阅、DOM操作 | 对比V1.1 useEffect的依赖数组和cleanup函数，确认V2.0的watch/onMounted/onUnmounted逻辑完全对应 |
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **B1. 弹窗字段** | 字段名、label、placeholder、默认值、必填校验规则完全一致 | P0 |
+| **B2. 业务计算** | 指标计算公式、聚合逻辑、排序规则与V1.1完全一致 | P0 |
+| **B3. 状态机流转** | 审核流程、审批流程的状态节点和转换条件完整 | P1 |
+| **B4. 批量操作** | 批量删除/审批的原子性、全选/取消全选联动 | P1 |
+| **B5. 导入导出** | 文件格式校验、大小限制、必填字段、导出完整性 | P1 |
+| **B6. 表单暂存** | 填写一半刷新是否保留、暂存数据与最终提交一致性 | P2 |
 
-### V1.1系统全景地图（迁移前置依赖）
+### 三、交互行为正确性（Interaction Behavior）
 
-**【强制规则】迁移任何模块前，必须先确认系统全景地图 `docs/superpowers/specs/V1.1-SYSTEM-MAP.md` 已存在且完整。该地图是后续所有迁移的唯一权威参考。**
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **I1. 事件链路** | 点击→API→状态更新→UI响应的完整链路逐个对比 | P0 |
+| **I2. 键盘操作** | Tab顺序、Enter确认、Escape取消、快捷键与V1.1一致 | P1 |
+| **I3. 鼠标操作** | 右键菜单、双击、拖拽、拖拽中断恢复 | P1 |
+| **I4. 多选联动** | 全选/取消全选、跨页多选、选中状态与URL同步 | P1 |
+| **I5. 路由导航** | 页面跳转、参数传递、返回恢复、浏览器前进后退 | P1 |
+| **I6. 标签页状态** | 切换标签数据保留、刷新重置、URL同步 | P2 |
 
-系统地图必须包含（按路由分组）：
-1. **路由清单** — 135条路由的完整列表（path、页面组件、layout、守卫、redirect）
-2. **组件依赖图** — 每个路由下所有组件的import树（深度遍历到叶子组件）
-3. **Store依赖矩阵** — 每个路由使用了哪些Store，每个Store被哪些路由使用
-4. **API调用索引** — 每个API端点被哪些文件调用，调用参数和响应结构
-5. **跨页面数据流图** — 页面间导航的数据传递方式（params/query/store/localStorage）
-6. **权限检查点清单** — 所有权限判断逻辑的位置和条件
+### 四、组件状态正确性（Component States）
 
-### 迁移执行流程（12维度）
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **S1. 加载态** | skeleton/loading动画/进度条与V1.1一致 | P0 |
+| **S2. 空态** | 无数据时的提示文案、插图、引导操作 | P0 |
+| **S3. 错误态** | 网络错误/服务不可用/权限不足的提示和操作 | P0 |
+| **S4. 超时态** | 长时间无响应的超时处理和用户提示 | P1 |
+| **S5. 成功态** | 操作完成的反馈方式、跳转行为 | P1 |
+| **S6. 边界态** | 数据量为0/1/最大值的展示和处理 | P1 |
+
+### ⚠️ 【强制】UI元素完整性（U系列）- 防止按钮/入口遗漏
+
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **U1. 按钮数量** | 逐个统计V1.1的button/el-button数量，V2.0必须有相同数量 | P0 |
+| **U2. 按钮文案** | 每个按钮的文字逐字对比，不能有任何差异 | P0 |
+| **U3. 按钮位置** | 按钮在页面中的位置顺序与V1.1一致 | P1 |
+| **U4. 链接入口** | 每个可跳转的链接/按钮必须存在（如"配置基地架构"按钮） | P0 |
+| **U5. 图标对比** | 每个图标是否存在且size/color一致 | P1 |
+| **U6. 布局区块** | 页面所有区块/card数量与V1.1一致 | P0 |
+| **U7. 功能入口** | V1.1中所有的功能入口按钮/链接，V2.0必须有对应入口 | P0 |
+| **U8. 弹窗元素** | 弹窗trigger、字段、按钮文案与V1.1一致 | P1 |
+
+**【案例教训】园区导览页面V1.1有"配置基地架构"按钮，V2.0完全缺失 → 必须在U4/U7中检查**
+
+### 五、路由与权限（Route & Permission）
+
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **R1. 路由拓扑** | 路由层级、嵌套关系、redirect规则、layout包裹 | P0 |
+| **R2. URL参数** | params/query的解析和使用方式 | P0 |
+| **R3. 权限守卫** | 路由守卫的判断条件、跳转逻辑 | P0 |
+| **R4. 角色UI差异** | 不同角色看到的按钮/字段/数据差异 | P1 |
+| **R5. 接口越权** | 绕前端直接调API的防护检查 | P1 |
+| **R6. 数据级权限** | 只能看到自己有权限的数据 | P1 |
+
+### 六、安全与容错（Security & Fault Tolerance）
+
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **F1. SQL注入** | 参数化查询、特殊字符转义 | P0 |
+| **F2. XSS防护** | 用户输入HTML/JS转义、富文本处理 | P0 |
+| **F3. CSRF防护** | Token验证、请求来源校验 | P1 |
+| **F4. 敏感数据** | 日志脱敏、导出脱敏、密码不可见 | P1 |
+| **F5. 网络重试** | 超时重试次数、间隔、退避策略 | P1 |
+| **F6. 断网恢复** | 离线数据暂存、恢复后同步 | P2 |
+| **F7. 操作审计** | 关键操作的日志记录 | P2 |
+
+### 七、性能与资源（Performance）
+
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **P1. 首屏加载** | 首次加载时间与V1.1对比 | P1 |
+| **P2. 大数据量** | 千行表格渲染、虚拟滚动、分页加载 | P1 |
+| **P3. 内存泄漏** | 定时器清理、事件订阅取消、离开页面清理 | P1 |
+| **P4. 请求优化** | 防抖/节流、重复请求取消、缓存策略 | P1 |
+| **P5. 图片资源** | 懒加载、尺寸预知、格式优化 | P2 |
+
+### 八、可访问性与适配（Accessibility & Responsive）
+
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **A1. 键盘操作** | 完全可用键盘操作、焦点管理 | P1 |
+| **A2. 屏幕阅读** | ARIA标签、角色定义、描述文字 | P1 |
+| **A3. 色彩对比** | 文字/背景对比度满足WCAG标准 | P1 |
+| **A4. 减弱动画** | 尊重系统减弱动画偏好 | P2 |
+| **A5. 响应式** | 1920/1440/1366/768/375各分辨率布局 | P1 |
+| **A6. 超长截断** | 表格文本/标题/提示的省略号处理 | P1 |
+| **A7. 打印样式** | 打印预览的布局和内容完整性 | P2 |
+
+### 九、错误处理完整性（Error Handling）
+
+| 维度 | 检查内容 | 优先级 |
+|------|---------|--------|
+| **E1. try/catch** | 所有async操作的完整异常捕获 | P0 |
+| **E2. 空值保护** | undefined/null的链式调用保护、数组空检查 | P0 |
+| **E3. 类型转换** | 隐式类型转换、JSON.parse失败处理 | P1 |
+| **E4. 降级策略** | 第三方服务失败时的降级方案 | P1 |
+| **E5. 用户提示** | 错误时的ElMessage/弹窗提示 | P0 |
+
+---
+
+### 执行流程（扩展维度版）
 
 ```
-0. 确认系统全景地图已存在且已读取 ← 【新增前置步骤】
-1. 从地图中确认当前文件的上下游依赖、所属路由、关联Store/API
-2. 读V1.1源文件 → 提取所有12维度的信息（单文件6维 + 跨文件6维）
-3. 读V2.0对应文件 → 逐维度对比每个逻辑点
-4. 列出差异清单 → 按维度标记 MISSING / DIFFERENT / BUG / OK
-5. 逐项修复 → 每修一个勾一个，修复完成后再build验证
-6. 验证跨文件一致性 → 确认修改不影响上游调用者，下游依赖已就绪
-7. 更新系统地图 → 标记该文件为"已迁移验证"
+1. 读取完整检查清单：docs/superpowers/specs/V2-MIGRATION-CHECKLIST.md
+2. 按模块分组执行检查，每个模块产出《差异报告》
+3. 差异分类：P0(阻断)/P1(严重)/P2(一般)
+4. P0必须全部修复后才能通过检查
+5. P1/P2按优先级排入修复计划
+6. 每个模块检查完成后更新系统地图
 ```
 
 ### 禁止事项
 
-- ❌ 禁止只检查UI/样式差异就说"已修复"
-- ❌ 禁止不追踪API调用链就下结论
-- ❌ 禁止不检查弹窗内部字段和逻辑
-- ❌ 禁止不验证后端数据格式与前端是否匹配
-- ❌ 禁止跳过错误处理和fallback逻辑的对比
-- ❌ 禁止不读系统全景地图就开始迁移任何文件 ← 【新增】
-- ❌ 禁止在依赖的Store/子组件未迁移前迁移上层组件 ← 【新增】
-- ❌ 禁止迁移完成后不更新系统地图标记 ← 【新增】
+- ❌ 禁止只检查UI/样式差异
+- ❌ 禁止跳过P0级别的差异
+- ❌ 禁止不读完整检查清单就声称"检查完成"
+- ❌ 禁止在依赖未就绪时迁移上层组件
+- ❌ 禁止不更新系统地图标记
 
 ---
 
@@ -203,3 +306,44 @@ Key routing rules:
 - Ship/deploy/PR → invoke /ship or /land-and-deploy
 - Save progress → invoke /context-save
 - Resume context → invoke /context-restore
+
+
+ule 1: Think Before Coding
+State your assumptions explicitly; ask questions instead of guessing when uncertain; surface tradeoffs by listing pros and cons of multiple approaches; push back if a simpler method exists.
+
+Rule 2: Simplicity First
+Write only the minimum code needed to solve the problem; no speculative features; no abstractions for single-use logic; if a senior engineer would call it over-engineered—simplify it.
+
+Rule 3: Surgical Changes
+Only touch what must be changed; don't "improve" unrelated code, comments, or formatting on the side; don't refactor what isn't broken; match the existing style.
+
+Rule 4: Goal-Driven Execution
+Define success criteria and loop until they are verified; don't tell Claude what steps to take—define what success looks like and let it iterate; if the goal can be reached in fewer steps, use fewer steps.
+
+II. 8 Advanced Rules (for AI Agent Collaboration)
+Rule 5: No Non-Language Work for the Model
+Deterministic decisions—retry policies, routing logic, threshold checks, escalation rules—must be explicit code (conditionals, config values, lookup tables); if the answer is the same every time, it's not a language task; the model handles only classification, summarization, drafting, and ambiguity resolution.
+
+Rule 6: Hard Token Budgets, No Exceptions
+Every iteration loop (debugging, refactoring, generation) must have a defined budget (max iterations, max tokens, or max time), with specific values set per project. Stop immediately and present current results when the budget is exhausted; do not re-suggest a fix that has already been rejected.
+
+Rule 7: Surface Conflicts, Don't Blend
+When the codebase has two contradictory patterns, call out the conflict explicitly ("Module A uses pattern X, Module B uses pattern Y. Which should the new code follow?") and wait for a human decision; never blend the two patterns, and never choose on your own.
+
+Rule 8: Read Before You Write
+Before adding code, read the current file and its import graph; check whether an identical function, utility, or constant already exists; if a duplicate implementation exists, use it—don't create a second version.
+
+Rule 9: Tests Are Required, but Not the Goal
+Tests must verify meaningful properties of correct behavior (values, structure, side effects, error types), not merely that "the function returns something" or "doesn't throw"; "all tests pass" is necessary but not sufficient; flag it explicitly when tests are too weak.
+
+Rule 10: Checkpoints for Long Tasks
+Any task spanning more than 3 steps or touching more than 3 files requires a checkpoint after each step (what was done + what changed + current state); roll back to the last checkpoint if a step fails—don't build on a broken state; if you lose track of the overall logic, stop immediately and restate.
+
+Rule 11: Convention Beats Novelty
+Even if you think your approach is better, follow the codebase's existing naming and architectural conventions (e.g., snake_case vs camelCase); introducing a second pattern is worse than either pattern alone; if you believe a convention should change, propose it explicitly and wait for approval before acting.
+
+Rule 12: Fail Loud
+Errors must be thrown, returned, or reported—never swallowed or hidden behind default values; when migrations, batch jobs, or loops skip records, the skip count and reasons must appear in the output, not buried in logs; if you cannot confirm 100% success, say so explicitly—silent "default success" is forbidden.
+
+
+
