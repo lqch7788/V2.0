@@ -110,14 +110,18 @@
             {{ getFertilizerTypeName(row.fertilizerType) }}
           </template>
         </el-table-column>
-        <el-table-column prop="fertilizerCategory" label="分类" width="100">
+        <el-table-column prop="applicationTiming" label="施肥时期" width="150">
           <template #default="{ row }">
-            {{ getCategoryName(row.fertilizerCategory) }}
+            <div class="flex flex-wrap gap-1">
+              <el-tag v-for="timing in (row.applicationTiming || '').split(',').filter(t => t)" :key="timing" size="small" type="warning" class="mr-1">
+                {{ getTimingName(timing.trim()) }}
+              </el-tag>
+              <span v-if="!row.applicationTiming">-</span>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="functionDesc" label="功能说明" min-width="200" show-overflow-tooltip />
         <el-table-column prop="shelfLife" label="保质期" width="100" />
-        <el-table-column prop="storageCondition" label="存储条件" width="120" show-overflow-tooltip />
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <div class="flex items-center gap-1">
@@ -149,7 +153,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">
               肥料编码 <span class="text-red-500">*</span>
             </label>
-            <el-input v-model="formData.fertilizerCode" placeholder="请输入肥料编码" />
+            <el-input v-model="formData.fertilizerCode" placeholder="自动生成" disabled />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -175,12 +179,11 @@
             </el-select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">分类</label>
-            <el-select v-model="formData.fertilizerCategory" placeholder="请选择" class="w-full">
+            <label class="block text-sm font-medium text-gray-700 mb-1">施肥时期</label>
+            <el-select v-model="formData.applicationTiming" multiple placeholder="请选择" class="w-full">
               <el-option label="底肥" value="base" />
-              <el-option label="追肥" value="top_dressing" />
+              <el-option label="追肥" value="dressing" />
               <el-option label="叶面肥" value="foliar" />
-              <el-option label="特殊肥" value="special" />
             </el-select>
           </div>
         </div>
@@ -230,11 +233,11 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-sm font-medium text-gray-500">肥料编码</label>
-            <p class="mt-1 text-gray-900">{{ currentRecord?.fertilizerCode }}</p>
+            <p class="mt-1 text-gray-900">{{ currentRecord?.fertilizerCode || '-' }}</p>
           </div>
           <div>
             <label class="text-sm font-medium text-gray-500">肥料名称</label>
-            <p class="mt-1 text-gray-900">{{ currentRecord?.fertilizerName }}</p>
+            <p class="mt-1 text-gray-900">{{ currentRecord?.fertilizerName || '-' }}</p>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
@@ -243,8 +246,15 @@
             <p class="mt-1 text-gray-900">{{ getFertilizerTypeName(currentRecord?.fertilizerType) }}</p>
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-500">分类</label>
-            <p class="mt-1 text-gray-900">{{ getCategoryName(currentRecord?.fertilizerCategory) }}</p>
+            <label class="text-sm font-medium text-gray-500">施肥时期</label>
+            <p class="mt-1 text-gray-900">
+              <div class="flex flex-wrap gap-1">
+                <el-tag v-for="timing in (currentRecord?.applicationTiming || '').split(',').filter(t => t)" :key="timing" size="small" type="warning" class="mr-1">
+                  {{ getTimingName(timing.trim()) }}
+                </el-tag>
+                <span v-if="!currentRecord?.applicationTiming">-</span>
+              </div>
+            </p>
           </div>
         </div>
         <div>
@@ -313,17 +323,7 @@ import {
   ArrowLeft,
   Sugar
 } from '@element-plus/icons-vue'
-
-// ========== 模拟数据 ==========
-const mockData = [
-  { id: '1', fertilizerCode: 'FER001', fertilizerName: '有机堆肥', fertilizerType: 'organic', fertilizerCategory: 'base', functionDesc: '提供全面营养，改善土壤结构', tabooDesc: '避免与农药混合使用', shelfLife: '12个月', storageCondition: '阴凉干燥通风', supplierInfo: '本地有机肥供应商A' },
-  { id: '2', fertilizerCode: 'FER002', fertilizerName: '尿素', fertilizerType: 'inorganic', fertilizerCategory: 'top_dressing', functionDesc: '高氮肥料，促进叶片生长', tabooDesc: '不能与种子直接接触', shelfLife: '24个月', storageCondition: '密封防潮', supplierInfo: '化工肥料公司B' },
-  { id: '3', fertilizerCode: 'FER003', fertilizerName: '水溶复合肥', fertilizerType: 'water_soluble', fertilizerCategory: 'base', functionDesc: '快速溶解，适用于滴灌喷灌', tabooDesc: '浓度不宜过高', shelfLife: '36个月', storageCondition: '密封保存', supplierInfo: '水溶肥厂商C' },
-  { id: '4', fertilizerCode: 'FER004', fertilizerName: 'NPK复合肥', fertilizerType: 'compound', fertilizerCategory: 'base', functionDesc: '氮磷钾均衡，快速补充营养', tabooDesc: '避免雨淋', shelfLife: '24个月', storageCondition: '干燥通风', supplierInfo: '化肥厂D' },
-  { id: '5', fertilizerCode: 'FER005', fertilizerName: '生物菌肥', fertilizerType: 'bio', fertilizerCategory: 'base', functionDesc: '含有益菌群，改良土壤微生态', tabooDesc: '不能与杀菌剂混用', shelfLife: '6个月', storageCondition: '低温避光', supplierInfo: '生物科技公司E' },
-  { id: '6', fertilizerCode: 'FER006', fertilizerName: '缓释氮肥', fertilizerType: 'slow_release', fertilizerCategory: 'top_dressing', functionDesc: '缓慢释放，持效期长', tabooDesc: '避免撒施不均', shelfLife: '24个月', storageCondition: '密封防潮', supplierInfo: '缓释肥厂家F' },
-  { id: '7', fertilizerCode: 'FER007', fertilizerName: '铁微量元素肥', fertilizerType: 'trace', fertilizerCategory: 'foliar', functionDesc: '补充铁元素，预防黄叶病', tabooDesc: '避免在强光下喷施', shelfLife: '12个月', storageCondition: '避光保存', supplierInfo: '微肥公司G' },
-]
+import { useFertilizerLibraryStore } from '@/stores/modules/fertilizerLibrary'
 
 // ========== 类型映射 ==========
 const fertilizerTypeMap = {
@@ -336,22 +336,23 @@ const fertilizerTypeMap = {
   trace: '微量元素肥'
 }
 
-const categoryMap = {
+const timingMap = {
   base: '底肥',
-  top_dressing: '追肥',
-  foliar: '叶面肥',
-  special: '特殊肥'
+  dressing: '追肥',
+  foliar: '叶面肥'
 }
 
-const getFertilizerTypeName = (type) => fertilizerTypeMap[type] || type
-const getCategoryName = (category) => categoryMap[category] || category
+const getFertilizerTypeName = (type) => fertilizerTypeMap[type] || type || '-'
+const getTimingName = (timing) => timingMap[timing] || timing || '-'
+
+// ========== Store ==========
+const fertilizerLibraryStore = useFertilizerLibraryStore()
 
 // ========== 状态 ==========
 const activeTab = ref('organic')
 const searchKeyword = ref('')
 const loading = ref(false)
 const error = ref(null)
-const items = ref([])
 
 // 导出相关
 const exportMode = ref(false)
@@ -368,10 +369,11 @@ const currentRecord = ref(null)
 
 // 表单数据
 const formData = reactive({
+  id: '',
   fertilizerCode: '',
   fertilizerName: '',
   fertilizerType: 'organic',
-  fertilizerCategory: 'base',
+  applicationTiming: [],
   functionDesc: '',
   tabooDesc: '',
   shelfLife: '',
@@ -381,13 +383,13 @@ const formData = reactive({
 
 // ========== 计算属性 ==========
 const filteredItems = computed(() => {
-  let result = items.value.filter(item => item.fertilizerType === activeTab.value)
+  let result = fertilizerLibraryStore.items.filter(item => item.fertilizerType === activeTab.value)
 
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
     result = result.filter(item =>
-      item.fertilizerName.toLowerCase().includes(keyword) ||
-      item.fertilizerCode.toLowerCase().includes(keyword)
+      (item.fertilizerName || '').toLowerCase().includes(keyword) ||
+      (item.fertilizerCode || '').toLowerCase().includes(keyword)
     )
   }
 
@@ -399,9 +401,7 @@ const loadData = async () => {
   loading.value = true
   error.value = null
   try {
-    // 模拟加载延迟
-    await new Promise(resolve => setTimeout(resolve, 300))
-    items.value = [...mockData]
+    await fertilizerLibraryStore.fetchItems()
   } catch (err) {
     error.value = err instanceof Error ? err.message : '加载数据失败'
   } finally {
@@ -422,13 +422,20 @@ const handleReset = () => {
   searchKeyword.value = ''
 }
 
-const handleAdd = () => {
+const handleAdd = async () => {
   dialogMode.value = 'add'
+  // 生成编码
+  try {
+    const res = await fertilizerLibraryStore.generateCode()
+    formData.fertilizerCode = res?.code || ''
+  } catch (e) {
+    formData.fertilizerCode = ''
+  }
   Object.assign(formData, {
-    fertilizerCode: '',
+    id: '',
     fertilizerName: '',
     fertilizerType: activeTab.value,
-    fertilizerCategory: 'base',
+    applicationTiming: [],
     functionDesc: '',
     tabooDesc: '',
     shelfLife: '',
@@ -440,7 +447,20 @@ const handleAdd = () => {
 
 const handleEdit = (row) => {
   dialogMode.value = 'edit'
-  Object.assign(formData, { ...row })
+  // applicationTiming 可能是逗号分隔的字符串，需要转为数组
+  const timings = row.applicationTiming ? row.applicationTiming.split(',').map(t => t.trim()).filter(Boolean) : []
+  Object.assign(formData, {
+    id: row.id,
+    fertilizerCode: row.fertilizerCode,
+    fertilizerName: row.fertilizerName,
+    fertilizerType: row.fertilizerType,
+    applicationTiming: timings,
+    functionDesc: row.functionDesc || '',
+    tabooDesc: row.tabooDesc || '',
+    shelfLife: row.shelfLife || '',
+    storageCondition: row.storageCondition || '',
+    supplierInfo: row.supplierInfo || ''
+  })
   dialogVisible.value = true
 }
 
@@ -456,7 +476,7 @@ const handleDelete = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    items.value = items.value.filter(item => item.id !== row.id)
+    await fertilizerLibraryStore.deleteItem(row.id)
     ElMessage.success('删除成功')
   } catch (err) {
     if (err !== 'cancel') {
@@ -466,10 +486,6 @@ const handleDelete = async (row) => {
 }
 
 const handleSave = async () => {
-  if (!formData.fertilizerCode?.trim()) {
-    ElMessage.error('请输入肥料编码')
-    return
-  }
   if (!formData.fertilizerName?.trim()) {
     ElMessage.error('请输入肥料名称')
     return
@@ -477,20 +493,17 @@ const handleSave = async () => {
 
   dialogLoading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // 将 applicationTiming 数组转为逗号分隔的字符串
+    const submitData = {
+      ...formData,
+      applicationTiming: formData.applicationTiming.join(',')
+    }
 
     if (dialogMode.value === 'add') {
-      const newItem = {
-        ...formData,
-        id: Date.now().toString()
-      }
-      items.value.unshift(newItem)
+      await fertilizerLibraryStore.createItem(submitData)
       ElMessage.success('新增成功')
     } else {
-      const index = items.value.findIndex(item => item.id === formData.id)
-      if (index !== -1) {
-        items.value[index] = { ...formData }
-      }
+      await fertilizerLibraryStore.updateItem(formData.id, submitData)
       ElMessage.success('更新成功')
     }
     dialogVisible.value = false
@@ -524,17 +537,17 @@ const handleExportConfirm = () => {
 }
 
 const handleDoExport = () => {
-  const selectedData = items.value.filter(item => selectedRows.value.includes(item.id))
+  const selectedData = fertilizerLibraryStore.items.filter(item => selectedRows.value.includes(item.id))
 
   // 导出表头
-  const headers = ['肥料编码', '肥料名称', '肥料类型', '分类', '功能说明', '使用禁忌', '保质期', '存储条件', '供应商信息']
+  const headers = ['肥料编码', '肥料名称', '肥料类型', '施肥时期', '功能说明', '使用禁忌', '保质期', '存储条件', '供应商信息']
 
   // 生成导出数据
   const rows = selectedData.map(record => [
     record.fertilizerCode || '',
     record.fertilizerName || '',
     getFertilizerTypeName(record.fertilizerType) || '',
-    getCategoryName(record.fertilizerCategory) || '',
+    record.applicationTiming || '',
     record.functionDesc || '',
     record.tabooDesc || '',
     record.shelfLife || '',

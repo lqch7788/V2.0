@@ -311,11 +311,7 @@ const basicDataSections = [
 
 // 组2: 农场结构
 const farmStructureSections = [
-  { icon: House, label: '基地设置', path: '/settings/bases', desc: '管理基地信息配置' },
-  { icon: House, label: '基地架构', path: '/settings/farm-structure', desc: '公司基地 · 设施管理 · 区块划分 · 种植记录' },
-  { icon: Grid, label: '区块管理', path: '/settings/block', desc: '管理基地下的种植区块' },
-  { icon: MapLocation, label: '分区管理', path: '/settings/partitions', desc: '大棚和种植分区层级管理' },
-  { icon: MapLocation, label: '区域系统', path: '/settings/area-systems', desc: '分区与设备系统的关联映射配置' },
+  { icon: House, label: '基地运营中心', path: '/settings/base-operations', desc: '设施管理 · 区域划分 · 种植记录' },
 ]
 
 // 组3: 权限管理
@@ -337,21 +333,23 @@ const productionSections = [
 
 // 组5: IoT设备
 const iotDeviceSections = [
-  { icon: Monitor, label: '系统管理', path: '/settings/device-systems', desc: '设备系统类型定义和IDC关联' },
+  { icon: Tools, label: '系统管理', path: '/settings/device-systems', desc: '设备系统类型定义和IDC关联' },
   { icon: VideoCamera, label: '视频管理', path: '/settings/cameras', desc: '摄像头注册和RTSP视频流地址配置' },
   { icon: Connection, label: '水肥一体机', path: '/settings/water-fertilizer', desc: '灌溉时段、间隔和ABC混合比例参数配置' },
   { icon: Odometer, label: '设备管理', path: '/settings/device', desc: 'IoT设备注册与监控配置' },
   { icon: CircleCheck, label: '设备分配', path: '/settings/device-distribution', desc: 'IoT设备分配到温室区域 + 运行参数' },
   { icon: Tools, label: '工程调试', path: '/settings/project-debug', desc: 'HMI版本、数据库测试、系统诊断工具' },
+  { icon: Grid, label: '分区管理', path: '/settings/partitions', desc: '大棚和种植分区层级管理 · 传感器/水肥/摄像头关联' },
+  { icon: MapLocation, label: '区域系统', path: '/settings/area-systems', desc: '分区与设备系统的关联映射配置' },
   { icon: Van, label: '种植设置', path: '/settings/plant-settings', desc: '种植图标和品种种植参数配置' },
+  { icon: Lightning, label: '能耗管理', path: '/settings/energy-configs', desc: '大棚能耗类型和计量设备配置' },
+  { icon: Warning, label: '警报管理', path: '/settings/alarm-configs', desc: '三级警报级别和通知规则配置' },
 ]
 
 // 组6: 监控告警
 const monitorSections = [
   { icon: Monitor, label: '系统监控', path: '/settings/monitor', desc: '服务器和服务运行状态监控' },
   { icon: Download, label: '备份恢复', path: '/settings/backup', desc: '数据备份与恢复管理' },
-  { icon: Lightning, label: '能耗管理', path: '/settings/energy-configs', desc: '大棚能耗类型和计量设备配置' },
-  { icon: Warning, label: '警报管理', path: '/settings/alarm-configs', desc: '三级警报级别和通知规则配置' },
 ]
 
 // 组7: 运营管理

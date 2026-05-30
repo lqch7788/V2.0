@@ -2614,6 +2614,44 @@ export function initializeDatabase() {
     )
   `);
 
+  // ========== V12.0: 肥料知识库表 ==========
+  // 肥料知识库主表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS fertilizer_library (
+      id TEXT PRIMARY KEY,
+      fertilizer_code TEXT NOT NULL UNIQUE,
+      fertilizer_name TEXT NOT NULL,
+      fertilizer_type TEXT,
+      application_timing TEXT,
+      function_desc TEXT,
+      taboo_desc TEXT,
+      shelf_life TEXT,
+      storage_condition TEXT,
+      supplier_info TEXT,
+      status TEXT DEFAULT 'active',
+      create_time TEXT DEFAULT (datetime('now','localtime')),
+      update_time TEXT DEFAULT (datetime('now','localtime'))
+    )
+  `);
+
+  // 肥料规格明细表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS fertilizer_specs (
+      id TEXT PRIMARY KEY,
+      fertilizer_id TEXT NOT NULL,
+      brand_name TEXT,
+      spec_content TEXT,
+      manufacturer TEXT,
+      suggested_dosage TEXT,
+      suggested_ratio TEXT,
+      dosage_unit TEXT,
+      remark TEXT,
+      status TEXT DEFAULT 'active',
+      create_time TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (fertilizer_id) REFERENCES fertilizer_library(id) ON DELETE CASCADE
+    )
+  `);
+
   console.log('数据库表初始化完成');
 
   // 创建索引

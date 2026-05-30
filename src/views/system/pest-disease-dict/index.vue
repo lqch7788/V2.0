@@ -36,7 +36,7 @@
             ]"
           >
             <el-icon class="mr-1"><Warning /></el-icon>
-            虫害 ({{ stats.pestCount }})
+            虫害 ({{ pestDiseaseStore.stats.pestCount }})
           </button>
           <button
             @click="activeTab = 'disease'"
@@ -48,7 +48,7 @@
             ]"
           >
             <el-icon class="mr-1"><Warning /></el-icon>
-            病害 ({{ stats.diseaseCount }})
+            病害 ({{ pestDiseaseStore.stats.diseaseCount }})
           </button>
         </div>
       </div>
@@ -61,7 +61,7 @@
             <el-icon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"><Search /></el-icon>
             <el-input
               type="text"
-              v-model="searchKeyword"
+              v-model="pestDiseaseStore.searchKeyword"
               placeholder="搜索病虫害名称或编码..."
               class="pl-9"
               @keyup.enter="handleSearch"
@@ -69,12 +69,12 @@
           </div>
           <!-- 适用作物 -->
           <el-input
-            v-model="filters.targetCrops"
+            v-model="pestDiseaseStore.filters.targetCrops"
             placeholder="适用作物"
             class="w-40"
           />
           <!-- 状态 -->
-          <el-select v-model="filters.status" placeholder="状态" class="w-28">
+          <el-select v-model="pestDiseaseStore.filters.status" placeholder="状态" class="w-28">
             <el-option label="状态" value="" />
             <el-option label="启用" value="active" />
             <el-option label="禁用" value="inactive" />
@@ -89,20 +89,20 @@
       </div>
 
       <!-- 错误提示 -->
-      <div v-if="error" class="mx-4 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
-        {{ error }}
+      <div v-if="pestDiseaseStore.error" class="mx-4 mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+        {{ pestDiseaseStore.error }}
       </div>
 
       <!-- 表格 -->
       <div class="p-4">
         <el-table
-          :data="filteredItems"
-          v-loading="loading"
+          :data="pestDiseaseStore.filteredItems"
+          v-loading="pestDiseaseStore.loading"
           stripe
           style="width: 100%"
         >
-          <el-table-column prop="code" label="编码" width="150" />
-          <el-table-column prop="name" label="名称" min-width="150" />
+          <el-table-column prop="dictCode" label="编码" width="150" />
+          <el-table-column prop="dictName" label="名称" min-width="150" />
           <el-table-column prop="dictType" label="类型" width="100">
             <template #default="{ row }">
               <span :class="row.dictType === 'pest' ? 'text-green-600' : 'text-orange-600'">
@@ -155,13 +155,13 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">
             编码 <span class="text-red-500">*</span>
           </label>
-          <el-input v-model="formData.code" placeholder="请输入编码" :disabled="isEdit" />
+          <el-input v-model="formData.dictCode" :placeholder="isEdit ? '' : '自动生成'" :disabled="isEdit" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
             名称 <span class="text-red-500">*</span>
           </label>
-          <el-input v-model="formData.name" placeholder="请输入名称" />
+          <el-input v-model="formData.dictName" placeholder="请输入名称" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -196,7 +196,7 @@
       </div>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave" :loading="saveLoading">保存</el-button>
+        <el-button type="primary" @click="handleSave" :loading="pestDiseaseStore.saveLoading">保存</el-button>
       </template>
     </el-dialog>
 
@@ -209,11 +209,11 @@
       <div class="space-y-3" v-if="currentRecord">
         <div class="flex border-b border-gray-100 py-2">
           <span class="text-gray-500 w-24">编码：</span>
-          <span class="text-gray-900">{{ currentRecord.code }}</span>
+          <span class="text-gray-900">{{ currentRecord.dictCode }}</span>
         </div>
         <div class="flex border-b border-gray-100 py-2">
           <span class="text-gray-500 w-24">名称：</span>
-          <span class="text-gray-900">{{ currentRecord.name }}</span>
+          <span class="text-gray-900">{{ currentRecord.dictName }}</span>
         </div>
         <div class="flex border-b border-gray-100 py-2">
           <span class="text-gray-500 w-24">类型：</span>
@@ -249,7 +249,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Warning,
@@ -258,123 +258,75 @@ import {
   Edit,
   Delete,
   View,
-  ArrowLeft,
-  WarnTriangleFilled
+  ArrowLeft
 } from '@element-plus/icons-vue'
+import { usePestDiseaseDictStore } from '@/stores/modules/pestDiseaseDict'
 
-// 类型
+// 使用 Store
+const pestDiseaseStore = usePestDiseaseDictStore()
+
+// Tab 类型
 const TabType = {
   PEST: 'pest',
   DISEASE: 'disease'
 }
 
-// 模拟数据
-const mockData = [
-  { id: '1', code: 'PEST001', name: '蚜虫', dictType: 'pest', targetCrops: '蔬菜', description: '吸食植物汁液，导致叶片卷曲', status: 'active' },
-  { id: '2', code: 'PEST002', name: '红蜘蛛', dictType: 'pest', targetCrops: '果树', description: '以叶片为食，造成黄叶落叶', status: 'active' },
-  { id: '3', code: 'PEST003', name: '菜青虫', dictType: 'pest', targetCrops: '白菜', description: '啃食叶片，影响产量', status: 'active' },
-  { id: '4', code: 'PEST004', name: '蝗虫', dictType: 'pest', targetCrops: '粮食', description: '大面积啃食农作物', status: 'inactive' },
-  { id: '5', code: 'DISEASE001', name: '霜霉病', dictType: 'disease', targetCrops: '蔬菜', description: '叶片出现霜状霉层', status: 'active' },
-  { id: '6', code: 'DISEASE002', name: '灰霉病', dictType: 'disease', targetCrops: '番茄', description: '果实腐烂，表面灰色霉层', status: 'active' },
-  { id: '7', code: 'DISEASE003', name: '枯萎病', dictType: 'disease', targetCrops: '瓜类', description: '维管束病变，导致植株枯萎', status: 'active' },
-  { id: '8', code: 'DISEASE004', name: '病毒病', dictType: 'disease', targetCrops: '烟草', description: '叶片花叶，植株矮化', status: 'inactive' },
-]
-
-// 状态
-const loading = ref(false)
-const saveLoading = ref(false)
-const error = ref(null)
-const activeTab = ref<TabType>('pest')
-const searchKeyword = ref('')
-const filters = reactive({
-  targetCrops: '',
-  status: ''
-})
-
-// 弹窗状态
+// 本地状态
+const activeTab = ref(TabType.PEST)
 const dialogVisible = ref(false)
 const detailVisible = ref(false)
 const isEdit = ref(false)
 const currentRecord = ref(null)
+
+// 新增/编辑表单
 const formData = reactive({
   id: '',
-  code: '',
-  name: '',
+  dictCode: '',
+  dictName: '',
   dictType: 'pest',
   targetCrops: '',
   description: '',
   status: 'active'
 })
 
-// 数据
-const dataList = ref([])
-
-// 计算属性
-const filteredItems = computed(() => {
-  let items = dataList.value.filter(item => item.dictType === activeTab.value)
-
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    items = items.filter(item =>
-      item.name.toLowerCase().includes(keyword) ||
-      item.code.toLowerCase().includes(keyword)
-    )
-  }
-
-  if (filters.targetCrops) {
-    items = items.filter(item =>
-      item.targetCrops && item.targetCrops.includes(filters.targetCrops)
-    )
-  }
-
-  if (filters.status) {
-    items = items.filter(item => item.status === filters.status)
-  }
-
-  return items
+// 监听 Tab 切换，同步到 Store 并重新加载数据
+watch(activeTab, (newTab) => {
+  pestDiseaseStore.activeTab = newTab
+  formData.dictType = newTab
+  pestDiseaseStore.loadData()
 })
 
-const stats = computed(() => ({
-  pestCount: dataList.value.filter(it => it.dictType === 'pest').length,
-  diseaseCount: dataList.value.filter(it => it.dictType === 'disease').length,
-}))
-
 // 方法
-const loadData = async () => {
-  loading.value = true
-  error.value = null
-  try {
-    // 模拟加载延迟
-    await new Promise(resolve => setTimeout(resolve, 300))
-    dataList.value = [...mockData]
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : '加载数据失败'
-  } finally {
-    loading.value = false
-  }
-}
-
 const handleSearch = () => {
-  // 搜索逻辑由computed处理
+  // 前端过滤由 computed 处理
 }
 
 const handleReset = () => {
-  searchKeyword.value = ''
-  filters.targetCrops = ''
-  filters.status = ''
+  pestDiseaseStore.searchKeyword = ''
+  pestDiseaseStore.filters.targetCrops = ''
+  pestDiseaseStore.filters.status = ''
 }
 
-const handleAdd = () => {
+const handleAdd = async () => {
   isEdit.value = false
   Object.assign(formData, {
     id: '',
-    code: '',
-    name: '',
+    dictCode: '',
+    dictName: '',
     dictType: activeTab.value,
     targetCrops: '',
     description: '',
     status: 'active'
   })
+
+  // 自动获取下一个编码
+  try {
+    const nextCode = await pestDiseaseStore.fetchNextCode(activeTab.value)
+    formData.dictCode = nextCode
+  } catch (e) {
+    // 获取失败时留空，用户可手动填写
+  }
+
   dialogVisible.value = true
 }
 
@@ -400,8 +352,10 @@ const handleDelete = async (record) => {
         type: 'warning'
       }
     )
-    dataList.value = dataList.value.filter(item => item.id !== record.id)
+    await pestDiseaseStore.deleteItem(record.id)
     ElMessage.success('删除成功')
+    // 刷新列表
+    await pestDiseaseStore.loadData()
   } catch (err) {
     if (err !== 'cancel') {
       ElMessage.error(err instanceof Error ? err.message : '删除失败')
@@ -410,45 +364,29 @@ const handleDelete = async (record) => {
 }
 
 const handleSave = async () => {
-  if (!formData.code || !formData.name) {
-    ElMessage.error('请填写编码和名称')
+  if (!formData.dictName) {
+    ElMessage.error('请填写名称')
     return
   }
 
-  saveLoading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 300))
-
     if (isEdit.value) {
-      const index = dataList.value.findIndex(item => item.id === formData.id)
-      if (index !== -1) {
-        dataList.value[index] = { ...formData }
-      }
+      await pestDiseaseStore.updateItem(formData.id, formData)
       ElMessage.success('保存成功')
     } else {
-      const newRecord = {
-        ...formData,
-        id: Date.now().toString()
-      }
-      dataList.value.push(newRecord)
+      await pestDiseaseStore.createItem(formData)
       ElMessage.success('新增成功')
     }
     dialogVisible.value = false
+    // 刷新列表
+    await pestDiseaseStore.loadData()
   } catch (err) {
     ElMessage.error(err instanceof Error ? err.message : '保存失败')
-  } finally {
-    saveLoading.value = false
   }
-}
-
-// 监听Tab切换
-const handleTabChange = (tab) => {
-  activeTab.value = tab
-  formData.dictType = tab
 }
 
 // 初始化
 onMounted(() => {
-  loadData()
+  pestDiseaseStore.loadData()
 })
 </script>

@@ -109,7 +109,7 @@
           <el-table
             ref="tableRef"
             :data="paginatedData"
-            v-loading="loading"
+            v-loading="pesticideStore.isLoading"
             @selection-change="handleSelectionChange"
             empty-text="暂无数据"
             stripe
@@ -117,14 +117,21 @@
             <el-table-column v-if="exportMode" type="selection" width="55" />
             <el-table-column prop="pesticideCode" label="药剂编码" width="140" />
             <el-table-column prop="pesticideName" label="药剂名称" min-width="150" />
+            <el-table-column prop="ingredient" label="药剂成分" min-width="120" show-overflow-tooltip />
+            <el-table-column prop="mechanism" label="作用机制" min-width="100" show-overflow-tooltip />
             <el-table-column prop="controlTypeName" label="防治类型" width="100">
               <template #default="{ row }">
                 <el-tag :type="getControlTypeTagType(row.controlType)" size="small">
-                  {{ row.controlTypeName }}
+                  {{ getControlTypeName(row.controlType) }}
                 </el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="functionDesc" label="功能说明" min-width="200" show-overflow-tooltip />
+            <el-table-column prop="specs" label="规格数" width="80" align="center">
+              <template #default="{ row }">
+                <el-tag type="info" size="small">{{ row.specs?.length || 0 }}</el-tag>
+              </template>
+            </el-table-column>
             <el-table-column prop="tabooDesc" label="使用禁忌" min-width="150" show-overflow-tooltip />
             <el-table-column prop="targetPests" label="防治对象" min-width="120" show-overflow-tooltip />
             <el-table-column label="操作" width="160" fixed="right">
@@ -182,6 +189,12 @@
             <el-option label="物理防治" value="physical" />
           </el-select>
         </el-form-item>
+        <el-form-item label="药剂成分" prop="ingredient">
+          <el-input v-model="formData.ingredient" placeholder="请输入药剂成分" />
+        </el-form-item>
+        <el-form-item label="作用机制" prop="mechanism">
+          <el-input v-model="formData.mechanism" placeholder="如 触杀、胃毒、熏蒸" />
+        </el-form-item>
         <el-form-item label="功能说明" prop="functionDesc">
           <el-input v-model="formData.functionDesc" type="textarea" :rows="3" placeholder="请输入功能说明" />
         </el-form-item>
@@ -199,12 +212,12 @@
     </el-dialog>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="药剂详情" width="600px">
+    <el-dialog v-model="detailVisible" title="药剂详情" width="700px">
       <div class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-sm text-gray-500">药剂编码</label>
-            <p class="font-medium">{{ currentRow?.pesticideCode }}</p>
+            <p class="font-medium font-mono">{{ currentRow?.pesticideCode }}</p>
           </div>
           <div>
             <label class="text-sm text-gray-500">药剂名称</label>
@@ -214,13 +227,21 @@
             <label class="text-sm text-gray-500">防治类型</label>
             <p class="font-medium">
               <el-tag :type="getControlTypeTagType(currentRow?.controlType)" size="small">
-                {{ currentRow?.controlTypeName }}
+                {{ getControlTypeName(currentRow?.controlType) }}
               </el-tag>
             </p>
           </div>
           <div>
             <label class="text-sm text-gray-500">防治对象</label>
-            <p class="font-medium">{{ currentRow?.targetPests }}</p>
+            <p class="font-medium">{{ currentRow?.targetPests || '-' }}</p>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">药剂成分</label>
+            <p class="font-medium">{{ currentRow?.ingredient || '-' }}</p>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">作用机制</label>
+            <p class="font-medium">{{ currentRow?.mechanism || '-' }}</p>
           </div>
         </div>
         <div>
@@ -230,6 +251,20 @@
         <div>
           <label class="text-sm text-gray-500">使用禁忌</label>
           <p class="mt-1 text-gray-900">{{ currentRow?.tabooDesc || '-' }}</p>
+        </div>
+        <!-- 规格明细 -->
+        <div v-if="currentRow?.specs?.length > 0">
+          <label class="text-sm text-gray-500 mb-2 block">规格明细</label>
+          <el-table :data="currentRow?.specs" size="small" border>
+            <el-table-column prop="brandName" label="品牌名称" width="100" />
+            <el-table-column prop="specContent" label="含量" width="80" />
+            <el-table-column prop="formulation" label="剂型" width="100" />
+            <el-table-column prop="manufacturer" label="生产厂家" min-width="120" show-overflow-tooltip />
+            <el-table-column prop="suggestedDosage" label="建议用量" width="90" />
+            <el-table-column prop="dosageUnit" label="单位" width="60" />
+            <el-table-column prop="suggestedRatio" label="稀释比例" width="90" />
+            <el-table-column prop="remark" label="备注" min-width="80" show-overflow-tooltip />
+          </el-table>
         </div>
       </div>
       <template #footer>
@@ -279,6 +314,10 @@ import {
   Warning
 } from '@element-plus/icons-vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
+import { usePesticideLibraryStore } from '@/stores/modules/pesticideLibrary'
+
+// 药剂库 Store
+const pesticideStore = usePesticideLibraryStore()
 
 // 防治类型映射
 const controlTypeMap = {
@@ -287,28 +326,11 @@ const controlTypeMap = {
   physical: { name: '物理防治', tagType: 'warning' }
 }
 
-// 模拟数据
-const mockData = [
-  { id: '1', pesticideCode: 'CH001', pesticideName: '吡虫啉', controlType: 'chemical', controlTypeName: '化学防治', functionDesc: '高效杀虫剂，主要用于防治蚜虫、飞虱等刺吸式口器害虫', tabooDesc: '对蜜蜂有毒，避免花期使用', targetPests: '蚜虫、飞虱、粉虱' },
-  { id: '2', pesticideCode: 'CH002', pesticideName: '氯氰菊酯', controlType: 'chemical', controlTypeName: '化学防治', functionDesc: '广谱性杀虫剂，对多种害虫有效', tabooDesc: '鱼类敏感，远离水产养殖区', targetPests: '菜青虫、小菜蛾、棉铃虫' },
-  { id: '3', pesticideCode: 'CH003', pesticideName: '多菌灵', controlType: 'chemical', controlTypeName: '化学防治', functionDesc: '内吸性杀菌剂，防治多种真菌病害', tabooDesc: '不可与强酸强碱混用', targetPests: '霜霉病、白粉病、炭疽病' },
-  { id: '4', pesticideCode: 'BI001', pesticideName: '苏云金杆菌', controlType: 'bio', controlTypeName: '生物防治', functionDesc: '微生物杀虫剂，专一性强，对天敌安全', tabooDesc: '避免阳光直射，傍晚施用效果更好', targetPests: '玉米螟、棉铃虫、菜青虫' },
-  { id: '5', pesticideCode: 'BI002', pesticideName: '白僵菌', controlType: 'bio', controlTypeName: '生物防治', functionDesc: '真菌性杀虫剂，可寄生杀灭多种害虫', tabooDesc: '高温高湿环境效果更佳', targetPests: '蛴螬、蝼蛄、金针虫' },
-  { id: '6', pesticideCode: 'BI003', pesticideName: '赤眼蜂', controlType: 'bio', controlTypeName: '生物防治', functionDesc: '寄生性天敌昆虫，防治玉米螟等害虫', tabooDesc: '释放时间需与害虫产卵期吻合', targetPests: '玉米螟、甘蔗螟、稻纵卷叶螟' },
-  { id: '7', pesticideCode: 'PH001', pesticideName: '黄板', controlType: 'physical', controlTypeName: '物理防治', functionDesc: '色板诱杀，利用害虫趋黄性进行诱捕', tabooDesc: '定期更换，保持粘性', targetPests: '蚜虫、粉虱、斑潜蝇' },
-  { id: '8', pesticideCode: 'PH002', pesticideName: '蓝板', controlType: 'physical', controlTypeName: '物理防治', functionDesc: '色板诱杀，利用蓟马趋蓝性进行诱捕', tabooDesc: '悬挂在作物上方，高度适中', targetPests: '蓟马、叶蝉' },
-  { id: '9', pesticideCode: 'PH003', pesticideName: '杀虫灯', controlType: 'physical', controlTypeName: '物理防治', functionDesc: '光诱杀虫，适用于夜间活动的害虫', tabooDesc: '注意用电安全，定期清理虫体', targetPests: '蛾类、金龟子、夜蛾' },
-  { id: '10', pesticideCode: 'PH004', pesticideName: '防虫网', controlType: 'physical', controlTypeName: '物理防治', functionDesc: '隔离防虫，阻止害虫进入危害作物', tabooDesc: '选择合适目数，通风透气', targetPests: '蚜虫、菜青虫、小菜蛾' },
-  { id: '11', pesticideCode: 'CH004', pesticideName: '代森锰锌', controlType: 'chemical', controlTypeName: '化学防治', functionDesc: '保护性杀菌剂，防治多种霜霉病和晚疫病', tabooDesc: '避免与铜制剂混用', targetPests: '霜霉病、晚疫病、炭疽病' },
-  { id: '12', pesticideCode: 'BI004', pesticideName: '阿维菌素', controlType: 'bio', controlTypeName: '生物防治', functionDesc: '生物源杀虫杀螨剂，活性高', tabooDesc: '对鱼高毒，避免污染水源', targetPests: '红蜘蛛、小菜蛾、根结线虫' }
-]
-
 // 状态
 const activeTab = ref('chemical')
 const searchKeyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
-const loading = ref(false)
 
 // 导出相关
 const exportMode = ref(false)
@@ -330,29 +352,27 @@ const formData = reactive({
   pesticideCode: '',
   pesticideName: '',
   controlType: 'chemical',
+  ingredient: '',
+  mechanism: '',
   functionDesc: '',
   tabooDesc: '',
   targetPests: ''
 })
 
 const formRules = {
-  pesticideCode: [{ required: true, message: '请输入药剂编码', trigger: 'blur' }],
   pesticideName: [{ required: true, message: '请输入药剂名称', trigger: 'blur' }],
   controlType: [{ required: true, message: '请选择防治类型', trigger: 'change' }]
 }
 
-// 模拟数据存储
-const dataList = ref([...mockData])
-
 // 计算属性：根据Tab和搜索过滤数据
 const filteredData = computed(() => {
-  let result = dataList.value.filter(item => item.controlType === activeTab.value)
+  let result = pesticideStore.items.filter(item => item.controlType === activeTab.value)
 
   if (searchKeyword.value.trim()) {
     const keyword = searchKeyword.value.toLowerCase()
     result = result.filter(item =>
-      item.pesticideName.toLowerCase().includes(keyword) ||
-      item.pesticideCode.toLowerCase().includes(keyword)
+      (item.pesticideName && item.pesticideName.toLowerCase().includes(keyword)) ||
+      (item.pesticideCode && item.pesticideCode.toLowerCase().includes(keyword))
     )
   }
 
@@ -371,23 +391,39 @@ function getControlTypeTagType(controlType) {
   return controlTypeMap[controlType]?.tagType || 'info'
 }
 
+// 获取防治类型名称
+function getControlTypeName(controlType) {
+  return controlTypeMap[controlType]?.name || controlType || ''
+}
+
 // Tab切换
-function handleTabChange() {
+async function handleTabChange() {
   currentPage.value = 1
   searchKeyword.value = ''
   selectedRows.value = []
   exportMode.value = false
+  await loadData()
+}
+
+// 加载数据
+async function loadData() {
+  await pesticideStore.fetchItems({ control_type: activeTab.value })
 }
 
 // 搜索
 function handleSearch() {
   currentPage.value = 1
+  pesticideStore.fetchItems({
+    control_type: activeTab.value,
+    keyword: searchKeyword.value
+  })
 }
 
 // 重置
 function handleReset() {
   searchKeyword.value = ''
   currentPage.value = 1
+  loadData()
 }
 
 // 导出相关
@@ -418,11 +454,13 @@ function handleDoExport() {
     ? dataList.value.filter(item => selectedRows.value.includes(item.id))
     : filteredData.value
 
-  const headers = ['药剂编码', '药剂名称', '防治类型', '功能说明', '使用禁忌', '防治对象']
+  const headers = ['药剂编码', '药剂名称', '防治类型', '药剂成分', '作用机制', '功能说明', '使用禁忌', '防治对象']
   const rows = exportData.map(record => [
     record.pesticideCode || '',
     record.pesticideName || '',
     record.controlTypeName || '',
+    record.ingredient || '',
+    record.mechanism || '',
     record.functionDesc || '',
     record.tabooDesc || '',
     record.targetPests || ''
@@ -475,6 +513,8 @@ function openAddDialog() {
   isEdit.value = false
   editingId.value = ''
   resetForm()
+  // 设置当前Tab类型作为默认值
+  formData.controlType = activeTab.value
   dialogVisible.value = true
 }
 
@@ -482,12 +522,14 @@ function openAddDialog() {
 function handleEdit(row) {
   isEdit.value = true
   editingId.value = row.id
-  formData.pesticideCode = row.pesticideCode
-  formData.pesticideName = row.pesticideName
-  formData.controlType = row.controlType
-  formData.functionDesc = row.functionDesc
-  formData.tabooDesc = row.tabooDesc
-  formData.targetPests = row.targetPests
+  formData.pesticideCode = row.pesticideCode || ''
+  formData.pesticideName = row.pesticideName || ''
+  formData.controlType = row.controlType || 'chemical'
+  formData.ingredient = row.ingredient || ''
+  formData.mechanism = row.mechanism || ''
+  formData.functionDesc = row.functionDesc || ''
+  formData.tabooDesc = row.tabooDesc || ''
+  formData.targetPests = row.targetPests || ''
   dialogVisible.value = true
 }
 
@@ -504,42 +546,45 @@ function handleDelete(row) {
 }
 
 // 确认删除
-function confirmDelete() {
-  dataList.value = dataList.value.filter(item => item.id !== currentRow.value.id)
-  ElMessage.success('删除成功')
-  deleteVisible.value = false
-  currentRow.value = null
+async function confirmDelete() {
+  const result = await pesticideStore.deleteItem(currentRow.value.id)
+  if (result.success) {
+    ElMessage.success('删除成功')
+    deleteVisible.value = false
+    currentRow.value = null
+  } else {
+    ElMessage.error(result.error || '删除失败')
+  }
 }
 
 // 保存
-function handleSave() {
-  formRef.value.validate(valid => {
+async function handleSave() {
+  formRef.value.validate(async valid => {
     if (!valid) return
 
     if (isEdit.value) {
       // 编辑
-      const index = dataList.value.findIndex(item => item.id === editingId.value)
-      if (index !== -1) {
-        dataList.value[index] = {
-          ...dataList.value[index],
-          ...formData,
-          controlTypeName: controlTypeMap[formData.controlType]?.name || formData.controlType
-        }
+      const result = await pesticideStore.updateItem(editingId.value, formData)
+      if (result.success) {
+        ElMessage.success('保存成功')
+        dialogVisible.value = false
+        resetForm()
+        loadData()
+      } else {
+        ElMessage.error(result.error || '保存失败')
       }
-      ElMessage.success('保存成功')
     } else {
       // 新增
-      const newItem = {
-        id: Date.now().toString(),
-        ...formData,
-        controlTypeName: controlTypeMap[formData.controlType]?.name || formData.controlType
+      const result = await pesticideStore.createItem(formData)
+      if (result.success) {
+        ElMessage.success('新增成功')
+        dialogVisible.value = false
+        resetForm()
+        loadData()
+      } else {
+        ElMessage.error(result.error || '新增失败')
       }
-      dataList.value.unshift(newItem)
-      ElMessage.success('新增成功')
     }
-
-    dialogVisible.value = false
-    resetForm()
   })
 }
 
@@ -547,14 +592,17 @@ function handleSave() {
 function resetForm() {
   formData.pesticideCode = ''
   formData.pesticideName = ''
-  formData.controlType = activeTab.value
+  formData.controlType = activeTab.value === 'chemical' ? 'chemical' : activeTab.value === 'bio' ? 'bio' : 'physical'
+  formData.ingredient = ''
+  formData.mechanism = ''
   formData.functionDesc = ''
   formData.tabooDesc = ''
   formData.targetPests = ''
 }
 
 onMounted(() => {
-  // 初始化
+  // 初始化加载数据
+  loadData()
 })
 </script>
 

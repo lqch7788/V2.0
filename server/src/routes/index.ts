@@ -53,6 +53,9 @@ import recruitmentRouter from './recruitment';
 import contractRenewalRouter from './contractRenewal';
 import salaryBudgetRouter from './salaryBudget';
 import fertilizerRouter from './fertilizer';
+import fertilizerLibraryRouter from './fertilizerLibrary';
+import pesticideLibraryRouter from './pesticideLibrary';
+import pestDiseaseDictRouter from './pestDiseaseDict';
 import regionRouter from './region';
 import plantLabelRouter from './plantLabel';
 import materialCodeCategoriesRouter from './materialCodeCategories';
@@ -243,6 +246,15 @@ router.use('/salary-budget', requireAuth, salaryBudgetRouter);
 
 // 施肥管理路由 - V10.0
 router.use('/fertilizer', requireAuth, fertilizerRouter);
+
+// 肥料知识库路由 - V12.0
+router.use('/fertilizer-library', requireAuth, fertilizerLibraryRouter);
+
+// 药剂知识库路由 - V2.0
+router.use('/pesticide-library', requireAuth, pesticideLibraryRouter);
+
+// 病虫害字典路由 - V12.0
+router.use('/pest-disease-dict', requireAuth, pestDiseaseDictRouter);
 
 // 行政区划路由 - V10.0
 router.use('/region', requireAuth, regionRouter);
