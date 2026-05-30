@@ -56,6 +56,12 @@ const routes = [
     meta: { title: '基地架构' }
   },
   {
+    path: '/settings/base-management',
+    name: 'BaseManagement',
+    component: () => import('@/views/system/BaseManagement.vue'),
+    meta: { title: '基地管理' }
+  },
+  {
     path: '/settings/block',
     name: 'BlockManagement',
     component: () => import('@/views/system/BlockManagement.vue'),
@@ -108,6 +114,12 @@ const routes = [
     name: 'UserAuthority',
     component: () => import('@/views/system/authority/UserAuthorityConfig.vue'),
     meta: { title: '用户权限' }
+  },
+  {
+    path: '/settings/user-base-permission',
+    name: 'UserBasePermission',
+    component: () => import('@/views/system/authority/UserBasePermission.vue'),
+    meta: { title: '用户基地权限' }
   },
   {
     path: '/settings/approval-workflow',
@@ -224,6 +236,12 @@ const routes = [
     meta: { title: '仓库管理' }
   },
   {
+    path: '/settings/greenhouse-management',
+    name: 'GreenhouseManagement',
+    component: () => import('@/views/system/GreenhouseManagement.vue'),
+    meta: { title: '温室管理' }
+  },
+  {
     path: '/settings/team',
     name: 'TeamManagement',
     component: () => import('@/views/system/TeamManagement.vue'),
@@ -240,6 +258,12 @@ const routes = [
     name: 'FertilizerLibrary',
     component: () => import('@/views/system/fertilizer-library/index.vue'),
     meta: { title: '肥料库' }
+  },
+  {
+    path: '/settings/base-operations',
+    name: 'BaseOperations',
+    component: () => import('@/views/system/BaseOperations.vue'),
+    meta: { title: '基地运营中心' }
   },
   {
     path: '/dashboard',
