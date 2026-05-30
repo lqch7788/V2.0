@@ -140,80 +140,92 @@
       </div>
     </div>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="editingBase ? '编辑基地' : '新增基地'"
-      width="640px"
-      :close-on-click-modal="false"
-    >
-      <div class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">基地名称 <span class="text-red-500">*</span></label>
-            <el-input v-model="formData.name" placeholder="基地名称" />
+    <!-- 新增/编辑弹窗 - V1.1原生结构 -->
+    <Teleport to="body">
+      <div v-if="dialogVisible" class="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] bg-black/40" @click.self="dialogVisible = false">
+        <div class="bg-white rounded-lg shadow-xl overflow-hidden" style="min-width: 640px; min-height: 400px;">
+          <!-- 标题栏 -->
+          <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3 flex items-center justify-between">
+            <h3 class="text-white font-semibold text-base">
+              {{ editingBase ? '编辑基地' : '新增基地' }}
+            </h3>
+            <span class="text-white/80 hover:text-white cursor-pointer" @click="dialogVisible = false">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </span>
           </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">基地编码</label>
-            <el-input v-model="formData.code" placeholder="基地编码" />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">所属公司 <span class="text-red-500">*</span></label>
-            <el-input v-model="formData.companyName" placeholder="所属公司" />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">面积</label>
-            <div class="flex gap-1">
-              <el-input-number v-model="formData.area" :min="0" class="flex-1" />
-              <el-select v-model="formData.unit" class="w-24">
-                <el-option label="亩" value="亩" />
-                <el-option label="公顷" value="公顷" />
-                <el-option label="平方米" value="平方米" />
+          <!-- 表单内容 -->
+          <div class="p-5 space-y-3 max-h-[60vh] overflow-y-auto">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">基地名称 <span class="text-red-500">*</span></label>
+                <el-input v-model="formData.name" placeholder="基地名称" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">基地编码</label>
+                <el-input v-model="formData.code" placeholder="基地编码" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">所属公司 <span class="text-red-500">*</span></label>
+                <el-input v-model="formData.companyName" placeholder="所属公司" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">面积</label>
+                <div class="flex gap-1">
+                  <el-input-number v-model="formData.area" :min="0" class="flex-1" />
+                  <el-select v-model="formData.unit" class="w-24">
+                    <el-option label="亩" value="亩" />
+                    <el-option label="公顷" value="公顷" />
+                    <el-option label="平方米" value="平方米" />
+                  </el-select>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">省份</label>
+                <el-input v-model="formData.province" placeholder="省份" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">城市</label>
+                <el-input v-model="formData.city" placeholder="城市" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">负责人</label>
+                <el-input v-model="formData.manager" placeholder="负责人" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">联系电话</label>
+                <el-input v-model="formData.phone" placeholder="联系电话" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">土壤类型</label>
+                <el-input v-model="formData.soilType" placeholder="土壤类型" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-600">pH值</label>
+                <el-input-number v-model="formData.ph" :min="0" :step="0.1" class="w-full" />
+              </div>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-gray-600">简介</label>
+              <el-input v-model="formData.intro" type="textarea" :rows="2" placeholder="简介" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-gray-600">状态</label>
+              <el-select v-model="formData.status" class="w-24">
+                <el-option label="活跃" value="active" />
+                <el-option label="停用" value="inactive" />
               </el-select>
             </div>
           </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">省份</label>
-            <el-input v-model="formData.province" placeholder="省份" />
+          <!-- 按钮栏 -->
+          <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100 bg-gray-50">
+            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="handleSave">保存</el-button>
           </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">城市</label>
-            <el-input v-model="formData.city" placeholder="城市" />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">负责人</label>
-            <el-input v-model="formData.manager" placeholder="负责人" />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">联系电话</label>
-            <el-input v-model="formData.phone" placeholder="联系电话" />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">土壤类型</label>
-            <el-input v-model="formData.soilType" placeholder="土壤类型" />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">pH值</label>
-            <el-input-number v-model="formData.ph" :min="0" :step="0.1" class="w-full" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs text-gray-600 mb-1">简介</label>
-          <el-input v-model="formData.intro" type="textarea" :rows="2" placeholder="简介" />
-        </div>
-        <div>
-          <label class="block text-xs text-gray-600 mb-1">状态</label>
-          <el-select v-model="formData.status" class="w-32">
-            <el-option label="活跃" value="active" />
-            <el-option label="停用" value="inactive" />
-          </el-select>
         </div>
       </div>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">保存</el-button>
-      </template>
-    </el-dialog>
+    </Teleport>
 
     <!-- 删除确认弹窗 -->
     <el-dialog v-model="deleteDialogVisible" title="确认删除" width="400px">
@@ -230,7 +242,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Search, Plus, Edit, Delete, MapLocation, House } from '@element-plus/icons-vue'
+import { Search, Plus, Edit, Delete, MapLocation, House, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useBaseStore } from '@/stores'
 

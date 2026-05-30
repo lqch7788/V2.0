@@ -14,7 +14,7 @@
             <p class="text-gray-500">实时监控农业生产运营状况</p>
           </div>
         </div>
-      </div>
+              </div>
     </div>
 
     <!-- Stats Grid - 统计卡片网格 (与V1.1完全一致) -->
@@ -171,6 +171,7 @@
 <script setup>
 import { ref } from 'vue'
 import { DataAnalysis, LocationInformation } from '@element-plus/icons-vue'
+
 import TodayTasksCard from './components/TodayTasksCard.vue'
 import AlertsCard from './components/AlertsCard.vue'
 import EquipmentStatusCard from './components/EquipmentStatusCard.vue'
@@ -265,6 +266,7 @@ const handleEnterClick = () => {
 const handleImageClick = (index) => {
   enlargedImageIndex.value = index
 }
+
 </script>
 
 <style>

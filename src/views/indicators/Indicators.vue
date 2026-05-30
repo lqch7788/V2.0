@@ -8,7 +8,7 @@
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
             <el-icon :size="24" class="text-white">
-              <DataAnalysis />
+              <TrendCharts />
             </el-icon>
           </div>
           <div>
@@ -19,8 +19,8 @@
         <!-- 右侧按钮组 -->
         <div class="flex items-center gap-3">
           <!-- 考核评价按钮 -->
-          <el-button type="info" @click="handleEvaluate">
-            <el-icon class="mr-1"><Medal /></el-icon>
+          <el-button @click="handleEvaluate">
+            <el-icon class="mr-1"><Trophy /></el-icon>
             考核评价
           </el-button>
 
@@ -40,7 +40,7 @@
           </template>
 
           <!-- 新增指标按钮 -->
-          <el-button type="success" @click="handleAdd">
+          <el-button type="primary" @click="handleAdd">
             <el-icon class="mr-1"><Plus /></el-icon>
             新增指标
           </el-button>
@@ -160,7 +160,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { DataAnalysis, Download, Plus, Medal, PieChart, Odometer } from '@element-plus/icons-vue'
+import { TrendCharts, Download, Plus, Trophy, PieChart, Aim } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useIndicatorStore } from '@/stores/modules/indicators'
 
@@ -180,10 +180,10 @@ const indicatorStore = useIndicatorStore()
 
 // ========== 标签页配置 ==========
 const tabs = [
-  { value: 'list', label: '指标列表', icon: DataAnalysis },
+  { value: 'list', label: '指标列表', icon: TrendCharts },
   { value: 'category', label: '分类管理', icon: PieChart },
-  { value: 'analyze', label: '达成分析', icon: Odometer },
-  { value: 'evaluate', label: '考核评价', icon: Medal }
+  { value: 'analyze', label: '达成分析', icon: Aim },
+  { value: 'evaluate', label: '考核评价', icon: Trophy }
 ]
 
 // ========== 数据 ==========

@@ -78,8 +78,8 @@
             <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm text-gray-500">审批中</p>
-                  <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.pending }}</p>
+                  <p class="text-sm text-gray-500">成本控制</p>
+                  <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.costControl }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow">
                   <el-icon class="text-white"><Clock /></el-icon>
@@ -89,10 +89,10 @@
             <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm text-gray-500">草稿</p>
-                  <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.draft }}</p>
+                  <p class="text-sm text-gray-500">效益分析</p>
+                  <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.benefitAnalysis }}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow">
                   <el-icon class="text-white"><Document /></el-icon>
                 </div>
               </div>
@@ -103,8 +103,13 @@
           <AnnouncementFilters
             v-model:search-keyword="searchKeyword"
             v-model:type-filter="typeFilter"
+            v-model:start-date="startDate"
+            v-model:end-date="endDate"
             @search-change="handleSearchChange"
             @type-change="handleTypeChange"
+            @start-date-change="handleStartDateChange"
+            @end-date-change="handleEndDateChange"
+            @reset="handleReset"
           >
             <template v-if="exportMode" #default>
               <el-button type="primary" size="small" @click="handleExportConfirm">
@@ -329,6 +334,8 @@ const setActiveTab = async (tab) => {
 // ========== 公告列表状态 ==========
 const searchKeyword = ref('')
 const typeFilter = ref('全部')
+const startDate = ref('')
+const endDate = ref('')
 const showModal = ref(false)
 const modalType = ref('view')
 const selectedNotice = ref(null)
@@ -356,9 +363,9 @@ const stats = computed(() => {
   const items = announcementStore.notices
   const total = items.length
   const published = items.filter(n => n.status === '已发布').length
-  const pending = items.filter(n => n.status === '审批中').length
-  const draft = items.filter(n => n.status === '草稿').length
-  return { total, published, pending, draft }
+  const costControl = items.filter(n => n.type === '成本控制').length
+  const benefitAnalysis = items.filter(n => n.type === '效益分析').length
+  return { total, published, costControl, benefitAnalysis }
 })
 
 const filteredNotices = computed(() => {
@@ -367,7 +374,9 @@ const filteredNotices = computed(() => {
     const matchSearch = !searchKeyword.value ||
       n.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
       n.code.toLowerCase().includes(searchKeyword.value.toLowerCase())
-    return matchType && matchSearch
+    const matchStartDate = !startDate.value || n.date >= startDate.value
+    const matchEndDate = !endDate.value || n.date <= endDate.value
+    return matchType && matchSearch && matchStartDate && matchEndDate
   })
 })
 
@@ -381,8 +390,10 @@ const paginatedNotices = computed(() =>
 const allTypes = computed(() => {
   const set = new Set(['全部'])
   // 从字典获取公告类型
-  const typeDict = dictionaryStore.dictionaryData['announcement_type'] || []
-  typeDict.forEach(d => { if (d.dictLabel) set.add(d.dictLabel) })
+  const typeDict = dictionaryStore.dictionaryData?.['announcement_type']
+  if (Array.isArray(typeDict)) {
+    typeDict.forEach(d => { if (d.dictLabel) set.add(d.dictLabel) })
+  }
   // 从模板数据补充
   announcementStore.templates.forEach(t => { if (t.type) set.add(t.type) })
   return Array.from(set)
@@ -419,6 +430,24 @@ const handleSearchChange = (val) => {
 
 const handleTypeChange = (val) => {
   typeFilter.value = val
+  currentPage.value = 1
+}
+
+const handleStartDateChange = (val) => {
+  startDate.value = val
+  currentPage.value = 1
+}
+
+const handleEndDateChange = (val) => {
+  endDate.value = val
+  currentPage.value = 1
+}
+
+const handleReset = () => {
+  searchKeyword.value = ''
+  typeFilter.value = '全部'
+  startDate.value = ''
+  endDate.value = ''
   currentPage.value = 1
 }
 

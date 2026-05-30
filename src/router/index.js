@@ -51,12 +51,6 @@ const routes = [
   },
   {
     path: '/settings/bases',
-    name: 'BaseSettings',
-    component: () => import('@/views/system/BaseSettings.vue'),
-    meta: { title: '基地设置' }
-  },
-  {
-    path: '/settings/farm-structure',
     name: 'FarmStructure',
     component: () => import('@/views/system/FarmStructureManagement.vue'),
     meta: { title: '基地架构' }

@@ -7,7 +7,7 @@
       <!-- 页面标题卡片 -->
       <div class="bg-white rounded-xl p-6 shadow-none">
         <!-- 页面标题 -->
-        <div class="mb-6">
+        <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/40">
               <el-icon :size="24" class="text-white">
@@ -19,6 +19,14 @@
               <p class="text-sm text-gray-600">地块与园区全景档案管理</p>
             </div>
           </div>
+          <!-- 基地架构配置入口 -->
+          <el-button
+            @click="handleConfigBaseArchitecture"
+            class="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+          >
+            <el-icon><Setting /></el-icon>
+            配置基地架构
+          </el-button>
         </div>
       </div>
     </div>
@@ -325,7 +333,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Search, ArrowDown, ArrowRight, Location, MapLocation, Back, FullScreen, Rank } from '@element-plus/icons-vue'
+import { Search, ArrowDown, ArrowRight, Location, MapLocation, Back, FullScreen, Rank, Setting } from '@element-plus/icons-vue'
 
 // localStorage key - 与 V1.1 保持一致
 const COMPANY_GROUPS_KEY = 'yuanxingtu_company_groups'
@@ -598,6 +606,11 @@ const goToDashboard = (base) => {
   if (base) {
     router.push({ path: '/dashboard', state: { baseId: base.id, baseName: base.name } })
   }
+}
+
+// 配置基地架构 - V1.1: navigate('/settings/bases')
+const handleConfigBaseArchitecture = () => {
+  router.push('/settings/bases')
 }
 
 // 处理从地图弹窗触发的详情事件 - V1.1: setSelectedBase + setSelectedField + setShowDetailModal

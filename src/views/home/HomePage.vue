@@ -666,14 +666,13 @@ const showUserMenu = ref(false)
 const showAbout = ref(false)
 
 // 模块数据 - 使用固定数据，不依赖不存在的图标
-const disabled = false
 const modules = computed(() => [
   {
     title: t.value.envMonitor,
     description: t.value.envMonitorDesc,
     gradient: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600',
     actionText: t.value.envMonitorStatus,
-    disabled,
+    disabled: true,
     onClick: () => router.push('/environment-monitor')
   },
   {
@@ -681,7 +680,7 @@ const modules = computed(() => [
     description: t.value.controlSystemDesc,
     gradient: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-600',
     actionText: t.value.controlSystemStatus,
-    disabled,
+    disabled: true,
     onClick: () => router.push('/env-control')
   },
   {
@@ -689,7 +688,7 @@ const modules = computed(() => [
     description: t.value.plantingManagementDesc,
     gradient: 'bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600',
     actionText: t.value.plantingManagementStatus,
-    disabled,
+    disabled: false,
     onClick: () => router.push('/dashboard')
   },
   {
@@ -697,7 +696,7 @@ const modules = computed(() => [
     description: t.value.traceabilityDesc,
     gradient: 'bg-gradient-to-br from-lime-500 via-green-500 to-emerald-600',
     actionText: t.value.traceabilityStatus,
-    disabled,
+    disabled: true,
     onClick: () => router.push('/traceability')
   },
   {
@@ -705,7 +704,7 @@ const modules = computed(() => [
     description: t.value.dataAnalysisDesc,
     gradient: 'bg-gradient-to-br from-blue-500 via-cyan-500 to-sky-600',
     actionText: t.value.dataAnalysisStatus,
-    disabled,
+    disabled: true,
     onClick: () => router.push('/summary/overview')
   },
   {
@@ -713,7 +712,7 @@ const modules = computed(() => [
     description: t.value.expertAIDesc,
     gradient: 'bg-gradient-to-br from-amber-500 via-orange-500 to-red-500',
     actionText: t.value.expertAIStatus,
-    disabled,
+    disabled: true,
     onClick: () => router.push('/tech-solution')
   },
   {
@@ -721,7 +720,7 @@ const modules = computed(() => [
     description: t.value.costAccountingDesc,
     gradient: 'bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-600',
     actionText: t.value.costAccountingStatus,
-    disabled,
+    disabled: true,
     onClick: () => router.push('/device-monitor')
   },
   {
@@ -729,7 +728,7 @@ const modules = computed(() => [
     description: t.value.marketSalesDesc,
     gradient: 'bg-gradient-to-br from-pink-500 via-rose-500 to-red-600',
     actionText: t.value.marketSalesStatus,
-    disabled,
+    disabled: true,
     onClick: () => router.push('/market-sales')
   }
 ])

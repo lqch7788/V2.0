@@ -5,9 +5,9 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <a
-            href="/settings"
+            href="/park-archive"
             class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
-            title="返回系统设置"
+            title="返回园区总览"
           >
             <el-icon :size="20" color="#4B5563">
               <ArrowLeft />
@@ -20,66 +20,28 @@
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">基地架构管理</h1>
-            <p class="text-gray-500">公司基地、设施管理、区块划分和种植记录</p>
+            <p class="text-gray-500">公司基地结构配置（管理员入口）</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 切换栏 -->
-    <div class="flex gap-0 border-b border-gray-200">
-      <button
-        v-for="tab in TABS"
-        :key="tab.key"
-        @click="activeTab = tab.key"
-        :class="[
-          'px-5 py-3 text-sm font-medium border-b-2 transition-colors',
-          activeTab === tab.key
-            ? 'border-blue-600 text-blue-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-        ]"
-      >
-        {{ tab.label }}
-      </button>
+    <!-- 说明文字 -->
+    <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+      <p class="text-sm text-blue-700">
+        <span class="font-semibold">提示：</span>
+        基地架构用于配置公司-基地的层级结构。日常运营（温室管理、区域划分、种植记录）请使用「
+        <a href="/settings/base-operations" class="underline font-medium">基地运营中心</a>
+        」。
+      </p>
     </div>
 
-    <!-- TAB 内容区 -->
-    <div class="min-h-[600px]">
-      <!-- 公司基地 Tab -->
-      <CompanyBaseTab v-if="activeTab === 'company-base'" />
-
-      <!-- 设施管理 Tab -->
-      <FacilityTab v-if="activeTab === 'facility'" />
-
-      <!-- 区块划分 Tab -->
-      <BlockTab v-if="activeTab === 'block'" />
-
-      <!-- 种植记录 Tab -->
-      <PlantingRecordTab v-if="activeTab === 'planting-record'" />
-    </div>
+    <!-- 公司基地 TAB -->
+    <CompanyBaseTab />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { ArrowLeft, Grid } from '@element-plus/icons-vue'
 import CompanyBaseTab from './tabs/CompanyBaseTab.vue'
-import FacilityTab from './tabs/FacilityTab.vue'
-import BlockTab from './tabs/BlockTab.vue'
-import PlantingRecordTab from './tabs/PlantingRecordTab.vue'
-
-// 路由实例
-const router = useRouter()
-
-// TAB 配置
-const TABS = [
-  { key: 'company-base', label: '公司基地' },
-  { key: 'facility', label: '设施管理' },
-  { key: 'block', label: '区块划分' },
-  { key: 'planting-record', label: '种植记录' }
-]
-
-// 当前激活的 Tab
-const activeTab = ref('company-base')
 </script>
