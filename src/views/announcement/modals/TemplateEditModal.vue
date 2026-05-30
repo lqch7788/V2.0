@@ -37,10 +37,12 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">公告分类 <span class="text-red-500">*</span></label>
                 <el-select v-model="formData.category" placeholder="请选择分类" class="w-full">
-                  <el-option label="生产计划" value="生产计划" />
-                  <el-option label="技术标准" value="技术标准" />
-                  <el-option label="行政通知" value="行政通知" />
-                  <el-option label="安全规范" value="安全规范" />
+                  <el-option
+                    v-for="opt in categoryOptions"
+                    :key="opt.value"
+                    :label="opt.label"
+                    :value="opt.value"
+                  />
                 </el-select>
               </div>
               <div>
@@ -134,9 +136,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { Plus, Edit, Document } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useDictionaryStore, getDictItems } from '@/stores/modules/dictionary'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -149,9 +152,41 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'save'])
 
+// 字典Store
+const dictionaryStore = useDictionaryStore()
+
 // 拖动状态
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
+
+// 公告分类选项（动态从字典获取，与V1.1完全一致）
+const categoryOptions = ref([])
+
+// 加载字典数据（与V1.1完全一致）
+const loadCategoryOptions = async () => {
+  // 确保字典已加载
+  await dictionaryStore.loadDictionaries()
+  // 从字典获取公告分类选项
+  const dictItems = await getDictItems('announcement_category')
+  if (dictItems && dictItems.length > 0) {
+    categoryOptions.value = dictItems.map(d => ({
+      label: d.dictLabel || d.label || d.name,
+      value: d.dictCode || d.code || d.label || d.name
+    }))
+  } else {
+    // 字典为空时使用硬编码选项（与V1.1 fallback逻辑一致）
+    categoryOptions.value = [
+      { label: '生产计划', value: '生产计划' },
+      { label: '技术标准', value: '技术标准' },
+      { label: '行政通知', value: '行政通知' },
+      { label: '安全规范', value: '安全规范' }
+    ]
+  }
+}
+
+onMounted(() => {
+  loadCategoryOptions()
+})
 
 // 弹窗标题和图标
 const modalTitle = computed(() => {

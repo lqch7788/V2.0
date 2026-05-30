@@ -30,7 +30,7 @@
               全链条追溯
             </span>
           </template>
-          <ChainTraceability :hide-header="true" />
+          <!-- <ChainTraceability :hide-header="true" /> -->
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -43,7 +43,7 @@ import { ListTree, Layers, Link } from 'lucide-vue-next'
 import { PageHeader } from '@/components/summary'
 
 import BatchSummary from './sub/BatchSummary.vue'
-import ChainTraceability from './sub/ChainTraceability.vue'
+// import ChainTraceability from './sub/ChainTraceability.vue'
 
 const activeTab = ref('batch')
 </script>

@@ -280,14 +280,14 @@ const stats = reactive({
   pending: 5
 })
 
-// 状态类型映�?- V1.1: inline pill classes
+// 状态类型映射-V1.1: inline pill classes
 const statusTypeMap = {
   'normal': 'success',
   'pending': 'warning',
   'draft': 'info'
 }
 
-// 状态样�?- V1.1: inline pills
+// 状态样式-V1.1: inline pills
 const getStatusClass = (statusClass) => {
   switch (statusClass) {
     case 'normal':
@@ -304,12 +304,12 @@ const getStatusClass = (statusClass) => {
 // 当前模式
 const workOrderMode = ref('glass')
 
-// 筛选条�?
+// 筛选条件
 const code = ref('')
 const name = ref('')
 const date = ref('')
 
-// 弹窗状�?
+// 弹窗状态
 const detailVisible = ref(false)
 const approveVisible = ref(false)
 const currentOrder = ref(null)
@@ -349,7 +349,7 @@ const paginatedData = computed(() => {
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1
-  // 实际项目中这里会根据筛选条件过滤数�?
+  // 实际项目中这里会根据筛选条件过滤数据
 }
 
 // 新建工单

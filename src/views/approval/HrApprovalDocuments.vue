@@ -140,7 +140,7 @@
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-        <div class="text-sm text-gray-500">共 {{ filteredData.length }} 条记录/div>
+        <div class="text-sm text-gray-500">共 {{ filteredData.length }} 条记录</div>
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-500">每页</span>
           <el-select v-model="pageSize" @change="currentPage = 1" style="width: 80px">

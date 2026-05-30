@@ -58,7 +58,7 @@
           :class="[
             'flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
             activeTab === tab.value
-              ? 'bg-white text-blue-600 shadow-sm'
+              ? 'bg-emerald-600 text-white shadow-sm'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           ]"
           @click="setActiveTab(tab.value)"

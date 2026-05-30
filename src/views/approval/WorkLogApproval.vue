@@ -439,17 +439,17 @@ const pagination = reactive({
   total: 0
 })
 
-// 批量操作状�?const batchEditMode = ref(false)
+// 批量操作状态const batchEditMode = ref(false)
 const batchDeleteMode = ref(false)
 const exportMode = ref(false)
 const selectedRows = ref([])
 
-// 弹窗状�?const detailVisible = ref(false)
+// 弹窗状态const detailVisible = ref(false)
 const formVisible = ref(false)
 const deleteVisible = ref(false)
 const exportVisible = ref(false)
 
-// 当前操作的日�?const currentLog = ref(null)
+// 当前操作的日志const currentLog = ref(null)
 const isEdit = ref(false)
 
 // 表单数据
@@ -496,7 +496,7 @@ const filteredData = computed(() => {
 // 更新总数
 pagination.total = filteredData.value.length
 
-// 总页�?const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.pageSize) || 1)
+// 总页数const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.pageSize) || 1)
 
 // 分页数据
 const paginatedData = computed(() => {

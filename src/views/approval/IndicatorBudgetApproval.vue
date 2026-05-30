@@ -278,7 +278,7 @@ const ApprovalType = {
   BUDGET_ADJUST: 'budget_adjust'
 }
 
-// 审批状�?
+// 审批状态
 const ApprovalStatus = {
   PENDING: 'pending',
   APPROVED: 'approved',
@@ -296,7 +296,7 @@ const tabs = [
 // 当前Tab
 const activeTab = ref('indicator')
 
-// 搜索和筛�?
+// 搜索和筛选
 const searchTerm = ref('')
 const statusFilter = ref('全部')
 
@@ -379,7 +379,7 @@ const handleSearch = () => {
   updateStats()
 }
 
-// 状态显�?- V1.1: inline pills with tailwind classes
+// 状态显示-V1.1: inline pills with tailwind classes
 const getStatusClass = (status) => {
   switch (status) {
     case ApprovalStatus.APPROVED:
@@ -539,7 +539,7 @@ const confirmApprovalAction = async () => {
   }
 }
 
-// 初始�?- 从API加载数据
+// 初始数据-从API加载数据
 onMounted(async () => {
   await approvalStore.fetchApprovals()
   updateStats()

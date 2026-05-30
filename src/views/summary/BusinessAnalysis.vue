@@ -206,7 +206,7 @@
                   <div ref="yieldChartRef" class="h-48"></div>
                 </div>
 
-                <!-- 产值对�?-->
+                <!-- 产值对比-->
                 <div v-if="comparisonMetrics.amount" class="h-64">
                   <p class="text-xs text-gray-500 mb-2">产值对比(万元)</p>
                   <div ref="amountChartRef" class="h-48"></div>
@@ -224,7 +224,7 @@
                   <div ref="profitChartRef" class="h-48"></div>
                 </div>
 
-                <!-- 亩产量对�?-->
+                <!-- 亩产量对比-->
                 <div v-if="comparisonMetrics.yieldRate" class="h-64">
                   <p class="text-xs text-gray-500 mb-2">亩产量对比(kg/亩)</p>
                   <div ref="yieldRateChartRef" class="h-48"></div>

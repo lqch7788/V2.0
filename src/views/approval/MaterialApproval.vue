@@ -256,7 +256,7 @@
                   <el-table-column prop="remark" label="备注" />
                 </el-table>
                 <div v-if="props.row.description" class="text-gray-600 mt-3">
-                  <span class="font-medium">申请说明：/span>{{ props.row.description }}
+                  <span class="font-medium">申请说明：</span>{{ props.row.description }}
                 </div>
               </div>
             </template>
@@ -275,7 +275,7 @@
               {{ scope.row.materials?.length > 0 ? `${scope.row.materials.length}种` : '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="plantArea" label="种植区域/用地 width="120" />
+          <el-table-column prop="plantArea" label="种植区域/用地" width="120" />
           <el-table-column label="审核人" width="100">
             <template #default="scope">
               {{ scope.row.approvers?.[0]?.userName || '-' }}
@@ -346,7 +346,7 @@
           <el-table-column type="expand" width="50">
             <template #default="props">
               <div class="p-4 bg-gray-50">
-                <div class="font-medium text-blue-800 mb-2">退料物料明细/div>
+                <div class="font-medium text-blue-800 mb-2">退料物料明细</div>
                 <el-table :data="props.row.materials" size="small" class="mb-3">
                   <el-table-column prop="sourceApplicationCode" label="来源领料单号" width="140" />
                   <el-table-column prop="materialCode" label="物料编码" width="120" />
@@ -354,7 +354,7 @@
                   <el-table-column prop="materialName" label="物料名称" />
                   <el-table-column prop="spec" label="规格" />
                   <el-table-column prop="unit" label="单位" width="80" />
-                  <el-table-column label="退料数量 width="100">
+                  <el-table-column label="退料数量" width="100">
                     <template #default="scope">
                       {{ scope.row.returnQuantity || scope.row.requestedQuantity || 0 }}
                     </template>
@@ -370,7 +370,7 @@
                     </template>
                   </el-table-column>
                   <el-table-column prop="warehousePosition" label="仓库货位" />
-                  <el-table-column prop="reason" label="退料原因 />
+                  <el-table-column prop="reason" label="退料原因" />
                 </el-table>
                 <div v-if="props.row.description" class="text-gray-600 mt-3">
                   <span class="font-medium">退料说明：</span>{{ props.row.description }}
@@ -378,19 +378,19 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="code" label="退料单号 width="150">
+          <el-table-column prop="code" label="退料单号" width="150">
             <template #default="scope">
               <el-link type="primary" :underline="false" class="font-medium">{{ scope.row.code }}</el-link>
             </template>
           </el-table-column>
-          <el-table-column prop="applyDate" label="退料日期 width="120" />
-          <el-table-column label="退料类型 width="100">
+          <el-table-column prop="applyDate" label="退料日期" width="120" />
+          <el-table-column label="退料类型" width="100">
             <template #default="scope">
               {{ getReturnType(scope.row) }}
             </template>
           </el-table-column>
           <el-table-column prop="applicantName" label="申请人" width="100" />
-          <el-table-column prop="applicantDepartment" label="退料部门 width="100" />
+          <el-table-column prop="applicantDepartment" label="退料部门" width="100" />
           <el-table-column prop="warehouseLocation" label="仓库位置" width="120" />
           <el-table-column label="审批状态" width="120">
             <template #default="scope">
@@ -467,12 +467,12 @@
           </el-table-column>
           <el-table-column prop="applicantName" label="申请人" width="100" />
           <el-table-column prop="applyDate" label="申请日期" width="120" />
-          <el-table-column prop="amount" label="总金额 width="120">
+          <el-table-column prop="amount" label="总金额" width="120">
             <template #default="scope">
               <span class="font-medium">{{ scope.row.amount || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="供应商 width="120">
+          <el-table-column label="供应商" width="120">
             <template #default="scope">
               {{ scope.row.businessLink?.items?.[0]?.supplier || '-' }}
             </template>
@@ -610,7 +610,7 @@
       <div v-if="filteredData.length === 0" class="p-12 text-center text-gray-500">
         <el-icon :size="48" class="text-gray-300 mb-3"><Clipboard /></el-icon>
         <p>暂无审批记录</p>
-        <p class="text-sm text-gray-400 mt-2">在领料退料采购页面提交申请后，这里将显示审批列表/p>
+        <p class="text-sm text-gray-400 mt-2">在领料退料采购页面提交申请后，这里将显示审批列表</p>
       </div>
 
       <!-- 分页 -->
@@ -664,7 +664,7 @@
             <p class="font-semibold text-gray-900">{{ detailModal.item.applicantDepartment }}</p>
           </div>
           <div>
-            <label class="text-xs text-gray-500 block">审核人/label>
+            <label class="text-xs text-gray-500 block">审核人</label>
             <p class="font-semibold text-gray-900">{{ detailModal.item.approvers?.[0]?.userName || '-' }}</p>
           </div>
           <template v-if="activeTab === 'material' && detailModal.item.businessLink">
@@ -673,7 +673,7 @@
               <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.warehouseLocation || '-' }}</p>
             </div>
             <div>
-              <label class="text-xs text-gray-500 block">生产计划批次号/label>
+              <label class="text-xs text-gray-500 block">生产计划批次号</label>
               <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.batchCode || '-' }}</p>
             </div>
             <div>

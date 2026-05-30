@@ -37,12 +37,12 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">公告分类 <span class="text-red-500">*</span></label>
                 <el-select v-model="formData.category" placeholder="请选择分类" class="w-full">
-                  <el-option label="行政通知" value="行政通知" />
-                  <el-option label="培训通知" value="培训通知" />
-                  <el-option label="采购通知" value="采购通知" />
-                  <el-option label="活动通知" value="活动通知" />
-                  <el-option label="制度修订" value="制度修订" />
-                  <el-option label="生产公告" value="生产公告" />
+                  <el-option
+                    v-for="opt in categoryOptions"
+                    :key="opt.value"
+                    :label="opt.label"
+                    :value="opt.value"
+                  />
                 </el-select>
               </div>
               <div>
@@ -122,10 +122,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { Plus, Edit, Promotion, Document, Warning } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import TemplateSelectModal from './TemplateSelectModal.vue'
+import { useDictionaryStore, getDictItems } from '@/stores/modules/dictionary'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -137,6 +138,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'save'])
+
+// 字典Store
+const dictionaryStore = useDictionaryStore()
 
 // 模板选择弹窗
 const showTemplateSelect = ref(false)
@@ -154,6 +158,9 @@ const formData = ref({
   deadline: '',
   content: ''
 })
+
+// 公告分类选项（动态从字典获取，与V1.1完全一致）
+const categoryOptions = ref([])
 
 // 弹窗标题和图标
 const modalTitle = computed(() => {
@@ -176,6 +183,34 @@ const modalIcon = computed(() => {
 
 // 是否显示警告
 const showWarning = computed(() => props.mode === 'add' || props.mode === 'send')
+
+// 加载字典数据（与V1.1完全一致）
+const loadCategoryOptions = async () => {
+  // 确保字典已加载
+  await dictionaryStore.loadDictionaries()
+  // 从字典获取公告分类选项
+  const dictItems = await getDictItems('announcement_category')
+  if (dictItems && dictItems.length > 0) {
+    categoryOptions.value = dictItems.map(d => ({
+      label: d.dictLabel || d.label || d.name,
+      value: d.dictCode || d.code || d.label || d.name
+    }))
+  } else {
+    // 字典为空时使用硬编码选项（与V1.1 fallback逻辑一致）
+    categoryOptions.value = [
+      { label: '行政通知', value: '行政通知' },
+      { label: '培训通知', value: '培训通知' },
+      { label: '采购通知', value: '采购通知' },
+      { label: '活动通知', value: '活动通知' },
+      { label: '制度修订', value: '制度修订' },
+      { label: '生产公告', value: '生产公告' }
+    ]
+  }
+}
+
+onMounted(() => {
+  loadCategoryOptions()
+})
 
 // 初始化表单数据
 const initFormData = () => {
