@@ -2614,6 +2614,71 @@ export function initializeDatabase() {
     )
   `);
 
+  // ========== V2.0: 病虫害字典表 ==========
+  // 病虫害字典主表（虫害和病害）
+  db.run(`
+    CREATE TABLE IF NOT EXISTS pest_disease_dict (
+      id TEXT PRIMARY KEY,
+      dict_code TEXT NOT NULL UNIQUE,
+      dict_name TEXT NOT NULL,
+      dict_type TEXT NOT NULL,
+      target_crops TEXT,
+      description TEXT,
+      status TEXT DEFAULT 'active',
+      create_time TEXT DEFAULT (datetime('now','localtime')),
+      update_time TEXT DEFAULT (datetime('now','localtime'))
+    )
+  `);
+
+  // 药剂知识库主表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS pesticide_library (
+      id TEXT PRIMARY KEY,
+      pesticide_code TEXT NOT NULL UNIQUE,
+      pesticide_name TEXT NOT NULL,
+      control_type TEXT NOT NULL,
+      function_desc TEXT,
+      taboo_desc TEXT,
+      target_pests TEXT,
+      ingredient TEXT,
+      mechanism TEXT,
+      status TEXT DEFAULT 'active',
+      create_time TEXT DEFAULT (datetime('now','localtime')),
+      update_time TEXT DEFAULT (datetime('now','localtime'))
+    )
+  `);
+
+  // 药剂规格明细表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS pesticide_specs (
+      id TEXT PRIMARY KEY,
+      pesticide_id TEXT NOT NULL,
+      spec_content TEXT,
+      formulation TEXT,
+      manufacturer TEXT,
+      suggested_dosage TEXT,
+      suggested_ratio TEXT,
+      dosage_unit TEXT,
+      mechanism TEXT,
+      brand_name TEXT,
+      remark TEXT,
+      status TEXT DEFAULT 'active',
+      create_time TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (pesticide_id) REFERENCES pesticide_library(id) ON DELETE CASCADE
+    )
+  `);
+
+  // 药剂-病虫害关联表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS pesticide_pest_relation (
+      id TEXT PRIMARY KEY,
+      pesticide_id TEXT NOT NULL,
+      pest_id TEXT NOT NULL,
+      create_time TEXT DEFAULT (datetime('now','localtime')),
+      UNIQUE(pesticide_id, pest_id)
+    )
+  `);
+
   // ========== V12.0: 肥料知识库表 ==========
   // 肥料知识库主表
   db.run(`

@@ -306,7 +306,36 @@ export function createIndexes() {
   db.run(`CREATE INDEX IF NOT EXISTS idx_plant_marks_parent ON plant_marks(parent_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_plant_marks_aid ON plant_marks(mark_aid)`);
 
-  console.log('索引创建完成！共创建 70 个索引');
+  // ========== V2.0 数据字典表索引 ==========
+  // 病虫害字典表索引
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pest_disease_dict_type ON pest_disease_dict(dict_type)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pest_disease_dict_code ON pest_disease_dict(dict_code)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pest_disease_dict_name ON pest_disease_dict(dict_name)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pest_disease_dict_status ON pest_disease_dict(status)`);
+
+  // 药剂知识库表索引
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pesticide_library_code ON pesticide_library(pesticide_code)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pesticide_library_type ON pesticide_library(control_type)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pesticide_library_name ON pesticide_library(pesticide_name)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pesticide_library_status ON pesticide_library(status)`);
+
+  // 药剂规格表索引
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pesticide_specs_pesticide ON pesticide_specs(pesticide_id)`);
+
+  // 药剂-病虫害关联表索引
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pesticide_pest_relation_pesticide ON pesticide_pest_relation(pesticide_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_pesticide_pest_relation_pest ON pesticide_pest_relation(pest_id)`);
+
+  // 肥料知识库表索引
+  db.run(`CREATE INDEX IF NOT EXISTS idx_fertilizer_library_code ON fertilizer_library(fertilizer_code)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_fertilizer_library_type ON fertilizer_library(fertilizer_type)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_fertilizer_library_name ON fertilizer_library(fertilizer_name)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_fertilizer_library_status ON fertilizer_library(status)`);
+
+  // 肥料规格表索引
+  db.run(`CREATE INDEX IF NOT EXISTS idx_fertilizer_specs_fertilizer ON fertilizer_specs(fertilizer_id)`);
+
+  console.log('索引创建完成！共创建 86 个索引');
 }
 
 // 导出索引信息查询函数

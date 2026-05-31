@@ -219,22 +219,22 @@
                 </template>
                 <template v-else>
                   <el-button
-                    size="small"
-                    type="primary"
+                    size="default"
+                    class="edit-btn"
                     @click="startEdit(config)"
                     circle
                     title="编辑"
                   >
-                    <el-icon><Edit /></el-icon>
+                    <el-icon class="edit-icon"><Edit /></el-icon>
                   </el-button>
                   <el-button
-                    size="small"
-                    type="danger"
+                    size="default"
+                    class="delete-btn"
                     @click="handleDeleteConfig(config.id)"
                     circle
                     title="删除"
                   >
-                    <el-icon><Delete /></el-icon>
+                    <el-icon class="delete-icon"><Delete /></el-icon>
                   </el-button>
                 </template>
               </div>
@@ -255,24 +255,32 @@
     <!-- 新增配置弹窗 -->
     <el-dialog
       v-model="showAddModal"
-      title="新增系统配置"
-      :width="isMaximized ? '100vw' : '560px'"
-      :fullscreen="isMaximized"
+      :show-close="false"
       :close-on-click-modal="false"
       class="config-add-dialog"
-      draggable
+      :modal="true"
+      :lock-scroll="true"
     >
-      <!-- 最大化/还原按钮 -->
-      <el-button
-        class="maximize-toggle"
-        :icon="isMaximized ? 'FullScreen' : 'FullScreen'"
-        text
-        size="small"
-        @click="isMaximized = !isMaximized"
-        :title="isMaximized ? '还原' : '最大化'"
-      >
-        <el-icon :size="18" color="white"><component :is="isMaximized ? 'SemiSelect' : 'FullScreen'" /></el-icon>
-      </el-button>
+      <!-- 拖拽标题栏 -->
+      <template #header>
+        <div
+          class="dialog-header"
+          @mousedown="handleDragStart"
+        >
+          <span class="text-lg font-semibold text-white">新增系统配置</span>
+          <div class="flex items-center gap-1">
+            <button
+              @click="toggleMaximize"
+              class="p-1.5 rounded hover:bg-white/20 transition-colors"
+              :title="isMaximized ? '还原' : '最大化'"
+            >
+              <el-icon :size="18" color="white">
+                <component :is="isMaximized ? 'SemiSelect' : 'FullScreen'" />
+              </el-icon>
+            </button>
+          </div>
+        </div>
+      </template>
       <el-form :model="newConfig" label-width="80px" class="grid grid-cols-2 gap-4">
         <el-form-item label="配置键" required>
           <el-input
@@ -326,12 +334,24 @@
         <el-button @click="closeAddModal">取消</el-button>
         <el-button type="primary" @click="handleAddConfig">添加</el-button>
       </template>
+
+      <!-- 缩放拖拽手柄（最大化时隐藏） -->
+      <template v-if="!isMaximized">
+        <div class="resize-handle resize-nw" @mousedown.stop.prevent="(e) => handleResizeStart(e, 'nw')"></div>
+        <div class="resize-handle resize-ne" @mousedown.stop.prevent="(e) => handleResizeStart(e, 'ne')"></div>
+        <div class="resize-handle resize-sw" @mousedown.stop.prevent="(e) => handleResizeStart(e, 'sw')"></div>
+        <div class="resize-handle resize-se" @mousedown.stop.prevent="(e) => handleResizeStart(e, 'se')"></div>
+        <div class="resize-handle resize-n" @mousedown.stop.prevent="(e) => handleResizeStart(e, 'n')"></div>
+        <div class="resize-handle resize-s" @mousedown.stop.prevent="(e) => handleResizeStart(e, 's')"></div>
+        <div class="resize-handle resize-w" @mousedown.stop.prevent="(e) => handleResizeStart(e, 'w')"></div>
+        <div class="resize-handle resize-e" @mousedown.stop.prevent="(e) => handleResizeStart(e, 'e')"></div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineComponent } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Setting,
@@ -344,7 +364,6 @@ import {
   Close,
   Loading,
   WarningFilled,
-  Check,
   FullScreen,
   SemiSelect,
   Search,
@@ -361,6 +380,8 @@ const error = computed(() => store.error)
 
 // ==================== 常量 ====================
 const PAGE_SIZE = 10
+const MODAL_MIN_WIDTH = 480
+const MODAL_MIN_HEIGHT = 360
 
 // ==================== 状态 ====================
 const activeCategory = ref('system')
@@ -376,6 +397,16 @@ const newConfig = ref({
   category: 'system',
   description: ''
 })
+
+// 弹窗拖拽状态
+const dialogRef = ref(null)
+const isDragging = ref(false)
+const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
+
+// 弹窗缩放状态
+const isResizing = ref(false)
+const resizeDir = ref('')
+const resizeStart = ref({ x: 0, y: 0, w: 0, h: 0, left: 0, top: 0 })
 
 // ==================== 计算属性 ====================
 /** 根据分类筛选配置 */
@@ -534,6 +565,125 @@ const handleExport = () => {
 // 导入委托规则预览和编辑器组件（自动在模板中可用）
 import DelegationRulesPreview from './components/DelegationRulesPreview.vue'
 import DelegationRulesEditor from './components/DelegationRulesEditor.vue'
+
+// ==================== 弹窗拖拽/缩放处理 ====================
+
+/** 拖拽开始 */
+const handleDragStart = (e) => {
+  if (isMaximized.value) return
+  const dialogEl = e.target.closest('.el-dialog')
+  if (!dialogEl) return
+  // 排除按钮点击
+  if (e.target.closest('button')) return
+  e.preventDefault()
+  isDragging.value = true
+  const rect = dialogEl.getBoundingClientRect()
+  dragStart.value = { x: e.clientX, y: e.clientY, left: rect.left, top: rect.top }
+}
+
+/** 缩放开始 */
+const handleResizeStart = (e, dir) => {
+  if (isMaximized.value) return
+  e.preventDefault()
+  e.stopPropagation()
+  isResizing.value = true
+  resizeDir.value = dir
+  const dialogEl = document.querySelector('.config-add-dialog .el-dialog')
+  if (dialogEl) {
+    const rect = dialogEl.getBoundingClientRect()
+    resizeStart.value = { x: e.clientX, y: e.clientY, w: rect.width, h: rect.height, left: rect.left, top: rect.top }
+  }
+}
+
+/** 鼠标移动处理 */
+const handleMouseMove = (e) => {
+  if (!isDragging.value && !isResizing.value) return
+
+  if (isDragging.value) {
+    const dialogEl = document.querySelector('.config-add-dialog .el-dialog')
+    if (dialogEl) {
+      const deltaX = e.clientX - dragStart.value.x
+      const deltaY = e.clientY - dragStart.value.y
+      dialogEl.style.position = 'fixed'
+      dialogEl.style.left = `${dragStart.value.left + deltaX}px`
+      dialogEl.style.top = `${dragStart.value.top + deltaY}px`
+      dialogEl.style.margin = '0'
+    }
+  }
+
+  if (isResizing.value) {
+    const dx = e.clientX - resizeStart.value.x
+    const dy = e.clientY - resizeStart.value.y
+    let newW = resizeStart.value.w
+    let newH = resizeStart.value.h
+    let newLeft = resizeStart.value.left
+    let newTop = resizeStart.value.top
+
+    if (resizeDir.value.includes('e')) newW = Math.max(MODAL_MIN_WIDTH, resizeStart.value.w + dx)
+    if (resizeDir.value.includes('s')) newH = Math.max(MODAL_MIN_HEIGHT, resizeStart.value.h + dy)
+    if (resizeDir.value.includes('w')) {
+      newW = Math.max(MODAL_MIN_WIDTH, resizeStart.value.w - dx)
+      newLeft = resizeStart.value.left + (resizeStart.value.w - newW)
+    }
+    if (resizeDir.value.includes('n')) {
+      newH = Math.max(MODAL_MIN_HEIGHT, resizeStart.value.h - dy)
+      newTop = resizeStart.value.top + (resizeStart.value.h - newH)
+    }
+
+    const dialogEl = document.querySelector('.config-add-dialog .el-dialog')
+    if (dialogEl) {
+      dialogEl.style.position = 'fixed'
+      dialogEl.style.width = `${newW}px`
+      dialogEl.style.height = `${newH}px`
+      dialogEl.style.maxWidth = 'none'
+      dialogEl.style.maxHeight = 'none'
+      dialogEl.style.left = `${newLeft}px`
+      dialogEl.style.top = `${newTop}px`
+      dialogEl.style.margin = '0'
+    }
+  }
+}
+
+/** 鼠标释放 */
+const handleMouseUp = () => {
+  isDragging.value = false
+  isResizing.value = false
+  resizeDir.value = ''
+}
+
+/** 切换最大化 */
+const toggleMaximize = () => {
+  const dialogEl = document.querySelector('.config-add-dialog .el-dialog')
+  if (!isMaximized.value && dialogEl) {
+    dialogEl.style.width = '100vw'
+    dialogEl.style.height = '100vh'
+    dialogEl.style.maxWidth = 'none'
+    dialogEl.style.maxHeight = 'none'
+    dialogEl.style.left = '0'
+    dialogEl.style.top = '0'
+    dialogEl.style.borderRadius = '0'
+  } else if (dialogEl) {
+    dialogEl.style.width = ''
+    dialogEl.style.height = ''
+    dialogEl.style.maxWidth = ''
+    dialogEl.style.maxHeight = ''
+    dialogEl.style.left = ''
+    dialogEl.style.top = ''
+    dialogEl.style.borderRadius = ''
+  }
+  isMaximized.value = !isMaximized.value
+}
+
+// 挂载/卸载全局鼠标事件
+onMounted(() => {
+  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseup', handleMouseUp)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('mouseup', handleMouseUp)
+})
 </script>
 
 <style scoped>
@@ -543,21 +693,77 @@ import DelegationRulesEditor from './components/DelegationRulesEditor.vue'
 }
 
 /* 弹窗样式覆盖 */
-:deep(.config-add-dialog .el-dialog__header) {
-  padding: 0;
-  margin: 0;
+:deep(.config-add-dialog) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+:deep(.config-add-dialog .el-dialog) {
+  width: 560px;
+  max-width: 90vw;
+  border-radius: 12px;
 }
 
 :deep(.config-add-dialog .el-dialog__body) {
-  padding: 0;
+  padding: 20px 24px;
 }
 
-/* 最大化按钮定位 */
-.maximize-toggle {
+/* 拖拽标题栏 */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(to right, #10b981, #059669);
+  cursor: move;
+  user-select: none;
+}
+
+/* 缩放手柄 */
+.resize-handle {
   position: absolute;
-  top: 8px;
-  right: 44px;
   z-index: 10;
-  color: white;
+}
+.resize-nw { top: 0; left: 0; width: 8px; height: 8px; cursor: nw-resize; }
+.resize-ne { top: 0; right: 0; width: 8px; height: 8px; cursor: ne-resize; }
+.resize-sw { bottom: 0; left: 0; width: 8px; height: 8px; cursor: sw-resize; }
+.resize-se { bottom: 0; right: 0; width: 8px; height: 8px; cursor: se-resize; }
+.resize-n { top: 0; left: 50%; transform: translateX(-50%); width: 40px; height: 6px; cursor: n-resize; }
+.resize-s { bottom: 0; left: 50%; transform: translateX(-50%); width: 40px; height: 6px; cursor: s-resize; }
+.resize-w { left: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 40px; cursor: w-resize; }
+.resize-e { right: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 40px; cursor: e-resize; }
+
+/* 编辑按钮样式 - 蓝色图标无边框，与V1.1一致 */
+.edit-btn {
+  background-color: transparent !important;
+  border: none !important;
+  color: #3b82f6;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+.edit-btn:hover {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+.edit-icon {
+  font-size: 16px;
+}
+
+/* 删除按钮样式 - 红色图标无边框，与V1.1一致 */
+.delete-btn {
+  background-color: transparent !important;
+  border: none !important;
+  color: #ef4444;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+.delete-btn:hover {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+.delete-icon {
+  font-size: 16px;
 }
 </style>

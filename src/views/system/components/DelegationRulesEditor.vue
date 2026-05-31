@@ -23,10 +23,10 @@
         :key="idx"
         :class="[
           'flex items-center gap-2 p-2 rounded-lg border',
-          rule.enabled ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-300'
+          rule.enabled ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-400'
         ]"
       >
-        <!-- 启用开关 -->
+        <!-- 启用开关 - V1.1使用CheckCircle图标 -->
         <button
           @click="toggleEnabled(idx)"
           :class="[
@@ -37,8 +37,8 @@
           ]"
           :title="rule.enabled ? '已启用' : '已禁用'"
         >
-          <span v-if="rule.enabled" class="text-green-500">●</span>
-          <span v-else class="w-4 h-4 inline-block border-2 border-current rounded-full"></span>
+          <el-icon v-if="rule.enabled" :size="16"><CircleCheckFilled /></el-icon>
+          <el-icon v-else :size="16"><CircleCloseFilled /></el-icon>
         </button>
 
         <!-- 委托角色 -->
@@ -52,9 +52,9 @@
           </option>
         </select>
 
-        <!-- 箭头 -->
+        <!-- 箭头 - V1.1使用UserCheck图标 -->
         <div class="flex items-center text-gray-400">
-          <span class="text-sm">→</span>
+          <el-icon :size="16"><User /></el-icon>
         </div>
 
         <!-- 接收角色 -->
@@ -77,23 +77,23 @@
           class="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
 
-        <!-- 删除按钮 -->
+        <!-- 删除按钮 - V1.1使用Trash2图标 -->
         <button
           @click="deleteRule(idx)"
           class="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition-colors"
           title="删除规则"
         >
-          <span class="text-red-500">✕</span>
+          <el-icon :size="16"><Delete /></el-icon>
         </button>
       </div>
     </div>
 
-    <!-- 添加按钮 -->
+    <!-- 添加按钮 - V1.1使用Plus图标 -->
     <button
       @click="addRule"
       class="flex items-center gap-2 px-3 py-2 text-sm text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
     >
-      <span>+</span>
+      <el-icon :size="16"><Plus /></el-icon>
       添加委托规则
     </button>
 
@@ -109,6 +109,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Delete, Plus, CircleCheckFilled, CircleCloseFilled, User } from '@element-plus/icons-vue'
 
 /** 委托规则数据结构 */
 interface DelegationRule {
@@ -118,7 +119,7 @@ interface DelegationRule {
   remark: string
 }
 
-/** 角色选项 */
+/** 角色选项 - 与V1.1完全一致 */
 const ROLE_OPTIONS = [
   { value: 'manager', label: '经理' },
   { value: 'department_head', label: '部门主管' },

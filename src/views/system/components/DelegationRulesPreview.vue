@@ -14,8 +14,9 @@
         <tbody class="divide-y divide-gray-200">
           <tr v-for="(rule, idx) in displayedRules" :key="idx" :class="{ 'opacity-50': !rule.enabled }">
             <td class="px-2 py-1.5">
-              <span v-if="rule.enabled" class="text-green-500">●</span>
-              <span v-else class="text-gray-300">○</span>
+              <!-- V1.1使用CheckCircle图标 -->
+              <el-icon v-if="rule.enabled" class="text-green-500" :size="14"><CircleCheckFilled /></el-icon>
+              <el-icon v-else class="text-gray-300" :size="14"><CircleCloseFilled /></el-icon>
             </td>
             <td class="px-2 py-1.5 text-gray-700">{{ getRoleLabel(rule.fromRole) }}</td>
             <td class="px-2 py-1.5 text-gray-700">{{ getRoleLabel(rule.toRole) }}</td>
@@ -28,12 +29,12 @@
     <div v-if="rules.length > 3" class="text-xs text-gray-400">
       ...还有 {{ rules.length - 3 }} 条规则
     </div>
-    <!-- 编辑按钮 -->
+    <!-- 编辑按钮 - V1.1使用Edit图标 w-3 h-3 -->
     <button
       @click="$emit('edit')"
       class="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 mt-1"
     >
-      <Edit class="w-3 h-3" />
+      <el-icon :size="12"><Edit /></el-icon>
       编辑规则
     </button>
   </div>
@@ -41,7 +42,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Edit } from '@element-plus/icons-vue'
+import { Edit, CircleCheckFilled, CircleCloseFilled } from '@element-plus/icons-vue'
 
 /** 委托规则数据结构 */
 interface DelegationRule {
@@ -51,7 +52,7 @@ interface DelegationRule {
   remark: string
 }
 
-/** 角色选项 */
+/** 角色选项 - 与V1.1一致 */
 const ROLE_OPTIONS = [
   { value: 'manager', label: '经理' },
   { value: 'department_head', label: '部门主管' },

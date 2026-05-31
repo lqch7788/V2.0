@@ -25,7 +25,7 @@
       <el-tab-pane label="化学防治" name="chemical">
         <template #label>
           <span class="flex items-center gap-1">
-            <el-icon><ChemicalGlass /></el-icon>
+            <el-icon><Connection /></el-icon>
             化学防治
           </span>
         </template>
@@ -33,7 +33,7 @@
       <el-tab-pane label="生物防治" name="bio">
         <template #label>
           <span class="flex items-center gap-1">
-            <el-icon><CellPhone /></el-icon>
+            <el-icon><Sunny /></el-icon>
             生物防治
           </span>
         </template>
@@ -41,7 +41,7 @@
       <el-tab-pane label="物理防治" name="physical">
         <template #label>
           <span class="flex items-center gap-1">
-            <el-icon><MagicStick /></el-icon>
+            <el-icon><Setting /></el-icon>
             物理防治
           </span>
         </template>
@@ -137,14 +137,14 @@
             <el-table-column label="操作" width="160" fixed="right">
               <template #default="{ row }">
                 <div class="flex items-center gap-1">
-                  <el-button text size="small" @click="handleDetail(row)" title="查看详情">
+                  <el-button text size="small" @click="handleDetail(row)" title="查看详情" class="action-btn edit-btn">
                     <el-icon><View /></el-icon>
                   </el-button>
-                  <el-button text size="small" @click="handleEdit(row)" title="编辑">
+                  <el-button text size="small" @click="handleEdit(row)" title="编辑" class="action-btn edit-btn">
                     <el-icon><Edit /></el-icon>
                   </el-button>
-                  <el-button text size="small" @click="handleDelete(row)" title="删除" class="hover:text-red-600">
-                    <el-icon color="#dc2626"><Delete /></el-icon>
+                  <el-button text size="small" @click="handleDelete(row)" title="删除" class="action-btn delete-btn">
+                    <el-icon><Delete /></el-icon>
                   </el-button>
                 </div>
               </template>
@@ -327,7 +327,10 @@ import {
   View,
   Edit,
   Delete,
-  Warning
+  Warning,
+  Connection,
+  Sunny,
+  Setting
 } from '@element-plus/icons-vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 import PesticideSpecEditor from '@/components/common/PesticideSpecEditor.vue'
@@ -684,5 +687,28 @@ onMounted(() => {
 
 .pesticide-tabs :deep(.el-tabs__content) {
   padding: 0;
+}
+
+/* 操作按钮样式 - 蓝色编辑/红色删除无边框图标 */
+.action-btn {
+  background-color: transparent !important;
+  border: none !important;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+.edit-btn {
+  color: #3b82f6;
+}
+.edit-btn:hover {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+.delete-btn {
+  color: #ef4444;
+}
+.delete-btn:hover {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
 }
 </style>

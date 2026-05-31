@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-none">
+    <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <a
@@ -127,13 +127,13 @@
           <el-table-column label="操作" width="180" fixed="right">
             <template #default="{ row }">
               <div class="flex items-center gap-1">
-                <el-button text size="small" @click="handleDetail(row)" class="text-blue-600 hover:bg-blue-50">
+                <el-button text size="small" @click="handleDetail(row)" class="action-btn edit-btn">
                   <el-icon><View /></el-icon>
                 </el-button>
-                <el-button text size="small" @click="handleEdit(row)" class="text-indigo-600 hover:bg-indigo-50">
+                <el-button text size="small" @click="handleEdit(row)" class="action-btn edit-btn">
                   <el-icon><Edit /></el-icon>
                 </el-button>
-                <el-button text size="small" @click="handleDelete(row)" class="text-red-600 hover:bg-red-50">
+                <el-button text size="small" @click="handleDelete(row)" class="action-btn delete-btn">
                   <el-icon><Delete /></el-icon>
                 </el-button>
               </div>
@@ -580,3 +580,28 @@ onMounted(() => {
   pestDiseaseStore.loadData()
 })
 </script>
+
+<style scoped>
+/* 操作按钮样式 - 蓝色编辑/红色删除无边框图标 */
+.action-btn {
+  background-color: transparent !important;
+  border: none !important;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+.edit-btn {
+  color: #3b82f6;
+}
+.edit-btn:hover {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+.delete-btn {
+  color: #ef4444;
+}
+.delete-btn:hover {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+</style>
