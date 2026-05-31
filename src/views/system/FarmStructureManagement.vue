@@ -31,7 +31,7 @@
       <p class="text-sm text-blue-700">
         <span class="font-semibold">提示：</span>
         基地架构用于配置公司-基地的层级结构。日常运营（温室管理、区域划分、种植记录）请使用「
-        <a href="/settings/base-operations" class="underline font-medium">基地运营中心</a>
+        <a href="/settings/base-operations" class="underline font-medium text-blue-600 hover:text-blue-800">基地运营中心</a>
         」。
       </p>
     </div>

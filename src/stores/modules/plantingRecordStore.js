@@ -4,9 +4,16 @@
  */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import {
+  getPlantingRecords,
+  createPlantingRecord,
+  updatePlantingRecord,
+  endPlantingSeason,
+  deletePlantingRecord
+} from '@/services/apiPlantingRecordService'
 
 export const usePlantingRecordStore = defineStore('plantingRecord', () => {
-  // 状态
+  // 状态 - 使用snake_case保持与V1.1一致
   const records = ref([])
   const loading = ref(false)
   const error = ref(null)
@@ -19,97 +26,33 @@ export const usePlantingRecordStore = defineStore('plantingRecord', () => {
     { dictCode: 'cancelled', dictLabel: '已取消' }
   ]
 
-  // 模拟数据
-  const mockRecords = [
-    {
-      oid: 'PR001',
-      seasonCode: '2026S001',
-      facilityOid: 'GH001',
-      facilityName: '1号温室',
-      blockOid: 'BK001',
-      blockName: '东区-A1地块',
-      cropName: '番茄',
-      varietyName: '大红番茄',
-      cropVarietyOid: 'CV001',
-      startDate: '2026-03-01',
-      endDate: '2026-06-15',
-      status: 'harvested',
-      yieldAmount: 5000,
-      yieldUnit: 'kg',
-      qualityGrade: 'A',
-      notes: '第一季番茄'
-    },
-    {
-      oid: 'PR002',
-      seasonCode: '2026S002',
-      facilityOid: 'GH001',
-      facilityName: '1号温室',
-      blockOid: 'BK002',
-      blockName: '东区-A2地块',
-      cropName: '黄瓜',
-      varietyName: '水果黄瓜',
-      cropVarietyOid: 'CV002',
-      startDate: '2026-04-10',
-      endDate: '',
-      status: 'planting',
-      yieldAmount: null,
-      yieldUnit: 'kg',
-      qualityGrade: '',
-      notes: '春季黄瓜'
-    },
-    {
-      oid: 'PR003',
-      seasonCode: '2026S003',
-      facilityOid: 'GH002',
-      facilityName: '2号温室',
-      blockOid: 'BK004',
-      blockName: '西区-1地块',
-      cropName: '辣椒',
-      varietyName: '螺丝椒',
-      cropVarietyOid: 'CV003',
-      startDate: '2026-03-15',
-      endDate: '',
-      status: 'planting',
-      yieldAmount: null,
-      yieldUnit: 'kg',
-      qualityGrade: '',
-      notes: '春季辣椒'
-    },
-    {
-      oid: 'PR004',
-      seasonCode: '2025S001',
-      facilityOid: 'GH003',
-      facilityName: '3号温室',
-      blockOid: '',
-      blockName: '',
-      cropName: '茄子',
-      varietyName: '圆茄子',
-      cropVarietyOid: 'CV004',
-      startDate: '2025-04-01',
-      endDate: '2025-07-20',
-      status: 'harvested',
-      yieldAmount: 3500,
-      yieldUnit: 'kg',
-      qualityGrade: 'B',
-      notes: '去年茄子'
-    }
-  ]
-
   /**
-   * 加载种植记录
+   * 加载种植记录 - 调用真实API
    */
   const loadRecords = async () => {
     loading.value = true
     error.value = null
     try {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      const stored = localStorage.getItem('farm_planting_records')
-      if (stored) {
-        records.value = JSON.parse(stored)
-      } else {
-        records.value = [...mockRecords]
-        saveRecords()
-      }
+      const data = await getPlantingRecords()
+      // API返回camelCase，转换为snake_case保持兼容
+      records.value = data.map(r => ({
+        oid: r.oid,
+        seasonCode: r.seasonCode,
+        facilityOid: r.facilityOid,
+        facilityName: r.facilityName || '',
+        blockOid: r.blockOid || '',
+        blockName: '',
+        cropName: r.cropName,
+        varietyName: r.varietyName || '',
+        cropVarietyOid: r.cropVarietyOid || '',
+        startDate: r.startDate || '',
+        endDate: r.endDate || '',
+        status: r.status,
+        yieldAmount: r.yieldAmount ?? null,
+        yieldUnit: r.yieldUnit || 'kg',
+        qualityGrade: r.qualityGrade || '',
+        notes: r.notes || ''
+      }))
     } catch (err) {
       error.value = err.message || '加载种植记录失败'
     } finally {
@@ -118,64 +61,114 @@ export const usePlantingRecordStore = defineStore('plantingRecord', () => {
   }
 
   /**
-   * 保存到localStorage
-   */
-  const saveRecords = () => {
-    localStorage.setItem('farm_planting_records', JSON.stringify(records.value))
-  }
-
-  /**
-   * 添加种植记录
+   * 添加种植记录 - 调用真实API
    */
   const addRecord = async (recordData) => {
-    const newRecord = {
-      ...recordData,
-      oid: `PR${Date.now()}`,
-      seasonCode: `2026S${String(records.value.length + 1).padStart(3, '0')}`,
-      startDate: recordData.start_date || new Date().toISOString().slice(0, 10),
-      status: 'planting',
-      yieldAmount: null,
-      yieldUnit: 'kg',
-      qualityGrade: '',
-      notes: recordData.notes || ''
+    loading.value = true
+    error.value = null
+    try {
+      // 转换snake_case为API需要的格式
+      const apiData = {
+        facility_oid: recordData.facility_oid,
+        block_oid: recordData.block_oid || '',
+        crop_variety_oid: recordData.crop_variety_oid || '',
+        crop_name: recordData.crop_name,
+        variety_name: recordData.variety_name || '',
+        start_date: recordData.start_date || new Date().toISOString().slice(0, 10),
+        notes: recordData.notes || ''
+      }
+      const created = await createPlantingRecord(apiData)
+      // 转换回snake_case
+      const newRecord = {
+        oid: created.oid,
+        seasonCode: created.seasonCode,
+        facilityOid: created.facilityOid,
+        facilityName: created.facilityName || '',
+        blockOid: created.blockOid || '',
+        blockName: '',
+        cropName: created.cropName,
+        varietyName: created.varietyName || '',
+        startDate: created.startDate || '',
+        endDate: created.endDate || '',
+        status: created.status,
+        yieldAmount: null,
+        yieldUnit: 'kg',
+        qualityGrade: '',
+        notes: created.notes || ''
+      }
+      records.value.push(newRecord)
+      return newRecord
+    } catch (err) {
+      error.value = err.message || '添加种植记录失败'
+      throw err
+    } finally {
+      loading.value = false
     }
-    records.value.push(newRecord)
-    saveRecords()
-    return newRecord
   }
 
   /**
-   * 编辑种植记录
+   * 编辑种植记录 - 调用真实API
    */
   const editRecord = async (oid, recordData) => {
-    const index = records.value.findIndex(r => r.oid === oid)
-    if (index !== -1) {
-      records.value[index] = { ...records.value[index], ...recordData }
-      saveRecords()
+    loading.value = true
+    error.value = null
+    try {
+      await updatePlantingRecord(oid, recordData)
+      const index = records.value.findIndex(r => r.oid === oid)
+      if (index !== -1) {
+        records.value[index] = { ...records.value[index], ...recordData }
+      }
+    } catch (err) {
+      error.value = err.message || '编辑种植记录失败'
+      throw err
+    } finally {
+      loading.value = false
     }
   }
 
   /**
-   * 结束种植季
+   * 结束种植季 - 调用真实API
    */
   const endSeason = async (oid, endData) => {
-    const index = records.value.findIndex(r => r.oid === oid)
-    if (index !== -1) {
-      records.value[index] = {
-        ...records.value[index],
-        ...endData,
-        status: 'harvested'
+    loading.value = true
+    error.value = null
+    try {
+      const updated = await endPlantingSeason(oid, endData)
+      const index = records.value.findIndex(r => r.oid === oid)
+      if (index !== -1) {
+        records.value[index] = {
+          ...records.value[index],
+          endDate: updated.endDate || endData.end_date,
+          status: 'harvested',
+          yieldAmount: updated.yieldAmount ?? endData.yield_amount,
+          yieldUnit: updated.yieldUnit || endData.yield_unit || 'kg',
+          qualityGrade: updated.qualityGrade || endData.quality_grade || '',
+          notes: updated.notes || endData.notes || ''
+        }
       }
-      saveRecords()
+    } catch (err) {
+      error.value = err.message || '结束种植季失败'
+      throw err
+    } finally {
+      loading.value = false
     }
   }
 
   /**
-   * 删除种植记录
+   * 删除种植记录 - 调用真实API
    */
   const removeRecord = async (oid) => {
-    records.value = records.value.filter(r => r.oid !== oid)
-    saveRecords()
+    loading.value = true
+    error.value = null
+    try {
+      await deletePlantingRecord(oid)
+      records.value = records.value.filter(r => r.oid !== oid)
+    } catch (err) {
+      error.value = err.message || '删除种植记录失败'
+      throw err
+    } finally {
+      loading.value = false
+    }
   }
 
   return {

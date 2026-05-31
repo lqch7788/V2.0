@@ -179,6 +179,9 @@
             <el-option label="停用" value="inactive" />
           </el-select>
         </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="formData.description" type="textarea" :rows="2" placeholder="请输入描述" />
+        </el-form-item>
               </el-form>
       <template #footer>
         <el-button @click="handleCloseModal">取消</el-button>

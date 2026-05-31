@@ -61,6 +61,7 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-b sticky top-0">
+              <th class="text-center py-2 px-2 font-medium text-white w-12">序号</th>
               <th class="text-left py-2 px-3 font-medium text-white w-48">工序</th>
               <th
                 v-for="act in ACTION_LIST"
@@ -73,10 +74,11 @@
           </thead>
           <tbody>
             <tr
-              v-for="proc in allProcesses"
+              v-for="(proc, index) in allProcesses"
               :key="proc.oid"
               class="border-b border-gray-100 hover:bg-blue-50"
             >
+              <td class="py-1.5 px-2 text-center text-gray-500 text-xs">{{ index + 1 }}</td>
               <td class="py-1.5 px-3 text-gray-700">
                 <div>{{ proc.name }}</div>
                 <div class="text-xs text-gray-400 font-mono">{{ proc.aid }}</div>

@@ -172,39 +172,55 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑药剂' : '新增药剂'"
-      width="600px"
+      width="900px"
       :close-on-click-modal="false"
     >
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-form-item label="药剂编码" prop="pesticideCode">
-          <el-input v-model="formData.pesticideCode" placeholder="请输入药剂编码" />
-        </el-form-item>
-        <el-form-item label="药剂名称" prop="pesticideName">
-          <el-input v-model="formData.pesticideName" placeholder="请输入药剂名称" />
-        </el-form-item>
-        <el-form-item label="防治类型" prop="controlType">
-          <el-select v-model="formData.controlType" placeholder="请选择防治类型" class="w-full">
-            <el-option label="化学防治" value="chemical" />
-            <el-option label="生物防治" value="bio" />
-            <el-option label="物理防治" value="physical" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="药剂成分" prop="ingredient">
-          <el-input v-model="formData.ingredient" placeholder="请输入药剂成分" />
-        </el-form-item>
-        <el-form-item label="作用机制" prop="mechanism">
-          <el-input v-model="formData.mechanism" placeholder="如 触杀、胃毒、熏蒸" />
-        </el-form-item>
-        <el-form-item label="功能说明" prop="functionDesc">
-          <el-input v-model="formData.functionDesc" type="textarea" :rows="3" placeholder="请输入功能说明" />
-        </el-form-item>
-        <el-form-item label="使用禁忌" prop="tabooDesc">
-          <el-input v-model="formData.tabooDesc" type="textarea" :rows="2" placeholder="请输入使用禁忌" />
-        </el-form-item>
-        <el-form-item label="防治对象" prop="targetPests">
-          <el-input v-model="formData.targetPests" placeholder="请输入防治对象" />
-        </el-form-item>
-      </el-form>
+      <div class="max-h-[60vh] overflow-y-auto pr-2">
+        <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
+          <div class="grid grid-cols-2 gap-4">
+            <el-form-item label="药剂编码" prop="pesticideCode">
+              <div class="flex gap-2">
+                <el-input v-model="formData.pesticideCode" placeholder="点击生成获取编码" />
+                <el-button @click="generateCode" :disabled="isEdit">生成</el-button>
+              </div>
+            </el-form-item>
+            <el-form-item label="药剂名称" prop="pesticideName">
+              <el-input v-model="formData.pesticideName" placeholder="请输入药剂名称" />
+            </el-form-item>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <el-form-item label="防治类型" prop="controlType">
+              <el-select v-model="formData.controlType" placeholder="请选择防治类型" class="w-full">
+                <el-option label="化学防治" value="chemical" />
+                <el-option label="生物防治" value="bio" />
+                <el-option label="物理防治" value="physical" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="药剂成分" prop="ingredient">
+              <el-input v-model="formData.ingredient" placeholder="如 啶虫脒、高效氯氟氰菊酯" />
+            </el-form-item>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <el-form-item label="作用机制" prop="mechanism">
+              <el-input v-model="formData.mechanism" placeholder="如 触杀、胃毒、熏蒸" />
+            </el-form-item>
+            <el-form-item label="防治对象" prop="targetPests">
+              <el-input v-model="formData.targetPests" placeholder="请输入防治对象" />
+            </el-form-item>
+          </div>
+          <el-form-item label="功能说明" prop="functionDesc">
+            <el-input v-model="formData.functionDesc" type="textarea" :rows="2" placeholder="请输入功能说明" />
+          </el-form-item>
+          <el-form-item label="使用禁忌" prop="tabooDesc">
+            <el-input v-model="formData.tabooDesc" type="textarea" :rows="2" placeholder="请输入使用禁忌" />
+          </el-form-item>
+
+          <!-- 规格编辑器 -->
+          <el-form-item label="规格信息">
+            <PesticideSpecEditor v-model="specs" />
+          </el-form-item>
+        </el-form>
+      </div>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSave">保存</el-button>
@@ -314,6 +330,7 @@ import {
   Warning
 } from '@element-plus/icons-vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
+import PesticideSpecEditor from '@/components/common/PesticideSpecEditor.vue'
 import { usePesticideLibraryStore } from '@/stores/modules/pesticideLibrary'
 
 // 药剂库 Store
@@ -345,6 +362,9 @@ const deleteVisible = ref(false)
 const isEdit = ref(false)
 const currentRow = ref(null)
 const editingId = ref('')
+
+// 规格编辑器
+const specs = ref([])
 
 // 表单相关
 const formRef = ref(null)
@@ -513,13 +533,33 @@ function openAddDialog() {
   isEdit.value = false
   editingId.value = ''
   resetForm()
+  specs.value = []
   // 设置当前Tab类型作为默认值
   formData.controlType = activeTab.value
   dialogVisible.value = true
 }
 
+// 生成编码
+function generateCode() {
+  const prefix = activeTab.value === 'chemical' ? 'PC-C-' : activeTab.value === 'bio' ? 'PC-B-' : 'PC-P-'
+  const existingCodes = pesticideStore.items
+    .filter(item => item.controlType === activeTab.value)
+    .map(item => item.pesticideCode)
+    .filter(code => code && code.startsWith(prefix))
+  let maxNum = 0
+  existingCodes.forEach(code => {
+    const match = code.match(/PC-[CBP]-(\d+)/)
+    if (match) {
+      const num = parseInt(match[1], 10)
+      if (num > maxNum) maxNum = num
+    }
+  })
+  const newNum = maxNum + 1
+  formData.pesticideCode = `${prefix}${newNum.toString().padStart(4, '0')}`
+}
+
 // 打开编辑弹窗
-function handleEdit(row) {
+async function handleEdit(row) {
   isEdit.value = true
   editingId.value = row.id
   formData.pesticideCode = row.pesticideCode || ''
@@ -530,6 +570,9 @@ function handleEdit(row) {
   formData.functionDesc = row.functionDesc || ''
   formData.tabooDesc = row.tabooDesc || ''
   formData.targetPests = row.targetPests || ''
+  // 加载规格数据
+  const fullRecord = await pesticideStore.fetchItemById(row.id)
+  specs.value = fullRecord?.specs || []
   dialogVisible.value = true
 }
 
@@ -576,7 +619,21 @@ async function handleSave() {
     } else {
       // 新增
       const result = await pesticideStore.createItem(formData)
-      if (result.success) {
+      if (result.success && specs.value.length > 0) {
+        // 同时保存规格
+        const newId = result.data?.id
+        if (newId) {
+          for (const spec of specs.value) {
+            if (spec.specContent || spec.formulation || spec.manufacturer) {
+              await pesticideStore.createSpec(newId, spec)
+            }
+          }
+        }
+        ElMessage.success('新增成功')
+        dialogVisible.value = false
+        resetForm()
+        loadData()
+      } else if (result.success) {
         ElMessage.success('新增成功')
         dialogVisible.value = false
         resetForm()
@@ -598,6 +655,7 @@ function resetForm() {
   formData.functionDesc = ''
   formData.tabooDesc = ''
   formData.targetPests = ''
+  specs.value = []
 }
 
 onMounted(() => {

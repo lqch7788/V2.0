@@ -103,7 +103,21 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column v-if="exportMode" type="selection" width="55" />
-        <el-table-column prop="fertilizerCode" label="肥料编码" width="140" />
+        <el-table-column width="50" align="center">
+          <template #default="{ row }">
+            <el-button text size="small" @click="toggleExpand(row.id)" class="p-1 text-gray-500 hover:text-amber-600" :title="expandedRows.has(row.id) ? '收起' : '展开'">
+              <el-icon v-if="expandedRows.has(row.id)" color="#d97706"><ArrowDown /></el-icon>
+              <el-icon v-else color="#6b7280"><ArrowRight /></el-icon>
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="fertilizerCode" label="肥料编码" width="140">
+          <template #default="{ row }">
+            <el-button text size="small" @click="handleDetail(row)" class="p-0 h-auto font-mono text-blue-600" title="查看详情">
+              {{ row.fertilizerCode || '-' }}
+            </el-button>
+          </template>
+        </el-table-column>
         <el-table-column prop="fertilizerName" label="肥料名称" min-width="160" />
         <el-table-column prop="fertilizerType" label="肥料类型" width="120">
           <template #default="{ row }">
@@ -122,7 +136,12 @@
         </el-table-column>
         <el-table-column prop="functionDesc" label="功能说明" min-width="200" show-overflow-tooltip />
         <el-table-column prop="shelfLife" label="保质期" width="100" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="规格数" width="80" align="center">
+          <template #default="{ row }">
+            <el-tag type="info" size="small">{{ row.specs?.length || 0 }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
             <div class="flex items-center gap-1">
               <el-button text size="small" @click="handleDetail(row)" class="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="查看">
@@ -134,6 +153,39 @@
               <el-button text size="small" @click="handleDelete(row)" class="p-1 text-red-600 hover:bg-red-50 rounded transition-colors" title="删除">
                 <el-icon><Delete /></el-icon>
               </el-button>
+            </div>
+          </template>
+        </el-table-column>
+        <!-- 展开行：规格明细 -->
+        <el-table-column type="expand" width="1" fixed="right">
+          <template #default="{ row }">
+            <div v-if="expandedRows.has(row.id)" class="p-4 bg-amber-50">
+              <div class="text-sm font-semibold text-amber-800 mb-2">规格明细</div>
+              <table v-if="row.specs && row.specs.length > 0" class="w-full border border-amber-200 rounded-lg overflow-hidden">
+                <thead class="bg-amber-100">
+                  <tr>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-amber-800">品牌名称</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-amber-800">成份与含量</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-amber-800">生产厂家</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-amber-800">建议用量</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-amber-800">单位</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-amber-800">稀释比例</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-amber-800">备注</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-amber-100">
+                  <tr v-for="(spec, idx) in row.specs" :key="idx" class="hover:bg-amber-100/30">
+                    <td class="px-3 py-2 text-sm text-amber-700">{{ spec.brandName || '-' }}</td>
+                    <td class="px-3 py-2 text-sm text-amber-700">{{ spec.specContent || '-' }}</td>
+                    <td class="px-3 py-2 text-sm text-amber-700">{{ spec.manufacturer || '-' }}</td>
+                    <td class="px-3 py-2 text-sm text-amber-700">{{ spec.suggestedDosage || '-' }}</td>
+                    <td class="px-3 py-2 text-sm text-amber-700">{{ spec.dosageUnit || '-' }}</td>
+                    <td class="px-3 py-2 text-sm text-amber-700">{{ spec.suggestedRatio || '-' }}</td>
+                    <td class="px-3 py-2 text-sm text-amber-700">{{ spec.remark || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-else class="text-amber-600 text-center py-4">暂无规格明细</div>
             </div>
           </template>
         </el-table-column>
@@ -321,6 +373,8 @@ import {
   Search,
   Refresh,
   ArrowLeft,
+  ArrowDown,
+  ArrowRight,
   Sugar
 } from '@element-plus/icons-vue'
 import { useFertilizerLibraryStore } from '@/stores/modules/fertilizerLibrary'
@@ -353,6 +407,7 @@ const activeTab = ref('organic')
 const searchKeyword = ref('')
 const loading = ref(false)
 const error = ref(null)
+const expandedRows = ref(new Set())
 
 // 导出相关
 const exportMode = ref(false)
@@ -420,6 +475,17 @@ const handleSearch = () => {
 
 const handleReset = () => {
   searchKeyword.value = ''
+}
+
+// 切换展开/折叠规格明细
+const toggleExpand = (id) => {
+  const newSet = new Set(expandedRows.value)
+  if (newSet.has(id)) {
+    newSet.delete(id)
+  } else {
+    newSet.add(id)
+  }
+  expandedRows.value = newSet
 }
 
 const handleAdd = async () => {

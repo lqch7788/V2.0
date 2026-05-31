@@ -48,6 +48,7 @@
       <AuthorityConfiguration v-else-if="activeTab === 'authority'" />
       <UserManagement v-else-if="activeTab === 'users'" />
       <UserAuthorityConfig v-else-if="activeTab === 'user-authority'" />
+      <UserBasePermission v-else-if="activeTab === 'user-base'" />
     </div>
   </div>
 </template>
@@ -60,7 +61,8 @@ import {
   User,
   Share,
   Key,
-  ArrowLeft
+  ArrowLeft,
+  MapLocation
 } from '@element-plus/icons-vue'
 
 // 子组件
@@ -69,6 +71,7 @@ import RoleManagement from './RoleManagement.vue'
 import AuthorityConfiguration from './AuthorityConfiguration.vue'
 import UserManagement from './UserManagement.vue'
 import UserAuthorityConfig from './UserAuthorityConfig.vue'
+import UserBasePermission from './UserBasePermission.vue'
 
 // Tab配置
 const TABS = [
@@ -76,7 +79,8 @@ const TABS = [
   { key: 'roles', label: '角色管理', icon: Lock },
   { key: 'authority', label: '权限配置', icon: Key },
   { key: 'users', label: '用户管理', icon: User },
-  { key: 'user-authority', label: '用户权限覆盖', icon: Share }
+  { key: 'user-authority', label: '用户权限覆盖', icon: Share },
+  { key: 'user-base', label: '用户基地权限', icon: MapLocation }
 ]
 
 // 当前激活的Tab

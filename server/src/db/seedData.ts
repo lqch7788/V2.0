@@ -1964,6 +1964,31 @@ function seedCropInstances() {
 }
 
 /**
+ * 导入基地数据
+ * 基地是温室的父级组织
+ */
+function seedBases() {
+  const db = getDatabase();
+
+  // 只保留宁波北仑基地，与V1.1保持一致
+  const bases = [
+    { id: 'BASE007', oid: 'BASE007', code: 'CD-NB-001', name: '宁波北仑基地', company_oid: 'C002', company_name: '成都帮帮您公司', area: 600, unit: '亩', province: '浙江', city: '宁波市', lng: 121.9701, lat: 29.8947, manager: '石破天', phone: '13800138004', soil_type: '壤土', ph: 6.6, status: 'active', intro: '总种植面积600亩，包含玻璃温室1个，连栋薄膜温室4个，日光拱棚8个，大田550亩。', greenhouse_count: 13, field_area: 550 }
+  ];
+
+  for (const base of bases) {
+    db.run(`
+      INSERT OR REPLACE INTO bases
+      (id, oid, code, name, company_oid, company_name, area, unit, province, city, lng, lat, manager, phone, soil_type, ph, status, intro, greenhouse_count, field_area)
+      VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      base.oid, base.code, base.name, base.company_oid, base.company_name, base.area, base.unit, base.province, base.city, base.lng, base.lat, base.manager, base.phone, base.soil_type, base.ph, base.status, base.intro, base.greenhouse_count, base.field_area
+    ]);
+  }
+
+  console.log(`已导入 ${bases.length} 条基地数据`);
+}
+
+/**
  * 导入温室/基地数据
  * 支持园区导览功能
  */
@@ -2016,127 +2041,29 @@ function seedGreenhouses() {
     }
   }
 
+  // 温室数据（与V1.1基地运营中心一致）
+  // 宁波北仑基地的多个温室
   const greenhouses = [
-    // 宁波帮帮忙公司
-    {
-      id: 'GH001', oid: 'GH001', code: 'NB-SH-001', name: '上海松江基地',
-      greenhouse_type: '玻璃温室', area: 300, location: '上海',
-      base_oid: 'BASE001', base_name: '上海松江基地',
-      company_id: 'C001', company_name: '宁波帮帮忙公司',
-      lng: 121.2234, lat: 31.0342, crop: '水稻', growth_day: 30,
-      manager: '郭靖', phone: '13800138002', soil_type: '沙壤土', ph: 6.8,
-      intro: '总种植面积300亩，包含玻璃温室2个，连栋薄膜温室5个，日光拱棚10个，大田200亩。',
-      greenhouse_count: 17, field_area: 200, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    },
-    {
-      id: 'GH002', oid: 'GH002', code: 'NB-SH-002', name: '上海崇明基地',
-      greenhouse_type: '玻璃温室', area: 800, location: '上海',
-      base_oid: 'BASE002', base_name: '上海崇明基地',
-      company_id: 'C001', company_name: '宁波帮帮忙公司',
-      lng: 121.24416, lat: 31.73610, crop: '小麦', growth_day: 0,
-      manager: '萧峰', phone: '13800138003', soil_type: '黏土', ph: 6.2,
-      intro: '总种植面积800亩，包含玻璃温室3个，连栋薄膜温室8个，日光拱棚15个，大田650亩。',
-      greenhouse_count: 26, field_area: 650, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    },
-    {
-      id: 'GH003', oid: 'GH003', code: 'NB-SH-003', name: '上海嘉定基地',
-      greenhouse_type: '玻璃温室', area: 350, location: '上海',
-      base_oid: 'BASE003', base_name: '上海嘉定基地',
-      company_id: 'C001', company_name: '宁波帮帮忙公司',
-      lng: 121.2654, lat: 31.3754, crop: '蔬菜', growth_day: 25,
-      manager: '杨过', phone: '13800138007', soil_type: '沙土', ph: 7.0,
-      intro: '总种植面积350亩，包含玻璃温室4个，连栋薄膜温室6个，日光拱棚8个，大田200亩。',
-      greenhouse_count: 18, field_area: 200, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    },
-    {
-      id: 'GH004', oid: 'GH004', code: 'NB-SH-004', name: '上海奉贤基地',
-      greenhouse_type: '玻璃温室', area: 550, location: '上海',
-      base_oid: 'BASE004', base_name: '上海奉贤基地',
-      company_id: 'C001', company_name: '宁波帮帮忙公司',
-      lng: 121.4745, lat: 30.9123, crop: '玉米', growth_day: 50,
-      manager: '张无忌', phone: '13800138012', soil_type: '黏土', ph: 6.8,
-      intro: '总种植面积550亩，包含玻璃温室2个，连栋薄膜温室4个，日光拱棚12个，大田450亩。',
-      greenhouse_count: 18, field_area: 450, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    },
-    // 成都帮帮您公司
-    {
-      id: 'GH005', oid: 'GH005', code: 'CD-XA-001', name: '西安雁塔基地',
-      greenhouse_type: '日光温室', area: 500, location: '西安',
-      base_oid: 'BASE005', base_name: '西安雁塔基地',
-      company_id: 'C002', company_name: '成都帮帮您公司',
-      lng: 108.9470, lat: 34.2194, crop: '番茄', growth_day: 45,
-      manager: '令狐冲', phone: '13800138001', soil_type: '壤土', ph: 6.5,
-      intro: '总种植面积500亩，包含玻璃温室3个，连栋薄膜温室7个，日光拱棚12个，大田380亩。',
-      greenhouse_count: 22, field_area: 380, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    },
-    {
-      id: 'GH006', oid: 'GH006', code: 'CD-XA-002', name: '西安高新基地',
-      greenhouse_type: '日光温室', area: 200, location: '西安',
-      base_oid: 'BASE006', base_name: '西安高新基地',
-      company_id: 'C002', company_name: '成都帮帮您公司',
-      lng: 108.8789, lat: 34.2181, crop: '草莓', growth_day: 55,
-      manager: '狄云', phone: '13800138006', soil_type: '营养土', ph: 6.4,
-      intro: '总种植面积200亩，包含玻璃温室5个，连栋薄膜温室3个，日光拱棚5个，大田100亩。',
-      greenhouse_count: 13, field_area: 100, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    },
-    {
-      id: 'GH007', oid: 'GH007', code: 'CD-NB-001', name: '宁波北仑基地',
-      greenhouse_type: '塑料大棚', area: 600, location: '宁波',
-      base_oid: 'BASE007', base_name: '宁波北仑基地',
-      company_id: 'C002', company_name: '成都帮帮您公司',
-      lng: 121.9701, lat: 29.8947, crop: '茶叶', growth_day: 60,
-      manager: '石破天', phone: '13800138004', soil_type: '壤土', ph: 6.6,
-      intro: '总种植面积600亩，包含玻璃温室1个，连栋薄膜温室4个，日光拱棚8个，大田550亩。',
-      greenhouse_count: 13, field_area: 550, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    },
-    {
-      id: 'GH008', oid: 'GH008', code: 'CD-NB-002', name: '宁波镇海基地',
-      greenhouse_type: '塑料大棚', area: 280, location: '宁波',
-      base_oid: 'BASE008', base_name: '宁波镇海基地',
-      company_id: 'C002', company_name: '成都帮帮您公司',
-      lng: 121.7532, lat: 29.9543, crop: '水稻', growth_day: 40,
-      manager: '陈家洛', phone: '13800138008', soil_type: '壤土', ph: 6.7,
-      intro: '总种植面积280亩，包含玻璃温室2个，连栋薄膜温室3个，日光拱棚6个，大田220亩。',
-      greenhouse_count: 11, field_area: 220, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    },
-    {
-      id: 'GH009', oid: 'GH009', code: 'CD-NB-003', name: '宁波慈溪基地',
-      greenhouse_type: '日光温室', area: 420, location: '宁波',
-      base_oid: 'BASE009', base_name: '宁波慈溪基地',
-      company_id: 'C002', company_name: '成都帮帮您公司',
-      lng: 121.2678, lat: 30.1543, crop: '葡萄', growth_day: 75,
-      manager: '袁承志', phone: '13800138010', soil_type: '壤土', ph: 6.5,
-      intro: '总种植面积420亩，包含玻璃温室3个，连栋薄膜温室5个，日光拱棚10个，大田320亩。',
-      greenhouse_count: 18, field_area: 320, status: 'active',
-      create_time: new Date().toISOString(), update_time: new Date().toISOString()
-    }
+    { id: 'GH07-001', oid: 'GH07-001', code: 'GH07-001', name: '连栋温室区', greenhouse_type: 'glass_house', area: 500, location: '宁波北仑', base_oid: 'BASE007', base_name: '宁波北仑基地', company_id: 'C002', company_name: '成都帮帮您公司', crop: '番茄', manager: '石破天', phone: '13800138004', status: 'active' },
+    { id: 'GH07-002', oid: 'GH07-002', code: 'GH07-002', name: '玻璃温室区', greenhouse_type: 'glass_house', area: 300, location: '宁波北仑', base_oid: 'BASE007', base_name: '宁波北仑基地', company_id: 'C002', company_name: '成都帮帮您公司', crop: '番茄', manager: '石破天', phone: '13800138004', status: 'active' },
+    { id: 'GH07-003', oid: 'GH07-003', code: 'GH07-003', name: '日光温室区', greenhouse_type: 'solar_greenhouse', area: 200, location: '宁波北仑', base_oid: 'BASE007', base_name: '宁波北仑基地', company_id: 'C002', company_name: '成都帮帮您公司', crop: '黄瓜', manager: '石破天', phone: '13800138004', status: 'active' },
+    { id: 'GH07-004', oid: 'GH07-004', code: 'GH07-004', name: '大田种植区', greenhouse_type: 'open_field', area: 550, location: '宁波北仑', base_oid: 'BASE007', base_name: '宁波北仑基地', company_id: 'C002', company_name: '成都帮帮您公司', crop: '草莓', manager: '石破天', phone: '13800138004', status: 'active' },
+    { id: 'GH07-008', oid: 'GH07-008', code: 'GH07-008', name: '育苗区', greenhouse_type: 'nursery', area: 100, location: '宁波北仑', base_oid: 'BASE007', base_name: '宁波北仑基地', company_id: 'C002', company_name: '成都帮帮您公司', crop: '种苗', manager: '石破天', phone: '13800138004', status: 'active' }
   ];
 
   for (const gh of greenhouses) {
     db.run(`
       INSERT OR REPLACE INTO greenhouses
-      (id, oid, code, name, greenhouse_type, area, location, base_oid, base_name,
-       company_id, company_name, lng, lat, crop, growth_day, manager, phone,
-       soil_type, ph, intro, greenhouse_count, field_area, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, oid, code, name, greenhouse_type, area, location, base_oid, base_name, company_id, company_name, crop, manager, phone, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       gh.id, gh.oid, gh.code, gh.name, gh.greenhouse_type, gh.area, gh.location,
-      gh.base_oid, gh.base_name, gh.company_id, gh.company_name,
-      gh.lng, gh.lat, gh.crop, gh.growth_day, gh.manager, gh.phone,
-      gh.soil_type, gh.ph, gh.intro, gh.greenhouse_count, gh.field_area,
+      gh.base_oid, gh.base_name, gh.company_id, gh.company_name, gh.crop, gh.manager, gh.phone,
       gh.status, new Date().toISOString(), new Date().toISOString()
     ]);
   }
 
-  console.log(`已导入 ${greenhouses.length} 条温室/基地数据`);
+  console.log(`已导入 ${greenhouses.length} 条温室数据`);
 }
 
 /**
@@ -2155,46 +2082,25 @@ function seedZones() {
     { code: 'open_field', name: '露天种植区' },
   ];
 
-  // 为每个基地创建区域
+  // 只保留宁波北仑基地的区域，与V1.1保持一致
   const zones = [
-    // 上海松江基地
-    { id: 'ZN001', oid: 'ZN001', zone_code: 'ZN001', zone_name: '玻璃温室A区', greenhouse_oid: 'GH001', greenhouse_name: '上海松江基地', zone_type: 'glass_house', area: 50, sort_order: 1 },
-    { id: 'ZN002', oid: 'ZN002', zone_code: 'ZN002', zone_name: '塑料大棚B区', greenhouse_oid: 'GH001', greenhouse_name: '上海松江基地', zone_type: 'plastic_house', area: 80, sort_order: 2 },
-    { id: 'ZN003', oid: 'ZN003', zone_code: 'ZN003', zone_name: '日光温室C区', greenhouse_oid: 'GH001', greenhouse_name: '上海松江基地', zone_type: 'solar_greenhouse', area: 60, sort_order: 3 },
-    { id: 'ZN004', oid: 'ZN004', zone_code: 'ZN004', zone_name: '露天种植区', greenhouse_oid: 'GH001', greenhouse_name: '上海松江基地', zone_type: 'open_field', area: 110, sort_order: 4 },
-
-    // 上海崇明基地
-    { id: 'ZN005', oid: 'ZN005', zone_code: 'ZN005', zone_name: '玻璃温室1区', greenhouse_oid: 'GH002', greenhouse_name: '上海崇明基地', zone_type: 'glass_house', area: 100, sort_order: 1 },
-    { id: 'ZN006', oid: 'ZN006', zone_code: 'ZN006', zone_name: '塑料大棚2区', greenhouse_oid: 'GH002', greenhouse_name: '上海崇明基地', zone_type: 'plastic_house', area: 150, sort_order: 2 },
-    { id: 'ZN007', oid: 'ZN007', zone_code: 'ZN007', zone_name: '日光温室3区', greenhouse_oid: 'GH002', greenhouse_name: '上海崇明基地', zone_type: 'solar_greenhouse', area: 100, sort_order: 3 },
-
-    // 上海嘉定基地
-    { id: 'ZN008', oid: 'ZN008', zone_code: 'ZN008', zone_name: '玻璃温室A区', greenhouse_oid: 'GH003', greenhouse_name: '上海嘉定基地', zone_type: 'glass_house', area: 80, sort_order: 1 },
-    { id: 'ZN009', oid: 'ZN009', zone_code: 'ZN009', zone_name: '塑料大棚B区', greenhouse_oid: 'GH003', greenhouse_name: '上海嘉定基地', zone_type: 'plastic_house', area: 100, sort_order: 2 },
-
-    // 上海奉贤基地
-    { id: 'ZN010', oid: 'ZN010', zone_code: 'ZN010', zone_name: '日光温室A区', greenhouse_oid: 'GH004', greenhouse_name: '上海奉贤基地', zone_type: 'solar_greenhouse', area: 120, sort_order: 1 },
-    { id: 'ZN011', oid: 'ZN011', zone_code: 'ZN011', zone_name: '露天种植区', greenhouse_oid: 'GH004', greenhouse_name: '上海奉贤基地', zone_type: 'open_field', area: 200, sort_order: 2 },
-
-    // 西安雁塔基地
-    { id: 'ZN012', oid: 'ZN012', zone_code: 'ZN012', zone_name: '玻璃温室A区', greenhouse_oid: 'GH005', greenhouse_name: '西安雁塔基地', zone_type: 'glass_house', area: 100, sort_order: 1 },
-    { id: 'ZN013', oid: 'ZN013', zone_code: 'ZN013', zone_name: '日光温室B区', greenhouse_oid: 'GH005', greenhouse_name: '西安雁塔基地', zone_type: 'solar_greenhouse', area: 150, sort_order: 2 },
-
-    // 西安高新基地
-    { id: 'ZN014', oid: 'ZN014', zone_code: 'ZN014', zone_name: '塑料大棚A区', greenhouse_oid: 'GH006', greenhouse_name: '西安高新基地', zone_type: 'plastic_house', area: 80, sort_order: 1 },
-    { id: 'ZN015', oid: 'ZN015', zone_code: 'ZN015', zone_name: '温室大棚B区', greenhouse_oid: 'GH006', greenhouse_name: '西安高新基地', zone_type: 'greenhouse', area: 60, sort_order: 2 },
-
-    // 宁波北仑基地
-    { id: 'ZN016', oid: 'ZN016', zone_code: 'ZN016', zone_name: '露天种植区', greenhouse_oid: 'GH007', greenhouse_name: '宁波北仑基地', zone_type: 'open_field', area: 400, sort_order: 1 },
-    { id: 'ZN017', oid: 'ZN017', zone_code: 'ZN017', zone_name: '日光温室', greenhouse_oid: 'GH007', greenhouse_name: '宁波北仑基地', zone_type: 'solar_greenhouse', area: 100, sort_order: 2 },
-
-    // 宁波镇海基地
-    { id: 'ZN018', oid: 'ZN018', zone_code: 'ZN018', zone_name: '玻璃温室', greenhouse_oid: 'GH008', greenhouse_name: '宁波镇海基地', zone_type: 'glass_house', area: 80, sort_order: 1 },
-    { id: 'ZN019', oid: 'ZN019', zone_code: 'ZN019', zone_name: '露天种植区', greenhouse_oid: 'GH008', greenhouse_name: '宁波镇海基地', zone_type: 'open_field', area: 120, sort_order: 2 },
-
-    // 宁波慈溪基地
-    { id: 'ZN020', oid: 'ZN020', zone_code: 'ZN020', zone_name: '日光温室A区', greenhouse_oid: 'GH009', greenhouse_name: '宁波慈溪基地', zone_type: 'solar_greenhouse', area: 100, sort_order: 1 },
-    { id: 'ZN021', oid: 'ZN021', zone_code: 'ZN021', zone_name: '塑料大棚B区', greenhouse_oid: 'GH009', greenhouse_name: '宁波慈溪基地', zone_type: 'plastic_house', area: 120, sort_order: 2 },
+    // GH07-001 连栋温室区
+    { id: 'ZN07-001-1', oid: 'ZN07-001-1', zone_code: 'ZN07-001-1', zone_name: '连栋温室1区', greenhouse_oid: 'GH07-001', greenhouse_name: '连栋温室区', zone_type: 'glass_house', area: 150, sort_order: 1 },
+    { id: 'ZN07-001-2', oid: 'ZN07-001-2', zone_code: 'ZN07-001-2', zone_name: '连栋温室2区', greenhouse_oid: 'GH07-001', greenhouse_name: '连栋温室区', zone_type: 'glass_house', area: 150, sort_order: 2 },
+    { id: 'ZN07-001-3', oid: 'ZN07-001-3', zone_code: 'ZN07-001-3', zone_name: '连栋温室3区', greenhouse_oid: 'GH07-001', greenhouse_name: '连栋温室区', zone_type: 'glass_house', area: 200, sort_order: 3 },
+    // GH07-002 玻璃温室区
+    { id: 'ZN07-002-1', oid: 'ZN07-002-1', zone_code: 'ZN07-002-1', zone_name: '玻璃温室1区', greenhouse_oid: 'GH07-002', greenhouse_name: '玻璃温室区', zone_type: 'glass_house', area: 100, sort_order: 1 },
+    { id: 'ZN07-002-2', oid: 'ZN07-002-2', zone_code: 'ZN07-002-2', zone_name: '玻璃温室2区', greenhouse_oid: 'GH07-002', greenhouse_name: '玻璃温室区', zone_type: 'glass_house', area: 100, sort_order: 2 },
+    { id: 'ZN07-002-3', oid: 'ZN07-002-3', zone_code: 'ZN07-002-3', zone_name: '玻璃温室3区', greenhouse_oid: 'GH07-002', greenhouse_name: '玻璃温室区', zone_type: 'glass_house', area: 100, sort_order: 3 },
+    // GH07-003 日光温室区
+    { id: 'ZN07-003-1', oid: 'ZN07-003-1', zone_code: 'ZN07-003-1', zone_name: '日光温室1区', greenhouse_oid: 'GH07-003', greenhouse_name: '日光温室区', zone_type: 'solar_greenhouse', area: 100, sort_order: 1 },
+    { id: 'ZN07-003-2', oid: 'ZN07-003-2', zone_code: 'ZN07-003-2', zone_name: '日光温室2区', greenhouse_oid: 'GH07-003', greenhouse_name: '日光温室区', zone_type: 'solar_greenhouse', area: 100, sort_order: 2 },
+    // GH07-004 大田种植区
+    { id: 'ZN07-004-1', oid: 'ZN07-004-1', zone_code: 'ZN07-004-1', zone_name: '大田种植A区', greenhouse_oid: 'GH07-004', greenhouse_name: '大田种植区', zone_type: 'open_field', area: 275, sort_order: 1 },
+    { id: 'ZN07-004-2', oid: 'ZN07-004-2', zone_code: 'ZN07-004-2', zone_name: '大田种植B区', greenhouse_oid: 'GH07-004', greenhouse_name: '大田种植区', zone_type: 'open_field', area: 275, sort_order: 2 },
+    // GH07-008 育苗区
+    { id: 'ZN07-008-1', oid: 'ZN07-008-1', zone_code: 'ZN07-008-1', zone_name: '育苗1区', greenhouse_oid: 'GH07-008', greenhouse_name: '育苗区', zone_type: 'nursery', area: 50, sort_order: 1 },
+    { id: 'ZN07-008-2', oid: 'ZN07-008-2', zone_code: 'ZN07-008-2', zone_name: '育苗2区', greenhouse_oid: 'GH07-008', greenhouse_name: '育苗区', zone_type: 'nursery', area: 50, sort_order: 2 }
   ];
 
   for (const zone of zones) {
@@ -2209,6 +2115,42 @@ function seedZones() {
   }
 
   console.log(`已导入 ${zones.length} 条区域/区块数据`);
+}
+
+/**
+ * 导入种植季记录（基地空间架构用）
+ */
+function seedPlantingRecords() {
+  const db = getDatabase();
+
+  // 种植季记录数据 - 与V1.1保持一致
+  const plantingRecords = [
+    // GH07-001 连栋温室区的种植记录
+    { oid: 'PR001', facility_oid: 'GH07-001', block_oid: 'ZN07-001-1', season_code: 'ZZ2026-001', crop_name: '番茄', variety_name: '红果番茄', start_date: '2026-02-01', end_date: null, status: 'planting', yield_amount: null, yield_unit: 'kg', quality_grade: null, notes: '连栋温室1区' },
+    { oid: 'PR002', facility_oid: 'GH07-001', block_oid: 'ZN07-001-2', season_code: 'ZZ2026-002', crop_name: '黄瓜', variety_name: '水果黄瓜', start_date: '2026-02-15', end_date: null, status: 'planting', yield_amount: null, yield_unit: 'kg', quality_grade: null, notes: '连栋温室2区' },
+    // GH07-002 玻璃温室区的种植记录
+    { oid: 'PR003', facility_oid: 'GH07-002', block_oid: 'ZN07-002-1', season_code: 'ZZ2026-003', crop_name: '番茄', variety_name: '樱桃番茄', start_date: '2026-01-20', end_date: null, status: 'planting', yield_amount: null, yield_unit: 'kg', quality_grade: null, notes: '玻璃温室1区' },
+    // GH07-003 日光温室区的种植记录
+    { oid: 'PR004', facility_oid: 'GH07-003', block_oid: 'ZN07-003-1', season_code: 'ZZ2026-004', crop_name: '生菜', variety_name: '大叶生菜', start_date: '2026-02-10', end_date: null, status: 'planting', yield_amount: null, yield_unit: 'kg', quality_grade: null, notes: '日光温室1区' },
+    // GH07-004 大田种植区的种植记录
+    { oid: 'PR005', facility_oid: 'GH07-004', block_oid: 'ZN07-004-1', season_code: 'ZZ2026-005', crop_name: '草莓', variety_name: '红颜', start_date: '2025-10-01', end_date: null, status: 'planting', yield_amount: null, yield_unit: 'kg', quality_grade: null, notes: '大田种植A区' },
+    // GH07-008 育苗区的种植记录
+    { oid: 'PR006', facility_oid: 'GH07-008', block_oid: 'ZN07-008-1', season_code: 'ZZ2026-006', crop_name: '番茄', variety_name: '红果番茄', start_date: '2026-01-15', end_date: null, status: 'planting', yield_amount: null, yield_unit: 'kg', quality_grade: null, notes: '育苗1区' }
+  ];
+
+  for (const pr of plantingRecords) {
+    db.run(`
+      INSERT OR REPLACE INTO planting_records
+      (oid, facility_oid, block_oid, season_code, crop_name, variety_name, start_date, end_date, status, yield_amount, yield_unit, quality_grade, notes, created_at, updated_at, deleted_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+    `, [
+      pr.oid, pr.facility_oid, pr.block_oid, pr.season_code, pr.crop_name, pr.variety_name,
+      pr.start_date, pr.end_date, pr.status, pr.yield_amount, pr.yield_unit, pr.quality_grade, pr.notes,
+      new Date().toISOString(), new Date().toISOString()
+    ]);
+  }
+
+  console.log(`已导入 ${plantingRecords.length} 条种植季记录`);
 }
 
 /**
@@ -5158,8 +5100,10 @@ export function exportDatabase() {
   seedCropInstances();
   seedInventory();
   seedDictionaries();
+  seedBases();
   seedGreenhouses();
   seedZones();
+  seedPlantingRecords();
   seedSystemConfigs();
   seedUsersAndRoles();
   seedAuthorityData();

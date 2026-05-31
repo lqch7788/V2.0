@@ -1,27 +1,23 @@
 <template>
   <div class="h-full flex flex-col">
-    <!-- 页面头部 -->
+    <!-- 页面头部 - 与V1.1 V2版本L706-751一致 -->
     <div class="bg-white rounded-xl p-4 shadow-none mb-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <a
-            href="/settings"
-            class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
-            title="返回系统设置"
-          >
-            <el-icon :size="20"><ArrowLeft /></el-icon>
-          </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><OfficeBuilding /></el-icon>
+            <CustomIcons name="Building2" class="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 class="text-xl font-bold text-gray-900">基地运营中心</h1>
             <p class="text-sm text-gray-500">
-              {{ viewMode === 'tree' && selectedNode.name ? `当前选择：${selectedNode.name}` : viewMode === 'tree' ? '请从左侧树形结构中选择节点' : '列表视图' }}
+              <span v-if="viewMode === 'tree' && baseOidFromUrl">当前基地：{{ currentBaseName }}</span>
+              <span v-else-if="viewMode === 'tree' && selectedNode.name">当前选择：{{ selectedNode.name }}</span>
+              <span v-else-if="viewMode === 'tree'">请从左侧树形结构中选择节点</span>
+              <span v-else>列表视图</span>
             </p>
           </div>
         </div>
-        <!-- 视图切换按钮 -->
+        <!-- 视图切换按钮 - 与V1.1 L726-749一致 -->
         <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
           <button
             @click="viewMode = 'list'"
@@ -30,7 +26,7 @@
               viewMode === 'list' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
             ]"
           >
-            <el-icon><List /></el-icon>
+            <CustomIcons name="List" class="w-4 h-4" />
             列表
           </button>
           <button
@@ -40,26 +36,26 @@
               viewMode === 'tree' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
             ]"
           >
-            <el-icon><Connection /></el-icon>
+            <CustomIcons name="Network" class="w-4 h-4" />
             树状
           </button>
         </div>
       </div>
     </div>
 
-    <!-- 主内容区 -->
+    <!-- 主内容区 - 与V1.1 L753-1015一致 -->
     <div v-if="viewMode === 'tree'" class="flex-1 flex gap-4 min-h-0">
       <!-- 左侧树形结构 -->
       <div class="w-80 flex-shrink-0 bg-white rounded-xl shadow-none flex flex-col">
         <!-- 搜索框 -->
         <div class="p-3 border-b border-gray-100">
           <div class="relative">
-            <el-icon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"><Search /></el-icon>
+            <CustomIcons name="Search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <el-input
               type="text"
               placeholder="搜索基地/温室/区域..."
               v-model="searchTerm"
-              class="pl-9"
+              class="pl-9 h-9"
               clearable
             />
           </div>
@@ -68,7 +64,7 @@
         <!-- 树形组件 -->
         <div class="flex-1 overflow-auto p-3">
           <div v-if="loading" class="flex items-center justify-center py-8">
-            <el-icon class="is-loading" :size="32" color="#059669"><Loading /></el-icon>
+            <CustomIcons name="Loader2" class="w-6 h-6 animate-spin text-gray-400" />
           </div>
           <el-tree
             v-else
@@ -86,10 +82,10 @@
           >
             <template #default="{ node, data }">
               <div class="flex items-center gap-2 py-1">
-                <el-icon v-if="data.type === 'base'" color="#059669"><OfficeBuilding /></el-icon>
-                <el-icon v-else-if="data.type === 'greenhouse'" color="#10b981"><HomeFilled /></el-icon>
-                <el-icon v-else-if="data.type === 'zone'" color="#f59e0b"><Grid /></el-icon>
-                <el-icon v-else color="#6366f1"><Box /></el-icon>
+                <CustomIcons v-if="data.type === 'base'" name="Building2" class="text-emerald-600" />
+                <CustomIcons v-else-if="data.type === 'greenhouse'" name="HomeFilled" class="text-green-600" />
+                <CustomIcons v-else-if="data.type === 'zone'" name="Grid" class="text-amber-600" />
+                <CustomIcons v-else name="Box" class="text-indigo-600" />
                 <span class="text-sm">{{ node.label }}</span>
               </div>
             </template>
@@ -99,67 +95,81 @@
 
       <!-- 右侧内容区 -->
       <div class="flex-1 flex flex-col min-h-0 gap-4">
-        <!-- 统计卡片 -->
-        <div class="grid grid-cols-4 gap-4">
-          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center">
+        <!-- 统计卡片 - 与V1.1 L799-824一致 -->
+        <div class="grid grid-cols-4 gap-4 mb-4">
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 text-center">
             <div class="text-2xl font-bold text-blue-600">{{ stats.totalArea }}</div>
             <div class="text-sm text-gray-600">总面积(㎡)</div>
           </div>
-          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center">
+          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 text-center">
             <div class="text-2xl font-bold text-green-600">{{ stats.zoneCount }}</div>
             <div class="text-sm text-gray-600">区块数</div>
           </div>
-          <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 text-center">
+          <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 text-center">
             <div class="text-2xl font-bold text-orange-600">{{ stats.plantingCount }}</div>
             <div class="text-sm text-gray-600">种植中</div>
           </div>
-          <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center">
+          <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 text-center">
             <div class="text-lg font-bold text-purple-600 truncate">{{ stats.currentCrop || '-' }}</div>
             <div class="text-sm text-gray-600">当前作物</div>
           </div>
         </div>
 
-        <!-- 数据表格 -->
+        <!-- 数据表格 - 与V1.1 L827-891一致 -->
         <div class="flex-1 bg-white rounded-xl shadow-none overflow-auto">
-          <el-table :data="tableData" class="w-full" v-loading="loading">
-            <el-table-column type="index" label="序号" width="60" align="center" />
-            <el-table-column v-for="col in tableColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width" align="center">
+          <el-table :data="tableData" class="w-full">
+            <el-table-column
+              v-for="col in tableColumns"
+              :key="col.key"
+              :prop="col.key"
+              :label="col.label"
+              :width="col.width"
+              align="center"
+            >
               <template #default="{ row }">
                 <template v-if="col.key === 'status'">
-                  <el-tag :type="row.status === 'active' ? 'success' : 'info'" size="small">
+                  <span :class="[
+                    'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+                    row.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                  ]">
                     {{ row.status === 'active' ? '启用' : '停用' }}
-                  </el-tag>
+                  </span>
                 </template>
                 <template v-else-if="col.key === 'action'">
                   <div class="flex items-center justify-center gap-1">
-                    <el-button size="small" @click="handleEdit(row)" class="text-blue-600">
-                      <el-icon><Edit /></el-icon>
+                    <el-button size="small" @click="handleEdit(row)" class="h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                      <CustomIcons name="Edit2" class="w-3 h-3" />
                     </el-button>
-                    <el-button size="small" type="danger" @click="handleDelete(row)">
-                      <el-icon><Delete /></el-icon>
+                    <el-button size="small" type="danger" @click="handleDelete(row.oid)" class="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+                      <CustomIcons name="Trash2" class="w-3 h-3" />
                     </el-button>
                   </div>
                 </template>
-                <template v-else>{{ row[col.key] || '-' }}</template>
+                <template v-else-if="col.key === 'code' || col.key === 'name' || col.key === 'zoneCode' || col.key === 'zoneName' || col.key === 'blockCode' || col.key === 'blockName'">
+                  <span v-html="highlightText((row[col.key] || '-').toString(), searchTerm)"></span>
+                </template>
+                <template v-else>
+                  {{ row[col.key] || '-' }}
+                </template>
               </template>
             </el-table-column>
             <el-table-empty v-if="tableData.length === 0" description="暂无数据" />
           </el-table>
         </div>
 
-        <!-- 底部操作按钮 -->
+        <!-- 底部操作按钮 - 与V1.1 L894-899一致 -->
         <div class="flex items-center justify-start gap-3 bg-white rounded-xl p-4 shadow-none">
           <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon>
+            <CustomIcons name="Plus" class="w-4 h-4 mr-1" />
             {{ addButtonText }}
           </el-button>
         </div>
       </div>
     </div>
 
-    <!-- 列表视图 -->
+    <!-- 列表视图 - 与V1.1 L902-1015一致 -->
     <div v-else class="flex-1 bg-white rounded-xl shadow-none flex flex-col">
-      <!-- Tab 切换 -->
+      <!-- TAB 切换 - 与V1.1 L906-939一致 -->
       <div class="border-b border-gray-200 rounded-t-xl">
         <div class="flex">
           <button
@@ -178,95 +188,51 @@
         </div>
       </div>
 
-      <!-- Tab 内容 -->
+      <!-- TAB 内容 -->
       <div class="flex-1 p-4 overflow-auto">
-        <!-- 种植区管理 -->
+        <!-- 种植区管理 - 与V1.1 L943-964一致 -->
         <div v-show="listTab === 'facility'">
-          <div class="mb-4 flex items-center gap-4">
-            <el-input v-model="facilitySearch" placeholder="搜索温室名称/编码..." clearable class="w-64" />
-            <el-button type="primary" @click="loadGreenhouses">搜索</el-button>
-            <el-button @click="facilitySearch = ''; loadGreenhouses()">重置</el-button>
-          </div>
-          <el-table :data="filteredGreenhouses" v-loading="loading">
-            <el-table-column prop="code" label="编码" width="140" />
-            <el-table-column prop="name" label="名称" min-width="160" />
-            <el-table-column prop="location" label="位置" min-width="120" />
-            <el-table-column prop="area" label="面积(㎡)" width="100" />
-            <el-table-column prop="status" label="状态" width="80">
-              <template #default="{ row }">
-                <el-tag :type="row.status === 'active' ? 'success' : 'info'" size="small">
-                  {{ row.status === 'active' ? '启用' : '停用' }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="140" fixed="right">
-              <template #default="{ row }">
-                <el-button size="small" @click="openEditModal('greenhouse', row)"><el-icon><Edit /></el-icon></el-button>
-                <el-button size="small" type="danger" @click="handleDeleteFacility(row)"><el-icon><Delete /></el-icon></el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          <FacilityTab
+            :greenhouses="filteredGreenhouses"
+            :bases="baseStore.bases"
+            :base-oid="baseOidFromUrl"
+            :base-name="currentBaseName"
+            :loading="loading"
+            @add="handleFacilityAdd"
+            @edit="handleFacilityEdit"
+            @remove="handleFacilityDelete"
+          />
         </div>
 
         <!-- 区块划分 -->
         <div v-show="listTab === 'zone'">
-          <div class="mb-4 flex items-center gap-4">
-            <el-input v-model="zoneSearch" placeholder="搜索区域名称/编码..." clearable class="w-64" />
-            <el-button type="primary" @click="loadZones">搜索</el-button>
-            <el-button @click="zoneSearch = ''; loadZones()">重置</el-button>
-          </div>
-          <el-table :data="filteredZones" v-loading="loading">
-            <el-table-column prop="zoneCode" label="编码" width="140" />
-            <el-table-column prop="zoneName" label="名称" min-width="160" />
-            <el-table-column prop="zoneType" label="类型" width="120" />
-            <el-table-column prop="area" label="面积(㎡)" width="100" />
-            <el-table-column prop="status" label="状态" width="80">
-              <template #default="{ row }">
-                <el-tag :type="row.status === 'active' ? 'success' : 'info'" size="small">
-                  {{ row.status === 'active' ? '启用' : '停用' }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="140" fixed="right">
-              <template #default="{ row }">
-                <el-button size="small" @click="openEditModal('zone', row)"><el-icon><Edit /></el-icon></el-button>
-                <el-button size="small" type="danger" @click="handleDeleteZone(row)"><el-icon><Delete /></el-icon></el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          <ZoneTab
+            :zones="filteredZones"
+            :greenhouses="filteredGreenhouses"
+            :loading="loading"
+            @add="handleZoneAdd"
+            @edit="handleZoneEdit"
+            @remove="handleZoneDelete"
+          />
         </div>
 
         <!-- 种植记录 -->
         <div v-show="listTab === 'planting'">
-          <div class="mb-4 flex items-center gap-4">
-            <el-input v-model="plantingSearch" placeholder="搜索作物/品种..." clearable class="w-64" />
-            <el-button type="primary" @click="loadPlantingRecords">搜索</el-button>
-            <el-button @click="plantingSearch = ''; loadPlantingRecords()">重置</el-button>
-          </div>
-          <el-table :data="filteredPlantingRecords" v-loading="loading">
-            <el-table-column prop="seasonCode" label="编码" width="140" />
-            <el-table-column prop="cropName" label="作物" min-width="120" />
-            <el-table-column prop="varietyName" label="品种" min-width="120" />
-            <el-table-column prop="startDate" label="开始日期" width="120" />
-            <el-table-column prop="status" label="状态" width="100">
-              <template #default="{ row }">
-                <el-tag :type="getStatusTagType(row.status)" size="small">
-                  {{ getStatusName(row.status) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="140" fixed="right">
-              <template #default="{ row }">
-                <el-button size="small" @click="openEditModal('planting', row)"><el-icon><Edit /></el-icon></el-button>
-                <el-button size="small" type="danger" @click="handleDeletePlanting(row)"><el-icon><Delete /></el-icon></el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          <PlantingTab
+            :records="filteredRecords"
+            :greenhouses="filteredGreenhouses"
+            :zones="zoneStore.zones"
+            :loading="loading"
+            @add="handleRecordAdd"
+            @edit="handleRecordEdit"
+            @end="handleRecordEnd"
+            @remove="handleRecordDelete"
+          />
         </div>
       </div>
     </div>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑弹窗 - 与V1.1 L1017-1279一致 -->
     <el-dialog v-model="modalVisible" :title="modalTitle" width="600px" :close-on-click-modal="false">
       <div class="space-y-4">
         <!-- 温室表单 -->
@@ -283,42 +249,29 @@
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">基地</label>
-              <el-select v-model="formData.baseOid" placeholder="请选择基地" class="w-full">
-                <el-option
-                  v-for="base in baseStore.bases"
-                  :key="base.oid"
-                  :label="base.baseName || base.baseCode"
-                  :value="base.oid"
-                />
-              </el-select>
-            </div>
-            <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">类型</label>
-              <el-select v-model="formData.greenhouseType" placeholder="请选择" class="w-full">
-                <el-option label="薄膜温室" value="film_greenhouse" />
-                <el-option label="玻璃温室" value="glass_greenhouse" />
-                <el-option label="拱棚" value="arch_greenhouse" />
-                <el-option label="日光温室" value="sunlight_greenhouse" />
+              <el-select v-model="formData.greenhouseType" placeholder="请选择温室类型" class="w-full">
+                <el-option v-for="item in greenhouseTypes" :key="item.dictCode" :label="item.dictLabel" :value="item.dictCode" />
               </el-select>
             </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">面积(㎡)</label>
               <el-input-number v-model="formData.area" :min="0" class="w-full" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-              <el-select v-model="formData.status" placeholder="请选择" class="w-full">
-                <el-option label="启用" value="active" />
-                <el-option label="停用" value="inactive" />
-              </el-select>
+              <div v-if="greenhouseAreaInfo" class="mt-1 text-xs text-gray-500">
+                所属温室：{{ greenhouseAreaInfo.greenhouseName }}（总面积 {{ greenhouseAreaInfo.totalArea }} ㎡，已分配 {{ greenhouseAreaInfo.usedArea }} ㎡，剩余可用 {{ greenhouseAreaInfo.remainingArea }} ㎡）
+              </div>
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">位置</label>
             <el-input v-model="formData.location" placeholder="请输入位置" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+            <el-select v-model="formData.status" class="w-full">
+              <el-option value="active" label="启用" />
+              <el-option value="inactive" label="停用" />
+            </el-select>
           </div>
         </template>
 
@@ -344,6 +297,13 @@
               <el-input-number v-model="formData.area" :min="0" class="w-full" />
             </div>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+            <el-select v-model="formData.status" class="w-full">
+              <el-option value="active" label="启用" />
+              <el-option value="inactive" label="停用" />
+            </el-select>
+          </div>
         </template>
 
         <!-- 地块表单 -->
@@ -368,6 +328,13 @@
               <el-input-number v-model="formData.area" :min="0" class="w-full" />
             </div>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+            <el-select v-model="formData.status" class="w-full">
+              <el-option value="active" label="启用" />
+              <el-option value="inactive" label="停用" />
+            </el-select>
+          </div>
         </template>
 
         <!-- 种植记录表单 -->
@@ -389,12 +356,16 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-              <el-select v-model="formData.status" placeholder="请选择" class="w-full">
-                <el-option label="种植中" value="planting" />
-                <el-option label="已收获" value="harvested" />
-                <el-option label="已取消" value="cancelled" />
+              <el-select v-model="formData.status" class="w-full">
+                <el-option value="planting" label="种植中" />
+                <el-option value="harvested" label="已收获" />
+                <el-option value="cancelled" label="已取消" />
               </el-select>
             </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+            <el-input v-model="formData.notes" type="textarea" placeholder="请输入备注" :rows="2" />
           </div>
         </template>
       </div>
@@ -407,23 +378,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, h } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { OfficeBuilding, HomeFilled, Grid, Box, Search, List, Connection, Loading, Edit, Delete, Plus, ArrowLeft } from '@element-plus/icons-vue'
+import CustomIcons from '@/components/common/CustomIcons.vue'
 import { useGreenhouseStore } from '@/stores/modules/greenhouse'
 import { useZoneStore } from '@/stores/modules/zone'
 import { useBlockStore } from '@/stores/modules/blockStore'
 import { useBaseStore } from '@/stores/modules/baseStore'
 import { usePlantingRecordStore } from '@/stores/modules/plantingRecordStore'
+import { useDictionaryStore, getDictItems } from '@/stores/modules/dictionary'
+import FacilityTab from './tabs/FacilityTab.vue'
+import ZoneTab from './tabs/BlockTab.vue'
+import PlantingTab from './tabs/PlantingRecordTab.vue'
 
-// Stores
-const greenhouseStore = useGreenhouseStore()
-const zoneStore = useZoneStore()
-const blockStore = useBlockStore()
-const baseStore = useBaseStore()
-const plantingStore = usePlantingRecordStore()
+const route = useRoute()
 
-// 视图状态
+// URL参数 - 与V1.1 V2版本L222-223一致
+const baseOidFromUrl = ref(route.query.baseOid || '')
+
+// 视图状态 - 与V1.1 L225-228一致
 const viewMode = ref('tree')
 const listTab = ref('facility')
 const listTabs = [
@@ -432,187 +406,322 @@ const listTabs = [
   { key: 'planting', label: '种植记录' }
 ]
 
-// 搜索状态
+// 搜索和选择状态
 const searchTerm = ref('')
-const facilitySearch = ref('')
-const zoneSearch = ref('')
-const plantingSearch = ref('')
+const expandedKeys = ref([])
+const selectedNode = ref({ type: null, oid: null, name: null })
 
 // 加载状态
 const loading = ref(false)
 const submitting = ref(false)
-
-// 树形状态
-const expandedKeys = ref([])
-const selectedNode = ref({ type: null, oid: null, name: null })
 
 // 弹窗状态
 const modalVisible = ref(false)
 const modalType = ref('')
 const modalMode = ref('add')
 const formData = ref({})
+const editingOid = ref(null)
 
-// 计算属性
+// 字典数据
+const greenhouseTypes = ref([])
+
+// Stores
+const greenhouseStore = useGreenhouseStore()
+const zoneStore = useZoneStore()
+const blockStore = useBlockStore()
+const baseStore = useBaseStore()
+const plantingStore = usePlantingRecordStore()
+const dictionaryStore = useDictionaryStore()
+
+// ==================== 工具函数 ====================
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function highlightText(text, query) {
+  if (!query || !text) return text
+  const escapedQuery = escapeRegExp(query)
+  const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'))
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase()
+      ? `<mark class="bg-yellow-200">${part}</mark>`
+      : part
+  ).join('')
+}
+
+// ==================== 数据构建 ====================
+
+function buildTreeData(bases, greenhouses, zones, blocks, currentBaseOid, searchQuery) {
+  const query = searchQuery.toLowerCase()
+
+  // 如果有baseOid，只显示该基地的数据 - 与V1.1 L92-125一致
+  if (currentBaseOid) {
+    const currentBase = bases.find(b => b.oid === currentBaseOid)
+    if (!currentBase) return []
+
+    return [{
+      key: `base_${currentBase.oid}`,
+      title: highlightText(`${currentBase.code || ''} ${currentBase.name || ''}`, searchQuery),
+      type: 'base',
+      oid: currentBase.oid,
+      children: greenhouses
+        .filter(gh => gh.baseOid === currentBaseOid && (!query || (gh.name || '').toLowerCase().includes(query) || (gh.code || '').toLowerCase().includes(query)))
+        .map(gh => ({
+          key: `gh_${gh.oid}`,
+          title: highlightText(`${gh.code || ''} ${gh.name || ''}`, searchQuery),
+          type: 'greenhouse',
+          oid: gh.oid,
+          children: zones
+            .filter(z => z.greenhouseOid === gh.oid && (!query || (z.zoneName || '').toLowerCase().includes(query) || (z.zoneCode || '').toLowerCase().includes(query)))
+            .map(z => ({
+              key: `zone_${z.oid}`,
+              title: highlightText(`${z.zoneCode || ''} ${z.zoneName || ''}`, searchQuery),
+              type: 'zone',
+              oid: z.oid,
+              children: blocks
+                .filter(b => b.zoneOid === z.oid && (!query || (b.blockName || '').toLowerCase().includes(query) || (b.blockCode || '').toLowerCase().includes(query)))
+                .map(b => ({
+                  key: `block_${b.oid}`,
+                  title: highlightText(`${b.blockCode || ''} ${b.blockName || ''}`, searchQuery),
+                  type: 'block',
+                  oid: b.oid
+                }))
+            }))
+        }))
+    }]
+  }
+
+  // 没有baseOid时显示所有基地
+  return bases
+    .filter(base => !query || (base.name || '').toLowerCase().includes(query) || (base.code || '').toLowerCase().includes(query))
+    .map(base => ({
+      key: `base_${base.oid}`,
+      title: highlightText(`${base.code || ''} ${base.name || ''}`, searchQuery),
+      type: 'base',
+      oid: base.oid,
+      children: greenhouses
+        .filter(gh => gh.baseOid === base.oid && (!query || (gh.name || '').toLowerCase().includes(query) || (gh.code || '').toLowerCase().includes(query)))
+        .map(gh => ({
+          key: `gh_${gh.oid}`,
+          title: highlightText(`${gh.code || ''} ${gh.name || ''}`, searchQuery),
+          type: 'greenhouse',
+          oid: gh.oid,
+          children: zones
+            .filter(z => z.greenhouseOid === gh.oid && (!query || (z.zoneName || '').toLowerCase().includes(query) || (z.zoneCode || '').toLowerCase().includes(query)))
+            .map(z => ({
+              key: `zone_${z.oid}`,
+              title: highlightText(`${z.zoneCode || ''} ${z.zoneName || ''}`, searchQuery),
+              type: 'zone',
+              oid: z.oid,
+              children: blocks
+                .filter(b => b.zoneOid === z.oid && (!query || (b.blockName || '').toLowerCase().includes(query) || (b.blockCode || '').toLowerCase().includes(query)))
+                .map(b => ({
+                  key: `block_${b.oid}`,
+                  title: highlightText(`${b.blockCode || ''} ${b.blockName || ''}`, searchQuery),
+                  type: 'block',
+                  oid: b.oid
+                }))
+            }))
+        }))
+    }))
+}
+
+// ==================== 计算属性 ====================
+
+const treeData = computed(() => {
+  return buildTreeData(
+    baseStore.bases || [],
+    greenhouseStore.greenhouses || [],
+    zoneStore.zones || [],
+    blockStore.blocks || [],
+    baseOidFromUrl.value,
+    searchTerm.value
+  )
+})
+
 const currentNodeKey = computed(() => {
   if (!selectedNode.value.oid) return ''
   const prefix = selectedNode.value.type === 'greenhouse' ? 'gh' : selectedNode.value.type === 'zone' ? 'zone' : selectedNode.value.type === 'block' ? 'block' : 'base'
   return `${prefix}_${selectedNode.value.oid}`
 })
 
-// 树形数据
-const treeData = computed(() => {
-  return baseStore.bases.map(base => ({
-    key: `base_${base.oid}`,
-    title: base.baseName || base.baseCode || '未命名基地',
-    type: 'base',
-    oid: base.oid,
-    children: (greenhousesStore.greenhouses || [])
-      .filter(gh => gh.baseOid === base.oid)
-      .map(gh => ({
-        key: `gh_${gh.oid}`,
-        title: gh.name || gh.code || '未命名温室',
-        type: 'greenhouse',
-        oid: gh.oid,
-        children: (zoneStore.zones || [])
-          .filter(z => z.greenhouseOid === gh.oid)
-          .map(z => ({
-            key: `zone_${z.oid}`,
-            title: z.zoneName || z.zoneCode || '未命名区域',
-            type: 'zone',
-            oid: z.oid,
-            children: (blockStore.blocks || [])
-              .filter(b => b.zoneOid === z.oid)
-              .map(b => ({
-                key: `block_${b.oid}`,
-                title: b.blockName || b.blockCode || '未命名地块',
-                type: 'block',
-                oid: b.oid
-              }))
-          }))
-      }))
-  }))
+const currentBaseName = computed(() => {
+  if (baseOidFromUrl.value) {
+    const base = baseStore.bases.find(b => b.oid === baseOidFromUrl.value)
+    return base?.name || '加载中...'
+  }
+  return ''
 })
 
-// 统计数据
+// 表格数据 - 与V1.1 L488-571一致
+const tableData = computed(() => {
+  if (!selectedNode.value.oid) {
+    if (baseOidFromUrl.value) {
+      return greenhouseStore.greenhouses
+        .filter(gh => gh.baseOid === baseOidFromUrl.value)
+        .map(gh => ({
+          type: 'greenhouse',
+          oid: gh.oid,
+          code: gh.code || '-',
+          name: gh.name || '未命名温室',
+          location: gh.location || '-',
+          area: gh.area || '-',
+          status: gh.status || 'active'
+        }))
+    }
+    return (baseStore.bases || []).map(b => ({
+      type: 'base',
+      oid: b.oid,
+      code: b.code || '-',
+      name: b.name || '未命名基地',
+      area: b.area || '-',
+      status: b.status || 'active'
+    }))
+  }
+
+  if (selectedNode.value.type === 'base') {
+    return greenhouseStore.greenhouses
+      .filter(gh => gh.baseOid === selectedNode.value.oid)
+      .map(gh => ({
+        type: 'greenhouse',
+        oid: gh.oid,
+        code: gh.code || '-',
+        name: gh.name || '未命名温室',
+        location: gh.location || '-',
+        area: gh.area || '-',
+        status: gh.status || 'active'
+      }))
+  } else if (selectedNode.value.type === 'greenhouse') {
+    return zoneStore.zones
+      .filter(z => z.greenhouseOid === selectedNode.value.oid)
+      .map(z => ({
+        type: 'zone',
+        oid: z.oid,
+        zoneCode: z.zoneCode || '-',
+        zoneName: z.zoneName || '未命名区域',
+        zoneType: z.zoneType || '-',
+        area: z.area || '-',
+        status: z.status || 'active'
+      }))
+  } else if (selectedNode.value.type === 'zone') {
+    return blockStore.blocks
+      .filter(b => b.zoneOid === selectedNode.value.oid)
+      .map(b => ({
+        type: 'block',
+        oid: b.oid,
+        blockCode: b.blockCode || '-',
+        blockName: b.blockName || '未命名地块',
+        blockType: b.blockType || '-',
+        area: b.area || '-',
+        status: b.status || 'active'
+      }))
+  } else if (selectedNode.value.type === 'block') {
+    return plantingStore.records
+      .filter(r => r.blockOid === selectedNode.value.oid)
+      .map(r => ({
+        type: 'planting',
+        oid: r.oid,
+        seasonCode: r.seasonCode || '-',
+        cropName: r.cropName || '-',
+        varietyName: r.varietyName || '-',
+        startDate: r.startDate?.slice(0, 10) || '-',
+        status: r.status || '-'
+      }))
+  }
+  return []
+})
+
+// 表格列 - 与V1.1 L172-215一致
+const tableColumns = computed(() => {
+  if (!selectedNode.value.oid || selectedNode.value.type === 'base') {
+    return [
+      { key: 'code', label: '编码', width: '128' },
+      { key: 'name', label: '名称' },
+      { key: 'area', label: '面积' },
+      { key: 'status', label: '状态', width: '96' },
+      { key: 'action', label: '操作', width: '128' }
+    ]
+  } else if (selectedNode.value.type === 'greenhouse') {
+    return [
+      { key: 'code', label: '编码', width: '128' },
+      { key: 'name', label: '名称' },
+      { key: 'location', label: '位置' },
+      { key: 'area', label: '面积' },
+      { key: 'status', label: '状态', width: '96' },
+      { key: 'action', label: '操作', width: '128' }
+    ]
+  } else if (selectedNode.value.type === 'zone') {
+    return [
+      { key: 'zoneCode', label: '编码', width: '128' },
+      { key: 'zoneName', label: '名称' },
+      { key: 'zoneType', label: '类型' },
+      { key: 'area', label: '面积' },
+      { key: 'status', label: '状态', width: '96' },
+      { key: 'action', label: '操作', width: '128' }
+    ]
+  } else if (selectedNode.value.type === 'block') {
+    return [
+      { key: 'blockCode', label: '编码', width: '128' },
+      { key: 'blockName', label: '名称' },
+      { key: 'blockType', label: '类型' },
+      { key: 'area', label: '面积' },
+      { key: 'status', label: '状态', width: '96' },
+      { key: 'action', label: '操作', width: '128' }
+    ]
+  }
+  return []
+})
+
+// 统计卡片数据 - 与V1.1 L574-626一致
 const stats = computed(() => {
-  const node = selectedNode.value
-  if (!node.oid) {
+  if (!selectedNode.value.oid) {
     return { totalArea: 0, zoneCount: 0, plantingCount: 0, currentCrop: '-' }
   }
 
-  let totalArea = 0
-  let zoneCount = 0
-  let plantingCount = 0
-  let currentCrop = '-'
-  const records = plantingStore.records || []
-
-  if (node.type === 'base') {
-    const ghs = (greenhousesStore.greenhouses || []).filter(g => g.baseOid === node.oid)
-    totalArea = ghs.reduce((sum, g) => sum + (g.area || 0), 0)
-    const baseZoneOids = new Set(
-      (zoneStore.zones || []).filter(z => ghs.some(g => g.oid === z.greenhouseOid)).map(z => z.oid)
-    )
-    zoneCount = baseZoneOids.size
-    // 计算该基地下正在种植的记录
-    const baseBlocks = (blockStore.blocks || []).filter(b => {
-      const zone = (zoneStore.zones || []).find(z => z.oid === b.zoneOid)
-      return zone && baseZoneOids.has(zone.oid)
+  if (selectedNode.value.type === 'base') {
+    const baseGreenhouses = greenhouseStore.greenhouses.filter(gh => gh.baseOid === selectedNode.value.oid)
+    const baseZoneOids = new Set(zoneStore.zones.filter(z => baseGreenhouses.some(gh => gh.oid === z.greenhouseOid)).map(z => z.oid))
+    const baseRecords = plantingStore.records.filter(r => {
+      const block = blockStore.blocks.find(b => b.oid === r.blockOid)
+      return block && baseZoneOids.has(block.zoneOid)
     })
-    const baseBlockOids = new Set(baseBlocks.map(b => b.oid))
-    const plantingRecords = records.filter(r => r.blockOid && baseBlockOids.has(r.blockOid) && r.status === 'planting')
-    plantingCount = plantingRecords.length
-    currentCrop = plantingRecords[0]?.cropName || '-'
-  } else if (node.type === 'greenhouse') {
-    const gh = (greenhousesStore.greenhouses || []).find(g => g.oid === node.oid)
-    totalArea = gh?.area || 0
-    const ghZoneOids = new Set(
-      (zoneStore.zones || []).filter(z => z.greenhouseOid === node.oid).map(z => z.oid)
-    )
-    zoneCount = ghZoneOids.size
-    // 计算该温室下正在种植的记录
-    const ghBlocks = (blockStore.blocks || []).filter(b => {
-      const zone = (zoneStore.zones || []).find(z => z.oid === b.zoneOid)
-      return zone && ghZoneOids.has(zone.oid)
+    const plantingRecords = baseRecords.filter(r => r.status === 'planting')
+    return {
+      totalArea: baseGreenhouses.reduce((sum, gh) => sum + (gh.area || 0), 0),
+      zoneCount: baseZoneOids.size,
+      plantingCount: plantingRecords.length,
+      currentCrop: plantingRecords[0]?.cropName || '-'
+    }
+  } else if (selectedNode.value.type === 'greenhouse') {
+    const ghZoneOids = new Set(zoneStore.zones.filter(z => z.greenhouseOid === selectedNode.value.oid).map(z => z.oid))
+    const ghRecords = plantingStore.records.filter(r => {
+      const block = blockStore.blocks.find(b => b.oid === r.blockOid)
+      return block && ghZoneOids.has(block.zoneOid)
     })
-    const ghBlockOids = new Set(ghBlocks.map(b => b.oid))
-    const plantingRecords = records.filter(r => r.blockOid && ghBlockOids.has(r.blockOid) && r.status === 'planting')
-    plantingCount = plantingRecords.length
-    currentCrop = plantingRecords[0]?.cropName || '-'
-  } else if (node.type === 'zone') {
-    const zone = (zoneStore.zones || []).find(z => z.oid === node.oid)
-    totalArea = zone?.area || 0
-    zoneCount = 1
-    // 计算该区域下正在种植的记录
-    const zoneBlockOids = new Set(
-      (blockStore.blocks || []).filter(b => b.zoneOid === node.oid).map(b => b.oid)
-    )
-    const plantingRecords = records.filter(r => r.blockOid && zoneBlockOids.has(r.blockOid) && r.status === 'planting')
-    plantingCount = plantingRecords.length
-    currentCrop = plantingRecords[0]?.cropName || '-'
+    const plantingRecords = ghRecords.filter(r => r.status === 'planting')
+    const gh = greenhouseStore.greenhouses.find(g => g.oid === selectedNode.value.oid)
+    return {
+      totalArea: gh?.area || 0,
+      zoneCount: ghZoneOids.size,
+      plantingCount: plantingRecords.length,
+      currentCrop: plantingRecords[0]?.cropName || '-'
+    }
+  } else if (selectedNode.value.type === 'zone') {
+    const zoneRecords = plantingStore.records.filter(r => {
+      const block = blockStore.blocks.find(b => b.oid === r.blockOid)
+      return block?.zoneOid === selectedNode.value.oid
+    })
+    const plantingRecords = zoneRecords.filter(r => r.status === 'planting')
+    const zone = zoneStore.zones.find(z => z.oid === selectedNode.value.oid)
+    return {
+      totalArea: zone?.area || 0,
+      zoneCount: 1,
+      plantingCount: plantingRecords.length,
+      currentCrop: plantingRecords[0]?.cropName || '-'
+    }
   }
-
-  return { totalArea, zoneCount, plantingCount, currentCrop }
-})
-
-// 表格数据
-const tableData = computed(() => {
-  const node = selectedNode.value
-  if (!node.oid) {
-    return greenhouseStore.greenhouses || []
-  }
-
-  if (node.type === 'base') {
-    return (greenhousesStore.greenhouses || []).filter(g => g.baseOid === node.oid)
-  } else if (node.type === 'greenhouse') {
-    return (zoneStore.zones || []).filter(z => z.greenhouseOid === node.oid)
-  } else if (node.type === 'zone') {
-    return (blockStore.blocks || []).filter(b => b.zoneOid === node.oid)
-  } else if (node.type === 'block') {
-    return (plantingStore.records || []).filter(r => r.blockOid === node.oid)
-  }
-  return []
-})
-
-// 表格列
-const tableColumns = computed(() => {
-  const node = selectedNode.value
-  if (!node.oid || node.type === 'base') {
-    return [
-      { key: 'code', label: '编码', width: '140' },
-      { key: 'name', label: '名称' },
-      { key: 'area', label: '面积', width: '100' },
-      { key: 'status', label: '状态', width: '100' },
-      { key: 'action', label: '操作', width: '140' }
-    ]
-  } else if (node.type === 'greenhouse') {
-    return [
-      { key: 'zoneCode', label: '编码', width: '140' },
-      { key: 'zoneName', label: '名称' },
-      { key: 'zoneType', label: '类型', width: '120' },
-      { key: 'area', label: '面积', width: '100' },
-      { key: 'status', label: '状态', width: '100' },
-      { key: 'action', label: '操作', width: '140' }
-    ]
-  } else if (node.type === 'zone') {
-    return [
-      { key: 'blockCode', label: '编码', width: '140' },
-      { key: 'blockName', label: '名称' },
-      { key: 'blockType', label: '类型', width: '120' },
-      { key: 'area', label: '面积', width: '100' },
-      { key: 'status', label: '状态', width: '100' },
-      { key: 'action', label: '操作', width: '140' }
-    ]
-  } else if (node.type === 'block') {
-    return [
-      { key: 'seasonCode', label: '编码', width: '140' },
-      { key: 'cropName', label: '作物' },
-      { key: 'varietyName', label: '品种' },
-      { key: 'startDate', label: '开始日期', width: '120' },
-      { key: 'status', label: '状态', width: '100' },
-      { key: 'action', label: '操作', width: '140' }
-    ]
-  }
-  return []
+  return { totalArea: 0, zoneCount: 0, plantingCount: 0, currentCrop: '-' }
 })
 
 // 新增按钮文本
@@ -628,64 +737,62 @@ const addButtonText = computed(() => {
 
 // 弹窗标题
 const modalTitle = computed(() => {
-  const action = modalMode.value === 'add' ? '新增' : '编辑'
   const typeMap = { greenhouse: '温室', zone: '区域', block: '地块', planting: '种植记录' }
-  return `${action}${typeMap[modalType.value] || ''}`
+  return `${modalMode.value === 'add' ? '新增' : '编辑'}${typeMap[modalType.value] || ''}`
 })
 
-// 列表视图数据
-const greenhousesStore = ref({ greenhouses: [] })
+// 温室面积限制信息
+const greenhouseAreaInfo = computed(() => {
+  const targetGhOid = selectedNode.value.type === 'greenhouse' && modalMode.value === 'add'
+    ? selectedNode.value.oid
+    : formData.value.greenhouseOid
 
+  if (!targetGhOid) return null
+
+  const greenhouse = greenhouseStore.greenhouses.find(g => g.oid === targetGhOid)
+  if (!greenhouse) return null
+
+  const usedArea = zoneStore.zones
+    .filter(z => z.greenhouseOid === targetGhOid)
+    .reduce((sum, z) => sum + (z.area || 0), 0)
+
+  return {
+    greenhouseName: greenhouse.name,
+    totalArea: greenhouse.area || 0,
+    usedArea,
+    remainingArea: (greenhouse.area || 0) - usedArea
+  }
+})
+
+// 列表视图过滤数据
 const filteredGreenhouses = computed(() => {
-  const list = greenhousesStore.value.greenhouses || greenhouseStore.greenhouses || []
-  if (!facilitySearch.value) return list
-  const kw = facilitySearch.value.toLowerCase()
-  return list.filter(g => (g.name || '').toLowerCase().includes(kw) || (g.code || '').toLowerCase().includes(kw))
+  return (greenhouseStore.greenhouses || []).filter(g => !baseOidFromUrl.value || g.baseOid === baseOidFromUrl.value)
 })
 
 const filteredZones = computed(() => {
-  const list = zoneStore.zones || []
-  if (!zoneSearch.value) return list
-  const kw = zoneSearch.value.toLowerCase()
-  return list.filter(z => (z.zoneName || '').toLowerCase().includes(kw) || (z.zoneCode || '').toLowerCase().includes(kw))
+  if (!baseOidFromUrl.value) return zoneStore.zones || []
+  const baseGhOids = new Set(filteredGreenhouses.value.map(g => g.oid))
+  return (zoneStore.zones || []).filter(z => baseGhOids.has(z.greenhouseOid))
 })
 
-const filteredPlantingRecords = computed(() => {
-  const list = plantingStore.records || []
-  if (!plantingSearch.value) return list
-  const kw = plantingSearch.value.toLowerCase()
-  return list.filter(r => (r.cropName || '').toLowerCase().includes(kw) || (r.varietyName || '').toLowerCase().includes(kw))
+const filteredRecords = computed(() => {
+  if (!baseOidFromUrl.value) return plantingStore.records || []
+  const baseGhOids = new Set(filteredGreenhouses.value.map(g => g.oid))
+  return (plantingStore.records || []).filter(r => baseGhOids.has(r.facilityOid))
 })
 
-// 方法
-async function loadAllData() {
-  loading.value = true
-  try {
-    await Promise.all([
-      baseStore.loadBases(),
-      greenhouseStore.loadGreenhouses(),
-      zoneStore.loadZones(),
-      blockStore.loadBlocks(),
-      plantingStore.loadRecords ? plantingStore.loadRecords() : Promise.resolve()
-    ])
-    greenhousesStore.value.greenhouses = greenhouseStore.greenhouses || []
-  } catch (err) {
-    console.error('加载数据失败:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-function loadGreenhouses() {
-  greenhousesStore.value.greenhouses = greenhouseStore.greenhouses || []
-}
-
-function loadZones() {}
-
-function loadPlantingRecords() {}
+// ==================== 事件处理 ====================
 
 function handleNodeClick(data) {
-  selectedNode.value = { type: data.type, oid: data.oid, name: data.title }
+  const [type, oid] = data.key.split('_')
+  const typeMap = { base: 'base', gh: 'greenhouse', zone: 'zone', block: 'block' }
+  const nameMap = {
+    base: (baseStore.bases.find(b => b.oid === oid))?.name || '',
+    gh: (greenhouseStore.greenhouses.find(g => g.oid === oid))?.name || '',
+    zone: (zoneStore.zones.find(z => z.oid === oid))?.zoneName || '',
+    block: (blockStore.blocks.find(b => b.oid === oid))?.blockName || ''
+  }
+  selectedNode.value = { type: typeMap[type] || 'base', oid, name: nameMap[type] || data.title }
 }
 
 function handleNodeExpand(data) {
@@ -699,26 +806,29 @@ function handleNodeCollapse(data) {
 }
 
 function handleAdd() {
-  const node = selectedNode.value
   modalMode.value = 'add'
-  if (!node.oid || node.type === 'base') {
+  editingOid.value = null
+  if (!selectedNode.value.oid || selectedNode.value.type === 'base') {
     modalType.value = 'greenhouse'
-    formData.value = { status: 'active', baseOid: node.oid }
-  } else if (node.type === 'greenhouse') {
+    formData.value = { status: 'active', baseOid: selectedNode.value.oid || baseOidFromUrl.value }
+  } else if (selectedNode.value.type === 'greenhouse') {
     modalType.value = 'zone'
-    formData.value = { status: 'active', greenhouseOid: node.oid }
-  } else if (node.type === 'zone') {
+    formData.value = { status: 'active', greenhouseOid: selectedNode.value.oid }
+  } else if (selectedNode.value.type === 'zone') {
     modalType.value = 'block'
-    formData.value = { status: 'active', zoneOid: node.oid }
-  } else if (node.type === 'block') {
+    formData.value = { status: 'active', zoneOid: selectedNode.value.oid }
+  } else if (selectedNode.value.type === 'block') {
     modalType.value = 'planting'
-    formData.value = { status: 'planting', blockOid: node.oid }
+    formData.value = { status: 'planting', blockOid: selectedNode.value.oid }
+  } else {
+    formData.value = { status: 'active' }
   }
   modalVisible.value = true
 }
 
 function handleEdit(row) {
   modalMode.value = 'edit'
+  editingOid.value = row.oid
   formData.value = { ...row }
   if (row.zoneCode !== undefined) modalType.value = 'zone'
   else if (row.blockCode !== undefined) modalType.value = 'block'
@@ -727,192 +837,148 @@ function handleEdit(row) {
   modalVisible.value = true
 }
 
-function openEditModal(type, row) {
-  modalMode.value = 'edit'
-  modalType.value = type
-  formData.value = { ...row }
-  modalVisible.value = true
-}
-
-async function handleDelete(row) {
+async function handleDelete(oid) {
   try {
     await ElMessageBox.confirm('确定要删除吗？删除后无法恢复。', '确认删除', {
       confirmButtonText: '删除',
       cancelButtonText: '取消',
       type: 'warning'
     })
-    const oid = row.oid
-    if (row.zoneCode !== undefined) {
-      await zoneStore.removeZone(oid)
-      ElMessage.success('区域删除成功')
-    } else if (row.blockCode !== undefined) {
-      await blockStore.removeBlock(oid)
-      ElMessage.success('地块删除成功')
-    } else if (row.seasonCode !== undefined) {
-      if (plantingStore.removeRecord) {
-        await plantingStore.removeRecord(oid)
-      }
-      ElMessage.success('种植记录删除成功')
-    } else {
+    if (selectedNode.value.type === 'greenhouse') {
       await greenhouseStore.removeGreenhouse(oid)
-      ElMessage.success('温室删除成功')
+    } else if (selectedNode.value.type === 'zone') {
+      await zoneStore.removeZone(oid)
+    } else if (selectedNode.value.type === 'block') {
+      await blockStore.removeBlock(oid)
     }
     loadAllData()
-  } catch {
-    // 取消
-  }
-}
-
-async function handleDeleteFacility(row) {
-  try {
-    await ElMessageBox.confirm('确定要删除吗？删除后无法恢复。', '确认删除', {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await greenhouseStore.removeGreenhouse(row.oid)
-    ElMessage.success('温室删除成功')
-    loadAllData()
-  } catch {
-    // 取消
-  }
-}
-
-async function handleDeleteZone(row) {
-  try {
-    await ElMessageBox.confirm('确定要删除吗？删除后无法恢复。', '确认删除', {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await zoneStore.removeZone(row.oid)
-    ElMessage.success('区域删除成功')
-    loadAllData()
-  } catch {
-    // 取消
-  }
-}
-
-async function handleDeletePlanting(row) {
-  try {
-    await ElMessageBox.confirm('确定要删除吗？删除后无法恢复。', '确认删除', {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    if (plantingStore.removeRecord) {
-      await plantingStore.removeRecord(row.oid)
-    }
-    ElMessage.success('种植记录删除成功')
-    loadAllData()
-  } catch {
-    // 取消
-  }
+  } catch {}
 }
 
 async function handleSubmit() {
   submitting.value = true
   try {
-    // 表单验证
-    if (modalType.value === 'greenhouse') {
-      if (!formData.value.code) {
-        ElMessage.warning('请填写编码')
-        return
-      }
-      if (!formData.value.name) {
-        ElMessage.warning('请填写名称')
-        return
-      }
-    } else if (modalType.value === 'zone') {
-      if (!formData.value.zoneCode) {
-        ElMessage.warning('请填写编码')
-        return
-      }
-      if (!formData.value.zoneName) {
-        ElMessage.warning('请填写名称')
-        return
-      }
-    } else if (modalType.value === 'block') {
-      if (!formData.value.blockCode) {
-        ElMessage.warning('请填写编码')
-        return
-      }
-      if (!formData.value.blockName) {
-        ElMessage.warning('请填写名称')
-        return
-      }
-    } else if (modalType.value === 'planting') {
-      if (!formData.value.cropName) {
-        ElMessage.warning('请填写作物名称')
-        return
-      }
-    }
-
     if (modalMode.value === 'add') {
-      // 新增
       if (modalType.value === 'greenhouse') {
         await greenhouseStore.addGreenhouse(formData.value)
-        ElMessage.success('温室新增成功')
       } else if (modalType.value === 'zone') {
         await zoneStore.addZone(formData.value)
-        ElMessage.success('区域新增成功')
       } else if (modalType.value === 'block') {
         await blockStore.addBlock(formData.value)
-        ElMessage.success('地块新增成功')
       } else if (modalType.value === 'planting') {
-        await plantingStore.addRecord ? plantingStore.addRecord(formData.value) : Promise.resolve()
-        ElMessage.success('种植记录新增成功')
+        await plantingStore.addRecord(formData.value)
       }
     } else {
-      // 编辑
-      const oid = formData.value.oid
       if (modalType.value === 'greenhouse') {
-        await greenhouseStore.editGreenhouse(oid, formData.value)
-        ElMessage.success('温室编辑成功')
+        await greenhouseStore.editGreenhouse(editingOid.value, formData.value)
       } else if (modalType.value === 'zone') {
-        await zoneStore.editZone(oid, formData.value)
-        ElMessage.success('区域编辑成功')
+        await zoneStore.editZone(editingOid.value, formData.value)
       } else if (modalType.value === 'block') {
-        await blockStore.editBlock(oid, formData.value)
-        ElMessage.success('地块编辑成功')
+        await blockStore.editBlock(editingOid.value, formData.value)
       } else if (modalType.value === 'planting') {
-        if (plantingStore.editRecord) {
-          await plantingStore.editRecord(oid, formData.value)
-        }
-        ElMessage.success('种植记录编辑成功')
+        await plantingStore.editRecord(editingOid.value, formData.value)
       }
     }
     modalVisible.value = false
     loadAllData()
   } catch (err) {
-    ElMessage.error(err.message || '操作失败')
+    ElMessage.error('操作失败')
   } finally {
     submitting.value = false
   }
 }
 
-function getStatusTagType(status) {
-  const map = { planting: 'success', harvested: 'info', cancelled: 'danger' }
-  return map[status] || 'info'
-}
-
-function getStatusName(status) {
-  const map = { planting: '种植中', harvested: '已收获', cancelled: '已取消' }
-  return map[status] || status
-}
-
-// 监听搜索
-watch(searchTerm, (val) => {
-  // 过滤树形数据
-})
-
-onMounted(() => {
+// 列表视图事件处理
+async function handleFacilityAdd(data) {
+  await greenhouseStore.addGreenhouse(data)
   loadAllData()
+}
+async function handleFacilityEdit(id, data) {
+  await greenhouseStore.editGreenhouse(id, data)
+  loadAllData()
+}
+async function handleFacilityDelete(id) {
+  await greenhouseStore.removeGreenhouse(id)
+  loadAllData()
+}
+async function handleZoneAdd(data) {
+  await zoneStore.addZone(data)
+  loadAllData()
+}
+async function handleZoneEdit(id, data) {
+  await zoneStore.editZone(id, data)
+  loadAllData()
+}
+async function handleZoneDelete(id) {
+  await zoneStore.removeZone(id)
+  loadAllData()
+}
+async function handleRecordAdd(data) {
+  await plantingStore.addRecord(data)
+  loadAllData()
+}
+async function handleRecordEdit(id, data) {
+  await plantingStore.editRecord(id, data)
+  loadAllData()
+}
+async function handleRecordEnd(id, data) {
+  await plantingStore.endSeason(id, data)
+  loadAllData()
+}
+async function handleRecordDelete(id) {
+  await plantingStore.removeRecord(id)
+  loadAllData()
+}
+
+// ==================== 数据加载 ====================
+
+async function loadAllData() {
+  loading.value = true
+  try {
+    await Promise.all([
+      baseStore.loadBases(),
+      greenhouseStore.loadGreenhouses(),
+      zoneStore.loadZones(),
+      blockStore.loadBlocks(),
+      plantingStore.loadRecords ? plantingStore.loadRecords() : Promise.resolve()
+    ])
+  } catch (err) {
+    console.error('加载数据失败:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 自动展开基地节点
+watch(baseOidFromUrl, (val) => {
+  if (val && baseStore.bases.length > 0) {
+    const baseKey = `base_${val}`
+    if (!expandedKeys.value.includes(baseKey)) {
+      expandedKeys.value = [baseKey]
+    }
+  }
+}, { immediate: true })
+
+onMounted(async () => {
+  await dictionaryStore.loadDictionaries()
+  greenhouseTypes.value = await getDictItems('greenhouse_type')
+  await loadAllData()
 })
 </script>
 
 <style scoped>
 .base-ops-tree :deep(.el-tree-node__content) {
   height: 32px;
+}
+
+:deep(.el-table thead) {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
+  color: white !important;
+}
+
+:deep(.el-table thead th.el-table__cell) {
+  background: transparent !important;
+  color: white !important;
+  font-weight: 600;
 }
 </style>

@@ -20,7 +20,43 @@
           <p class="text-gray-500">管理系统运行参数、阈值、开关等配置项</p>
         </div>
       </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center">
+            <el-icon :size="20" color="#64748b"><Setting /></el-icon>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900">{{ configs.length }}</p>
+            <p class="text-xs text-gray-500">配置项总数</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作栏 -->
+    <div class="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between gap-4">
       <div class="flex items-center gap-2">
+        <!-- 搜索框 -->
+        <el-input
+          v-model="searchTerm"
+          placeholder="搜索配置键或描述..."
+          clearable
+          size="small"
+          class="w-48"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+        <!-- 刷新按钮 -->
+        <el-button size="small" @click="loadConfigs" :loading="loading">
+          <el-icon><Refresh /></el-icon>
+          刷新
+        </el-button>
         <!-- 导出按钮 -->
         <el-button size="small" :disabled="configs.length === 0" @click="handleExport">
           <el-icon><Download /></el-icon>
@@ -310,7 +346,9 @@ import {
   WarningFilled,
   Check,
   FullScreen,
-  SemiSelect
+  SemiSelect,
+  Search,
+  Refresh
 } from '@element-plus/icons-vue'
 import { useSystemConfigStore, CATEGORY_TABS } from '@/stores/modules/systemConfig'
 import CropGrowthConfigPanel from './CropGrowthConfigPanel.vue'
@@ -326,6 +364,7 @@ const PAGE_SIZE = 10
 
 // ==================== 状态 ====================
 const activeCategory = ref('system')
+const searchTerm = ref('')
 const editingId = ref(null)
 const editValue = ref('')
 const showAddModal = ref(false)
@@ -341,7 +380,17 @@ const newConfig = ref({
 // ==================== 计算属性 ====================
 /** 根据分类筛选配置 */
 const filteredConfigs = computed(() => {
-  return configs.value.filter(c => c.category === activeCategory.value)
+  let result = configs.value.filter(c => c.category === activeCategory.value)
+  // 搜索过滤
+  if (searchTerm.value) {
+    const term = searchTerm.value.toLowerCase()
+    result = result.filter(c =>
+      c.configKey.toLowerCase().includes(term) ||
+      (c.description || '').toLowerCase().includes(term) ||
+      (c.configValue || '').toLowerCase().includes(term)
+    )
+  }
+  return result
 })
 
 // ==================== 方法 ====================
