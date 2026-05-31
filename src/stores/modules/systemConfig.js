@@ -99,6 +99,15 @@ export const useSystemConfigStore = defineStore('systemConfig', () => {
   const loading = ref(false)
   const error = ref(null)
   const lastFetch = ref(null)
+  /** 首次加载是否已完成（用于判断Store数据就绪状态） */
+  const isReady = ref(false)
+
+  /** 派发系统配置变更事件（解耦Store和Reader） */
+  function notifyConfigChanged() {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('system-config-changed'))
+    }
+  }
 
   // ---------- Getters ----------
   /** 按分类筛选配置 */
@@ -139,6 +148,7 @@ export const useSystemConfigStore = defineStore('systemConfig', () => {
 
       configs.value = rawData.map(normalize)
       lastFetch.value = now
+      isReady.value = true
     } catch (err) {
       console.warn('[SystemConfigStore] 加载配置失败:', err)
       error.value = err.message || '加载配置失败'
@@ -175,6 +185,7 @@ export const useSystemConfigStore = defineStore('systemConfig', () => {
       }
 
       configs.value = [newItem, ...configs.value]
+      notifyConfigChanged()
       return newItem
     } catch (err) {
       console.warn('[SystemConfigStore] 创建配置失败:', err)
@@ -205,6 +216,7 @@ export const useSystemConfigStore = defineStore('systemConfig', () => {
     try {
       const body = denormalize(data)
       await enhancedApiClient.put(`/basic-data/system-configs/${id}`, body)
+      notifyConfigChanged()
     } catch (err) {
       console.warn('[SystemConfigStore] 更新配置失败:', err)
     }
@@ -223,6 +235,7 @@ export const useSystemConfigStore = defineStore('systemConfig', () => {
 
     try {
       await enhancedApiClient.delete(`/basic-data/system-configs/${id}`)
+      notifyConfigChanged()
       return true
     } catch (err) {
       console.warn('[SystemConfigStore] 删除配置失败:', err)
@@ -248,6 +261,7 @@ export const useSystemConfigStore = defineStore('systemConfig', () => {
     loading,
     error,
     lastFetch,
+    isReady,
     // Getters
     getConfigsByCategory,
     getConfigById,

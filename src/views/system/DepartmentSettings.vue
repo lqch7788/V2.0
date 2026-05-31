@@ -175,8 +175,11 @@
           v-model:current-page="currentPage"
           :page-size="pageSize"
           :total="filteredData.length"
-          layout="prev, pager, next"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
           background
+          @size-change="handleSizeChange"
+          @current-change="handlePageChange"
         />
       </div>
     </div>
@@ -195,7 +198,7 @@
           <h4 class="text-sm font-semibold text-emerald-700 mb-3">基本信息</h4>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs text-emerald-700 mb-1">
+              <label class="block text-xs mb-1">
                 部门编码 <span class="text-red-500">*</span>
               </label>
               <el-input
@@ -204,7 +207,7 @@
               />
             </div>
             <div>
-              <label class="block text-xs text-emerald-700 mb-1">
+              <label class="block text-xs mb-1">
                 部门名称 <span class="text-red-500">*</span>
               </label>
               <el-input
@@ -437,6 +440,12 @@ const handleSearchClear = () => {
 
 // 搜索输入
 const handleSearchInput = () => {
+  currentPage.value = 1
+}
+
+// 页码大小变化
+const handleSizeChange = (size) => {
+  pageSize.value = size
   currentPage.value = 1
 }
 

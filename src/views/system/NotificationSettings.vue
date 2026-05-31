@@ -248,16 +248,8 @@
       v-model="channelModalVisible"
       :title="editingChannel ? '编辑通知渠道' : '新增通知渠道'"
       width="440px"
-      :show-close="false"
+      :close-on-click-modal="false"
     >
-      <template #header>
-        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl text-white">
-          <h3 class="text-lg font-semibold">{{ editingChannel ? '编辑通知渠道' : '新增通知渠道' }}</h3>
-          <button @click="closeChannelModal" class="p-1 hover:bg-white/20 rounded">
-            <el-icon :size="20"><Close /></el-icon>
-          </button>
-        </div>
-      </template>
 
       <div class="p-6 space-y-4">
         <div>
@@ -294,16 +286,8 @@
       v-model="ruleModalVisible"
       :title="editingRule ? '编辑通知规则' : '新增通知规则'"
       width="520px"
-      :show-close="false"
+      :close-on-click-modal="false"
     >
-      <template #header>
-        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl text-white">
-          <h3 class="text-lg font-semibold">{{ editingRule ? '编辑通知规则' : '新增通知规则' }}</h3>
-          <button @click="closeRuleModal" class="p-1 hover:bg-white/20 rounded">
-            <el-icon :size="20"><Close /></el-icon>
-          </button>
-        </div>
-      </template>
 
       <div class="p-6 space-y-4">
         <div>

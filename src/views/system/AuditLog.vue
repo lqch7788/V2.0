@@ -120,7 +120,15 @@
         <el-button type="primary" @click="fetchData">
           <el-icon><Refresh /></el-icon> 刷新
         </el-button>
-        <el-button type="success" @click="exportLogs">
+        <template v-if="exportMode">
+          <el-button @click="cancelExportMode">
+            取消
+          </el-button>
+          <el-button type="success" @click="exportLogs">
+            <el-icon><Download /></el-icon> 确认导出{{ selectedIds.length > 0 ? ` (${selectedIds.length})` : '' }}
+          </el-button>
+        </template>
+        <el-button v-else type="success" @click="enterExportMode">
           <el-icon><Download /></el-icon> 导出日志
         </el-button>
       </div>
@@ -139,6 +147,14 @@
       <table v-else class="w-full">
         <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <tr>
+            <th v-if="exportMode" class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">
+              <input
+                type="checkbox"
+                :checked="selectedIds.length > 0 && selectedIds.length === filteredLogs.length"
+                @change="toggleAllSelection"
+                class="w-4 h-4 text-emerald-600 border-gray-400 rounded focus:ring-emerald-500"
+              />
+            </th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">时间</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">用户</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
@@ -154,6 +170,14 @@
             :key="log.id"
             class="hover:bg-gray-50"
           >
+            <td v-if="exportMode" class="px-4 py-3">
+              <input
+                type="checkbox"
+                :checked="selectedIds.includes(log.id)"
+                @change="toggleSelection(log.id)"
+                class="w-4 h-4 text-emerald-600 border-gray-400 rounded focus:ring-emerald-500"
+              />
+            </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
               {{ log.created_at ? new Date(log.created_at).toLocaleString('zh-CN') : '-' }}
             </td>
@@ -167,7 +191,7 @@
             </td>
             <td class="px-4 py-3">
               <span :class="['px-2 py-1 text-xs rounded', getActionColor(log.action)]">
-                {{ log.action }}
+                {{ getActionLabel(log.action) }}
               </span>
             </td>
             <td class="px-4 py-3 text-sm text-gray-600">{{ log.module || '-' }}</td>
@@ -261,6 +285,16 @@
         <el-button @click="detailDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+
+    <!-- 导出格式选择弹窗 - V1.1 L543-550 -->
+    <ExportFormatModal
+      :visible="showExportModal"
+      :export-file-type="exportFormat"
+      :selected-count="selectedIds.length > 0 ? selectedIds.length : filteredLogs.length"
+      @update:visible="(val) => showExportModal = val"
+      @update:export-file-type="(val) => exportFormat = val"
+      @confirm="handleDoExport"
+    />
   </div>
 </template>
 
@@ -278,6 +312,7 @@ import {
   Filter
 } from '@element-plus/icons-vue'
 import { get } from '@/api/request'
+import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 
 // 空白统计数据
 const EMPTY_STATS = { total: 0, today: 0, info: 0, warning: 0, error: 0 }
@@ -297,6 +332,43 @@ const totalPages = ref(1)
 const loading = ref(true)
 const pageSize = ref(10)
 let searchDebounceTimer = null
+
+// 导出模式状态 - V1.1 L67-69
+const exportMode = ref(false)
+const selectedIds = ref([])
+const showExportModal = ref(false)
+const exportFormat = ref('excel')
+
+// 进入导出模式
+const enterExportMode = () => {
+  exportMode.value = true
+  selectedIds.value = []
+}
+
+// 取消导出模式
+const cancelExportMode = () => {
+  exportMode.value = false
+  selectedIds.value = []
+}
+
+// 切换全选
+const toggleAllSelection = (e) => {
+  if (e.target.checked) {
+    selectedIds.value = filteredLogs.value.map(log => log.id)
+  } else {
+    selectedIds.value = []
+  }
+}
+
+// 切换单选
+const toggleSelection = (id) => {
+  const index = selectedIds.value.indexOf(id)
+  if (index === -1) {
+    selectedIds.value.push(id)
+  } else {
+    selectedIds.value.splice(index, 1)
+  }
+}
 
 // 获取模块列表（去重）
 const modules = computed(() => {
@@ -350,6 +422,42 @@ const getActionColor = (action) => {
   if (action.includes('APPROVE') || action.includes('审批')) return 'bg-purple-100 text-purple-700'
   if (action.includes('EXPORT') || action.includes('导出')) return 'bg-cyan-100 text-cyan-700'
   return 'bg-gray-100 text-gray-700'
+}
+
+// 操作类型中文映射 - V1.1 L177-214
+const getActionLabel = (action) => {
+  if (!action) return '-'
+  const actionMap = {
+    'create': '创建',
+    'update': '更新',
+    'delete': '删除',
+    'login': '登录',
+    'logout': '登出',
+    'export': '导出',
+    'import': '导入',
+    'approval': '审批',
+    'approval_approved': '审批通过',
+    'approval_rejected': '审批拒绝',
+    'approval_cancelled': '审批取消',
+    'submit': '提交',
+    'approve': '批准',
+    'reject': '驳回',
+    'publish': '发布',
+    'assign': '分派',
+    'accept': '接受',
+    'start': '开始',
+    'complete': '完成',
+    'submit_acceptance': '提交验收',
+    'withdraw': '撤回',
+    'reassign': '重新分派',
+    'extend_deadline': '延期',
+    'cancel': '取消',
+    'abandon': '放弃',
+    'overtime_continue': '超时继续',
+    'overtime_abandon': '超时放弃',
+    'remind': '催办',
+  }
+  return actionMap[action] || action
 }
 
 // 获取数据
@@ -455,27 +563,66 @@ const openDetail = (log) => {
   detailDialogVisible.value = true
 }
 
-// 导出日志
+// 导出日志 - V1.1 L230-274
 const exportLogs = () => {
-  const csv = [
-    ['时间', '用户', '操作', '模块', '描述', 'IP', '级别'].join(','),
-    ...filteredLogs.value.map((log) =>
-      [
-        log.created_at,
-        log.username,
-        log.action,
-        log.module,
-        log.description,
-        log.ipAddress || '-',
-        log.level || log.status || 'info'
-      ].join(',')
-    )
-  ].join('\n')
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`
-  link.click()
+  showExportModal.value = true
+}
+
+// 执行导出 - V1.1 L230-274
+const handleDoExport = () => {
+  const dataToExport = selectedIds.value.length > 0
+    ? filteredLogs.value.filter(log => selectedIds.value.includes(log.id))
+    : filteredLogs.value
+
+  if (dataToExport.length === 0) {
+    alert('没有可导出的数据')
+    return
+  }
+
+  if (exportFormat.value === 'csv') {
+    const headers = ['时间', '用户', '操作', '模块', '描述', 'IP', '级别']
+    const rows = dataToExport.map((log) => [
+      log.created_at ? new Date(log.created_at).toLocaleString('zh-CN') : '-',
+      log.username || '系统',
+      getActionLabel(log.action),
+      log.module || '-',
+      log.description || '',
+      log.ipAddress || '-',
+      getLevelLabel(log.level || log.status)
+    ])
+    const BOM = '﻿'
+    const csvContent = BOM + [headers, ...rows].map(row =>
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `操作日志_${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+  } else {
+    // Excel格式 - 需要XLSX库
+    const excelHeaders = ['时间', '用户', '操作', '模块', '描述', 'IP', '级别']
+    const excelData = [excelHeaders, ...dataToExport.map((log) => [
+      log.created_at ? new Date(log.created_at).toLocaleString('zh-CN') : '-',
+      log.username || '系统',
+      getActionLabel(log.action),
+      log.module || '-',
+      log.description || '',
+      log.ipAddress || '-',
+      getLevelLabel(log.level || log.status)
+    ])]
+    // 使用简单方式导出Excel
+    const csv = excelData.map(row => row.join(',')).join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `操作日志_${new Date().toISOString().slice(0, 10)}.xls`
+    link.click()
+  }
+
+  showExportModal.value = false
+  exportMode.value = false
+  selectedIds.value = []
 }
 
 // 组件挂载时获取数据

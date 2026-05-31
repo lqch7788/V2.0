@@ -11,14 +11,16 @@
           >
             <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
           </a>
+          <!-- V1.1: Book图标 -->
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Notebook /></el-icon>
+            <el-icon :size="24" color="white"><Reading /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">数据字典</h1>
             <p class="text-gray-500">管理系统数据字典配置</p>
           </div>
         </div>
+        <!-- V1.1按钮样式 -->
         <div class="flex items-center gap-2">
           <el-button
             @click="expandAll"
@@ -41,6 +43,7 @@
             <el-icon><Refresh /></el-icon>
             刷新
           </el-button>
+          <!-- V1.1: 翡翠绿渐变 -->
           <el-button
             @click="showAddCategoryModal = true"
             class="h-10 px-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-lg transition-shadow"
@@ -70,7 +73,7 @@
       {{ error }}
     </div>
 
-    <!-- 模块折叠面板列表 -->
+    <!-- 模块折叠面板列表 - 按V1.1的结构：模块→分类→字典项 -->
     <div class="space-y-3">
       <div
         v-for="mod in DICTIONARY_MODULES"
@@ -78,16 +81,14 @@
         v-show="!searchTerm || moduleHasMatch(mod.code)"
         class="bg-white rounded-xl shadow-sm overflow-hidden"
       >
-        <!-- 模块头部 -->
+        <!-- 模块头部 - V1.1样式: 淡紫渐变背景 -->
         <div
           class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 cursor-pointer hover:from-indigo-100 hover:to-purple-100 transition-colors"
           @click="toggleModule(mod.code)"
         >
           <div class="flex items-center gap-3">
             <div class="p-2 rounded-lg bg-white shadow-sm text-indigo-600">
-              <el-icon :size="20">
-                <component :is="getModuleIcon(mod.icon)" />
-              </el-icon>
+              <el-icon :size="20"><component :is="getModuleIcon(mod.icon)" /></el-icon>
             </div>
             <el-icon :size="20" color="#9CA3AF">
               <ArrowDown v-if="expandedModules.has(mod.code)" />
@@ -100,7 +101,7 @@
           </div>
         </div>
 
-        <!-- 模块下的分类列表 -->
+        <!-- 模块下的分类列表 - V1.1两列布局 -->
         <div v-if="expandedModules.has(mod.code)" class="border-t border-gray-100">
           <div class="p-4">
             <div class="grid grid-cols-2 gap-4">
@@ -120,7 +121,7 @@
                       <ArrowDown v-if="expandedCategories.has(category)" />
                       <ArrowRight v-else />
                     </el-icon>
-                    <span class="text-sm font-bold text-gray-700">{{ getCategoryChineseName(category) }}</span>
+                    <span class="text-sm font-medium text-gray-700">{{ getCategoryChineseName(category) }}</span>
                     <span class="text-xs text-gray-400">({{ category }})</span>
                   </div>
                   <div class="flex items-center gap-2">
@@ -131,24 +132,25 @@
                       text
                       size="small"
                       @click.stop="handleAddItem(category)"
-                      class="p-1 text-indigo-600 hover:bg-indigo-100 rounded transition-colors"
-                      title="新增"
+                      class="px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 rounded flex items-center gap-1"
                     >
                       <el-icon><Plus /></el-icon>
+                      新增
                     </el-button>
                   </div>
                 </div>
 
                 <!-- 字典项列表 -->
                 <div v-if="expandedCategories.has(category)" class="border-t border-gray-100">
-                  <table v-if="getDictionariesByCategory(category).length > 0" class="table-fixed w-full text-xs">
+                  <!-- V1.1表格样式: 蓝色渐变表头 -->
+                  <table v-if="getDictionariesByCategory(category).length > 0" class="w-full text-xs">
                     <thead>
                       <tr class="bg-gradient-to-r from-blue-500 to-blue-600 text-left text-white">
-                        <th class="py-1.5 pl-3 font-medium w-1/4">编码</th>
-                        <th class="py-1.5 text-center font-medium w-1/4">名称</th>
-                        <th class="py-1.5 text-center font-medium w-1/6">排序</th>
-                        <th class="py-1.5 text-center font-medium w-1/6">状态</th>
-                        <th class="py-1.5 pr-2 text-right font-medium w-1/6">操作</th>
+                        <th class="py-1.5 pl-3 font-medium">编码</th>
+                        <th class="py-1.5 text-center font-medium">名称</th>
+                        <th class="py-1.5 text-center font-medium">排序</th>
+                        <th class="py-1.5 text-center font-medium">状态</th>
+                        <th class="py-1.5 pr-2 text-right font-medium">操作</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-300 bg-white">
@@ -179,12 +181,12 @@
                           </span>
                         </td>
                         <td class="py-1 pr-2 text-right">
-                          <div class="flex items-center justify-end gap-0.5">
+                          <div class="flex items-center justify-end gap-1">
                             <el-button
                               text
                               size="small"
                               @click="handleEditItem(item)"
-                              class="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                              class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
                               title="编辑"
                             >
                               <el-icon><Edit /></el-icon>
@@ -193,7 +195,7 @@
                               text
                               size="small"
                               @click="handleDelete(item)"
-                              class="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                               title="删除"
                             >
                               <el-icon><Delete /></el-icon>
@@ -208,6 +210,7 @@
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -281,8 +284,9 @@
           </div>
         </div>
 
+        <!-- V1.1按钮样式 -->
         <div class="flex items-center justify-end gap-2 p-4 border-t border-gray-100">
-          <el-button @click="isModalOpen = false">取消</el-button>
+          <el-button @click="isModalOpen = false" class="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">取消</el-button>
           <el-button
             @click="handleSave"
             :loading="loading"
@@ -327,7 +331,7 @@
         </div>
       </div>
       <template #footer>
-        <el-button @click="showAddCategoryModal = false">取消</el-button>
+        <el-button @click="showAddCategoryModal = false" class="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">取消</el-button>
         <el-button
           @click="handleSaveNewCategory"
           class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium flex items-center gap-1"
@@ -336,14 +340,13 @@
         </el-button>
       </template>
     </el-dialog>
-  </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Notebook,
+  Reading,
   Plus,
   Edit,
   Delete,
@@ -353,14 +356,13 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
-  Check,
   Close,
-  Avatar,
+  User,
   Van,
-  Grape,
-  Sugar,
+  Crop,
+  Cherry,
   Box,
-  House,
+  OfficeBuilding,
   CircleCheck,
   List,
   Lock
@@ -370,26 +372,8 @@ import {
   getDictionaryCategories,
   saveDictionaries,
   getCategoryChineseName,
-  DICTIONARY_MODULES,
-  getCategoriesByModule
+  DICTIONARY_MODULES
 } from '@/services/dictionaryService'
-
-// 模块图标映射
-const MODULE_ICON_COMPONENTS = {
-  Users: Avatar,
-  Truck: Van,
-  Sprout: Grape,
-  Flower2: Sugar,
-  Warehouse: Box,
-  Building: House,
-  CheckCircle: CircleCheck,
-  ClipboardList: List,
-  Shield: Lock
-}
-
-const getModuleIcon = (iconName) => {
-  return MODULE_ICON_COMPONENTS[iconName] || Notebook
-}
 
 // 数据状态
 const dictionaries = ref([])
@@ -398,7 +382,7 @@ const loading = ref(false)
 const error = ref(null)
 const searchTerm = ref('')
 
-// 展开状态
+// 展开状态 - 模块级别 + 分类级别
 const expandedModules = ref(new Set())
 const expandedCategories = ref(new Set())
 
@@ -411,6 +395,24 @@ const isNewItem = ref(false)
 const showAddCategoryModal = ref(false)
 const newCategoryCode = ref('')
 const newCategoryName = ref('')
+
+// 模块图标映射 (使用Element Plus可用图标)
+const MODULE_ICON_MAP = {
+  Users: User,
+  Truck: Van,
+  Sprout: Crop,
+  Flower2: Cherry,
+  Warehouse: Box,
+  Building: OfficeBuilding,
+  CheckCircle: CircleCheck,
+  ClipboardList: List,
+  Shield: Lock
+}
+
+// 获取模块图标
+const getModuleIcon = (iconName) => {
+  return MODULE_ICON_MAP[iconName] || User
+}
 
 // 加载数据
 const loadData = async () => {
@@ -457,10 +459,7 @@ const toggleCategory = (category) => {
 }
 
 // 展开所有
-const expandAll = async () => {
-  if (dictionaries.value.length === 0) {
-    await loadData()
-  }
+const expandAll = () => {
   expandedModules.value = new Set(DICTIONARY_MODULES.map(m => m.code))
   expandedCategories.value = new Set(categories.value)
 }
@@ -488,7 +487,33 @@ const getTotalItemsInModule = (moduleCode) => {
 const getDictionariesByCategory = (category) => {
   return dictionaries.value
     .filter(d => d.category === category)
+    .filter(d =>
+      !searchTerm.value ||
+      d.name?.includes(searchTerm.value) ||
+      d.code?.includes(searchTerm.value)
+    )
     .sort((a, b) => (a.sortNumber || 0) - (b.sortNumber || 0))
+}
+
+// 模块是否有匹配项（用于搜索过滤）
+const moduleHasMatch = (moduleCode) => {
+  if (!searchTerm.value) return true
+  const searchLower = searchTerm.value.toLowerCase()
+  const moduleCategories = getCategoriesInModule(moduleCode)
+  return moduleCategories.some(cat => categoryHasMatch(cat))
+}
+
+// 分类是否有匹配项（用于搜索过滤）
+const categoryHasMatch = (category) => {
+  if (!searchTerm.value) return true
+  const searchLower = searchTerm.value.toLowerCase()
+  const catName = getCategoryChineseName(category)
+  if (catName.toLowerCase().includes(searchLower) || category.toLowerCase().includes(searchLower)) return true
+  const items = getDictionariesByCategory(category)
+  return items.some(d =>
+    d.name.toLowerCase().includes(searchLower) ||
+    d.code.toLowerCase().includes(searchLower)
+  )
 }
 
 // 打开新增字典项弹窗
@@ -531,7 +556,6 @@ const handleSave = async () => {
     isModalOpen.value = false
     editingItem.value = null
     await loadData()
-    // 触发全局刷新事件
     window.dispatchEvent(new CustomEvent('settings:refresh'))
   } catch (err) {
     ElMessage.error(err instanceof Error ? err.message : '保存失败')
@@ -555,7 +579,6 @@ const handleDelete = async (item) => {
       deleted: [item.id]
     })
     await loadData()
-    // 触发全局刷新事件
     window.dispatchEvent(new CustomEvent('settings:refresh'))
   } catch (err) {
     if (err !== 'cancel') {
@@ -581,32 +604,5 @@ const handleSaveNewCategory = () => {
   showAddCategoryModal.value = false
   isNewItem.value = true
   isModalOpen.value = true
-}
-
-// 模块是否有匹配项（用于搜索过滤）
-const moduleHasMatch = (moduleCode) => {
-  const searchLower = searchTerm.value.toLowerCase()
-  const moduleCategories = getCategoriesInModule(moduleCode)
-  return moduleCategories.some(cat => {
-    const catName = getCategoryChineseName(cat)
-    if (catName.toLowerCase().includes(searchLower) || cat.toLowerCase().includes(searchLower)) return true
-    const items = getDictionariesByCategory(cat)
-    return items.some(d =>
-      d.name.toLowerCase().includes(searchLower) ||
-      d.code.toLowerCase().includes(searchLower)
-    )
-  })
-}
-
-// 分类是否有匹配项（用于搜索过滤）
-const categoryHasMatch = (category) => {
-  const searchLower = searchTerm.value.toLowerCase()
-  const catName = getCategoryChineseName(category)
-  if (catName.toLowerCase().includes(searchLower) || category.toLowerCase().includes(searchLower)) return true
-  const items = getDictionariesByCategory(category)
-  return items.some(d =>
-    d.name.toLowerCase().includes(searchLower) ||
-    d.code.toLowerCase().includes(searchLower)
-  )
 }
 </script>
