@@ -148,14 +148,14 @@
             <!-- 计划数量 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">计划数量 <span class="text-red-500">*</span></label>
-              <el-input-number v-model="form.plannedQuantity" :min="0" class="w-full" />
+              <el-input-number v-model="form.plannedQuantity" :min="0" placeholder="请输入计划数量" class="w-full" />
               <p v-if="errors.plannedQuantity" class="text-xs text-red-500 mt-1">{{ errors.plannedQuantity }}</p>
             </div>
 
             <!-- 完成数量（与V1.1 EditModal L425-436 标签一致："完成数量"） -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">完成数量</label>
-              <el-input-number v-model="form.completedQuantity" :min="0" class="w-full" />
+              <el-input-number v-model="form.completedQuantity" :min="0" placeholder="请输入完成数量" class="w-full" />
             </div>
 
             <!-- 客户下拉（与V1.1 EditModal.tsx L438-466 客户下拉选择器一致） -->

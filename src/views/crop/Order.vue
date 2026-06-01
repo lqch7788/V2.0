@@ -97,7 +97,6 @@
           <el-date-picker
             v-model="filters.orderDate"
             type="date"
-            placeholder="选择日期"
             value-format="YYYY-MM-DD"
             class="w-full"
           />
@@ -206,7 +205,7 @@
                   @change="() => handleToggleSelect(record.id)"
                 />
               </td>
-              <td class="px-4 py-3 text-sm whitespace-nowrap">
+              <td class="px-4 py-3 text-sm">
                 <el-button link type="primary" @click="handleDetail(record)">
                   {{ record.orderCode }}
                 </el-button>
