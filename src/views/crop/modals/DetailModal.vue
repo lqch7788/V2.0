@@ -28,15 +28,15 @@
             订单详情
           </h3>
           <div class="flex items-center gap-1">
-            <!-- 最大化/还原按钮 -->
-            <el-button link @click="toggleMaximize" style="color: #6b7280;">
-              <el-icon>
+            <!-- 最大化/还原按钮（修复轮 10 P0-004：与 AddModal/EditModal 一致使用 rgba(255,255,255,0.8) 白色） -->
+            <el-button link @click="toggleMaximize" style="color: rgba(255,255,255,0.8);" @mousedown.stop>
+              <el-icon style="color: white;">
                 <component :is="isMaximized ? 'ScaleToOriginal' : 'FullScreen'" />
               </el-icon>
             </el-button>
             <!-- 关闭按钮 -->
-            <el-button link @click="handleClose" style="color: #6b7280;">
-              <el-icon><Close /></el-icon>
+            <el-button link @click="handleClose" style="color: rgba(255,255,255,0.8);" @mousedown.stop>
+              <el-icon style="color: white;"><Close /></el-icon>
             </el-button>
           </div>
         </div>

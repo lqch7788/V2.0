@@ -1,15 +1,15 @@
 <template>
-  <!-- 订单导出弹窗组件 - V1.1样式（纯div自定义弹窗） -->
+  <!-- 订单导出弹窗组件 - V1.1 ExportFormatModal 1:1 翻译（修复轮 10 P0-001/002 + 轮 8 P0-I2-1） -->
   <Teleport to="body">
     <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="handleClose">
-      <div class="bg-white rounded-lg w-full max-w-lg shadow-2xl" @click.stop>
-        <!-- 头部 — 绿色渐变（与 V1.1 Modal.tsx L265 from-emerald-500 via-emerald-600 to-emerald-500 一致） -->
+      <div class="bg-white rounded-xl w-full max-w-lg shadow-xl" @click.stop>
+        <!-- 头部 — 绿色渐变（与 V1.1 Modal.tsx L265 一致） -->
         <div class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl">
-          <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2 select-none">
             <el-icon style="color: white;"><Download /></el-icon>
             <span>选择导出格式</span>
           </h3>
-          <el-button link class="hover:bg-white/10" style="color: rgba(255,255,255,0.8);" @click="handleClose">
+          <el-button link class="hover:bg-white/10" style="color: rgba(255,255,255,0.8);" @click="handleClose" @mousedown.stop>
             <el-icon style="color: white;"><Close /></el-icon>
           </el-button>
         </div>
@@ -47,8 +47,8 @@
 
         <!-- 底部按钮 -->
         <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-xl">
-          <el-button size="small" @click="handleClose">取消</el-button>
-          <el-button type="primary" size="small" @click="handleConfirm">导出</el-button>
+          <el-button size="small" @click="handleClose" @mousedown.stop>取消</el-button>
+          <el-button type="primary" size="small" @click="handleConfirm" @mousedown.stop>导出</el-button>
         </div>
       </div>
     </div>
@@ -56,28 +56,34 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Download, Close } from '@element-plus/icons-vue'
 
+// 修复轮 10 P0-001：prop 名 exportFileType（与 Order.vue L354 `:export-file-type="exportFormat"` 一致）
 const props = defineProps({
   isOpen: Boolean,
-  exportFormat: String,
+  exportFileType: String,
   selectedCount: Number
 })
 
-const emit = defineEmits(['close', 'formatChange', 'confirm'])
+const emit = defineEmits(['close', 'change', 'confirm'])
 
 // 导出数量
 const exportCount = computed(() => {
   return props.selectedCount || 0
 })
 
-// 选中格式
-const selectedFormat = ref(props.exportFileType || 'excel')
+// 选中格式（修复轮 10 P0-001：引用正确的 prop 名 exportFileType）
+const selectedFormat = ref(props.exportFileType || 'xlsx')
 
-// 格式选项
+// 监听 prop 变化
+watch(() => props.exportFileType, (val) => {
+  if (val) selectedFormat.value = val
+})
+
+// 修复轮 10 P0-002：value 改为 'xlsx'/'csv'/'word' 与 Order.vue L456 默认值及 handleDoExport if/else 判断一致
 const formats = [
-  { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
+  { value: 'xlsx', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
@@ -95,9 +101,16 @@ const handleClose = () => {
 
 // 确认
 const handleConfirm = () => {
-  emit('confirm')
+  emit('confirm', selectedFormat.value)
   handleClose()
 }
+
+// ESC 键关闭弹窗（修复轮 8 P0-I2-1：与 V1.1 Modal.tsx L97-105 通用行为一致）
+const handleEscKey = (e) => {
+  if (e.key === 'Escape' && props.isOpen) handleClose()
+}
+onMounted(() => document.addEventListener('keydown', handleEscKey))
+onUnmounted(() => document.removeEventListener('keydown', handleEscKey))
 </script>
 
 <style scoped>

@@ -239,7 +239,7 @@ const currentUsername = computed(() => {
 // 客户下拉选项（与 V1.1 AddModal.tsx L391 一致）
 const customerOptions = computed(() => customerStore.customers || [])
 
-// 客户选择变更时自动填充电话/地址（与 V1.1 AddModal.tsx L375-384 一致）
+// 客户选择变更时自动填充电话/地址（与 V1.1 AddModal.tsx L375-384 一致 + 容错）
 const handleCustomerChange = (customerId) => {
   const customer = customerOptions.value.find(c => c.id === customerId)
   if (customer) {
@@ -283,7 +283,7 @@ const form = ref({
 // 选中的作物品种详情
 const selectedCrop = ref(null)
 
-// 作物品种选择回调
+// 作物品种选择回调（修复轮 8 P0-I1-5：选中后清 errors.cropVariety 红字）
 const handleCropChange = (code, varietyInfo) => {
   form.value.cropCode = code
   selectedCrop.value = varietyInfo
@@ -299,6 +299,8 @@ const handleCropChange = (code, varietyInfo) => {
     const cropName = varietyInfo.subVariety1Name || varietyInfo.varietyName
     form.value.cropVariety = cropName
     form.value.cropCategory = fullPath
+    // 清除错误（与 V1.1 L113 setErrors(prev => ({ ...prev, cropVariety: '' })) 一致）
+    errors.value = { ...errors.value, cropVariety: '' }
   } else {
     form.value.cropVariety = ''
     form.value.cropCategory = ''
@@ -520,9 +522,9 @@ const handleSubmit = async () => {
       status: 'planned',
       createBy: currentUsername.value,
       remarks: form.value.remarks,
-      // 客户相关字段（与 V1.1 types/crop.ts CropOrder 完全一致）
+      // 客户相关字段（与 V1.1 types/crop.ts CropOrder 完全一致 + customerName 容错 P0-EX-1）
       customerId: form.value.customerId || undefined,
-      customerName: form.value.customerName,
+      customerName: form.value.customerName || '',
       customerPhone: form.value.customerPhone,
       deliveryAddress: form.value.deliveryAddress,
       // 关联字段（V1.1 L604）
