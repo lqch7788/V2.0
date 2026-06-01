@@ -67,7 +67,7 @@ import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Document } from '@element-plus/icons-vue'
 import { PageHeader, StatCards, Filters, SummaryTable, ExportModal } from '@/components/summary'
-import { ClipboardList, TrendCharts, Money, ShoppingCart } from '@element-plus/icons-vue'
+import { List, TrendCharts, Money, ShoppingCart } from '@element-plus/icons-vue'
 
 // ============================================
 // 模拟 useBatchFilterOptions（V1.1 hook 在 V2.0 不可用，本地化实现）
@@ -120,7 +120,7 @@ function useBatchSummary(filters) {
   })
 
   const statCards = computed(() => [
-    { id: 'total', label: '总批次数', value: summaries.value.length, icon: ClipboardList, iconBgColor: 'from-blue-500 to-blue-600' },
+    { id: 'total', label: '总批次数', value: summaries.value.length, icon: List, iconBgColor: 'from-blue-500 to-blue-600' },
     { id: 'inProgress', label: '进行中', value: summaries.value.filter(s => s.status === 'in_progress').length, icon: TrendCharts, iconBgColor: 'from-amber-500 to-amber-600' },
     { id: 'completed', label: '已完成', value: summaries.value.filter(s => s.status === 'completed').length, icon: Money, iconBgColor: 'from-emerald-500 to-emerald-600' },
     { id: 'planning', label: '规划中', value: summaries.value.filter(s => s.status === 'planning').length, icon: ShoppingCart, iconBgColor: 'from-purple-500 to-purple-600' },
