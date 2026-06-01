@@ -477,8 +477,14 @@ const routes = [
   {
     path: '/crop/order',
     name: 'CropOrder',
-    component: () => import('@/views/production/Order.vue'),
+    component: () => import('@/views/crop/Order.vue'),
     meta: { title: '订单管理' }
+  },
+  {
+    path: '/crop/customer',
+    name: 'CropCustomer',
+    component: () => import('@/views/crop/Customer.vue'),
+    meta: { title: '客户管理' }
   },
   {
     path: '/crop/fertilizer',

@@ -6,9 +6,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" class="text-white">
-              <ClipboardList />
-            </el-icon>
+            <ClipboardList class="text-white" :size="24" />
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">订单管理</h1>
@@ -23,7 +21,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-            <el-icon class="text-white"><Package /></el-icon>
+            <Package class="text-white" :size="16" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.total }}</p>
@@ -34,7 +32,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-            <el-icon class="text-white"><TrendCharts /></el-icon>
+            <Activity class="text-white" :size="16" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.inProgress }}</p>
@@ -45,7 +43,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <el-icon class="text-white"><CircleCheck /></el-icon>
+            <CircleCheck class="text-white" :size="16" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.completed }}</p>
@@ -56,7 +54,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
-            <el-icon class="text-white"><Calendar /></el-icon>
+            <Calendar class="text-white" :size="16" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.thisMonth }}</p>
@@ -97,37 +95,21 @@
         <div class="flex-1 min-w-[150px]">
           <label class="block text-sm text-gray-700 mb-1">订单日期</label>
           <el-date-picker
-            v-model="filters.startDate"
+            v-model="filters.orderDate"
             type="date"
             placeholder="选择日期"
             value-format="YYYY-MM-DD"
             class="w-full"
           />
-        </div>
-        <!-- 结束日期 -->
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm text-gray-700 mb-1">结束日期</label>
-          <el-date-picker
-            v-model="filters.endDate"
-            type="date"
-            placeholder="选择日期"
-            value-format="YYYY-MM-DD"
-            class="w-full"
-          />
-        </div>
-        <!-- 创建人 -->
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm text-gray-700 mb-1">创建人</label>
-          <el-input v-model="filters.createBy" placeholder="请输入创建人" clearable />
         </div>
         <!-- 按钮 -->
         <div class="flex gap-2">
           <el-button size="small" @click="handleReset">
-            <el-icon><RefreshRight /></el-icon>
+            <RotateCcw class="w-4 h-4" />
             重置
           </el-button>
           <el-button type="primary" size="small" @click="handleSearch">
-            <el-icon><Search /></el-icon>
+            <Search class="w-4 h-4" />
             搜索
           </el-button>
         </div>
@@ -159,28 +141,24 @@
           <!-- 导出模式 -->
           <template v-else-if="exportMode">
             <el-button type="primary" size="small" @click="handleExportConfirm">
-              <el-icon><Download /></el-icon>
+              <Download class="w-4 h-4" />
               确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
             <el-button size="small" @click="handleExportCancel">取消</el-button>
           </template>
-          <!-- 正常模式 -->
+          <!-- 正常模式（与V1.1完全一致：新增+导出+客户管理） -->
           <template v-else>
-            <el-button v-if="canEdit" size="small" @click="batchEditMode = true">
-              <el-icon><Edit /></el-icon>
-              编辑
-            </el-button>
-            <el-button v-if="canDelete" type="danger" size="small" @click="deleteMode = true">
-              <el-icon><Delete /></el-icon>
-              删除
+            <el-button v-if="canCreate" type="primary" size="small" @click="handleAdd">
+              <Plus class="w-4 h-4" />
+              新增
             </el-button>
             <el-button v-if="canExport" size="small" @click="handleExportClick">
-              <el-icon><Download /></el-icon>
+              <Download class="w-4 h-4" />
               导出
             </el-button>
-            <el-button v-if="canCreate" type="primary" size="small" @click="handleAdd">
-              <el-icon><Plus /></el-icon>
-              新增订单
+            <el-button type="primary" size="small" @click="handleCustomer">
+              <User class="w-4 h-4" />
+              客户管理
             </el-button>
           </template>
         </div>
@@ -203,16 +181,21 @@
               <th class="px-4 py-3 text-left text-sm font-semibold">订单名称</th>
               <th class="px-4 py-3 text-left text-sm font-semibold">订单类型</th>
               <th class="px-4 py-3 text-left text-sm font-semibold">作物信息</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">数量</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">计划数量</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">完成数量</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">完成进度</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">客户</th>
               <th class="px-4 py-3 text-left text-sm font-semibold">订单日期</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">预计采收</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">预计完成时间</th>
               <th class="px-4 py-3 text-left text-sm font-semibold">状态</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">创建人</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold">备注</th>
               <th class="px-4 py-3 text-left text-sm font-semibold">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-300">
             <tr v-if="paginatedData.length === 0">
-              <td :colspan="exportMode || batchEditMode ? 10 : 9" class="px-4 py-8 text-center text-gray-500">
+              <td :colspan="exportMode || batchEditMode ? 16 : 15" class="px-4 py-8 text-center text-gray-500">
                 暂无数据
               </td>
             </tr>
@@ -248,24 +231,39 @@
                 {{ record.plannedQuantity }} {{ record.unit }}
               </td>
               <td class="px-4 py-3 text-sm text-gray-600">
+                {{ record.completedQuantity || 0 }} {{ record.unit }}
+              </td>
+              <td class="px-4 py-3 text-sm">
+                {{ record.plannedQuantity > 0 ? Math.round(((record.completedQuantity || 0) / record.plannedQuantity) * 100) + '%' : '0%' }}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[120px]" :title="record.customerName || '-'">
+                {{ record.customerName || '-' }}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600">
                 {{ record.orderDate }}
               </td>
               <td class="px-4 py-3 text-sm text-gray-600">
-                {{ record.expectedHarvestDate || '-' }}
+                {{ record.expectedCompletionDate || '-' }}
               </td>
               <td class="px-4 py-3">
                 <span :class="getStatusBadgeClass(record.status)">
-                  {{ getStatusLabel(record.status) }}
+                  {{ getStatusLabel(record) }}
                 </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[100px]" :title="record.createBy || '-'">
+                {{ record.createBy || '-' }}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]" :title="record.remarks || '-'">
+                {{ record.remarks || '-' }}
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <template v-if="record.status !== CropOrderStatus.COMPLETED">
                     <el-button link @click="handleEdit(record)" title="编辑">
-                      <el-icon><Edit /></el-icon>
+                      <Edit class="w-4 h-4" />
                     </el-button>
                     <el-button link @click="handleDeleteOne(record)" title="删除">
-                      <el-icon><Delete /></el-icon>
+                      <Delete class="w-4 h-4" />
                     </el-button>
                   </template>
                   <template v-else>
@@ -300,10 +298,10 @@
         <!-- 分页按钮组 -->
         <div class="flex items-center gap-2">
           <el-button variant="text" size="small" @click="handlePageChange(1)" :disabled="pagination.current === 1" class="text-gray-600">
-            <el-icon><DArrowLeft /></el-icon>
+            <ChevronsLeft class="w-4 h-4" />
           </el-button>
           <el-button variant="text" size="small" @click="handlePageChange(pagination.current - 1)" :disabled="pagination.current === 1" class="text-gray-600">
-            <el-icon><ArrowLeft /></el-icon>
+            <ChevronLeft class="w-4 h-4" />
           </el-button>
           <template v-for="page in visiblePages" :key="page">
             <el-button
@@ -319,10 +317,10 @@
             </el-button>
           </template>
           <el-button variant="text" size="small" @click="handlePageChange(pagination.current + 1)" :disabled="pagination.current === totalPages" class="text-gray-600">
-            <el-icon><ArrowRight /></el-icon>
+            <ChevronRight class="w-4 h-4" />
           </el-button>
           <el-button variant="text" size="small" @click="handlePageChange(totalPages)" :disabled="pagination.current === totalPages" class="text-gray-600">
-            <el-icon><DArrowRight /></el-icon>
+            <ChevronsRight class="w-4 h-4" />
           </el-button>
           <span class="text-sm text-gray-600 ml-2">
             第 <span class="text-blue-600 font-medium">{{ pagination.current }}</span> / {{ totalPages }} 页
@@ -368,9 +366,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import {
-  ClipboardList,
   Package,
-  TrendCharts,
+  Activity,
   CircleCheck,
   Calendar,
   Plus,
@@ -378,12 +375,14 @@ import {
   Delete,
   Download,
   Search,
-  RefreshRight,
-  DArrowLeft,
-  DArrowRight,
-  ArrowLeft,
-  ArrowRight
-} from '@element-plus/icons-vue'
+  RotateCcw,
+  ClipboardList,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
+} from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
@@ -426,9 +425,7 @@ const filters = ref({
   orderName: '',
   cropName: '',
   status: '',
-  startDate: '',
-  endDate: '',
-  createBy: ''
+  orderDate: ''
 })
 
 // 分页
@@ -445,7 +442,7 @@ const selectedRows = ref([])
 
 // 权限控制（与V1.1保持一致）
 const canCreate = ref(true)
-const canEdit = ref(false)   // 批量编辑功能禁用（与V1.1一致: canEdit={false}）
+const canEdit = ref(true)    // 批量编辑功能启用（与V1.1一致）
 const canDelete = ref(true)
 const canExport = ref(true)
 
@@ -492,9 +489,7 @@ const filteredData = computed(() => {
     if (filters.value.orderName && !item.orderName?.includes(filters.value.orderName)) return false
     if (filters.value.cropName && !item.cropVariety?.includes(filters.value.cropName)) return false
     if (filters.value.status && item.status !== filters.value.status) return false
-    if (filters.value.startDate && item.orderDate < filters.value.startDate) return false
-    if (filters.value.endDate && item.orderDate > filters.value.endDate) return false
-    if (filters.value.createBy && !item.createBy?.includes(filters.value.createBy)) return false
+    if (filters.value.orderDate && item.orderDate < filters.value.orderDate) return false
     return true
   }).sort((a, b) => {
     const timeA = a.createTime || ''
@@ -531,15 +526,12 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 获取状态标签
-const getStatusLabel = (status) => {
-  switch (status) {
-    case CropOrderStatus.PLANNED: return '已计划'
-    case CropOrderStatus.IN_PROGRESS: return '进行中'
-    case CropOrderStatus.COMPLETED: return '已完成'
-    case CropOrderStatus.CANCELLED: return '已取消'
-    default: return status
-  }
+// 获取状态标签（与V1.1一致：根据completedQuantity动态判断）
+const getStatusLabel = (record) => {
+  if (record.status === CropOrderStatus.COMPLETED) return '已完成'
+  if (record.status === CropOrderStatus.CANCELLED) return '已取消'
+  if ((record.completedQuantity || 0) > 0) return '进行中'
+  return '已计划'
 }
 
 // 获取状态样式
@@ -600,11 +592,14 @@ const handleReset = () => {
     orderName: '',
     cropName: '',
     status: '',
-    startDate: '',
-    endDate: '',
-    createBy: ''
+    orderDate: ''
   }
   pagination.value.current = 1
+}
+
+// 客户管理跳转
+const handleCustomer = () => {
+  window.location.href = '/crop/customer'
 }
 
 // 新增
@@ -730,7 +725,7 @@ const handleDoExport = () => {
     : filteredData.value
 
   // 导出表头
-  const headers = ['订单编号', '订单名称', '订单类型', '品种路径', '作物品种', '计划数量', '实际数量', '单位', '订单日期', '预计采收日期', '状态', '创建人', '创建时间', '备注']
+  const headers = ['订单编号', '订单名称', '订单类型', '品种路径', '作物品种', '计划数量', '完成数量', '单位', '订单日期', '预计完成时间', '状态', '创建人', '创建时间', '备注']
 
   // 生成导出数据
   const exportData = dataToExport.map(record => ({
@@ -740,7 +735,7 @@ const handleDoExport = () => {
     '品种路径': record.cropCategory,
     '作物品种': record.cropVariety,
     '计划数量': record.plannedQuantity,
-    '实际数量': record.actualQuantity,
+    '完成数量': record.completedQuantity,
     '单位': record.unit,
     '订单日期': record.orderDate,
     '预计采收日期': record.expectedHarvestDate || '',

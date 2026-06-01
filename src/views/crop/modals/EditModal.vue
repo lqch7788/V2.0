@@ -153,16 +153,34 @@
               <p v-if="errors.plannedQuantity" class="text-xs text-red-500 mt-1">{{ errors.plannedQuantity }}</p>
             </div>
 
-            <!-- 实际数量 -->
+            <!-- 完成数量（与V1.1一致） -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">实际数量</label>
-              <el-input-number v-model="form.actualQuantity" :min="0" class="w-full" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">完成数量</label>
+              <el-input-number v-model="form.completedQuantity" :min="0" class="w-full" />
+            </div>
+
+            <!-- 客户名称 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">客户名称</label>
+              <el-input v-model="form.customerName" placeholder="请输入客户名称" />
+            </div>
+
+            <!-- 客户电话 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">客户电话</label>
+              <el-input v-model="form.customerPhone" placeholder="请输入客户电话" />
             </div>
 
             <!-- 供应商 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
               <el-input v-model="form.supplierName" placeholder="请输入供应商名称" />
+            </div>
+
+            <!-- 收货地址 -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">收货地址</label>
+              <el-input v-model="form.deliveryAddress" placeholder="请输入收货地址" />
             </div>
 
             <!-- 预计采收日期 -->
@@ -177,14 +195,15 @@
               />
             </div>
 
-            <!-- 是否完成 -->
+            <!-- 订单状态 -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">订单完成</label>
-              <el-select v-model="form.isCompleted" placeholder="请选择" class="w-full">
-                <el-option label="否" :value="false" />
-                <el-option label="是" :value="true" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">订单状态</label>
+              <el-select v-model="form.orderStatus" placeholder="请选择" class="w-full">
+                <el-option label="进行中" value="in_progress" />
+                <el-option label="已完成" value="completed" />
+                <el-option label="已取消" value="cancelled" />
               </el-select>
-              <p v-if="form.isCompleted" class="text-xs text-orange-500 mt-1">⚠️ 选择"是"后订单将无法编辑</p>
+              <p v-if="form.orderStatus === 'completed' || form.orderStatus === 'cancelled'" class="text-xs text-orange-500 mt-1">⚠️ 选择终态后订单将无法编辑</p>
             </div>
 
             <!-- 备注 -->
@@ -242,13 +261,16 @@ const form = ref({
   cropCategory: '',
   cropVariety: '',
   plannedQuantity: 0,
-  actualQuantity: 0,
+  completedQuantity: 0,
   unit: '株',
   supplierName: '',
+  customerName: '',
+  customerPhone: '',
+  deliveryAddress: '',
   orderDate: '',
   expectedHarvestDate: '',
   remarks: '',
-  isCompleted: false
+  orderStatus: 'in_progress'
 })
 
 // 错误信息
@@ -307,9 +329,10 @@ function handleClickOutside() {
 // 监听打开和记录变化
 watch(() => props.isOpen, (val) => {
   if (val && props.record) {
-    // 如果订单已完成，禁止编辑
-    if (props.record.status === CropOrderStatus.COMPLETED) {
-      ElMessage.warning('该订单已完成，无法编辑')
+    // 如果订单已完成或已取消，禁止编辑
+    if (props.record.status === CropOrderStatus.COMPLETED || props.record.status === CropOrderStatus.CANCELLED) {
+      const msg = props.record.status === CropOrderStatus.COMPLETED ? '已完成' : '已取消'
+      ElMessage.warning(`该订单已${msg}，无法编辑`)
       emit('close')
       return
     }
@@ -321,13 +344,20 @@ watch(() => props.isOpen, (val) => {
       cropCategory: props.record.cropCategory || '',
       cropVariety: props.record.cropVariety || '',
       plannedQuantity: props.record.plannedQuantity || 0,
-      actualQuantity: props.record.actualQuantity || 0,
+      completedQuantity: props.record.completedQuantity || 0,
       unit: props.record.unit || '株',
       supplierName: props.record.supplierName || '',
+      customerName: props.record.customerName || '',
+      customerPhone: props.record.customerPhone || '',
+      deliveryAddress: props.record.deliveryAddress || '',
       orderDate: props.record.orderDate || '',
       expectedHarvestDate: props.record.expectedHarvestDate || '',
       remarks: props.record.remarks || '',
-      isCompleted: props.record.status === CropOrderStatus.COMPLETED
+      orderStatus: props.record.status === CropOrderStatus.COMPLETED
+        ? 'completed'
+        : props.record.status === CropOrderStatus.CANCELLED
+        ? 'cancelled'
+        : 'in_progress'
     }
     searchKeyword.value = props.record.cropVariety || ''
     errors.value = {}
@@ -441,19 +471,41 @@ const handleClose = () => {
 
 // 提交
 const handleSubmit = async () => {
-  // 如果订单已完成，禁止编辑
-  if (props.record && props.record.status === CropOrderStatus.COMPLETED) {
-    ElMessage.warning('该订单已完成，无法编辑')
+  // 如果订单已完成或已取消，禁止编辑
+  if (props.record && (props.record.status === CropOrderStatus.COMPLETED || props.record.status === CropOrderStatus.CANCELLED)) {
+    const msg = props.record.status === CropOrderStatus.COMPLETED ? '已完成' : '已取消'
+    ElMessage.warning(`该订单已${msg}，无法编辑`)
     return
   }
 
-  // 如果选择完成订单，弹出确认警告
-  if (form.value.isCompleted) {
+  // 如果选择"已完成"或"已取消"，弹出确认警告
+  if (form.value.orderStatus === 'completed') {
     try {
       await ElMessageBox.confirm(
         '⚠️ 重要提示：\n\n' +
         '确认将订单标记为完成吗？\n\n' +
         '完成后该订单将进入保存档案状态：\n' +
+        '• 无法进行任何编辑操作\n' +
+        '• 无法删除订单\n' +
+        '• 无法关联新的作物实例\n\n' +
+        '此操作不可逆，请确认！',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+    } catch {
+      return
+    }
+  }
+  if (form.value.orderStatus === 'cancelled') {
+    try {
+      await ElMessageBox.confirm(
+        '⚠️ 重要提示：\n\n' +
+        '确认取消该订单吗？\n\n' +
+        '取消后该订单将无法操作：\n' +
         '• 无法进行任何编辑操作\n' +
         '• 无法删除订单\n' +
         '• 无法关联新的作物实例\n\n' +
@@ -480,6 +532,15 @@ const handleSubmit = async () => {
 
   if (!props.record) return
 
+  // 计算最终状态
+  const finalStatus = form.value.orderStatus === 'completed'
+    ? CropOrderStatus.COMPLETED
+    : form.value.orderStatus === 'cancelled'
+    ? CropOrderStatus.CANCELLED
+    : form.value.completedQuantity > 0
+      ? CropOrderStatus.IN_PROGRESS
+      : CropOrderStatus.PLANNED
+
   try {
     const updates = {
       orderCode: form.value.orderCode,
@@ -491,11 +552,14 @@ const handleSubmit = async () => {
       cropName: '',
       cropVariety: form.value.cropVariety,
       plannedQuantity: form.value.plannedQuantity,
-      actualQuantity: form.value.actualQuantity,
+      completedQuantity: form.value.completedQuantity,
       unit: form.value.unit,
       supplierName: form.value.supplierName,
+      customerName: form.value.customerName,
+      customerPhone: form.value.customerPhone,
+      deliveryAddress: form.value.deliveryAddress,
       remarks: form.value.remarks,
-      status: form.value.isCompleted ? CropOrderStatus.COMPLETED : props.record.status
+      status: finalStatus
     }
 
     await orderDataStore.updateOrder(props.record.id, updates)

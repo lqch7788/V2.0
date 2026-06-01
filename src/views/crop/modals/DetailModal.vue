@@ -108,6 +108,30 @@
               </div>
             </div>
 
+            <!-- 客户信息 -->
+            <div>
+              <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                <el-icon class="text-emerald-600"><User /></el-icon>
+                客户信息
+              </h3>
+              <div class="bg-gray-50 rounded-lg p-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">客户名称</p>
+                    <p class="text-sm font-medium text-gray-900">{{ record.customerName || '-' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">客户电话</p>
+                    <p class="text-sm text-gray-900">{{ record.customerPhone || '-' }}</p>
+                  </div>
+                  <div class="col-span-2">
+                    <p class="text-xs text-gray-500 mb-1">收货地址</p>
+                    <p class="text-sm text-gray-900">{{ record.deliveryAddress || '-' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- 数量信息 -->
             <div>
               <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
@@ -186,7 +210,8 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { View, Close, FullScreen, ScaleToOriginal, Package, Location } from '@element-plus/icons-vue'
+import { Package } from 'lucide-vue-next'
+import { View, Close, FullScreen, ScaleToOriginal, Location, User } from '@element-plus/icons-vue'
 import { CropOrderStatus } from '@/types/crop'
 
 const props = defineProps({
@@ -207,15 +232,13 @@ const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
 const isResizing = ref(false)
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
 
-// 获取状态标签
+// 获取状态标签（与V1.1一致：根据completedQuantity动态判断）
 const getStatusLabel = (status) => {
-  switch (status) {
-    case CropOrderStatus.PLANNED: return '已计划'
-    case CropOrderStatus.IN_PROGRESS: return '进行中'
-    case CropOrderStatus.COMPLETED: return '已完成'
-    case CropOrderStatus.CANCELLED: return '已取消'
-    default: return status
-  }
+  if (status === CropOrderStatus.COMPLETED) return '已完成'
+  if (status === CropOrderStatus.CANCELLED) return '已取消'
+  // 根据完成数量动态判断
+  if (props.record && (props.record.actualQuantity || 0) > 0) return '进行中'
+  return '已计划'
 }
 
 // 获取状态样式

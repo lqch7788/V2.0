@@ -95,15 +95,20 @@ function toSnakeCase(data) {
     cropVariety: 'crop_variety',
     cropCategory: 'crop_category',
     plannedQuantity: 'planned_quantity',
-    actualQuantity: 'actual_quantity',
+    completedQuantity: 'completed_quantity',
     orderDate: 'order_date',
     expectedHarvestDate: 'expected_harvest_date',
+    expectedCompletionDate: 'expected_completion_date',
     supplierName: 'supplier_name',
     unit: 'unit',
     remarks: 'remarks',
     status: 'status',
     createBy: 'create_by',
     updateTime: 'update_time',
+    // 客户相关字段
+    customerName: 'customer_name',
+    customerPhone: 'customer_phone',
+    deliveryAddress: 'delivery_address',
   }
 
   const result = {}

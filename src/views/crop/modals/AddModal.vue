@@ -144,7 +144,19 @@
             <!-- 实际数量 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">实际数量</label>
-              <el-input-number v-model="form.actualQuantity" :min="0" class="w-full" />
+              <el-input-number v-model="form.completedQuantity" :min="0" class="w-full" />
+            </div>
+
+            <!-- 客户名称 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">客户名称</label>
+              <el-input v-model="form.customerName" placeholder="请输入客户名称" />
+            </div>
+
+            <!-- 客户电话 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">客户电话</label>
+              <el-input v-model="form.customerContact" placeholder="请输入客户电话" />
             </div>
 
             <!-- 供应商 -->
@@ -153,7 +165,13 @@
               <el-input v-model="form.supplierName" placeholder="请输入供应商名称" />
             </div>
 
-            <!-- 预计采收日期 -->
+            <!-- 收货地址 -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">收货地址</label>
+              <el-input v-model="form.deliveryAddress" placeholder="请输入收货地址" />
+            </div>
+
+            <!-- 预计完成日期 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">预计采收日期</label>
               <el-date-picker
@@ -163,6 +181,12 @@
                 value-format="YYYY-MM-DD"
                 class="w-full"
               />
+            </div>
+
+            <!-- 创建人 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">创建人</label>
+              <el-input :model-value="localStorage.getItem('username') || '未知用户'" disabled class="bg-gray-50 text-gray-600" />
             </div>
 
             <!-- 备注 -->
@@ -189,7 +213,7 @@ import { Plus, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vu
 import { ElMessage } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
-import { Leaf } from '@element-plus/icons-vue'
+import { Leaf } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: Boolean
@@ -219,11 +243,15 @@ const form = ref({
   cropCategory: '',
   cropVariety: '',
   plannedQuantity: 0,
-  actualQuantity: 0,
+  completedQuantity: 0,
   unit: '株',
   supplierName: '',
+  customerName: '',
+  customerContact: '',
+  deliveryAddress: '',
   orderDate: new Date().toISOString().slice(0, 10),
   expectedHarvestDate: '',
+  expectedCompletionDate: '',
   remarks: ''
 })
 
@@ -277,11 +305,15 @@ watch(() => props.isOpen, (val) => {
       cropCategory: '',
       cropVariety: '',
       plannedQuantity: 0,
-      actualQuantity: 0,
+      completedQuantity: 0,
       unit: '株',
       supplierName: '',
+      customerName: '',
+      customerContact: '',
+      deliveryAddress: '',
       orderDate: new Date().toISOString().slice(0, 10),
       expectedHarvestDate: '',
+      expectedCompletionDate: '',
       remarks: ''
     }
     selectedCrop.value = null
@@ -413,14 +445,19 @@ const handleSubmit = async () => {
       cropName: '',
       cropVariety: form.value.cropVariety,
       plannedQuantity: form.value.plannedQuantity,
-      actualQuantity: form.value.actualQuantity,
+      completedQuantity: form.value.completedQuantity,
       unit: form.value.unit,
       supplierName: form.value.supplierName,
       orderDate: form.value.orderDate,
       expectedHarvestDate: form.value.expectedHarvestDate,
+      expectedCompletionDate: form.value.expectedHarvestDate,
       status: 'planned',
       createBy: localStorage.getItem('username') || '',
-      remarks: form.value.remarks
+      remarks: form.value.remarks,
+      // 客户相关字段
+      customerName: form.value.customerName,
+      customerContact: form.value.customerContact,
+      deliveryAddress: form.value.deliveryAddress,
     }
 
     await orderDataStore.addOrder(newOrder)
