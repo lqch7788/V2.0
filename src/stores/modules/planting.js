@@ -1,14 +1,30 @@
 /**
- * 种植管理 Store 模块
- * 对应 V1.1 usePlantingStore
- * 使用 Pinia 管理种植数据状态
- * 数据来源：API /api/plantings (apiPlantingService.ts)
+ * 种植 Pinia store - 1:1 翻译自 V1.1
+ * 管理种植记录的完整 CRUD 数据流 + 采收/结束状态联动
+ *
+ * 数据流：API → request（无缓存）→ Store → 页面组件
+ * - L1：Pinia Store 内存数组
+ * - L2：（未使用）无 IndexedDB 缓存
+ * - L3：（未使用）种植管理页面不读取 localStorage
+ *
+ * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\stores\usePlantingStore.ts
  */
-import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getPlantings, addPlanting, updatePlanting, deletePlantings, harvestPlanting } from '@/services/apiPlantingService'
+import { defineStore } from 'pinia'
+import {
+  getPlantings,
+  addPlanting as addPlantingService,
+  updatePlanting as updatePlantingService,
+  deletePlantings as deletePlantingsService,
+  harvestPlanting as harvestPlantingService
+} from '@/services/apiPlantingService'
 
-// 种植状态枚举 - 与V1.1保持一致
+/**
+ * 种植记录主体（来自后端 /plantings）
+ * @typedef {import('@/types/crop').Planting} Planting
+ */
+
+/** 种植状态枚举 - 与V1.1保持一致 */
 export const PlantingStatus = {
   PLANTED: 'planted',
   GROWING: 'growing',
@@ -16,7 +32,7 @@ export const PlantingStatus = {
   CANCELLED: 'cancelled'
 }
 
-// 来源类型枚举
+/** 来源类型枚举 */
 export const SourceType = {
   SEED: 'seed',
   SEEDLING: 'seedling',
@@ -26,24 +42,26 @@ export const SourceType = {
 }
 
 export const usePlantingStore = defineStore('planting', () => {
-  // ========== 状态定义 ==========
-
-  // 种植记录列表 - 使用与服务端一致的数据结构
+  // ============== 1:1 翻译 V1.1 state ==============
+  /** @type {import('vue').Ref<Planting[]>} */
   const plantings = ref([])
 
-  // 加载状态
+  /** @type {import('vue').Ref<boolean>} */
   const isLoading = ref(false)
 
-  // ========== Getters ==========
+  // ============== 1:1 翻译 V1.1 getters ==============
 
-  // 统计计算 - 与V1.1完全一致
+  /**
+   * 统计计算 - 与V1.1完全一致
+   * @type {import('vue').ComputedRef<{ total: number, growing: number, harvested: number, monthCount: number }>}
+   */
   const stats = computed(() => {
     const total = plantings.value.length
-    const growing = plantings.value.filter(p =>
-      p.status === PlantingStatus.PLANTED || p.status === PlantingStatus.GROWING
+    const growing = plantings.value.filter(
+      p => p.status === PlantingStatus.PLANTED || p.status === PlantingStatus.GROWING
     ).length
-    const harvested = plantings.value.filter(p =>
-      p.status === PlantingStatus.HARVESTED
+    const harvested = plantings.value.filter(
+      p => p.status === PlantingStatus.HARVESTED
     ).length
     const now = new Date()
     const monthCount = plantings.value.filter(p => {
@@ -53,18 +71,20 @@ export const usePlantingStore = defineStore('planting', () => {
     return { total, growing, harvested, monthCount }
   })
 
-  // ========== Actions ==========
+  // ============== 1:1 翻译 V1.1 actions ==============
 
   /**
    * 获取种植列表 - 调用真实API
+   * 1:1 翻译自 V1.1 fetchPlantings
+   * @returns {Promise<void>}
    */
-  const fetchPlantings = async () => {
+  async function fetchPlantings() {
     isLoading.value = true
     try {
       const data = await getPlantings()
       plantings.value = data || []
     } catch (error) {
-      console.error('获取种植列表失败:', error)
+      console.error('[usePlantingStore] 获取种植列表失败:', error)
       plantings.value = []
     } finally {
       isLoading.value = false
@@ -73,160 +93,174 @@ export const usePlantingStore = defineStore('planting', () => {
 
   /**
    * 获取单条种植记录
+   * 1:1 翻译自 V1.1 getPlantingById
+   * @param {string} id
+   * @returns {Planting | undefined}
    */
-  const getPlantingById = (id) => {
+  function getPlantingById(id) {
     return plantings.value.find(item => item.id === id)
   }
 
   /**
    * 添加种植记录
+   * 1:1 翻译自 V1.1 addPlantingRecord（对外暴露为 addPlanting，与 V1.1 一致）
+   * @param {Partial<Planting>} plantingData
+   * @returns {Promise<Planting>}
    */
-  const addPlantingRecord = async (plantingData) => {
-    try {
-      const newPlanting = await addPlanting({
-        plantCode: plantingData.plantCode || '',
-        sourceType: plantingData.sourceType || SourceType.SEEDLING,
-        sourceId: plantingData.sourceId || '',
-        sourceCode: plantingData.sourceCode || '',
-        cropName: plantingData.cropName || '',
-        cropVariety: plantingData.cropVariety || '',
-        cropCode: plantingData.cropCode || '',
-        areaId: plantingData.areaId || '',
-        areaName: plantingData.areaName || '',
-        rootName: plantingData.rootName || '',
-        plantingCount: plantingData.plantingCount || 0,
-        plantingDate: plantingData.plantingDate || new Date().toISOString().slice(0, 10),
-        soilPH: plantingData.soilPH || 0,
-        soilEC: plantingData.soilEC || 0,
-        transplantCount: 0,
-        transplantDate: '',
-        isHarvest: false,
-        harvestDate: '',
-        attritionRate: 0,
-        printCount: 0,
-        traceabilityCode: plantingData.traceabilityCode || '',
-        pictures: plantingData.pictures || [],
-        remarks: plantingData.remarks || '',
-        status: PlantingStatus.PLANTED,
-        productionPlanId: plantingData.productionPlanId || '',
-        productionPlanCode: plantingData.productionPlanCode || '',
-        createBy: localStorage.getItem('username') || '陆启闯',
-        targetYield: plantingData.targetYield || 0
-      })
-      plantings.value.unshift(newPlanting)
-      return newPlanting
-    } catch (error) {
-      console.error('添加种植记录失败:', error)
-      throw error
-    }
+  async function addPlanting(plantingData) {
+    const newPlanting = await addPlantingService({
+      plantCode: plantingData.plantCode || '',
+      sourceType: plantingData.sourceType || SourceType.SEEDLING,
+      sourceId: plantingData.sourceId || '',
+      sourceCode: plantingData.sourceCode || '',
+      cropName: plantingData.cropName || '',
+      cropVariety: plantingData.cropVariety || '',
+      cropCode: plantingData.cropCode || '',
+      areaId: plantingData.areaId || '',
+      areaName: plantingData.areaName || '',
+      rootName: plantingData.rootName || '',
+      plantingCount: plantingData.plantingCount || 0,
+      plantingDate: plantingData.plantingDate || new Date().toISOString().slice(0, 10),
+      soilPH: plantingData.soilPH || 0,
+      soilEC: plantingData.soilEC || 0,
+      transplantCount: 0,
+      transplantDate: '',
+      isHarvest: false,
+      harvestDate: '',
+      attritionRate: 0,
+      printCount: 0,
+      traceabilityCode: plantingData.traceabilityCode || '',
+      pictures: plantingData.pictures || [],
+      remarks: plantingData.remarks || '',
+      status: PlantingStatus.PLANTED,
+      productionPlanId: plantingData.productionPlanId || '',
+      productionPlanCode: plantingData.productionPlanCode || '',
+      createBy: localStorage.getItem('username') || '陆启闯',
+      targetYield: plantingData.targetYield || 0
+    })
+    // V1.1: plantings.value.unshift(newPlanting)
+    plantings.value = [newPlanting, ...plantings.value]
+    return newPlanting
   }
 
   /**
    * 更新种植记录
+   * 1:1 翻译自 V1.1 updatePlantingRecord（对外暴露为 updatePlanting，与 V1.1 一致）
+   * @param {string} id
+   * @param {Partial<Planting>} plantingData
+   * @returns {Promise<void>}
    */
-  const updatePlantingRecord = async (id, plantingData) => {
-    try {
-      await updatePlanting(id, plantingData)
-      const index = plantings.value.findIndex(item => item.id === id)
-      if (index !== -1) {
-        plantings.value[index] = {
-          ...plantings.value[index],
-          ...plantingData,
-          updateTime: new Date().toLocaleString()
-        }
-      }
-    } catch (error) {
-      console.error('更新种植记录失败:', error)
-      throw error
+  async function updatePlanting(id, plantingData) {
+    await updatePlantingService(id, plantingData)
+    const index = plantings.value.findIndex(item => item.id === id)
+    if (index !== -1) {
+      // V1.1: plantings.value[index] = { ...plantings.value[index], ...plantingData, updateTime: ... }
+      plantings.value = plantings.value.map((item, i) =>
+        i === index
+          ? { ...item, ...plantingData, updateTime: new Date().toLocaleString() }
+          : item
+      )
     }
   }
 
   /**
    * 删除种植记录
+   * 1:1 翻译自 V1.1 deletePlantingRecord（对外暴露为 deletePlanting，与 V1.1 一致）
+   * @param {string} id
+   * @returns {Promise<void>}
    */
-  const deletePlantingRecord = async (id) => {
-    try {
-      await deletePlantings([id])
-      plantings.value = plantings.value.filter(item => item.id !== id)
-    } catch (error) {
-      console.error('删除种植记录失败:', error)
-      throw error
-    }
+  async function deletePlanting(id) {
+    await deletePlantingsService([id])
+    plantings.value = plantings.value.filter(item => item.id !== id)
   }
 
   /**
    * 批量删除种植记录
+   * 1:1 翻译自 V1.1 deletePlantingsBatch（对外暴露为 deletePlantings，与 V1.1 一致）
+   * @param {string[]} ids
+   * @returns {Promise<void>}
    */
-  const deletePlantingsBatch = async (ids) => {
-    try {
-      await deletePlantings(ids)
-      plantings.value = plantings.value.filter(item => !ids.includes(item.id))
-    } catch (error) {
-      console.error('批量删除种植记录失败:', error)
-      throw error
-    }
+  async function deletePlantingsBatch(ids) {
+    await deletePlantingsService(ids)
+    plantings.value = plantings.value.filter(item => !ids.includes(item.id))
   }
 
   /**
    * 采收登记
+   * 1:1 翻译自 V1.1 harvestPlantingRecord（对外暴露为 harvestPlanting，与 V1.1 一致）
+   * @param {string} id
+   * @param {string} harvestDate
+   * @param {number} harvestQuantity
+   * @returns {Promise<void>}
    */
-  const harvestPlantingRecord = async (id, harvestDate, harvestQuantity) => {
-    try {
-      await harvestPlanting(id, harvestDate, harvestQuantity)
-      const index = plantings.value.findIndex(item => item.id === id)
-      if (index !== -1) {
-        const planting = plantings.value[index]
-        const attritionRate = planting.plantingCount > 0
-          ? Math.round((1 - harvestQuantity / planting.plantingCount) * 100)
-          : 0
-        plantings.value[index] = {
-          ...planting,
-          isHarvest: true,
-          harvestDate,
-          harvestQuantity,
-          attritionRate,
-          status: PlantingStatus.HARVESTED,
-          updateTime: new Date().toLocaleString()
-        }
-      }
-    } catch (error) {
-      console.error('采收登记失败:', error)
-      throw error
+  async function harvestPlantingRecord(id, harvestDate, harvestQuantity) {
+    await harvestPlantingService(id, harvestDate, harvestQuantity)
+    const index = plantings.value.findIndex(item => item.id === id)
+    if (index !== -1) {
+      const planting = plantings.value[index]
+      const attritionRate = planting.plantingCount > 0
+        ? Math.round((1 - harvestQuantity / planting.plantingCount) * 100)
+        : 0
+      // V1.1: plantings.value[index] = { ...planting, isHarvest, harvestDate, ... }
+      plantings.value = plantings.value.map((item, i) =>
+        i === index
+          ? {
+              ...planting,
+              isHarvest: true,
+              harvestDate,
+              harvestQuantity,
+              attritionRate,
+              status: PlantingStatus.HARVESTED,
+              updateTime: new Date().toLocaleString()
+            }
+          : item
+      )
     }
   }
 
   /**
    * 结束种植计划（正常结束/异常结束）
+   * 1:1 翻译自 V1.1 endPlanting（不调用 API，仅本地状态更新）
+   * @param {string} id
+   * @param {string} [endType='normal']
+   * @param {string} [remarks='']
+   * @returns {boolean}
    */
-  const endPlanting = async (id, endType = 'normal', remarks = '') => {
+  function endPlanting(id, endType = 'normal', remarks = '') {
     const index = plantings.value.findIndex(item => item.id === id)
     if (index !== -1) {
-      plantings.value[index] = {
-        ...plantings.value[index],
-        isFinished: true,
-        endType: endType,
-        endRemarks: remarks,
-        endTime: new Date().toLocaleString(),
-        status: endType === 'normal' ? PlantingStatus.HARVESTED : PlantingStatus.CANCELLED,
-        updateTime: new Date().toLocaleString()
-      }
+      // V1.1: plantings.value[index] = { ...plantings.value[index], isFinished, endType, ... }
+      plantings.value = plantings.value.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              isFinished: true,
+              endType,
+              endRemarks: remarks,
+              endTime: new Date().toLocaleString(),
+              status: endType === 'normal' ? PlantingStatus.HARVESTED : PlantingStatus.CANCELLED,
+              updateTime: new Date().toLocaleString()
+            }
+          : item
+      )
       return true
     }
     return false
   }
 
   return {
-    // 状态
+    // state
     plantings,
     isLoading,
-    // Getters
+    // getters
     stats,
-    // Actions
+    // actions（对外名称 1:1 与 V1.1 一致：planting.vue 已在使用）
     fetchPlantings,
     getPlantingById,
-    addPlanting: addPlantingRecord,
-    updatePlanting: updatePlantingRecord,
-    deletePlanting: deletePlantingRecord,
+    addPlanting,
+    updatePlanting,
+    deletePlanting,
+    // V1.1 暴露名 `deletePlantings`（批量），调用方 planting.vue 仍用 plantingStore.deletePlantings(ids)
     deletePlantings: deletePlantingsBatch,
     harvestPlanting: harvestPlantingRecord,
     endPlanting
