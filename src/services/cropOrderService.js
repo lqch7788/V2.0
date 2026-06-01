@@ -268,18 +268,10 @@ export async function resetOrders() {
 }
 
 export async function getOrderStats() {
-  try {
-    const backendStats = await enhancedApiClient.get('/crop-orders/stats/summary')
-    return {
-      total: backendStats.total ?? 0,
-      inProgress: (backendStats.confirmed ?? 0) + (backendStats.processing ?? 0),
-      completed: (backendStats.delivered ?? 0) + (backendStats.shipped ?? 0),
-      thisMonth: backendStats.this_month ?? backendStats.thisMonth ?? 0,
-    }
-  } catch (error) {
-    console.warn('[cropOrderService] 获取订单统计失败:', error)
-    return null
-  }
+  // 与 V1.1 apiCropOrderService.ts L162-166 一致：永远返回 null，触发前端 fallback
+  // （V2.0 后端 stats/summary 状态字段与前端 CropOrderStatus 枚举不匹配，
+  //  V1.1 显式放弃做不可能的状态映射，与 V1.1 行为对齐）
+  return null
 }
 
 export async function syncPendingOrders() {

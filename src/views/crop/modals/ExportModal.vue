@@ -3,11 +3,11 @@
   <Teleport to="body">
     <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="handleClose">
       <div class="bg-white rounded-lg w-full max-w-lg shadow-2xl" @click.stop>
-        <!-- 头部 — 绿色渐变 -->
-        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 flex items-center justify-between" style="background: linear-gradient(to right, #10b981, #059669);">
-          <h3 class="font-semibold flex items-center gap-2" style="color: white;">
+        <!-- 头部 — 绿色渐变（与 V1.1 Modal.tsx L265 from-emerald-500 via-emerald-600 to-emerald-500 一致） -->
+        <div class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl">
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2">
             <el-icon style="color: white;"><Download /></el-icon>
-            <span style="color: white;">选择导出格式</span>
+            <span>选择导出格式</span>
           </h3>
           <el-button link class="hover:bg-white/10" style="color: rgba(255,255,255,0.8);" @click="handleClose">
             <el-icon style="color: white;"><Close /></el-icon>
@@ -46,7 +46,7 @@
         </div>
 
         <!-- 底部按钮 -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-xl">
           <el-button size="small" @click="handleClose">取消</el-button>
           <el-button type="primary" size="small" @click="handleConfirm">导出</el-button>
         </div>

@@ -19,15 +19,13 @@
           </svg>
         </div>
 
-        <!-- 头部 — 绿色渐变 -->
+        <!-- 头部 — 绿色渐变（与 V1.1 Modal.tsx L265 from-emerald-500 via-emerald-600 to-emerald-500 三色渐变一致） -->
         <div
-          class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
-          style="background: linear-gradient(to right, #10b981, #059669);"
+          class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
           @mousedown="handleDragStart"
         >
-          <h3 class="font-semibold flex items-center gap-2 select-none" style="color: white;">
-            <el-icon style="color: white;"><Edit /></el-icon>
-            <span style="color: white;">编辑订单</span>
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2 select-none">
+            编辑订单
           </h3>
           <div class="flex items-center gap-1">
             <!-- 最大化/还原按钮 -->
@@ -504,7 +502,7 @@ const handleSubmit = async () => {
     return
   }
 
-  // 如果选择"已完成"或"已取消"，弹出确认警告
+  // 如果选择"已完成"或"已取消"，弹出确认警告（移到 try 内）
   if (form.value.orderStatus === 'completed') {
     try {
       await ElMessageBox.confirm(
@@ -522,7 +520,8 @@ const handleSubmit = async () => {
           type: 'warning'
         }
       )
-    } catch {
+    } catch (confirmErr) {
+      // 用户取消确认（合理）
       return
     }
   }
@@ -543,15 +542,16 @@ const handleSubmit = async () => {
           type: 'warning'
         }
       )
-    } catch {
+    } catch (confirmErr) {
       return
     }
   }
 
-  // 验证
+  // 验证（与 V1.1 EditModal.tsx L198-205 一致 - 4 项校验）
   errors.value = {}
+  if (!form.value.orderCode) errors.value.orderCode = '请输入订单编号'
   if (!form.value.orderName) errors.value.orderName = '请输入订单名称'
-  if (!form.value.cropVariety) errors.value.cropVariety = '请输入作物品种'
+  if (!form.value.cropVariety) errors.value.cropVariety = '请选择作物品种'
   if (form.value.plannedQuantity <= 0) errors.value.plannedQuantity = '请输入计划数量'
 
   if (Object.keys(errors.value).length > 0) return

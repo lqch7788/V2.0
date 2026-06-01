@@ -19,15 +19,13 @@
           </svg>
         </div>
 
-        <!-- 头部 — 绿色渐变 -->
+        <!-- 头部 — 绿色渐变（与 V1.1 Modal.tsx L265 from-emerald-500 via-emerald-600 to-emerald-500 三色渐变一致） -->
         <div
-          class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
-          style="background: linear-gradient(to right, #10b981, #059669);"
+          class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
           @mousedown="handleDragStart"
         >
-          <h3 class="font-semibold flex items-center gap-2 select-none" style="color: white;">
-            <el-icon style="color: white;"><Plus /></el-icon>
-            <span style="color: white;">新增订单</span>
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2 select-none">
+            新增订单
           </h3>
           <div class="flex items-center gap-1">
             <!-- 最大化/还原按钮 -->
@@ -320,7 +318,7 @@ watch(() => props.isOpen, (val) => {
     }
     // 重置表单（与V1.1 AddModal.tsx L173-189 一致 - 不含 supplierName）
     form.value = {
-      orderCode: '',
+      orderCode: generateOrderCode(),  // 与 V1.1 AddModal.tsx L78 useEffect 自动设置一致
       orderName: '',
       orderType: 'production',
       cropCode: '',
@@ -449,10 +447,11 @@ const handleClose = () => {
 
 // 提交
 const handleSubmit = async () => {
-  // 验证
+  // 验证（与 V1.1 AddModal.tsx L122-129 一致 - 4 项校验）
   errors.value = {}
+  if (!form.value.orderCode) errors.value.orderCode = '请输入订单编号'
   if (!form.value.orderName) errors.value.orderName = '请输入订单名称'
-  if (!form.value.cropVariety) errors.value.cropVariety = '请输入作物品种'
+  if (!form.value.cropVariety) errors.value.cropVariety = '请选择作物品种'
   if (form.value.plannedQuantity <= 0) errors.value.plannedQuantity = '请输入计划数量'
 
   if (Object.keys(errors.value).length > 0) return

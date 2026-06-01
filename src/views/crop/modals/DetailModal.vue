@@ -19,12 +19,12 @@
           </svg>
         </div>
 
-        <!-- 头部 - V1.1样式白色背景 -->
+        <!-- 头部 — 绿色渐变（与 V1.1 Modal.tsx L265 from-emerald-500 via-emerald-600 to-emerald-500 一致） -->
         <div
-          class="px-6 py-4 border-b border-gray-100 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
+          class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
           @mousedown="handleDragStart"
         >
-          <h3 class="text-lg font-bold text-gray-900 select-none">
+          <h3 class="text-lg font-semibold text-white select-none">
             订单详情
           </h3>
           <div class="flex items-center gap-1">

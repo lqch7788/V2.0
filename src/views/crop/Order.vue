@@ -118,12 +118,8 @@
 
     <!-- 操作按钮行（与V1.1 OrderPage L354-381 ActionToolbar noCard=true 模式一致：无背景卡片） -->
     <div class="flex items-center justify-between">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-gray-700">订单列表</span>
-          <span class="text-xs text-gray-500">（共 {{ filteredData.length }} 条）</span>
-        </div>
-        <div class="flex items-center gap-2">
+      <h2 class="font-semibold text-gray-900 text-base">订单列表</h2>
+      <div class="flex items-center gap-2">
           <!-- 批量编辑模式 -->
           <template v-if="batchEditMode">
             <el-button type="primary" size="small" @click="handleBatchEditConfirm">
@@ -144,7 +140,7 @@
               <Download class="w-4 h-4" />
               确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
-            <el-button size="small" @click="handleExportCancel">取消</el-button>
+            <el-button size="small" @click="handleExportCancel">取消选择</el-button>
           </template>
           <!-- 正常模式（与V1.1 OrderPage.tsx L354-381 ActionToolbar 调用配置一致：canCreate=true, canExport=true, showCustomerButton=true, canEdit=false, canDelete=false, showLowStockButton=false） -->
           <template v-else>
@@ -163,7 +159,6 @@
           </template>
         </div>
       </div>
-    </div>
 
     <!-- 数据表格（与V1.1完全一致） -->
     <div v-loading="loading" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -262,10 +257,10 @@
                 <div class="flex items-center gap-2">
                   <template v-if="record.status !== CropOrderStatus.COMPLETED">
                     <el-button link @click="handleEdit(record)" title="编辑">
-                      <Edit class="w-4 h-4" />
+                      <Pencil class="w-4 h-4" />
                     </el-button>
                     <el-button link @click="handleDeleteOne(record)" title="删除">
-                      <Delete class="w-4 h-4" />
+                      <Trash2 class="w-4 h-4" />
                     </el-button>
                   </template>
                   <template v-else>
@@ -371,12 +366,12 @@
 import { ref, computed, onMounted } from 'vue'
 import {
   Package,
-  Activity,
-  CircleCheck,
+  TrendingUp,
+  CheckCircle,
   Calendar,
   Plus,
-  Edit,
-  Delete,
+  Pencil,
+  Trash2,
   Download,
   Search,
   RotateCcw,
@@ -438,16 +433,16 @@ const pagination = ref({
   pageSize: 10
 })
 
-// 分页选项
-const pageSizeOptions = [10, 20, 50]
+// 分页选项（与 V1.1 OrderTable.tsx L244 [10, 20, 50, 100] 一致）
+const pageSizeOptions = [10, 20, 50, 100]
 
 // 选中行
 const selectedRows = ref([])
 
 // 权限控制（与V1.1保持一致）
 const canCreate = ref(true)
-const canEdit = ref(true)    // 批量编辑功能启用（与V1.1一致）
-const canDelete = ref(true)
+const canEdit = ref(false)    // 与 V1.1 OrderPage L374 一致：canEdit=false（无编辑按钮）
+const canDelete = ref(false)   // 与 V1.1 OrderPage L375 一致：canDelete=false（无批量删除按钮）
 const canExport = ref(true)
 
 // 导出模式
@@ -601,9 +596,11 @@ const handleReset = () => {
   pagination.value.current = 1
 }
 
-// 客户管理跳转（与V1.1 OrderPage L378-379 navigate('/crop/customer') 一致）
+// 客户管理跳转（与V1.1 OrderPage L378-379 navigate('/crop/customer') 一致 - 用 Vue Router 保持 SPA 状态）
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const handleCustomer = () => {
-  window.location.href = '/crop/customer'
+  router.push('/crop/customer')
 }
 
 // 新增
@@ -639,18 +636,21 @@ const handleEditSuccess = () => {
   orderDataStore.fetchStats()
 }
 
-// 删除
+// 删除（与 V1.1 OrderPage.tsx L151-161 一致 + 错误提示）
 const handleDelete = async (record) => {
   try {
-    await ElMessageBox.confirm(`确定要删除订单 ${record.orderCode} 吗？`, '提示', {
+    if (!await ElMessageBox.confirm(`确定要删除订单 ${record.orderCode} 吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
-    })
+    }).catch(() => false)) {
+      return
+    }
     await orderDataStore.deleteOrder(record.id)
     ElMessage.success('删除成功')
-  } catch {
-    // 用户取消
+  } catch (error) {
+    console.error('删除订单失败:', error)
+    ElMessage.error('删除失败，请稍后重试')
   }
 }
 
@@ -663,24 +663,27 @@ const handleBatchEditConfirm = () => {
   ElMessage.info('批量编辑功能开发中')
 }
 
-// 批量删除确认
+// 批量删除确认（与 V1.1 OrderPage.tsx L151-161 一致 + 错误提示）
 const handleConfirmDelete = async () => {
   if (selectedRows.value.length === 0) {
     ElMessage.warning('请先选择要删除的数据')
     return
   }
   try {
-    await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
+    if (!await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
-    })
+    }).catch(() => false)) {
+      return
+    }
     await orderDataStore.deleteOrders(selectedRows.value)
     selectedRows.value = []
     deleteMode.value = false
     ElMessage.success('删除成功')
-  } catch {
-    // 用户取消
+  } catch (error) {
+    console.error('批量删除订单失败:', error)
+    ElMessage.error('批量删除失败，请稍后重试')
   }
 }
 
