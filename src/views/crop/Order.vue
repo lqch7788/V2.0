@@ -641,8 +641,10 @@ const handleEditSuccess = () => {
   orderDataStore.fetchStats()
 }
 
-// 删除（与 V1.1 OrderPage.tsx L151-161 一致 + 错误提示）
+// 删除（与 V1.1 OrderPage.tsx L151-161 一致 + 错误提示 + loading 锁）
 const handleDelete = async (record) => {
+  if (submitting.value) return
+  submitting.value = true
   try {
     if (!await ElMessageBox.confirm(`确定要删除订单 ${record.orderCode} 吗？`, '提示', {
       confirmButtonText: '确定',
@@ -655,7 +657,9 @@ const handleDelete = async (record) => {
     ElMessage.success('删除成功')
   } catch (error) {
     console.error('删除订单失败:', error)
-    ElMessage.error('删除失败，请稍后重试')
+    ElMessage.error(`删除失败: ${error?.message || '未知错误'}`)
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -668,12 +672,14 @@ const handleBatchEditConfirm = () => {
   ElMessage.info('批量编辑功能开发中')
 }
 
-// 批量删除确认（与 V1.1 OrderPage.tsx L151-161 一致 + 错误提示）
+// 批量删除确认（与 V1.1 OrderPage.tsx L151-161 一致 + 错误提示 + loading 锁）
 const handleConfirmDelete = async () => {
   if (selectedRows.value.length === 0) {
     ElMessage.warning('请先选择要删除的数据')
     return
   }
+  if (submitting.value) return
+  submitting.value = true
   try {
     if (!await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
       confirmButtonText: '确定',
@@ -688,7 +694,9 @@ const handleConfirmDelete = async () => {
     ElMessage.success('删除成功')
   } catch (error) {
     console.error('批量删除订单失败:', error)
-    ElMessage.error('批量删除失败，请稍后重试')
+    ElMessage.error(`批量删除失败: ${error?.message || '未知错误'}`)
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -754,7 +762,7 @@ const handleDoExport = () => {
     '单位': record.unit,
     '订单日期': record.orderDate,
     '预计完成日期': record.expectedCompletionDate || '',
-    '状态': getStatusLabel(record.status),
+    '状态': getStatusLabel(record),
     '创建人': record.createBy,
     '创建时间': record.createTime,
     '备注': record.remarks || ''
