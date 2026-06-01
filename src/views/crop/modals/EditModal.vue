@@ -277,7 +277,7 @@ const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
 const isResizing = ref(false)
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
 
-// 表单数据（与V1.1 EditModal.tsx L40-59 一致 - 不含 supplierName）
+// 表单数据（与V1.1 EditModal.tsx L40-59 一致 - 无 customerName/customerPhone 显式字段）
 const form = ref({
   orderCode: '',
   orderName: '',
@@ -288,7 +288,6 @@ const form = ref({
   completedQuantity: 0,
   unit: '株',
   customerId: '',
-  customerName: '',
   customerPhone: '',
   deliveryAddress: '',
   orderDate: '',
@@ -581,7 +580,6 @@ const handleSubmit = async () => {
       completedQuantity: form.value.completedQuantity,
       unit: form.value.unit,
       customerId: form.value.customerId || undefined,
-      customerName: form.value.customerName,
       customerPhone: form.value.customerPhone,
       deliveryAddress: form.value.deliveryAddress,
       remarks: form.value.remarks,

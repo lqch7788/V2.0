@@ -64,7 +64,7 @@
       </div>
     </div>
 
-    <!-- 筛选工具栏（与V1.1 OrderFilter.tsx L31-141 完全一致 - 5个字段） -->
+    <!-- 筛选工具栏（与V1.1 OrderPage L48-56 + OrderFilter.tsx L31-141 一致 - 7 字段 state + 5 字段 UI） -->
     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
       <div class="flex items-end gap-4 flex-wrap">
         <!-- 订单编号 -->
@@ -129,14 +129,14 @@
           </template>
           <!-- 删除模式 -->
           <template v-else-if="deleteMode">
-            <el-button type="primary" size="small" @click="handleConfirmDelete">
+            <el-button type="danger" size="small" @click="handleConfirmDelete">
               确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
             <el-button size="small" @click="deleteMode = false">取消</el-button>
           </template>
           <!-- 导出模式 -->
           <template v-else-if="exportMode">
-            <el-button type="primary" size="small" @click="handleExportConfirm">
+            <el-button size="small" @click="handleExportConfirm">
               <Download class="w-4 h-4" />
               确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
@@ -153,7 +153,6 @@
               导出
             </el-button>
             <el-button type="primary" size="small" @click="handleCustomer">
-              <User class="w-4 h-4" />
               客户管理
             </el-button>
           </template>
@@ -418,13 +417,15 @@ const cropNameOptions = computed(() => {
     .map(name => ({ value: name, label: name }))
 })
 
-// 筛选条件（与V1.1 OrderFilter.tsx 一致 - UI 5字段，state 7字段包含 startDate/endDate/createBy）
+// 筛选条件（与V1.1 OrderPage L48-56 CropOrderFilters 一致 - 7 字段）
 const filters = ref({
   orderCode: '',
   orderName: '',
   cropName: '',
   status: '',
-  orderDate: ''
+  startDate: '',
+  endDate: '',
+  createBy: ''
 })
 
 // 分页
@@ -481,14 +482,16 @@ const statsData = computed(() => {
   }
 })
 
-// 筛选后的数据（与V1.1 OrderFilter.tsx UI 一致 - 5字段）
+// 筛选后的数据（与V1.1 OrderPage L99-116 一致 - 7字段过滤）
 const filteredData = computed(() => {
   return orderDataStore.orders.filter(item => {
     if (filters.value.orderCode && !item.orderCode?.includes(filters.value.orderCode)) return false
     if (filters.value.orderName && !item.orderName?.includes(filters.value.orderName)) return false
     if (filters.value.cropName && !item.cropVariety?.includes(filters.value.cropName)) return false
     if (filters.value.status && item.status !== filters.value.status) return false
-    if (filters.value.orderDate && item.orderDate < filters.value.orderDate) return false
+    if (filters.value.startDate && item.orderDate < filters.value.startDate) return false
+    if (filters.value.endDate && item.orderDate > filters.value.endDate) return false
+    if (filters.value.createBy && !item.createBy?.includes(filters.value.createBy)) return false
     return true
   }).sort((a, b) => {
     const timeA = a.createTime || ''
@@ -591,7 +594,9 @@ const handleReset = () => {
     orderName: '',
     cropName: '',
     status: '',
-    orderDate: ''
+    startDate: '',
+    endDate: '',
+    createBy: ''
   }
   pagination.value.current = 1
 }

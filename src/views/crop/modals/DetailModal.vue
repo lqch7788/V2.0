@@ -100,10 +100,6 @@
                     <p class="text-xs text-gray-500 mb-1">作物品种</p>
                     <p class="text-sm font-medium text-gray-900">{{ record.cropVariety }}</p>
                   </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">供应商</p>
-                    <p class="text-sm text-gray-900">{{ record.supplierName || '-' }}</p>
-                  </div>
                 </div>
               </div>
             </div>
