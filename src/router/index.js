@@ -517,6 +517,12 @@ const routes = [
     meta: { title: '采购计划' }
   },
   {
+    path: '/plan-summary',
+    name: 'PlanSummary',
+    component: () => import('@/views/production/PlanSummary.vue'),
+    meta: { title: '计划汇总' }
+  },
+  {
     path: '/labor/compensation',
     name: 'LaborCompensation',
     component: () => import('@/views/labor/Compensation.vue'),
