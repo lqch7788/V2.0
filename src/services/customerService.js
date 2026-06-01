@@ -1,28 +1,15 @@
 /**
  * 客户档案 API 服务
+ * 对接后端 /api/customers
+ *
+ * 数据流：API → enhancedApiClient（无缓存）→ Store → 组件
+ * - 请求字段名通过 toSnakeCase 转换为 snake_case（与 V2.0 后端 customer.ts 路由解构一致）
+ * - 响应字段名由后端 queryHelper 自动完成（snake_case → camelCase）
  */
-import { enhancedApiClient } from '../lib/apiClient'
-import { storageGetJSON, storageSetJSON } from '../utils/storage'
 
-const STORAGE_KEY = 'customers_local'
+import { enhancedApiClient } from '@/lib/apiClient'
 
-function getLocalCustomers() {
-  try {
-    return storageGetJSON(STORAGE_KEY, [])
-  } catch {
-    return []
-  }
-}
-
-function saveLocalCustomers(customers) {
-  try {
-    storageSetJSON(STORAGE_KEY, customers)
-  } catch (error) {
-    console.error('[customerService] 保存到localStorage失败:', error)
-  }
-}
-
-// 字段映射
+// 字段映射 (camelCase -> snake_case)
 const FIELD_MAP = {
   customerCode: 'customer_code',
   customerName: 'customer_name',
@@ -33,10 +20,6 @@ const FIELD_MAP = {
   createBy: 'create_by',
 }
 
-const REVERSE_FIELD_MAP = Object.fromEntries(
-  Object.entries(FIELD_MAP).map(([camel, snake]) => [snake, camel])
-)
-
 function toSnakeCase(data) {
   const result = {}
   for (const [key, value] of Object.entries(data)) {
@@ -46,90 +29,46 @@ function toSnakeCase(data) {
   return result
 }
 
-function normalizeCustomer(customer) {
-  const result = {}
-  for (const [key, value] of Object.entries(customer)) {
-    const camelKey = REVERSE_FIELD_MAP[key] || key
-    result[camelKey] = value
-  }
-  return result
-}
-
-function normalizeCustomers(customers) {
-  return customers.map(normalizeCustomer)
-}
-
+/**
+ * 获取所有客户
+ */
 export async function getCustomers(params) {
-  try {
-    const searchParams = new URLSearchParams()
-    if (params?.search) searchParams.set('search', params.search)
-    const query = searchParams.toString()
-    const data = await enhancedApiClient.get(`/customers${query ? `?${query}` : ''}`)
-    if (data && Array.isArray(data)) {
-      const normalized = normalizeCustomers(data)
-      saveLocalCustomers(normalized)
-      return normalized
-    }
-  } catch (error) {
-    console.warn('[customerService] API获取失败，降级到本地存储:', error)
-  }
-  return getLocalCustomers()
+  const searchParams = new URLSearchParams()
+  if (params?.search) searchParams.set('search', params.search)
+  const query = searchParams.toString()
+  const data = await enhancedApiClient.get(`/customers${query ? `?${query}` : ''}`)
+  return Array.isArray(data) ? data : []
 }
 
+/**
+ * 获取单个客户
+ */
 export async function getCustomerById(id) {
-  try {
-    const data = await enhancedApiClient.get(`/customers/${id}`)
-    return normalizeCustomer(data)
-  } catch (error) {
-    console.warn('[customerService] 获取客户详情失败:', error)
-    const local = getLocalCustomers()
-    return local.find(c => c.id === id)
-  }
+  return await enhancedApiClient.get(`/customers/${id}`)
 }
 
+/**
+ * 创建客户
+ * 后端会自动生成 customerCode（如果未提供）和 id
+ */
 export async function createCustomer(data) {
-  const tempId = `CUST${Date.now()}`
-  const now = new Date().toISOString()
-  const localCustomer = { ...data, id: tempId, createTime: now }
-  try {
-    const snakeData = toSnakeCase(data)
-    const result = await enhancedApiClient.post('/customers', snakeData)
-    return normalizeCustomer(result)
-  } catch (error) {
-    console.warn('[customerService] API创建失败，降级到localStorage:', error)
-    const local = getLocalCustomers()
-    local.unshift(localCustomer)
-    saveLocalCustomers(local)
-    return localCustomer
-  }
+  const snakeData = toSnakeCase(data)
+  return await enhancedApiClient.post('/customers', snakeData)
 }
 
+/**
+ * 更新客户
+ */
 export async function updateCustomer(id, data) {
-  try {
-    const snakeData = toSnakeCase(data)
-    await enhancedApiClient.put(`/customers/${id}`, snakeData)
-    return true
-  } catch (error) {
-    console.warn('[customerService] API更新失败，降级到localStorage:', error)
-    const local = getLocalCustomers()
-    const index = local.findIndex(c => c.id === id)
-    if (index !== -1) {
-      local[index] = { ...local[index], ...data, updateTime: new Date().toISOString() }
-      saveLocalCustomers(local)
-    }
-    return true
-  }
+  const snakeData = toSnakeCase(data)
+  await enhancedApiClient.put(`/customers/${id}`, snakeData)
+  return true
 }
 
+/**
+ * 删除客户
+ */
 export async function deleteCustomer(id) {
-  try {
-    await enhancedApiClient.delete(`/customers/${id}`)
-    return true
-  } catch (error) {
-    console.warn('[customerService] API删除失败，标记本地删除:', error)
-    const local = getLocalCustomers()
-    const filtered = local.filter(c => c.id !== id)
-    saveLocalCustomers(filtered)
-    return true
-  }
+  await enhancedApiClient.delete(`/customers/${id}`)
+  return true
 }

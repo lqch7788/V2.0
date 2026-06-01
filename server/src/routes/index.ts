@@ -29,6 +29,7 @@ import approvalRouter from './approval';
 import approvalLinkageRouter from './approvalLinkage';
 import operationLogRouter from './operationLog';
 import cropOrderRouter from './cropOrder';
+import customerRouter from './customer';
 import productionPlanRouter from './productionPlan';
 import techSolutionRouter from './techSolution';
 import summaryRouter from './summary';
@@ -171,6 +172,9 @@ router.use('/operation-logs', requireAuth, operationLogRouter);
 
 // 订单路由 - 需要认证
 router.use('/crop-orders', requireAuth, cropOrderRouter);
+
+// 客户路由 - 需要认证
+router.use('/customers', requireAuth, customerRouter);
 
 // 生产计划路由 - 需要认证
 router.use('/production-plans', requireAuth, productionPlanRouter);
