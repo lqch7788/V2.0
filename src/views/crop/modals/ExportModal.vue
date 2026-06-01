@@ -73,7 +73,7 @@ const exportCount = computed(() => {
 })
 
 // 选中格式
-const selectedFormat = ref(props.exportFormat || 'excel')
+const selectedFormat = ref(props.exportFileType || 'excel')
 
 // 格式选项
 const formats = [
@@ -85,7 +85,7 @@ const formats = [
 // 格式变化
 const handleFormatChange = (val) => {
   selectedFormat.value = val
-  emit('formatChange', val)
+  emit('change', val)
 }
 
 // 关闭

@@ -112,7 +112,7 @@
                 <!-- 下拉选择列表 -->
                 <div
                   v-if="showDropdown && filteredVarieties.length > 0"
-                  class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                  class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
                 >
                   <div
                     v-for="(variety, index) in filteredVarieties"
@@ -243,7 +243,11 @@ import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
 
 const props = defineProps({
   isOpen: Boolean,
-  record: Object
+  record: Object,
+  orderTypeOptions: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const emit = defineEmits(['close', 'success'])

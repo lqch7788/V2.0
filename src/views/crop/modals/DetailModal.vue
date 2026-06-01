@@ -153,7 +153,7 @@
                     </p>
                   </div>
                   <div>
-                    <p class="text-xs text-gray-500 mb-1">完成率</p>
+                    <p class="text-xs text-gray-500 mb-1">完成进度</p>
                     <p class="text-sm font-medium text-emerald-600">
                       {{ record.plannedQuantity > 0
                         ? Math.round((record.completedQuantity / record.plannedQuantity) * 100)

@@ -1,6 +1,6 @@
 <template>
-  <!-- 订单管理主页面 - V1.1样式完全重构 -->
-  <div class="p-6 bg-[#F2F6FA] min-h-screen">
+  <!-- 订单管理主页面 - 与 V1.1 OrderPage.tsx L323-452 完全对齐 -->
+  <div class="space-y-6">
     <!-- 页面标题卡片 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -116,8 +116,8 @@
       </div>
     </div>
 
-    <!-- 操作按钮行（与V1.1完全一致） -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
+    <!-- 操作按钮行（与V1.1 OrderPage L354-381 ActionToolbar noCard=true 模式一致：无背景卡片） -->
+    <div class="flex items-center justify-between">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="text-sm font-medium text-gray-700">订单列表</span>
@@ -174,6 +174,7 @@
               <th v-if="exportMode || batchEditMode" class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap">
                 <el-checkbox
                   :model-value="selectedRows.length === filteredData.length && filteredData.length > 0"
+                  class="border-white rounded"
                   @change="handleSelectAll"
                 />
               </th>
@@ -207,6 +208,7 @@
               <td v-if="exportMode || batchEditMode" class="px-4 py-3">
                 <el-checkbox
                   :model-value="selectedRows.includes(record.id)"
+                  class="rounded"
                   @change="() => handleToggleSelect(record.id)"
                 />
               </td>
@@ -329,9 +331,10 @@
       </div>
     </div>
 
-    <!-- 弹窗组件 -->
+    <!-- 弹窗组件 - 与 V1.1 OrderPage.tsx L413-450 弹窗挂载完全一致 -->
     <AddModal
       :is-open="addModalVisible"
+      :order-type-options="orderTypeOptions"
       @close="addModalVisible = false"
       @success="handleAddSuccess"
     />
@@ -347,17 +350,18 @@
       v-if="currentRecord"
       :is-open="editModalVisible"
       :record="currentRecord"
+      :order-type-options="orderTypeOptions"
       @close="editModalVisible = false"
       @success="handleEditSuccess"
     />
 
-    <!-- 导出格式选择弹窗 -->
+    <!-- 导出格式选择弹窗 - 与 V1.1 ExportFormatModal 字段对齐 -->
     <ExportModal
       :is-open="showExportModal"
-      :export-format="exportFormat"
+      :export-file-type="exportFormat"
       :selected-count="selectedRows.length"
       @close="showExportModal = false"
-      @format-change="exportFormat = $event"
+      @change="exportFormat = $event"
       @confirm="handleDoExport"
     />
   </div>
@@ -614,15 +618,18 @@ const handleAddSuccess = () => {
   orderDataStore.fetchStats()
 }
 
-// 详情
+// 详情（与 V1.1 OrderPage L137-142 一致：从 store 找最新数据）
 const handleDetail = (record) => {
-  currentRecord.value = record
+  // 从 store 中获取最新数据，确保显示最新的客户和预计完成日期
+  const latestRecord = orderDataStore.orders.find(o => o.id === record.id) || record
+  currentRecord.value = latestRecord
   detailModalVisible.value = true
 }
 
-// 编辑
+// 编辑（与 V1.1 OrderPage L144-149 一致：从 store 找最新数据）
 const handleEdit = (record) => {
-  currentRecord.value = record
+  const latestRecord = orderDataStore.orders.find(o => o.id === record.id) || record
+  currentRecord.value = latestRecord
   editModalVisible.value = true
 }
 

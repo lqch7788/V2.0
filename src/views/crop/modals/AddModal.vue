@@ -217,7 +217,11 @@ import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf } from 'lucide-vue-next'
 
 const props = defineProps({
-  isOpen: Boolean
+  isOpen: Boolean,
+  orderTypeOptions: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const emit = defineEmits(['close', 'success'])
