@@ -17,7 +17,7 @@
         >
           <el-option label="全部类型" value="all" />
           <el-option
-            v-for="[key, label] in Object.entries(planTypeLabels)"
+            v-for="[key, label] in Object.entries(PlanTypeLabels)"
             :key="key"
             :label="label"
             :value="key"
@@ -173,6 +173,13 @@ export default {
       localStatus: 'all',
       /** @type {String} 计划类型下拉本地值 */
       localPlanType: 'all',
+      // 1:1 翻译 V1.1 types/index.ts:16-20 PlanTypeLabels
+      /** @type {Record<string, string>} 计划类型文本映射 */
+      PlanTypeLabels: {
+        seed_breeding: '育种计划',
+        seedling: '育苗计划',
+        planting: '种植计划',
+      },
     }
   },
   watch: {
