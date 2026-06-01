@@ -224,6 +224,7 @@ import {
 } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useCustomerStore } from '@/stores/modules/customer'
+import CustomerModal from '@/views/crop/modals/CustomerModal.vue'
 
 const router = useRouter()
 const customerStore = useCustomerStore()
