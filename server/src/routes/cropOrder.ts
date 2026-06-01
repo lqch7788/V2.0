@@ -135,12 +135,15 @@ router.post('/', (req: Request, res: Response) => {
       unit,
       unit_price,
       total_amount,
+      customer_id,
       customer_name,
       customer_contact,
+      customer_phone,
       delivery_address,
       order_date,
       expected_delivery_date,
       actual_delivery_date,
+      expected_completion_date,
       status,
       remarks,
       create_by,
@@ -148,9 +151,11 @@ router.post('/', (req: Request, res: Response) => {
       order_name,
       crop_category,
       planned_quantity,
+      completed_quantity,
       actual_quantity,
       expected_harvest_date,
-      supplier_name
+      supplier_name,
+      instance_ids
     } = req.body;
 
     // 如果没有提供id，则自动生成一个
@@ -206,12 +211,12 @@ router.post('/', (req: Request, res: Response) => {
       INSERT INTO crop_orders (
         id, order_code, order_type, crop_name, crop_variety,
         quantity, unit, unit_price, total_amount,
-        customer_name, customer_contact, delivery_address,
-        order_date, expected_delivery_date, actual_delivery_date,
+        customer_id, customer_name, customer_contact, customer_phone, delivery_address,
+        order_date, expected_delivery_date, actual_delivery_date, expected_completion_date,
         status, remarks, create_by, create_time, update_time,
-        order_name, crop_category, planned_quantity, actual_quantity, expected_harvest_date,
-      supplier_name
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        order_name, crop_category, planned_quantity, completed_quantity, actual_quantity,
+        expected_harvest_date, supplier_name, instance_ids
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       code,
@@ -222,12 +227,15 @@ router.post('/', (req: Request, res: Response) => {
       unit || '',
       unit_price || 0,
       total_amount || 0,
+      customer_id || null,
       customer_name || '',
       customer_contact || '',
+      customer_phone || '',
       delivery_address || '',
       order_date || now.substring(0, 10),
       expected_delivery_date || '',
       actual_delivery_date || '',
+      expected_completion_date || '',
       status || 'pending',
       remarks || '',
       create_by || '',
@@ -236,9 +244,11 @@ router.post('/', (req: Request, res: Response) => {
       order_name || '',
       crop_category || '',
       planned_quantity || 0,
+      completed_quantity || 0,
       actual_quantity || 0,
       expected_harvest_date || '',
-      supplier_name || ''
+      supplier_name || '',
+      instance_ids ? JSON.stringify(instance_ids) : null
     ]);
 
     saveDatabase();
@@ -291,22 +301,27 @@ router.put('/:id', (req: Request, res: Response) => {
       unit: 'unit',
       unitPrice: 'unit_price',
       totalAmount: 'total_amount',
+      customerId: 'customer_id',
       customerName: 'customer_name',
       customerContact: 'customer_contact',
+      customerPhone: 'customer_phone',
       deliveryAddress: 'delivery_address',
       orderDate: 'order_date',
       expectedDeliveryDate: 'expected_delivery_date',
       actualDeliveryDate: 'actual_delivery_date',
+      expectedCompletionDate: 'expected_completion_date',
       status: 'status',
       remarks: 'remarks',
       // 新增字段映射
       orderName: 'order_name',
       cropCategory: 'crop_category',
       plannedQuantity: 'planned_quantity',
+      completedQuantity: 'completed_quantity',
       actualQuantity: 'actual_quantity',
       expectedHarvestDate: 'expected_harvest_date',
       supplierName: 'supplier_name',
-      createBy: 'create_by'
+      createBy: 'create_by',
+      instanceIds: 'instance_ids'
     };
 
     const updateFields: string[] = [];

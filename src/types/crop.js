@@ -235,10 +235,72 @@ export const CropOrderStatus = {
 }
 
 /** 订单筛选条件 */
-export const CropOrderFilters = {}
+export const CropOrderFilters = {
+  orderCode: '',
+  orderName: '',
+  cropName: '',
+  status: '',
+  startDate: '',
+  endDate: '',
+  createBy: ''
+}
 
-/** 作物订单 */
-export const CropOrder = {}
+/**
+ * 作物订单（与 V1.1 types/crop.ts CropOrder 接口完全一致）
+ * @typedef {Object} CropOrder
+ * @property {string} id
+ * @property {string} orderCode
+ * @property {string} orderName
+ * @property {'breeding'|'seedling'|'production'|'research'|'other'} orderType
+ * @property {string[]} instanceIds - 关联的作物实例ID列表
+ * @property {string} cropCategory
+ * @property {string} cropName
+ * @property {string} cropVariety
+ * @property {number} plannedQuantity
+ * @property {number} completedQuantity
+ * @property {string} unit
+ * @property {string} [supplierId]
+ * @property {string} [supplierName]
+ * @property {string} [customerId]
+ * @property {string} [customerName]
+ * @property {string} [customerPhone]
+ * @property {string} [deliveryAddress]
+ * @property {string} orderDate
+ * @property {string} [expectedCompletionDate]
+ * @property {string} [actualHarvestDate]
+ * @property {CropOrderStatus} status
+ * @property {string} [remarks]
+ * @property {string} createBy
+ * @property {string} createTime
+ * @property {string} updateTime
+ */
+export const CropOrder = {
+  id: '',
+  orderCode: '',
+  orderName: '',
+  orderType: 'production',
+  instanceIds: [],
+  cropCategory: '',
+  cropName: '',
+  cropVariety: '',
+  plannedQuantity: 0,
+  completedQuantity: 0,
+  unit: '株',
+  supplierId: '',
+  supplierName: '',
+  customerId: '',
+  customerName: '',
+  customerPhone: '',
+  deliveryAddress: '',
+  orderDate: '',
+  expectedCompletionDate: '',
+  actualHarvestDate: '',
+  status: 'planned',
+  remarks: '',
+  createBy: '',
+  createTime: '',
+  updateTime: ''
+}
 
 /**
  * 作物实例 - 贯穿整个生命周期的核心实体

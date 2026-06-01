@@ -92,9 +92,15 @@
               />
             </div>
 
-            <!-- 作物品种 - 使用 CropCodeSelector 选择器（与V1.1一致） -->
+            <!-- 创建人（与V1.1 AddModal L278-286 自动填充一致） -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">创建人</label>
+              <el-input :model-value="localStorage.getItem('username') || '未知用户'" disabled class="bg-gray-50 text-gray-600" />
+            </div>
+
+            <!-- 作物品种 - 使用 CropCodeSelector（与V1.1 AddModal.tsx L289-314 完全一致） -->
             <div class="col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-1">作物品种 <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"><span class="text-red-500">*</span> 作物选择</label>
               <CropCodeSelector
                 v-model="form.cropCode"
                 placeholder="搜索或选择作物品种..."
@@ -102,7 +108,6 @@
                 show-full-path
                 @change="handleCropChange"
               />
-              <!-- 显示选中作物的详细信息（与V1.1一致） -->
               <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
                 <div class="text-emerald-700 flex items-center gap-1">
                   <el-icon class="w-3 h-3 flex-shrink-0"><Leaf /></el-icon>
@@ -114,12 +119,6 @@
                 </div>
               </div>
               <p v-if="errors.cropVariety" class="text-xs text-red-500 mt-1">{{ errors.cropVariety }}</p>
-            </div>
-
-            <!-- 品种路径（自动填充） -->
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-1">品种路径</label>
-              <el-input v-model="form.cropCategory" placeholder="选择作物后自动填充" readonly />
             </div>
 
             <!-- 单位 -->
@@ -141,28 +140,35 @@
               <p v-if="errors.plannedQuantity" class="text-xs text-red-500 mt-1">{{ errors.plannedQuantity }}</p>
             </div>
 
-            <!-- 实际数量 -->
+            <!-- 完成数量（与V1.1 L353-365 标签一致："完成数量"不是"实际数量"） -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">实际数量</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">完成数量</label>
               <el-input-number v-model="form.completedQuantity" :min="0" class="w-full" />
             </div>
 
-            <!-- 客户名称 -->
+            <!-- 客户下拉（与V1.1 AddModal.tsx L367-396 客户下拉选择器一致） -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">客户名称</label>
-              <el-input v-model="form.customerName" placeholder="请输入客户名称" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">客户</label>
+              <el-select
+                v-model="form.customerId"
+                placeholder="请选择客户"
+                clearable
+                class="w-full"
+                @change="handleCustomerChange"
+              >
+                <el-option
+                  v-for="customer in customerOptions"
+                  :key="customer.id"
+                  :label="customer.customerName"
+                  :value="customer.id"
+                />
+              </el-select>
             </div>
 
             <!-- 客户电话 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">客户电话</label>
-              <el-input v-model="form.customerContact" placeholder="请输入客户电话" />
-            </div>
-
-            <!-- 供应商 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
-              <el-input v-model="form.supplierName" placeholder="请输入供应商名称" />
+              <el-input v-model="form.customerPhone" placeholder="请输入客户电话" />
             </div>
 
             <!-- 收货地址 -->
@@ -171,22 +177,16 @@
               <el-input v-model="form.deliveryAddress" placeholder="请输入收货地址" />
             </div>
 
-            <!-- 预计完成日期 -->
+            <!-- 预计完成日期（统一为 expectedCompletionDate） -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">预计采收日期</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">预计完成日期</label>
               <el-date-picker
-                v-model="form.expectedHarvestDate"
+                v-model="form.expectedCompletionDate"
                 type="date"
                 placeholder="选择日期"
                 value-format="YYYY-MM-DD"
                 class="w-full"
               />
-            </div>
-
-            <!-- 创建人 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">创建人</label>
-              <el-input :model-value="localStorage.getItem('username') || '未知用户'" disabled class="bg-gray-50 text-gray-600" />
             </div>
 
             <!-- 备注 -->
@@ -208,10 +208,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { Plus, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
+import { useCustomerStore } from '@/stores/modules/customer'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf } from 'lucide-vue-next'
 
@@ -222,6 +223,20 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success'])
 
 const orderDataStore = useOrderDataStore()
+const customerStore = useCustomerStore()
+
+// 客户下拉选项（与 V1.1 AddModal.tsx L391 一致）
+const customerOptions = computed(() => customerStore.customers || [])
+
+// 客户选择变更时自动填充电话/地址（与 V1.1 AddModal.tsx L375-384 一致）
+const handleCustomerChange = (customerId) => {
+  const customer = customerOptions.value.find(c => c.id === customerId)
+  if (customer) {
+    form.value.customerName = customer.customerName || ''
+    form.value.customerPhone = customer.contactPhone || customer.customerPhone || ''
+    form.value.deliveryAddress = customer.deliveryAddress || ''
+  }
+}
 
 // 最大化状态
 const isMaximized = ref(false)
@@ -234,7 +249,7 @@ const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
 const isResizing = ref(false)
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
 
-// 表单数据
+// 表单数据（与V1.1 AddModal.tsx L50-67 一致 - 不含 supplierName）
 const form = ref({
   orderCode: '',
   orderName: '',
@@ -245,12 +260,11 @@ const form = ref({
   plannedQuantity: 0,
   completedQuantity: 0,
   unit: '株',
-  supplierName: '',
+  customerId: '',
   customerName: '',
-  customerContact: '',
+  customerPhone: '',
   deliveryAddress: '',
   orderDate: new Date().toISOString().slice(0, 10),
-  expectedHarvestDate: '',
   expectedCompletionDate: '',
   remarks: ''
 })
@@ -296,7 +310,11 @@ const generateOrderCode = () => {
 // 监听打开
 watch(() => props.isOpen, (val) => {
   if (val) {
-    // 重置表单
+    // 加载客户列表（与 V1.1 AddModal.tsx L86 一致）
+    if (customerStore.fetchCustomers) {
+      customerStore.fetchCustomers()
+    }
+    // 重置表单（与V1.1 AddModal.tsx L173-189 一致 - 不含 supplierName）
     form.value = {
       orderCode: '',
       orderName: '',
@@ -307,12 +325,11 @@ watch(() => props.isOpen, (val) => {
       plannedQuantity: 0,
       completedQuantity: 0,
       unit: '株',
-      supplierName: '',
+      customerId: '',
       customerName: '',
-      customerContact: '',
+      customerPhone: '',
       deliveryAddress: '',
       orderDate: new Date().toISOString().slice(0, 10),
-      expectedHarvestDate: '',
       expectedCompletionDate: '',
       remarks: ''
     }
@@ -447,17 +464,18 @@ const handleSubmit = async () => {
       plannedQuantity: form.value.plannedQuantity,
       completedQuantity: form.value.completedQuantity,
       unit: form.value.unit,
-      supplierName: form.value.supplierName,
       orderDate: form.value.orderDate,
-      expectedHarvestDate: form.value.expectedHarvestDate,
-      expectedCompletionDate: form.value.expectedHarvestDate,
+      expectedCompletionDate: form.value.expectedCompletionDate,
       status: 'planned',
       createBy: localStorage.getItem('username') || '',
       remarks: form.value.remarks,
-      // 客户相关字段
+      // 客户相关字段（与 V1.1 types/crop.ts CropOrder 完全一致）
+      customerId: form.value.customerId || undefined,
       customerName: form.value.customerName,
-      customerContact: form.value.customerContact,
+      customerPhone: form.value.customerPhone,
       deliveryAddress: form.value.deliveryAddress,
+      // 关联字段（V1.1 L604）
+      instanceIds: [],
     }
 
     await orderDataStore.addOrder(newOrder)

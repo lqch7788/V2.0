@@ -153,16 +153,29 @@
               <p v-if="errors.plannedQuantity" class="text-xs text-red-500 mt-1">{{ errors.plannedQuantity }}</p>
             </div>
 
-            <!-- 完成数量（与V1.1一致） -->
+            <!-- 完成数量（与V1.1 EditModal L425-436 标签一致："完成数量"） -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">完成数量</label>
               <el-input-number v-model="form.completedQuantity" :min="0" class="w-full" />
             </div>
 
-            <!-- 客户名称 -->
+            <!-- 客户下拉（与V1.1 EditModal.tsx L438-466 客户下拉选择器一致） -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">客户名称</label>
-              <el-input v-model="form.customerName" placeholder="请输入客户名称" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">客户</label>
+              <el-select
+                v-model="form.customerId"
+                placeholder="请选择客户"
+                clearable
+                class="w-full"
+                @change="handleCustomerChange"
+              >
+                <el-option
+                  v-for="customer in customerOptions"
+                  :key="customer.id"
+                  :label="customer.customerName"
+                  :value="customer.id"
+                />
+              </el-select>
             </div>
 
             <!-- 客户电话 -->
@@ -171,23 +184,17 @@
               <el-input v-model="form.customerPhone" placeholder="请输入客户电话" />
             </div>
 
-            <!-- 供应商 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
-              <el-input v-model="form.supplierName" placeholder="请输入供应商名称" />
-            </div>
-
             <!-- 收货地址 -->
             <div class="col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">收货地址</label>
               <el-input v-model="form.deliveryAddress" placeholder="请输入收货地址" />
             </div>
 
-            <!-- 预计采收日期 -->
+            <!-- 预计完成日期（统一为 expectedCompletionDate） -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">预计采收日期</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">预计完成日期</label>
               <el-date-picker
-                v-model="form.expectedHarvestDate"
+                v-model="form.expectedCompletionDate"
                 type="date"
                 placeholder="选择日期"
                 value-format="YYYY-MM-DD"
@@ -230,6 +237,7 @@ import { Edit, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vu
 import { Search, X } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
+import { useCustomerStore } from '@/stores/modules/customer'
 import { CropOrderStatus } from '@/types/crop'
 import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
 
@@ -241,6 +249,20 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success'])
 
 const orderDataStore = useOrderDataStore()
+const customerStore = useCustomerStore()
+
+// 客户下拉选项（与 V1.1 EditModal.tsx L461 一致）
+const customerOptions = computed(() => customerStore.customers || [])
+
+// 客户选择变更时自动填充（与 V1.1 EditModal.tsx L444-455 一致）
+const handleCustomerChange = (customerId) => {
+  const customer = customerOptions.value.find(c => c.id === customerId)
+  if (customer) {
+    form.value.customerName = customer.customerName || ''
+    form.value.customerPhone = customer.contactPhone || customer.customerPhone || ''
+    form.value.deliveryAddress = customer.deliveryAddress || ''
+  }
+}
 
 // 最大化状态
 const isMaximized = ref(false)
@@ -253,7 +275,7 @@ const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
 const isResizing = ref(false)
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
 
-// 表单数据
+// 表单数据（与V1.1 EditModal.tsx L40-59 一致 - 不含 supplierName）
 const form = ref({
   orderCode: '',
   orderName: '',
@@ -263,12 +285,12 @@ const form = ref({
   plannedQuantity: 0,
   completedQuantity: 0,
   unit: '株',
-  supplierName: '',
+  customerId: '',
   customerName: '',
   customerPhone: '',
   deliveryAddress: '',
   orderDate: '',
-  expectedHarvestDate: '',
+  expectedCompletionDate: '',
   remarks: '',
   orderStatus: 'in_progress'
 })
@@ -346,12 +368,12 @@ watch(() => props.isOpen, (val) => {
       plannedQuantity: props.record.plannedQuantity || 0,
       completedQuantity: props.record.completedQuantity || 0,
       unit: props.record.unit || '株',
-      supplierName: props.record.supplierName || '',
+      customerId: props.record.customerId || '',
       customerName: props.record.customerName || '',
       customerPhone: props.record.customerPhone || '',
       deliveryAddress: props.record.deliveryAddress || '',
       orderDate: props.record.orderDate || '',
-      expectedHarvestDate: props.record.expectedHarvestDate || '',
+      expectedCompletionDate: props.record.expectedCompletionDate || '',
       remarks: props.record.remarks || '',
       orderStatus: props.record.status === CropOrderStatus.COMPLETED
         ? 'completed'
@@ -547,14 +569,14 @@ const handleSubmit = async () => {
       orderName: form.value.orderName,
       orderType: form.value.orderType,
       orderDate: form.value.orderDate,
-      expectedHarvestDate: form.value.expectedHarvestDate || undefined,
+      expectedCompletionDate: form.value.expectedCompletionDate || undefined,
       cropCategory: form.value.cropCategory,
       cropName: '',
       cropVariety: form.value.cropVariety,
       plannedQuantity: form.value.plannedQuantity,
       completedQuantity: form.value.completedQuantity,
       unit: form.value.unit,
-      supplierName: form.value.supplierName,
+      customerId: form.value.customerId || undefined,
       customerName: form.value.customerName,
       customerPhone: form.value.customerPhone,
       deliveryAddress: form.value.deliveryAddress,

@@ -1545,6 +1545,12 @@ export function initializeDatabase() {
     `ALTER TABLE crop_orders ADD COLUMN actual_quantity INTEGER DEFAULT 0`,
     `ALTER TABLE crop_orders ADD COLUMN expected_harvest_date TEXT`,
     `ALTER TABLE crop_orders ADD COLUMN supplier_name TEXT`,
+    // V2.0 三轮审核补齐：与 V1.1 schema 保持一致
+    `ALTER TABLE crop_orders ADD COLUMN completed_quantity INTEGER DEFAULT 0`,
+    `ALTER TABLE crop_orders ADD COLUMN customer_id TEXT`,
+    `ALTER TABLE crop_orders ADD COLUMN customer_phone TEXT`,
+    `ALTER TABLE crop_orders ADD COLUMN expected_completion_date TEXT`,
+    `ALTER TABLE crop_orders ADD COLUMN instance_ids TEXT`,
   ];
   for (const sql of cropOrdersMigrations) {
     try {

@@ -97,18 +97,19 @@ function toSnakeCase(data) {
     plannedQuantity: 'planned_quantity',
     completedQuantity: 'completed_quantity',
     orderDate: 'order_date',
-    expectedHarvestDate: 'expected_harvest_date',
     expectedCompletionDate: 'expected_completion_date',
+    actualHarvestDate: 'actual_harvest_date',
     supplierName: 'supplier_name',
+    customerId: 'customer_id',
+    customerName: 'customer_name',
+    customerPhone: 'customer_phone',
+    customerContact: 'customer_phone', // 兼容 V2.0 旧字段名
+    deliveryAddress: 'delivery_address',
     unit: 'unit',
     remarks: 'remarks',
     status: 'status',
     createBy: 'create_by',
     updateTime: 'update_time',
-    // 客户相关字段
-    customerName: 'customer_name',
-    customerPhone: 'customer_phone',
-    deliveryAddress: 'delivery_address',
   }
 
   const result = {}

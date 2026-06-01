@@ -64,7 +64,7 @@
       </div>
     </div>
 
-    <!-- 筛选工具栏（与V1.1完全一致） -->
+    <!-- 筛选工具栏（与V1.1 OrderFilter.tsx L31-141 完全一致 - 5个字段） -->
     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
       <div class="flex items-end gap-4 flex-wrap">
         <!-- 订单编号 -->
@@ -146,13 +146,13 @@
             </el-button>
             <el-button size="small" @click="handleExportCancel">取消</el-button>
           </template>
-          <!-- 正常模式（与V1.1完全一致：新增+导出+客户管理） -->
+          <!-- 正常模式（与V1.1 OrderPage.tsx L354-381 ActionToolbar 调用配置一致：canCreate=true, canExport=true, showCustomerButton=true, canEdit=false, canDelete=false, showLowStockButton=false） -->
           <template v-else>
-            <el-button v-if="canCreate" type="primary" size="small" @click="handleAdd">
+            <el-button type="primary" size="small" @click="handleAdd">
               <Plus class="w-4 h-4" />
               新增
             </el-button>
-            <el-button v-if="canExport" size="small" @click="handleExportClick">
+            <el-button size="small" @click="handleExportClick">
               <Download class="w-4 h-4" />
               导出
             </el-button>
@@ -171,7 +171,7 @@
         <table class="w-full">
           <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <tr>
-              <th v-if="exportMode || batchEditMode" class="px-4 py-3 text-left text-sm font-semibold w-12">
+              <th v-if="exportMode || batchEditMode" class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap">
                 <el-checkbox
                   :model-value="selectedRows.length === filteredData.length && filteredData.length > 0"
                   @change="handleSelectAll"
@@ -195,7 +195,7 @@
           </thead>
           <tbody class="divide-y divide-gray-300">
             <tr v-if="paginatedData.length === 0">
-              <td :colspan="exportMode || batchEditMode ? 16 : 15" class="px-4 py-8 text-center text-gray-500">
+              <td :colspan="exportMode || batchEditMode ? 15 : 14" class="px-4 py-8 text-center text-gray-500">
                 暂无数据
               </td>
             </tr>
@@ -225,7 +225,7 @@
               </td>
               <td class="px-4 py-3">
                 <div class="text-sm text-gray-900">{{ record.cropVariety }}</div>
-                <div class="text-xs text-gray-500 truncate max-w-[150px]" :title="record.cropCategory">{{ record.cropCategory }}</div>
+                <div class="text-xs text-gray-500 truncate max-w-xs" :title="record.cropCategory">{{ record.cropCategory }}</div>
               </td>
               <td class="px-4 py-3 text-sm text-gray-600">
                 {{ record.plannedQuantity }} {{ record.unit }}
@@ -236,7 +236,7 @@
               <td class="px-4 py-3 text-sm">
                 {{ record.plannedQuantity > 0 ? Math.round(((record.completedQuantity || 0) / record.plannedQuantity) * 100) + '%' : '0%' }}
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[120px]" :title="record.customerName || '-'">
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap truncate max-w-xs">
                 {{ record.customerName || '-' }}
               </td>
               <td class="px-4 py-3 text-sm text-gray-600">
@@ -250,10 +250,10 @@
                   {{ getStatusLabel(record) }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[100px]" :title="record.createBy || '-'">
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap truncate max-w-xs">
                 {{ record.createBy || '-' }}
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]" :title="record.remarks || '-'">
+              <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-xs" :title="record.remarks || '-'">
                 {{ record.remarks || '-' }}
               </td>
               <td class="px-4 py-3">
@@ -419,7 +419,7 @@ const cropNameOptions = computed(() => {
     .map(name => ({ value: name, label: name }))
 })
 
-// 筛选条件（与V1.1完全一致）
+// 筛选条件（与V1.1 OrderFilter.tsx 一致 - UI 5字段，state 7字段包含 startDate/endDate/createBy）
 const filters = ref({
   orderCode: '',
   orderName: '',
@@ -453,7 +453,7 @@ const deleteMode = ref(false)
 const exportFormat = ref('xlsx')
 const showExportModal = ref(false)
 
-// 弹窗状态
+// 弹窗状态（与V1.1 OrderPage L84-87 一致：4个弹窗）
 const addModalVisible = ref(false)
 const detailModalVisible = ref(false)
 const editModalVisible = ref(false)
@@ -482,7 +482,7 @@ const statsData = computed(() => {
   }
 })
 
-// 筛选后的数据（与V1.1逻辑完全一致）
+// 筛选后的数据（与V1.1 OrderFilter.tsx UI 一致 - 5字段）
 const filteredData = computed(() => {
   return orderDataStore.orders.filter(item => {
     if (filters.value.orderCode && !item.orderCode?.includes(filters.value.orderCode)) return false
@@ -597,7 +597,7 @@ const handleReset = () => {
   pagination.value.current = 1
 }
 
-// 客户管理跳转
+// 客户管理跳转（与V1.1 OrderPage L378-379 navigate('/crop/customer') 一致）
 const handleCustomer = () => {
   window.location.href = '/crop/customer'
 }
@@ -738,7 +738,7 @@ const handleDoExport = () => {
     '完成数量': record.completedQuantity,
     '单位': record.unit,
     '订单日期': record.orderDate,
-    '预计采收日期': record.expectedHarvestDate || '',
+    '预计完成日期': record.expectedCompletionDate || '',
     '状态': getStatusLabel(record.status),
     '创建人': record.createBy,
     '创建时间': record.createTime,

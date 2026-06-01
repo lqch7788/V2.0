@@ -77,8 +77,8 @@
                     <p class="text-sm text-gray-900">{{ record.orderDate }}</p>
                   </div>
                   <div>
-                    <p class="text-xs text-gray-500 mb-1">预计采收日期</p>
-                    <p class="text-sm text-gray-900">{{ record.expectedHarvestDate || '-' }}</p>
+                    <p class="text-xs text-gray-500 mb-1">预计完成日期</p>
+                    <p class="text-sm text-gray-900">{{ record.expectedCompletionDate || '-' }}</p>
                   </div>
                 </div>
               </div>
@@ -147,16 +147,16 @@
                     </p>
                   </div>
                   <div>
-                    <p class="text-xs text-gray-500 mb-1">实际数量</p>
+                    <p class="text-xs text-gray-500 mb-1">完成数量</p>
                     <p class="text-sm font-medium text-gray-900">
-                      {{ record.actualQuantity || 0 }} {{ record.unit }}
+                      {{ record.completedQuantity || 0 }} {{ record.unit }}
                     </p>
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 mb-1">完成率</p>
                     <p class="text-sm font-medium text-emerald-600">
                       {{ record.plannedQuantity > 0
-                        ? Math.round((record.actualQuantity / record.plannedQuantity) * 100)
+                        ? Math.round((record.completedQuantity / record.plannedQuantity) * 100)
                         : 0 }}%
                     </p>
                   </div>
@@ -236,8 +236,8 @@ const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
 const getStatusLabel = (status) => {
   if (status === CropOrderStatus.COMPLETED) return '已完成'
   if (status === CropOrderStatus.CANCELLED) return '已取消'
-  // 根据完成数量动态判断
-  if (props.record && (props.record.actualQuantity || 0) > 0) return '进行中'
+  // 根据完成数量动态判断（统一为 completedQuantity）
+  if (props.record && (props.record.completedQuantity || 0) > 0) return '进行中'
   return '已计划'
 }
 
