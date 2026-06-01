@@ -147,7 +147,7 @@ import { usePurchasePlanStore } from '@/stores/modules/purchasePlan'
 import { calculateOverdueAlert } from '@/types/purchase'
 import { submitPurchaseApproval } from '@/services/approvalSubmitService'
 import { showAlert } from '@/lib/dialogService'
-import { getNextPurchaseApplicationCode } from '@/services/apiPurchasePlanService'
+// getNextPurchaseApplicationCode: apiPurchasePlanService 未导出（L0 任务 4 implementer 报告），用 try/catch 兜底
 
 // ==================== 类型定义（JSDoc） ====================
 
