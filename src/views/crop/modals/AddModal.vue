@@ -542,5 +542,51 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* V1.1样式保持 */
+/* V1.1 inputDeepClass 全局样式（修复轮 6 P0-001~007 inputDeepClass 缺失 22 处）
+   V1.1 AddModal L199 定义：
+   px-4 py-3 border border-gray-400 rounded-lg text-sm
+   focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner
+   通过 :deep 选择器全局覆盖 Element Plus 默认 el-input/select/textarea 样式 */
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner) {
+  padding: 0 11px !important;
+  box-shadow: 0 0 0 1px #9ca3af inset !important;
+  border-radius: 0.5rem !important;
+  transition: box-shadow 0.15s ease-in-out;
+  min-height: 38px;
+}
+:deep(.el-input__wrapper:hover),
+:deep(.el-textarea__inner:hover) {
+  box-shadow: 0 0 0 1px #10b981 inset !important;
+}
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 1px #10b981 inset, 0 0 0 2px rgba(16, 185, 129, 0.2) inset !important;
+  outline: none;
+}
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-size: 14px !important;
+}
+:deep(.el-select__wrapper) {
+  padding: 0 11px !important;
+  box-shadow: 0 0 0 1px #9ca3af inset !important;
+  border-radius: 0.5rem !important;
+  min-height: 38px;
+  background: #fff;
+}
+:deep(.el-select__wrapper:hover) {
+  box-shadow: 0 0 0 1px #10b981 inset !important;
+}
+:deep(.el-select__wrapper.is-focused) {
+  box-shadow: 0 0 0 1px #10b981 inset, 0 0 0 2px rgba(16, 185, 129, 0.2) inset !important;
+}
+:deep(.el-select__placeholder) {
+  font-size: 14px;
+  color: #9ca3af;
+}
+/* 错误状态（V1.1 errors.orderCode 触发 border-red-500） */
+:deep(.el-input__wrapper.is-error) {
+  box-shadow: 0 0 0 1px #ef4444 inset !important;
+}
 </style>

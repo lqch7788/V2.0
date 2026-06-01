@@ -53,7 +53,7 @@
             <!-- 订单编号 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">订单编号</label>
-              <el-input v-model="form.orderCode" disabled class="bg-gray-50 text-gray-600" />
+              <el-input v-model="form.orderCode" readonly class="bg-gray-50 text-gray-600 border-gray-300" />
             </div>
 
             <!-- 订单名称 -->
@@ -130,7 +130,7 @@
             <!-- 品种路径 -->
             <div class="col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">品种路径</label>
-              <el-input v-model="form.cropCategory" placeholder="选择作物品种后自动填充" disabled class="bg-gray-50 text-gray-600" />
+              <el-input v-model="form.cropCategory" placeholder="选择作物品种后自动填充" readonly class="bg-gray-50 text-gray-600 border-gray-300" />
             </div>
 
             <!-- 单位 -->
@@ -220,10 +220,12 @@
           </div>
         </div>
 
-        <!-- 底部按钮 -->
+        <!-- 底部按钮（修复轮 8 P0-I1-1：提交期按钮 disabled + 文案变化） -->
         <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-xl">
-          <el-button size="small" @click="handleClose" @mousedown.stop>取消</el-button>
-          <el-button type="primary" size="small" @click="handleSubmit" @mousedown.stop>保存修改</el-button>
+          <el-button size="small" @click="handleClose" @mousedown.stop :disabled="isSubmitting">取消</el-button>
+          <el-button type="primary" size="small" @click="handleSubmit" @mousedown.stop :disabled="isSubmitting">
+            {{ isSubmitting ? '保存中...' : '保存修改' }}
+          </el-button>
         </div>
       </div>
     </div>
@@ -350,7 +352,7 @@ function handleClickOutside() {
   showDropdown.value = false
 }
 
-// 监听打开和记录变化（V2.0 第6轮 P0 修复：添加 immediate: true，与 V1.1 useEffect 默认行为一致）
+// 监听打开和记录变化（V2.0 第6轮 P0 修复：添加 immediate: true + 修复轮 8 P0-I1-3：弹窗打开时刷新客户列表）
 watch([() => props.isOpen, () => props.record], ([isOpenVal, recordVal]) => {
   if (isOpenVal && recordVal) {
     // 如果订单已完成或已取消，禁止编辑
@@ -360,6 +362,8 @@ watch([() => props.isOpen, () => props.record], ([isOpenVal, recordVal]) => {
       emit('close')
       return
     }
+    // 修复轮 8 P0-I1-3：弹窗打开时刷新客户列表，确保客户下拉有数据
+    if (customerStore.fetchCustomers) customerStore.fetchCustomers()
     // 初始化表单
     form.value = {
       orderCode: recordVal.orderCode || '',
@@ -529,7 +533,8 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
-// 提交
+// 提交（修复轮 8 P0-I1-1：加 isSubmitting 状态，提交期间按钮 disabled + 文案变化）
+const isSubmitting = ref(false)
 const handleSubmit = async () => {
   // 如果订单已完成或已取消，禁止编辑
   if (props.record && (props.record.status === CropOrderStatus.COMPLETED || props.record.status === CropOrderStatus.CANCELLED)) {
@@ -612,10 +617,55 @@ const handleSubmit = async () => {
   } catch (error) {
     console.error('更新订单失败:', error)
     await showAlert('更新订单失败，请重试')
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
 
 <style scoped>
-/* V1.1样式保持 */
+/* V1.1 inputDeepClass 全局样式（修复轮 6 P0-008~016 inputDeepClass 缺失）
+   V1.1 EditModal L66 deepInputClass 定义，与 AddModal 同一套样式 */
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner) {
+  padding: 0 11px !important;
+  box-shadow: 0 0 0 1px #9ca3af inset !important;
+  border-radius: 0.5rem !important;
+  transition: box-shadow 0.15s ease-in-out;
+  min-height: 38px;
+}
+:deep(.el-input__wrapper:hover),
+:deep(.el-textarea__inner:hover) {
+  box-shadow: 0 0 0 1px #10b981 inset !important;
+}
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 1px #10b981 inset, 0 0 0 2px rgba(16, 185, 129, 0.2) inset !important;
+  outline: none;
+}
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-size: 14px !important;
+}
+:deep(.el-select__wrapper) {
+  padding: 0 11px !important;
+  box-shadow: 0 0 0 1px #9ca3af inset !important;
+  border-radius: 0.5rem !important;
+  min-height: 38px;
+  background: #fff;
+}
+:deep(.el-select__wrapper:hover) {
+  box-shadow: 0 0 0 1px #10b981 inset !important;
+}
+:deep(.el-select__wrapper.is-focused) {
+  box-shadow: 0 0 0 1px #10b981 inset, 0 0 0 2px rgba(16, 185, 129, 0.2) inset !important;
+}
+:deep(.el-select__placeholder) {
+  font-size: 14px;
+  color: #9ca3af;
+}
+/* 错误状态（V1.1 errors 触发 border-red-500） */
+:deep(.el-input__wrapper.is-error) {
+  box-shadow: 0 0 0 1px #ef4444 inset !important;
+}
 </style>
