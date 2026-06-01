@@ -18,7 +18,7 @@
         <div class="p-6">
           <div class="space-y-3">
             <p class="text-gray-600 text-sm mb-2">
-              确认导出 <span class="text-blue-600 font-medium">{{ exportCount }}</span> 条数据
+              已选择 <span class="text-blue-600 font-medium">{{ exportCount }}</span> 条数据
             </p>
             <div
               v-for="format in formats"

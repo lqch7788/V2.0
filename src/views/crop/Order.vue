@@ -32,7 +32,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-            <Activity class="text-white" :size="16" />
+            <TrendingUp class="text-white" :size="16" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.inProgress }}</p>
@@ -43,7 +43,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <CircleCheck class="text-white" :size="16" />
+            <CheckCircle class="text-white" :size="16" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.completed }}</p>
@@ -159,11 +159,11 @@
         </div>
       </div>
 
-    <!-- 数据表格（与V1.1完全一致） -->
+    <!-- 数据表格（与V1.1完全一致：max-h + sticky thead） -->
     <div v-loading="loading" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div class="overflow-x-auto">
+      <div class="overflow-auto max-h-[calc(100vh-280px)]">
         <table class="w-full">
-          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
             <tr>
               <th v-if="exportMode || batchEditMode" class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap">
                 <el-checkbox
@@ -172,20 +172,20 @@
                   @change="handleSelectAll"
                 />
               </th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">订单编号</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">订单名称</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">订单类型</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">作物信息</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">计划数量</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">完成数量</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">完成进度</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">客户</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">订单日期</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">预计完成时间</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">状态</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">创建人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">备注</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold">操作</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">订单编号</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">订单名称</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">订单类型</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">作物信息</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">计划数量</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">完成数量</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">完成进度</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">客户</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">订单日期</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">预计完成时间</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">创建人</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-300">
@@ -206,42 +206,42 @@
                   @change="() => handleToggleSelect(record.id)"
                 />
               </td>
-              <td class="px-4 py-3 text-sm">
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
                 <el-button link type="primary" @click="handleDetail(record)">
                   {{ record.orderCode }}
                 </el-button>
               </td>
-              <td class="px-4 py-3 text-sm text-gray-900">
+              <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                 {{ record.orderName }}
               </td>
-              <td class="px-4 py-3">
+              <td class="px-4 py-3 whitespace-nowrap">
                 <span :class="getOrderTypeBadgeClass(record.orderType)">
                   {{ getOrderTypeLabel(record.orderType) }}
                 </span>
               </td>
               <td class="px-4 py-3">
-                <div class="text-sm text-gray-900">{{ record.cropVariety }}</div>
+                <div class="text-sm text-gray-900 truncate max-w-xs">{{ record.cropVariety }}</div>
                 <div class="text-xs text-gray-500 truncate max-w-xs" :title="record.cropCategory">{{ record.cropCategory }}</div>
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600">
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                 {{ record.plannedQuantity }} {{ record.unit }}
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600">
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                 {{ record.completedQuantity || 0 }} {{ record.unit }}
               </td>
-              <td class="px-4 py-3 text-sm">
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
                 {{ record.plannedQuantity > 0 ? Math.round(((record.completedQuantity || 0) / record.plannedQuantity) * 100) + '%' : '0%' }}
               </td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap truncate max-w-xs">
                 {{ record.customerName || '-' }}
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600">
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                 {{ record.orderDate }}
               </td>
-              <td class="px-4 py-3 text-sm text-gray-600">
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                 {{ record.expectedCompletionDate || '-' }}
               </td>
-              <td class="px-4 py-3">
+              <td class="px-4 py-3 whitespace-nowrap">
                 <span :class="getStatusBadgeClass(record.status)">
                   {{ getStatusLabel(record) }}
                 </span>
@@ -252,13 +252,13 @@
               <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-xs" :title="record.remarks || '-'">
                 {{ record.remarks || '-' }}
               </td>
-              <td class="px-4 py-3">
+              <td class="px-4 py-3 whitespace-nowrap">
                 <div class="flex items-center gap-2">
                   <template v-if="record.status !== CropOrderStatus.COMPLETED">
                     <el-button link @click="handleEdit(record)" title="编辑">
                       <Pencil class="w-4 h-4" />
                     </el-button>
-                    <el-button link @click="handleDeleteOne(record)" title="删除">
+                    <el-button link @click="handleDelete(record)" title="删除">
                       <Trash2 class="w-4 h-4" />
                     </el-button>
                   </template>
@@ -375,15 +375,15 @@ import {
   Search,
   RotateCcw,
   ClipboardList,
-  User,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight
 } from 'lucide-vue-next'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
+import { showAlert, showConfirm } from '@/lib/dialogService'
 import AddModal from '@/views/crop/modals/AddModal.vue'
 import DetailModal from '@/views/crop/modals/DetailModal.vue'
 import EditModal from '@/views/crop/modals/EditModal.vue'
@@ -417,7 +417,7 @@ const cropNameOptions = computed(() => {
     .map(name => ({ value: name, label: name }))
 })
 
-// 筛选条件（与V1.1 OrderPage L48-56 CropOrderFilters 一致 - 7 字段）
+// 筛选条件（与 V1.1 OrderPage.tsx L48-56 CropOrderFilters 完全一致 - 7 字段，无 orderDate）
 const filters = ref({
   orderCode: '',
   orderName: '',
@@ -434,17 +434,20 @@ const pagination = ref({
   pageSize: 10
 })
 
-// 分页选项（与 V1.1 OrderTable.tsx L244 [10, 20, 50, 100] 一致）
-const pageSizeOptions = [10, 20, 50, 100]
+// 分页选项（与 V1.1 OrderTable.tsx L244 完全一致）
+const pageSizeOptions = [10, 20, 50]
 
 // 选中行
 const selectedRows = ref([])
 
-// 权限控制（与V1.1保持一致）
-const canCreate = ref(true)
-const canEdit = ref(false)    // 与 V1.1 OrderPage L374 一致：canEdit=false（无编辑按钮）
-const canDelete = ref(false)   // 与 V1.1 OrderPage L375 一致：canDelete=false（无批量删除按钮）
-const canExport = ref(true)
+// 刷新触发器（与 V1.1 OrderPage.tsx L59 refreshKey 完全一致）
+const refreshKey = ref(0)
+
+// 权限控制（与 V1.1 OrderPage.tsx L29-32 完全一致 - 全部 true）
+const canCreate = true
+const canEdit = false
+const canDelete = false
+const canExport = true
 
 // 导出模式
 const exportMode = ref(false)
@@ -482,7 +485,7 @@ const statsData = computed(() => {
   }
 })
 
-// 筛选后的数据（与V1.1 OrderPage L99-116 一致 - 7字段过滤）
+// 筛选后的数据（与 V1.1 OrderPage.tsx L99-116 完全一致 - 7 字段过滤）
 const filteredData = computed(() => {
   return orderDataStore.orders.filter(item => {
     if (filters.value.orderCode && !item.orderCode?.includes(filters.value.orderCode)) return false
@@ -587,7 +590,7 @@ const handleSearch = () => {
   pagination.value.current = 1
 }
 
-// 重置
+// 重置（与 V1.1 OrderPage.tsx L168-178 完全一致 - 7 字段）
 const handleReset = () => {
   filters.value = {
     orderCode: '',
@@ -602,7 +605,6 @@ const handleReset = () => {
 }
 
 // 客户管理跳转（与V1.1 OrderPage L378-379 navigate('/crop/customer') 一致 - 用 Vue Router 保持 SPA 状态）
-import { useRouter } from 'vue-router'
 const router = useRouter()
 const handleCustomer = () => {
   router.push('/crop/customer')
@@ -635,74 +637,39 @@ const handleEdit = (record) => {
   editModalVisible.value = true
 }
 
-// 编辑成功
+// 编辑成功（与 V1.1 OrderPage.tsx L434-436 一致：Store updateOrder 已同步更新本地状态，无需重新 fetch）
 const handleEditSuccess = () => {
-  orderDataStore.fetchOrders()
-  orderDataStore.fetchStats()
+  // Store 的 updateOrder 已同步更新本地状态，无需重新 fetch
 }
 
-// 删除（与 V1.1 OrderPage.tsx L151-161 一致 + 错误提示 + loading 锁）
+// 删除（与 V1.1 OrderPage.tsx L151-161 完全一致）
 const handleDelete = async (record) => {
-  if (submitting.value) return
-  submitting.value = true
-  try {
-    if (!await ElMessageBox.confirm(`确定要删除订单 ${record.orderCode} 吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).catch(() => false)) {
-      return
+  if (await showConfirm(`确定要删除订单 ${record.orderCode} 吗？`)) {
+    try {
+      await orderDataStore.deleteOrder(record.id)
+    } catch (error) {
+      console.error('删除订单失败:', error)
+      await showAlert('删除失败，请稍后重试')
     }
-    await orderDataStore.deleteOrder(record.id)
-    ElMessage.success('删除成功')
-  } catch (error) {
-    console.error('删除订单失败:', error)
-    ElMessage.error(`删除失败: ${error?.message || '未知错误'}`)
-  } finally {
-    submitting.value = false
   }
 }
 
-// 批量编辑确认（批量编辑功能暂未实现，与V1.1一致）
-const handleBatchEditConfirm = () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要编辑的数据')
-    return
-  }
-  ElMessage.info('批量编辑功能开发中')
-}
-
-// 批量删除确认（与 V1.1 OrderPage.tsx L151-161 一致 + 错误提示 + loading 锁）
+// 批量删除确认（与 V1.1 OrderPage.tsx L151-161 + deleteOrders 行为一致）
 const handleConfirmDelete = async () => {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要删除的数据')
+    await showAlert('请先选择要删除的数据')
     return
   }
-  if (submitting.value) return
-  submitting.value = true
-  try {
-    if (!await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).catch(() => false)) {
-      return
+  if (await showConfirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`)) {
+    try {
+      await orderDataStore.deleteOrders(selectedRows.value)
+      selectedRows.value = []
+      deleteMode.value = false
+    } catch (error) {
+      console.error('批量删除订单失败:', error)
+      await showAlert('删除失败，请稍后重试')
     }
-    await orderDataStore.deleteOrders(selectedRows.value)
-    selectedRows.value = []
-    deleteMode.value = false
-    ElMessage.success('删除成功')
-  } catch (error) {
-    console.error('批量删除订单失败:', error)
-    ElMessage.error(`批量删除失败: ${error?.message || '未知错误'}`)
-  } finally {
-    submitting.value = false
   }
-}
-
-// 单条删除（兼容按钮调用）
-const handleDeleteOne = (record) => {
-  handleDelete(record)
 }
 
 // 导出
@@ -733,9 +700,9 @@ const handleToggleSelect = (id) => {
   }
 }
 
-const handleExportConfirm = () => {
+const handleExportConfirm = async () => {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要导出的数据')
+    await showAlert('请先选择要导出的数据')
     return
   }
   showExportModal.value = true
@@ -810,7 +777,6 @@ const handleDoExport = () => {
   exportMode.value = false
   selectedRows.value = []
   showExportModal.value = false
-  ElMessage.success('导出成功')
 }
 
 // 分页

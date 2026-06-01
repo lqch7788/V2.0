@@ -32,6 +32,7 @@
             <el-button
               link
               @click="toggleMaximize"
+              @mousedown.stop
               class="hover:bg-white/10"
               style="color: rgba(255,255,255,0.8);"
             >
@@ -40,7 +41,7 @@
               </el-icon>
             </el-button>
             <!-- 关闭按钮 -->
-            <el-button link class="hover:bg-white/10" style="color: rgba(255,255,255,0.8);" @click="handleClose">
+            <el-button link class="hover:bg-white/10" style="color: rgba(255,255,255,0.8);" @click="handleClose" @mousedown.stop>
               <el-icon style="color: white;"><Close /></el-icon>
             </el-button>
           </div>
@@ -221,8 +222,8 @@
 
         <!-- 底部按钮 -->
         <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-xl">
-          <el-button size="small" @click="handleClose">取消</el-button>
-          <el-button type="primary" size="small" @click="handleSubmit">保存修改</el-button>
+          <el-button size="small" @click="handleClose" @mousedown.stop>取消</el-button>
+          <el-button type="primary" size="small" @click="handleSubmit" @mousedown.stop>保存修改</el-button>
         </div>
       </div>
     </div>
@@ -230,13 +231,13 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { Edit, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
 import { Search, X } from 'lucide-vue-next'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { useCustomerStore } from '@/stores/modules/customer'
 import { CropOrderStatus } from '@/types/crop'
+import { showAlert, showConfirm } from '@/lib/dialogService'
 import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
 
 const props = defineProps({
@@ -349,44 +350,44 @@ function handleClickOutside() {
   showDropdown.value = false
 }
 
-// 监听打开和记录变化
-watch(() => props.isOpen, (val) => {
-  if (val && props.record) {
+// 监听打开和记录变化（V2.0 第6轮 P0 修复：添加 immediate: true，与 V1.1 useEffect 默认行为一致）
+watch([() => props.isOpen, () => props.record], ([isOpenVal, recordVal]) => {
+  if (isOpenVal && recordVal) {
     // 如果订单已完成或已取消，禁止编辑
-    if (props.record.status === CropOrderStatus.COMPLETED || props.record.status === CropOrderStatus.CANCELLED) {
-      const msg = props.record.status === CropOrderStatus.COMPLETED ? '已完成' : '已取消'
-      ElMessage.warning(`该订单已${msg}，无法编辑`)
+    if (recordVal.status === CropOrderStatus.COMPLETED || recordVal.status === CropOrderStatus.CANCELLED) {
+      const msg = recordVal.status === CropOrderStatus.COMPLETED ? '已完成' : '已取消'
+      showAlert(`该订单已${msg}，无法编辑`)
       emit('close')
       return
     }
     // 初始化表单
     form.value = {
-      orderCode: props.record.orderCode || '',
-      orderName: props.record.orderName || '',
-      orderType: props.record.orderType || 'production',
-      cropCategory: props.record.cropCategory || '',
-      cropVariety: props.record.cropVariety || '',
-      plannedQuantity: props.record.plannedQuantity || 0,
-      completedQuantity: props.record.completedQuantity || 0,
-      unit: props.record.unit || '株',
-      customerId: props.record.customerId || '',
-      customerName: props.record.customerName || '',
-      customerPhone: props.record.customerPhone || '',
-      deliveryAddress: props.record.deliveryAddress || '',
-      orderDate: props.record.orderDate || '',
-      expectedCompletionDate: props.record.expectedCompletionDate || '',
-      remarks: props.record.remarks || '',
-      orderStatus: props.record.status === CropOrderStatus.COMPLETED
+      orderCode: recordVal.orderCode || '',
+      orderName: recordVal.orderName || '',
+      orderType: recordVal.orderType || 'production',
+      cropCategory: recordVal.cropCategory || '',
+      cropVariety: recordVal.cropVariety || '',
+      plannedQuantity: recordVal.plannedQuantity || 0,
+      completedQuantity: recordVal.completedQuantity || 0,
+      unit: recordVal.unit || '株',
+      customerId: recordVal.customerId || '',
+      customerName: recordVal.customerName || '',
+      customerPhone: recordVal.customerPhone || '',
+      deliveryAddress: recordVal.deliveryAddress || '',
+      orderDate: recordVal.orderDate || '',
+      expectedCompletionDate: recordVal.expectedCompletionDate || '',
+      remarks: recordVal.remarks || '',
+      orderStatus: recordVal.status === CropOrderStatus.COMPLETED
         ? 'completed'
-        : props.record.status === CropOrderStatus.CANCELLED
+        : recordVal.status === CropOrderStatus.CANCELLED
         ? 'cancelled'
         : 'in_progress'
     }
-    searchKeyword.value = props.record.cropVariety || ''
+    searchKeyword.value = recordVal.cropVariety || ''
     errors.value = {}
     isMaximized.value = false
   }
-})
+}, { immediate: true })
 
 // 拖动开始
 const handleDragStart = (e) => {
@@ -487,61 +488,76 @@ const toggleMaximize = () => {
   isMaximized.value = !isMaximized.value
 }
 
-// 关闭
+// 关闭（V2.0 第6轮 P0 修复：清理拖动/缩放监听器防内存泄漏）
 const handleClose = () => {
+  isDragging.value = false
+  isResizing.value = false
+  if (moveHandler) {
+    document.removeEventListener('mousemove', moveHandler)
+    document.removeEventListener('mouseup', upHandler)
+    moveHandler = null
+    upHandler = null
+  }
+  if (resizeMoveHandler) {
+    document.removeEventListener('mousemove', resizeMoveHandler)
+    document.removeEventListener('mouseup', resizeUpHandler)
+    resizeMoveHandler = null
+    resizeUpHandler = null
+  }
+  // 重置状态（防止下次打开残留旧数据）
+  errors.value = {}
+  isMaximized.value = false
+  showDropdown.value = false
   emit('close')
 }
+
+// ESC 键关闭弹窗（V2.0 第6轮 P0 修复 - 与 V1.1 Modal.tsx L97-105 行为一致）
+const handleEscKey = (e) => {
+  if (e.key === 'Escape' && props.isOpen) handleClose()
+}
+onMounted(() => document.addEventListener('keydown', handleEscKey))
+onUnmounted(() => document.removeEventListener('keydown', handleEscKey))
+
+// click-outside 监听器卸载清理（V2.0 第6轮 P0 修复 - 防内存泄漏）
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 // 提交
 const handleSubmit = async () => {
   // 如果订单已完成或已取消，禁止编辑
   if (props.record && (props.record.status === CropOrderStatus.COMPLETED || props.record.status === CropOrderStatus.CANCELLED)) {
     const msg = props.record.status === CropOrderStatus.COMPLETED ? '已完成' : '已取消'
-    ElMessage.warning(`该订单已${msg}，无法编辑`)
+    await showAlert(`该订单已${msg}，无法编辑`)
     return
   }
 
-  // 如果选择"已完成"或"已取消"，弹出确认警告（移到 try 内）
+  // 如果选择"已完成"或"已取消"，弹出确认警告
   if (form.value.orderStatus === 'completed') {
-    try {
-      await ElMessageBox.confirm(
-        '⚠️ 重要提示：\n\n' +
-        '确认将订单标记为完成吗？\n\n' +
-        '完成后该订单将进入保存档案状态：\n' +
-        '• 无法进行任何编辑操作\n' +
-        '• 无法删除订单\n' +
-        '• 无法关联新的作物实例\n\n' +
-        '此操作不可逆，请确认！',
-        '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-    } catch (confirmErr) {
-      // 用户取消确认（合理）
+    const confirmed = await showConfirm(
+      '⚠️ 重要提示：\n\n' +
+      '确认将订单标记为完成吗？\n\n' +
+      '完成后该订单将进入保存档案状态：\n' +
+      '• 无法进行任何编辑操作\n' +
+      '• 无法删除订单\n' +
+      '• 无法关联新的作物实例\n\n' +
+      '此操作不可逆，请确认！'
+    )
+    if (!confirmed) {
       return
     }
   }
   if (form.value.orderStatus === 'cancelled') {
-    try {
-      await ElMessageBox.confirm(
-        '⚠️ 重要提示：\n\n' +
-        '确认取消该订单吗？\n\n' +
-        '取消后该订单将无法操作：\n' +
-        '• 无法进行任何编辑操作\n' +
-        '• 无法删除订单\n' +
-        '• 无法关联新的作物实例\n\n' +
-        '此操作不可逆，请确认！',
-        '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-    } catch (confirmErr) {
+    const confirmed = await showConfirm(
+      '⚠️ 重要提示：\n\n' +
+      '确认取消该订单吗？\n\n' +
+      '取消后该订单将无法操作：\n' +
+      '• 无法进行任何编辑操作\n' +
+      '• 无法删除订单\n' +
+      '• 无法关联新的作物实例\n\n' +
+      '此操作不可逆，请确认！'
+    )
+    if (!confirmed) {
       return
     }
   }
@@ -587,12 +603,11 @@ const handleSubmit = async () => {
     }
 
     await orderDataStore.updateOrder(props.record.id, updates)
-    ElMessage.success('更新成功')
     emit('success')
     handleClose()
   } catch (error) {
     console.error('更新订单失败:', error)
-    ElMessage.error('更新失败')
+    await showAlert('更新订单失败，请重试')
   }
 }
 </script>

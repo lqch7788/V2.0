@@ -205,7 +205,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { Package } from 'lucide-vue-next'
 import { View, Close, FullScreen, ScaleToOriginal, Location, User } from '@element-plus/icons-vue'
 import { CropOrderStatus } from '@/types/crop'
@@ -296,26 +296,34 @@ const handleDragStart = (e) => {
   }
 }
 
-// 拖动中
+// 拖动中（V2.0 第6轮 P0 修复：addEventListener 提取为具名函数 + onUnmounted 清理防内存泄漏）
+let moveHandler = null
+let upHandler = null
 watch(isDragging, (val) => {
-  if (!val) return
-  const handleMouseMove = (e) => {
-    if (!isDragging.value) return
-    const deltaX = e.clientX - dragStart.value.x
-    const deltaY = e.clientY - dragStart.value.y
-    const dialog = document.getElementById('order-detail-dialog')
-    if (dialog) {
-      dialog.style.position = 'fixed'
-      dialog.style.left = `${dragStart.value.left + deltaX}px`
-      dialog.style.top = `${dragStart.value.top + deltaY}px`
-      dialog.style.margin = '0'
+  if (val) {
+    moveHandler = (e) => {
+      if (!isDragging.value) return
+      const deltaX = e.clientX - dragStart.value.x
+      const deltaY = e.clientY - dragStart.value.y
+      const dialog = document.getElementById('order-detail-dialog')
+      if (dialog) {
+        dialog.style.position = 'fixed'
+        dialog.style.left = `${dragStart.value.left + deltaX}px`
+        dialog.style.top = `${dragStart.value.top + deltaY}px`
+        dialog.style.margin = '0'
+      }
     }
+    upHandler = () => {
+      isDragging.value = false
+    }
+    document.addEventListener('mousemove', moveHandler)
+    document.addEventListener('mouseup', upHandler)
+  } else if (moveHandler) {
+    document.removeEventListener('mousemove', moveHandler)
+    document.removeEventListener('mouseup', upHandler)
+    moveHandler = null
+    upHandler = null
   }
-  const handleMouseUp = () => {
-    isDragging.value = false
-  }
-  document.addEventListener('mousemove', handleMouseMove)
-  document.addEventListener('mouseup', handleMouseUp)
 })
 
 // 缩放开始
@@ -333,28 +341,36 @@ const handleResizeStart = (e) => {
   }
 }
 
-// 缩放中
+// 缩放中（V2.0 第6轮 P0 修复：addEventListener 提取为具名函数 + onUnmounted 清理防内存泄漏）
+let resizeMoveHandler = null
+let resizeUpHandler = null
 watch(isResizing, (val) => {
-  if (!val) return
-  const handleMouseMove = (e) => {
-    if (!isResizing.value) return
-    const deltaX = e.clientX - resizeStart.value.x
-    const deltaY = e.clientY - resizeStart.value.y
-    const newWidth = Math.max(640, resizeStart.value.width + deltaX)
-    const newHeight = Math.max(400, resizeStart.value.height + deltaY)
-    const dialog = document.getElementById('order-detail-dialog')
-    if (dialog) {
-      dialog.style.width = `${newWidth}px`
-      dialog.style.maxWidth = 'none'
-      dialog.style.height = `${newHeight}px`
-      dialog.style.maxHeight = 'none'
+  if (val) {
+    resizeMoveHandler = (e) => {
+      if (!isResizing.value) return
+      const deltaX = e.clientX - resizeStart.value.x
+      const deltaY = e.clientY - resizeStart.value.y
+      const newWidth = Math.max(640, resizeStart.value.width + deltaX)
+      const newHeight = Math.max(400, resizeStart.value.height + deltaY)
+      const dialog = document.getElementById('order-detail-dialog')
+      if (dialog) {
+        dialog.style.width = `${newWidth}px`
+        dialog.style.maxWidth = 'none'
+        dialog.style.height = `${newHeight}px`
+        dialog.style.maxHeight = 'none'
+      }
     }
+    resizeUpHandler = () => {
+      isResizing.value = false
+    }
+    document.addEventListener('mousemove', resizeMoveHandler)
+    document.addEventListener('mouseup', resizeUpHandler)
+  } else if (resizeMoveHandler) {
+    document.removeEventListener('mousemove', resizeMoveHandler)
+    document.removeEventListener('mouseup', resizeUpHandler)
+    resizeMoveHandler = null
+    resizeUpHandler = null
   }
-  const handleMouseUp = () => {
-    isResizing.value = false
-  }
-  document.addEventListener('mousemove', handleMouseMove)
-  document.addEventListener('mouseup', handleMouseUp)
 })
 
 // 最大化/还原
@@ -382,10 +398,31 @@ const toggleMaximize = () => {
   isMaximized.value = !isMaximized.value
 }
 
-// 关闭
+// 关闭（V2.0 第6轮 P0 修复：清理拖动/缩放监听器防内存泄漏）
 const handleClose = () => {
+  isDragging.value = false
+  isResizing.value = false
+  if (moveHandler) {
+    document.removeEventListener('mousemove', moveHandler)
+    document.removeEventListener('mouseup', upHandler)
+    moveHandler = null
+    upHandler = null
+  }
+  if (resizeMoveHandler) {
+    document.removeEventListener('mousemove', resizeMoveHandler)
+    document.removeEventListener('mouseup', resizeUpHandler)
+    resizeMoveHandler = null
+    resizeUpHandler = null
+  }
   emit('close')
 }
+
+// ESC 键关闭弹窗（V2.0 第6轮 P0 修复 - 与 V1.1 Modal.tsx L97-105 行为一致）
+const handleEscKey = (e) => {
+  if (e.key === 'Escape' && props.isOpen) handleClose()
+}
+onMounted(() => document.addEventListener('keydown', handleEscKey))
+onUnmounted(() => document.removeEventListener('keydown', handleEscKey))
 </script>
 
 <style scoped>

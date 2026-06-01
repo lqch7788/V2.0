@@ -490,11 +490,9 @@ router.get('/stats/summary', (req: Request, res: Response) => {
     const sql = `
       SELECT
         COUNT(*) as total,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-        SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed,
-        SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing,
-        SUM(CASE WHEN status = 'shipped' THEN 1 ELSE 0 END) as shipped,
-        SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as delivered,
+        SUM(CASE WHEN status = 'planned' THEN 1 ELSE 0 END) as planned,
+        SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as inProgress,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
         SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
         SUM(total_amount) as total_amount
       FROM crop_orders
@@ -931,7 +929,7 @@ router.post('/reset', (req: Request, res: Response) => {
       {
         id: 'ORD001',
         order_code: 'DD20260501100001',
-        order_type: 'sales',
+        order_type: 'production',
         crop_name: '番茄',
         crop_variety: '红果番茄',
         quantity: 1000,
@@ -943,14 +941,14 @@ router.post('/reset', (req: Request, res: Response) => {
         delivery_address: '福州市鼓楼区',
         order_date: '2026-05-01',
         expected_delivery_date: '2026-05-05',
-        status: 'pending',
+        status: 'planned',
         remarks: '第一批订单',
         create_by: '李明辉'
       },
       {
         id: 'ORD002',
         order_code: 'DD20260502100002',
-        order_type: 'sales',
+        order_type: 'production',
         crop_name: '黄瓜',
         crop_variety: '水果黄瓜',
         quantity: 500,
@@ -962,7 +960,7 @@ router.post('/reset', (req: Request, res: Response) => {
         delivery_address: '厦门市思明区',
         order_date: '2026-05-02',
         expected_delivery_date: '2026-05-06',
-        status: 'confirmed',
+        status: 'in_progress',
         remarks: '第二批订单',
         create_by: '王建国'
       }

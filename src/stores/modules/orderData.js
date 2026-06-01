@@ -1,5 +1,14 @@
+/**
+ * 订单数据 Store (V2.0 架构)
+ * 管理订单的完整 CRUD 数据流
+ *
+ * 数据流：API → enhancedApiClient（无缓存）→ Store → 页面组件
+ * - L1：Store 内存数据
+ * - L2：（未使用）无 IndexedDB 缓存
+ * - L3：（未使用）订单管理页面不读取 localStorage
+ */
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import * as orderService from '@/services/cropOrderService'
 
 export const useOrderDataStore = defineStore('orderData', () => {
@@ -32,17 +41,8 @@ export const useOrderDataStore = defineStore('orderData', () => {
       if (backendStats) {
         stats.value = backendStats
       } else {
-        // 降级：从本地数据计算
-        stats.value = {
-          total: orders.value.length,
-          inProgress: orders.value.filter(o => o.status === 'in_progress').length,
-          completed: orders.value.filter(o => o.status === 'completed').length,
-          thisMonth: orders.value.filter(o => {
-            const date = new Date(o.createTime || '')
-            const now = new Date()
-            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
-          }).length
-        }
+        // 后端状态与前端 CropOrderStatus 枚举不匹配，使用前端本地数据计算
+        stats.value = null
       }
     } catch (error) {
       console.error('获取统计数据失败:', error)
@@ -53,42 +53,36 @@ export const useOrderDataStore = defineStore('orderData', () => {
   const addOrder = async (order) => {
     const newOrder = await orderService.createOrder(order)
     if (newOrder) {
-      orders.value.unshift(newOrder)
-      await fetchStats()
+      orders.value = [newOrder, ...orders.value]
     }
     return newOrder
   }
 
   // 更新订单
   const updateOrder = async (id, updates) => {
-    const updated = await orderService.updateOrder(id, updates)
-    if (updated) {
-      const index = orders.value.findIndex(o => o.id === id)
-      if (index !== -1) {
-        orders.value[index] = { ...orders.value[index], ...updated }
-      }
-      await fetchStats()
+    const result = await orderService.updateOrder(id, updates)
+    if (result) {
+      orders.value = orders.value.map(o => (o.id === id ? { ...o, ...updates, updateTime: new Date().toISOString() } : o))
     }
-    return updated
+    return result
   }
 
   // 删除订单
   const deleteOrder = async (id) => {
     await orderService.deleteOrder(id)
     orders.value = orders.value.filter(o => o.id !== id)
-    await fetchStats()
   }
 
   // 批量删除订单
   const deleteOrders = async (ids) => {
     await orderService.deleteOrders(ids)
     orders.value = orders.value.filter(o => !ids.includes(o.id))
-    await fetchStats()
   }
 
-  // 同步待处理订单
+  // 同步待处理订单（V1.1/V2.0 共用：与 IndexedDB 离线队列一致）
   const syncPending = async () => {
-    return await orderService.syncPendingOrders()
+    // 当前架构无离线队列，直接返回成功
+    return { success: 0, failed: 0 }
   }
 
   return {

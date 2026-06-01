@@ -90,10 +90,10 @@
               />
             </div>
 
-            <!-- 创建人（与V1.1 AddModal L278-286 自动填充一致） -->
+            <!-- 创建人（与V1.1 AddModal L278-286 自动填充一致 - 改用 useUserStore） -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">创建人</label>
-              <el-input :model-value="localStorage.getItem('username') || '未知用户'" disabled class="bg-gray-50 text-gray-600" />
+              <el-input :model-value="currentUsername" disabled class="bg-gray-50 text-gray-600" />
             </div>
 
             <!-- 作物品种 - 使用 CropCodeSelector（与V1.1 AddModal.tsx L289-314 完全一致） -->
@@ -206,11 +206,12 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { Plus, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { useCustomerStore } from '@/stores/modules/customer'
+import { useUserStore } from '@/stores/modules/user'
+import { showAlert } from '@/lib/dialogService'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf } from 'lucide-vue-next'
 
@@ -226,6 +227,15 @@ const emit = defineEmits(['close', 'success'])
 
 const orderDataStore = useOrderDataStore()
 const customerStore = useCustomerStore()
+const userStore = useUserStore()
+
+// 当前登录用户名（V2.0 第6轮 P0 修复：改用 useUserStore 替代直接 localStorage 读，与 V1.1 AddModal.tsx L91 useAuthStore 一致）
+const currentUsername = computed(() => {
+  return userStore.userInfo?.username
+    || userStore.userInfo?.name
+    || JSON.parse(localStorage.getItem('currentUser') || '{}').username
+    || '未知用户'
+})
 
 // 客户下拉选项（与 V1.1 AddModal.tsx L391 一致）
 const customerOptions = computed(() => customerStore.customers || [])
@@ -481,9 +491,8 @@ const handleEscKey = (e) => {
     handleClose()
   }
 }
-import { onMounted as _onMounted, onUnmounted as _onUnmounted } from 'vue'
-_onMounted(() => document.addEventListener('keydown', handleEscKey))
-_onUnmounted(() => document.removeEventListener('keydown', handleEscKey))
+onMounted(() => document.addEventListener('keydown', handleEscKey))
+onUnmounted(() => document.removeEventListener('keydown', handleEscKey))
 
 // 提交
 const handleSubmit = async () => {
@@ -510,7 +519,7 @@ const handleSubmit = async () => {
       orderDate: form.value.orderDate,
       expectedCompletionDate: form.value.expectedCompletionDate,
       status: 'planned',
-      createBy: localStorage.getItem('username') || '',
+      createBy: currentUsername.value,
       remarks: form.value.remarks,
       // 客户相关字段（与 V1.1 types/crop.ts CropOrder 完全一致）
       customerId: form.value.customerId || undefined,
@@ -522,12 +531,11 @@ const handleSubmit = async () => {
     }
 
     await orderDataStore.addOrder(newOrder)
-    ElMessage.success('创建成功')
     emit('success')
     handleClose()
   } catch (error) {
     console.error('创建订单失败:', error)
-    ElMessage.error('创建失败')
+    await showAlert('创建订单失败，请重试')
   }
 }
 </script>
