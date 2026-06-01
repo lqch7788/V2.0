@@ -69,7 +69,7 @@
             <!-- 订单类型 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">订单类型</label>
-              <el-select v-model="form.orderType" placeholder="请选择" class="w-full">
+              <el-select v-model="form.orderType" class="w-full">
                 <el-option label="育种订单" value="breeding" />
                 <el-option label="育苗订单" value="seedling" />
                 <el-option label="生产订单" value="production" />
@@ -84,7 +84,6 @@
               <el-date-picker
                 v-model="form.orderDate"
                 type="date"
-                placeholder="选择日期"
                 value-format="YYYY-MM-DD"
                 class="w-full"
               />
@@ -122,7 +121,7 @@
             <!-- 单位 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">单位</label>
-              <el-select v-model="form.unit" placeholder="请选择" class="w-full">
+              <el-select v-model="form.unit" class="w-full">
                 <el-option label="株" value="株" />
                 <el-option label="棵" value="棵" />
                 <el-option label="袋" value="袋" />
@@ -181,7 +180,6 @@
               <el-date-picker
                 v-model="form.expectedCompletionDate"
                 type="date"
-                placeholder="选择日期"
                 value-format="YYYY-MM-DD"
                 class="w-full"
               />
