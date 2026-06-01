@@ -161,17 +161,17 @@
             </div>
 
             <!-- 备注 -->
-            <div v-if="record.remarks">
+            <div>
               <h3 class="text-sm font-bold text-gray-700 mb-3">备注</h3>
               <div class="bg-gray-50 rounded-lg p-4">
-                <p class="text-sm text-gray-900">{{ record.remarks }}</p>
+                <p class="text-sm text-gray-900">{{ record.remarks || '-' }}</p>
               </div>
             </div>
 
             <!-- 创建信息 -->
             <div class="flex items-center gap-4 text-xs text-gray-500 pt-4 border-t border-gray-100">
-              <span>创建人：{{ record.createBy }}</span>
-              <span>创建时间：{{ record.createTime }}</span>
+              <span>创建人：{{ record.createBy || '-' }}</span>
+              <span>创建时间：{{ record.createTime || '-' }}</span>
             </div>
           </div>
         </div>

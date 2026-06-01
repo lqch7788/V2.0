@@ -57,21 +57,22 @@
             </div>
 
             <!-- 订单名称 -->
-            <div class="col-span-2">
+            <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">订单名称 <span class="text-red-500">*</span></label>
               <el-input v-model="form.orderName" placeholder="请输入订单名称" />
               <p v-if="errors.orderName" class="text-xs text-red-500 mt-1">{{ errors.orderName }}</p>
             </div>
 
-            <!-- 订单类型 -->
+            <!-- 订单类型（与 V1.1 EditModal.tsx L301-308 一致：动态渲染 orderTypeOptions） -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">订单类型</label>
               <el-select v-model="form.orderType" class="w-full">
-                <el-option label="育种订单" value="breeding" />
-                <el-option label="育苗订单" value="seedling" />
-                <el-option label="生产订单" value="production" />
-                <el-option label="研发订单" value="research" />
-                <el-option label="其他" value="other" />
+                <el-option
+                  v-for="opt in orderTypeOptions"
+                  :key="opt.value"
+                  :label="opt.label"
+                  :value="opt.value"
+                />
               </el-select>
             </div>
 
@@ -509,6 +510,12 @@ const handleClose = () => {
   showDropdown.value = false
   emit('close')
 }
+
+// 拖动/缩放状态（V2.0 第6轮 P0 修复：声明具名变量，handleClose 能正确清理）
+let moveHandler = null
+let upHandler = null
+let resizeMoveHandler = null
+let resizeUpHandler = null
 
 // ESC 键关闭弹窗（V2.0 第6轮 P0 修复 - 与 V1.1 Modal.tsx L97-105 行为一致）
 const handleEscKey = (e) => {

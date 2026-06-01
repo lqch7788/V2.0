@@ -17,7 +17,7 @@
     </div>
 
     <!-- 统计卡片（与V1.1完全一致） -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
@@ -65,35 +65,35 @@
     </div>
 
     <!-- 筛选工具栏（与V1.1 OrderPage L48-56 + OrderFilter.tsx L31-141 一致 - 7 字段 state + 5 字段 UI） -->
-    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
       <div class="flex items-end gap-4 flex-wrap">
         <!-- 订单编号 -->
         <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm text-gray-700 mb-1">订单编号</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">订单编号</label>
           <el-input v-model="filters.orderCode" placeholder="请输入订单编号" clearable />
         </div>
         <!-- 订单名称 -->
         <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm text-gray-700 mb-1">订单名称</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">订单名称</label>
           <el-input v-model="filters.orderName" placeholder="请输入订单名称" clearable />
         </div>
         <!-- 作物品种 -->
         <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm text-gray-700 mb-1">作物品种</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">作物品种</label>
           <el-select v-model="filters.cropName" placeholder="请选择" clearable class="w-full">
             <el-option v-for="item in cropNameOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </div>
         <!-- 订单状态 -->
         <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm text-gray-700 mb-1">订单状态</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">订单状态</label>
           <el-select v-model="filters.status" placeholder="请选择" clearable class="w-full">
             <el-option v-for="opt in orderStatusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
           </el-select>
         </div>
         <!-- 订单日期 -->
         <div class="flex-1 min-w-[150px]">
-          <label class="block text-sm text-gray-700 mb-1">订单日期</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">订单日期</label>
           <el-date-picker
             v-model="filters.orderDate"
             type="date"
@@ -206,7 +206,7 @@
                 />
               </td>
               <td class="px-4 py-3 text-sm">
-                <el-button link type="primary" @click="handleDetail(record)">
+                <el-button link type="primary" @click="handleDetail(record)" title="点击查看详情">
                   {{ record.orderCode }}
                 </el-button>
               </td>
@@ -416,7 +416,7 @@ const cropNameOptions = computed(() => {
     .map(name => ({ value: name, label: name }))
 })
 
-// 筛选条件（与 V1.1 OrderPage.tsx L48-56 CropOrderFilters 完全一致 - 7 字段，无 orderDate）
+// 筛选条件（与 V1.1 OrderPage.tsx L48-56 CropOrderFilters 完全一致 - 7 字段 + 1 订单日期字段）
 const filters = ref({
   orderCode: '',
   orderName: '',
@@ -424,7 +424,8 @@ const filters = ref({
   status: '',
   startDate: '',
   endDate: '',
-  createBy: ''
+  createBy: '',
+  orderDate: ''
 })
 
 // 分页
@@ -671,6 +672,11 @@ const handleConfirmDelete = async () => {
   }
 }
 
+// 批量编辑确认（与 V1.1 OrderPage.tsx L366 onConfirmBatchEdit 空函数一致 - 批量编辑功能暂未实现）
+const handleBatchEditConfirm = () => {
+  // 与 V1.1 ActionToolbar L366 一致：空实现（无操作），按钮仍可点击但不报错
+}
+
 // 导出
 const handleExportClick = () => {
   exportMode.value = true
@@ -707,8 +713,9 @@ const handleExportConfirm = async () => {
   showExportModal.value = true
 }
 
-// 执行导出（与V1.1完全一致）
+// 执行导出（与V1.1完全一致，V2.0 第6轮 P0 修复：包裹 try/catch，捕获错误）
 const handleDoExport = () => {
+  try {
   const dataToExport = selectedRows.value.length > 0
     ? filteredData.value.filter(o => selectedRows.value.includes(o.id))
     : filteredData.value
@@ -776,6 +783,10 @@ const handleDoExport = () => {
   exportMode.value = false
   selectedRows.value = []
   showExportModal.value = false
+  } catch (error) {
+    console.error('导出失败:', error)
+    showAlert('导出失败，请重试').catch(() => {})
+  }
 }
 
 // 分页
@@ -788,11 +799,16 @@ const handlePageSizeChange = (size) => {
   pagination.value.current = 1
 }
 
-// 初始化
+// 初始化（V2.0 第6轮 P0 修复：包裹 try/catch，捕获错误时弹窗提示用户）
 onMounted(async () => {
-  await orderDataStore.syncPending()
-  await orderDataStore.fetchOrders()
-  await orderDataStore.fetchStats()
+  try {
+    await orderDataStore.syncPending()
+    await orderDataStore.fetchOrders()
+    await orderDataStore.fetchStats()
+  } catch (error) {
+    console.error('订单数据加载失败:', error)
+    await showAlert('数据加载失败，请刷新重试')
+  }
 })
 </script>
 

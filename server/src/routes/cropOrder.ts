@@ -137,7 +137,6 @@ router.post('/', (req: Request, res: Response) => {
       total_amount,
       customer_id,
       customer_name,
-      customer_contact,
       customer_phone,
       delivery_address,
       order_date,
@@ -211,12 +210,12 @@ router.post('/', (req: Request, res: Response) => {
       INSERT INTO crop_orders (
         id, order_code, order_type, crop_name, crop_variety,
         quantity, unit, unit_price, total_amount,
-        customer_id, customer_name, customer_contact, customer_phone, delivery_address,
+        customer_id, customer_name, customer_phone, delivery_address,
         order_date, expected_delivery_date, actual_delivery_date, expected_completion_date,
         status, remarks, create_by, create_time, update_time,
         order_name, crop_category, planned_quantity, completed_quantity, actual_quantity,
         expected_harvest_date, supplier_name, instance_ids
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       code,
@@ -229,14 +228,13 @@ router.post('/', (req: Request, res: Response) => {
       total_amount || 0,
       customer_id || null,
       customer_name || '',
-      customer_contact || '',
       customer_phone || '',
       delivery_address || '',
       order_date || now.substring(0, 10),
       expected_delivery_date || '',
       actual_delivery_date || '',
       expected_completion_date || '',
-      status || 'pending',
+      status || 'planned',
       remarks || '',
       create_by || '',
       now,
