@@ -56,7 +56,7 @@
     </div>
 
     <!-- 搜索栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <div class="bg-white rounded-xl p-4 shadow-none">
       <div class="relative max-w-md">
         <el-icon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"><Search /></el-icon>
         <el-input
@@ -79,7 +79,7 @@
         v-for="mod in DICTIONARY_MODULES"
         :key="mod.code"
         v-show="!searchTerm || moduleHasMatch(mod.code)"
-        class="bg-white rounded-xl shadow-sm overflow-hidden"
+        class="bg-white rounded-xl shadow-none overflow-hidden"
       >
         <!-- 模块头部 - V1.1样式: 淡紫渐变背景 -->
         <div
@@ -87,7 +87,7 @@
           @click="toggleModule(mod.code)"
         >
           <div class="flex items-center gap-3">
-            <div class="p-2 rounded-lg bg-white shadow-sm text-indigo-600">
+            <div class="p-2 rounded-lg bg-white shadow-none text-indigo-600">
               <el-icon :size="20"><component :is="getModuleIcon(mod.icon)" /></el-icon>
             </div>
             <el-icon :size="20" color="#9CA3AF">
@@ -95,7 +95,7 @@
               <ArrowRight v-else />
             </el-icon>
             <span class="text-lg font-semibold text-gray-900">{{ mod.name }}</span>
-            <span class="px-2 py-0.5 bg-white text-indigo-600 text-xs rounded-full shadow-sm">
+            <span class="px-2 py-0.5 bg-white text-indigo-600 text-xs rounded-full shadow-none">
               {{ getCategoriesInModule(mod.code).length }} 分类 / {{ getTotalItemsInModule(mod.code) }} 项
             </span>
           </div>
@@ -132,7 +132,7 @@
                       text
                       size="small"
                       @click.stop="handleAddItem(category)"
-                      class="px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 rounded flex items-center gap-1"
+                      class="px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-100 rounded flex items-center gap-1"
                     >
                       <el-icon><Plus /></el-icon>
                       新增
@@ -143,7 +143,7 @@
                 <!-- 字典项列表 -->
                 <div v-if="expandedCategories.has(category)" class="border-t border-gray-100">
                   <!-- V1.1表格样式: 蓝色渐变表头 -->
-                  <table v-if="getDictionariesByCategory(category).length > 0" class="w-full text-xs">
+                  <table v-if="filterItemsByCategory(category).length > 0" class="w-full text-xs">
                     <thead>
                       <tr class="bg-gradient-to-r from-blue-500 to-blue-600 text-left text-white">
                         <th class="py-1.5 pl-3 font-medium">编码</th>
@@ -155,7 +155,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-300 bg-white">
                       <tr
-                        v-for="item in getDictionariesByCategory(category)"
+                        v-for="item in filterItemsByCategory(category)"
                         :key="item.id"
                         class="hover:bg-blue-50 transition-colors"
                       >
@@ -173,7 +173,7 @@
                             :class="[
                               'px-1.5 py-0.5 text-xs rounded-full',
                               item.status === 'active'
-                                ? 'bg-green-50 text-green-600'
+                                ? 'bg-green-100 text-green-600'
                                 : 'bg-gray-100 text-gray-500'
                             ]"
                           >
@@ -186,7 +186,7 @@
                               text
                               size="small"
                               @click="handleEditItem(item)"
-                              class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                              class="p-1 text-indigo-600 hover:bg-indigo-100 rounded transition-colors"
                               title="编辑"
                             >
                               <el-icon><Edit /></el-icon>
@@ -195,7 +195,7 @@
                               text
                               size="small"
                               @click="handleDelete(item)"
-                              class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              class="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
                               title="删除"
                             >
                               <el-icon><Delete /></el-icon>
@@ -211,14 +211,13 @@
                 </div>
               </div>
             </div>
-            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 统计信息 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <div class="bg-white rounded-xl p-4 shadow-none">
       <div class="flex items-center justify-between text-sm text-gray-500">
         <span>共 {{ DICTIONARY_MODULES.length }} 个模块，{{ categories.length }} 个分类，{{ dictionaries.length }} 个字典项</span>
       </div>
@@ -231,7 +230,7 @@
           <h3 class="text-lg font-semibold text-gray-900">
             {{ isNewItem && !editingItem.id ? '新增字典项' : '编辑字典项' }}
           </h3>
-          <el-button text @click="isModalOpen = false" class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+          <el-button text @click="isModalOpen = false" class="p-1 hover:bg-gray-100 rounded-lg transition-colors">
             <el-icon :size="20" color="#6B7280"><Close /></el-icon>
           </el-button>
         </div>
@@ -255,19 +254,42 @@
             <el-input
               v-model="editingItem.code"
               :disabled="!isNewItem || !!editingItem.id"
-              placeholder="例如：active"
+              placeholder="例如：exempt / quick / standard"
               class="w-full"
             />
           </div>
 
-          <!-- 名称 -->
+          <!-- 名称（amount_threshold 分类时改为金额值数字输入） -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
-              名称 <span class="text-red-500">*</span>
+              {{ editingItem.category === 'amount_threshold' ? '金额值(元)' : '名称' }} <span class="text-red-500">*</span>
             </label>
             <el-input
+              v-if="editingItem.category === 'amount_threshold'"
+              v-model.number="editingItem.name"
+              type="number"
+              placeholder="例如：500（仅填数字）"
+              class="w-full"
+            />
+            <el-input
+              v-else
               v-model="editingItem.name"
               placeholder="例如：启用"
+              class="w-full"
+            />
+            <p v-if="editingItem.category === 'amount_threshold'" class="mt-1 text-xs text-amber-600">
+              ⚠ 这是审批金额阈值，填数字（元）
+            </p>
+          </div>
+
+          <!-- 显示名称（含义说明） -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              显示名称 <span class="text-xs text-gray-400">(含义说明，不影响功能)</span>
+            </label>
+            <el-input
+              v-model="editingItem.displayName"
+              placeholder="例如：500元以下自动通过"
               class="w-full"
             />
           </div>
@@ -340,6 +362,7 @@
         </el-button>
       </template>
     </el-dialog>
+  </div>
 </template>
 
 <script setup>
@@ -483,16 +506,21 @@ const getTotalItemsInModule = (moduleCode) => {
   return moduleCategories.reduce((sum, cat) => sum + getDictionariesByCategory(cat).length, 0)
 }
 
-// 按分类过滤字典项
+// 按分类过滤字典项（不受搜索词影响，搜索过滤由 computed filterItemsByCategory 承担）
 const getDictionariesByCategory = (category) => {
   return dictionaries.value
     .filter(d => d.category === category)
-    .filter(d =>
-      !searchTerm.value ||
-      d.name?.includes(searchTerm.value) ||
-      d.code?.includes(searchTerm.value)
-    )
     .sort((a, b) => (a.sortNumber || 0) - (b.sortNumber || 0))
+}
+
+// 按分类+搜索词过滤（用于表格渲染）
+const filterItemsByCategory = (category) => {
+  return getDictionariesByCategory(category).filter(d =>
+    !searchTerm.value ||
+    d.name?.includes(searchTerm.value) ||
+    d.code?.includes(searchTerm.value) ||
+    d.displayName?.includes(searchTerm.value)
+  )
 }
 
 // 模块是否有匹配项（用于搜索过滤）

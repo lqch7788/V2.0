@@ -36,7 +36,7 @@
           </div>
           <div class="bg-white rounded-lg px-3 py-2 border border-gray-100">
             <div class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-lg bg-green-50 flex items-center justify-center">
+              <div class="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center">
                 <span class="text-green-600 text-xs">✓</span>
               </div>
               <div>
@@ -72,7 +72,7 @@
     </div>
 
     <!-- 编码规则和作物编码生成工具栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
       <div class="flex items-center justify-between">
         <!-- 左侧工具栏 -->
         <div class="flex items-center gap-4">
@@ -221,7 +221,7 @@
     <!-- 品种列表 -->
     <div class="flex-1 min-h-0 flex flex-col">
       <!-- 搜索和操作栏 -->
-      <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col flex-1">
+      <div class="bg-white rounded-xl shadow-none overflow-hidden flex flex-col flex-1">
         <div class="p-4 border-b border-gray-100">
           <div class="flex items-center gap-4 mb-4">
             <!-- 视图切换 -->
@@ -403,7 +403,7 @@
                     <el-button
                       text
                       @click.stop="handleViewDetail(variety)"
-                      class="p-1.5 hover:bg-gray-100 rounded"
+                      class="p-1 hover:bg-gray-100 rounded"
                       title="查看详情"
                     >
                       <el-icon :size="16"><View /></el-icon>
@@ -411,7 +411,7 @@
                     <el-button
                       text
                       @click.stop="handleEdit(variety)"
-                      class="p-1.5 hover:bg-gray-100 rounded"
+                      class="p-1 hover:bg-gray-100 rounded"
                       title="编辑品种"
                     >
                       <el-icon :size="16"><Edit /></el-icon>
@@ -419,7 +419,7 @@
                     <el-button
                       text
                       @click.stop="handleDelete(variety)"
-                      class="p-1.5 hover:bg-red-50 rounded"
+                      class="p-1 hover:bg-red-50 rounded"
                       title="删除品种"
                     >
                       <el-icon :size="16" color="#dc2626"><Delete /></el-icon>
@@ -558,7 +558,7 @@
             请确认此编码未被任何业务数据使用后再删除。
           </p>
         </div>
-        <div class="bg-gray-50 rounded-lg p-3">
+        <div class="bg-gray-50 rounded-lg p-6">
           <p class="text-gray-600 text-sm">
             要删除的品种：<span class="font-medium">
               {{ deleteTargetVariety?.detailVarietyName || deleteTargetVariety?.subVariety1Name || deleteTargetVariety?.varietyName }}

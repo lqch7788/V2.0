@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4">
     <!-- 工具栏 -->
-    <div class="flex items-center gap-3 flex-wrap bg-white rounded-xl p-4 shadow-sm">
+    <div class="flex items-center gap-3 flex-wrap bg-white rounded-xl p-4 shadow-none">
       <label class="text-xs font-medium text-gray-600 whitespace-nowrap">选择用户:</label>
       <div class="relative">
         <el-icon class="absolute left-2 top-1/2 -translate-y-1/2" :size="12" color="#9ca3af">
@@ -35,8 +35,8 @@
     </div>
 
     <!-- 权限矩阵 -->
-    <div v-if="selectedUser" class="bg-white rounded-xl shadow-sm">
-      <div class="p-3 border-b border-gray-100 flex items-center justify-between">
+    <div v-if="selectedUser" class="bg-white rounded-xl shadow-none">
+      <div class="p-6 border-b border-gray-100 flex items-center justify-between">
         <div>
           <h3 class="text-sm font-semibold text-gray-700">
             工序-动作权限配置
@@ -106,7 +106,7 @@
     </div>
 
     <!-- 未选择用户 -->
-    <div v-else class="bg-white rounded-xl shadow-sm p-16 text-center text-gray-400">
+    <div v-else class="bg-white rounded-xl shadow-none p-16 text-center text-gray-400">
       <el-icon :size="48"><User /></el-icon>
       <p class="mt-4">请在上方选择一个用户</p>
     </div>

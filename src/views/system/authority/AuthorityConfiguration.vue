@@ -25,7 +25,7 @@
     </div>
 
     <!-- ========== 工序管理 Tab ========== -->
-    <div v-if="activeTab === 'processes'" class="bg-white rounded-xl shadow-sm p-4">
+    <div v-if="activeTab === 'processes'" class="bg-white rounded-xl shadow-none p-4">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
           <h2 class="text-base font-semibold text-gray-800">工序树</h2>
@@ -91,7 +91,7 @@
     <div v-else class="flex gap-4">
       <!-- 左侧：角色选择 -->
       <div class="w-64 shrink-0 space-y-3">
-        <div class="bg-white rounded-xl shadow-sm p-3">
+        <div class="bg-white rounded-xl shadow-none p-6">
           <h3 class="text-sm font-medium text-gray-700 mb-2">选择角色</h3>
           <el-select v-model="selectedRoleOid" placeholder="-- 请选择角色 --" class="w-full" size="small">
             <el-option
@@ -111,7 +111,7 @@
         </div>
 
         <!-- 数据权限面板 -->
-        <div v-if="selectedRoleOid" class="bg-white rounded-xl shadow-sm p-3">
+        <div v-if="selectedRoleOid" class="bg-white rounded-xl shadow-none p-6">
           <el-button text @click="showDataAuthPanel = !showDataAuthPanel" class="w-full flex items-center justify-between">
             <span class="flex items-center gap-2 text-sm font-medium text-gray-700">
               <el-icon :size="14"><OfficeBuilding /></el-icon>
@@ -139,8 +139,8 @@
       </div>
 
       <!-- 右侧：权限矩阵 -->
-      <div class="flex-1 bg-white rounded-xl shadow-sm">
-        <div class="p-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex-1 bg-white rounded-xl shadow-none">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h3 class="text-sm font-semibold text-gray-700">工序-动作权限矩阵</h3>
             <el-input

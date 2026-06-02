@@ -14,6 +14,7 @@ import {
   getApprovalTypeRules,
   updateApprovalTypeRule as apiUpdateTypeRule
 } from '@/api/system/approvalLevel'
+import { syncApprovalStoreData } from '@/config/approvalHierarchy'
 
 export const useApprovalLevelStore = defineStore('approvalLevel', () => {
   // 状态
@@ -43,6 +44,12 @@ export const useApprovalLevelStore = defineStore('approvalLevel', () => {
       amountThresholds.value = thresholds || []
       typeRules.value = rules || []
       lastFetch.value = now
+      // 同步数据到运行时配置（与 V1.1 useApprovalLevelStore 一致）
+      syncApprovalStoreData({
+        levelConfigs: levelConfigs.value,
+        amountThresholds: amountThresholds.value,
+        typeRules: typeRules.value
+      })
     } catch (err) {
       console.warn('[ApprovalLevelStore] 加载数据失败:', err)
       error.value = err.message || '加载分级审批数据失败'

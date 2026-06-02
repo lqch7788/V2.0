@@ -23,7 +23,7 @@
     </div>
 
     <!-- TAB 导航栏 -->
-    <div class="bg-white rounded-xl shadow-sm p-1.5">
+    <div class="bg-white rounded-xl shadow-none p-1">
       <div class="flex items-center gap-1 flex-wrap">
         <el-button
           v-for="tab in TABS"

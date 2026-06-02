@@ -1,0 +1,66 @@
+{
+  "system-config": [
+    { "v1Icon": "AlertTriangle", "mappedTo": "WarnTriangleFilled", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "UserCheck", "mappedTo": "CircleCheck", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "dictionary": [
+    { "v1Icon": "ClipboardList", "mappedTo": "List", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Save", "mappedTo": "Select", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Shield", "mappedTo": "Lock", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Sprout", "mappedTo": "Sugar", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Users", "mappedTo": "User", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Warehouse", "mappedTo": "Box", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "base-operations": [
+    { "v1Icon": "Building2", "mappedTo": "House", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Leaf", "mappedTo": "Sugar", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "List", "mappedTo": "List", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Network", "mappedTo": "Share", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "notification": [
+    { "v1Icon": "AlertTriangle", "mappedTo": "WarnTriangleFilled", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "audit-log": [
+    { "v1Icon": "ClipboardList", "mappedTo": "List", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "crop-variety": [
+    { "v1Icon": "GitBranch", "mappedTo": "Guide", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "pesticide-library": [
+    { "v1Icon": "ChevronRight", "mappedTo": "ArrowRight", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "pest-disease-dict": [
+    { "v1Icon": "AlertTriangle", "mappedTo": "WarnTriangleFilled", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "warehouse": [
+    { "v1Icon": "AlertTriangle", "mappedTo": "WarnTriangleFilled", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Building2", "mappedTo": "House", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Save", "mappedTo": "Select", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Warehouse", "mappedTo": "Box", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "team": [
+    { "v1Icon": "AlertTriangle", "mappedTo": "WarnTriangleFilled", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Check", "mappedTo": "Select", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Users", "mappedTo": "User", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "user-permission": [
+    { "v1Icon": "Building2", "mappedTo": "House", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Check", "mappedTo": "Select", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "CheckSquare", "mappedTo": "Select", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "ChevronRight", "mappedTo": "ArrowRight", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Save", "mappedTo": "Select", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Settings", "mappedTo": "Setting", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Square", "mappedTo": "Minus", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "UserCheck", "mappedTo": "CircleCheck", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "UserX", "mappedTo": "CircleClose", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "approval-workflow": [
+    { "v1Icon": "AlertTriangle", "mappedTo": "WarnTriangleFilled", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "ChevronDown", "mappedTo": "ArrowDown", "reason": "mapped-icon-not-used-in-v2" }
+  ],
+  "approval-level": [
+    { "v1Icon": "AlertTriangle", "mappedTo": "WarnTriangleFilled", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Shield", "mappedTo": "Lock", "reason": "mapped-icon-not-used-in-v2" },
+    { "v1Icon": "Users", "mappedTo": "User", "reason": "mapped-icon-not-used-in-v2" }
+  ]
+}

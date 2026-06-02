@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <a
           href="/settings"
@@ -50,7 +50,7 @@
       <!-- Tab内容 -->
       <div class="mt-4">
         <!-- 筛选工具栏 -->
-        <div class="bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-100 mb-4">
+        <div class="bg-white rounded-xl px-4 py-3 shadow-none border border-gray-100 mb-4">
           <div class="flex items-center gap-4">
             <el-input
               v-model="searchKeyword"
@@ -76,7 +76,7 @@
         </div>
 
         <!-- 表头工具栏 -->
-        <div class="bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-100 flex items-center justify-between mb-4">
+        <div class="bg-white rounded-xl px-4 py-3 shadow-none border border-gray-100 flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
             <h3 class="text-lg font-semibold text-gray-900">药剂列表</h3>
             <span class="text-sm text-gray-500">共 {{ filteredData.length }} 条记录</span>
@@ -105,7 +105,7 @@
         </div>
 
         <!-- 表格 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-none border border-gray-100 overflow-hidden">
           <el-table
             ref="tableRef"
             :data="paginatedData"

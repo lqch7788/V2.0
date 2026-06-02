@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <a
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Tab切换 -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white rounded-xl shadow-none border border-gray-100">
       <div class="border-b border-gray-100">
         <div class="flex">
           <button
@@ -31,7 +31,7 @@
             :class="[
               'px-6 py-3 text-sm font-bold border-b-2 transition-colors',
               activeTab === 'pest'
-                ? 'border-green-500 text-green-600 bg-green-50'
+                ? 'border-green-500 text-green-600 bg-green-100'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             ]"
           >
@@ -43,7 +43,7 @@
             :class="[
               'px-6 py-3 text-sm font-bold border-b-2 transition-colors',
               activeTab === 'disease'
-                ? 'border-green-500 text-green-600 bg-green-50'
+                ? 'border-green-500 text-green-600 bg-green-100'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             ]"
           >
@@ -105,25 +105,13 @@
           <el-table-column prop="dictName" label="名称" min-width="150" />
           <el-table-column prop="dictType" label="类型" width="100">
             <template #default="{ row }">
-              <span :class="row.dictType === 'pest' ? 'text-green-600' : 'text-orange-600'">
+              <span :class="row.dictType === 'pest' ? 'bg-orange-100 text-orange-700 inline-flex px-2 py-0.5 rounded-full text-xs font-medium' : 'bg-purple-100 text-purple-700 inline-flex px-2 py-0.5 rounded-full text-xs font-medium'">
                 {{ row.dictType === 'pest' ? '虫害' : '病害' }}
               </span>
             </template>
           </el-table-column>
           <el-table-column prop="targetCrops" label="适用作物" width="150" />
           <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="status" label="状态" width="100">
-            <template #default="{ row }">
-              <span
-                :class="[
-                  'px-2 py-0.5 text-xs rounded-full',
-                  row.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
-                ]"
-              >
-                {{ row.status === 'active' ? '启用' : '禁用' }}
-              </span>
-            </template>
-          </el-table-column>
           <el-table-column label="操作" width="180" fixed="right">
             <template #default="{ row }">
               <div class="flex items-center gap-1">
@@ -172,13 +160,6 @@
               <el-select v-model="formData.dictType" class="w-full">
                 <el-option label="虫害" value="pest" />
                 <el-option label="病害" value="disease" />
-              </el-select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-              <el-select v-model="formData.status" class="w-full">
-                <el-option label="启用" value="active" />
-                <el-option label="禁用" value="inactive" />
               </el-select>
             </div>
           </div>
@@ -243,7 +224,7 @@
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                 pesticideTypeFilter === 'bio'
                   ? 'bg-green-600 text-white'
-                  : 'bg-green-50 text-green-600 border border-green-200 hover:bg-green-100'
+                  : 'bg-green-100 text-green-600 border border-green-200 hover:bg-green-100'
               ]"
             >
               🌿 生物
@@ -263,7 +244,7 @@
           </div>
 
           <!-- 已选药剂列表 -->
-          <div v-if="selectedPesticideIds.length > 0" class="mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
+          <div v-if="selectedPesticideIds.length > 0" class="mb-3 p-6 bg-green-100 rounded-lg border border-green-200">
             <div class="text-xs font-semibold text-green-700 mb-2">已选药剂 ({{ selectedPesticideIds.length }})</div>
             <div class="flex flex-wrap gap-2">
               <el-tag
@@ -313,20 +294,21 @@
     <el-dialog
       v-model="detailVisible"
       title="病虫害详情"
-      width="500px"
+      width="700px"
     >
       <div class="space-y-3" v-if="currentRecord">
-        <div class="flex border-b border-gray-100 py-2">
-          <span class="text-gray-500 w-24">编码：</span>
-          <span class="text-gray-900">{{ currentRecord.dictCode }}</span>
+        <!-- V1.1 风格：dictCode 渐变头部 -->
+        <div class="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-100 rounded-lg p-4 mb-4">
+          <div class="text-xs text-orange-600 font-medium">编码</div>
+          <div class="text-xl font-mono font-bold text-orange-700 mt-1">{{ currentRecord.dictCode }}</div>
         </div>
         <div class="flex border-b border-gray-100 py-2">
           <span class="text-gray-500 w-24">名称：</span>
-          <span class="text-gray-900">{{ currentRecord.dictName }}</span>
+          <span class="text-gray-900 font-bold">{{ currentRecord.dictName }}</span>
         </div>
         <div class="flex border-b border-gray-100 py-2">
           <span class="text-gray-500 w-24">类型：</span>
-          <span :class="currentRecord.dictType === 'pest' ? 'text-green-600' : 'text-orange-600'">
+          <span :class="currentRecord.dictType === 'pest' ? 'bg-orange-100 text-orange-700 inline-flex px-2 py-0.5 rounded-full text-xs font-medium' : 'bg-purple-100 text-purple-700 inline-flex px-2 py-0.5 rounded-full text-xs font-medium'">
             {{ currentRecord.dictType === 'pest' ? '虫害' : '病害' }}
           </span>
         </div>
@@ -334,33 +316,33 @@
           <span class="text-gray-500 w-24">适用作物：</span>
           <span class="text-gray-900">{{ currentRecord.targetCrops || '-' }}</span>
         </div>
-        <div class="flex border-b border-gray-100 py-2">
-          <span class="text-gray-500 w-24">状态：</span>
-          <span
-            :class="[
-              'px-2 py-0.5 text-xs rounded-full',
-              currentRecord.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
-            ]"
-          >
-            {{ currentRecord.status === 'active' ? '启用' : '禁用' }}
-          </span>
-        </div>
-        <div class="flex py-2">
+        <div class="py-2">
           <span class="text-gray-500 w-24">描述：</span>
           <span class="text-gray-900">{{ currentRecord.description || '-' }}</span>
         </div>
-        <!-- 关联药剂 -->
+        <!-- 关联药剂 - V1.1 风格：列表式 + 三色 Badge -->
         <div class="mt-4 pt-4 border-t border-gray-200" v-if="currentRecord.relatedPesticides && currentRecord.relatedPesticides.length > 0">
-          <h4 class="text-sm font-bold text-gray-900 mb-2">💊 关联药剂</h4>
-          <div class="flex flex-wrap gap-2">
-            <el-tag
+          <h4 class="text-sm font-bold text-gray-900 mb-2">关联药剂 ({{ currentRecord.relatedPesticides.length }})</h4>
+          <div class="space-y-2">
+            <div
               v-for="pest in currentRecord.relatedPesticides"
               :key="pest.id"
-              type="success"
-              size="small"
+              class="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg"
             >
-              {{ pest.pesticideName }}
-            </el-tag>
+              <span class="font-mono text-sm text-blue-600">{{ pest.pesticideCode || pest.code }}</span>
+              <span class="text-gray-900 font-medium">{{ pest.pesticideName || pest.name }}</span>
+              <span
+                :class="[
+                  'inline-flex px-2 py-0.5 rounded-full text-xs font-medium',
+                  pest.controlType === 'chemical' ? 'bg-red-100 text-red-700' :
+                  pest.controlType === 'biological' ? 'bg-green-100 text-green-700' :
+                  pest.controlType === 'physical' ? 'bg-blue-100 text-blue-700' :
+                  'bg-gray-100 text-gray-700'
+                ]"
+              >
+                {{ pest.controlType === 'chemical' ? '化学防治' : pest.controlType === 'biological' ? '生物防治' : pest.controlType === 'physical' ? '物理防治' : '未分类' }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -461,7 +443,7 @@ watch(activeTab, (newTab) => {
 
 // 方法
 const handleSearch = () => {
-  // 前端过滤由 computed 处理
+  pestDiseaseStore.loadData()
 }
 
 const handleReset = () => {
@@ -514,10 +496,15 @@ const handleEdit = async (record) => {
   // 加载药剂列表
   await pesticideStore.fetchItems()
 
-  // TODO: 后端需支持获取病虫害关联的药剂列表
-  // 暂时从record中读取关联的药剂ID（如果有）
-  if (record.relatedPesticideIds) {
-    selectedPesticideIds.value = [...record.relatedPesticideIds]
+  // 推断已关联的药剂：从所有药剂的 targetPests 文本中匹配当前 pestName
+  const pestName = record.dictName || ''
+  if (pestName) {
+    selectedPesticideIds.value = pesticideStore.items
+      .filter(p => {
+        const targets = p.targetPests || ''
+        return targets.split(/[,，;；]/).map(s => s.trim()).includes(pestName)
+      })
+      .map(p => p.id)
   }
 
   dialogVisible.value = true
@@ -561,10 +548,12 @@ const handleSave = async () => {
       ElMessage.success('新增成功')
     }
 
-    // 保存关联药剂
+    // 保存关联药剂 - 从药剂视角遍历更新关联关系
     if (selectedPesticideIds.value.length > 0) {
       const pestId = savedItem ? savedItem.id : formData.id
-      await pesticideStore.updateRelations(pestId, selectedPesticideIds.value)
+      for (const pesticideId of selectedPesticideIds.value) {
+        await pesticideStore.updateRelations(pesticideId, [pestId])
+      }
     }
 
     dialogVisible.value = false

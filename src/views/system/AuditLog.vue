@@ -28,30 +28,30 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-gray-500">日志总数</p>
         <p class="text-2xl font-bold mt-1 text-gray-900">{{ stats.total }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-gray-500">今日</p>
         <p class="text-2xl font-bold mt-1 text-emerald-600">{{ stats.today }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-gray-500">信息</p>
         <p class="text-2xl font-bold mt-1 text-blue-600">{{ stats.info }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-gray-500">警告</p>
         <p class="text-2xl font-bold mt-1 text-yellow-600">{{ stats.warning }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-gray-500">错误</p>
         <p class="text-2xl font-bold mt-1 text-red-600">{{ stats.error }}</p>
       </div>
     </div>
 
     <!-- 过滤栏 -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+    <div class="bg-white rounded-lg shadow-none border border-gray-100 p-4">
       <div class="flex flex-wrap items-center gap-3">
         <div class="relative flex-1 min-w-[140px]">
           <el-input
@@ -129,13 +129,13 @@
           </el-button>
         </template>
         <el-button v-else type="success" @click="enterExportMode">
-          <el-icon><Download /></el-icon> 导出日志
+          <el-icon><Download /></el-icon> 导出
         </el-button>
       </div>
     </div>
 
     <!-- 日志表格 -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-none border border-gray-100 overflow-hidden">
       <div v-if="loading" class="flex items-center justify-center p-12 text-gray-500 gap-2">
         <el-icon class="is-loading text-emerald-600" :size="20"><Loading /></el-icon>
         加载中...
@@ -194,7 +194,7 @@
                 {{ getActionLabel(log.action) }}
               </span>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-600">{{ log.module || '-' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">{{ getModuleDisplayName(log.module) || '-' }}</td>
             <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" :title="log.description">
               {{ log.description || '-' }}
             </td>
@@ -208,7 +208,7 @@
                 <el-button
                   link
                   @click="openDetail(log)"
-                  class="p-1.5 hover:bg-gray-100 rounded"
+                  class="p-1 hover:bg-gray-100 rounded"
                 >
                   <el-icon :size="16" color="#4b5563"><View /></el-icon>
                 </el-button>
@@ -221,12 +221,12 @@
 
     <!-- 分页 -->
     <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-100 rounded-b-xl">
-      <div class="text-sm text-gray-500">共 {{ filteredLogs.length }} 条</div>
+      <div class="text-sm text-gray-500">共 {{ totalRecords }} 条</div>
       <el-pagination
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :page-sizes="[10, 20, 50]"
-        :total="totalPages * pageSize"
+        :total="totalRecords"
         layout="total, sizes, prev, pager, next"
         background
         @current-change="handlePageChange"
@@ -266,19 +266,19 @@
 
         <div>
           <p class="text-xs text-gray-500 mb-1">描述</p>
-          <div class="p-3 bg-gray-50 rounded-lg text-sm text-gray-900">
+          <div class="p-6 bg-gray-50 rounded-lg text-sm text-gray-900">
             {{ selectedLog.description || '-' }}
           </div>
         </div>
 
         <div v-if="selectedLog.oldValue">
           <p class="text-xs text-gray-500 mb-1">原值</p>
-          <pre class="p-3 bg-gray-50 rounded-lg text-xs whitespace-pre-wrap">{{ selectedLog.oldValue }}</pre>
+          <pre class="p-6 bg-gray-50 rounded-lg text-xs whitespace-pre-wrap">{{ selectedLog.oldValue }}</pre>
         </div>
 
         <div v-if="selectedLog.newValue">
           <p class="text-xs text-gray-500 mb-1">新值</p>
-          <pre class="p-3 bg-gray-50 rounded-lg text-xs whitespace-pre-wrap">{{ selectedLog.newValue }}</pre>
+          <pre class="p-6 bg-gray-50 rounded-lg text-xs whitespace-pre-wrap">{{ selectedLog.newValue }}</pre>
         </div>
       </div>
       <template #footer>
@@ -329,8 +329,9 @@ const detailDialogVisible = ref(false)
 const selectedLog = ref(null)
 const currentPage = ref(1)
 const totalPages = ref(1)
+const totalRecords = ref(0)
 const loading = ref(true)
-const pageSize = ref(10)
+const pageSize = ref(50)
 let searchDebounceTimer = null
 
 // 导出模式状态 - V1.1 L67-69
@@ -370,9 +371,37 @@ const toggleSelection = (id) => {
   }
 }
 
-// 获取模块列表（去重）
+// V1.1 风格：硬编码 8 个模块选项 + 显示名映射
+const MODULE_OPTIONS = [
+  { value: 'farm', label: '农事管理' },
+  { value: 'crop', label: '作物管理' },
+  { value: 'plan', label: '计划管理' },
+  { value: 'labor', label: '用工管理' },
+  { value: 'material', label: '物资管理' },
+  { value: 'system', label: '系统管理' },
+  { value: 'approval', label: '审批管理' },
+  { value: 'order', label: '订单管理' }
+]
+
+// V1.1 风格：模块显示名映射（与 V1.1 getModuleDisplayName 等价）
+const getModuleDisplayName = (moduleCode) => {
+  const map = {
+    farm_task: '农事管理', temp_task: '农事管理', patrol: '农事管理', problem: '农事管理',
+    crop: '作物管理', crop_instance: '作物管理', planting: '作物管理',
+    plan: '计划管理', production_plan: '计划管理', purchase_plan: '计划管理',
+    labor: '用工管理', attendance: '用工管理', performance: '用工管理',
+    material: '物资管理', material_request: '物资管理', material_receiving: '物资管理',
+    system: '系统管理', config: '系统管理', auth: '系统管理',
+    approval: '审批管理', approval_workflow: '审批管理',
+    order: '订单管理', crop_order: '订单管理'
+  }
+  return map[moduleCode] || moduleCode
+}
+
+// 获取模块列表（合并 V1.1 标准 + 实际数据中的模块）
 const modules = computed(() => {
-  return [...new Set(logs.value.map((l) => l.module).filter(Boolean))]
+  const actualModules = new Set(logs.value.map((l) => l.module).filter(Boolean))
+  return [...new Set([...MODULE_OPTIONS.map(o => o.value), ...actualModules])]
 })
 
 // 前端二次筛选
@@ -485,11 +514,14 @@ const fetchData = async () => {
       const data = logsResult.value
       if (Array.isArray(data)) {
         logs.value = data
+        totalRecords.value = data.length
       } else if (data && Array.isArray(data.data)) {
         logs.value = data.data
         totalPages.value = data.meta?.totalPages || data.totalPages || 1
+        totalRecords.value = data.meta?.total || data.total || logs.value.length
       } else {
         logs.value = []
+        totalRecords.value = 0
       }
     } else {
       console.error('获取日志失败:', logsResult.reason)

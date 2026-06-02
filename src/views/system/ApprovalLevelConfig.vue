@@ -12,7 +12,7 @@
             <el-icon :size="20" color="#4b5563"><ArrowLeft /></el-icon>
           </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="#fff"><Key /></el-icon>
+            <el-icon :size="24" color="#fff"><CircleCheck /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">分级审批配置</h1>
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Tab切换 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white rounded-xl shadow-none overflow-hidden">
       <!-- Tab栏 -->
       <div class="flex border-b border-gray-200">
         <button
@@ -112,7 +112,7 @@
                 </button>
                 <button
                   @click="confirmDeleteThreshold(threshold)"
-                  class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  class="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="删除"
                 >
                   <el-icon :size="16"><Delete /></el-icon>
@@ -266,7 +266,7 @@
                   <td class="py-3 px-4 text-center">
                     <span
                       class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium"
-                      :class="rule.batchApprovalSupported ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'"
+                      :class="rule.batchApprovalSupported ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
                     >
                       {{ rule.batchApprovalSupported ? '支持' : '不支持' }}
                     </span>
@@ -567,7 +567,7 @@ const activeTab = ref('thresholds')
 
 // 级别颜色映射
 const LEVEL_COLORS = {
-  exempt: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+  exempt: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-200' },
   quick: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
   standard: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
   strict: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' }

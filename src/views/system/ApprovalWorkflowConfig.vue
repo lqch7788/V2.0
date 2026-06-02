@@ -27,7 +27,7 @@
     </div>
 
     <!-- 搜索栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <div class="bg-white rounded-xl p-4 shadow-none">
       <div class="flex flex-col sm:flex-row gap-4 items-center">
         <el-input
           v-model="searchTerm"
@@ -63,7 +63,7 @@
       <div
         v-for="workflow in filteredWorkflows"
         :key="workflow.id"
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        class="bg-white rounded-xl shadow-none border border-gray-100 overflow-hidden"
       >
         <div class="p-6">
           <!-- 流程主体信息 -->

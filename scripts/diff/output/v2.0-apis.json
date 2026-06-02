@@ -1,0 +1,17 @@
+{
+  "system-config": [],
+  "dictionary": [],
+  "department": [],
+  "base-operations": [],
+  "notification": [],
+  "audit-log": [],
+  "crop-variety": [],
+  "pesticide-library": [],
+  "pest-disease-dict": [],
+  "fertilizer-library": [],
+  "warehouse": [],
+  "team": [],
+  "user-permission": [],
+  "approval-workflow": [],
+  "approval-level": []
+}

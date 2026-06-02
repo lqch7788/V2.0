@@ -1,0 +1,111 @@
+{
+  "_meta": {
+    "description": "Tailwind class 替换规则（V2.0 → V1.1 对齐）",
+    "version": "1.0.0",
+    "lastUpdated": "2026-06-02"
+  },
+  "rules": [
+    {
+      "category": "Header Card Shadow",
+      "v2_pattern": "shadow-sm",
+      "v1_target": "shadow-none",
+      "context": "Header 卡片"
+    },
+    {
+      "category": "Tab 激活态",
+      "v2_pattern": "bg-green-50",
+      "v1_target": "bg-green-100",
+      "context": "Tab 按钮激活"
+    },
+    {
+      "category": "返回按钮容器",
+      "v2_pattern": "w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200",
+      "v1_target": "Button variant=ghost icon",
+      "context": "页面顶部返回按钮",
+      "needsReview": true
+    },
+    {
+      "category": "按钮 padding",
+      "v2_pattern": "p-1.5",
+      "v1_target": "p-1",
+      "context": "表格行内编辑/删除按钮"
+    },
+    {
+      "category": "按钮 hover 颜色",
+      "v2_pattern": "hover:bg-indigo-50",
+      "v1_target": "hover:bg-indigo-100",
+      "context": "分类-新增按钮"
+    },
+    {
+      "category": "表格表头渐变",
+      "v2_pattern": "el-table 默认",
+      "v1_target": "bg-gradient-to-r from-blue-500 to-blue-600 text-white",
+      "context": "表格 thead"
+    },
+    {
+      "category": "行 hover 颜色",
+      "v2_pattern": "el-table 默认",
+      "v1_target": "hover:bg-blue-100 transition-colors",
+      "context": "表格行"
+    },
+    {
+      "category": "搜索框 border",
+      "v2_pattern": "el-input 默认",
+      "v1_target": "border border-gray-400 focus:ring-2 focus:ring-indigo-500",
+      "context": "搜索/筛选输入框"
+    },
+    {
+      "category": "统计卡片 padding",
+      "v2_pattern": "p-3",
+      "v1_target": "p-6",
+      "context": "统计卡片内层"
+    },
+    {
+      "category": "弹窗宽度",
+      "v2_pattern": "width=\"600px\"",
+      "v1_target": "size=\"xl\"（约 800px）",
+      "context": "新增/编辑弹窗"
+    },
+    {
+      "category": "弹窗宽度-详情",
+      "v2_pattern": "width=\"500px\"",
+      "v1_target": "size=\"lg\"（约 700px）",
+      "context": "详情弹窗"
+    },
+    {
+      "category": "状态文案",
+      "v2_pattern": "启用",
+      "v1_target": "活跃",
+      "context": "active 状态显示"
+    },
+    {
+      "category": "图标的 icon 包",
+      "v2_pattern": "el-icon :size=24 color=white",
+      "v1_target": "Icon w-6 h-6 text-white",
+      "context": "Header 卡片图标"
+    },
+    {
+      "category": "Search 输入框",
+      "v2_pattern": "el-input + el-icon prefix",
+      "v1_target": "Input + Search absolute left-3",
+      "context": "搜索框"
+    }
+  ],
+  "autoApplicable": [
+    "Header Card Shadow",
+    "Tab 激活态",
+    "按钮 padding",
+    "按钮 hover 颜色",
+    "统计卡片 padding",
+    "状态文案"
+  ],
+  "needsReview": [
+    "返回按钮容器",
+    "表格表头渐变",
+    "行 hover 颜色",
+    "搜索框 border",
+    "弹窗宽度",
+    "图标的 icon 包",
+    "Search 输入框"
+  ]
+}

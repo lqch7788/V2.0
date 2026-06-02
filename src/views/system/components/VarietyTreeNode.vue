@@ -360,7 +360,7 @@ function getLevelStyles(level, isExpandedFlag) {
   switch (level) {
     case 'category': return `${base} bg-gradient-to-r from-blue-50 to-indigo-50 font-semibold`
     case 'type': return `${base} bg-gray-50`
-    case 'variety': return `${base} ${isExpandedFlag ? 'bg-green-50' : ''}`
+    case 'variety': return `${base} ${isExpandedFlag ? 'bg-green-100' : ''}`
     case 'subVariety1': return `${base} ${isExpandedFlag ? 'bg-emerald-50' : ''}`
     case 'detail': return `${base} bg-white`
     default: return base

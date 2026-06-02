@@ -24,7 +24,7 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="bg-white rounded-xl p-4 shadow-none">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center">
             <el-icon :size="20" color="#64748b"><Setting /></el-icon>
@@ -38,7 +38,7 @@
     </div>
 
     <!-- 操作栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between gap-4">
+    <div class="bg-white rounded-xl p-4 shadow-none flex items-center justify-between gap-4">
       <div class="flex items-center gap-2">
         <!-- 搜索框 -->
         <el-input
@@ -257,6 +257,7 @@
       v-model="showAddModal"
       :show-close="false"
       :close-on-click-modal="false"
+      id="config-add-dialog"
       class="config-add-dialog"
       :modal="true"
       :lock-scroll="true"
@@ -271,12 +272,19 @@
           <div class="flex items-center gap-1">
             <button
               @click="toggleMaximize"
-              class="p-1.5 rounded hover:bg-white/20 transition-colors"
+              class="p-1 rounded hover:bg-white/20 transition-colors"
               :title="isMaximized ? '还原' : '最大化'"
             >
               <el-icon :size="18" color="white">
                 <component :is="isMaximized ? 'SemiSelect' : 'FullScreen'" />
               </el-icon>
+            </button>
+            <button
+              @click="closeAddModal"
+              class="p-1 rounded hover:bg-white/20 transition-colors"
+              title="关闭"
+            >
+              <el-icon :size="18" color="white"><Close /></el-icon>
             </button>
           </div>
         </div>
@@ -426,9 +434,11 @@ const filteredConfigs = computed(() => {
 
 // ==================== 方法 ====================
 
-/** 组件挂载时加载数据 */
+/** 组件挂载时加载数据 + 注册全局鼠标事件 */
 onMounted(() => {
   store.loadConfigs()
+  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseup', handleMouseUp)
 })
 
 /** 获取类型标签显示 */
@@ -588,7 +598,7 @@ const handleResizeStart = (e, dir) => {
   e.stopPropagation()
   isResizing.value = true
   resizeDir.value = dir
-  const dialogEl = document.querySelector('.config-add-dialog .el-dialog')
+  const dialogEl = document.getElementById('config-add-dialog')
   if (dialogEl) {
     const rect = dialogEl.getBoundingClientRect()
     resizeStart.value = { x: e.clientX, y: e.clientY, w: rect.width, h: rect.height, left: rect.left, top: rect.top }
@@ -600,7 +610,7 @@ const handleMouseMove = (e) => {
   if (!isDragging.value && !isResizing.value) return
 
   if (isDragging.value) {
-    const dialogEl = document.querySelector('.config-add-dialog .el-dialog')
+    const dialogEl = document.getElementById('config-add-dialog')
     if (dialogEl) {
       const deltaX = e.clientX - dragStart.value.x
       const deltaY = e.clientY - dragStart.value.y
@@ -630,7 +640,7 @@ const handleMouseMove = (e) => {
       newTop = resizeStart.value.top + (resizeStart.value.h - newH)
     }
 
-    const dialogEl = document.querySelector('.config-add-dialog .el-dialog')
+    const dialogEl = document.getElementById('config-add-dialog')
     if (dialogEl) {
       dialogEl.style.position = 'fixed'
       dialogEl.style.width = `${newW}px`
@@ -653,7 +663,7 @@ const handleMouseUp = () => {
 
 /** 切换最大化 */
 const toggleMaximize = () => {
-  const dialogEl = document.querySelector('.config-add-dialog .el-dialog')
+  const dialogEl = document.getElementById('config-add-dialog')
   if (!isMaximized.value && dialogEl) {
     dialogEl.style.width = '100vw'
     dialogEl.style.height = '100vh'
@@ -674,12 +684,7 @@ const toggleMaximize = () => {
   isMaximized.value = !isMaximized.value
 }
 
-// 挂载/卸载全局鼠标事件
-onMounted(() => {
-  document.addEventListener('mousemove', handleMouseMove)
-  document.addEventListener('mouseup', handleMouseUp)
-})
-
+// 卸载时清理全局鼠标事件
 onUnmounted(() => {
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('mouseup', handleMouseUp)

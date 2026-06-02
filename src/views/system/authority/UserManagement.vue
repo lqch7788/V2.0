@@ -54,7 +54,7 @@
     </div>
 
     <!-- 用户表格 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white rounded-xl shadow-none overflow-hidden">
       <table class="w-full text-sm">
         <thead>
           <tr class="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-b">

@@ -1,0 +1,802 @@
+{
+  "system-config": [
+    {
+      "v1Icon": "AlertTriangle",
+      "mappedTo": "WarnTriangleFilled",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "CategoryBadge",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "CheckCircle",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "CropGrowthConfigPanel",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "DelegationRulesEditor",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "DelegationRulesPreview",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Loader2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Sliders",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TypeBadge",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "UserCheck",
+      "mappedTo": "CircleCheck",
+      "reason": "mapped-icon-not-used-in-v2"
+    }
+  ],
+  "dictionary": [
+    {
+      "v1Icon": "Book",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Building",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "CheckCircle",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ClipboardList",
+      "mappedTo": "List",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Flower2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Save",
+      "mappedTo": "Select",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Shield",
+      "mappedTo": "Lock",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Sprout",
+      "mappedTo": "Sugar",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Truck",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Users",
+      "mappedTo": "User",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Warehouse",
+      "mappedTo": "Box",
+      "reason": "mapped-icon-not-used-in-v2"
+    }
+  ],
+  "department": [
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "DeleteConfirmModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "DepartmentModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Select",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "base-operations": [
+    {
+      "v1Icon": "Building2",
+      "mappedTo": "House",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "CalendarCheck",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "FacilityTab",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Layers",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Leaf",
+      "mappedTo": "Sugar",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "List",
+      "mappedTo": "List",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Loader2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "MapPin",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Network",
+      "mappedTo": "Share",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "PlantingTab",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Select",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableRow",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Tree",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ZoneTab",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "notification": [
+    {
+      "v1Icon": "AlertTriangle",
+      "mappedTo": "WarnTriangleFilled",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ChannelModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Icon",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Loader2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "RuleModal",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "audit-log": [
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ClipboardList",
+      "mappedTo": "List",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "DetailField",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ExportFormatModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Loader2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "crop-variety": [
+    {
+      "v1Icon": "AddCropVarietyModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "CropVarietyTable",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "EditCropVarietyModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "GitBranch",
+      "mappedTo": "Guide",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Select",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableBody",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "UnifiedModal",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "pesticide-library": [
+    {
+      "v1Icon": "AddPesticideModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ChevronRight",
+      "mappedTo": "ArrowRight",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "EditPesticideModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ExportFormatModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "PesticideDetailModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "PesticideLibraryFilter",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "PesticideLibraryTable",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "PesticideSpecEditor",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "SectionTitle",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Select",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableCell",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableHeader",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableRow",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TabsContent",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TextArea",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "UnitDictSelect",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "pest-disease-dict": [
+    {
+      "v1Icon": "AddPestDiseaseModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "AlertTriangle",
+      "mappedTo": "WarnTriangleFilled",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "EditPestDiseaseModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "PestDiseaseDetailModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "PestDiseaseDictTable",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableCell",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TextArea",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "fertilizer-library": [
+    {
+      "v1Icon": "AddFertilizerModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "EditFertilizerModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ExportFormatModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "FertilizerDetailModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "FertilizerLibraryFilter",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "FertilizerLibraryTable",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "SectionTitle",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Select",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableCell",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableHeader",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TableRow",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TabsContent",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TextArea",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "UnitDictSelect",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "warehouse": [
+    {
+      "v1Icon": "AlertTriangle",
+      "mappedTo": "WarnTriangleFilled",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Building2",
+      "mappedTo": "House",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Layers",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Loader2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Save",
+      "mappedTo": "Select",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Select",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Warehouse",
+      "mappedTo": "Box",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "WarehouseIcon",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "team": [
+    {
+      "v1Icon": "AlertTriangle",
+      "mappedTo": "WarnTriangleFilled",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Check",
+      "mappedTo": "Select",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Checkbox",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Loader2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TeamAssignModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TeamDetailModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TeamTable",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TextArea",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "UserPlus",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Users",
+      "mappedTo": "User",
+      "reason": "mapped-icon-not-used-in-v2"
+    }
+  ],
+  "user-permission": [
+    {
+      "v1Icon": "AuthorityConfiguration",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Building2",
+      "mappedTo": "House",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Check",
+      "mappedTo": "Select",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "CheckSquare",
+      "mappedTo": "Select",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "ChevronRight",
+      "mappedTo": "ArrowRight",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "ChevronRightIcon",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "FolderTree",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Loader2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "OrganizationManagement",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pagination",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Pencil",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "RoleManagement",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Save",
+      "mappedTo": "Select",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Settings",
+      "mappedTo": "Setting",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Square",
+      "mappedTo": "Minus",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "UserAuthorityConfig",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "UserBasePermission",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "UserCheck",
+      "mappedTo": "CircleCheck",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "UserManagement",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "UserX",
+      "mappedTo": "CircleClose",
+      "reason": "mapped-icon-not-used-in-v2"
+    }
+  ],
+  "approval-workflow": [
+    {
+      "v1Icon": "AlertTriangle",
+      "mappedTo": "WarnTriangleFilled",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Checkbox",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ChevronDown",
+      "mappedTo": "ArrowDown",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Loader2",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "NumberInput",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Select",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TextArea",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ],
+  "approval-level": [
+    {
+      "v1Icon": "AlertTriangle",
+      "mappedTo": "WarnTriangleFilled",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Button",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "CheckCircle",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Checkbox",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "DeleteConfirmModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Input",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "LevelConfigModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Modal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "NumberInput",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Select",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Shield",
+      "mappedTo": "Lock",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "TableCell",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "ThresholdModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "TypeRuleModal",
+      "reason": "no-mapping-in-icon-map.json"
+    },
+    {
+      "v1Icon": "Users",
+      "mappedTo": "User",
+      "reason": "mapped-icon-not-used-in-v2"
+    },
+    {
+      "v1Icon": "Zap",
+      "reason": "no-mapping-in-icon-map.json"
+    }
+  ]
+}

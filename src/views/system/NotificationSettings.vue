@@ -23,7 +23,7 @@
     </div>
 
     <!-- Tabs + 搜索 -->
-    <div class="bg-white rounded-xl shadow-sm">
+    <div class="bg-white rounded-xl shadow-none">
       <div class="flex items-center justify-between px-6 pt-4">
         <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
           <button
@@ -31,7 +31,7 @@
             :key="tab.id"
             @click="activeTab = tab.id"
             class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
-            :class="activeTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+            :class="activeTab === tab.id ? 'bg-white text-gray-900 shadow-none' : 'text-gray-600 hover:text-gray-900'"
           >
             {{ tab.label }}
           </button>
@@ -135,7 +135,7 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div
-                  class="p-3 rounded-lg"
+                  class="p-6 rounded-lg"
                   :class="ch.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-200 text-gray-400'"
                 >
                   <el-icon :size="24">
@@ -167,7 +167,7 @@
               </div>
             </div>
             <div v-if="ch.config && Object.keys(ch.config).length > 0" class="grid grid-cols-2 gap-3 mt-4">
-              <div v-for="(value, key) in ch.config" :key="key" class="p-3 bg-white rounded-lg">
+              <div v-for="(value, key) in ch.config" :key="key" class="p-6 bg-white rounded-lg">
                 <p class="text-xs text-gray-500 capitalize">{{ key }}</p>
                 <p class="text-sm text-gray-900 mt-1 truncate">{{ value || '-' }}</p>
               </div>
@@ -536,7 +536,7 @@ const handleSaveChannel = async () => {
       })
     } else {
       await addChannel({
-        channelCode: editingChannel.value?.channelCode || `CH_${Date.now()}`,
+        channelCode: editingChannel.value?.channelCode || `CH_${channelForm.channelType}_${Date.now()}`,
         channelName: channelForm.channelName.trim(),
         channelType: channelForm.channelType
       })
@@ -594,7 +594,7 @@ const handleSaveRule = async () => {
   saving.value = true
   try {
     const payload = {
-      ruleCode: editingRule.value?.ruleCode || `RULE_${Date.now()}`,
+      ruleCode: editingRule.value?.ruleCode || `rule_${Date.now()}`,
       ruleName: ruleForm.ruleName.trim(),
       eventType: ruleForm.eventType,
       recipientType: 'custom',

@@ -25,7 +25,7 @@
         :key="tab.id"
         @click="activeTab = tab.id"
         class="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all"
-        :class="activeTab === tab.id ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+        :class="activeTab === tab.id ? 'bg-white text-emerald-600 shadow-none' : 'text-gray-600 hover:text-gray-900'"
       >
         <el-icon :size="16">
           <component :is="tab.icon" />
@@ -46,7 +46,7 @@
         <div
           v-for="team in filteredTeams"
           :key="team.id"
-          class="bg-white rounded-xl p-5 shadow-sm border border-gray-100"
+          class="bg-white rounded-xl p-5 shadow-none border border-gray-100"
         >
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3">
@@ -108,7 +108,7 @@
           新增班次
         </el-button>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-white rounded-xl shadow-none border border-gray-100 overflow-hidden">
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>

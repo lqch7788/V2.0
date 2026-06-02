@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <a
           href="/settings"
@@ -21,7 +21,7 @@
     </div>
 
     <!-- Tabs: 有机肥 / 无机肥 / 水溶肥 / 复合肥 / 生物肥 / 缓释肥 / 微量元素肥 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white rounded-xl shadow-none overflow-hidden">
       <div class="border-b border-gray-100">
         <div class="flex items-center gap-1 px-4 pt-4">
           <el-radio-group v-model="activeTab" @change="handleTabChange" class="fertilizer-tabs">

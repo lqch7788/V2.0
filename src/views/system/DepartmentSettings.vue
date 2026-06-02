@@ -28,7 +28,7 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="bg-white rounded-xl p-4 shadow-none">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
             <el-icon :size="20" color="#2563EB">
@@ -41,9 +41,9 @@
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="bg-white rounded-xl p-4 shadow-none">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+          <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
             <span class="text-green-600 text-lg font-bold">✓</span>
           </div>
           <div>
@@ -52,7 +52,7 @@
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm">
+      <div class="bg-white rounded-xl p-4 shadow-none">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center">
             <span class="text-gray-600 text-lg">○</span>
@@ -66,7 +66,7 @@
     </div>
 
     <!-- 工具栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <div class="bg-white rounded-xl p-4 shadow-none">
       <div class="flex justify-between items-center">
         <div class="relative w-64">
           <el-input
@@ -89,7 +89,7 @@
     </div>
 
     <!-- 表格 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white rounded-xl shadow-none overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -147,7 +147,7 @@
                   <div class="flex items-center gap-1">
                     <el-button
                       link
-                      class="p-1.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded"
+                      class="p-1 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded"
                       @click="openEditModal(dept)"
                       title="编辑"
                     >
@@ -155,7 +155,7 @@
                     </el-button>
                     <el-button
                       link
-                      class="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded"
+                      class="p-1 text-red-500 hover:text-red-600 hover:bg-red-50 rounded"
                       @click="openDeleteConfirm(dept)"
                       title="删除"
                     >
@@ -330,7 +330,7 @@ const deleteTarget = ref(null)
 const saving = ref(false)
 
 // 分页配置 - 与V1.1 pageSize 一致
-const pageSize = 10
+const pageSize = ref(10)
 
 // 表单数据 - 与V1.1 form state 一致
 const formData = reactive({

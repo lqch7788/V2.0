@@ -1,0 +1,163 @@
+{
+  "system-config": [
+    "ArrowLeft",
+    "Close",
+    "Delete",
+    "Download",
+    "Edit",
+    "Plus",
+    "Refresh",
+    "Search",
+    "Select",
+    "Setting"
+  ],
+  "dictionary": [
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "Close",
+    "Delete",
+    "Edit",
+    "Plus",
+    "Refresh",
+    "Search"
+  ],
+  "department": [
+    "Aim",
+    "ArrowLeft",
+    "Delete",
+    "Edit",
+    "Plus",
+    "Search"
+  ],
+  "base-operations": [
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "CircleCheck",
+    "Clock",
+    "Delete",
+    "Edit",
+    "OfficeBuilding",
+    "Plus",
+    "Search",
+    "View"
+  ],
+  "notification": [
+    "ArrowLeft",
+    "Bell",
+    "Delete",
+    "Edit",
+    "Plus",
+    "Search"
+  ],
+  "audit-log": [
+    "ArrowLeft",
+    "Document",
+    "Download",
+    "Filter",
+    "Grid",
+    "Refresh",
+    "Search",
+    "View"
+  ],
+  "crop-variety": [
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "Check",
+    "Close",
+    "CopyDocument",
+    "Delete",
+    "Edit",
+    "Plus",
+    "Search",
+    "Sugar",
+    "View"
+  ],
+  "pesticide-library": [
+    "ArrowLeft",
+    "Connection",
+    "Delete",
+    "Download",
+    "Edit",
+    "Plus",
+    "Refresh",
+    "Search",
+    "Setting",
+    "View",
+    "Warning"
+  ],
+  "pest-disease-dict": [
+    "ArrowLeft",
+    "Delete",
+    "Edit",
+    "Plus",
+    "Search",
+    "View",
+    "Warning"
+  ],
+  "fertilizer-library": [
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "Delete",
+    "Download",
+    "Edit",
+    "Plus",
+    "Refresh",
+    "Search",
+    "Sugar",
+    "View"
+  ],
+  "warehouse": [
+    "ArrowLeft",
+    "Delete",
+    "Edit",
+    "Grid",
+    "OfficeBuilding",
+    "Plus",
+    "Refresh",
+    "Search"
+  ],
+  "team": [
+    "ArrowLeft",
+    "Delete",
+    "Edit",
+    "Plus"
+  ],
+  "user-permission": [
+    "ArrowDown",
+    "ArrowLeft",
+    "Check",
+    "Close",
+    "Delete",
+    "Edit",
+    "Key",
+    "Lock",
+    "OfficeBuilding",
+    "Plus",
+    "Refresh",
+    "Search",
+    "User"
+  ],
+  "approval-workflow": [
+    "ArrowLeft",
+    "ArrowRight",
+    "Delete",
+    "Edit",
+    "Guide",
+    "Plus",
+    "Search",
+    "Warning"
+  ],
+  "approval-level": [
+    "ArrowLeft",
+    "CircleCheck",
+    "Close",
+    "Delete",
+    "Edit",
+    "Plus"
+  ]
+}

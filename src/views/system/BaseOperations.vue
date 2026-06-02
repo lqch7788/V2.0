@@ -23,7 +23,7 @@
             @click="viewMode = 'list'"
             :class="[
               'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-              viewMode === 'list' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              viewMode === 'list' ? 'bg-white text-green-600 shadow-none' : 'text-gray-600 hover:text-gray-900'
             ]"
           >
             <CustomIcons name="List" class="w-4 h-4" />
@@ -33,7 +33,7 @@
             @click="viewMode = 'tree'"
             :class="[
               'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-              viewMode === 'tree' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              viewMode === 'tree' ? 'bg-white text-green-600 shadow-none' : 'text-gray-600 hover:text-gray-900'
             ]"
           >
             <CustomIcons name="Network" class="w-4 h-4" />
@@ -48,7 +48,7 @@
       <!-- 左侧树形结构 -->
       <div class="w-80 flex-shrink-0 bg-white rounded-xl shadow-none flex flex-col">
         <!-- 搜索框 -->
-        <div class="p-3 border-b border-gray-100">
+        <div class="p-6 border-b border-gray-100">
           <div class="relative">
             <CustomIcons name="Search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <el-input
@@ -62,7 +62,7 @@
         </div>
 
         <!-- 树形组件 -->
-        <div class="flex-1 overflow-auto p-3">
+        <div class="flex-1 overflow-auto p-6">
           <div v-if="loading" class="flex items-center justify-center py-8">
             <CustomIcons name="Loader2" class="w-6 h-6 animate-spin text-gray-400" />
           </div>
@@ -97,19 +97,19 @@
       <div class="flex-1 flex flex-col min-h-0 gap-4">
         <!-- 统计卡片 - 与V1.1 L799-824一致 -->
         <div class="grid grid-cols-4 gap-4 mb-4">
-          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 text-center">
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
             <div class="text-2xl font-bold text-blue-600">{{ stats.totalArea }}</div>
             <div class="text-sm text-gray-600">总面积(㎡)</div>
           </div>
-          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 text-center">
+          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
             <div class="text-2xl font-bold text-green-600">{{ stats.zoneCount }}</div>
             <div class="text-sm text-gray-600">区块数</div>
           </div>
-          <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 text-center">
+          <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 text-center">
             <div class="text-2xl font-bold text-orange-600">{{ stats.plantingCount }}</div>
             <div class="text-sm text-gray-600">种植中</div>
           </div>
-          <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 text-center">
+          <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
             <div class="text-lg font-bold text-purple-600 truncate">{{ stats.currentCrop || '-' }}</div>
             <div class="text-sm text-gray-600">当前作物</div>
           </div>
@@ -132,7 +132,7 @@
                     'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
                     row.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                   ]">
-                    {{ row.status === 'active' ? '启用' : '停用' }}
+                    {{ row.status === 'active' ? '活跃' : '停用' }}
                   </span>
                 </template>
                 <template v-else-if="col.key === 'action'">
@@ -179,8 +179,8 @@
             :class="[
               'px-6 py-3 text-base font-bold border-b-2 transition-all duration-200 rounded-t-md',
               listTab === tab.key
-                ? 'border-green-600 text-green-700 bg-green-50 shadow-sm'
-                : 'border-transparent text-gray-500 hover:text-green-600 hover:bg-green-50/50'
+                ? 'border-green-600 text-green-700 bg-green-100 shadow-none'
+                : 'border-transparent text-gray-500 hover:text-green-600 hover:bg-green-100/50'
             ]"
           >
             {{ tab.label }}
@@ -269,7 +269,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
             <el-select v-model="formData.status" class="w-full">
-              <el-option value="active" label="启用" />
+              <el-option value="active" label="活跃" />
               <el-option value="inactive" label="停用" />
             </el-select>
           </div>
@@ -300,7 +300,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
             <el-select v-model="formData.status" class="w-full">
-              <el-option value="active" label="启用" />
+              <el-option value="active" label="活跃" />
               <el-option value="inactive" label="停用" />
             </el-select>
           </div>
@@ -331,7 +331,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
             <el-select v-model="formData.status" class="w-full">
-              <el-option value="active" label="启用" />
+              <el-option value="active" label="活跃" />
               <el-option value="inactive" label="停用" />
             </el-select>
           </div>

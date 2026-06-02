@@ -1,0 +1,8 @@
+{
+  "totalIcons": 131,
+  "totalClasses": 1717,
+  "totalApis": 0,
+  "missingFiles": [
+    "src/views/system/pesticide-library/components/PesticideSpecEditor.vue"
+  ]
+}

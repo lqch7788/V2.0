@@ -59,7 +59,7 @@
     </div>
 
     <!-- 树形列表 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white rounded-xl shadow-none overflow-hidden">
       <div class="p-4 border-b border-gray-100">
         <h3 class="text-lg font-semibold text-gray-900">组织架构</h3>
       </div>

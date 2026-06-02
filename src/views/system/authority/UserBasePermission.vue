@@ -2,7 +2,7 @@
   <div class="flex gap-4 h-[calc(100vh-220px)]">
     <!-- 左侧：用户列表 -->
     <div class="w-72 flex-shrink-0 flex flex-col">
-      <div class="bg-white rounded-xl shadow-sm p-4 flex-1 flex flex-col">
+      <div class="bg-white rounded-xl shadow-none p-4 flex-1 flex flex-col">
         <h3 class="font-semibold text-gray-900 mb-3">用户列表</h3>
 
         <!-- 搜索框 -->
@@ -45,7 +45,7 @@
 
     <!-- 右侧：基地权限矩阵 -->
     <div class="flex-1 flex flex-col">
-      <div class="bg-white rounded-xl shadow-sm p-4 flex-1 flex flex-col">
+      <div class="bg-white rounded-xl shadow-none p-4 flex-1 flex flex-col">
         <!-- 头部 -->
         <div class="flex items-center justify-between mb-4">
           <div>

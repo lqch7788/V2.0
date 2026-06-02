@@ -24,26 +24,26 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-gray-500">仓库总数</p>
         <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-green-600">在用仓库</p>
         <p class="text-2xl font-bold text-green-600 mt-1">{{ stats.active }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-blue-600">总容量</p>
         <p class="text-2xl font-bold text-blue-600 mt-1">{{ stats.totalCapacity.toLocaleString() }}</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-4 shadow-none border border-gray-100">
         <p class="text-sm text-emerald-600">当前库存</p>
         <p class="text-2xl font-bold text-emerald-600 mt-1">{{ stats.totalStock.toLocaleString() }}</p>
       </div>
     </div>
 
     <!-- 操作栏（与V1.1一致：搜索 + 刷新 + 新增） -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
+    <div class="bg-white rounded-xl p-4 shadow-none">
       <div class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-2 flex-1">
           <div class="relative flex-1 max-w-md">
@@ -71,7 +71,7 @@
       <div
         v-for="warehouse in filteredWarehouses"
         :key="warehouse.id"
-        class="bg-white rounded-xl p-5 shadow-sm border border-gray-100"
+        class="bg-white rounded-xl p-5 shadow-none border border-gray-100"
       >
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-3">
@@ -336,18 +336,23 @@ const handleUpdate = async () => {
 
 // 删除仓库
 const handleDeleteWarehouse = async (id) => {
+  const target = allWarehouses.value.find(w => w.id === id)
+  const whName = target?.name || target?.warehouseName || ''
   try {
-    const target = allWarehouses.value.find(w => w.id === id)
-    const whName = target?.name || target?.warehouseName || ''
     await ElMessageBox.confirm(`确定要删除仓库"${whName}"吗？`, '确认删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await deleteWarehouse(id)
-    allWarehouses.value = allWarehouses.value.filter(w => w.id !== id)
   } catch {
     // 用户取消操作
+    return
+  }
+  try {
+    await deleteWarehouse(id)
+    allWarehouses.value = allWarehouses.value.filter(w => w.id !== id)
+  } catch (err) {
+    console.error('删除仓库失败:', err)
   }
 }
 
