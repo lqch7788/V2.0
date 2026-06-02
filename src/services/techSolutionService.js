@@ -18,6 +18,16 @@ function transformTechSolution(data) {
 }
 
 function transformSingle(item) {
+  // V9.0: scopeNames 可能是字符串（逗号分隔）或数组
+  let scopes = []
+  if (Array.isArray(item.scopeNames)) {
+    scopes = item.scopeNames
+  } else if (typeof item.scopeNames === 'string' && item.scopeNames) {
+    scopes = item.scopeNames.split(',').filter(Boolean)
+  } else if (Array.isArray(item.scopes)) {
+    scopes = item.scopes
+  }
+
   return {
     id: item.id,
     code: item.code || '',
@@ -26,7 +36,7 @@ function transformSingle(item) {
     cropCode: item.cropCode || '',
     plantingMode: item.plantingMode || '',
     stage: item.stage || '',
-    scopes: item.scopeNames || item.scopes || [], // V9.0: 适用范围数组
+    scopes: scopes, // V9.0: 适用范围数组
     version: item.version || 'V1.0',
     content: item.content || '',
     author: item.author || '',

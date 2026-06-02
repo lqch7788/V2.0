@@ -14,232 +14,38 @@
     </div>
 
     <!-- Filter Bar -->
-    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-      <div class="flex flex-wrap gap-4 items-end">
-        <div class="flex-1 min-w-[180px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">方案编号</label>
-          <input
-            v-model="code"
-            :class="inputClass"
-            placeholder="请输入方案编号"
-          />
-        </div>
-        <div class="min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">作物</label>
-          <el-select v-model="cropFilter" class="w-full">
-            <el-option label="全部" value="全部" />
-            <el-option v-for="crop in cropOptions" :key="crop" :label="crop" :value="crop" />
-          </el-select>
-        </div>
-        <div class="flex-1 min-w-[180px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">编制人</label>
-          <input
-            v-model="author"
-            :class="inputClass"
-            placeholder="请输入编制人"
-          />
-        </div>
-        <div class="min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-          <el-select v-model="status" class="w-full">
-            <el-option label="全部" value="全部" />
-            <el-option label="已发布" value="已发布" />
-            <el-option label="草稿" value="草稿" />
-            <el-option label="审核中" value="审核中" />
-          </el-select>
-        </div>
-        <div class="flex-1 min-w-[180px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
-          <input
-            v-model="startDate"
-            type="date"
-            :class="inputClass"
-          />
-        </div>
-        <div class="flex-1 min-w-[180px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
-          <input
-            v-model="endDate"
-            type="date"
-            :class="inputClass"
-          />
-        </div>
-        <div class="flex gap-2">
-          <button :class="btnDefault" @click="handleSearch">
-            <Search class="w-4 h-4" />
-            搜索
-          </button>
-          <button :class="btnDefault" @click="handleReset">
-            重置
-          </button>
-        </div>
-      </div>
-    </div>
+    <TechSolutionFilters
+      :filters="filters"
+      :crop-options="cropOptions"
+      @update:filters="(v) => filters = v"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
     <!-- Table Card -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900">技术方案列表</h3>
-        <div v-if="exportMode || batchEditMode || batchDeleteMode" class="flex gap-2">
-          <template v-if="batchEditMode">
-            <button :class="btnBlue" @click="openBatchEdit">
-              <Edit class="w-4 h-4" />
-              编辑
-            </button>
-            <button :class="btnSecondary" @click="batchEditMode = false; selectedRows = []">
-              取消
-            </button>
-          </template>
-          <template v-if="batchDeleteMode">
-            <button :class="btnDestructive" @click="handleDeleteClick" :disabled="selectedRows.length === 0">
-              <Delete class="w-4 h-4" />
-              删除
-            </button>
-            <button :class="btnSecondary" @click="batchDeleteMode = false; selectedRows = []">
-              取消
-            </button>
-          </template>
-          <template v-if="exportMode">
-            <button :class="btnDefault" @click="showExportModal = true">
-              <Download class="w-4 h-4" />
-              确认导出
-            </button>
-            <button :class="btnSecondary" @click="handleCancelExport">
-              取消
-            </button>
-          </template>
-        </div>
-        <div v-else class="flex gap-2">
-          <button v-if="canCreate" :class="btnDefault" @click="handleOpenCreateModal">
-            <Plus class="w-4 h-4" />
-            新增
-          </button>
-          <button v-if="canEdit" :class="btnBlue" @click="batchEditMode = true; selectedRows = []">
-            <Edit class="w-4 h-4" />
-            编辑
-          </button>
-          <button v-if="canDelete" :class="btnDestructive" @click="batchDeleteMode = true; selectedRows = []">
-            <Delete class="w-4 h-4" />
-            删除
-          </button>
-          <button v-if="canExport" :class="btnDefault" @click="handleExportClick">
-            <Download class="w-4 h-4" />
-            导出
-          </button>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-            <tr>
-              <th v-if="exportMode || batchEditMode || batchDeleteMode" class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-12">
-                <input
-                  type="checkbox"
-                  :checked="selectedRows.length === filteredTechSolutions.length && filteredTechSolutions.length > 0"
-                  @change="handleSelectAll"
-                  class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                />
-              </th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案编号</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">关联生产计划批次</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案标题</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">作物品种</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">种植模式</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">适用范围</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">版本</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">编制人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">创建日期</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">最后提交时间</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审核人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审批状态</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案是否有效</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案详情文件</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-300">
-            <tr
-              v-for="tech in paginatedTechSolutions"
-              :key="tech.id"
-              class="hover:bg-blue-100 transition-colors"
-            >
-              <td v-if="exportMode || batchEditMode || batchDeleteMode" class="px-4 py-3">
-                <input
-                  type="checkbox"
-                  :checked="selectedRows.includes(tech.id)"
-                  @change="handleSelectRow(tech.id)"
-                  class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                />
-              </td>
-              <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 whitespace-nowrap">
-                <button :class="btnGhost + ' text-blue-600 hover:text-blue-800 text-xs'" @click="handleViewClick(tech)">{{ tech.code }}</button>
-              </td>
-              <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{{ tech.relatedBatchCode || '-' }}</td>
-              <td class="px-4 py-3 text-sm font-medium text-green-700 whitespace-nowrap">
-                <button :class="btnGhost + ' text-green-700 hover:text-green-900 text-xs'" @click="handleTitleClick(tech)">{{ tech.title }}</button>
-              </td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.crop }}</td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.plantingMode }}</td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ (tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : (tech.stage || '-') }}</td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.version }}</td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.author }}</td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.createDate }}</td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.lastSubmitTime ? tech.lastSubmitTime.slice(0, 10) : '-' }}</td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.approver }}</td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', tech.approveStatus === '已审批' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700']">
-                  {{ tech.approveStatus }}
-                </span>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', tech.statusClass === 'normal' ? 'bg-green-100 text-green-700' : tech.statusClass === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700']">
-                  {{ tech.status }}
-                </span>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', tech.isValid === '作废' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700']">
-                  {{ tech.isValid || '有效' }}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-sm whitespace-nowrap">
-                <button v-if="tech.planDetailFileName" :class="btnGhost + ' text-blue-600 hover:text-blue-800 text-sm'" :title="'点击下载方案详情'" @click="downloadPlanDetail(tech)">
-                  {{ tech.planDetailFileName }}
-                </button>
-                <span v-else class="text-gray-400">-</span>
-              </td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap max-w-xs truncate" :title="tech.remarks">
-                {{ tech.remarks || '-' }}
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <div class="flex items-center gap-1">
-                  <template v-if="tech.isValid !== '作废'">
-                    <button :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'" title="编辑" @click="handleEditClick(tech)">
-                      <Edit class="w-4 h-4" />
-                    </button>
-                    <button :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'" title="删除" @click="setSelectedRows([tech.id]); showDeleteModal = true">
-                      <Trash2 class="w-4 h-4" />
-                    </button>
-                  </template>
-                  <button v-else :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'" title="删除" @click="setSelectedRows([tech.id]); showDeleteModal = true">
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-if="exportMode" class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
-          <div class="flex items-center gap-4">
-            <button :class="btnGhost" @click="handleSelectAll">
-              {{ selectedRows.length === techSolutions.length ? '全不选' : '全选' }}
-            </button>
-            <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <TechSolutionTable
+      :data="paginatedTechSolutions"
+      :selected-rows="selectedRows"
+      :batch-mode="batchMode"
+      :batch-edit-mode="batchEditMode"
+      :batch-delete-mode="batchDeleteMode"
+      :export-mode="exportMode"
+      @view="handleViewClick"
+      @edit="handleEditClick"
+      @delete="(ids) => { setSelectedRows(ids); showDeleteModal = true }"
+      @download="downloadPlanDetail"
+      @select-row="handleSelectRow"
+      @select-all="handleSelectAll"
+      @create="handleOpenCreateModal"
+      @start-batch-edit="batchEditMode = true; selectedRows = []"
+      @start-batch-delete="batchDeleteMode = true; selectedRows = []"
+      @start-export="handleExportClick"
+      @open-batch-edit="openBatchEdit"
+      @open-delete="handleDeleteClick"
+      @open-export="showExportModal = true"
+      @cancel-batch="batchEditMode = false; batchDeleteMode = false; selectedRows = []"
+      @cancel-export="handleCancelExport"
+    />
 
     <!-- Pagination -->
     <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-100 rounded-b-xl">
@@ -280,368 +86,37 @@
     </div>
 
     <!-- View Modal -->
-    <div v-if="viewModalOpen" class="fixed inset-0 z-50">
-      <div class="absolute inset-0 bg-black/50" @click="viewModalOpen = false"></div>
-      <div class="bg-white rounded-xl shadow-xl flex flex-col fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 700px; max-height: 90vh;">
-        <div class="modal-header flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl cursor-default select-none">
-          <h3 class="text-lg font-semibold text-white">方案详情</h3>
-          <button class="text-white hover:bg-emerald-500 rounded-lg p-1" @click="viewModalOpen = false">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-        </div>
-        <div v-if="selectedTech" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium text-gray-500">方案编号</label>
-                <p class="text-gray-900 font-medium">{{ selectedTech.code }}</p>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-500">版本</label>
-                <p class="text-gray-900">{{ selectedTech.version }}</p>
-              </div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-500">方案标题</label>
-              <p class="text-gray-900 font-medium">{{ selectedTech.title }}</p>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium text-gray-500">作物品种</label>
-                <p class="text-gray-900">{{ selectedTech.crop }}</p>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-500">种植模式</label>
-                <p class="text-gray-900">{{ selectedTech.plantingMode }}</p>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium text-gray-500">适用范围</label>
-                <p class="text-gray-900">{{ selectedTech.stage }}</p>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium text-gray-500">编制人</label>
-                <p class="text-gray-900">{{ selectedTech.author }}</p>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-500">创建日期</label>
-                <p class="text-gray-900">{{ selectedTech.createDate }}</p>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium text-gray-500">审核人</label>
-                <p class="text-gray-900">{{ selectedTech.approver }}</p>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-500">审批状态</label>
-                <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium mt-1', selectedTech.approveStatus === '已审批' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700']">
-                  {{ selectedTech.approveStatus }}
-                </span>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-500">状态</label>
-                <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium mt-1', selectedTech.statusClass === 'normal' ? 'bg-green-100 text-green-700' : selectedTech.statusClass === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700']">
-                  {{ selectedTech.status }}
-                </span>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium text-gray-500">审批人</label>
-                <p class="text-gray-900">{{ selectedTech.approver }}</p>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-500">审批日期</label>
-                <p class="text-gray-900">{{ selectedTech.approvalDate }}</p>
-              </div>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-500">方案内容</label>
-              <div class="mt-2 p-4 bg-gray-50 rounded-lg text-gray-700 text-sm leading-relaxed">{{ selectedTech.content }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <TechSolutionDetailModal
+      :visible="viewModalOpen"
+      :tech="selectedTech"
+      :approvals="viewApprovals"
+      :approvals-loading="viewApprovalsLoading"
+      @close="viewModalOpen = false"
+    />
 
     <!-- Edit Modal -->
-    <div v-if="editModalOpen" class="fixed inset-0 z-50">
-      <div class="absolute inset-0 bg-black/50" @click="editModalOpen = false"></div>
-      <div class="bg-white rounded-xl shadow-xl flex flex-col fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 700px; max-height: 90vh;">
-        <div class="modal-header flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl cursor-default select-none">
-          <h3 class="text-lg font-semibold text-white">编辑方案</h3>
-          <button class="text-white hover:bg-emerald-500 rounded-lg p-1" @click="editModalOpen = false">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-        </div>
-        <div v-if="selectedTech" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">方案编号</label>
-                <input :value="selectedTech.code" disabled :class="inputClass + ' bg-gray-50'" />
-              </div>
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">版本</label>
-                <input v-model="editForm.version" :class="inputClass" />
-              </div>
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">方案标题</label>
-              <input v-model="editForm.title" :class="inputClass" />
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">作物品种</label>
-                <CropCodeSelector
-                  v-model="editForm.cropCode"
-                  @change="handleCropChangeEdit"
-                  placeholder="搜索或选择作物品种..."
-                  size="md"
-                  show-full-path
-                />
-                <div v-if="selectedCropEdit" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
-                  <div class="text-emerald-700 flex items-center gap-1">
-                    <Leaf class="w-3 h-3 flex-shrink-0" />
-                    {{ selectedCropEdit.categoryName }} > {{ selectedCropEdit.typeName }} > {{ selectedCropEdit.varietyName }}
-                    <span v-if="selectedCropEdit.subVariety1Name"> > {{ selectedCropEdit.subVariety1Name }}</span>
-                  </div>
-                  <div class="text-emerald-600 mt-0.5">
-                    编码：{{ selectedCropEdit.cropCode }}
-                  </div>
-                </div>
-              </div>
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">种植模式</label>
-                <el-select v-model="editForm.plantingMode" class="w-full">
-                  <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
-                </el-select>
-              </div>
-            </div>
-            <!-- 适用范围多选（V9.0） -->
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">适用范围（可多选）</label>
-              <div class="flex flex-wrap gap-2">
-                <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    :checked="editForm.scopes.includes(scope)"
-                    @change="(e) => {
-                      const checked = (e.target as HTMLInputElement).checked
-                      if (checked) {
-                        editForm.scopes = [...editForm.scopes, scope]
-                      } else {
-                        editForm.scopes = editForm.scopes.filter(s => s !== scope)
-                      }
-                    }"
-                    class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span class="text-sm">{{ scope }}</span>
-                </label>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">编制人</label>
-                <input :value="selectedTech.author" disabled :class="inputClass + ' bg-gray-50'" />
-              </div>
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">创建日期</label>
-                <input :value="selectedTech.createDate" disabled :class="inputClass + ' bg-gray-50'" />
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">最后提交时间</label>
-                <input :value="editForm.lastSubmitTime || new Date().toISOString().split('T')[0]" disabled :class="inputClass + ' bg-gray-50'" />
-              </div>
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">方案是否有效</label>
-                <el-select v-model="editForm.isValid" class="w-full">
-                  <el-option label="有效" value="有效" />
-                  <el-option label="作废" value="作废" />
-                </el-select>
-                <p v-if="editForm.isValid === '作废'" class="text-xs text-red-600 mt-1 font-medium">
-                  ⚠️ 选择"作废"后方案将无法使用，提交后将进入审核流程
-                </p>
-              </div>
-            </div>
-            <!-- 备注字段（V1.1补充） -->
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">备注</label>
-              <textarea v-model="editForm.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">方案内容</label>
-              <textarea v-model="editForm.content" rows="6" :class="inputClass + ' resize-y'"></textarea>
-            </div>
-            <!-- 方案详情文件上传（带删除功能） -->
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">方案详情文件</label>
-              <div class="flex items-center gap-3">
-                <button :class="btnBlue" @click="handleEditFileUpload">
-                  <Upload class="w-3 h-3" />
-                  导入文件
-                </button>
-                <span class="text-xs text-gray-500">支持 .txt, .md, .docx 格式</span>
-                <span v-if="editForm.planDetailFileName" class="text-xs text-emerald-600">{{ editForm.planDetailFileName }}</span>
-                <button
-                  v-if="editForm.planDetailFileName"
-                  :class="btnGhost + ' text-red-500 hover:text-red-700 text-xs'"
-                  @click="editForm.planDetailFileName = ''; editForm.content = ''"
-                >
-                  删除
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
-          <button :class="btnSecondary" @click="editModalOpen = false">取消</button>
-          <button :class="btnDefault" @click="handleEditSubmit">保存</button>
-        </div>
-      </div>
-    </div>
+    <TechSolutionEditModal
+      :visible="editModalOpen"
+      :tech="selectedTech"
+      :form="editForm"
+      :selected-crop="selectedCropEdit"
+      @close="editModalOpen = false"
+      @submit="handleEditSubmit"
+      @update:form="(v) => editForm = v"
+      @update:selected-crop="(v) => selectedCropEdit = v"
+    />
 
     <!-- Create Modal -->
-    <div v-if="createModalOpen" class="fixed inset-0 z-50">
-      <div class="absolute inset-0 bg-black/50" @click="createModalOpen = false"></div>
-      <div class="bg-white rounded-xl shadow-xl flex flex-col fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 1350px; max-height: 90vh;">
-        <div class="modal-header flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl cursor-default select-none">
-          <h3 class="text-lg font-semibold text-white">新增方案</h3>
-          <button class="text-white hover:bg-emerald-500 rounded-lg p-1" @click="createModalOpen = false">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-        </div>
-        <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">方案编号</label>
-                <div class="flex gap-2">
-                  <input v-model="newPlanForm.code" :class="inputClass" placeholder="请输入方案编号" />
-                  <button :class="btnDefault + ' flex-shrink-0'" @click="newPlanForm.code = generateCode()">生成</button>
-                </div>
-              </div>
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">版本</label>
-                <input v-model="newPlanForm.version" :class="inputClass" />
-              </div>
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">方案标题 <span class="text-red-500">*</span></label>
-              <input v-model="newPlanForm.title" :class="inputClass" placeholder="请输入方案标题" />
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">作物品种 <span class="text-red-500">*</span></label>
-                <CropCodeSelector
-                  v-model="newPlanForm.cropCode"
-                  @change="handleCropChange"
-                  placeholder="搜索或选择作物品种..."
-                  size="md"
-                  showFullPath
-                />
-                <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
-                  <div class="text-emerald-700 flex items-center gap-1">
-                    <Leaf class="w-3 h-3 flex-shrink-0" />
-                    {{ selectedCrop.categoryName }} > {{ selectedCrop.typeName }} > {{ selectedCrop.varietyName }}
-                    <span v-if="selectedCrop.subVariety1Name"> > {{ selectedCrop.subVariety1Name }}</span>
-                  </div>
-                  <div class="text-emerald-600 mt-0.5">
-                    编码：{{ selectedCrop.cropCode }}
-                  </div>
-                </div>
-              </div>
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">作物编码</label>
-                <input v-model="newPlanForm.cropCode" placeholder="自动获取" disabled :class="inputClass + ' bg-gray-50'" />
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">种植模式</label>
-                <el-select v-model="newPlanForm.plantingMode" class="w-full">
-                  <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
-                </el-select>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">关联生产批次号</label>
-                <el-select v-model="newPlanForm.relatedBatchCode" class="w-full" placeholder="请选择">
-                  <el-option label="ZZB2026-001 - 番茄种植批次" value="ZZB2026-001" />
-                  <el-option label="ZZB2026-002 - 黄瓜种植批次" value="ZZB2026-002" />
-                  <el-option label="ZZB2026-003 - 草莓种植批次" value="ZZB2026-003" />
-                  <el-option label="YMB2026-001 - 番茄育苗批次" value="YMB2026-001" />
-                  <el-option label="YMB2026-002 - 黄瓜育苗批次" value="YMB2026-002" />
-                  <el-option label="JZB2026-001 - 番茄种源批次" value="JZB2026-001" />
-                  <el-option label="JZB2026-002 - 黄瓜种源批次" value="JZB2026-002" />
-                </el-select>
-              </div>
-            </div>
-            <!-- 适用范围多选（V9.0） -->
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">适用范围（可多选）</label>
-              <div class="flex flex-wrap gap-2">
-                <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    :checked="newPlanForm.scopes.includes(scope)"
-                    @change="(e) => {
-                      const checked = (e.target as HTMLInputElement).checked
-                      if (checked) {
-                        newPlanForm.scopes = [...newPlanForm.scopes, scope]
-                      } else {
-                        newPlanForm.scopes = newPlanForm.scopes.filter(s => s !== scope)
-                      }
-                    }"
-                    class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span class="text-sm">{{ scope }}</span>
-                </label>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">编制人</label>
-                <el-select v-model="newPlanForm.author" class="w-full">
-                  <el-option v-for="op in operatorOptions" :key="op.value" :label="op.label" :value="op.value" />
-                </el-select>
-              </div>
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">创建日期</label>
-                <input :value="new Date().toISOString().split('T')[0]" disabled :class="inputClass + ' bg-gray-50'" />
-              </div>
-            </div>
-            <!-- 备注字段（V1.1补充） -->
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">备注</label>
-              <textarea v-model="newPlanForm.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">方案详细</label>
-              <div class="flex items-center gap-2">
-                <button :class="btnBlue" @click="handleCreateFileUpload">
-                  <Upload class="w-3 h-3" />
-                  导入文件
-                </button>
-                <span class="text-xs text-gray-500">支持 .txt, .md, .docx 格式文件</span>
-                <span v-if="newPlanForm.planDetailFileName" class="text-xs text-emerald-600">{{ newPlanForm.planDetailFileName }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
-          <button :class="btnSecondary" @click="handleCreateSubmit('draft')">存为草稿</button>
-          <button :class="btnDefault" @click="handleCreateSubmit('submit')">提交审批</button>
-        </div>
-      </div>
-    </div>
+    <TechSolutionCreateModal
+      :visible="createModalOpen"
+      :form="newPlanForm"
+      :selected-crop="selectedCrop"
+      :operator-options="operatorOptions"
+      @close="createModalOpen = false"
+      @submit="handleCreateSubmit"
+      @update:form="(v) => newPlanForm = v"
+      @update:selected-crop="(v) => selectedCrop = v"
+    />
 
     <!-- Delete Warning Modal -->
     <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -664,254 +139,77 @@
     </div>
 
     <!-- Batch Edit Modal -->
-    <div v-if="showBatchEditModal" class="fixed inset-0 z-50">
-      <div class="absolute inset-0 bg-black/50" @click="cancelBatchEdit"></div>
-      <div class="bg-white rounded-xl shadow-xl flex flex-col fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 1080px; max-height: 90vh;">
-        <div class="modal-header flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl cursor-default select-none">
-          <h3 class="text-lg font-semibold text-white">批量编辑技术方案</h3>
-          <button class="text-white hover:bg-emerald-500 rounded-lg p-1" @click="cancelBatchEdit">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-        </div>
-        <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
-          <div class="space-y-4">
-            <!-- Info Banner -->
-            <div class="bg-blue-50 rounded-lg p-3">
-              <p class="text-sm text-blue-800">
-                已选择 <strong>{{ selectedRows.length }}</strong> 个技术方案进行批量编辑，
-                已编辑 <strong>{{ editedTechCodes.length }}</strong> 个
-              </p>
-            </div>
-            <!-- Batch Selector -->
-            <div class="flex items-center gap-4 mb-3">
-              <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-700 mb-1">选择技术方案编号</label>
-                <el-select v-model="selectedTechCode" class="w-full" placeholder="请选择方案编号">
-                  <el-option
-                    v-for="tech in techSolutions.filter(t => selectedRows.includes(t.id))"
-                    :key="tech.id"
-                    :label="`${tech.code} - ${tech.title} ${editedTechCodes.includes(tech.code) ? '✅ 已编辑' : ''}`"
-                    :value="tech.code"
-                  />
-                </el-select>
-              </div>
-            </div>
-            <!-- Edit Form -->
-            <div v-if="selectedTechCode && techSolutions.find(t => t.code === selectedTechCode)" class="grid grid-cols-4 gap-3">
-              <template v-for="currentTech in [techSolutions.find(t => t.code === selectedTechCode)]" :key="currentTech.id">
-                <!-- 方案编号 - 不可编辑 -->
-                <div class="bg-gray-100 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">方案编号</div>
-                  <div class="text-sm font-medium text-gray-900">{{ currentTech.code }}</div>
-                </div>
-                <!-- 版本 - 可编辑 -->
-                <div class="bg-gray-50 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">版本</div>
-                  <input
-                    :value="editedTechs[selectedTechCode]?.version ?? currentTech.version"
-                    @input="handleInputEdit(selectedTechCode, 'version', $event)"
-                    :class="inputClass + ' h-7 py-0 text-xs'"
-                  />
-                </div>
-                <!-- 方案标题 - 可编辑 -->
-                <div class="bg-gray-50 rounded-lg p-2 col-span-2">
-                  <div class="text-xs text-gray-500 mb-1">方案标题</div>
-                  <input
-                    :value="editedTechs[selectedTechCode]?.title ?? currentTech.title"
-                    @input="handleInputEdit(selectedTechCode, 'title', $event)"
-                    :class="inputClass + ' h-7 py-0 text-xs'"
-                  />
-                </div>
-                <!-- 作物品种 - 可编辑（动态获取） -->
-                <div class="bg-gray-50 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">作物品种</div>
-                  <el-select
-                    :model-value="editedTechs[selectedTechCode]?.crop ?? currentTech.crop"
-                    @update:model-value="updateEditedField(selectedTechCode, 'crop', $event)"
-                    class="w-full"
-                  >
-                    <el-option v-for="crop in cropOptions" :key="crop" :label="crop" :value="crop" />
-                  </el-select>
-                </div>
-                <!-- 种植模式 - 可编辑 -->
-                <div class="bg-gray-50 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">种植模式</div>
-                  <el-select
-                    :model-value="editedTechs[selectedTechCode]?.plantingMode ?? currentTech.plantingMode"
-                    @update:model-value="updateEditedField(selectedTechCode, 'plantingMode', $event)"
-                    class="w-full"
-                  >
-                    <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
-                  </el-select>
-                </div>
-                <!-- 适用范围 - 可编辑 -->
-                <div class="bg-gray-50 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">适用范围</div>
-                  <input
-                    :value="editedTechs[selectedTechCode]?.stage ?? currentTech.stage"
-                    @input="handleInputEdit(selectedTechCode, 'stage', $event)"
-                    :class="inputClass + ' h-7 py-0 text-xs'"
-                  />
-                </div>
-                <!-- 编制人 - 不可编辑 -->
-                <div class="bg-gray-100 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">编制人</div>
-                  <div class="text-sm text-gray-700">{{ currentTech.author }}</div>
-                </div>
-                <!-- 创建日期 - 不可编辑 -->
-                <div class="bg-gray-100 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">创建日期</div>
-                  <div class="text-sm text-gray-700">{{ currentTech.createDate }}</div>
-                </div>
-                <!-- 审核人 - 不可编辑 -->
-                <div class="bg-gray-100 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">审核人</div>
-                  <div class="text-sm text-gray-700">{{ currentTech.approver }}</div>
-                </div>
-                <!-- 审批状态 - 不可编辑 -->
-                <div class="bg-gray-100 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">审批状态</div>
-                  <span :class="['inline-flex px-2 py-0.5 rounded-full text-xs font-medium', currentTech.approveStatus === '已审批' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700']">
-                    {{ currentTech.approveStatus }}
-                  </span>
-                </div>
-                <!-- 状态 - 可编辑 -->
-                <div class="bg-gray-50 rounded-lg p-2">
-                  <div class="text-xs text-gray-500 mb-1">状态</div>
-                  <el-select
-                    :model-value="editedTechs[selectedTechCode]?.status ?? currentTech.status"
-                    @update:model-value="updateEditedField(selectedTechCode, 'status', $event)"
-                    class="w-full"
-                  >
-                    <el-option label="已发布" value="已发布" />
-                    <el-option label="审核中" value="审核中" />
-                    <el-option label="草稿" value="草稿" />
-                  </el-select>
-                </div>
-                <!-- 方案详情文件 - 可编辑 -->
-                <div class="bg-gray-50 rounded-lg p-2 col-span-4">
-                  <div class="text-xs text-gray-500 mb-1">方案详情文件</div>
-                  <div class="flex items-center gap-4">
-                    <template v-if="(editedTechs[selectedTechCode]?.planDetailFileName ?? currentTech.planDetailFileName)">
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-700">{{ editedTechs[selectedTechCode]?.planDetailFileName ?? currentTech.planDetailFileName }}</span>
-                        <button :class="btnBlue" @click="handleBatchFileUpload(selectedTechCode)">
-                          <Upload class="w-3 h-3" />
-                          重新上传
-                        </button>
-                        <span class="text-xs text-gray-500">支持 .md, .docx, .txt 格式</span>
-                      </div>
-                    </template>
-                    <button v-else :class="btnDefault" @click="handleBatchFileUpload(selectedTechCode)">
-                      <Upload class="w-3 h-3" />
-                      上传方案文件
-                    </button>
-                  </div>
-                </div>
-              </template>
-            </div>
-            <!-- Footer Buttons -->
-            <div class="flex justify-end gap-3 pt-4 border-t">
-              <button :class="btnSecondary" @click="cancelBatchEdit">取消</button>
-              <button :class="btnDefault" @click="saveBatchEdit">保存</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <TechSolutionBatchEditModal
+      :visible="showBatchEditModal"
+      :selected-rows="selectedRows"
+      :all-techs="techSolutions"
+      :edited-techs="editedTechs"
+      :edited-tech-codes="editedTechCodes"
+      :crop-options="cropOptions"
+      @close="cancelBatchEdit"
+      @save="saveBatchEdit"
+      @update:edited-techs="(v) => editedTechs = v"
+      @update:edited-tech-codes="(v) => editedTechCodes = v"
+    />
 
     <!-- Export Format Modal -->
-    <div v-if="showExportModal" class="fixed inset-0 z-50">
-      <div class="absolute inset-0 bg-black/50" @click="showExportModal = false"></div>
-      <div class="bg-white rounded-xl shadow-xl flex flex-col fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 500px; max-height: 90vh;">
-        <div class="modal-header flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl cursor-default select-none">
-          <h3 class="text-lg font-semibold text-white">选择导出格式</h3>
-          <button class="text-white hover:bg-emerald-500 rounded-lg p-1" @click="showExportModal = false">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-        </div>
-        <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
-          <div class="space-y-4">
-            <p class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 条数据</p>
-            <div class="space-y-3">
-              <div
-                v-for="format in exportFormats"
-                :key="format.value"
-                @click="exportFormat = format.value"
-                :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all', exportFormat === format.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300']"
-              >
-                <div :class="['w-4 h-4 rounded-full border-2 flex items-center justify-center', exportFormat === format.value ? 'border-emerald-500' : 'border-gray-300']">
-                  <div v-if="exportFormat === format.value" class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-gray-900">{{ format.label }}</p>
-                  <p class="text-xs text-gray-500">{{ format.desc }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
-          <button :class="btnSecondary" @click="showExportModal = false">取消</button>
-          <button :class="btnDefault" @click="handleConfirmExport">导出</button>
-        </div>
-      </div>
-    </div>
+    <ExportFormatModal
+      :visible="showExportModal"
+      v-model:format="exportFormat"
+      :selected-count="selectedRows.length"
+      :formats="exportFormats"
+      @close="showExportModal = false"
+      @confirm="handleConfirmExport"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTechSolutionStore } from '@/stores/modules/techSolution'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { enhancedApiClient } from '@/lib/apiClient'
 import { showAlert } from '@/lib/dialogService'
-import { FileCode, Plus, Search, Download, Edit, Trash2, Delete, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Upload, Leaf } from 'lucide-vue-next'
-import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
+import { FileCode, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
 import { getVarietyByCode } from '@/services/cropVarietyService'
+import { getTechSolutionApprovals } from '@/services/techSolutionService'
+import TechSolutionFilters from './components/TechSolutionFilters.vue'
+import TechSolutionTable from './components/TechSolutionTable.vue'
+import TechSolutionDetailModal from './modals/TechSolutionDetailModal.vue'
+import TechSolutionEditModal from './modals/TechSolutionEditModal.vue'
+import TechSolutionCreateModal from './modals/TechSolutionCreateModal.vue'
+import TechSolutionBatchEditModal from './modals/TechSolutionBatchEditModal.vue'
+import ExportFormatModal from './modals/ExportFormatModal.vue'
 
 // ==================== 样式常量 ====================
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
-const btnDefault = `${btnBase} bg-emerald-600 text-white hover:bg-emerald-700 h-8 rounded-md px-3 text-xs`
 const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-200 h-8 rounded-md px-3 text-xs`
 const btnDestructive = `${btnBase} bg-red-600 text-white hover:bg-red-700 h-8 rounded-md px-3 text-xs`
-const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded-md px-3 text-xs`
 const btnGhost = `${btnBase} hover:bg-gray-100 hover:text-gray-900`
 
-const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
-const selectClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 appearance-none'
-
 // ==================== 常量 ====================
-// 适用范围选项（V9.0多选）
-const TECH_SOLUTION_SCOPES = ['大棚A区', '大棚B区', '大棚C区', '育苗室1', '育苗室2', '包装车间', '仓储区']
-const plantingModes = ['水培', '土培', '基质培', '雾培']
-
 const exportFormats = [
   { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' },
 ]
 
-// ==================== 权限 ====================
-const canCreate = true
-const canEdit = true
-const canDelete = true
-const canExport = true
-
 // ==================== Store ====================
 const techSolutionStore = useTechSolutionStore()
 const approvalStore = useApprovalStore()
-const { solutions: techSolutions, isLoading } = storeToRefs(techSolutionStore)
+const { solutions: techSolutions } = storeToRefs(techSolutionStore)
 const { fetchSolutions, addSolution, updateSolution, deleteSolutions } = techSolutionStore
 
 // ==================== 过滤器 ====================
-const code = ref('')
-const cropFilter = ref('全部')
-const author = ref('')
-const status = ref('全部')
-const startDate = ref('')
-const endDate = ref('')
+const filters = ref({
+  code: '',
+  cropFilter: '全部',
+  author: '',
+  status: '全部',
+  startDate: '',
+  endDate: '',
+})
 const currentPage = ref(1)
 const pageSize = ref(10)
 
@@ -921,9 +219,7 @@ const operatorOptions = ref<{ value: string; label: string }[]>([])
 async function loadOperators() {
   try {
     const token = localStorage.getItem('token')
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (token) headers['Authorization'] = `Bearer ${token}`
     const response = await fetch('/api/dictionary/dictionaries?category=operator', { headers })
     let options: { value: string; label: string }[] = []
@@ -948,7 +244,6 @@ async function loadOperators() {
     }
     operatorOptions.value = options
   } catch (error) {
-    console.error('加载操作人员失败:', error)
     operatorOptions.value = [
       { value: '陆启闯', label: '陆启闯' },
       { value: '郭靖', label: '郭靖' },
@@ -977,25 +272,23 @@ const handleVisibilityChange = () => {
   }
 }
 
-// 窗口聚焦时刷新（解决审批通过后状态不同步问题）
 const handleFocus = () => {
   fetchSolutions()
 }
 
 // ==================== 计算属性 ====================
-// 动态获取作物品种选项（从数据中提取唯一值）
 const cropOptions = computed(() => {
   return Array.from(new Set(techSolutions.value.map((t: any) => t.crop).filter(Boolean)))
 })
 
 const filteredTechSolutions = computed(() => {
   return techSolutions.value.filter((tech: any) => {
-    if (code.value && !tech.code.toLowerCase().includes(code.value.toLowerCase())) return false
-    if (cropFilter.value && cropFilter.value !== '全部' && tech.crop !== cropFilter.value) return false
-    if (author.value && !tech.author.toLowerCase().includes(author.value.toLowerCase())) return false
-    if (status.value && status.value !== '全部' && tech.status !== status.value) return false
-    if (startDate.value && tech.createDate < startDate.value) return false
-    if (endDate.value && tech.createDate > endDate.value) return false
+    if (filters.value.code && !tech.code.toLowerCase().includes(filters.value.code.toLowerCase())) return false
+    if (filters.value.cropFilter && filters.value.cropFilter !== '全部' && tech.crop !== filters.value.cropFilter) return false
+    if (filters.value.author && !tech.author.toLowerCase().includes(filters.value.author.toLowerCase())) return false
+    if (filters.value.status && filters.value.status !== '全部' && tech.status !== filters.value.status) return false
+    if (filters.value.startDate && tech.createDate < filters.value.startDate) return false
+    if (filters.value.endDate && tech.createDate > filters.value.endDate) return false
     return true
   })
 })
@@ -1033,17 +326,21 @@ const handleSearch = () => {
 }
 
 const handleReset = () => {
-  code.value = ''
-  cropFilter.value = '全部'
-  author.value = ''
-  status.value = '全部'
-  startDate.value = ''
-  endDate.value = ''
+  filters.value = {
+    code: '',
+    cropFilter: '全部',
+    author: '',
+    status: '全部',
+    startDate: '',
+    endDate: '',
+  }
   currentPage.value = 1
 }
 
 // ==================== Modal State ====================
 const viewModalOpen = ref(false)
+const viewApprovals = ref<any[]>([])
+const viewApprovalsLoading = ref(false)
 const editModalOpen = ref(false)
 const createModalOpen = ref(false)
 const exportMode = ref(false)
@@ -1055,23 +352,26 @@ const selectedRows = ref<(string | number)[]>([])
 const exportFormat = ref('excel')
 const showExportModal = ref(false)
 const selectedTech = ref<any>(null)
+
+const batchMode = computed(() => batchEditMode.value || batchDeleteMode.value)
+
 const editForm = ref({
   title: '',
   crop: '',
   cropCode: '',
   plantingMode: '',
   stage: '',
-  scopes: [] as string[], // V9.0: 适用范围数组
+  scopes: [] as string[],
   version: '',
   content: '',
-  remarks: '', // V1.1补充
+  remarks: '',
   isValid: '有效',
   lastSubmitTime: '',
+  planDetailFileName: '',
 })
 
 const editedTechCodes = ref<string[]>([])
 const editedTechs = ref<Record<string, any>>({})
-const selectedTechCode = ref('')
 
 const newPlanForm = ref({
   code: '',
@@ -1080,11 +380,11 @@ const newPlanForm = ref({
   cropCode: '',
   plantingMode: '水培',
   stage: '',
-  scopes: [] as string[], // V9.0: 适用范围数组
+  scopes: [] as string[],
   author: localStorage.getItem('username') || '',
   version: 'V1.0',
   content: '',
-  remarks: '', // V1.1补充
+  remarks: '',
   planDetailFileName: '',
   relatedBatchCode: '',
 })
@@ -1092,51 +392,6 @@ const newPlanForm = ref({
 const selectedCrop = ref<any>(null)
 const selectedCropEdit = ref<any>(null)
 
-const handleCropChange = (code: string, varietyInfo: any) => {
-  if (varietyInfo) {
-    selectedCrop.value = varietyInfo
-    newPlanForm.value.crop = varietyInfo.subVariety1Name || varietyInfo.varietyName
-    newPlanForm.value.cropCode = varietyInfo.cropCode
-  } else {
-    selectedCrop.value = null
-    newPlanForm.value.crop = ''
-    newPlanForm.value.cropCode = ''
-  }
-}
-
-// 编辑弹窗的作物品种选择
-const handleCropChangeEdit = (code: string, varietyInfo: any) => {
-  if (varietyInfo) {
-    selectedCropEdit.value = varietyInfo
-    editForm.value.crop = varietyInfo.subVariety1Name || varietyInfo.varietyName
-    editForm.value.cropCode = varietyInfo.cropCode
-  } else {
-    selectedCropEdit.value = null
-    editForm.value.crop = ''
-    editForm.value.cropCode = ''
-  }
-}
-
-// 编辑弹窗文件上传
-const handleEditFileUpload = () => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.txt,.md,.docx'
-  input.onchange = (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        editForm.value.content = event.target?.result as string
-        editForm.value.planDetailFileName = file.name
-      }
-      reader.readAsText(file)
-    }
-  }
-  input.click()
-}
-
-// ==================== 辅助函数 ====================
 const generateCode = () => {
   return `T${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`
 }
@@ -1145,14 +400,19 @@ const setSelectedRows = (rows: (string | number)[]) => {
   selectedRows.value = rows
 }
 
-const handleTitleClick = (tech: any) => {
+const handleViewClick = async (tech: any) => {
   selectedTech.value = tech
   viewModalOpen.value = true
-}
-
-const handleViewClick = (tech: any) => {
-  selectedTech.value = tech
-  viewModalOpen.value = true
+  viewApprovalsLoading.value = true
+  viewApprovals.value = []
+  try {
+    const approvals = await getTechSolutionApprovals(tech.id)
+    viewApprovals.value = approvals || []
+  } catch {
+    viewApprovals.value = []
+  } finally {
+    viewApprovalsLoading.value = false
+  }
 }
 
 const handleEditClick = (tech: any) => {
@@ -1161,7 +421,6 @@ const handleEditClick = (tech: any) => {
     return
   }
   selectedTech.value = tech
-  // 根据 cropCode 获取品种信息用于编辑弹窗显示
   const varietyInfo = tech.cropCode ? getVarietyByCode(tech.cropCode) : null
   selectedCropEdit.value = varietyInfo
   editForm.value = {
@@ -1170,10 +429,10 @@ const handleEditClick = (tech: any) => {
     cropCode: tech.cropCode || '',
     plantingMode: tech.plantingMode,
     stage: tech.stage,
-    scopes: tech.scopes || [], // V9.0: 适用范围数组
+    scopes: tech.scopes || [],
     version: tech.version,
     content: tech.content,
-    remarks: tech.remarks || '', // V1.1补充
+    remarks: tech.remarks || '',
     planDetailFileName: tech.planDetailFileName || '',
     isValid: tech.isValid || '有效',
     lastSubmitTime: new Date().toISOString().split('T')[0],
@@ -1189,10 +448,10 @@ const handleEditSubmit = async () => {
     cropCode: editForm.value.cropCode,
     plantingMode: editForm.value.plantingMode,
     stage: editForm.value.stage,
-    scopeNames: editForm.value.scopes, // V9.0: 传 scopes 数组
+    scopeNames: editForm.value.scopes,
     version: editForm.value.version,
     content: editForm.value.content,
-    remarks: editForm.value.remarks, // V1.1补充
+    remarks: editForm.value.remarks,
     relatedBatchCode: selectedTech.value.relatedBatchCode || '',
     planDetailFileName: selectedTech.value.planDetailFileName || '',
     priority: selectedTech.value.priority || 'normal',
@@ -1216,8 +475,8 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
     cropCode: newPlanForm.value.cropCode,
     plantingMode: newPlanForm.value.plantingMode,
     stage: newPlanForm.value.stage,
-    scopeNames: newPlanForm.value.scopes, // V9.0: 传 scopes 数组
-    remarks: newPlanForm.value.remarks, // V1.1补充
+    scopeNames: newPlanForm.value.scopes,
+    remarks: newPlanForm.value.remarks,
     version: newPlanForm.value.version || 'V1.0',
     content: newPlanForm.value.content,
     author: newPlanForm.value.author || localStorage.getItem('username') || '',
@@ -1438,10 +697,6 @@ const openBatchEdit = () => {
     showAlert('请先选择要编辑的数据')
     return
   }
-  const selectedTechsData = techSolutions.value.filter((t: any) => selectedRows.value.includes(t.id))
-  if (selectedTechsData.length > 0) {
-    selectedTechCode.value = selectedTechsData[0].code
-  }
   editedTechCodes.value = []
   editedTechs.value = {}
   showBatchEditModal.value = true
@@ -1485,75 +740,6 @@ const cancelBatchEdit = () => {
   selectedRows.value = []
   editedTechCodes.value = []
   editedTechs.value = {}
-}
-
-const updateEditedField = (code: string, field: string, value: any) => {
-  editedTechs.value = {
-    ...editedTechs.value,
-    [code]: { ...editedTechs.value[code], [field]: value },
-  }
-  if (!editedTechCodes.value.includes(code)) {
-    editedTechCodes.value = [...editedTechCodes.value, code]
-  }
-}
-
-const handleInputEdit = (code: string, field: string, event: Event) => {
-  const target = event.target as HTMLInputElement
-  updateEditedField(code, field, target.value)
-}
-
-const handleSelectEdit = (code: string, field: string, event: Event) => {
-  const target = event.target as HTMLSelectElement
-  updateEditedField(code, field, target.value)
-}
-
-const onCreateCropChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  newPlanForm.value.crop = target.value
-  // 简化作物编码映射
-  const cropCodeMap: Record<string, string> = {
-    '番茄': 'PD030100400',
-    '黄瓜': 'PD020100100',
-    '草莓': 'FR010100100',
-    '辣椒': 'PD030400700',
-  }
-  newPlanForm.value.cropCode = cropCodeMap[target.value] || ''
-}
-
-const handleCreateFileUpload = () => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.txt,.md,.docx'
-  input.onchange = (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        newPlanForm.value.content = event.target?.result as string
-        newPlanForm.value.planDetailFileName = file.name
-      }
-      reader.readAsText(file)
-    }
-  }
-  input.click()
-}
-
-const handleBatchFileUpload = (code: string) => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.md,.docx,.txt'
-  input.onchange = (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (file) {
-      updateEditedField(code, 'planDetailFileName', file.name)
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        updateEditedField(code, 'content', event.target?.result as string)
-      }
-      reader.readAsText(file)
-    }
-  }
-  input.click()
 }
 
 const downloadPlanDetail = (tech: any) => {

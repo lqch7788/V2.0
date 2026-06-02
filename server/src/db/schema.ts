@@ -1649,6 +1649,13 @@ export function initializeDatabase() {
     // 列可能已存在，忽略错误
   }
 
+  // V9.0: 为技术方案表添加适用范围字段（如果不存在）
+  try {
+    db.run(`ALTER TABLE tech_solutions ADD COLUMN scope_names TEXT DEFAULT ''`);
+  } catch (e) {
+    // 列可能已存在，忽略错误
+  }
+
   // ========== 作物品种库扩展表（用户新增的类别/类型/品种/子品种）==========
 
   db.run(`

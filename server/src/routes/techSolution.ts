@@ -76,6 +76,8 @@ function mapFieldsToFrontend(item: Record<string, unknown>): Record<string, unkn
     remarks: item.remarks,
     lastSubmitTime: getVal('lastSubmitTime', 'last_submit_time') || '',
     isValid: getVal('isValid', 'is_valid') || '有效',
+    // V9.0: 适用范围（逗号分隔存储）
+    scopeNames: getVal('scopeNames', 'scope_names') || '',
   };
   return result;
 }
@@ -210,6 +212,7 @@ router.post('/', (req: Request, res: Response) => {
       planDetailFileName,
       priority,
       remarks,
+      scopeNames, // V9.0: 适用范围数组
     } = req.body;
 
     // 默认草稿状态
@@ -222,14 +225,16 @@ router.post('/', (req: Request, res: Response) => {
     // 优先使用前端传入的编号，否则按规则生成
     const solutionCode = code || generateSolutionCode();
     const now = new Date().toISOString();
+    // V9.0: 适用范围数组转逗号分隔字符串
+    const scopeNamesStr = Array.isArray(scopeNames) ? scopeNames.join(',') : (scopeNames || '');
 
     db.run(`
       INSERT INTO tech_solutions (
         id, solution_code, solution_title, crop_name, crop_code, planting_mode, stage,
         version, content, author, author_id, create_time, update_time,
         status, batch_status, related_batch_code, plan_detail_file_name,
-        priority, remarks, last_submit_time, is_valid
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        priority, remarks, last_submit_time, is_valid, scope_names
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       solutionCode,
@@ -252,6 +257,7 @@ router.post('/', (req: Request, res: Response) => {
       remarks || '',
       now, // last_submit_time
       req.body.isValid || '有效', // is_valid
+      scopeNamesStr,
     ]);
 
     saveDatabase();
@@ -292,11 +298,14 @@ router.put('/:id', (req: Request, res: Response) => {
       remarks = '',
       isValid = '有效',
       lastSubmitTime = '',
+      scopeNames, // V9.0
     } = req.body;
 
     const now = new Date().toISOString();
     // 如果方案被标记为作废，更新 batch_status
     const batchStatus = isValid === '作废' ? 'cancelled' : 'pending';
+    // V9.0: 适用范围数组转字符串
+    const scopeNamesStr = Array.isArray(scopeNames) ? scopeNames.join(',') : (scopeNames || '');
 
     db.run(`
       UPDATE tech_solutions SET
@@ -313,7 +322,8 @@ router.put('/:id', (req: Request, res: Response) => {
         update_time = ?,
         batch_status = ?,
         is_valid = ?,
-        last_submit_time = ?
+        last_submit_time = ?,
+        scope_names = ?
       WHERE id = ?
     `, [
       solutionTitle,
@@ -330,6 +340,7 @@ router.put('/:id', (req: Request, res: Response) => {
       batchStatus,
       isValid,
       lastSubmitTime || now,
+      scopeNamesStr,
       id,
     ]);
 
