@@ -2,13 +2,15 @@
   <div class="space-y-6">
     <!-- 页面头部 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" class="text-white"><Grape /></el-icon>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">生产审批</h1>
-          <p class="text-gray-500">技术方案、生产计划、采收申请审批管理</p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+            <el-icon :size="24" class="text-white"><Crop /></el-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">生产审批</h1>
+            <p class="text-gray-500">技术方案、生产计划、采收申请审批管理</p>
+          </div>
         </div>
       </div>
     </div>
@@ -221,7 +223,7 @@
           <!-- 业务关联信息卡片 -->
           <div v-if="currentApproval.businessLink" class="bg-emerald-50 rounded-xl p-4">
             <h4 class="text-sm font-medium text-emerald-600 mb-3 flex items-center gap-2">
-              <el-icon><Grape /></el-icon> {{ getBusinessTypeLabel(currentApproval.businessLink.type) }}
+              <el-icon><Crop /></el-icon> {{ getBusinessTypeLabel(currentApproval.businessLink.type) }}
             </h4>
             <div class="grid grid-cols-2 gap-3">
               <div v-for="(value, key) in currentApproval.businessLink" :key="key" class="flex flex-col">
@@ -301,7 +303,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import {
-  Grape,
+  Crop,
   Search,
   Clock,
   CircleCheck,
