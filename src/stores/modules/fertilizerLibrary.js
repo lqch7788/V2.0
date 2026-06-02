@@ -201,7 +201,15 @@ export const useFertilizerLibraryStore = defineStore('fertilizerLibrary', () => 
         remark: specData.remark
       }
       const response = await enhancedApiClient.post(`${API_BASE}/${fertilizerId}/specs`, body)
-      return { success: true, data: response?.data || response }
+      const created = response?.data || response
+      // V1.1 风格：创建后回写 items[].specs
+      if (created) {
+        const target = items.value.find(i => i.id === fertilizerId)
+        if (target) {
+          target.specs = [...(target.specs || []), created]
+        }
+      }
+      return { success: true, data: created }
     } catch (e) {
       console.error('[FertilizerLibraryStore] 创建规格失败:', e)
       return { success: false, error: e.message }
@@ -223,7 +231,16 @@ export const useFertilizerLibraryStore = defineStore('fertilizerLibrary', () => 
         remark: specData.remark
       }
       const response = await enhancedApiClient.put(`${API_BASE}/specs/${specId}`, body)
-      return { success: true, data: response?.data || response }
+      const updated = response?.data || response
+      // V1.1 风格：更新后回写 items[].specs
+      if (updated) {
+        for (const item of items.value) {
+          if (item.specs) {
+            item.specs = item.specs.map(s => s.id === specId ? { ...s, ...updated } : s)
+          }
+        }
+      }
+      return { success: true, data: updated }
     } catch (e) {
       console.error('[FertilizerLibraryStore] 更新规格失败:', e)
       return { success: false, error: e.message }
@@ -236,6 +253,12 @@ export const useFertilizerLibraryStore = defineStore('fertilizerLibrary', () => 
   const deleteSpec = async (specId) => {
     try {
       await enhancedApiClient.delete(`${API_BASE}/specs/${specId}`)
+      // V1.1 风格：删除后回写 items[].specs
+      for (const item of items.value) {
+        if (item.specs) {
+          item.specs = item.specs.filter(s => s.id !== specId)
+        }
+      }
       return { success: true }
     } catch (e) {
       console.error('[FertilizerLibraryStore] 删除规格失败:', e)

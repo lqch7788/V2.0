@@ -331,6 +331,37 @@
           <label class="text-sm font-medium text-gray-500">供应商信息</label>
           <p class="mt-1 text-gray-900">{{ currentRecord?.supplierInfo || '-' }}</p>
         </div>
+
+        <!-- 规格明细（V1.1 风格：7 列表格） -->
+        <div v-if="currentRecord?.specs && currentRecord.specs.length > 0" class="mt-4 pt-4 border-t border-gray-200">
+          <h4 class="text-sm font-bold text-gray-900 mb-2">规格明细 ({{ currentRecord.specs.length }})</h4>
+          <div class="bg-amber-50 rounded-lg overflow-hidden border border-amber-200">
+            <table class="w-full text-xs">
+              <thead class="bg-amber-100 text-amber-800">
+                <tr>
+                  <th class="py-2 px-2 text-left font-semibold">品牌</th>
+                  <th class="py-2 px-2 text-left font-semibold">成分</th>
+                  <th class="py-2 px-2 text-left font-semibold">厂家</th>
+                  <th class="py-2 px-2 text-left font-semibold">建议用量</th>
+                  <th class="py-2 px-2 text-left font-semibold">单位</th>
+                  <th class="py-2 px-2 text-left font-semibold">稀释比例</th>
+                  <th class="py-2 px-2 text-left font-semibold">备注</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-amber-200">
+                <tr v-for="spec in currentRecord.specs" :key="spec.id" class="hover:bg-amber-100/30">
+                  <td class="py-2 px-2">{{ spec.brandName || spec.brand_name || '-' }}</td>
+                  <td class="py-2 px-2">{{ spec.specContent || spec.spec_content || '-' }}</td>
+                  <td class="py-2 px-2">{{ spec.manufacturer || '-' }}</td>
+                  <td class="py-2 px-2">{{ spec.suggestedDosage || spec.suggested_dosage || '-' }}</td>
+                  <td class="py-2 px-2">{{ spec.dosageUnit || spec.dosage_unit || '-' }}</td>
+                  <td class="py-2 px-2">{{ spec.suggestedRatio || spec.suggested_ratio || '-' }}</td>
+                  <td class="py-2 px-2">{{ spec.remark || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <template #footer>
@@ -467,6 +498,8 @@ const loadData = async () => {
 const handleTabChange = () => {
   searchKeyword.value = ''
   selectedRows.value = []
+  // V1.1 行为：Tab 切换时触发后端按类型筛选
+  fertilizerLibraryStore.fetchItems({ fertilizer_type: activeTab.value })
 }
 
 const handleSearch = () => {

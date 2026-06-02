@@ -704,7 +704,12 @@ const paginatedData = computed(() => {
 const isTreeEditing = ref(false)
 
 // 内联新增状态
-const inlineAddState = ref({ active: false, level: 'type', parentKey: '' })
+const inlineAddState = ref({
+  active: false,
+  level: 'type',
+  parentKey: '',
+  parentPath: null // V1.1 风格：保存父节点完整路径，避免动态查找失败
+})
 const inlineAddCode = ref('')
 const inlineAddName = ref('')
 
@@ -737,7 +742,16 @@ function handleTreeAdd(node) {
   inlineAddState.value = {
     active: true,
     level: node.level === 'category' ? 'type' : node.level === 'type' ? 'variety' : 'subVariety1',
-    parentKey: node.key
+    parentKey: node.key,
+    // V1.1 风格：保存父节点完整路径，避免保存时动态查找失败
+    parentPath: {
+      categoryCode: node.categoryCode || node.path?.categoryCode,
+      categoryName: node.categoryName || node.path?.categoryName,
+      typeCode: node.typeCode || node.path?.typeCode,
+      typeName: node.typeName || node.path?.typeName,
+      varietyCode: node.varietyCode || node.path?.varietyCode,
+      varietyName: node.varietyName || node.path?.varietyName
+    }
   }
   inlineAddCode.value = ''
   inlineAddName.value = ''
@@ -759,24 +773,27 @@ function handleTreeDelete(variety) {
 async function handleInlineAddSave() {
   if (!inlineAddCode.value.trim() || !inlineAddName.value.trim()) return
 
-  const parentKey = inlineAddState.value.parentKey
   const level = inlineAddState.value.level
   const code = inlineAddCode.value.trim()
   const name = inlineAddName.value.trim()
+  // V1.1 风格：使用保存的 parentPath（不再依赖 findNodeByKey 动态查找）
+  const path = inlineAddState.value.parentPath
 
-  // 从树形数据中找到父节点以获取路径
-  const parentNode = findNodeByKey(varietyTree.treeData.value, parentKey)
-  if (!parentNode) return
-
-  const path = parentNode.path
+  if (!path) {
+    ElMessage.error('未找到父节点路径')
+    return
+  }
 
   try {
     if (level === 'type') {
       await extensionService.addTypeExtension(path.categoryCode, code, name)
     } else if (level === 'variety') {
-      await extensionService.addVarietyExtension(path.categoryCode, parentNode.code, code, name)
+      // 保留对 parentNode 的 fallback 引用以防 path 缺字段
+      const parentNode = findNodeByKey(varietyTree.treeData.value, inlineAddState.value.parentKey)
+      await extensionService.addVarietyExtension(path.categoryCode, parentNode?.code || path.typeCode, code, name)
     } else if (level === 'subVariety1') {
-      await extensionService.addSubVariety1Extension(path.categoryCode, path.typeCode, parentNode.code, code, name)
+      const parentNode = findNodeByKey(varietyTree.treeData.value, inlineAddState.value.parentKey)
+      await extensionService.addSubVariety1Extension(path.categoryCode, path.typeCode, parentNode?.code || path.varietyCode, code, name)
     }
     handleInlineAddCancel()
     handleTreeRefresh()
@@ -787,7 +804,7 @@ async function handleInlineAddSave() {
 
 // 内联新增取消
 function handleInlineAddCancel() {
-  inlineAddState.value = { active: false, level: 'type', parentKey: '' }
+  inlineAddState.value = { active: false, level: 'type', parentKey: '', parentPath: null }
   inlineAddCode.value = ''
   inlineAddName.value = ''
 }
