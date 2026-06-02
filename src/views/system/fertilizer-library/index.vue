@@ -511,27 +511,32 @@ const handleAdd = async () => {
   dialogVisible.value = true
 }
 
-const handleEdit = (row) => {
+const handleEdit = async (row) => {
   dialogMode.value = 'edit'
+  // 拉取完整详情（含 specs）
+  const fullRecord = await fertilizerStore.fetchItemById(row.id) || row
   // applicationTiming 可能是逗号分隔的字符串，需要转为数组
-  const timings = row.applicationTiming ? row.applicationTiming.split(',').map(t => t.trim()).filter(Boolean) : []
+  const timings = fullRecord.applicationTiming ? fullRecord.applicationTiming.split(',').map(t => t.trim()).filter(Boolean) : []
   Object.assign(formData, {
-    id: row.id,
-    fertilizerCode: row.fertilizerCode,
-    fertilizerName: row.fertilizerName,
-    fertilizerType: row.fertilizerType,
+    id: fullRecord.id,
+    fertilizerCode: fullRecord.fertilizerCode,
+    fertilizerName: fullRecord.fertilizerName,
+    fertilizerType: fullRecord.fertilizerType,
     applicationTiming: timings,
-    functionDesc: row.functionDesc || '',
-    tabooDesc: row.tabooDesc || '',
-    shelfLife: row.shelfLife || '',
-    storageCondition: row.storageCondition || '',
-    supplierInfo: row.supplierInfo || ''
+    functionDesc: fullRecord.functionDesc || '',
+    tabooDesc: fullRecord.tabooDesc || '',
+    shelfLife: fullRecord.shelfLife || '',
+    storageCondition: fullRecord.storageCondition || '',
+    supplierInfo: fullRecord.supplierInfo || '',
+    specs: fullRecord.specs || []
   })
   dialogVisible.value = true
 }
 
-const handleDetail = (row) => {
-  currentRecord.value = row
+const handleDetail = async (row) => {
+  // 拉取完整详情（含 specs）
+  const fullRecord = await fertilizerStore.fetchItemById(row.id) || row
+  currentRecord.value = fullRecord
   detailVisible.value = true
 }
 

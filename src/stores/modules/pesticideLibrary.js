@@ -60,6 +60,7 @@ function transformSpec(spec) {
  */
 function transformToApi(item) {
   return {
+    pesticide_code: item.pesticideCode,
     pesticide_name: item.pesticideName,
     control_type: item.controlType,
     function_desc: item.functionDesc,

@@ -39,6 +39,7 @@ function transformRecord(record) {
  */
 function transformToApi(item) {
   return {
+    fertilizer_code: item.fertilizerCode,
     fertilizer_name: item.fertilizerName,
     fertilizer_type: item.fertilizerType,
     application_timing: item.applicationTiming,

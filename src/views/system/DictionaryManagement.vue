@@ -253,7 +253,7 @@
             </label>
             <el-input
               v-model="editingItem.code"
-              :disabled="!isNewItem || !!editingItem.id"
+              :disabled="!isNewItem"
               placeholder="例如：exempt / quick / standard"
               class="w-full"
             />
@@ -266,7 +266,7 @@
             </label>
             <el-input
               v-if="editingItem.category === 'amount_threshold'"
-              v-model.number="editingItem.name"
+              v-model="editingItem.name"
               type="number"
               placeholder="例如：500（仅填数字）"
               class="w-full"

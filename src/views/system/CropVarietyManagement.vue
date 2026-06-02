@@ -368,11 +368,14 @@
               <tr
                 v-for="variety in paginatedData"
                 :key="variety.id"
-                class="hover:bg-blue-50 transition-colors cursor-pointer"
+                :class="[
+                  'hover:bg-blue-50 transition-colors cursor-pointer',
+                  selectedVariety?.id === variety.id ? 'bg-emerald-50' : ''
+                ]"
                 @click="handleSelect(variety)"
               >
                 <td class="px-4 py-3 text-sm font-mono text-blue-600 whitespace-nowrap">
-                  {{ variety.cropCode }}
+                  {{ generateCode(variety.categoryCode, variety.typeCode, variety.varietyCode, variety.subVariety1Code, variety.detailVarietyCode) }}
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
                   <span class="text-gray-400">{{ variety.categoryName }}</span>
