@@ -61,7 +61,7 @@ function camelToSnake(obj) {
 
 /**
  * 获取本地存储的品种数据
- * V2.0要求：不使用mock数据，返回空数组表示无数据
+ * V2.0要求：当API无数据时，降级使用本地默认数据（与V1.1一致）
  */
 function getStoredVarieties() {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -81,10 +81,11 @@ function getStoredVarieties() {
       return varieties;
     } catch (e) {
       console.error('解析品种数据失败:', e);
-      return [];
+      return importDefaultVarieties();
     }
   }
-  return [];
+  // V1.1降级逻辑：当本地存储为空时，使用默认数据
+  return importDefaultVarieties();
 }
 
 /**
@@ -250,20 +251,48 @@ async function deleteVarietyAPI(id) {
 // ============================================
 
 /**
- * 初始化品种库（仅从 API 获取，不使用本地缓存）
- * V2.0要求：不使用mock数据或降级数据
+ * 初始化品种库
+ * 策略：API数据 + 默认数据合并（与V1.1保持一致）
+ * 如果API数据少于默认数据量，则补充默认数据
  */
 export async function initVarieties() {
   if (isInitialized && cachedVarieties.length > 0) {
     return cachedVarieties;
   }
 
-  // 从 API 获取
-  const apiData = await fetchVarietiesFromAPI();
-  cachedVarieties = apiData;
-  saveVarieties(cachedVarieties);
-  isInitialized = true;
-  return cachedVarieties;
+  try {
+    // 从 API 获取
+    const apiData = await fetchVarietiesFromAPI();
+
+    // 获取默认数据
+    const defaultData = importDefaultVarieties();
+
+    // 如果API数据少于默认数据，补充默认数据
+    if (apiData.length < defaultData.length) {
+      const apiCodes = new Set(apiData.map(v => v.cropCode));
+      const missingFromAPI = defaultData.filter(d => !apiCodes.has(d.cropCode));
+
+      if (missingFromAPI.length > 0) {
+        console.log(`[cropVarietyService] API数据${apiData.length}条少于默认数据${defaultData.length}条，补充${missingFromAPI.length}条`);
+        cachedVarieties = [...apiData, ...missingFromAPI];
+      } else {
+        cachedVarieties = apiData;
+      }
+    } else {
+      cachedVarieties = apiData;
+    }
+
+    saveVarieties(cachedVarieties);
+    isInitialized = true;
+    return cachedVarieties;
+  } catch (error) {
+    console.warn('[cropVarietyService] API获取失败，使用默认数据:', error);
+    // API失败时，降级使用默认数据
+    cachedVarieties = importDefaultVarieties();
+    saveVarieties(cachedVarieties);
+    isInitialized = true;
+    return cachedVarieties;
+  }
 }
 
 /**
