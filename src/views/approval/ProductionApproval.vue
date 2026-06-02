@@ -1,14 +1,14 @@
 <template>
   <div class="space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <el-icon :size="24" class="text-white"><Grape /></el-icon>
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">生产审批</h1>
-          <p class="text-gray-500">技术方案审批、生产计划审批、采收申请审批统一管理</p>
+          <p class="text-gray-500">技术方案、生产计划、采收申请审批管理</p>
         </div>
       </div>
     </div>
@@ -33,7 +33,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审核</p>
+            <p class="text-xs text-gray-500">待审批</p>
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@
         <div class="flex-1">
           <el-input
             v-model="searchTerm"
-            placeholder="搜索审批单号、标题、申请人..."
+            placeholder="搜索申请人、申请单号..."
             clearable
             @keyup.enter="handleSearch"
           >
@@ -90,9 +90,9 @@
             </template>
           </el-input>
         </div>
-        <el-select v-model="statusFilter" placeholder="全部状态" style="width: 140px" @change="handleSearch">
-          <el-option label="全部状态" value="全部" />
-          <el-option label="待审核" value="待审核" />
+        <el-select v-model="statusFilter" placeholder="全部" style="width: 140px" @change="handleSearch">
+          <el-option label="全部" value="全部" />
+          <el-option label="待审批" value="待审批" />
           <el-option label="已通过" value="已通过" />
           <el-option label="已拒绝" value="已拒绝" />
         </el-select>
@@ -152,6 +152,18 @@
       <!-- 表格 -->
       <el-table :data="paginatedData" style="width: 100%">
         <el-table-column width="50" align="center">
+          <template #header>
+            <el-button
+              text
+              :disabled="pendingInPage.length === 0"
+              @click="handleSelectAll(pendingInPage.length !== selectedIds.size || pendingInPage.some(id => !selectedIds.has(id)))"
+              title="全选/全不选"
+            >
+              <el-icon :size="16" :class="(pendingInPage.length > 0 && pendingInPage.every(id => selectedIds.has(id))) ? 'text-emerald-600' : 'text-gray-400'">
+                <component :is="(pendingInPage.length > 0 && pendingInPage.every(id => selectedIds.has(id))) ? 'Check' : 'CirclePlus'" />
+              </el-icon>
+            </el-button>
+          </template>
           <template #default="{ row }">
             <el-button
               v-if="row.status === 'pending'"
@@ -289,6 +301,9 @@
             </div>
           </div>
         </div>
+        <template #footer>
+          <el-button @click="detailVisible = false">关闭</el-button>
+        </template>
       </el-dialog>
 
       <!-- 审批确认弹窗 -->
@@ -437,7 +452,7 @@ const filteredData = computed(() => {
       item.code?.includes(searchTerm.value)
     const matchStatus =
       statusFilter.value === '全部' ||
-      (statusFilter.value === '待审核' && item.status === ApprovalStatus.PENDING) ||
+      (statusFilter.value === '待审批' && item.status === ApprovalStatus.PENDING) ||
       (statusFilter.value === '已通过' && item.status === ApprovalStatus.APPROVED) ||
       (statusFilter.value === '已拒绝' && item.status === ApprovalStatus.REJECTED)
     return matchSearch && matchStatus
@@ -454,6 +469,13 @@ const updateStats = () => {
 
 // 总页数
 const totalPages = computed(() => Math.ceil(filteredData.value.length / pageSize.value) || 1)
+
+// 当前页待审批项 ID 列表（用于表头全选按钮）
+const pendingInPage = computed(() =>
+  paginatedData.value
+    .filter(d => d.status === ApprovalStatus.PENDING)
+    .map(d => d.id)
+)
 
 // 分页数据
 const paginatedData = computed(() => {
@@ -509,7 +531,7 @@ const getStatusText = (status) => {
     case ApprovalStatus.REJECTED:
       return '已拒绝'
     case ApprovalStatus.PENDING:
-      return '待审核'
+      return '待审批'
     default:
       return status
   }
