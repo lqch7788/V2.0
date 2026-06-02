@@ -118,7 +118,7 @@
               <td class="px-4 py-3 text-sm text-gray-500 text-center whitespace-nowrap">{{ batch.greenhouseName || '-' }}</td>
               <td class="px-4 py-3 text-sm text-gray-500 text-center whitespace-nowrap">{{ batch.plantingArea || '-' }}</td>
               <td class="px-4 py-3 text-center whitespace-nowrap">
-                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                <span class="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold bg-blue-100 text-blue-800">
                   {{ batch.stageName || batch.stage || '-' }}
                 </span>
               </td>
@@ -126,8 +126,8 @@
               <td class="px-4 py-3 text-sm text-gray-500 text-center whitespace-nowrap">{{ batch.expectedHarvestDate || '-' }}</td>
               <td class="px-4 py-3 text-center whitespace-nowrap">
                 <span :class="[
-                  'inline-flex px-2 py-0.5 rounded-full text-xs font-medium',
-                  batch.batchStatus === 'in_progress' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                  'inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold',
+                  batch.batchStatus === 'in_progress' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
                 ]">
                   {{ batchStatusLabel(batch.batchStatus) }}
                 </span>
@@ -191,7 +191,7 @@
             <h4 class="text-sm font-semibold text-gray-900 mb-3">第 {{ monthlyPlan.weeklySummaries[0].weekNumber }} 周重点任务</h4>
             <div class="flex flex-wrap gap-2">
               <span v-for="(task, idx) in monthlyPlan.weeklySummaries[0].keyTasks" :key="idx"
-                class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                class="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold bg-blue-100 text-blue-800">
                 {{ task }}
               </span>
             </div>
@@ -233,17 +233,17 @@
                     <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-center">第 {{ item.weekNumber }} 周</td>
                     <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.startDate }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.endDate }}</td>
-                    <td class="px-4 py-3 text-center"><span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{{ item.taskCount }}</span></td>
+                    <td class="px-4 py-3 text-center"><span class="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold bg-blue-100 text-blue-800">{{ item.taskCount }}</span></td>
                     <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.totalHours }}h</td>
                     <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.requiredWorkers }} 人</td>
                     <td class="px-4 py-3 text-center">
                       <div class="flex flex-wrap gap-1 justify-center">
-                        <span v-for="crop in item.keyCrops" :key="crop" class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">{{ crop }}</span>
+                        <span v-for="crop in item.keyCrops" :key="crop" class="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold bg-green-100 text-green-800">{{ crop }}</span>
                       </div>
                     </td>
                     <td class="px-4 py-3 text-center">
                       <div class="flex flex-wrap gap-1 justify-center">
-                        <span v-for="task in item.keyTasks" :key="task" class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ task }}</span>
+                        <span v-for="task in item.keyTasks" :key="task" class="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold bg-gray-100 text-gray-900">{{ task }}</span>
                       </div>
                     </td>
                   </tr>
@@ -331,7 +331,7 @@
                   <tr v-for="(item, idx) in paginatedWorkerData" :key="idx" class="hover:bg-gray-50 transition-colors">
                     <td class="px-4 py-3 text-sm font-medium text-gray-900 text-center">{{ item.role }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.skill }}</td>
-                    <td class="px-4 py-3 text-center"><span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{{ item.requiredCount }} 人</span></td>
+                    <td class="px-4 py-3 text-center"><span class="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold bg-blue-100 text-blue-800">{{ item.requiredCount }} 人</span></td>
                     <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.estimatedHours }}h</td>
                   </tr>
                 </tbody>
