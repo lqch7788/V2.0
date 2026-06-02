@@ -151,7 +151,7 @@
               <Download class="w-4 h-4" />
               导出
             </el-button>
-            <el-button type="primary" size="small" @click="handleCustomer">
+            <el-button size="small" class="order-customer-btn" @click="handleCustomer">
               客户管理
             </el-button>
           </template>
@@ -817,5 +817,15 @@ onMounted(async () => {
 :deep(.bg-gradient-to-r.from-blue-500.to-blue-600) {
   background: linear-gradient(to right, #3b82f6, #2563eb);
   color: white;
+}
+/* 客户管理按钮 — V1.1 ActionToolbar.tsx L109 variant="blue" = bg-blue-600 #2563eb */
+.order-customer-btn {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #fff !important;
+}
+.order-customer-btn:hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
 }
 </style>
