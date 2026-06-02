@@ -930,7 +930,41 @@ export async function fixMissingSchema(): Promise<void> {
     console.log('• device_distributions:', e.message);
   }
 
-  // 34. fertilizer_records 表添加 unit 列
+  // 35. 创建 daily_plans 表（每日计划持久化 — 对齐 V1.1）
+  try {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS daily_plans (
+        id TEXT PRIMARY KEY,
+        plan_date TEXT NOT NULL,
+        plan_data TEXT NOT NULL,
+        created_by TEXT,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    `);
+    console.log('✓ daily_plans 表创建成功');
+  } catch (e: any) {
+    console.log('• daily_plans:', e.message);
+  }
+
+  // 36. 创建 monthly_plans 表（月度计划持久化 — 对齐 V1.1）
+  try {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS monthly_plans (
+        id TEXT PRIMARY KEY,
+        plan_month TEXT NOT NULL,
+        plan_data TEXT NOT NULL,
+        created_by TEXT,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    `);
+    console.log('✓ monthly_plans 表创建成功');
+  } catch (e: any) {
+    console.log('• monthly_plans:', e.message);
+  }
+
+  // 37. fertilizer_records 表添加 unit 列
   try {
     db.run(`ALTER TABLE fertilizer_records ADD COLUMN unit TEXT DEFAULT '千克'`);
     console.log('✓ fertilizer_records 表添加 unit 列');

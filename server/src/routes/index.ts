@@ -57,6 +57,8 @@ import fertilizerRouter from './fertilizer';
 import fertilizerLibraryRouter from './fertilizerLibrary';
 import pesticideLibraryRouter from './pesticideLibrary';
 import pestDiseaseDictRouter from './pestDiseaseDict';
+import dailyPlansRouter from './dailyPlans';
+import monthlyPlansRouter from './monthlyPlans';
 import regionRouter from './region';
 import plantLabelRouter from './plantLabel';
 import materialCodeCategoriesRouter from './materialCodeCategories';
@@ -259,6 +261,12 @@ router.use('/pesticide-library', requireAuth, pesticideLibraryRouter);
 
 // 病虫害字典路由 - V12.0
 router.use('/pest-disease-dict', requireAuth, pestDiseaseDictRouter);
+
+// 每日计划路由 - 需要认证
+router.use('/daily-plans', requireAuth, dailyPlansRouter);
+
+// 月度计划路由 - 需要认证
+router.use('/monthly-plans', requireAuth, monthlyPlansRouter);
 
 // 行政区划路由 - V10.0
 router.use('/region', requireAuth, regionRouter);
