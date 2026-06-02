@@ -26,7 +26,7 @@
               'flex items-center p-4 border rounded-lg cursor-pointer transition-all',
               currentFormat === format.value
                 ? 'border-emerald-500 bg-emerald-50'
-                : 'border-gray-300 hover:border-gray-400'
+                : 'border-gray-400 hover:border-gray-400'
             ]"
           >
             <el-radio
@@ -58,9 +58,9 @@ import { ref, watch } from 'vue'
 import { Close } from '@element-plus/icons-vue'
 
 const exportFormats = [
-  { value: 'excel', label: 'Excel (.xls)', desc: '适用于数据分析和处理' },
+  { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.doc)', desc: '适用于文档编辑' }
+  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
 
 const props = defineProps({
