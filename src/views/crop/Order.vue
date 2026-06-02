@@ -121,7 +121,7 @@
       <div class="flex items-center gap-2">
           <!-- 批量编辑模式 -->
           <template v-if="batchEditMode">
-            <el-button type="primary" size="small" @click="handleBatchEditConfirm">
+            <el-button size="small" class="order-batch-confirm-btn" @click="handleBatchEditConfirm">
               确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
             <el-button size="small" @click="batchEditMode = false">取消</el-button>
@@ -825,6 +825,16 @@ onMounted(async () => {
   color: #fff !important;
 }
 .order-customer-btn:hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+/* 批量编辑确认按钮 — V1.1 ActionToolbar.tsx L118 variant="blue" = bg-blue-600 #2563eb */
+.order-batch-confirm-btn {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #fff !important;
+}
+.order-batch-confirm-btn:hover {
   background-color: #1d4ed8 !important;
   border-color: #1d4ed8 !important;
 }
