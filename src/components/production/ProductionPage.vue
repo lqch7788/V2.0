@@ -104,6 +104,7 @@
       :form-data="hook.formData.value"
       :errors="hook.errors.value"
       :greenhouses="hook.greenhouses.value"
+      :orders="hook.orders.value"
       @close="hook.handleClose"
       @save-draft="hook.handleSaveDraft"
       @submit-for-approval="hook.handleSubmitForApproval"
@@ -143,6 +144,7 @@
       @close="hook.setShowBatchEditModal(false)"
       @void-warning="hook.setShowVoidWarning(true)"
       @publish="hook.handlePublish"
+      @save="hook.handleSave"
       @confirm-next="hook.handleConfirmNext"
     />
 
