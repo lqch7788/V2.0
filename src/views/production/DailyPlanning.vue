@@ -123,16 +123,16 @@
             <div v-for="(task, index) in todayPlan.tasks.slice(0, 5)" :key="index"
               class="flex items-center gap-3 p-3 border-b border-gray-100 last:border-b-0">
               <span :class="[
-                'inline-flex px-2 py-0.5 rounded text-xs font-medium',
-                task.priority === 'high' ? 'bg-red-100 text-red-700' :
-                task.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                'inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold',
+                task.priority === 'high' ? 'bg-red-500 text-gray-50' :
+                task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
               ]">
                 {{ task.priority === 'high' ? '紧急' : task.priority === 'medium' ? '重要' : '普通' }}
               </span>
               <span class="font-medium text-gray-900">{{ task.taskTypeName }}</span>
               <span class="text-sm text-gray-500">- {{ task.greenhouseName }}</span>
               <template v-if="getSuggestion(task.id)">
-                <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                <span class="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold bg-blue-100 text-blue-800">
                   推荐: {{ getSuggestion(task.id).workerName }}
                 </span>
                 <span class="text-xs text-gray-400">置信度 {{ getSuggestion(task.id).confidenceScore }}%</span>
@@ -169,9 +169,9 @@
                     <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.actualCompletionDate || '-' }}</td>
                     <td class="px-4 py-3 text-center">
                       <span :class="[
-                        'inline-flex px-2 py-0.5 rounded text-xs font-medium',
-                        item.progressStatus === 'ahead' ? 'bg-emerald-100 text-emerald-700' :
-                        item.progressStatus === 'delayed' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
+                        'inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold',
+                        item.progressStatus === 'ahead' ? 'bg-green-100 text-green-800' :
+                        item.progressStatus === 'delayed' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-900'
                       ]">
                         {{ item.progressStatus === 'ahead' ? '提前完成' : item.progressStatus === 'delayed' ? '已推迟' : '已取消' }}
                       </span>
@@ -232,17 +232,17 @@
                     </td>
                     <td class="px-4 py-3 text-center">
                       <span :class="[
-                        'inline-flex px-2 py-0.5 rounded text-xs font-medium',
-                        item.loadStatus === 'normal' ? 'bg-emerald-100 text-emerald-700' :
-                        item.loadStatus === 'busy' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                        'inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold',
+                        item.loadStatus === 'normal' ? 'bg-green-100 text-green-800' :
+                        item.loadStatus === 'busy' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-500 text-gray-50'
                       ]">
                         {{ item.loadStatus === 'normal' ? '正常' : item.loadStatus === 'busy' ? '较忙' : '过载' }}
                       </span>
                     </td>
                     <td class="px-4 py-3 text-center">
                       <span :class="[
-                        'inline-flex px-2 py-0.5 rounded text-xs font-medium',
-                        item.availability === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                        'inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold',
+                        item.availability === 'available' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                       ]">
                         {{ item.availability === 'available' ? '空闲' : '工作中' }}
                       </span>
