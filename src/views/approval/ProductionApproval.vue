@@ -112,7 +112,11 @@
       </div>
 
       <!-- 表格 -->
-      <el-table :data="paginatedData" style="width: 100%">
+      <el-table
+        :data="paginatedData"
+        style="width: 100%"
+        :header-cell-style="{ background: 'linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235))', color: '#ffffff', fontWeight: 600, fontSize: '14px' }"
+      >
         <el-table-column width="50" align="center">
           <template #header>
             <el-button
