@@ -219,6 +219,39 @@
           <el-form-item label="规格信息">
             <PesticideSpecEditor v-model="specs" />
           </el-form-item>
+
+          <!-- 关联病虫害（V1.1 AddPesticideModal 风格：左右双栏） -->
+          <el-form-item label="关联病虫害">
+            <div class="grid grid-cols-2 gap-3 w-full">
+              <!-- 左:可选列表 -->
+              <div class="border border-gray-200 rounded-lg p-2">
+                <el-input v-model="pestSearchKeyword" size="small" placeholder="搜索名称/编码..." clearable class="mb-2" />
+                <div class="flex gap-1 mb-2">
+                  <el-button size="small" :type="pestTypeFilter === 'all' ? 'primary' : 'default'" @click="pestTypeFilter = 'all'">全部</el-button>
+                  <el-button size="small" :type="pestTypeFilter === 'pest' ? 'primary' : 'default'" @click="pestTypeFilter = 'pest'">虫害</el-button>
+                  <el-button size="small" :type="pestTypeFilter === 'disease' ? 'primary' : 'default'" @click="pestTypeFilter = 'disease'">病害</el-button>
+                </div>
+                <div class="max-h-[150px] overflow-y-auto space-y-1">
+                  <div v-if="filteredPests.length === 0" class="text-center text-gray-400 py-3 text-sm">无匹配病虫害</div>
+                  <button v-for="pest in filteredPests" :key="pest.id" type="button" @click="togglePest(pest.id)" :class="['w-full text-left px-2 py-1 rounded text-sm transition-colors', selectedPests.includes(pest.id) ? 'bg-emerald-100 text-emerald-700' : 'hover:bg-gray-50 text-gray-700']">
+                    {{ pest.dictName }}
+                    <span class="text-xs text-gray-400 ml-1">({{ pest.dictType === 'pest' ? '虫' : '病' }})</span>
+                  </button>
+                </div>
+              </div>
+              <!-- 右:已选列表 -->
+              <div class="border border-gray-200 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-2">已选病虫害 ({{ selectedPests.length }})</div>
+                <div class="max-h-[200px] overflow-y-auto space-y-1">
+                  <div v-if="selectedPests.length === 0" class="text-center text-gray-400 py-3 text-sm">请从左侧选择</div>
+                  <div v-for="id in selectedPests" :key="id" class="flex items-center justify-between px-2 py-1 bg-emerald-50 rounded">
+                    <span class="text-sm text-emerald-700">{{ getPestName(id) }}</span>
+                    <button type="button" @click="togglePest(id)" class="text-emerald-500 hover:text-emerald-700 font-bold px-1">×</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </el-form-item>
         </el-form>
       </div>
       <template #footer>
@@ -335,9 +368,11 @@ import {
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 import PesticideSpecEditor from '@/components/common/PesticideSpecEditor.vue'
 import { usePesticideLibraryStore } from '@/stores/modules/pesticideLibrary'
+import { usePestDiseaseDictStore } from '@/stores/modules/pestDiseaseDict'
 
 // 药剂库 Store
 const pesticideStore = usePesticideLibraryStore()
+const pestDiseaseStore = usePestDiseaseDictStore()
 
 // 防治类型映射
 const controlTypeMap = {
@@ -368,6 +403,40 @@ const editingId = ref('')
 
 // 规格编辑器
 const specs = ref([])
+// V1.1 风格：编辑时三态追踪
+const originalSpecs = ref([])
+const deletedSpecIds = ref([])
+// 关联病虫害
+const selectedPests = ref([])
+const originalSelectedPests = ref([])
+const pestSearchKeyword = ref('')
+const pestTypeFilter = ref('all')
+
+// 过滤后的病虫害列表
+const filteredPests = computed(() => {
+  const kw = pestSearchKeyword.value.trim().toLowerCase()
+  return pestDiseaseStore.items.filter(p => {
+    const matchSearch = !kw ||
+      (p.dictName && p.dictName.toLowerCase().includes(kw)) ||
+      (p.dictCode && p.dictCode.toLowerCase().includes(kw))
+    const matchType = pestTypeFilter.value === 'all' || p.dictType === pestTypeFilter.value
+    return matchSearch && matchType
+  })
+})
+
+// 切换选中的病虫害
+function togglePest(pestId) {
+  if (selectedPests.value.includes(pestId)) {
+    selectedPests.value = selectedPests.value.filter(id => id !== pestId)
+  } else {
+    selectedPests.value = [...selectedPests.value, pestId]
+  }
+}
+
+// 获取病虫害名称
+function getPestName(id) {
+  return pestDiseaseStore.items.find(p => p.id === id)?.dictName || id
+}
 
 // 表单相关
 const formRef = ref(null)
@@ -575,7 +644,18 @@ async function handleEdit(row) {
   formData.targetPests = row.targetPests || ''
   // 加载规格数据
   const fullRecord = await pesticideStore.fetchItemById(row.id)
-  specs.value = fullRecord?.specs || []
+  specs.value = (fullRecord?.specs || []).map(s => ({ ...s, _isNew: false }))
+  originalSpecs.value = JSON.parse(JSON.stringify(fullRecord?.specs || []))
+  deletedSpecIds.value = []
+  // 加载关联病虫害
+  try {
+    const relatedPests = await pesticideStore.fetchRelatedPests(row.id) || []
+    selectedPests.value = relatedPests.map(p => p.id)
+    originalSelectedPests.value = [...selectedPests.value]
+  } catch (e) {
+    selectedPests.value = []
+    originalSelectedPests.value = []
+  }
   dialogVisible.value = true
 }
 
@@ -612,6 +692,47 @@ async function handleSave() {
       // 编辑
       const result = await pesticideStore.updateItem(editingId.value, formData)
       if (result.success) {
+        // specs 三步同步（V1.1 风格）
+        // 1. 新增 _isNew 项
+        for (const spec of specs.value) {
+          if (spec._isNew && (spec.specContent || spec.formulation || spec.manufacturer)) {
+            const { _isNew, id, ...rest } = spec
+            await pesticideStore.createSpec(editingId.value, rest)
+          }
+        }
+        // 2. 更新：逐字段比较
+        for (const spec of specs.value) {
+          if (!spec._isNew && spec.id) {
+            const original = originalSpecs.value.find(o => o.id === spec.id)
+            if (original) {
+              const changed = (
+                spec.brandName !== (original.brandName || '') ||
+                spec.specContent !== (original.specContent || '') ||
+                spec.formulation !== (original.formulation || '') ||
+                spec.manufacturer !== (original.manufacturer || '') ||
+                spec.suggestedDosage !== (original.suggestedDosage || '') ||
+                spec.suggestedRatio !== (original.suggestedRatio || '') ||
+                spec.dosageUnit !== (original.dosageUnit || '') ||
+                spec.mechanism !== (original.mechanism || '') ||
+                spec.remark !== (original.remark || '')
+              )
+              if (changed) {
+                const { _isNew, id, ...rest } = spec
+                await pesticideStore.updateSpec(spec.id, rest)
+              }
+            }
+          }
+        }
+        // 3. 删除
+        for (const id of deletedSpecIds.value) {
+          await pesticideStore.deleteSpec(id)
+        }
+        // 4. 同步关联病虫害
+        if (JSON.stringify([...selectedPests.value].sort()) !== JSON.stringify([...originalSelectedPests.value].sort())) {
+          for (const pestId of selectedPests.value) {
+            await pesticideStore.updateRelations(pestId, [editingId.value])
+          }
+        }
         ElMessage.success('保存成功')
         dialogVisible.value = false
         resetForm()
@@ -661,8 +782,9 @@ function resetForm() {
   specs.value = []
 }
 
-onMounted(() => {
+onMounted(async () => {
   // 初始化加载数据
+  await pestDiseaseStore.fetchItems()
   loadData()
 })
 </script>
