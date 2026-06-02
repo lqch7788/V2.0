@@ -218,36 +218,6 @@ export const usePlantingStore = defineStore('planting', () => {
     }
   }
 
-  /**
-   * 结束种植计划（正常结束/异常结束）
-   * 1:1 翻译自 V1.1 endPlanting（不调用 API，仅本地状态更新）
-   * @param {string} id
-   * @param {string} [endType='normal']
-   * @param {string} [remarks='']
-   * @returns {boolean}
-   */
-  function endPlanting(id, endType = 'normal', remarks = '') {
-    const index = plantings.value.findIndex(item => item.id === id)
-    if (index !== -1) {
-      // V1.1: plantings.value[index] = { ...plantings.value[index], isFinished, endType, ... }
-      plantings.value = plantings.value.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              isFinished: true,
-              endType,
-              endRemarks: remarks,
-              endTime: new Date().toLocaleString(),
-              status: endType === 'normal' ? PlantingStatus.HARVESTED : PlantingStatus.CANCELLED,
-              updateTime: new Date().toLocaleString()
-            }
-          : item
-      )
-      return true
-    }
-    return false
-  }
-
   return {
     // state
     plantings,
@@ -262,7 +232,6 @@ export const usePlantingStore = defineStore('planting', () => {
     deletePlanting,
     // V1.1 暴露名 `deletePlantings`（批量），调用方 planting.vue 仍用 plantingStore.deletePlantings(ids)
     deletePlantings: deletePlantingsBatch,
-    harvestPlanting: harvestPlantingRecord,
-    endPlanting
+    harvestPlanting: harvestPlantingRecord
   }
 })
