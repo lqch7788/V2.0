@@ -13,53 +13,13 @@
       </div>
     </div>
 
-    <!-- 统计卡片 - V1.1: bg-[#F2F6FA] -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-blue-600"><Document /></el-icon>
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
-            <p class="text-xs text-gray-500">全部</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-amber-600"><Clock /></el-icon>
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审批</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-emerald-600"><CircleCheck /></el-icon>
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.approved }}</p>
-            <p class="text-xs text-gray-500">已通过</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-red-600"><CircleClose /></el-icon>
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.rejected }}</p>
-            <p class="text-xs text-gray-500">已拒绝</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- 统计卡片 - V1.1 使用 KpiCardGrid + KpiCard compact，颜色方案 emerald/amber/emerald/red -->
+    <KpiCardGrid :columns="4" compact>
+      <KpiCard :icon="Document" label="总申请数" :value="stats.total" colorScheme="emerald" compact />
+      <KpiCard :icon="Clock" label="待审批" :value="stats.pending" colorScheme="amber" compact />
+      <KpiCard :icon="CircleCheck" label="已通过" :value="stats.approved" colorScheme="emerald" compact />
+      <KpiCard :icon="CircleClose" label="已拒绝" :value="stats.rejected" colorScheme="red" compact />
+    </KpiCardGrid>
 
     <!-- Tab切换 -->
     <div class="bg-white rounded-xl p-1 inline-flex shadow-sm">
@@ -361,6 +321,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
+import { KpiCard, KpiCardGrid } from '@/components/summary'
 
 // 审批Store
 const approvalStore = useApprovalStore()
