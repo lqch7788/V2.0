@@ -25,13 +25,13 @@
 
     <!-- 筛选器 -->
     <ProductionFilters
-      :batch-code-search="hook.batchCodeSearch"
-      :planting-mode-search="hook.plantingModeSearch"
-      :crop-name-search="hook.cropNameSearch"
-      :variety-search="hook.varietySearch"
-      :greenhouse-search="hook.greenhouseSearch"
-      :status-filter="hook.statusFilter"
-      :plan-type-filter="hook.planTypeFilter"
+      :batch-code-search="hook.batchCodeSearch.value"
+      :planting-mode-search="hook.plantingModeSearch.value"
+      :crop-name-search="hook.cropNameSearch.value"
+      :variety-search="hook.varietySearch.value"
+      :greenhouse-search="hook.greenhouseSearch.value"
+      :status-filter="hook.statusFilter.value"
+      :plan-type-filter="hook.planTypeFilter.value"
       :on-batch-code-change="hook.setBatchCodeSearch"
       :on-planting-mode-change="hook.setPlantingModeSearch"
       :on-crop-name-change="hook.setCropNameSearch"

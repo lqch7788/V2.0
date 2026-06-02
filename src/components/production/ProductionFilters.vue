@@ -180,6 +180,19 @@ export default {
         seedling: '育苗计划',
         planting: '种植计划',
       },
+      // 1:1 翻译 V1.1 constants.ts:29-39 batchStatusLabels
+      /** @type {Record<string, string>} 批次状态文本映射 */
+      batchStatusLabels: {
+        draft: '草稿',
+        pending: '待审批',
+        pending_complete: '待审批（完成）',
+        published: '已发布',
+        approved: '已通过',
+        in_progress: '执行中',
+        completed: '已完成',
+        cancelled: '已作废',
+        rejected: '已拒绝',
+      },
     }
   },
   watch: {
