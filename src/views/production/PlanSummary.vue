@@ -63,71 +63,67 @@
  * - V1.1 用 useBatchSummary/useBatchFilterOptions hooks → V2.0 用 mock 数据 + 计算属性
  * - V1.1 用 useExport → V2.0 用本地简化实现（与 V1.1 行为一致）
  */
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Document } from '@element-plus/icons-vue'
 import { PageHeader, StatCards, Filters, SummaryTable, ExportModal, useExport } from '@/components/summary'
 import { List, TrendCharts, Money, ShoppingCart } from '@element-plus/icons-vue'
+import { useSummaryStore } from '@/stores/modules/summary'
+import { useProductionPlanStore } from '@/stores/modules/productionPlan'
 
 // ============================================
-// 模拟 useBatchFilterOptions（V1.1 hook 在 V2.0 不可用，本地化实现）
+// 筛选选项 Hook（从真实 Store 动态获取）
 // ============================================
-/** @returns {{ cropNames: Array<{value:string,label:string}>, statuses: Array<{value:string,label:string}>, greenhouses: Array<{value:string,label:string}> }} */
-function useBatchFilterOptions() {
-  const cropNames = [
-    { value: '番茄', label: '番茄' },
-    { value: '黄瓜', label: '黄瓜' },
-    { value: '辣椒', label: '辣椒' },
-    { value: '茄子', label: '茄子' },
-  ]
-  const statuses = [
-    { value: 'in_progress', label: '进行中' },
-    { value: 'completed', label: '已完成' },
-    { value: 'planning', label: '规划中' },
-  ]
-  const greenhouses = [
-    { value: '1号温室', label: '1号温室' },
-    { value: '2号温室', label: '2号温室' },
-    { value: '3号温室', label: '3号温室' },
-  ]
+const summaryStore = useSummaryStore()
+const productionPlanStore = useProductionPlanStore()
+
+// 初始化时加载数据
+onMounted(async () => {
+  await productionPlanStore.fetchPlans()
+  await summaryStore.fetchBatchStats({ limit: 200 })
+})
+
+/** 动态获取筛选选项 */
+const batchFilterOptions = computed(() => {
+  const plans = productionPlanStore.plans || []
+  // 从真实数据提取去重的作物、状态、温室选项
+  const cropNames = [...new Set(plans.map(p => p.cropName).filter(Boolean))].map(v => ({ value: v, label: v }))
+  const statuses = [...new Set(plans.map(p => p.batchStatus).filter(Boolean))].map(v => ({ value: v, label: getStatusLabel(v) }))
+  const greenhouses = [...new Set(plans.map(p => p.greenhouseName).filter(Boolean))].map(v => ({ value: v, label: v }))
   return { cropNames, statuses, greenhouses }
-}
+})
 
-// ============================================
-// 模拟 useBatchSummary（V1.1 hook 在 V2.0 不可用，本地化实现）
-// ============================================
-/**
- * @param {{ cropName?: string, status?: string, greenhouse?: string }} filters
- * @returns {{ summaries: Array, statCards: Array, loading: import('vue').Ref<boolean> }}
- */
-function useBatchSummary(filters) {
-  /** @type {Array<any>} */
-  const mockData = [
-    { id: '1', batchCode: 'PC20260501', cropName: '番茄', variety: '金棚一号', greenhouse: '1号温室', plantingArea: '2.5 亩', targetYield: 5000, actualYield: 3200, completionRate: '64%', status: 'in_progress', scheduleStatus: 'in_progress' },
-    { id: '2', batchCode: 'PC20260502', cropName: '黄瓜', variety: '津优35号', greenhouse: '2号温室', plantingArea: '1.8 亩', targetYield: 3600, actualYield: 3600, completionRate: '100%', status: 'completed', scheduleStatus: 'completed' },
-    { id: '3', batchCode: 'PC20260503', cropName: '辣椒', variety: '湘研15号', greenhouse: '3号温室', plantingArea: '3.0 亩', targetYield: 4500, actualYield: 1800, completionRate: '40%', status: 'in_progress', scheduleStatus: 'in_progress' },
-    { id: '4', batchCode: 'PC20260504', cropName: '茄子', variety: '紫长茄1号', greenhouse: '4号温室', plantingArea: '1.5 亩', targetYield: 3000, actualYield: 2400, completionRate: '80%', status: 'in_progress', scheduleStatus: 'confirmed' },
-    { id: '5', batchCode: 'PC20260505', cropName: '西瓜', variety: '京欣1号', greenhouse: '5号温室', plantingArea: '4.0 亩', targetYield: 12000, actualYield: 0, completionRate: '0%', status: 'planning', scheduleStatus: 'scheduled' },
+/** 批次汇总数据（按筛选条件过滤） */
+const summaries = computed(() => {
+  let items = summaryStore.batchItems || []
+  if (cropFilter.value) items = items.filter(s => s.cropName === cropFilter.value)
+  if (statusFilter.value) items = items.filter(s => s.batchStatus === statusFilter.value)
+  if (greenhouseFilter.value) items = items.filter(s => s.greenhouse === greenhouseFilter.value)
+  // 映射字段以匹配 V1.1 结构
+  return items.map(s => ({
+    id: s.id,
+    batchCode: s.batchCode,
+    cropName: s.cropName,
+    variety: s.variety,
+    greenhouse: s.greenhouse,
+    plantingArea: s.plantingArea ? `${s.plantingArea} 亩` : '-',
+    targetYield: s.targetYield || 0,
+    actualYield: s.actualQuantity || 0,
+    completionRate: s.completionRate ? `${s.completionRate}%` : '0%',
+    status: s.status,
+    scheduleStatus: s.status === 'completed' ? 'completed' : s.status === 'in_progress' ? 'confirmed' : 'scheduled',
+  }))
+})
+
+/** 统计卡片 */
+const statCards = computed(() => {
+  const all = summaries.value
+  return [
+    { id: 'total', label: '总批次数', value: all.length, icon: List, iconBgColor: 'from-blue-500 to-blue-600' },
+    { id: 'inProgress', label: '进行中', value: all.filter(s => s.status === 'in_progress').length, icon: TrendCharts, iconBgColor: 'from-amber-500 to-amber-600' },
+    { id: 'completed', label: '已完成', value: all.filter(s => s.status === 'completed').length, icon: Money, iconBgColor: 'from-emerald-500 to-emerald-600' },
+    { id: 'planning', label: '规划中', value: all.filter(s => s.status === 'planning' || s.status === 'draft').length, icon: ShoppingCart, iconBgColor: 'from-purple-500 to-purple-600' },
   ]
-
-  const summaries = computed(() => {
-    return mockData.filter(s => {
-      if (filters.cropName && s.cropName !== filters.cropName) return false
-      if (filters.status && s.status !== filters.status) return false
-      if (filters.greenhouse && s.greenhouse !== filters.greenhouse) return false
-      return true
-    })
-  })
-
-  const statCards = computed(() => [
-    { id: 'total', label: '总批次数', value: summaries.value.length, icon: List, iconBgColor: 'from-blue-500 to-blue-600' },
-    { id: 'inProgress', label: '进行中', value: summaries.value.filter(s => s.status === 'in_progress').length, icon: TrendCharts, iconBgColor: 'from-amber-500 to-amber-600' },
-    { id: 'completed', label: '已完成', value: summaries.value.filter(s => s.status === 'completed').length, icon: Money, iconBgColor: 'from-emerald-500 to-emerald-600' },
-    { id: 'planning', label: '规划中', value: summaries.value.filter(s => s.status === 'planning').length, icon: ShoppingCart, iconBgColor: 'from-purple-500 to-purple-600' },
-  ])
-
-  const loading = ref(false)
-  return { summaries, statCards, loading }
-}
+})
 
 // ============================================
 // 状态定义（1:1 对应 V1.1 useState）
@@ -135,14 +131,6 @@ function useBatchSummary(filters) {
 const cropFilter = ref('')
 const statusFilter = ref('')
 const greenhouseFilter = ref('')
-
-const { cropNames, statuses, greenhouses } = useBatchFilterOptions()
-
-const { summaries, statCards } = useBatchSummary({
-  cropName: cropFilter.value || undefined,
-  status: statusFilter.value || undefined,
-  greenhouse: greenhouseFilter.value || undefined,
-})
 
 // 分页状态
 const currentPage = ref(1)
@@ -206,9 +194,9 @@ const filterSelects = computed(() => [
   {
     key: 'crop',
     label: '作物',
-    options: cropNames,
+    options: batchFilterOptions.value.cropNames,
     value: cropFilter.value,
-    onChange: (/** @type {string} */ value) => {
+    onChange: (value) => {
       cropFilter.value = value
       currentPage.value = 1
     },
@@ -216,9 +204,9 @@ const filterSelects = computed(() => [
   {
     key: 'status',
     label: '状态',
-    options: statuses,
+    options: batchFilterOptions.value.statuses,
     value: statusFilter.value,
-    onChange: (/** @type {string} */ value) => {
+    onChange: (value) => {
       statusFilter.value = value
       currentPage.value = 1
     },
@@ -226,9 +214,9 @@ const filterSelects = computed(() => [
   {
     key: 'greenhouse',
     label: '温室',
-    options: greenhouses,
+    options: batchFilterOptions.value.greenhouses,
     value: greenhouseFilter.value,
-    onChange: (/** @type {string} */ value) => {
+    onChange: (value) => {
       greenhouseFilter.value = value
       currentPage.value = 1
     },

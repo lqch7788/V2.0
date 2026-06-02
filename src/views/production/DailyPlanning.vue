@@ -27,18 +27,19 @@
               @change="handleDateChange"
             />
           </div>
-          <el-button @click="handleRefresh">
+          <el-button @click="handleRefresh" :loading="loading">
             <el-icon><Refresh /></el-icon>
             刷新数据
           </el-button>
         </div>
         <el-button
           type="primary"
-          :disabled="!todayPlan.tasks.length"
+          :disabled="!todayPlan.tasks || todayPlan.tasks.length === 0"
+          :loading="dispatching"
           @click="handleConfirmDispatch"
         >
           <el-icon><Promotion /></el-icon>
-          一键确认派发 ({{ todayPlan.totalTasks }} 项)
+          一键确认派发 ({{ todayPlan.totalTasks || 0 }} 项)
         </el-button>
       </div>
     </div>
@@ -59,7 +60,7 @@
     </div>
 
     <!-- AI 建议 -->
-    <div v-if="report && report.aiRecommendations.length > 0" class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
+    <div v-if="report && report.aiRecommendations && report.aiRecommendations.length > 0" class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
       <div class="flex items-center gap-2 mb-3">
         <el-icon :size="20" class="text-purple-600"><Cpu /></el-icon>
         <span class="font-semibold text-gray-900">AI 智能分析建议</span>
@@ -119,7 +120,7 @@
 
           <!-- AI派工建议列表 -->
           <h3 class="text-lg font-semibold text-gray-900">AI 派工建议</h3>
-          <div v-if="todayPlan.tasks.length > 0" class="bg-gray-50 rounded-lg border border-gray-100">
+          <div v-if="todayPlan.tasks && todayPlan.tasks.length > 0" class="bg-gray-50 rounded-lg border border-gray-100">
             <div v-for="(task, index) in todayPlan.tasks.slice(0, 5)" :key="index"
               class="flex items-center gap-3 p-3 border-b border-gray-100 last:border-b-0">
               <span :class="[
@@ -182,6 +183,9 @@
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-500 text-center">{{ item.actualAssignee }}</td>
                     <td class="px-4 py-3 text-sm text-gray-500 truncate max-w-[150px]">{{ item.delayReason || '-' }}</td>
+                  </tr>
+                  <tr v-if="paginatedSubTableData.length === 0">
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-400">暂无数据</td>
                   </tr>
                 </tbody>
               </table>
@@ -248,15 +252,18 @@
                       </span>
                     </td>
                   </tr>
+                  <tr v-if="paginatedWorkerData.length === 0">
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-400">暂无人员数据</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
-            <div v-if="(report?.workerLoadAnalysis || []).length > workerLoadPageSize" class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-              <span class="text-sm text-gray-500">共 {{ (report?.workerLoadAnalysis || []).length }} 条</span>
+            <div v-if="workerLoadData.length > workerLoadPageSize" class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <span class="text-sm text-gray-500">共 {{ workerLoadData.length }} 条</span>
               <div class="flex items-center gap-2">
                 <el-button :disabled="workerLoadPage <= 1" size="small" @click="workerLoadPage--">上一页</el-button>
-                <span class="text-sm">{{ workerLoadPage }} / {{ Math.ceil((report?.workerLoadAnalysis || []).length / workerLoadPageSize) }}</span>
-                <el-button :disabled="workerLoadPage >= Math.ceil((report?.workerLoadAnalysis || []).length / workerLoadPageSize)" size="small" @click="workerLoadPage++">下一页</el-button>
+                <span class="text-sm">{{ workerLoadPage }} / {{ Math.ceil(workerLoadData.length / workerLoadPageSize) }}</span>
+                <el-button :disabled="workerLoadPage >= Math.ceil(workerLoadData.length / workerLoadPageSize)" size="small" @click="workerLoadPage++">下一页</el-button>
               </div>
             </div>
           </div>
@@ -267,99 +274,323 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Calendar, Refresh, Promotion, Cpu,
   Clock, CircleCheck, WarningFilled, Files
 } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import { useTasks } from '@/composables/useTasks'
+import { useProductionPlanStore } from '@/stores/modules/productionPlan'
+import { useDailyPlanningStore } from '@/stores/modules/dailyPlanning'
+import { useFarmTaskStore } from '@/stores/modules/farmTask'
+import { useTempTaskStore } from '@/stores/modules/tempTask'
 
 // ============================================
-// 模拟数据生成（对应V1.1 useDailyWorkOrderAnalysis hook）
+// 类型定义
+// ============================================
+/**
+ * @typedef {Object} TaskProgressAnalysis
+ * @property {string} taskId
+ * @property {string} taskName
+ * @property {string} plannedDate
+ * @property {string} [actualCompletionDate]
+ * @property {'on_track'|'ahead'|'delayed'|'cancelled'} progressStatus
+ * @property {number} [delayDays]
+ * @property {string} [delayReason]
+ * @property {string} [actualAssignee]
+ */
+
+/**
+ * @typedef {Object} WorkerLoadAnalysis
+ * @property {string} workerId
+ * @property {string} workerName
+ * @property {number} todayTasks
+ * @property {number} completedTasks
+ * @property {number} completionRate
+ * @property {'normal'|'busy'|'overloaded'} loadStatus
+ * @property {'available'|'busy'} availability
+ */
+
+/**
+ * @typedef {Object} DailyWorkOrderReport
+ * @property {string} date
+ * @property {number} totalTasks
+ * @property {number} pendingTasks
+ * @property {number} inProgressTasks
+ * @property {number} completedTasks
+ * @property {number} overdueTasks
+ * @property {TaskProgressAnalysis[]} aheadTasks
+ * @property {TaskProgressAnalysis[]} delayedTasks
+ * @property {TaskProgressAnalysis[]} unfinishedTasks
+ * @property {WorkerLoadAnalysis[]} workerLoadAnalysis
+ * @property {string[]} aiRecommendations
+ */
+
+// ============================================
+// 工具函数（1:1 翻译自 V1.1 useDailyWorkOrderAnalysis）
 // ============================================
 
-/** 模拟每日报告 */
-const generateMockReport = (date) => {
-  const totalTasks = 25 + Math.floor(Math.random() * 15)
-  const completedTasks = Math.floor(totalTasks * (0.4 + Math.random() * 0.3))
-  const inProgressTasks = Math.floor((totalTasks - completedTasks) * 0.6)
-  const pendingTasks = totalTasks - completedTasks - inProgressTasks
-  const overdueTasks = Math.floor(Math.random() * 4)
+/**
+ * 判断任务是否超期
+ * @param {{ status: string, dueDate?: string }} task
+ * @param {string} targetDate
+ * @returns {boolean}
+ */
+function isTaskOverdue(task, targetDate) {
+  if (['completed', 'cancelled', 'abandoned', 'failed'].includes(task.status)) {
+    return false
+  }
+  if (!task.dueDate) return false
+  const dueDate = new Date(task.dueDate)
+  const target = new Date(targetDate)
+  dueDate.setHours(0, 0, 0, 0)
+  target.setHours(0, 0, 0, 0)
+  return dueDate < target
+}
 
-  const taskNames = ['灌溉作业', '施肥作业', '植保喷洒', '修剪整形', '采收作业', '除草清理', '温控调节', '补光管理']
-  const workerNames = ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九']
+/**
+ * 计算超期天数
+ * @param {string} dueDate
+ * @param {string} targetDate
+ * @returns {number}
+ */
+function calculateOverdueDays(dueDate, targetDate) {
+  const due = new Date(dueDate)
+  const target = new Date(targetDate)
+  due.setHours(0, 0, 0, 0)
+  target.setHours(0, 0, 0, 0)
+  const diffTime = target.getTime() - due.getTime()
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  return Math.max(0, diffDays)
+}
 
-  const generateTask = (prefix, progressStatus) => ({
-    taskId: `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    taskName: taskNames[Math.floor(Math.random() * taskNames.length)],
-    plannedDate: date,
-    actualCompletionDate: progressStatus === 'ahead' ? dayjs(date).subtract(Math.floor(Math.random() * 3) + 1, 'day').format('YYYY-MM-DD') : null,
-    progressStatus,
-    delayDays: progressStatus === 'delayed' ? Math.floor(Math.random() * 5) + 1 : 0,
-    actualAssignee: workerNames[Math.floor(Math.random() * workerNames.length)],
-    delayReason: progressStatus === 'delayed' ? ['人员不足', '天气原因', '设备故障', '材料短缺'][Math.floor(Math.random() * 4)] : '',
+/**
+ * 判断是否提前完成
+ * @param {{ completedAt?: string }} task
+ * @param {string} targetDate
+ * @returns {boolean}
+ */
+function isCompletedAhead(task, targetDate) {
+  if (!task.completedAt) return false
+  const completionDate = new Date(task.completedAt)
+  const target = new Date(targetDate)
+  completionDate.setHours(0, 0, 0, 0)
+  target.setHours(0, 0, 0, 0)
+  return completionDate < target
+}
+
+/**
+ * 判断是否按时完成
+ * @param {{ completedAt?: string }} task
+ * @param {string} targetDate
+ * @returns {boolean}
+ */
+function isCompletedOnTime(task, targetDate) {
+  if (!task.completedAt) return false
+  const completionDate = new Date(task.completedAt)
+  const target = new Date(targetDate)
+  completionDate.setHours(0, 0, 0, 0)
+  target.setHours(0, 0, 0, 0)
+  return completionDate.getTime() === target.getTime()
+}
+
+/**
+ * 生成AI建议（1:1 翻译自 V1.1）
+ * @param {TaskProgressAnalysis[]} aheadTasks
+ * @param {TaskProgressAnalysis[]} delayedTasks
+ * @param {TaskProgressAnalysis[]} unfinishedTasks
+ * @param {WorkerLoadAnalysis[]} workerLoadAnalysis
+ * @returns {string[]}
+ */
+function generateAIRecommendations(aheadTasks, delayedTasks, unfinishedTasks, workerLoadAnalysis) {
+  const recommendations = []
+
+  if (delayedTasks.length > 0) {
+    recommendations.push(`【紧急】当前有 ${delayedTasks.length} 个任务已超期，建议优先处理超期任务，可考虑增加执行人员或调整任务分配。`)
+    const mostDelayed = delayedTasks.reduce((max, task) =>
+      (task.delayDays || 0) > (max.delayDays || 0) ? task : max
+    )
+    if (mostDelayed.delayDays && mostDelayed.delayDays > 3) {
+      recommendations.push(`【重点关注】任务"${mostDelayed.taskName}"已超期${mostDelayed.delayDays}天，建议主管介入协调资源。`)
+    }
+  }
+
+  if (unfinishedTasks.length > 0) {
+    recommendations.push(`【提醒】有 ${unfinishedTasks.length} 个任务截止日期已到但尚未完成，建议及时跟进处理。`)
+  }
+
+  const overloadedWorkers = workerLoadAnalysis.filter(w => w.loadStatus === 'overloaded')
+  if (overloadedWorkers.length > 0) {
+    const names = overloadedWorkers.map(w => w.workerName).join('、')
+    recommendations.push(`【人员调整】${names} 等人当前任务过重，建议将部分任务重新分配给其他人员。`)
+  }
+
+  const busyWorkers = workerLoadAnalysis.filter(w => w.loadStatus === 'busy')
+  if (busyWorkers.length > 0) {
+    recommendations.push(`【注意】${busyWorkers.length} 名员工当前工作负荷较高，建议关注任务进度。`)
+  }
+
+  if (aheadTasks.length > 0) {
+    recommendations.push(`【表扬】有 ${aheadTasks.length} 个任务提前完成，表现优异，可作为标杆鼓励团队。`)
+  }
+
+  const availableWorkers = workerLoadAnalysis.filter(w => w.availability === 'available')
+  if (delayedTasks.length > 0 && availableWorkers.length > 0) {
+    const availableNames = availableWorkers.map(w => w.workerName).join('、')
+    recommendations.push(`【资源调配】${availableNames} 等人当前可用，建议将部分超期任务分配给他们加快进度。`)
+  }
+
+  if (delayedTasks.length === 0 && unfinishedTasks.length === 0 && workerLoadAnalysis.length > 0) {
+    recommendations.push(`【正常】今日任务执行情况良好，所有任务进度正常，无特殊建议。`)
+  }
+
+  return recommendations
+}
+
+// ============================================
+// 生成每日工单汇总报告（1:1 翻译自 V1.1 useDailyWorkOrderAnalysis.generateDailyReport）
+// ============================================
+/**
+ * @param {string} targetDate
+ * @param {any[]} tasks
+ * @param {any[]} tempTasks
+ * @returns {DailyWorkOrderReport}
+ */
+function generateDailyReport(targetDate, tasks, tempTasks) {
+  // 分析提前完成任务
+  const aheadTasks = []
+  tasks.forEach(task => {
+    if (task.status === 'completed' && isCompletedAhead(task, targetDate)) {
+      aheadTasks.push({
+        taskId: task.id,
+        taskName: task.title,
+        plannedDate: task.dueDate || '',
+        actualCompletionDate: task.completedAt,
+        progressStatus: 'ahead',
+        actualAssignee: task.assigneeName,
+      })
+    }
   })
 
+  // 分析推迟完成任务
+  const delayedTasks = []
+  tasks.forEach(task => {
+    if (task.status !== 'completed' && isTaskOverdue(task, targetDate)) {
+      const delayDays = task.dueDate ? calculateOverdueDays(task.dueDate, targetDate) : 0
+      delayedTasks.push({
+        taskId: task.id,
+        taskName: task.title,
+        plannedDate: task.dueDate || '',
+        progressStatus: 'delayed',
+        delayDays,
+        delayReason: `超期${delayDays}天`,
+        actualAssignee: task.assigneeName,
+      })
+    }
+  })
+
+  // 分析未完成任务
+  const unfinishedTasks = []
+  tasks.forEach(task => {
+    if (task.status !== 'completed' && isTaskOverdue(task, targetDate)) {
+      const delayDays = task.dueDate ? calculateOverdueDays(task.dueDate, targetDate) : 0
+      unfinishedTasks.push({
+        taskId: task.id,
+        taskName: task.title,
+        plannedDate: task.dueDate || '',
+        progressStatus: task.status === 'cancelled' ? 'cancelled' : 'delayed',
+        delayDays,
+        delayReason: delayDays > 0 ? `已超期${delayDays}天未完成` : '截止日期已到未完成',
+        actualAssignee: task.assigneeName,
+      })
+    }
+  })
+
+  // 分析人员负荷
+  const workerMap = new Map()
+  tasks.forEach(task => {
+    if (!task.assigneeName) return
+    if (!workerMap.has(task.assigneeName)) {
+      workerMap.set(task.assigneeName, {
+        workerId: task.assigneeId || task.assigneeName,
+        workerName: task.assigneeName,
+        todayTasks: 0,
+        completedTasks: 0,
+        completionRate: 0,
+        loadStatus: 'normal',
+        availability: 'available',
+      })
+    }
+    const analysis = workerMap.get(task.assigneeName)
+    analysis.todayTasks++
+    if (task.status === 'completed') {
+      analysis.completedTasks++
+    }
+  })
+
+  const workerLoadAnalysis = Array.from(workerMap.values()).map(analysis => {
+    const completionRate = analysis.todayTasks > 0
+      ? Math.round((analysis.completedTasks / analysis.todayTasks) * 100)
+      : 0
+    let loadStatus = 'normal'
+    if (analysis.todayTasks >= 5) {
+      loadStatus = completionRate < 60 ? 'overloaded' : 'busy'
+    } else if (analysis.todayTasks >= 3) {
+      loadStatus = completionRate < 70 ? 'busy' : 'normal'
+    }
+    const availability = analysis.completedTasks < analysis.todayTasks ? 'busy' : 'available'
+    return { ...analysis, completionRate, loadStatus, availability }
+  })
+
+  // 统计任务数量
+  const totalTasks = tasks.length + (tempTasks?.length || 0)
+  const pendingTasks = tasks.filter(t => t.status === 'pending').length + (tempTasks?.filter(t => t.status === 'pending').length || 0)
+  const inProgressTasks = tasks.filter(t => ['accepted', 'in_progress'].includes(t.status)).length
+  const completedTasks = tasks.filter(t => t.status === 'completed').length + (tempTasks?.filter(t => t.status === 'completed').length || 0)
+  const overdueTaskIds = new Set([...delayedTasks.map(t => t.taskId), ...unfinishedTasks.map(t => t.taskId)])
+  const overdueTasks = overdueTaskIds.size
+
+  // 生成AI建议
+  const aiRecommendations = generateAIRecommendations(aheadTasks, delayedTasks, unfinishedTasks, workerLoadAnalysis)
+
   return {
-    date,
+    date: targetDate,
     totalTasks,
     pendingTasks,
     inProgressTasks,
     completedTasks,
     overdueTasks,
-    aiRecommendations: [
-      '建议优先处理高优先级灌溉任务，避免影响作物生长周期',
-      '3号温室施肥任务可合并执行，减少人员调度成本30%',
-      '张三当前负荷较低(40%)，建议承接额外采收任务',
-      '预计明日下午有降雨，建议提前完成植保喷洒作业',
-    ],
-    aheadTasks: Array.from({ length: Math.floor(Math.random() * 4) + 1 }, (_, i) => generateTask('ahead', 'ahead')),
-    delayedTasks: Array.from({ length: overdueTasks }, (_, i) => generateTask('delay', 'delayed')),
-    unfinishedTasks: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, (_, i) => generateTask('unfin', 'cancelled')),
-    workerLoadAnalysis: [
-      { workerId: '1', workerName: '张三', todayTasks: 5, completedTasks: 3, completionRate: 60, loadStatus: 'busy', availability: 'busy' },
-      { workerId: '2', workerName: '李四', todayTasks: 3, completedTasks: 3, completionRate: 100, loadStatus: 'normal', availability: 'available' },
-      { workerId: '3', workerName: '王五', todayTasks: 7, completedTasks: 2, completionRate: 29, loadStatus: 'overloaded', availability: 'busy' },
-      { workerId: '4', workerName: '赵六', todayTasks: 4, completedTasks: 2, completionRate: 50, loadStatus: 'normal', availability: 'busy' },
-      { workerId: '5', workerName: '钱七', todayTasks: 2, completedTasks: 2, completionRate: 100, loadStatus: 'normal', availability: 'available' },
-      { workerId: '6', workerName: '孙八', todayTasks: 6, completedTasks: 3, completionRate: 50, loadStatus: 'busy', availability: 'busy' },
-      { workerId: '7', workerName: '周九', todayTasks: 8, completedTasks: 1, completionRate: 13, loadStatus: 'overloaded', availability: 'busy' },
-    ],
+    aheadTasks,
+    delayedTasks,
+    unfinishedTasks,
+    workerLoadAnalysis,
+    aiRecommendations,
   }
 }
 
-/** 模拟今日派工计划 */
-const generateMockTodayPlan = () => ({
-  tasks: [
-    { id: 't1', taskTypeName: '灌溉', greenhouseName: '1号温室', priority: 'high' },
-    { id: 't2', taskTypeName: '施肥', greenhouseName: '2号温室', priority: 'medium' },
-    { id: 't3', taskTypeName: '植保', greenhouseName: '3号温室', priority: 'high' },
-    { id: 't4', taskTypeName: '采收', greenhouseName: '1号温室', priority: 'normal' },
-    { id: 't5', taskTypeName: '修剪', greenhouseName: '4号温室', priority: 'medium' },
-  ],
-  totalTasks: 5,
-  workerSuggestions: [
-    { taskId: 't1', workerName: '李四', confidenceScore: 92 },
-    { taskId: 't2', workerName: '张三', confidenceScore: 88 },
-    { taskId: 't3', workerName: '王五', confidenceScore: 85 },
-    { taskId: 't4', workerName: '赵六', confidenceScore: 90 },
-    { taskId: 't5', workerName: '钱七', confidenceScore: 87 },
-  ],
-})
-
 // ============================================
-// 主状态
+// 状态
 // ============================================
 const selectedDate = ref(dayjs().format('YYYY-MM-DD'))
 const report = ref(null)
 const todayPlan = ref({ tasks: [], totalTasks: 0, workerSuggestions: [] })
 const activeSubTab = ref('overview')
+const loading = ref(false)
+const dispatching = ref(false)
+
 // 子表分页
 const subTablePage = ref(1)
 const subTablePageSize = ref(10)
 const workerLoadPage = ref(1)
 const workerLoadPageSize = ref(10)
+
+// Stores
+const productionPlanStore = useProductionPlanStore()
+const dailyPlanStore = useDailyPlanningStore()
+const farmTaskStore = useFarmTaskStore()
+const tempTaskStore = useTempTaskStore()
 
 // ============================================
 // 计算属性
@@ -367,23 +598,22 @@ const workerLoadPageSize = ref(10)
 const statsData = computed(() => {
   if (!report.value) return []
   return [
-    { label: '总任务数', value: report.value.totalTasks, icon: Files, bgColor: 'bg-blue-50 border border-blue-200', iconColor: 'text-blue-500' },
-    { label: '待处理', value: report.value.pendingTasks, icon: Clock, bgColor: 'bg-orange-50 border border-orange-200', iconColor: 'text-orange-500' },
-    { label: '进行中', value: report.value.inProgressTasks, icon: WarningFilled, bgColor: 'bg-indigo-50 border border-indigo-200', iconColor: 'text-indigo-500' },
-    { label: '已完成', value: report.value.completedTasks, icon: CircleCheck, bgColor: 'bg-green-50 border border-green-200', iconColor: 'text-green-500' },
-    { label: '已超期', value: report.value.overdueTasks, icon: WarningFilled, bgColor: 'bg-red-50 border border-red-200', iconColor: 'text-red-500' },
+    { label: '总任务数', value: report.value.totalTasks || 0, icon: Files, bgColor: 'bg-blue-50 border border-blue-200', iconColor: 'text-blue-500' },
+    { label: '待处理', value: report.value.pendingTasks || 0, icon: Clock, bgColor: 'bg-orange-50 border border-orange-200', iconColor: 'text-orange-500' },
+    { label: '进行中', value: report.value.inProgressTasks || 0, icon: WarningFilled, bgColor: 'bg-indigo-50 border border-indigo-200', iconColor: 'text-indigo-500' },
+    { label: '已完成', value: report.value.completedTasks || 0, icon: CircleCheck, bgColor: 'bg-green-50 border border-green-200', iconColor: 'text-green-500' },
+    { label: '已超期', value: report.value.overdueTasks || 0, icon: WarningFilled, bgColor: 'bg-red-50 border border-red-200', iconColor: 'text-red-500' },
   ]
 })
 
 const subTabs = computed(() => [
   { key: 'overview', label: '任务概览', icon: Calendar, count: undefined },
-  { key: 'ahead', label: '提前完成', icon: CircleCheck, count: report.value?.aheadTasks.length || 0 },
-  { key: 'delayed', label: '已推迟', icon: WarningFilled, count: report.value?.delayedTasks.length || 0 },
-  { key: 'unfinished', label: '未完成', icon: WarningFilled, count: report.value?.unfinishedTasks.length || 0 },
-  { key: 'workers', label: '人员负荷', icon: Clock, count: report.value?.workerLoadAnalysis.length || 0 },
+  { key: 'ahead', label: '提前完成', icon: CircleCheck, count: report.value?.aheadTasks?.length || 0 },
+  { key: 'delayed', label: '已推迟', icon: WarningFilled, count: report.value?.delayedTasks?.length || 0 },
+  { key: 'unfinished', label: '未完成', icon: WarningFilled, count: report.value?.unfinishedTasks?.length || 0 },
+  { key: 'workers', label: '人员负荷', icon: Clock, count: workerLoadData.value?.length || 0 },
 ])
 
-/** 子表标题和描述（根据当前tab） */
 const subTableTitle = computed(() => {
   if (activeSubTab.value === 'ahead') return '提前完成任务'
   if (activeSubTab.value === 'delayed') return '已推迟任务'
@@ -395,24 +625,26 @@ const subTableDesc = computed(() => {
   return '截止日期已到但尚未完成的任务'
 })
 
-/** 当前子表全量数据 */
 const subTableDataTotal = computed(() => {
   if (!report.value) return []
-  if (activeSubTab.value === 'ahead') return report.value.aheadTasks
-  if (activeSubTab.value === 'delayed') return report.value.delayedTasks
-  if (activeSubTab.value === 'unfinished') return report.value.unfinishedTasks
+  if (activeSubTab.value === 'ahead') return report.value.aheadTasks || []
+  if (activeSubTab.value === 'delayed') return report.value.delayedTasks || []
+  if (activeSubTab.value === 'unfinished') return report.value.unfinishedTasks || []
   return []
 })
 
-/** 分页后的子表数据 */
 const paginatedSubTableData = computed(() => {
   const start = (subTablePage.value - 1) * subTablePageSize.value
   return subTableDataTotal.value.slice(start, start + subTablePageSize.value)
 })
 
-/** 分页后的人员负荷数据 */
+const workerLoadData = computed(() => {
+  if (!report.value) return []
+  return report.value.workerLoadAnalysis || []
+})
+
 const paginatedWorkerData = computed(() => {
-  const data = report.value?.workerLoadAnalysis || []
+  const data = workerLoadData.value
   const start = (workerLoadPage.value - 1) * workerLoadPageSize.value
   return data.slice(start, start + workerLoadPageSize.value)
 })
@@ -421,26 +653,146 @@ const paginatedWorkerData = computed(() => {
 // 方法
 // ============================================
 const getSuggestion = (taskId) => {
-  return todayPlan.value.workerSuggestions?.find(s => s.taskId === taskId)
+  if (!todayPlan.value.workerSuggestions) return null
+  return todayPlan.value.workerSuggestions.find(s => s.taskId === taskId)
 }
 
 const handleDateChange = () => {
-  regenerateData()
+  loadData()
 }
 
 const handleRefresh = () => {
-  regenerateData()
+  loadData()
 }
 
 const handleConfirmDispatch = async () => {
-  ElMessage.success(`成功派发 ${todayPlan.value.totalTasks} 个任务！`)
+  dispatching.value = true
+  try {
+    // 实际创建任务
+    let dispatchedCount = 0
+    for (const task of todayPlan.value.tasks) {
+      const suggestion = (todayPlan.value.workerSuggestions || []).find(s => s.taskId === task.id)
+      if (suggestion) {
+        try {
+          await farmTaskStore.createTask({
+            title: `${task.greenhouseName}-${task.taskTypeName}`,
+            type: task.taskType || 'irrigation',
+            typeName: task.taskTypeName,
+            assigneeId: suggestion.workerId,
+            assigneeName: suggestion.workerName,
+            dueDate: task.suggestedDate,
+            priority: task.priority || 'medium',
+            estimatedHours: task.estimatedHours || 2,
+            status: 'pending',
+            greenhouseId: task.greenhouseId,
+            greenhouseName: task.greenhouseName,
+            cropName: task.cropName,
+            batchId: task.batchId,
+            batchCode: task.batchCode,
+          })
+          dispatchedCount++
+        } catch (err) {
+          console.error(`创建任务失败: ${task.taskTypeName}`, err)
+        }
+      }
+    }
+
+    if (dispatchedCount > 0) {
+      ElMessage.success(`成功派发 ${dispatchedCount} 个任务！`)
+    } else {
+      ElMessage.warning('未能成功派发任何任务')
+    }
+    loadData()
+  } catch (error) {
+    ElMessage.error('派发失败：' + (error.message || '未知错误'))
+  } finally {
+    dispatching.value = false
+  }
 }
 
-const regenerateData = () => {
-  report.value = generateMockReport(selectedDate.value)
-  todayPlan.value = generateMockTodayPlan()
+const loadData = async () => {
+  loading.value = true
+  try {
+    // 确保生产计划数据已加载
+    if (!productionPlanStore.plans || productionPlanStore.plans.length === 0) {
+      await productionPlanStore.fetchPlans()
+    }
+
+    // 确保农事任务数据已加载
+    if (!farmTaskStore.tasks || farmTaskStore.tasks.length === 0) {
+      await farmTaskStore.fetchTasks()
+    }
+
+    const tasks = farmTaskStore.tasks || []
+    const tempTasks = tempTaskStore.tasks || []
+
+    // 生成每日报告
+    const dailyReport = generateDailyReport(selectedDate.value, tasks, tempTasks)
+    report.value = dailyReport
+
+    // 生成今日派工计划
+    const pendingTasks = dailyReport.delayedTasks.map(t => ({
+      id: t.taskId,
+      batchId: '',
+      batchCode: '',
+      cropName: '',
+      greenhouseId: '',
+      greenhouseName: t.actualAssignee || '',
+      plantingArea: 0,
+      stage: '',
+      stageName: '',
+      taskType: 'irrigation',
+      taskTypeName: t.taskName.split('-').pop() || '灌溉',
+      suggestedDate: selectedDate.value,
+      estimatedHours: 2,
+      estimatedWorkers: 1,
+      priority: t.delayDays > 3 ? 'high' : 'medium',
+      urgency: t.delayDays > 3 ? 'urgent' : 'high',
+      reason: t.delayReason,
+      isOverdue: true,
+      daysSinceLastTask: t.delayDays,
+      intervalDays: t.delayDays,
+    }))
+
+    const workerSuggestions = workerLoadData.value
+      .filter(w => w.availability === 'available')
+      .slice(0, pendingTasks.length)
+      .map((w, i) => ({
+        workerId: w.workerId,
+        workerName: w.workerName,
+        taskId: pendingTasks[i]?.id || `task_${i}`,
+        confidenceScore: 75,
+      }))
+
+    todayPlan.value = {
+      date: selectedDate.value,
+      tasks: pendingTasks,
+      totalTasks: pendingTasks.length,
+      totalHours: pendingTasks.reduce((sum, t) => sum + (t.estimatedHours || 0), 0),
+      requiredWorkers: Math.max(1, Math.ceil(pendingTasks.length / 3)),
+      workerSuggestions,
+    }
+  } catch (error) {
+    console.error('[DailyPlanning] 加载数据失败:', error)
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
 }
 
+// ============================================
 // 初始化
-regenerateData()
+// ============================================
+onMounted(() => {
+  loadData()
+})
+
+watch(selectedDate, () => {
+  loadData()
+})
+
+watch(activeSubTab, () => {
+  subTablePage.value = 1
+  workerLoadPage.value = 1
+})
 </script>

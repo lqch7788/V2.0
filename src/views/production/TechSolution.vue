@@ -28,10 +28,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">作物</label>
           <el-select v-model="cropFilter" class="w-full">
             <el-option label="全部" value="全部" />
-            <el-option label="番茄" value="番茄" />
-            <el-option label="黄瓜" value="黄瓜" />
-            <el-option label="草莓" value="草莓" />
-            <el-option label="辣椒" value="辣椒" />
+            <el-option v-for="crop in cropOptions" :key="crop" :label="crop" :value="crop" />
           </el-select>
         </div>
         <div class="flex-1 min-w-[180px]">
@@ -158,6 +155,7 @@
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案是否有效</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案详情文件</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
             </tr>
           </thead>
@@ -184,7 +182,7 @@
               </td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.crop }}</td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.plantingMode }}</td>
-              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.stage }}</td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ (tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : (tech.stage || '-') }}</td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.version }}</td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.author }}</td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.createDate }}</td>
@@ -210,6 +208,9 @@
                   {{ tech.planDetailFileName }}
                 </button>
                 <span v-else class="text-gray-400">-</span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap max-w-xs truncate" :title="tech.remarks">
+                {{ tech.remarks || '-' }}
               </td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <div class="flex items-center gap-1">
@@ -396,12 +397,23 @@
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-1.5">
                 <label class="block text-sm font-medium text-gray-700">作物品种</label>
-                <el-select v-model="editForm.crop" class="w-full">
-                  <el-option label="番茄" value="番茄" />
-                  <el-option label="黄瓜" value="黄瓜" />
-                  <el-option label="草莓" value="草莓" />
-                  <el-option label="辣椒" value="辣椒" />
-                </el-select>
+                <CropCodeSelector
+                  v-model="editForm.cropCode"
+                  @change="handleCropChangeEdit"
+                  placeholder="搜索或选择作物品种..."
+                  size="md"
+                  show-full-path
+                />
+                <div v-if="selectedCropEdit" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
+                  <div class="text-emerald-700 flex items-center gap-1">
+                    <Leaf class="w-3 h-3 flex-shrink-0" />
+                    {{ selectedCropEdit.categoryName }} > {{ selectedCropEdit.typeName }} > {{ selectedCropEdit.varietyName }}
+                    <span v-if="selectedCropEdit.subVariety1Name"> > {{ selectedCropEdit.subVariety1Name }}</span>
+                  </div>
+                  <div class="text-emerald-600 mt-0.5">
+                    编码：{{ selectedCropEdit.cropCode }}
+                  </div>
+                </div>
               </div>
               <div class="space-y-1.5">
                 <label class="block text-sm font-medium text-gray-700">种植模式</label>
@@ -410,9 +422,27 @@
                 </el-select>
               </div>
             </div>
+            <!-- 适用范围多选（V9.0） -->
             <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">适用范围</label>
-              <input v-model="editForm.stage" :class="inputClass" />
+              <label class="block text-sm font-medium text-gray-700">适用范围（可多选）</label>
+              <div class="flex flex-wrap gap-2">
+                <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    :checked="editForm.scopes.includes(scope)"
+                    @change="(e) => {
+                      const checked = (e.target as HTMLInputElement).checked
+                      if (checked) {
+                        editForm.scopes = [...editForm.scopes, scope]
+                      } else {
+                        editForm.scopes = editForm.scopes.filter(s => s !== scope)
+                      }
+                    }"
+                    class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span class="text-sm">{{ scope }}</span>
+                </label>
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-1.5">
@@ -440,9 +470,33 @@
                 </p>
               </div>
             </div>
+            <!-- 备注字段（V1.1补充） -->
+            <div class="space-y-1.5">
+              <label class="block text-sm font-medium text-gray-700">备注</label>
+              <textarea v-model="editForm.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
+            </div>
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">方案内容</label>
               <textarea v-model="editForm.content" rows="6" :class="inputClass + ' resize-y'"></textarea>
+            </div>
+            <!-- 方案详情文件上传（带删除功能） -->
+            <div class="space-y-1.5">
+              <label class="block text-sm font-medium text-gray-700">方案详情文件</label>
+              <div class="flex items-center gap-3">
+                <button :class="btnBlue" @click="handleEditFileUpload">
+                  <Upload class="w-3 h-3" />
+                  导入文件
+                </button>
+                <span class="text-xs text-gray-500">支持 .txt, .md, .docx 格式</span>
+                <span v-if="editForm.planDetailFileName" class="text-xs text-emerald-600">{{ editForm.planDetailFileName }}</span>
+                <button
+                  v-if="editForm.planDetailFileName"
+                  :class="btnGhost + ' text-red-500 hover:text-red-700 text-xs'"
+                  @click="editForm.planDetailFileName = ''; editForm.content = ''"
+                >
+                  删除
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -530,9 +584,27 @@
                 </el-select>
               </div>
             </div>
+            <!-- 适用范围多选（V9.0） -->
             <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">适用范围</label>
-              <input v-model="newPlanForm.stage" :class="inputClass" placeholder="请输入适用范围" />
+              <label class="block text-sm font-medium text-gray-700">适用范围（可多选）</label>
+              <div class="flex flex-wrap gap-2">
+                <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    :checked="newPlanForm.scopes.includes(scope)"
+                    @change="(e) => {
+                      const checked = (e.target as HTMLInputElement).checked
+                      if (checked) {
+                        newPlanForm.scopes = [...newPlanForm.scopes, scope]
+                      } else {
+                        newPlanForm.scopes = newPlanForm.scopes.filter(s => s !== scope)
+                      }
+                    }"
+                    class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span class="text-sm">{{ scope }}</span>
+                </label>
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-1.5">
@@ -546,11 +618,10 @@
                 <input :value="new Date().toISOString().split('T')[0]" disabled :class="inputClass + ' bg-gray-50'" />
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="block text-sm font-medium text-gray-700">审核人</label>
-                <input value="Susan" disabled :class="inputClass + ' bg-gray-50'" />
-              </div>
+            <!-- 备注字段（V1.1补充） -->
+            <div class="space-y-1.5">
+              <label class="block text-sm font-medium text-gray-700">备注</label>
+              <textarea v-model="newPlanForm.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
             </div>
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">方案详细</label>
@@ -560,6 +631,7 @@
                   导入文件
                 </button>
                 <span class="text-xs text-gray-500">支持 .txt, .md, .docx 格式文件</span>
+                <span v-if="newPlanForm.planDetailFileName" class="text-xs text-emerald-600">{{ newPlanForm.planDetailFileName }}</span>
               </div>
             </div>
           </div>
@@ -650,7 +722,7 @@
                     :class="inputClass + ' h-7 py-0 text-xs'"
                   />
                 </div>
-                <!-- 作物品种 - 可编辑 -->
+                <!-- 作物品种 - 可编辑（动态获取） -->
                 <div class="bg-gray-50 rounded-lg p-2">
                   <div class="text-xs text-gray-500 mb-1">作物品种</div>
                   <el-select
@@ -658,10 +730,7 @@
                     @update:model-value="updateEditedField(selectedTechCode, 'crop', $event)"
                     class="w-full"
                   >
-                    <el-option label="番茄" value="番茄" />
-                    <el-option label="黄瓜" value="黄瓜" />
-                    <el-option label="草莓" value="草莓" />
-                    <el-option label="辣椒" value="辣椒" />
+                    <el-option v-for="crop in cropOptions" :key="crop" :label="crop" :value="crop" />
                   </el-select>
                 </div>
                 <!-- 种植模式 - 可编辑 -->
@@ -800,6 +869,7 @@ import { enhancedApiClient } from '@/lib/apiClient'
 import { showAlert } from '@/lib/dialogService'
 import { FileCode, Plus, Search, Download, Edit, Trash2, Delete, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Upload, Leaf } from 'lucide-vue-next'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
+import { getVarietyByCode } from '@/services/cropVarietyService'
 
 // ==================== 样式常量 ====================
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -813,6 +883,8 @@ const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white 
 const selectClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 appearance-none'
 
 // ==================== 常量 ====================
+// 适用范围选项（V9.0多选）
+const TECH_SOLUTION_SCOPES = ['大棚A区', '大棚B区', '大棚C区', '育苗室1', '育苗室2', '包装车间', '仓储区']
 const plantingModes = ['水培', '土培', '基质培', '雾培']
 
 const exportFormats = [
@@ -891,10 +963,12 @@ onMounted(() => {
   loadOperators()
   fetchSolutions()
   document.addEventListener('visibilitychange', handleVisibilityChange)
+  window.addEventListener('focus', handleFocus)
 })
 
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
+  window.removeEventListener('focus', handleFocus)
 })
 
 const handleVisibilityChange = () => {
@@ -903,7 +977,17 @@ const handleVisibilityChange = () => {
   }
 }
 
+// 窗口聚焦时刷新（解决审批通过后状态不同步问题）
+const handleFocus = () => {
+  fetchSolutions()
+}
+
 // ==================== 计算属性 ====================
+// 动态获取作物品种选项（从数据中提取唯一值）
+const cropOptions = computed(() => {
+  return Array.from(new Set(techSolutions.value.map((t: any) => t.crop).filter(Boolean)))
+})
+
 const filteredTechSolutions = computed(() => {
   return techSolutions.value.filter((tech: any) => {
     if (code.value && !tech.code.toLowerCase().includes(code.value.toLowerCase())) return false
@@ -974,10 +1058,13 @@ const selectedTech = ref<any>(null)
 const editForm = ref({
   title: '',
   crop: '',
+  cropCode: '',
   plantingMode: '',
   stage: '',
+  scopes: [] as string[], // V9.0: 适用范围数组
   version: '',
   content: '',
+  remarks: '', // V1.1补充
   isValid: '有效',
   lastSubmitTime: '',
 })
@@ -993,14 +1080,17 @@ const newPlanForm = ref({
   cropCode: '',
   plantingMode: '水培',
   stage: '',
+  scopes: [] as string[], // V9.0: 适用范围数组
   author: localStorage.getItem('username') || '',
   version: 'V1.0',
   content: '',
+  remarks: '', // V1.1补充
   planDetailFileName: '',
   relatedBatchCode: '',
 })
 
 const selectedCrop = ref<any>(null)
+const selectedCropEdit = ref<any>(null)
 
 const handleCropChange = (code: string, varietyInfo: any) => {
   if (varietyInfo) {
@@ -1012,6 +1102,38 @@ const handleCropChange = (code: string, varietyInfo: any) => {
     newPlanForm.value.crop = ''
     newPlanForm.value.cropCode = ''
   }
+}
+
+// 编辑弹窗的作物品种选择
+const handleCropChangeEdit = (code: string, varietyInfo: any) => {
+  if (varietyInfo) {
+    selectedCropEdit.value = varietyInfo
+    editForm.value.crop = varietyInfo.subVariety1Name || varietyInfo.varietyName
+    editForm.value.cropCode = varietyInfo.cropCode
+  } else {
+    selectedCropEdit.value = null
+    editForm.value.crop = ''
+    editForm.value.cropCode = ''
+  }
+}
+
+// 编辑弹窗文件上传
+const handleEditFileUpload = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.txt,.md,.docx'
+  input.onchange = (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        editForm.value.content = event.target?.result as string
+        editForm.value.planDetailFileName = file.name
+      }
+      reader.readAsText(file)
+    }
+  }
+  input.click()
 }
 
 // ==================== 辅助函数 ====================
@@ -1039,13 +1161,20 @@ const handleEditClick = (tech: any) => {
     return
   }
   selectedTech.value = tech
+  // 根据 cropCode 获取品种信息用于编辑弹窗显示
+  const varietyInfo = tech.cropCode ? getVarietyByCode(tech.cropCode) : null
+  selectedCropEdit.value = varietyInfo
   editForm.value = {
     title: tech.title,
     crop: tech.crop,
+    cropCode: tech.cropCode || '',
     plantingMode: tech.plantingMode,
     stage: tech.stage,
+    scopes: tech.scopes || [], // V9.0: 适用范围数组
     version: tech.version,
     content: tech.content,
+    remarks: tech.remarks || '', // V1.1补充
+    planDetailFileName: tech.planDetailFileName || '',
     isValid: tech.isValid || '有效',
     lastSubmitTime: new Date().toISOString().split('T')[0],
   }
@@ -1057,14 +1186,16 @@ const handleEditSubmit = async () => {
   const updateData = {
     solutionTitle: editForm.value.title,
     cropName: editForm.value.crop,
+    cropCode: editForm.value.cropCode,
     plantingMode: editForm.value.plantingMode,
     stage: editForm.value.stage,
+    scopeNames: editForm.value.scopes, // V9.0: 传 scopes 数组
     version: editForm.value.version,
     content: editForm.value.content,
+    remarks: editForm.value.remarks, // V1.1补充
     relatedBatchCode: selectedTech.value.relatedBatchCode || '',
     planDetailFileName: selectedTech.value.planDetailFileName || '',
     priority: selectedTech.value.priority || 'normal',
-    remarks: '',
     isValid: editForm.value.isValid,
     lastSubmitTime: editForm.value.lastSubmitTime || new Date().toISOString().split('T')[0],
   }
@@ -1085,6 +1216,8 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
     cropCode: newPlanForm.value.cropCode,
     plantingMode: newPlanForm.value.plantingMode,
     stage: newPlanForm.value.stage,
+    scopeNames: newPlanForm.value.scopes, // V9.0: 传 scopes 数组
+    remarks: newPlanForm.value.remarks, // V1.1补充
     version: newPlanForm.value.version || 'V1.0',
     content: newPlanForm.value.content,
     author: newPlanForm.value.author || localStorage.getItem('username') || '',
@@ -1102,7 +1235,7 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
         type: 'tech_solution',
         typeName: '技术方案',
         title: `技术方案审批：${newPlanForm.value.title}`,
-        description: `作物：${newPlanForm.value.crop}\n种植模式：${newPlanForm.value.plantingMode}\n适用范围：${newPlanForm.value.stage}`,
+        description: `作物：${newPlanForm.value.crop}\n种植模式：${newPlanForm.value.plantingMode}\n适用范围：${newPlanForm.value.scopes?.join('、') || newPlanForm.value.stage}`,
         applicantId: localStorage.getItem('userId') || '',
         applicantName: localStorage.getItem('username') || '',
         applicantDepartment: localStorage.getItem('department') || '',
@@ -1116,7 +1249,7 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
           solutionTitle: newPlanForm.value.title,
           cropName: newPlanForm.value.crop,
           plantingMode: newPlanForm.value.plantingMode,
-          stage: newPlanForm.value.stage,
+          stage: newPlanForm.value.scopes?.join('、') || newPlanForm.value.stage,
           version: newPlanForm.value.version || 'V1.0',
         },
       }
@@ -1131,9 +1264,11 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
       cropCode: '',
       plantingMode: '水培',
       stage: '',
+      scopes: [],
       author: localStorage.getItem('username') || '',
       version: 'V1.0',
       content: '',
+      remarks: '',
       planDetailFileName: '',
       relatedBatchCode: '',
     }
@@ -1286,9 +1421,11 @@ const handleOpenCreateModal = () => {
     cropCode: '',
     plantingMode: '水培',
     stage: '',
+    scopes: [],
     author: localStorage.getItem('username') || '',
     version: 'V1.0',
     content: '',
+    remarks: '',
     planDetailFileName: '',
     relatedBatchCode: '',
   }

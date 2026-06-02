@@ -390,115 +390,43 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Calendar, Files, ShoppingCart, User, Coin,
   Refresh, Download, List, Timer
 } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import { useProductionPlanStore } from '@/stores/modules/productionPlan'
+import { useMonthlyTaskPlanning } from '@/composables/production/useMonthlyTaskPlanning'
 
 // ============================================
-// 模拟数据与业务逻辑（对应V1.1 useMonthlyTaskPlanning hook）
+// 真实数据与业务逻辑（1:1 对应 V1.1 useMonthlyTaskPlanning hook）
 // ============================================
 
-/** 模拟生产批次数据 */
-const mockBatches = [
-  { id: '1', batchCode: 'PC20260501', cropName: '番茄', cropType: '大番茄', variety: '金棚一号', greenhouseName: '1号温室', plantingArea: 2.5, stageName: '开花期', stage: 'flowering', startDate: '2026-03-15', expectedHarvestDate: '2026-07-20', batchStatus: 'in_progress' },
-  { id: '2', batchCode: 'PC20260502', cropName: '黄瓜', cropType: '水果黄瓜', variety: '津优35号', greenhouseName: '2号温室', plantingArea: 1.8, stageName: '结果期', stage: 'fruiting', startDate: '2026-02-20', expectedHarvestDate: '2026-06-30', batchStatus: 'in_progress' },
-  { id: '3', batchCode: 'PC20260503', cropName: '辣椒', cropType: '线椒', variety: '湘研15号', greenhouseName: '3号温室', plantingArea: 3.0, stageName: '苗期', stage: 'seedling', startDate: '2026-04-10', expectedHarvestDate: '2026-08-15', batchStatus: 'in_progress' },
-  { id: '4', batchCode: 'PC20260504', cropName: '茄子', cropType: '长茄', variety: '紫长茄1号', greenhouseName: '4号温室', plantingArea: 1.5, stageName: '营养生长期', stage: 'vegetative', startDate: '2026-03-01', expectedHarvestDate: '2026-07-10', batchStatus: 'published' },
-  { id: '5', batchCode: 'PC20260505', cropName: '西瓜', cropType: '早熟西瓜', variety: '京欣1号', greenhouseName: '5号温室', plantingArea: 4.0, stageName: '果实膨大期', stage: 'expansion', startDate: '2026-01-15', expectedHarvestDate: '2026-06-15', batchStatus: 'in_progress' },
-  { id: '6', batchCode: 'PC20260506', cropName: '草莓', cropType: '章姬', variety: '红颜', greenhouseName: '6号温室', plantingArea: 1.2, stageName: '采收期', stage: 'harvest', startDate: '2025-11-01', expectedHarvestDate: '2026-05-30', batchStatus: 'in_progress' },
-]
+/** 获取真实生产批次数据 */
+const productionPlanStore = useProductionPlanStore()
+const { generateMonthlyPlan } = useMonthlyTaskPlanning()
 
-/** 模拟月度计划生成函数 */
-const generateMockMonthlyPlan = (month, batchIds) => {
-  const batches = mockBatches.filter(b => batchIds.includes(b.id))
-  const taskCount = batches.length * 5 + Math.floor(Math.random() * 10)
-  const totalHours = taskCount * 2.5
-  const materialCost = taskCount * 120 + Math.random() * 500
-  const toolCost = taskCount * 35 + Math.random() * 200
-  const laborCost = totalHours * 25
-
-  // 任务类型分布
-  const taskTypeBreakdown = {
-    irrigation: Math.floor(taskCount * 0.25),
-    fertilization: Math.floor(taskCount * 0.20),
-    plant_protection: Math.floor(taskCount * 0.15),
-    pruning: Math.floor(taskCount * 0.10),
-    harvest: Math.floor(taskCount * 0.20),
-    weeding: Math.floor(taskCount * 0.10),
+// 初始化时从 API 加载批次数据
+onMounted(async () => {
+  loading.value = true
+  try {
+    await productionPlanStore.fetchPlans()
+    regeneratePlan()
+  } finally {
+    loading.value = false
   }
-
-  // 按周汇总
-  const weeksInMonth = dayjs(month + '-01').daysInMonth()
-  const weekCount = Math.ceil(weeksInMonth / 7)
-  const weeklySummaries = Array.from({ length: weekCount }, (_, i) => {
-    const startDay = i * 7 + 1
-    const endDay = Math.min((i + 1) * 7, weeksInMonth)
-    return {
-      weekNumber: i + 1,
-      startDate: `${month}-${String(startDay).padStart(2, '0')}`,
-      endDate: `${month}-${String(endDay).padStart(2, '0')}`,
-      taskCount: Math.floor(taskCount / weekCount) + (i < taskCount % weekCount ? 1 : 0),
-      totalHours: Math.round(totalHours / weekCount * 10) / 10,
-      requiredWorkers: Math.max(3, Math.ceil(taskCount / weekCount / 2)),
-      keyCrops: batches.slice(0, Math.min(3, batches.length)).map(b => b.cropName),
-      keyTasks: ['灌溉', '施肥', '植保', '修剪'].slice(0, 3 + (i % 2)),
-    }
-  })
-
-  // 物资需求
-  const materialNames = ['复合肥', '有机肥', '杀虫剂', '杀菌剂', '滴灌带', '农膜', '营养液', '生根粉']
-  const materialRequirements = materialNames.map((name, i) => ({
-    materialName: name,
-    specification: ['25kg/袋', '50kg/袋', '500ml/瓶', '1L/瓶', '1000m/卷', '6m宽', '5L/桶', '500g/袋'][i],
-    quantity: Math.floor(Math.random() * 50) + 10,
-    unit: ['袋', '袋', '瓶', '瓶', '卷', '卷', '桶', '袋'][i],
-    estimatedUnitPrice: [180, 120, 35, 45, 200, 350, 80, 25][i],
-    estimatedTotalPrice: 0,
-  }))
-  materialRequirements.forEach(m => { m.estimatedTotalPrice = m.quantity * m.estimatedUnitPrice })
-
-  // 人员需求
-  const workerRequirements = [
-    { role: '农艺师', skill: '作物栽培管理', requiredCount: 2, estimatedHours: totalHours * 0.3 },
-    { role: '植保员', skill: '病虫害防治', requiredCount: 3, estimatedHours: totalHours * 0.25 },
-    { role: '灌溉工', skill: '灌溉系统操作', requiredCount: 4, estimatedHours: totalHours * 0.2 },
-    { role: '采收工', skill: '采收作业', requiredCount: 5, estimatedHours: totalHours * 0.15 },
-    { role: '机械操作员', skill: '农机驾驶维护', requiredCount: 1, estimatedHours: totalHours * 0.1 },
-  ]
-
-  return {
-    selectedMonth: month,
-    selectedBatchIds: batchIds,
-    totalTasks: taskCount,
-    totalHours,
-    requiredWorkers: Math.round(totalHours / 8),
-    totalCost: materialCost + toolCost + laborCost,
-    taskTypeBreakdown,
-    weeklySummaries,
-    materialRequirements,
-    workerRequirements,
-    costBreakdown: {
-      materialCost,
-      toolCost,
-      laborCost,
-      total: materialCost + toolCost + laborCost,
-    },
-    generatedAt: new Date().toISOString(),
-    generatedBy: 'AI智能规划引擎',
-  }
-}
+})
 
 // ============================================
 // 主状态
 // ============================================
 const selectedMonth = ref(dayjs().format('YYYY-MM'))
-const selectedBatches = ref(['1', '2', '3'])
+const selectedBatches = ref([])
 const activeSubTab = ref('overview')
 const monthlyPlan = ref(null)
+const loading = ref(false)
 
 // 批次分页
 const batchPage = ref(1)
@@ -516,9 +444,9 @@ const workerPageSize = ref(10)
 // 计算属性
 // ============================================
 
-/** 可用批次（仅进行中和已发布） */
+/** 可用批次（仅进行中和已发布）- 使用真实 Store 数据 */
 const availableBatches = computed(() =>
-  mockBatches.filter(b => b.batchStatus === 'in_progress' || b.batchStatus === 'published')
+  (productionPlanStore.plans || []).filter(b => b.batchStatus === 'in_progress' || b.batchStatus === 'published')
 )
 
 /** 分页后的批次 */
@@ -651,7 +579,7 @@ const handleExport = () => {
 }
 
 const regeneratePlan = () => {
-  monthlyPlan.value = generateMockMonthlyPlan(selectedMonth.value, selectedBatches.value)
+  monthlyPlan.value = generateMonthlyPlan(selectedMonth.value, selectedBatches.value)
 }
 
 // 初始化
