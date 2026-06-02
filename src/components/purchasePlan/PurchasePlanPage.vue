@@ -154,6 +154,7 @@ import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 
 import { useUserStore } from '@/stores/modules/user'
 import { usePurchasePlanStore } from '@/stores/modules/purchasePlan'
+import { useApprovalStore } from '@/stores/modules/approval'
 import { calculateOverdueAlert } from '@/types/purchase'
 import { submitPurchaseApproval } from '@/services/approvalSubmitService'
 import { showAlert } from '@/lib/dialogService'
@@ -235,6 +236,22 @@ onMounted(() => {
 })
 onUnmounted(() => {
   mountedRef.value = false
+})
+
+// 1:1 翻译 V1.1 L75-84：监听审批状态变化，自动重拉采购计划
+// 业务事件触发：审批通过/拒绝后，采购计划列表状态需要即时更新
+const approvalStore = useApprovalStore()
+/** 1:1 V1.1 approvalVersion - 审批总数（含挂载时的初值） */
+const approvalVersion = computed(() => approvalStore.approvals?.length ?? 0)
+/** 1:1 V1.1 lastApprovalStatusSum - 已审批条目总数（approved + rejected） */
+const lastApprovalStatusSum = computed(() => {
+  const arr = approvalStore.approvals || []
+  return arr.reduce((sum, a) => sum + (a.status === 'approved' ? 1 : 0) + (a.status === 'rejected' ? 1 : 0), 0)
+})
+/** 1:1 V1.1 L80-84 - 跳过首次挂载，审批列表变化时 fetchPlans */
+watch([approvalVersion, lastApprovalStatusSum], () => {
+  if (approvalVersion.value === 0) return
+  fetchPlans()
 })
 
 // ==================== 筛选状态 ====================
