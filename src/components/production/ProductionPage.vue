@@ -21,7 +21,7 @@
     </div>
 
     <!-- 统计卡片 -->
-    <ProductionStatsCards :batches="hook.batches" />
+    <ProductionStatsCards :batches="hook.batches.value" />
 
     <!-- 筛选器 -->
     <ProductionFilters
