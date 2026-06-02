@@ -211,3 +211,15 @@ export async function deletePurchasePlans(
 export async function resetPurchasePlans(): Promise<void> {
   await enhancedApiClient.post('/purchase-plans/reset');
 }
+
+/**
+ * 获取下一个可用的采购申请批次号
+ * 规则：PA + YYYYMM + 4位流水号（基于数据库最大已用序号 +1）
+ * 用于"生成"按钮和打开新建弹窗时的初始值
+ *
+ * 1:1 对齐 V1.1 src/services/apiPurchasePlanService.ts
+ */
+export async function getNextPurchaseApplicationCode(): Promise<string> {
+  const result = await enhancedApiClient.get<{ code: string }>('/purchase-plans/next-code');
+  return result?.code || '';
+}
