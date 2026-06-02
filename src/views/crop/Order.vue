@@ -21,7 +21,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-            <Package class="text-white" :size="16" />
+            <Package class="w-4 h-4 text-white" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.total }}</p>
@@ -32,7 +32,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-            <TrendingUp class="text-white" :size="16" />
+            <TrendingUp class="w-4 h-4 text-white" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.inProgress }}</p>
@@ -43,7 +43,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <CheckCircle class="text-white" :size="16" />
+            <CheckCircle class="w-4 h-4 text-white" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.completed }}</p>
@@ -54,7 +54,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
-            <Calendar class="text-white" :size="16" />
+            <Calendar class="w-4 h-4 text-white" />
           </div>
           <div>
             <p class="text-xl font-bold text-gray-900">{{ statsData.thisMonth }}</p>
