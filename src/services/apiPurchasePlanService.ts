@@ -191,10 +191,18 @@ export async function deletePurchasePlan(id: string): Promise<boolean> {
 /**
  * 批量删除采购计划
  * 降级策略：API → 离线队列
+ *
+ * 1:1 对齐 V1.1：返回 { deleted, skipped[] } 以支持部分删除场景
+ * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\services\apiPurchasePlanService.ts
  */
-export async function deletePurchasePlans(ids: string[]): Promise<boolean> {
-  await enhancedApiClient.post('/purchase-plans/batch-delete', { ids });
-  return true;
+export async function deletePurchasePlans(
+  ids: string[]
+): Promise<{ deleted: number; skipped: { id: string; reason: string }[] }> {
+  const result = await enhancedApiClient.post<{ deleted: number; skipped: { id: string; reason: string }[] }>(
+    '/purchase-plans/batch-delete',
+    { ids }
+  );
+  return result || { deleted: 0, skipped: [] };
 }
 
 /**

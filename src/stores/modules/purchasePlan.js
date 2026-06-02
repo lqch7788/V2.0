@@ -149,18 +149,18 @@ export const usePurchasePlanStore = defineStore('purchasePlan', () => {
 
   /**
    * 批量删除采购计划
-   * 1:1 翻译自 V1.1 deletePlans（名称 1:1，签名适配 V2.0 L0 service 的 boolean 返回）
-   * V1.1 service 返回 { deleted, skipped }；V2.0 L0 service 返回 boolean
+   * 1:1 翻译自 V1.1 deletePlans（按 { deleted, skipped } 过滤实际删除的 id）
    * @param {string[]} ids
-   * @returns {Promise<boolean>}
+   * @returns {Promise<{ deleted: number; skipped: { id: string; reason: string }[] }>}
    */
   async function deletePlans(ids) {
     const result = await deletePurchasePlans(ids)
-    if (result) {
-      // V1.1 行为：未在 skipped 中的 id 从 plans 中过滤掉
-      // V2.0 L0 service 不返回 skipped 详情，服务端成功即视为全部删除
-      const deletedSet = new Set(ids)
-      plans.value = plans.value.filter(p => !deletedSet.has(p.id))
+    if (result && result.deleted > 0) {
+      // V1.1 行为：未在 skipped 中的 id 从 plans 中过滤掉（部分删除支持）
+      const deletedSet = new Set(
+        ids.filter((id) => !(result.skipped || []).some((s) => s.id === id))
+      )
+      plans.value = plans.value.filter((p) => !deletedSet.has(p.id))
     }
     return result
   }
