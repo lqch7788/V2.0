@@ -25,16 +25,16 @@
 
     <!-- Tab切换 -->
     <div class="bg-white rounded-xl p-1 inline-flex shadow-sm">
-      <el-button
+      <button
         v-for="tab in tabs"
         :key="tab.key"
-        :type="activeTab === tab.key ? 'primary' : ''"
+        type="button"
         :class="['px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors', activeTab === tab.key ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100']"
         @click="handleTabChange(tab.key)"
       >
         <el-icon :size="16"><component :is="tab.icon" /></el-icon>
         {{ tab.label }}
-      </el-button>
+      </button>
     </div>
 
     <!-- 搜索筛选 - V1.1: bg-[#F2F6FA] -->
