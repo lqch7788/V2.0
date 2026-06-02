@@ -618,7 +618,11 @@ export function useProductionPage() {
       resetForm()
       errors.value = {}
     } catch (error) {
-      await showAlert('提交审批失败，请重试')
+      console.error('[提交审批失败] 详细错误:', error)
+      console.error('[提交审批失败] error.message:', error?.message)
+      console.error('[提交审批失败] error.stack:', error?.stack)
+      console.error('[提交审批失败] apiData:', apiData)
+      await showAlert(`提交审批失败：${error?.message || '请重试'}`)
     }
   }
 
