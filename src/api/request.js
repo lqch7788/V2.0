@@ -1,13 +1,49 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
+// 最大重试次数（与 V1.1 enhancedApiClient 的 maxRetries 一致）
+const MAX_RETRIES = 3
+
+// 指数退避延迟（与 V1.1 公式 1000 * 2^i 一致：1s, 2s, 4s）
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
+ * 包装 axios 适配器，添加 3 次指数退避重试
+ * 1:1 对齐 V1.1 src/lib/apiClient.ts 的重试策略
+ */
+const retryAdapter = (adapter) => {
+  return async (config) => {
+    // 如果显式禁用重试（默认 false），则不重试
+    if (config.retry === false) {
+      return adapter(config)
+    }
+    const maxRetries = config.retryCount ?? MAX_RETRIES
+    let lastError
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await adapter(config)
+      } catch (error) {
+        lastError = error
+        console.warn(`[request] 请求失败 (${i + 1}/${maxRetries}):`, error?.message || error)
+        if (i < maxRetries - 1) {
+          const backoff = 1000 * Math.pow(2, i)
+          await delay(backoff)
+        }
+      }
+    }
+    throw lastError
+  }
+}
+
 // 创建 axios 实例
 const request = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  // 注入重试适配器（与 V1.1 enhancedApiClient.request 重试策略一致）
+  adapter: retryAdapter(axios.defaults.adapter)
 })
 
 // 请求拦截器
