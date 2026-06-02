@@ -61,3 +61,24 @@ export function getVarietyByCode(code) {
 export function getVarietyByName(name) {
   return varieties.find(v => v.value === name || v.label === name)
 }
+
+/**
+ * 根据品种名称获取标准作物编码
+ * 1:1 翻译自 V1.1 apiCropVarietyService.ts:179 getStandardCropCode
+ * @param {string} varietyName 品种名称
+ * @returns {string} 11 位标准作物编码
+ */
+export function getStandardCropCode(varietyName) {
+  // 1:1 翻译 V1.1 L179 逻辑：三级匹配
+  let variety = varieties.find(v => v.subVariety1Name === varietyName)
+  if (!variety) {
+    variety = varieties.find(v => v.varietyName === varietyName)
+  }
+  if (!variety) {
+    variety = varieties.find(v =>
+      (v.varietyName && v.varietyName.includes(varietyName)) ||
+      (v.subVariety1Name && v.subVariety1Name.includes(varietyName))
+    )
+  }
+  return variety?.cropCode || ''
+}
