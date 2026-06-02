@@ -165,6 +165,19 @@
 
       <!-- 物料明细 -->
       <div class="border-t border-gray-300 pt-4 mt-4">
+        <!-- 审批规则提示：金额阈值说明（数据源：基础数据→字典→amount_threshold，动态读取） -->
+        <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 leading-relaxed">
+          <div class="flex items-center gap-1 font-medium mb-1">
+            <span>📋</span>
+            <span>采购金额审批规则</span>
+          </div>
+          <div>总金额 = 物料明细「数量 × 单价」之和。规则如下：</div>
+          <ul v-if="thresholdDisplay.length > 0" class="mt-1 ml-3 space-y-0.5">
+            <li v-for="(t, i) in thresholdDisplay" :key="i">• {{ t.max }} → <span :class="`font-semibold ${t.color}`">{{ t.label }}</span></li>
+          </ul>
+          <div v-else class="mt-1 text-blue-600">阈值未配置，请联系管理员</div>
+          <div class="mt-1 text-blue-600">阈值可在「基础数据 → 字典管理 → amount_threshold」分类下调整</div>
+        </div>
         <div class="flex items-center justify-between mb-3">
           <h4 class="text-sm font-semibold text-gray-800">
             物料明细（{{ createItems.length }}种物料）
@@ -338,11 +351,12 @@
  *              新增采购申请单：基本信息表单 + 物料明细可编辑表格
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\CreatePlanModal.tsx
  */
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import * as XLSX from 'xlsx'
 import { Refresh, Upload, Plus, Delete } from '@element-plus/icons-vue'
 import { usePlantingStore } from '@/stores/modules/planting'
 import { getNextPurchaseApplicationCode } from '@/services/apiPurchasePlanService'
+import { getDictionaries } from '@/services/dictionaryService'
 import { showAlert } from '@/lib/dialogService'
 
 // ==================== JSDoc 类型定义 ====================
@@ -455,6 +469,77 @@ const plantingItems = computed(() => {
 onMounted(() => {
   if (plantingItems.value.length === 0 && typeof plantingStore.fetchPlantings === 'function') {
     plantingStore.fetchPlantings()
+  }
+  // 1:1 翻译 V1.1：弹窗打开时动态读取金额阈值字典
+  loadAmountThresholds()
+})
+
+/** 1:1 翻译 V1.1 - 弹窗打开时从字典服务读取 amount_threshold 阈值 */
+const amountThresholdsRaw = ref(/** @type {any[]} */ ([]))
+const thresholdsLoading = ref(false)
+
+async function loadAmountThresholds() {
+  thresholdsLoading.value = true
+  try {
+    const all = await getDictionaries('amount_threshold')
+    amountThresholdsRaw.value = Array.isArray(all) ? all : []
+  } catch (err) {
+    console.error('[CreatePlanModal] 读取金额阈值字典失败:', err)
+    amountThresholdsRaw.value = []
+  } finally {
+    thresholdsLoading.value = false
+  }
+}
+
+/** 1:1 翻译 V1.1 - 按 sortOrder 升序排列阈值 */
+const amountThresholds = computed(() => {
+  const items = amountThresholdsRaw.value
+    .filter((d) => (d.status === 'active' || !d.status))
+    .sort((a, b) => (a.sortNumber || 0) - (b.sortNumber || 0))
+  return items.map((d, idx) => {
+    const maxAmount = Number(d.name) || 0
+    const displayName = d.displayName || d.name || ''
+    return { maxAmount, displayName, sortOrder: idx }
+  })
+})
+
+/** 1:1 翻译 V1.1 - 阈值列表（含隐含的">=最大值"档） */
+const thresholdDisplay = computed(() => {
+  const list = /** @type {{ max: string; label: string; color: string }[]} */ ([])
+  const colorMap = ['green', 'amber', 'orange', 'red'] // exempt/quick/standard/strict
+  if (amountThresholds.value.length === 0) return list
+  amountThresholds.value.forEach((t, i) => {
+    const prev = i > 0 ? amountThresholds.value[i - 1].maxAmount : 0
+    const range = i === 0
+      ? `金额 < ${t.maxAmount.toLocaleString()} 元`
+      : `金额 ${prev.toLocaleString()} ~ ${t.maxAmount.toLocaleString()} 元`
+    const color = colorMap[i] || 'gray'
+    const colorClass = {
+      green: 'text-green-700',
+      amber: 'text-amber-700',
+      orange: 'text-orange-700',
+      red: 'text-red-700',
+      gray: 'text-gray-700',
+    }[color]
+    const label = t.displayName && t.displayName.trim() && t.displayName !== String(t.maxAmount)
+      ? t.displayName
+      : '需相应审批'
+    list.push({ max: range, label, color: colorClass })
+  })
+  // 隐含的">=最大值"档
+  const last = amountThresholds.value[amountThresholds.value.length - 1]
+  list.push({
+    max: `金额 ≥ ${last.maxAmount.toLocaleString()} 元`,
+    label: '需严格审批',
+    color: 'text-red-700',
+  })
+  return list
+})
+
+/** 1:1 翻译 V1.1 - 弹窗 isOpen 变化时刷新阈值（绕过缓存每次拉最新） */
+watch(() => props.isOpen, (open) => {
+  if (open) {
+    loadAmountThresholds()
   }
 })
 
