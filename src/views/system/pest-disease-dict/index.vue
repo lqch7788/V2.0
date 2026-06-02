@@ -131,23 +131,89 @@
       </div>
     </div>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增弹窗 (V1.1 AddPestDiseaseModal 风格) -->
     <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑病虫害' : '新增病虫害'"
-      width="700px"
+      v-model="addDialogVisible"
+      :title="`新增${activeTab === 'pest' ? '虫害' : '病害'}字典`"
+      width="900px"
       :close-on-click-modal="false"
     >
-      <div class="space-y-4 max-h-[60vh] overflow-y-auto">
-        <!-- 基础信息 -->
+      <div class="space-y-4 max-h-[70vh] overflow-y-auto">
         <div class="border-b pb-4">
           <h3 class="text-sm font-bold text-gray-900 mb-3">📋 基础信息</h3>
           <div class="grid grid-cols-2 gap-4">
             <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">编码</label>
+              <el-input v-model="formData.dictCode" placeholder="自动生成" disabled />
+            </div>
+            <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                编码 <span class="text-red-500">*</span>
+                名称 <span class="text-red-500">*</span>
               </label>
-              <el-input v-model="formData.dictCode" :placeholder="isEdit ? '' : '自动生成'" :disabled="isEdit" />
+              <el-input v-model="formData.dictName" placeholder="请输入名称" />
+            </div>
+          </div>
+        </div>
+        <div class="border-b pb-4">
+          <h3 class="text-sm font-bold text-gray-900 mb-3">📝 详细信息</h3>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">适用作物</label>
+            <el-input v-model="formData.targetCrops" placeholder="请输入适用作物，多个用逗号分隔" />
+          </div>
+          <div class="mt-3">
+            <label class="block text-sm font-medium text-gray-700 mb-1">描述</label>
+            <el-input v-model="formData.description" type="textarea" :rows="4" placeholder="请输入描述" resize="none" />
+          </div>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-gray-900 mb-3">💊 关联药剂</h3>
+          <p class="text-xs text-gray-500 mb-3">选择能治疗该病虫害的药剂</p>
+          <div class="mb-3">
+            <el-input v-model="pesticideSearch" placeholder="搜索药剂名称、编码或功能..." clearable class="w-full" />
+          </div>
+          <div class="flex gap-2 mb-4">
+            <button type="button" @click="pesticideTypeFilter = 'all'" :class="['px-3 py-1.5 rounded-lg text-xs font-medium transition-all', pesticideTypeFilter === 'all' ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50']">全部</button>
+            <button type="button" @click="pesticideTypeFilter = 'chemical'" :class="['px-3 py-1.5 rounded-lg text-xs font-medium transition-all', pesticideTypeFilter === 'chemical' ? 'bg-red-500 text-white shadow-md' : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100']">🧪 化学</button>
+            <button type="button" @click="pesticideTypeFilter = 'bio'" :class="['px-3 py-1.5 rounded-lg text-xs font-medium transition-all', pesticideTypeFilter === 'bio' ? 'bg-green-600 text-white shadow-md' : 'bg-green-50 text-green-600 border border-green-200 hover:bg-green-100']">🌿 生物</button>
+            <button type="button" @click="pesticideTypeFilter = 'physical'" :class="['px-3 py-1.5 rounded-lg text-xs font-medium transition-all', pesticideTypeFilter === 'physical' ? 'bg-blue-500 text-white shadow-md' : 'bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100']">🔧 物理</button>
+          </div>
+          <div v-if="selectedPesticideIds.length > 0" class="mb-3 p-6 bg-green-100 rounded-lg border border-green-200">
+            <div class="text-xs font-semibold text-green-700 mb-2">已选药剂 ({{ selectedPesticideIds.length }})</div>
+            <div class="flex flex-wrap gap-2">
+              <el-tag v-for="pid in selectedPesticideIds" :key="pid" closable @close="togglePesticide(pid)" type="success" size="small">
+                {{ getPesticideName(pid) }}
+              </el-tag>
+            </div>
+          </div>
+          <div class="max-h-[200px] overflow-y-auto border border-gray-200 rounded-lg p-2 bg-gray-50">
+            <div v-if="filteredPesticides.length === 0" class="text-center text-gray-400 py-4 text-sm">无匹配药剂</div>
+            <div v-for="pesticide in filteredPesticides" :key="pesticide.id" @click="togglePesticide(pesticide.id)" :class="['px-3 py-2 rounded-lg text-sm cursor-pointer mb-1 transition-all', selectedPesticideIds.includes(pesticide.id) ? 'bg-green-100 border border-green-300 text-green-700' : 'bg-white border border-gray-200 hover:bg-gray-50']">
+              <div class="font-medium">{{ pesticide.pesticideName }}</div>
+              <div class="text-xs text-gray-500">{{ pesticide.pesticideCode }} · {{ pesticide.functionDesc || '无描述' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="addDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSave" :loading="pestDiseaseStore.saveLoading">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑弹窗 (V1.1 EditPestDiseaseModal 风格 - 类型 readonly) -->
+    <el-dialog
+      v-model="editDialogVisible"
+      :title="`编辑${formData.dictType === 'pest' ? '虫害' : '病害'}字典 - ${formData.dictCode}`"
+      width="700px"
+      :close-on-click-modal="false"
+    >
+      <div class="space-y-4 max-h-[60vh] overflow-y-auto">
+        <div class="border-b pb-4">
+          <h3 class="text-sm font-bold text-gray-900 mb-3">📋 基础信息</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">编码</label>
+              <el-input v-model="formData.dictCode" disabled />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -157,15 +223,13 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">类型</label>
-              <el-select v-model="formData.dictType" class="w-full">
-                <el-option label="虫害" value="pest" />
-                <el-option label="病害" value="disease" />
-              </el-select>
+              <!-- V1.1 风格：编辑时类型 readonly + 颜色徽章 -->
+              <span :class="formData.dictType === 'pest' ? 'bg-orange-100 text-orange-700 inline-flex px-3 py-1 rounded-full text-sm font-medium' : 'bg-purple-100 text-purple-700 inline-flex px-3 py-1 rounded-full text-sm font-medium'">
+                {{ formData.dictType === 'pest' ? '虫害' : '病害' }}
+              </span>
             </div>
           </div>
         </div>
-
-        <!-- 详细信息 -->
         <div class="border-b pb-4">
           <h3 class="text-sm font-bold text-gray-900 mb-3">📝 详细信息</h3>
           <div>
@@ -380,7 +444,8 @@ const TabType = {
 
 // 本地状态
 const activeTab = ref(TabType.PEST)
-const dialogVisible = ref(false)
+const addDialogVisible = ref(false)
+const editDialogVisible = ref(false)
 const detailVisible = ref(false)
 const isEdit = ref(false)
 const currentRecord = ref(null)
@@ -478,7 +543,7 @@ const handleAdd = async () => {
   // 加载药剂列表
   await pesticideStore.fetchItems()
 
-  dialogVisible.value = true
+  addDialogVisible.value = true
 }
 
 const handleDetail = (record) => {
@@ -507,7 +572,7 @@ const handleEdit = async (record) => {
       .map(p => p.id)
   }
 
-  dialogVisible.value = true
+  editDialogVisible.value = true
 }
 
 const handleDelete = async (record) => {
@@ -556,7 +621,8 @@ const handleSave = async () => {
       }
     }
 
-    dialogVisible.value = false
+    addDialogVisible.value = false
+    editDialogVisible.value = false
     // 刷新列表
     await pestDiseaseStore.loadData()
   } catch (err) {

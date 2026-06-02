@@ -47,13 +47,18 @@ export const useApprovalWorkflowStore = defineStore('approvalWorkflow', () => {
     await loadWorkflows()
   }
 
-  // 新增工作流
+  // 新增工作流 - 乐观更新（与 V1.1 addWorkflow 一致）
   const addWorkflow = async (data) => {
     loading.value = true
     error.value = null
     try {
-      await apiCreateWorkflow(data)
-      await loadWorkflows()
+      const created = await apiCreateWorkflow(data)
+      if (created && created.id) {
+        workflows.value = [...workflows.value, created]
+      } else {
+        await loadWorkflows()
+      }
+      return created
     } catch (err) {
       console.warn('[ApprovalWorkflowStore] 创建工作流失败:', err)
       error.value = err.message || '创建工作流失败'
@@ -63,13 +68,17 @@ export const useApprovalWorkflowStore = defineStore('approvalWorkflow', () => {
     }
   }
 
-  // 更新工作流
+  // 更新工作流 - 乐观更新
   const editWorkflow = async (id, data) => {
     loading.value = true
     error.value = null
     try {
-      await apiUpdateWorkflow(id, data)
-      await loadWorkflows()
+      const updated = await apiUpdateWorkflow(id, data)
+      if (updated && updated.id) {
+        workflows.value = workflows.value.map(w => w.id === id ? { ...w, ...updated } : w)
+      } else {
+        workflows.value = workflows.value.map(w => w.id === id ? { ...w, ...data } : w)
+      }
     } catch (err) {
       console.warn('[ApprovalWorkflowStore] 更新工作流失败:', err)
       error.value = err.message || '更新工作流失败'
@@ -79,13 +88,13 @@ export const useApprovalWorkflowStore = defineStore('approvalWorkflow', () => {
     }
   }
 
-  // 删除工作流
+  // 删除工作流 - 乐观更新
   const removeWorkflow = async (id) => {
     loading.value = true
     error.value = null
     try {
       await apiDeleteWorkflow(id)
-      await loadWorkflows()
+      workflows.value = workflows.value.filter(w => w.id !== id)
     } catch (err) {
       console.warn('[ApprovalWorkflowStore] 删除工作流失败:', err)
       error.value = err.message || '删除工作流失败'
@@ -95,11 +104,13 @@ export const useApprovalWorkflowStore = defineStore('approvalWorkflow', () => {
     }
   }
 
-  // 切换状态
+  // 切换状态 - 乐观更新
   const toggleWorkflowStatus = async (id) => {
     try {
+      const target = workflows.value.find(w => w.id === id)
+      const newStatus = target?.status === 'active' ? 'inactive' : 'active'
       await apiToggleStatus(id)
-      await loadWorkflows()
+      workflows.value = workflows.value.map(w => w.id === id ? { ...w, status: newStatus } : w)
     } catch (err) {
       console.warn('[ApprovalWorkflowStore] 切换工作流状态失败:', err)
       error.value = err.message || '切换工作流状态失败'

@@ -3,6 +3,10 @@
  * 对接后端 /api/approval-workflows
  *
  * 数据流：API → enhancedApiClient (IndexedDB 缓存) → 组件
+ *
+ * @deprecated 自 2026-06 起，V2.0 改用 `src/api/system/approvalWorkflow.js`（标准 request 客户端）。
+ * 本文件保留仅用于 V1.1 兼容路径，不再被任何模块引用。
+ * 后续版本将彻底移除。
  */
 
 import { enhancedApiClient } from '../lib/apiClient';

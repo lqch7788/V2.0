@@ -81,6 +81,34 @@ export function toggleApprovalWorkflowStatus(id) {
   return patch(`/approval-workflows/${id}/toggle`)
 }
 
+/**
+ * 按业务类型获取工作流（V1.1 getWorkflowsByType）
+ */
+export function getApprovalWorkflowsByType(moduleType) {
+  return get(`/approval-workflows/by-type/${moduleType}`)
+}
+
+/**
+ * 克隆审批工作流（V1.1 cloneWorkflow）
+ */
+export function cloneApprovalWorkflow(id) {
+  return post(`/approval-workflows/${id}/clone`)
+}
+
+/**
+ * 评估触发条件（V1.1 evaluateConditions）
+ */
+export function evaluateApprovalConditions(id, payload) {
+  return post(`/approval-workflows/${id}/evaluate`, payload)
+}
+
+/**
+ * 获取节点模板（V1.1 getNodeTemplates）
+ */
+export function getApprovalNodeTemplates() {
+  return get('/approval-workflows/node-templates')
+}
+
 // ============================================
 // 导出 API 对象
 // ============================================
@@ -91,7 +119,11 @@ export const approvalWorkflowApi = {
   createApprovalWorkflow,
   updateApprovalWorkflow,
   deleteApprovalWorkflow,
-  toggleApprovalWorkflowStatus
+  toggleApprovalWorkflowStatus,
+  getApprovalWorkflowsByType,
+  cloneApprovalWorkflow,
+  evaluateApprovalConditions,
+  getApprovalNodeTemplates
 }
 
 export default approvalWorkflowApi
