@@ -196,7 +196,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="dialogMode === 'add' ? '新增肥料' : '编辑肥料'"
-      width="600px"
+      width="800px"
       :close-on-click-modal="false"
     >
       <div class="space-y-4">
@@ -243,6 +243,39 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">功能说明</label>
           <el-input v-model="formData.functionDesc" type="textarea" :rows="3" placeholder="请输入功能说明" />
+        </div>
+
+        <!-- V1.1 风格：规格信息编辑器 -->
+        <div class="border-t border-gray-200 pt-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-bold text-gray-900">📦 规格信息</h3>
+            <el-button size="small" type="primary" @click="handleAddSpec">
+              <el-icon class="mr-1"><Plus /></el-icon>添加规格
+            </el-button>
+          </div>
+          <div v-if="formData.specs && formData.specs.length === 0" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-400 text-sm">
+            暂无规格，点击右上"添加规格"新增
+          </div>
+          <div v-else class="space-y-2">
+            <div
+              v-for="(spec, index) in formData.specs"
+              :key="spec.id || `new-${index}`"
+              class="flex gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 items-center"
+            >
+              <div class="flex-1 grid grid-cols-7 gap-2">
+                <el-input v-model="spec.brandName" size="small" placeholder="品牌名称" />
+                <el-input v-model="spec.specContent" size="small" placeholder="成份与含量" />
+                <el-input v-model="spec.manufacturer" size="small" placeholder="生产厂家" />
+                <el-input v-model="spec.suggestedDosage" size="small" placeholder="建议用量" />
+                <el-input v-model="spec.dosageUnit" size="small" placeholder="单位" />
+                <el-input v-model="spec.suggestedRatio" size="small" placeholder="稀释比例" />
+                <el-input v-model="spec.remark" size="small" placeholder="备注" />
+              </div>
+              <el-button text size="small" @click="handleDeleteSpec(index)" class="text-red-500 hover:bg-red-50">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -464,8 +497,14 @@ const formData = reactive({
   tabooDesc: '',
   shelfLife: '',
   storageCondition: '',
-  supplierInfo: ''
+  supplierInfo: '',
+  specs: []
 })
+
+// V1.1 风格：编辑时追踪规格的原始快照
+const originalSpecs = ref([])
+const newSpecs = ref([])
+const deletedSpecIds = ref([])
 
 // ========== 计算属性 ==========
 const filteredItems = computed(() => {
@@ -539,9 +578,38 @@ const handleAdd = async () => {
     tabooDesc: '',
     shelfLife: '',
     storageCondition: '',
-    supplierInfo: ''
+    supplierInfo: '',
+    specs: []
   })
+  originalSpecs.value = []
+  newSpecs.value = []
+  deletedSpecIds.value = []
   dialogVisible.value = true
+}
+
+// 添加规格（V1.1 风格）
+const handleAddSpec = () => {
+  const newSpec = {
+    _isNew: true,
+    brandName: '',
+    specContent: '',
+    manufacturer: '',
+    suggestedDosage: '',
+    dosageUnit: 'kg/亩',
+    suggestedRatio: '',
+    remark: ''
+  }
+  formData.specs.push(newSpec)
+  newSpecs.value.push(newSpec)
+}
+
+// 删除规格（V1.1 风格：edit 模式追踪 deletedSpecIds）
+const handleDeleteSpec = (index) => {
+  const spec = formData.specs[index]
+  if (spec.id) {
+    deletedSpecIds.value.push(spec.id)
+  }
+  formData.specs.splice(index, 1)
 }
 
 const handleEdit = async (row) => {
@@ -563,6 +631,10 @@ const handleEdit = async (row) => {
     supplierInfo: fullRecord.supplierInfo || '',
     specs: fullRecord.specs || []
   })
+  // V1.1 风格：保存编辑时原始 specs 快照
+  originalSpecs.value = JSON.parse(JSON.stringify(fullRecord.specs || []))
+  newSpecs.value = []
+  deletedSpecIds.value = []
   dialogVisible.value = true
 }
 
@@ -604,10 +676,55 @@ const handleSave = async () => {
     }
 
     if (dialogMode.value === 'add') {
-      await fertilizerLibraryStore.createItem(submitData)
+      const result = await fertilizerLibraryStore.createItem(submitData)
+      const newId = result?.data?.id || result?.id
+      // 新增模式：创建所有 specs
+      if (newId && formData.specs && formData.specs.length > 0) {
+        for (const spec of formData.specs) {
+          if (spec.brandName || spec.specContent || spec.manufacturer) {
+            const { _isNew, id, ...rest } = spec
+            await fertilizerLibraryStore.createSpec(newId, rest)
+          }
+        }
+      }
       ElMessage.success('新增成功')
     } else {
       await fertilizerLibraryStore.updateItem(formData.id, submitData)
+      // 编辑模式：specs 三步同步（V1.1 风格）
+      if (formData.specs) {
+        // 1. 新增：遍历 _isNew 项
+        for (const spec of formData.specs) {
+          if (spec._isNew && (spec.brandName || spec.specContent || spec.manufacturer)) {
+            const { _isNew, id, ...rest } = spec
+            await fertilizerLibraryStore.createSpec(formData.id, rest)
+          }
+        }
+        // 2. 更新：逐字段比较（任一变化即 update）
+        for (const spec of formData.specs) {
+          if (!spec._isNew && spec.id) {
+            const original = originalSpecs.value.find(o => o.id === spec.id)
+            if (original) {
+              const changed = (
+                spec.brandName !== (original.brandName || '') ||
+                spec.specContent !== (original.specContent || '') ||
+                spec.manufacturer !== (original.manufacturer || '') ||
+                spec.suggestedDosage !== (original.suggestedDosage || '') ||
+                spec.suggestedRatio !== (original.suggestedRatio || '') ||
+                spec.dosageUnit !== (original.dosageUnit || '') ||
+                spec.remark !== (original.remark || '')
+              )
+              if (changed) {
+                const { _isNew, id, ...rest } = spec
+                await fertilizerLibraryStore.updateSpec(spec.id, rest)
+              }
+            }
+          }
+        }
+        // 3. 删除：遍历 deletedSpecIds
+        for (const id of deletedSpecIds.value) {
+          await fertilizerLibraryStore.deleteSpec(id)
+        }
+      }
       ElMessage.success('更新成功')
     }
     dialogVisible.value = false
