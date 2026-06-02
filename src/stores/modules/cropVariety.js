@@ -53,6 +53,48 @@ export const useCropVarietyStore = defineStore('cropVariety', {
 
   actions: {
     /**
+     * 从 V1.1 localStorage 迁移品种数据（V1.1 useCropVarietyStore.ts 兼容路径）
+     * 触发条件：items < 100 且 V1.1 key 存在
+     */
+    migrateFromLocalStorage() {
+      try {
+        const V1_1_KEYS = ['crop_varieties', 'cropVarieties', 'crop-variety-list']
+        for (const key of V1_1_KEYS) {
+          const stored = localStorage.getItem(key)
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              console.log(`[useCropVarietyStore] 从 V1.1 localStorage[${key}] 迁移 ${parsed.length} 条品种`)
+              // 与 V1.1 兼容：使用相同的归一化字段
+              this.items = parsed.map(v => ({
+                id: v.id,
+                cropCode: v.cropCode || v.code,
+                categoryCode: v.categoryCode,
+                categoryName: v.categoryName,
+                typeCode: v.typeCode,
+                typeName: v.typeName,
+                varietyCode: v.varietyCode,
+                varietyName: v.varietyName,
+                subVariety1Code: v.subVariety1Code,
+                subVariety1Name: v.subVariety1Name,
+                detailVarietyCode: v.detailVarietyCode,
+                detailVarietyName: v.detailVarietyName,
+                alias: v.alias,
+                status: v.status || 'active',
+              }))
+              this.isInitialized = true
+              this.updateStats()
+              return true
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[useCropVarietyStore] V1.1 localStorage 迁移失败:', e)
+      }
+      return false
+    },
+
+    /**
      * 初始化并加载所有品种
      */
     async loadItems() {
@@ -63,12 +105,22 @@ export const useCropVarietyStore = defineStore('cropVariety', {
 
       try {
         const data = await initVarieties();
-        this.items = data;
+        // 若服务端返回数据 < 100 条，尝试从 V1.1 localStorage 迁移
+        if (!data || data.length < 100) {
+          const migrated = this.migrateFromLocalStorage()
+          if (!migrated) {
+            this.items = data || []
+          }
+        } else {
+          this.items = data
+        }
         this.isInitialized = true;
         this.updateStats();
       } catch (error) {
         console.error('[useCropVarietyStore] 获取品种失败:', error);
         this.error = error.message || '获取品种失败';
+        // API 失败时也尝试 V1.1 迁移兜底
+        this.migrateFromLocalStorage();
       } finally {
         this.isLoading = false;
       }
