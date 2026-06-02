@@ -15,6 +15,29 @@ import request from '../api/request'
  */
 
 /**
+ * 种植状态枚举 - 1:1 对齐 V1.1 types/crop.ts
+ * @type {{ PLANTED: 'planted', GROWING: 'growing', HARVESTED: 'harvested', CANCELLED: 'cancelled' }}
+ */
+const PlantingStatus = {
+  PLANTED: 'planted',
+  GROWING: 'growing',
+  HARVESTED: 'harvested',
+  CANCELLED: 'cancelled'
+}
+
+/**
+ * 种源类型枚举 - 1:1 对齐 V1.1 types/crop.ts
+ * @type {{ SEED: 'seed', SEEDLING: 'seedling', CUTTING: 'cutting', GRAFTING: 'grafting', TISSUE_CULTURE: 'tissue_culture' }}
+ */
+const SourceType = {
+  SEED: 'seed',
+  SEEDLING: 'seedling',
+  CUTTING: 'cutting',
+  GRAFTING: 'grafting',
+  TISSUE_CULTURE: 'tissue_culture'
+}
+
+/**
  * 后端返回的原始数据字段类型（已经过 queryToObjects 转换为驼峰命名）
  * @typedef {Object} BackendPlanting
  * @property {string} id
@@ -86,25 +109,25 @@ function transformSinglePlanting(item) {
   }
 
   /** @type {string} */
-  let status = 'planted'
+  let status = PlantingStatus.PLANTED
   if (item.status === 'growing') {
-    status = 'growing'
+    status = PlantingStatus.GROWING
   } else if (item.status === 'harvested') {
-    status = 'harvested'
+    status = PlantingStatus.HARVESTED
   } else if (item.status === 'cancelled') {
-    status = 'cancelled'
+    status = PlantingStatus.CANCELLED
   }
 
   /** @type {string} */
-  let sourceType = 'seedling'
+  let sourceType = SourceType.SEEDLING
   if (item.sourceType === 'seed') {
-    sourceType = 'seed'
+    sourceType = SourceType.SEED
   } else if (item.sourceType === 'cutting') {
-    sourceType = 'cutting'
+    sourceType = SourceType.CUTTING
   } else if (item.sourceType === 'grafting') {
-    sourceType = 'grafting'
+    sourceType = SourceType.GRAFTING
   } else if (item.sourceType === 'tissue_culture') {
-    sourceType = 'tissue_culture'
+    sourceType = SourceType.TISSUE_CULTURE
   }
 
   return {
