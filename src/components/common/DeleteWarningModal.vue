@@ -1,8 +1,15 @@
+<!--
+  通用删除警告弹窗
+  1:1 翻译自 V1.1 src/components/common/DeleteWarningModal.tsx
+  - props: isOpen (Boolean) / selectedCount (Number, 默认 0) / title (String, 默认 '删除警告')
+  - emits: close / confirm
+-->
 <template>
   <el-dialog
     :model-value="isOpen"
     :title="title"
     width="400px"
+    :close-on-click-modal="false"
     @close="onClose"
   >
     <div class="flex items-center gap-3 mb-4">
@@ -30,5 +37,40 @@
 <script setup>
 import { WarningFilled } from '@element-plus/icons-vue'
 
-defineProps({"selectedCount":"0","title":"'删除警告'"})
+/**
+ * @typedef {Object} DeleteWarningModalProps
+ * @property {boolean} isOpen - 弹窗显示状态
+ * @property {number} [selectedCount=0] - 选中数量
+ * @property {string} [title='删除警告'] - 弹窗标题
+ * @property {string} [description] - 自定义描述（可选）
+ */
+
+defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false,
+  },
+  selectedCount: {
+    type: Number,
+    default: 0,
+  },
+  title: {
+    type: String,
+    default: '删除警告',
+  },
+  description: {
+    type: String,
+    default: '',
+  },
+})
+
+const emit = defineEmits(['close', 'confirm'])
+
+function onClose() {
+  emit('close')
+}
+
+function onConfirm() {
+  emit('confirm')
+}
 </script>

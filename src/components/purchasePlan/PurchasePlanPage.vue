@@ -70,16 +70,17 @@
       @batch-delete-cancel="handleBatchDeleteCancel"
     />
 
-    <!-- 创建弹窗：占位（L5 任务 31-34 创建 CreatePlanModal 后启用） -->
-    <!-- <CreatePlanModal
-      v-model="showCreateModal"
+    <!-- 创建弹窗：1:1 V1.1 L827-836 -->
+    <CreatePlanModal
+      v-model:is-open="showCreateModal"
       :create-form="createForm"
       :create-items="createItems"
       :purchase-plans-data="purchasePlansData"
       @form-change="handleCreateFormChange"
       @items-change="setCreateItems"
       @submit="handleCreateSubmit"
-    /> -->
+      @close="setShowCreateModal(false)"
+    />
 
     <!-- 详情弹窗 -->
     <PlanDetailModal
@@ -110,6 +111,14 @@
       :show-edit-items-expanded="showEditItemsExpanded"
       @close="handleCloseBatchEdit"
       @submit="handleBatchEditSave"
+      @next="handleBatchEditNext"
+      @batch-select-open-change="setBatchSelectOpen"
+      @selected-plan-code-change="setSelectedPlanCode"
+      @batch-edit-data-change="handleBatchEditDataChange"
+      @batch-edit-items-change="setBatchEditItems"
+      @show-edit-items-expanded-change="setShowEditItemsExpanded"
+      @current-editing-plan-change="setCurrentEditingPlan"
+      @edited-plans-change="setEditedPlans"
     />
 
     <!-- 导出格式弹窗 -->
@@ -137,6 +146,7 @@ import * as XLSX from 'xlsx'
 import AlertStats from './AlertStats.vue'
 import PurchasePlanFilters from './PurchasePlanFilters.vue'
 import PurchasePlanTable from './PurchasePlanTable.vue'
+import CreatePlanModal from './CreatePlanModal.vue'
 import PlanDetailModal from './PlanDetailModal.vue'
 import BatchEditModal from './BatchEditModal.vue'
 import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
@@ -476,6 +486,12 @@ async function handleOpenCreateModal() {
 // ==================== 创建表单字段更新 ====================
 function handleCreateFormChange(field, value) {
   createForm.value = { ...createForm.value, [field]: value }
+}
+
+// ==================== 批量编辑表单字段更新 ====================
+// 1:1 翻译 V1.1 onBatchEditDataChange={(field, value) => setBatchEditData(prev => ({ ...prev, [field]: value }))}
+function handleBatchEditDataChange(field, value) {
+  batchEditData.value = { ...batchEditData.value, [field]: value }
 }
 
 // ==================== 创建提交 ====================
