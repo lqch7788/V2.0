@@ -1,28 +1,14 @@
 <template>
-  <el-dialog
+  <ElModal
     v-model="visible"
-    width="1000px"
-    :show-close="false"
-    align-center
-    append-to-body
-    class="batch-edit-dialog"
+    title="批量编辑生产计划"
+    size="xxl"
+    :show-submit="false"
+    :show-cancel="false"
+    @close="handleClose"
   >
-    <template #header>
-      <div class="p-4 flex items-center justify-between border-b border-gray-200 flex-shrink-0" style="background:#2563eb">
-        <div class="flex items-center gap-4">
-          <h3 class="text-lg font-semibold text-white">批量编辑生产计划</h3>
-          <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded">
-            已选择 {{ selectedRows.length }} 条
-          </span>
-        </div>
-        <button class="text-white hover:bg-blue-700 w-9 h-9 rounded-lg flex items-center justify-center transition-colors" @click="handleClose">
-          <X class="w-5 h-5" />
-        </button>
-      </div>
-    </template>
-
     <!-- Info Banner -->
-    <div class="p-4 bg-gray-50 border-b border-gray-200">
+    <div class="p-4 bg-gray-50 border-b border-gray-200 -mx-4 sm:-mx-6 -mt-4">
       <div class="bg-blue-50 rounded-lg p-3 mb-3">
         <p class="text-sm text-blue-800">
           已选择 <strong>{{ selectedRows.length }}</strong> 个生产计划进行批量编辑，
@@ -33,163 +19,199 @@
       <div class="flex items-center gap-4 mb-3">
         <div class="flex-1">
           <label class="text-xs text-gray-600 block mb-1">选择生产计划批次号</label>
-          <el-select v-model="localSelectedBatchCode" placeholder="请选择批次号" class="w-full">
-            <el-option
+          <select v-model="localSelectedBatchCode" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white">
+            <option value="" disabled>请选择批次号</option>
+            <option
               v-for="batch in selectedBatches"
               :key="batch.id"
-              :label="`${batch.batchCode} - ${batch.cropName}${editedBatchCodes.includes(batch.batchCode) ? ' [已编辑]' : ''}`"
               :value="batch.batchCode"
-            />
-          </el-select>
+            >{{ batch.batchCode }} - {{ batch.cropName }}{{ editedBatchCodes.includes(batch.batchCode) ? ' [已编辑]' : '' }}</option>
+          </select>
         </div>
       </div>
     </div>
 
     <!-- Content -->
-    <div class="p-4 overflow-y-auto max-h-[50vh]">
+    <div class="space-y-4 py-2 modal-form-inputs">
       <template v-if="localSelectedBatchCode && currentBatch">
-        <div class="grid grid-cols-4 gap-3 mb-3">
+        <div class="grid grid-cols-4 gap-4">
           <!-- 批次号 - 不可编辑 -->
-          <div class="bg-gray-100 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">生产计划批次号</div>
-            <div class="text-sm font-medium text-gray-900">{{ currentBatch.batchCode }}</div>
-          </div>
-
-          <!-- 种植模式 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">种植模式</div>
-            <el-select v-model="editedData.plantingMode" placeholder="请选择" class="w-full" size="small">
-              <el-option
-                v-for="mode in plantingModeOptions"
-                :key="mode.value"
-                :label="mode.label"
-                :value="mode.value"
-              />
-            </el-select>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">生产计划批次号</label>
+            <div class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 flex items-center text-gray-700">
+              {{ currentBatch.batchCode }}
+            </div>
           </div>
 
           <!-- 作物名称 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">作物名称</div>
-            <el-select v-model="editedData.cropName" placeholder="请选择" class="w-full" size="small" @change="handleCropChange">
-              <el-option
-                v-for="crop in cropOptions"
-                :key="crop.name"
-                :label="crop.name"
-                :value="crop.name"
-              />
-            </el-select>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">作物名称</label>
+            <select v-model="editedDataProxy.cropName" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white" @change="handleCropChange">
+              <option value="" disabled>请选择</option>
+              <option v-for="crop in cropOptions" :key="crop.name" :value="crop.name">{{ crop.name }}</option>
+            </select>
           </div>
 
           <!-- 作物品种 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">作物品种</div>
-            <el-select v-model="editedData.variety" placeholder="请选择" class="w-full" size="small">
-              <el-option
-                v-for="v in currentVarieties"
-                :key="v"
-                :label="v"
-                :value="v"
-              />
-            </el-select>
-          </div>
-
-          <!-- 种植区域 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">种植区域</div>
-            <el-select v-model="editedData.greenhouseId" placeholder="请选择" class="w-full" size="small" @change="handleGreenhouseChange">
-              <el-option
-                v-for="g in activeGreenhouses"
-                :key="g.id"
-                :label="g.name"
-                :value="g.id"
-              />
-            </el-select>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">作物品种</label>
+            <select v-model="editedDataProxy.variety" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white">
+              <option value="" disabled>请选择</option>
+              <option v-for="v in currentVarieties" :key="v" :value="v">{{ v }}</option>
+            </select>
           </div>
 
           <!-- 种植面积 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">种植面积</div>
-            <el-input v-model="editedData.plantingArea" size="small" />
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">种植面积</label>
+            <input v-model="editedDataProxy.plantingArea" type="number" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+
+          <!-- 种植模式 - 可展开Checkbox多选（V1.1样式） -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-sm font-medium text-gray-700 text-center w-full">种植模式</span>
+              <button type="button" @click="plantingModeExpanded = !plantingModeExpanded" class="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700">
+                <ChevronUp v-if="plantingModeExpanded" class="w-4 h-4" />
+                <ChevronDown v-else class="w-4 h-4" />
+                {{ plantingModeExpanded ? '收起' : '展开' }}
+              </button>
+            </div>
+            <div v-if="plantingModeExpanded" class="flex flex-col gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
+              <div v-for="mode in plantingModeOptions" :key="mode.value" class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  :id="`edit-pm-${mode.value}`"
+                  :checked="editedDataProxy.plantingMode.includes(mode.value)"
+                  @change="togglePlantingMode(mode.value)"
+                  class="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
+                />
+                <label :for="`edit-pm-${mode.value}`" class="text-sm cursor-pointer">{{ mode.label }}</label>
+              </div>
+            </div>
+            <div v-else class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 flex items-center">
+              {{ editedDataProxy.plantingMode.length === 0 ? '未选择' : editedDataProxy.plantingMode.map(v => plantingModeOptions.find(m => m.value === v)?.label).filter(Boolean).join(', ') }}
+            </div>
+          </div>
+
+          <!-- 种植区域 - 可展开Checkbox多选（V1.1样式） -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-sm font-medium text-gray-700 text-center w-full">种植区域</span>
+              <button type="button" @click="greenhouseExpanded = !greenhouseExpanded" class="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700">
+                <ChevronUp v-if="greenhouseExpanded" class="w-4 h-4" />
+                <ChevronDown v-else class="w-4 h-4" />
+                {{ greenhouseExpanded ? '收起' : '展开' }}
+              </button>
+            </div>
+            <div v-if="greenhouseExpanded" class="flex flex-col gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
+              <div v-for="g in activeGreenhouses" :key="g.id" class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  :id="`edit-gh-${g.id}`"
+                  :checked="editedDataProxy.greenhouseId.includes(g.id)"
+                  @change="toggleGreenhouse(g)"
+                  class="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
+                />
+                <label :for="`edit-gh-${g.id}`" class="text-sm cursor-pointer">{{ g.name }}</label>
+              </div>
+            </div>
+            <div v-else class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 flex items-center">
+              {{ editedDataProxy.greenhouseId.length === 0 ? '未选择' : editedDataProxy.greenhouseId.map(id => activeGreenhouses.find(g => g.id === id)?.name).filter(Boolean).join(', ') }}
+            </div>
           </div>
 
           <!-- 开始时间 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">开始时间</div>
-            <el-date-picker v-model="editedData.startDate" type="date" size="small" class="w-full" value-format="YYYY-MM-DD" />
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">开始时间</label>
+            <input v-model="editedDataProxy.startDate" type="date" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
           </div>
 
           <!-- 预计结束时间 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">预计结束时间</div>
-            <el-date-picker v-model="editedData.expectedHarvestDate" type="date" size="small" class="w-full" value-format="YYYY-MM-DD" />
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">预计结束时间</label>
+            <input v-model="editedDataProxy.expectedHarvestDate" type="date" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
           </div>
 
           <!-- 负责人 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">负责人</div>
-            <el-select v-model="editedData.responsiblePerson" placeholder="请选择" class="w-full" size="small">
-              <el-option
-                v-for="name in RESPONSIBLE_PERSONS"
-                :key="name"
-                :label="name"
-                :value="name"
-              />
-            </el-select>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">负责人</label>
+            <select v-model="editedDataProxy.responsiblePerson" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white">
+              <option value="" disabled>请选择</option>
+              <option v-for="name in RESPONSIBLE_PERSONS" :key="name" :value="name">{{ name }}</option>
+            </select>
           </div>
 
           <!-- 目标产量 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">目标产量</div>
-            <el-input v-model="editedData.targetYield" size="small" />
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">目标产量</label>
+            <input v-model="editedDataProxy.targetYield" type="number" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
           </div>
 
           <!-- 发布人 - 不可编辑 -->
-          <div class="bg-gray-100 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">发布人</div>
-            <div class="text-sm text-gray-700">{{ currentBatch.publisher || '-' }}</div>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">发布人</label>
+            <div class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 flex items-center text-gray-700">
+              {{ currentBatch.publisher || '-' }}
+            </div>
           </div>
 
           <!-- 初次发布时间 - 不可编辑 -->
-          <div class="bg-gray-100 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">初次发布时间</div>
-            <div class="text-sm text-gray-700">{{ currentBatch.publishDate || '-' }}</div>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">初次发布时间</label>
+            <div class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 flex items-center text-gray-700">
+              {{ currentBatch.publishDate || '-' }}
+            </div>
           </div>
 
           <!-- 最后修改时间 - 不可编辑 -->
-          <div class="bg-gray-100 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">最后修改时间</div>
-            <div class="text-sm text-gray-700">{{ currentBatch.lastModifyDate || '-' }}</div>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">最后修改时间</label>
+            <div class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 flex items-center text-gray-700">
+              {{ currentBatch.lastModifyDate || '-' }}
+            </div>
           </div>
 
           <!-- 当前状态 - 不可编辑 -->
-          <div class="bg-gray-100 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">当前状态</div>
-            <span :class="`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${batchStatusColors[currentBatch.batchStatus || 'draft']}`">
-              {{ batchStatusLabels[currentBatch.batchStatus || 'draft'] }}
-            </span>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">当前状态</label>
+            <div class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 flex items-center">
+              <span :class="`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${batchStatusColors[currentBatch.batchStatus || 'draft']}`">
+                {{ batchStatusLabels[currentBatch.batchStatus || 'draft'] }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 执行状态 - 仅 published 状态可编辑（V1.1特性） -->
+          <div v-if="currentBatch.batchStatus === 'published'">
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">执行状态</label>
+            <select v-model="editedDataProxy.executionStatus" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white">
+              <option value="" disabled>请选择</option>
+              <option value="not_started">未开始</option>
+              <option value="in_progress">进行中</option>
+              <option value="completed">已完成</option>
+              <option value="suspended">已暂停</option>
+            </select>
           </div>
 
           <!-- 计划是否完成 - 可编辑 -->
-          <div class="bg-gray-50 rounded-lg p-2">
-            <div class="text-xs text-gray-500 mb-1">计划是否完成</div>
-            <el-select v-model="localIsCompleted" placeholder="请选择" class="w-full" size="small">
-              <el-option label="否" value="no" />
-              <el-option label="是" value="yes" />
-            </el-select>
-            <p v-if="editedData.isCompleted === true" class="text-xs text-red-600 mt-1 font-medium">
-              ⚠️ 选择"是"后计划将归档，无法编辑和删除
-            </p>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1 text-center">计划是否完成</label>
+            <select v-model="localIsCompleted" class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white">
+              <option value="no">否</option>
+              <option value="yes">是</option>
+            </select>
+            <p v-if="editedDataProxy.isCompleted === true" class="text-red-500 text-xs mt-1">⚠️ 选择"是"后计划将归档，无法编辑和删除</p>
           </div>
         </div>
 
         <!-- 计划详情文件上传 -->
-        <div class="bg-gray-50 rounded-lg p-3">
-          <div class="text-xs text-gray-500 mb-2">计划详情文件</div>
+        <div>
+          <label class="text-sm font-medium text-gray-700 block mb-1">计划详情文件</label>
           <div class="flex items-center gap-4">
-            <template v-if="editedData.planDetailFileName">
+            <template v-if="editedDataProxy.planDetailFileName">
               <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-700">{{ editedData.planDetailFileName }}</span>
+                <span class="text-sm text-gray-700">{{ editedDataProxy.planDetailFileName }}</span>
                 <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="handleFileUpload">
                   <Upload class="w-4 h-4" />
                   重新上传
@@ -209,18 +231,21 @@
     </div>
 
     <template #footer>
-      <div class="p-4 border-t border-gray-200 flex justify-end gap-3">
+      <div class="flex justify-end gap-3">
         <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="handleConfirmNext">确认（下一个）</button>
         <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-amber-500 text-white hover:bg-amber-600" @click="handleVoid">申请作废</button>
-        <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="handlePublish">提交</button>
+        <!-- V1.1: published 状态显示"保存"，其他状态显示"提交" -->
+        <button v-if="currentBatch && currentBatch.batchStatus === 'published'" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="handleSave">保存</button>
+        <button v-else class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="handlePublish">提交</button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { X as Close, Upload } from 'lucide-vue-next'
+import { ChevronUp, ChevronDown, Upload } from 'lucide-vue-next'
+import { ElModal } from '@/components/ui'
 import { batchStatusColors, batchStatusLabels, RESPONSIBLE_PERSONS, PLANTING_MODES, getModesByPlanType } from '../constants'
 import { getAllVarieties } from '@/services/cropVarietyService'
 
@@ -234,6 +259,7 @@ const props = defineProps({
   selectedBatchCode: { type: String, default: '' },
 })
 
+// V1.1: 添加 'save' 事件（已发布批次可走直接保存路径）
 const emit = defineEmits([
   'update:modelValue',
   'update:selectedBatchCode',
@@ -242,6 +268,7 @@ const emit = defineEmits([
   'close',
   'voidWarning',
   'publish',
+  'save',
   'confirmNext',
 ])
 
@@ -254,6 +281,9 @@ const localSelectedBatchCode = computed({
   get: () => props.selectedBatchCode,
   set: (v) => emit('update:selectedBatchCode', v),
 })
+
+const greenhouseExpanded = ref(false)
+const plantingModeExpanded = ref(false)
 
 const activeGreenhouses = computed(() => props.greenhouses.filter(g => g.status === 'active'))
 const selectedBatches = computed(() =>
@@ -284,20 +314,21 @@ const plantingModeOptions = computed(() => {
 })
 
 const currentVarieties = computed(() => {
-  const crop = cropOptions.value.find(c => c.name === editedData.value.cropName)
+  const crop = cropOptions.value.find(c => c.name === editedDataProxy.value.cropName)
   return crop?.varieties || []
 })
 
-const editedData = computed({
+// 计算 editedData - 支持数组类型字段
+const editedDataProxy = computed({
   get: () => {
-    if (!localSelectedBatchCode.value) return {}
+    if (!localSelectedBatchCode.value) return defaultEditedData()
     const base = props.batches.find(b => b.batchCode === localSelectedBatchCode.value) || {}
     const edited = props.editedBatches[localSelectedBatchCode.value] || {}
     return {
-      plantingMode: edited.plantingMode ?? base.plantingMode ?? '',
+      plantingMode: parseArray(edited.plantingMode ?? base.plantingMode),
       cropName: edited.cropName ?? base.cropName ?? '',
       variety: edited.variety ?? base.variety ?? '',
-      greenhouseId: edited.greenhouseId ?? base.greenhouseId ?? '',
+      greenhouseId: parseArray(edited.greenhouseId ?? base.greenhouseId),
       greenhouseName: edited.greenhouseName ?? base.greenhouseName ?? '',
       plantingArea: edited.plantingArea ?? base.plantingArea ?? '',
       startDate: edited.startDate ?? base.startDate ?? '',
@@ -305,6 +336,7 @@ const editedData = computed({
       responsiblePerson: edited.responsiblePerson ?? base.responsiblePerson ?? '',
       targetYield: edited.targetYield ?? base.targetYield ?? '',
       isCompleted: edited.isCompleted ?? undefined,
+      executionStatus: edited.executionStatus ?? base.executionStatus ?? '',
       planDetailFileName: edited.planDetailFileName ?? base.planDetailFileName ?? '',
       planDetail: edited.planDetail ?? base.planDetail ?? '',
     }
@@ -319,9 +351,37 @@ const editedData = computed({
   },
 })
 
+function defaultEditedData() {
+  return {
+    plantingMode: [],
+    cropName: '',
+    variety: '',
+    greenhouseId: [],
+    greenhouseName: '',
+    plantingArea: '',
+    startDate: '',
+    expectedHarvestDate: '',
+    responsiblePerson: '',
+    targetYield: '',
+    isCompleted: undefined,
+    executionStatus: '',
+    planDetailFileName: '',
+    planDetail: '',
+  }
+}
+
+// 解析数组（支持字符串逗号分隔、JSON、数组）
+function parseArray(val) {
+  if (Array.isArray(val)) return val
+  if (typeof val === 'string' && val) {
+    return val.split(',').filter(Boolean)
+  }
+  return []
+}
+
 const localIsCompleted = computed({
   get: () => {
-    const val = editedData.value.isCompleted
+    const val = editedDataProxy.value.isCompleted
     if (val === undefined || val === null) return 'no'
     return val === true ? 'yes' : 'no'
   },
@@ -338,7 +398,7 @@ watch(() => props.modelValue, (isOpen) => {
 })
 
 function handleFieldChange(field, value) {
-  editedData.value = { ...editedData.value, [field]: value }
+  editedDataProxy.value = { ...editedDataProxy.value, [field]: value }
 }
 
 function handleCropChange(cropName) {
@@ -349,12 +409,27 @@ function handleCropChange(cropName) {
   }
 }
 
-function handleGreenhouseChange(greenhouseId) {
-  const gh = activeGreenhouses.value.find(g => g.id === greenhouseId)
-  handleFieldChange('greenhouseId', greenhouseId)
-  if (gh) {
-    handleFieldChange('greenhouseName', gh.name)
+function togglePlantingMode(value) {
+  const current = [...editedDataProxy.value.plantingMode]
+  const index = current.indexOf(value)
+  if (index === -1) {
+    current.push(value)
+  } else {
+    current.splice(index, 1)
   }
+  handleFieldChange('plantingMode', current)
+}
+
+function toggleGreenhouse(greenhouse) {
+  const current = [...editedDataProxy.value.greenhouseId]
+  const index = current.indexOf(greenhouse.id)
+  if (index === -1) {
+    current.push(greenhouse.id)
+  } else {
+    current.splice(index, 1)
+  }
+  handleFieldChange('greenhouseId', current)
+  handleFieldChange('greenhouseName', current.map(id => props.greenhouses.find(g => g.id === id)?.name).filter(Boolean).join(','))
 }
 
 function handleFileUpload() {
@@ -390,18 +465,9 @@ function handleVoid() {
 function handlePublish() {
   emit('publish')
 }
-</script>
 
-<style scoped>
-.batch-edit-dialog :deep(.el-dialog__header) {
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
+// V1.1: published 状态的批次可走"直接保存"路径
+function handleSave() {
+  emit('save')
 }
-.batch-edit-dialog :deep(.el-dialog__body) {
-  padding: 0;
-}
-.batch-edit-dialog :deep(.el-dialog__footer) {
-  padding: 0;
-}
-</style>
+</script>
