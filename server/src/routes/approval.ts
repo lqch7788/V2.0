@@ -203,6 +203,45 @@ function canApproveApproval(approval: ApprovalDetail, userId: string, userRoles:
 // ============================================
 
 /**
+ * 通过业务 ID 和类型获取审批单
+ * GET /api/approvals/by-business/:type/:id
+ * 用于生产计划详情页显示审批记录
+ */
+router.get('/by-business/:type/:id', (req, res) => {
+  try {
+    const { type, id } = req.params;
+    const db = getDatabase();
+    // 通过 businessLink JSON 中的 requestId 或 requestCode 匹配
+    const all = db.prepare('SELECT * FROM approvals').getAsObject();
+    // 用更精确的方式：直接执行 SQL
+    const stmt = db.prepare('SELECT * FROM approvals WHERE 1=1');
+    stmt.bind([]);
+    const items: Record<string, unknown>[] = [];
+    while (stmt.step()) {
+      items.push(stmt.getAsObject());
+    }
+    stmt.free();
+    // 过滤匹配 businessLink.requestId / requestCode
+    const matched = items.filter((a) => {
+      const link = a.business_link ? (typeof a.business_link === 'string' ? JSON.parse(a.business_link) : a.business_link) : null;
+      if (!link) return false;
+      // type 参数是业务类型前缀（如 "production"），数据库 type 是 "production_plan"
+      // 忽略 type 过滤，仅按业务 ID 匹配（兼容多种 type 命名）
+      return link.requestId === id || link.requestCode === id;
+    });
+    // 转换 records JSON
+    const result = matched.map((a) => ({
+      ...a,
+      records: a.records ? (typeof a.records === 'string' ? JSON.parse(a.records) : a.records) : [],
+    }));
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('获取业务审批记录失败:', error);
+    res.status(500).json({ success: false, error: '获取业务审批记录失败' });
+  }
+});
+
+/**
  * 获取所有审批单
  * GET /api/approvals
  */

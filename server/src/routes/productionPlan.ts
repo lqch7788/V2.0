@@ -318,6 +318,9 @@ router.put('/:id', (req: Request, res: Response) => {
 
     // 构建更新字段映射 (camelCase -> snake_case)
     const fieldMap: Record<string, string> = {
+      // V1.1/V2.0 前端使用的字段名 → 数据库 snake_case
+      batchCode: 'plan_code',
+      batchName: 'plan_name',
       planCode: 'plan_code',
       planName: 'plan_name',
       planType: 'plan_type',
@@ -325,17 +328,22 @@ router.put('/:id', (req: Request, res: Response) => {
       variety: 'crop_variety',
       cropVariety: 'crop_variety',
       greenhouseName: 'greenhouse_name',
+      greenhouseId: 'greenhouse_id',
       areaName: 'area_name',
       plannedQuantity: 'planned_quantity',
       targetQuantity: 'planned_quantity',
       targetYield: 'planned_quantity',
       actualQuantity: 'actual_quantity',
+      actualYield: 'actual_quantity',
+      startDate: 'planting_date',
       plantingDate: 'planting_date',
       expectedHarvestDate: 'expected_harvest_date',
       actualHarvestDate: 'actual_harvest_date',
       status: 'status',
       priority: 'priority',
       remarks: 'remarks',
+      description: 'remarks',
+      publisher: 'create_by',
       createBy: 'create_by',
       responsiblePerson: 'responsible_person',
       unit: 'unit',
@@ -344,11 +352,14 @@ router.put('/:id', (req: Request, res: Response) => {
       planDetail: 'plan_detail',
       planDetailFileName: 'plan_detail_file_name',
       plantingArea: 'planting_area',
+      plantingAreaUnit: 'planting_area_unit',
       plantingMode: 'planting_mode',
       supplierName: 'supplier_name',
       seedlingSiteName: 'seedling_site_name',
       seedQuantity: 'seed_quantity',
-      targetSeedlingCount: 'target_seedling_count'
+      targetSeedlingCount: 'target_seedling_count',
+      orderId: 'order_id',
+      orderCode: 'order_code',
     };
 
     const updateFields: string[] = [];
