@@ -49,30 +49,30 @@
         <h3 class="text-lg font-semibold text-gray-900">生产计划列表</h3>
         <!-- 工具栏按钮区：根据模式动态切换 -->
         <div v-if="hook.exportMode.value" class="flex gap-2">
-          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.handleConfirmExport">确认导出</button>
-          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="hook.handleCancelExport">取消</button>
+          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.handleConfirmExport">确认导出</button>
+          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="hook.handleCancelExport">取消</button>
         </div>
         <div v-else-if="hook.batchEditMode.value" class="flex gap-2">
           <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
+            class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700"
             :disabled="hook.selectedRows.value.length === 0"
             @click="hook.setShowBatchEditModal(true)"
           >批量编辑</button>
-          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelBatchEdit">取消</button>
+          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelBatchEdit">取消</button>
         </div>
         <div v-else-if="hook.batchDeleteMode.value" class="flex gap-2">
           <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700"
+            class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white hover:bg-red-700"
             :disabled="hook.selectedRows.value.length === 0"
             @click="hook.setShowDeleteWarning(true)"
           >确认删除</button>
-          <button class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelBatchDelete">取消</button>
+          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelBatchDelete">取消</button>
         </div>
         <div v-else class="flex gap-2">
-          <button v-if="canCreate" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.setShowCreateModal(true)">新增</button>
-          <button v-if="canEdit" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700" @click="enterBatchEditMode">编辑</button>
-          <button v-if="canDelete" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700" @click="enterBatchDeleteMode">删除</button>
-          <button v-if="canExport" class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.handleExportClick">导出</button>
+          <button v-if="canCreate" class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.setShowCreateModal(true)">新增</button>
+          <button v-if="canEdit" class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700" @click="enterBatchEditMode">编辑</button>
+          <button v-if="canDelete" class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white hover:bg-red-700" @click="enterBatchDeleteMode">删除</button>
+          <button v-if="canExport" class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.handleExportClick">导出</button>
         </div>
       </div>
 
