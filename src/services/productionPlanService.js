@@ -237,3 +237,32 @@ export async function getProductionPlanRelations(productionPlanId, productionPla
     }
   }
 }
+
+/**
+ * 获取生产计划的审批记录
+ * 1:1 翻译 V1.1 getProductionPlanApprovals
+ * 调用后端 /api/approvals/by-business/production/{id}
+ * @param {string} productionPlanId 生产计划ID
+ * @returns {Promise<Array>}
+ */
+export async function getProductionPlanApprovals(productionPlanId) {
+  try {
+    const data = await request.get(`/approvals/by-business/production/${productionPlanId}`)
+    if (Array.isArray(data)) {
+      return data.map((item) => ({
+        id: item.id,
+        code: item.code,
+        title: item.title,
+        status: item.status,
+        currentStep: item.currentStep,
+        totalSteps: item.totalSteps,
+        records: item.records || [],
+        createdAt: item.created_at || item.createdAt,
+      }))
+    }
+    return []
+  } catch (error) {
+    console.error('获取生产计划审批记录失败:', error)
+    return []
+  }
+}

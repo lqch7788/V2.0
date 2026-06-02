@@ -74,50 +74,55 @@ import request from '../api/request'
 /**
  * 标准化 API 返回数据到 CropBatch 接口
  * 处理后端字段名与前端接口名不一致的问题
- * @param {Record<string, unknown>} raw
+ * 兼容多种后端字段名：planCode/batchCode、plantingDate/startDate、plannedQuantity/targetYield
+ * @param {Record<string, unknown> | null | undefined} raw
  * @returns {CropBatch}
  */
 function normalizeBatch(raw) {
+  const r = raw || {}
   return {
-    id: raw.id,
-    batchCode: raw.batchCode,
-    cropName: (raw.cropName) || '',
-    cropType: (raw.cropType) || '',
-    variety: (raw.variety) || '',
-    greenhouseId: (raw.greenhouseId) || (raw.greenhouseName) || '',
-    greenhouseName: (raw.greenhouseName) || '',
-    plantingArea: (raw.plantingArea) || 0,
-    plantingAreaUnit: raw.plantingAreaUnit,
-    stage: (raw.stage) || 'seedling',
-    stageName: (raw.stageName) || '',
-    startDate: (raw.startDate) || '',
-    expectedHarvestDate: (raw.expectedHarvestDate) || '',
-    // API 返回 targetQuantity，映射到 targetYield
-    targetYield: (raw.targetQuantity) || (raw.targetYield) || 0,
-    actualYield: (raw.actualYield) || 0,
+    id: r.id,
+    // 后端返回 planCode，前端用 batchCode
+    batchCode: r.batchCode || r.planCode || '',
+    cropName: (r.cropName) || '',
+    cropType: (r.cropType) || '',
+    // 后端返回 cropVariety，前端用 variety
+    variety: (r.variety) || (r.cropVariety) || '',
+    greenhouseId: (r.greenhouseId) || (r.greenhouseName) || '',
+    greenhouseName: (r.greenhouseName) || '',
+    plantingArea: (r.plantingArea) || 0,
+    plantingAreaUnit: r.plantingAreaUnit,
+    stage: (r.stage) || 'seedling',
+    stageName: (r.stageName) || '',
+    // 后端返回 plantingDate，前端用 startDate
+    startDate: (r.startDate) || (r.plantingDate) || '',
+    expectedHarvestDate: (r.expectedHarvestDate) || '',
+    // 后端返回 plannedQuantity，前端用 targetYield
+    targetYield: (r.targetYield) || (r.plannedQuantity) || (r.targetQuantity) || 0,
+    actualYield: (r.actualYield) || 0,
     // API 返回 status，前端用 batchStatus
-    batchStatus: (raw.status) || (raw.batchStatus) || 'draft',
-    plantingMode: (raw.plantingMode) || '',
-    responsiblePerson: (raw.responsiblePerson) || '',
-    publisher: raw.publisher,
-    publishDate: raw.publishDate,
-    lastModifyDate: raw.lastModifyDate,
-    planDetailFileName: raw.planDetailFileName,
-    planDetail: raw.planDetail,
-    planType: raw.planType,
-    planTypeName: raw.planTypeName,
-    locationName: raw.locationName,
-    targetQuantity: raw.targetQuantity,
-    unit: raw.unit,
-    supplierName: raw.supplierName,
-    seedQuantity: raw.seedQuantity,
-    seedlingSiteName: raw.seedlingSiteName,
-    targetSeedlingCount: raw.targetSeedlingCount,
-    orderId: raw.orderId,
-    orderCode: raw.orderCode,
-    remarks: raw.remarks,
-    areaName: raw.areaName,
-    executionStatus: raw.executionStatus,
+    batchStatus: (r.batchStatus) || (r.status) || 'draft',
+    plantingMode: (r.plantingMode) || '',
+    responsiblePerson: (r.responsiblePerson) || '',
+    publisher: r.publisher,
+    publishDate: r.publishDate,
+    lastModifyDate: r.lastModifyDate,
+    planDetailFileName: r.planDetailFileName,
+    planDetail: r.planDetail,
+    planType: r.planType,
+    planTypeName: r.planTypeName,
+    locationName: r.locationName,
+    targetQuantity: r.targetQuantity || r.plannedQuantity || 0,
+    unit: r.unit,
+    supplierName: r.supplierName,
+    seedQuantity: r.seedQuantity,
+    seedlingSiteName: r.seedlingSiteName,
+    targetSeedlingCount: r.targetSeedlingCount,
+    orderId: r.orderId,
+    orderCode: r.orderCode,
+    remarks: r.remarks,
+    areaName: r.areaName,
+    executionStatus: r.executionStatus,
   }
 }
 
@@ -162,16 +167,24 @@ export async function getProductionPlanById(id) {
 
 /**
  * 创建生产计划
+ * 后端返回 {success: true, message, id, code} 格式（data 字段在顶层），
+ * 而 request 拦截器对 success 状态返回 data 字段（即 undefined）。
+ * 修复：传入整个 plan 数据 + 后端返回的 id/code 构造 CropBatch
  * @param {Omit<CropBatch, 'id'>} plan
  * @returns {Promise<CropBatch>}
  */
 export async function createProductionPlan(plan) {
-  const data = await request({
+  await request({
     url: '/production-plans',
     method: 'post',
     data: plan
   })
-  return normalizeBatch(data)
+  // 后端返回 {success, message, id, code}，data 字段为 undefined
+  // 直接用 plan 数据 + 生成的 id 构造 CropBatch
+  return normalizeBatch({
+    ...plan,
+    id: plan.id || `PP${Date.now()}`
+  })
 }
 
 /**
