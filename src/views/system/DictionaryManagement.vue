@@ -515,12 +515,8 @@ const getDictionariesByCategory = (category) => {
 
 // 按分类+搜索词过滤（用于表格渲染）
 const filterItemsByCategory = (category) => {
-  return getDictionariesByCategory(category).filter(d =>
-    !searchTerm.value ||
-    d.name?.includes(searchTerm.value) ||
-    d.code?.includes(searchTerm.value) ||
-    d.displayName?.includes(searchTerm.value)
-  )
+  // V1.1 行为：searchTerm 仅控制模块/分类的可见性，分类展开后 items 不按搜索词二次过滤
+  return getDictionariesByCategory(category)
 }
 
 // 模块是否有匹配项（用于搜索过滤）
@@ -573,6 +569,14 @@ const handleSave = async () => {
   if (!editingItem.value.code?.trim()) {
     ElMessage.error('请输入字典编码')
     return
+  }
+  // amount_threshold 分类必须填数字
+  if (editingItem.value.category === 'amount_threshold') {
+    const num = Number(editingItem.value.name)
+    if (isNaN(num) || editingItem.value.name?.trim() === '') {
+      ElMessage.error('金额值必须为数字（元）')
+      return
+    }
   }
   try {
     loading.value = true

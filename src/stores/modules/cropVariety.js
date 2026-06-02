@@ -48,6 +48,44 @@ export const useCropVarietyStore = defineStore('cropVariety', {
     // 根据编码获取品种
     getItemByCode: (state) => (code) => {
       return state.items.find(v => v.cropCode === code);
+    },
+
+    // V1.1 兼容：从 items 派生的 categoryOptions（去重 categoryCode + categoryName）
+    categoryOptions: (state) => {
+      const seen = new Set()
+      return state.items
+        .filter(v => v.categoryCode && !seen.has(v.categoryCode) && seen.add(v.categoryCode))
+        .map(v => ({ value: v.categoryCode, label: v.categoryName || v.categoryCode }))
+    },
+
+    // V1.1 兼容：从 items 派生的 typeOptions
+    typeOptions: (state) => (categoryCode) => {
+      const seen = new Set()
+      return state.items
+        .filter(v => v.categoryCode === categoryCode && v.typeCode && !seen.has(v.typeCode) && seen.add(v.typeCode))
+        .map(v => ({ value: v.typeCode, label: v.typeName || v.typeCode }))
+    },
+
+    // V1.1 兼容：从 items 派生的 varietyOptions
+    varietyOptions: (state) => (typeCode) => {
+      const seen = new Set()
+      return state.items
+        .filter(v => v.typeCode === typeCode && v.varietyCode && !seen.has(v.varietyCode) && seen.add(v.varietyCode))
+        .map(v => ({ value: v.varietyCode, label: v.varietyName || v.varietyCode }))
+    },
+
+    // V1.1 兼容：searchVarieties（多字段模糊搜索）
+    searchVarieties: (state) => (keyword) => {
+      if (!keyword) return state.items
+      const kw = keyword.toLowerCase()
+      return state.items.filter(v =>
+        v.cropCode?.toLowerCase().includes(kw) ||
+        v.varietyName?.includes(keyword) ||
+        v.subVariety1Name?.includes(keyword) ||
+        v.categoryName?.includes(keyword) ||
+        v.typeName?.includes(keyword) ||
+        v.alias?.toLowerCase().includes(kw)
+      )
     }
   },
 
