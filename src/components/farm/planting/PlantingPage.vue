@@ -83,6 +83,7 @@
       :crop-names="cropNames"
       :areas="areas"
       :source-type-options="sourceTypeOptions"
+      @success="loadItems"
     />
 
     <EditModal

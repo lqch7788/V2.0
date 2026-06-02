@@ -6,7 +6,6 @@
         <!-- 头部 — 绿色渐变（与 V1.1 Modal.tsx L265 一致） -->
         <div class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl">
           <h3 class="text-lg font-semibold text-white flex items-center gap-2 select-none">
-            <el-icon style="color: white;"><Download /></el-icon>
             <span>选择导出格式</span>
           </h3>
           <el-button link class="hover:bg-white/10" style="color: rgba(255,255,255,0.8);" @click="handleClose" @mousedown.stop>
@@ -17,8 +16,8 @@
         <!-- 内容 -->
         <div class="p-6">
           <div class="space-y-3">
-            <p class="text-gray-600 text-sm mb-2">
-              已选择 <span class="text-blue-600 font-medium">{{ exportCount }}</span> 条数据
+            <p class="text-sm text-gray-500 mb-4">
+              已选择 {{ exportCount }} 条数据
             </p>
             <div
               v-for="format in formats"
@@ -27,7 +26,7 @@
                 'flex items-center p-4 border rounded-lg cursor-pointer transition-all',
                 selectedFormat === format.value
                   ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-gray-300 hover:border-gray-400'
+                  : 'border-gray-400 hover:border-gray-400'
               ]"
               @click="handleFormatChange(format.value)"
             >
@@ -73,17 +72,17 @@ const exportCount = computed(() => {
   return props.selectedCount || 0
 })
 
-// 选中格式（修复轮 10 P0-001：引用正确的 prop 名 exportFileType）
-const selectedFormat = ref(props.exportFileType || 'xlsx')
+// 选中格式（修复轮 10 P0-001：引用正确的 prop 名 exportFileType；与 V1.1 ExportFormatModal.tsx L32 default 'excel' 一致）
+const selectedFormat = ref(props.exportFileType || 'excel')
 
 // 监听 prop 变化
 watch(() => props.exportFileType, (val) => {
   if (val) selectedFormat.value = val
 })
 
-// 修复轮 10 P0-002：value 改为 'xlsx'/'csv'/'word' 与 Order.vue L456 默认值及 handleDoExport if/else 判断一致
+// 修复轮 10 P0-002：value 改为 'excel'/'csv'/'word' 与 V1.1 ExportFormatModal.tsx L15-19 exportFormats 1:1 对齐
 const formats = [
-  { value: 'xlsx', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
+  { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]

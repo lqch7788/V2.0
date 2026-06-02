@@ -257,7 +257,7 @@
                   title="采收登记"
                   @click="$emit('harvest', record)"
                 >
-                  ✓
+                  <CheckCircle class="w-4 h-4" />
                 </button>
 
                 <!-- 查看图片 -->
@@ -267,26 +267,16 @@
                   title="查看图片"
                   @click="() => onImageClick && onImageClick(record.pictures)"
                 >
-                  📷
+                  <ImageIcon class="w-4 h-4" />
                 </button>
 
-                <!-- 标签打印（单条） -->
-                <button
-                  v-if="onPrint"
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-colors"
-                  title="打印标签"
-                  @click="$emit('print', record)"
-                >
-                  🖨
-                </button>
-
-                <!-- 正常结束 -->
+                <!-- 正常结束 - 1:1 V1.1 用 CheckCircle 图标（与采收登记通过位置+颜色区分：采收=emerald，结束=green） -->
                 <button
                   class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors"
                   title="正常结束"
                   @click="$emit('end', record, 'normal')"
                 >
-                  ✓
+                  <CheckCircle class="w-4 h-4" />
                 </button>
 
                 <!-- 异常结束 -->
@@ -295,7 +285,7 @@
                   title="异常结束"
                   @click="$emit('end', record, 'abnormal')"
                 >
-                  ✗
+                  <XCircle class="w-4 h-4" />
                 </button>
 
                 <!-- 标签详情 -->
@@ -305,7 +295,7 @@
                   title="标签详情"
                   @click="$emit('label-detail', record)"
                 >
-                  🏷
+                  <Tag class="w-4 h-4" />
                 </button>
 
                 <!-- 移入/移出 - 未采收显示 -->
@@ -315,7 +305,7 @@
                   title="移入/移出"
                   @click="$emit('move', record)"
                 >
-                  →
+                  <MoveRight class="w-4 h-4" />
                 </button>
 
                 <!-- 标记管理 -->
@@ -325,7 +315,7 @@
                   title="标记管理"
                   @click="$emit('mark', record)"
                 >
-                  ★
+                  <Bookmark class="w-4 h-4" />
                 </button>
 
                 <!-- 留种 - 已采收显示 -->
@@ -335,7 +325,7 @@
                   title="留种"
                   @click="$emit('seed-saving', record)"
                 >
-                  🌱
+                  <Sprout class="w-4 h-4" />
                 </button>
               </div>
             </td>
@@ -378,6 +368,8 @@
  */
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+// 1:1 恢复 V1.1 lucide-react 图标体系（V2.0 旧版用 emoji 字符，UI 风格严重偏离）
+import { CheckCircle, XCircle, Image as ImageIcon, Tag, MoveRight, Bookmark, Sprout } from 'lucide-vue-next'
 
 /**
  * @typedef {Object} Planting

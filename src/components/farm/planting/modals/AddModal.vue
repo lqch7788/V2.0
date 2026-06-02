@@ -1,12 +1,12 @@
 <template>
-  <!-- 新增种植记录弹窗 - 与V1.1 AddModal.tsx完全一致 -->
+  <!-- 新增种植弹窗 - 1:1 翻译 V1.1 AddModal.tsx 标题文案 -->
   <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" @click.self="onClose">
     <div class="bg-white rounded-xl w-full max-w-4xl shadow-xl max-h-[90vh] flex flex-col">
       <!-- 标题栏 - 渐变背景 -->
       <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-t-xl">
         <h3 class="text-lg font-semibold text-white flex items-center gap-2">
           <el-icon style="color: white;"><Plus /></el-icon>
-          新增种植记录
+          新增种植
         </h3>
         <el-icon style="color: white; cursor: pointer;" @click="onClose"><Close /></el-icon>
       </div>
@@ -91,15 +91,15 @@
             />
           </div>
 
-          <!-- 土壤PH -->
+          <!-- 土壤PH值 -->
           <div>
-            <label class="block text-gray-700 text-sm mb-2 font-medium">土壤PH</label>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">土壤PH值</label>
             <el-input-number v-model="formData.soilPH" :min="0" :max="14" :precision="1" class="w-full" />
           </div>
 
-          <!-- 土壤EC -->
+          <!-- 土壤EC值 -->
           <div>
-            <label class="block text-gray-700 text-sm mb-2 font-medium">土壤EC</label>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">土壤EC值</label>
             <el-input-number v-model="formData.soilEC" :min="0" :precision="2" class="w-full" />
           </div>
 
@@ -160,18 +160,22 @@ import { ref, computed, watch } from 'vue'
 import { Plus, Close, Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useProductionPlanStore } from '@/stores'
+import { usePlantingStore, PlantingStatus } from '@/stores/modules/planting'
 import { getSeedSources } from '@/services/apiSeedSourceService'
 import { getSeedlings } from '@/services/apiSeedlingService'
 import { updateQuantity as updateCropInstanceQuantity } from '@/services/apiCropInstanceService'
+import { getStandardCropCode } from '@/services/apiCropVarietyService'
 import { SourceType } from '@/types/crop'
 
+// props 命名 1:1 对齐 V1.1 (cropNames / areas / sourceTypeOptions)
+// 父组件 PlantingPage.vue 用 :crop-names / :areas / :source-type-options 传入
 const props = defineProps({
   isOpen: Boolean,
-  cropOptions: {
+  cropNames: {
     type: Array,
     default: () => []
   },
-  areaOptions: {
+  areas: {
     type: Array,
     default: () => []
   },
@@ -184,10 +188,13 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close', 'submit'])
+const emit = defineEmits(['close', 'submit', 'success'])
 
 // 生产计划 Store
 const productionPlanStore = useProductionPlanStore()
+
+// 种植 Store - 1:1 翻译 V1.1 usePlantingStore.getState().addItem
+const plantingStore = usePlantingStore()
 
 // 表单数据 - 与V1.1 AddModal完全一致
 const formData = ref({
@@ -304,7 +311,7 @@ const handleSourceChange = (sourceId) => {
 
 // 处理区域选择变化 - V1.1逻辑
 const handleAreaChange = (areaId) => {
-  const area = props.areaOptions.find(a => a.value === areaId)
+  const area = props.areas.find(a => a.value === areaId)
   if (area) {
     formData.value.areaId = areaId
     formData.value.areaName = area.label || ''
@@ -415,11 +422,23 @@ const handleSubmit = async () => {
     // 溯源码
     const traceabilityCode = 'TR' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + formData.value.cropName.substring(0, 2)
 
-    // 生成作物编码
-    const cropCode = `${formData.value.cropName.substring(0, 2)}${Date.now().toString().slice(-6)}`
+    // 生成作物编码 - 1:1 翻译 V1.1 cropVarietyService.getCropCodeInfo
+    // V1.1: cropInfo = cropVarietyService.getCropCodeInfo(formData.cropName); cropCode = `${cropInfo.categoryCode}${cropInfo.typeCode}${cropInfo.subCode}${seq}`
+    // V2.0: apiCropVarietyService 不提供 getCropCodeInfo，使用 getStandardCropCode(cropName) 代替
+    let cropCode = ''
+    try {
+      cropCode = await getStandardCropCode(formData.value.cropVariety || formData.value.cropName)
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[AddModal] getStandardCropCode 失败:', err)
+    }
+    if (!cropCode) {
+      // 降级：与 V1.1 一致使用 categoryCode+typeCode+subCode+seq 模式
+      cropCode = `${formData.value.cropName.substring(0, 2)}${Date.now().toString().slice(-6)}`
+    }
 
     // 获取区域信息
-    const area = props.areaOptions.find(a => a.value === formData.value.areaId)
+    const area = props.areas.find(a => a.value === formData.value.areaId)
     const areaName = area?.label || ''
     const rootName = area?.parent || ''
 
@@ -446,10 +465,23 @@ const handleSubmit = async () => {
       traceabilityCode,
       pictures: pictures.value,
       remarks: formData.value.remarks,
-      status: 'planted',
+      status: PlantingStatus.PLANTED,
       createBy: localStorage.getItem('username') || '陆启闯',
       productionPlanId: formData.value.productionPlanId || undefined,
       productionPlanCode: formData.value.productionPlanCode || undefined
+    }
+
+    // ============== 1:1 翻译 V1.1 usePlantingStore.getState().addItem() ==============
+    // V1.1 (AddModal.tsx L130-157): 直接调用 store 的 addItem 把数据写入 store
+    // V2.0 之前版本只 emit('submit') 但父组件未监听 submit，导致数据丢失（"列表数据缺失" 根因）
+    // 修复：内部直接调用 plantingStore.addPlanting 写入 store
+    try {
+      await plantingStore.addPlanting(submitData)
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[AddModal] plantingStore.addPlanting 失败:', err)
+      ElMessage.error('添加失败，请重试')
+      return
     }
 
     // 更新作物实例的定植数量
@@ -467,11 +499,17 @@ const handleSubmit = async () => {
       }
     }
 
+    // 同时保留 emit('submit') 以兼容任何可能监听该事件的父组件代码
     emit('submit', submitData)
+    // 通知父组件刷新列表（V1.1 onSuccess?.() 等价）
+    emit('success')
+    // 弹窗自动关闭（V1.1 L183-184: onClose(); onSuccess?.()）
+    onClose()
 
     // 更新作物实例的定植数量（异步，不阻塞提交）
     if (instanceId) {
       updateCropInstanceQuantity(instanceId, 'plant', formData.value.plantingCount).catch(err => {
+        // eslint-disable-next-line no-console
         console.error('更新作物实例数量失败:', err)
       })
     }
