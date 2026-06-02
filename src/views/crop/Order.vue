@@ -6,7 +6,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <ClipboardList class="text-white" :size="24" />
+            <ClipboardList class="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">订单管理</h1>
