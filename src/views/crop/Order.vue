@@ -103,12 +103,12 @@
         </div>
         <!-- 按钮 -->
         <div class="flex gap-2">
-          <el-button size="small" @click="handleReset">
-            <RotateCcw class="w-4 h-4" />
+          <el-button size="small" class="whitespace-nowrap" @click="handleReset">
+            <RotateCcw class="w-4 h-4 mr-1" />
             重置
           </el-button>
-          <el-button type="primary" size="small" @click="handleSearch">
-            <Search class="w-4 h-4" />
+          <el-button type="primary" size="small" class="whitespace-nowrap" @click="handleSearch">
+            <Search class="w-4 h-4 mr-1" />
             搜索
           </el-button>
         </div>
