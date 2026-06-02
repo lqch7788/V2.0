@@ -12,16 +12,26 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  * 1:1 对齐 V1.1 src/lib/apiClient.ts 的重试策略
  */
 const retryAdapter = (adapter) => {
+  // 防御性：axios.defaults.adapter 在某些环境下可能为 undefined
+  const safeAdapter = typeof adapter === 'function' ? adapter : axios.defaults.adapter
+  if (typeof safeAdapter !== 'function') {
+    console.warn('[request] axios adapter 不可用，重试机制将退化为单次请求')
+  }
   return async (config) => {
+    const runOnce = (cfg) => {
+      if (typeof safeAdapter === 'function') return safeAdapter(cfg)
+      // 无可用 adapter，抛出明确错误
+      return Promise.reject(new Error('No axios adapter available'))
+    }
     // 如果显式禁用重试（默认 false），则不重试
     if (config.retry === false) {
-      return adapter(config)
+      return runOnce(config)
     }
     const maxRetries = config.retryCount ?? MAX_RETRIES
     let lastError
     for (let i = 0; i < maxRetries; i++) {
       try {
-        return await adapter(config)
+        return await runOnce(config)
       } catch (error) {
         lastError = error
         console.warn(`[request] 请求失败 (${i + 1}/${maxRetries}):`, error?.message || error)
