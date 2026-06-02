@@ -39,8 +39,8 @@
 
     <!-- 搜索筛选 - V1.1: bg-[#F2F6FA] -->
     <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-      <div class="flex gap-4 items-end">
-        <div class="flex-1">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[180px]">
           <el-input
             v-model="searchTerm"
             placeholder="搜索申请人、申请单号..."
