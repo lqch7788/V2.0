@@ -26,6 +26,7 @@ function transformSingle(item) {
     cropCode: item.cropCode || '',
     plantingMode: item.plantingMode || '',
     stage: item.stage || '',
+    scopes: item.scopeNames || item.scopes || [], // V9.0: 适用范围数组
     version: item.version || 'V1.0',
     content: item.content || '',
     author: item.author || '',
@@ -101,4 +102,21 @@ export async function deleteTechSolutions(ids) {
  */
 export async function resetTechSolutions() {
   await enhancedApiClient.post('/tech-solutions/reset')
+}
+
+/**
+ * 获取技术方案的审批记录
+ * @param {string} techSolutionId - 技术方案ID
+ * @returns {Promise<Array>} 审批记录数组
+ */
+export async function getTechSolutionApprovals(techSolutionId) {
+  // 从所有审批中筛选技术方案相关的记录
+  const allApprovals = await enhancedApiClient.get('/approvals')
+  if (!Array.isArray(allApprovals)) return []
+
+  // 筛选与技术方案相关的审批
+  return allApprovals.filter(approval =>
+    approval.businessLink?.type === 'tech_solution' &&
+    approval.businessLink?.requestId === techSolutionId
+  )
 }
