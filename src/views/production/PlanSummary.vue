@@ -22,11 +22,11 @@
     <!-- 筛选工具栏 -->
     <Filters
       :filters="{ selects: filterSelects }"
-      :show-export-mode="exportHook.showExportMode"
-      :selected-count="exportHook.selectedRows.length"
-      @export-click="exportHook.handleExportClick"
-      @confirm-export="exportHook.handleConfirmExport"
-      @cancel-export="exportHook.handleCancelExport"
+      :show-export-mode="exportModeActive"
+      :selected-count="selectedRowIds.length"
+      @export-click="handleExportClick"
+      @confirm-export="handleConfirmExport"
+      @cancel-export="handleCancelExport"
     />
 
     <!-- 数据表格 -->
@@ -37,21 +37,21 @@
       :current-page="currentPage"
       :total-pages="totalPages"
       :page-size="pageSize"
-      :export-mode="exportHook.showExportMode"
-      :selected-rows="exportHook.selectedRows"
+      :export-mode="exportModeActive"
+      :selected-rows="selectedRowIds"
       @page-change="setCurrentPage"
-      @select-all="() => exportHook.handleSelectAll(summaries.map(s => s.id))"
-      @select-row="(id) => exportHook.handleSelectRow(id)"
+      @select-all="() => handleSelectAll(summaries.map(s => s.id))"
+      @select-row="(id) => handleSelectRow(id)"
     />
 
     <!-- 导出弹窗 -->
     <ExportModal
-      :is-open="exportHook.showExportModal"
-      :selected-count="exportHook.selectedRows.length"
-      :export-format="exportHook.exportFormat"
-      :update:export-format="(val) => (exportHook.exportFormat = val)"
-      @close="() => (exportHook.showExportModal = false)"
-      @confirm="exportHook.handleDoExport"
+      :is-open="exportModalOpen"
+      :selected-count="selectedRowIds.length"
+      :export-format="exportFormatValue"
+      @update:export-format="setExportFormat"
+      @close="() => (showExportModal.value = false)"
+      @confirm="rawHandleDoExport"
     />
   </div>
 </template>
@@ -64,9 +64,8 @@
  * - V1.1 用 useExport → V2.0 用本地简化实现（与 V1.1 行为一致）
  */
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
 import { Document } from '@element-plus/icons-vue'
-import { PageHeader, StatCards, Filters, SummaryTable, ExportModal } from '@/components/summary'
+import { PageHeader, StatCards, Filters, SummaryTable, ExportModal, useExport } from '@/components/summary'
 import { List, TrendCharts, Money, ShoppingCart } from '@element-plus/icons-vue'
 
 // ============================================
@@ -158,18 +157,11 @@ function setCurrentPage(page) {
 }
 
 // ============================================
-// 导出 Hook（本地简化实现，行为对齐 V1.1 useExport）
+// 导出 Hook（复用 L3 useExport，行为对齐 V1.1 useExport.ts）
 // ============================================
-const showExportMode = ref(false)
-const showExportModal = ref(false)
-const exportFormat = ref('excel')
-const selectedRows = ref([])
-
-/**
- * @returns {{ summaries: Array }}
- */
-function getExportData() {
-  return summaries.value.map(s => ({
+const exportHeaders = ['批次编号', '作物', '品种', '温室', '面积(亩)', '目标产量', '实际产量', '完成率', '状态']
+const exportSourceData = computed(() =>
+  summaries.value.map(s => ({
     批次编号: s.batchCode,
     作物: s.cropName,
     品种: s.variety,
@@ -180,74 +172,32 @@ function getExportData() {
     完成率: s.completionRate,
     状态: getStatusLabel(s.status),
   }))
-}
+)
 
-function handleExportClick() {
-  showExportMode.value = true
-  selectedRows.value = []
-}
-
-function handleConfirmExport() {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要导出的数据')
-    return
-  }
-  showExportModal.value = true
-}
-
-function handleCancelExport() {
-  showExportMode.value = false
-  selectedRows.value = []
-}
-
-function handleSelectAll(ids) {
-  if (selectedRows.value.length === ids.length) {
-    selectedRows.value = []
-  } else {
-    selectedRows.value = [...ids]
-  }
-}
-
-function handleSelectRow(id) {
-  if (selectedRows.value.includes(id)) {
-    selectedRows.value = selectedRows.value.filter(rid => rid !== id)
-  } else {
-    selectedRows.value = [...selectedRows.value, id]
-  }
-}
-
-function handleDoExport() {
-  const headers = ['批次编号', '作物', '品种', '温室', '面积(亩)', '目标产量', '实际产量', '完成率', '状态']
-  const data = getExportData().filter(d => selectedRows.value.length === 0 || selectedRows.value.includes(data.findIndex(s => s.批次编号 === d.批次编号) + 1))
-  const fileName = `生产计划汇总_${new Date().toISOString().slice(0, 10)}.csv`
-  const csv = [headers.join(','), ...data.map(row => headers.map(h => `"${row[h] || ''}"`).join(','))].join('\n')
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = fileName
-  a.click()
-  URL.revokeObjectURL(url)
-  ElMessage.success(`成功导出 ${data.length} 条记录`)
-  showExportMode.value = false
-  selectedRows.value = []
-  showExportModal.value = false
-}
-
-const exportHook = {
-  get showExportMode() { return showExportMode.value },
-  get showExportModal() { return showExportModal.value },
-  get exportFormat() { return exportFormat.value },
-  get selectedRows() { return selectedRows.value },
-  set exportFormat(val) { exportFormat.value = val },
-  set showExportModal(val) { showExportModal.value = val },
+const {
+  exportMode: showExportMode,
+  selectedRows,
+  exportFormat,
+  showExportModal,
+  setExportFormat,
   handleExportClick,
   handleConfirmExport,
   handleCancelExport,
   handleSelectAll,
   handleSelectRow,
-  handleDoExport,
-}
+  handleDoExport: rawHandleDoExport,
+} = useExport({
+  data: exportSourceData,
+  headers: exportHeaders,
+  filenamePrefix: '生产计划汇总',
+})
+
+// 模板访问兼容：直接暴露 useExport 返回的 ref/computed，
+// Vue 3 <script setup> 模板会自动解包顶层 ref。
+const exportModeActive = computed(() => showExportMode.value)
+const exportModalOpen = computed(() => showExportModal.value)
+const exportFormatValue = computed(() => exportFormat.value)
+const selectedRowIds = computed(() => selectedRows.value)
 
 // ============================================
 // 筛选配置（1:1 对应 V1.1 filterSelects）
@@ -318,6 +268,9 @@ function getStatusConfig(status) {
 
 // ============================================
 // 表格列配置（1:1 对应 V1.1 columns）
+// render 返回字符串（SummaryTable 用 {{ col.render() }} 渲染，
+// 返回对象会变成 [object Object]）。L3 组件暂不支持 slot 注入，
+// 因此用纯字符串 + 颜色前缀简化展示（保留信息可见性）。
 // ============================================
 const columns = [
   { key: 'batchCode', label: '计划编号', width: '120px' },
@@ -331,10 +284,7 @@ const columns = [
     key: 'completionRate',
     label: '完成率',
     width: '140px',
-    render: (value) => {
-      // 返回 Vue 渲染函数（V2.0 模板驱动 - 实际数据为字符串）
-      return { __render: 'completionRate', value }
-    },
+    render: (value) => String(value ?? ''),
   },
   {
     key: 'scheduleStatus',
@@ -342,23 +292,19 @@ const columns = [
     width: '100px',
     render: (value) => {
       const config = {
-        scheduled: { bg: 'bg-blue-100', text: 'text-blue-700', label: '已排班' },
-        confirmed: { bg: 'bg-green-100', text: 'text-green-700', label: '已确认' },
-        in_progress: { bg: 'bg-amber-100', text: 'text-amber-700', label: '进行中' },
-        completed: { bg: 'bg-gray-100', text: 'text-gray-700', label: '已完成' },
+        scheduled: '已排班',
+        confirmed: '已确认',
+        in_progress: '进行中',
+        completed: '已完成',
       }
-      const style = config[value] || { bg: 'bg-gray-100', text: 'text-gray-500', label: '未排班' }
-      return { __render: 'scheduleStatus', className: `${style.bg} ${style.text}`, label: style.label }
+      return config[value] || '未排班'
     },
   },
   {
     key: 'status',
     label: '状态',
     width: '100px',
-    render: (value) => {
-      const config = getStatusConfig(value)
-      return { __render: 'status', className: config.className, label: config.label }
-    },
+    render: (value) => getStatusConfig(value).label,
   },
 ]
 </script>
