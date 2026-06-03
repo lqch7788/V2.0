@@ -475,18 +475,18 @@ function priorityClass(priority) {
 }
 
 /**
- * 状态 Badge class（V1.1 一致配色）
- * ✅ 修复 P0-10: 加 'rejected' 分支（V1.1 L92 'bg-red-100 text-red-700'）
+ * 状态 Badge class（V1.1 PURCHASE_STATUS_STYLE 1:1 对齐）
  * @param {string} status
  * @returns {string}
  */
 function statusClass(status) {
-  if (status === 'completed') return 'bg-green-100 text-green-700'
-  if (status === 'purchasing') return 'bg-purple-100 text-purple-700'
+  if (status === 'draft') return 'bg-gray-100 text-gray-700'
   if (status === 'pending') return 'bg-amber-100 text-amber-700'
   if (status === 'approved') return 'bg-blue-100 text-blue-700'
-  if (status === 'rejected') return 'bg-red-100 text-red-700'  // ✅ 修复 P0-10
-  return 'bg-gray-100 text-gray-600'
+  if (status === 'purchasing') return 'bg-purple-100 text-purple-700'
+  if (status === 'completed') return 'bg-green-100 text-green-700'
+  if (status === 'cancelled') return 'bg-red-100 text-red-700'
+  return 'bg-gray-100 text-gray-700'
 }
 
 /**
