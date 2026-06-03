@@ -64,29 +64,30 @@ async function start() {
     console.log('正在修复数据库结构...');
     await fixMissingSchema();
 
-    // 字典数据去重（合并两套种子数据可能产生的重复）
-    console.log('正在执行字典数据去重...');
-    deduplicateDictionaries();
+    // 字典数据去重 + 种子数据导入（默认跳过，保留 V1.1 同步数据）
+    // 如需重新初始化：SEED_DB=1 npm run dev
+    if (process.env.SEED_DB === '1') {
+      console.log('正在执行字典数据去重...');
+      deduplicateDictionaries();
 
-    // 导入基础数据（V5.0：部门/仓库/温室/字典等，数据更完整，先执行）
-    console.log('正在导入基础数据...');
-    const { exportBasicData } = await import('./db/seedBasicData');
-    exportBasicData();
+      console.log('正在导入基础数据...');
+      const { exportBasicData } = await import('./db/seedBasicData');
+      exportBasicData();
 
-    // 导入种子数据（补充基础数据中未覆盖的字典分类）
-    console.log('正在导入种子数据...');
-    const { exportDatabase } = await import('./db/seedData');
-    exportDatabase();
+      console.log('正在导入种子数据...');
+      const { exportDatabase } = await import('./db/seedData');
+      exportDatabase();
 
-    // 导入物料编码分类种子数据（7大类+18中类+80+小类）
-    console.log('正在导入物料编码分类数据...');
-    const { seedMaterialCodeCategories } = await import('./db/seedMaterialCodeCategories');
-    seedMaterialCodeCategories();
+      console.log('正在导入物料编码分类数据...');
+      const { seedMaterialCodeCategories } = await import('./db/seedMaterialCodeCategories');
+      seedMaterialCodeCategories();
 
-    // 种子数据加载完成后持久化到磁盘
-    console.log('正在保存数据库...');
-    saveDatabase();
-    console.log('数据库保存完成');
+      console.log('正在保存数据库...');
+      saveDatabase();
+      console.log('数据库保存完成');
+    } else {
+      console.log('⚡ 跳过种子数据导入（保留现有 V1.1 同步数据）。要重新初始化请设置 SEED_DB=1');
+    }
 
     // 中间件
     app.use(cors);
