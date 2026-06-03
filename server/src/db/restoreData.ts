@@ -57,8 +57,8 @@ async function restoreData() {
       const placeholders = columns.map(() => '?').join(', ');
 
       try {
-        // 使用 INSERT OR REPLACE 避免主键冲突
-        const sql = `INSERT OR REPLACE INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
+        // 使用 INSERT OR IGNORE 避免主键冲突
+        const sql = `INSERT OR IGNORE INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
         db.run(sql, values);
       } catch (e) {
         console.error(`  恢复记录失败:`, e);
