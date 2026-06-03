@@ -18,18 +18,18 @@ function transformRecord(record) {
   if (!record) return null
   return {
     id: record.id,
-    fertilizerCode: record.fertilizer_code,
-    fertilizerName: record.fertilizer_name,
-    fertilizerType: record.fertilizer_type,
-    applicationTiming: record.application_timing,
-    functionDesc: record.function_desc,
-    tabooDesc: record.taboo_desc,
-    shelfLife: record.shelf_life,
-    storageCondition: record.storage_condition,
-    supplierInfo: record.supplier_info,
+    fertilizerCode: record.fertilizerCode || record.fertilizer_code,
+    fertilizerName: record.fertilizerName || record.fertilizer_name,
+    fertilizerType: record.fertilizerType || record.fertilizer_type,
+    applicationTiming: record.applicationTiming || record.application_timing,
+    functionDesc: record.functionDesc || record.function_desc,
+    tabooDesc: record.tabooDesc || record.taboo_desc,
+    shelfLife: record.shelfLife || record.shelf_life,
+    storageCondition: record.storageCondition || record.storage_condition,
+    supplierInfo: record.supplierInfo || record.supplier_info,
     status: record.status,
-    createTime: record.create_time,
-    updateTime: record.update_time,
+    createTime: record.createTime || record.create_time,
+    updateTime: record.updateTime || record.update_time,
     specs: record.specs || []
   }
 }

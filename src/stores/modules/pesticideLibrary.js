@@ -18,17 +18,17 @@ function transformRecord(record) {
   if (!record) return null
   return {
     id: record.id,
-    pesticideCode: record.pesticide_code,
-    pesticideName: record.pesticide_name,
-    controlType: record.control_type,
-    functionDesc: record.function_desc,
-    tabooDesc: record.taboo_desc,
-    targetPests: record.target_pests,
+    pesticideCode: record.pesticideCode || record.pesticide_code,
+    pesticideName: record.pesticideName || record.pesticide_name,
+    controlType: record.controlType || record.control_type,
+    functionDesc: record.functionDesc || record.function_desc,
+    tabooDesc: record.tabooDesc || record.taboo_desc,
+    targetPests: record.targetPests || record.target_pests,
     ingredient: record.ingredient,
     mechanism: record.mechanism,
     status: record.status,
-    createTime: record.create_time,
-    updateTime: record.update_time,
+    createTime: record.createTime || record.create_time,
+    updateTime: record.updateTime || record.update_time,
     specs: (record.specs || []).map(transformSpec)
   }
 }
