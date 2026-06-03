@@ -12,13 +12,13 @@ function mapItem(item) {
   if (!item) return null
   return {
     id: item.id,
-    dictCode: item.dict_code,
-    dictName: item.dict_name,
-    dictType: item.dict_type,
-    targetCrops: item.target_crops,
+    dictCode: item.dictCode,
+    dictName: item.dictName,
+    dictType: item.dictType,
+    targetCrops: item.targetCrops,
     description: item.description,
     status: item.status,
-    createTime: item.create_time
+    createTime: item.createTime
   }
 }
 
