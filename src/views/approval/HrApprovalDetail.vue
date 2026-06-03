@@ -1,13 +1,5 @@
 <template>
   <div class="approval-detail" :class="{ 'p-6': !isModal }">
-    <!-- 打印样式 -->
-    <style>
-      @media print {
-        .no-print { display: none !important; }
-        .approval-detail { padding: 0 !important; }
-      }
-    </style>
-
     <!-- 头部（非弹窗模式） -->
     <div v-if="!isModal" class="bg-white rounded-xl p-6 shadow-none mb-4 no-print">
       <div class="flex items-center justify-between">
@@ -596,6 +588,13 @@
     </template>
   </div>
 </template>
+
+<style scoped>
+@media print {
+  .no-print { display: none !important; }
+  .approval-detail { padding: 0 !important; }
+}
+</style>
 
 <script setup>
 import { computed } from 'vue'
