@@ -108,6 +108,13 @@
             <el-icon class="mr-1"><Download /></el-icon>
             批量导出
           </el-button>
+          <!-- P0-PA-001: "查看全部 →" 链接入口 (V1.1 L405-410) -->
+          <router-link
+            :to="currentTabPath"
+            class="text-sm text-emerald-600 hover:text-emerald-700 font-medium ml-2"
+          >
+            查看全部 →
+          </router-link>
         </div>
       </div>
 
@@ -143,8 +150,10 @@
             <span v-else class="w-4 h-4 block"></span>
           </template>
         </el-table-column>
-        <el-table-column prop="code" label="审批单号" min-width="120" />
-        <el-table-column prop="title" label="标题" min-width="150" />
+        <!-- P0-PA-007: 列名"申请单号" (V1.1 L431) -->
+        <el-table-column prop="code" label="申请单号" min-width="120" />
+        <!-- P0-PA-006: 列名"申请标题" (V1.1 L434) -->
+        <el-table-column prop="title" label="申请标题" min-width="150" />
         <el-table-column prop="applicantName" label="申请人" min-width="100" />
         <el-table-column prop="applicantDepartment" label="部门" min-width="100" />
         <el-table-column prop="applyDate" label="申请时间" min-width="120" />
@@ -158,21 +167,28 @@
         <el-table-column label="操作" min-width="120" align="center">
           <template #default="{ row }">
             <div class="flex items-center justify-center gap-1">
-              <el-button link size="small" @click="handleView(row)" title="查看">
-                <el-icon :size="16"><View /></el-icon>
-              </el-button>
-              <template v-if="row.status === 'pending'">
-                <el-button link size="small" @click="handleApprove(row)" title="通过">
-                  <el-icon :size="16"><CircleCheck /></el-icon>
+                <el-button link size="small" @click="handleView(row)" title="查看">
+                  <el-icon :size="16"><View /></el-icon>
                 </el-button>
-                <el-button link size="small" @click="handleReject(row)" title="拒绝">
-                  <el-icon :size="16"><CircleClose /></el-icon>
-                </el-button>
-              </template>
-            </div>
-          </template>
+                <template v-if="row.status === 'pending'">
+                  <el-button link size="small" @click="handleApprove(row)" title="通过">
+                    <el-icon :size="16"><CircleCheck /></el-icon>
+                  </el-button>
+                  <el-button link size="small" @click="handleReject(row)" title="拒绝">
+                    <el-icon :size="16"><CircleClose /></el-icon>
+                  </el-button>
+                </template>
+              </div>
+            </template>
         </el-table-column>
       </el-table>
+
+      <!-- P0-PA-004: 空态 (V1.1 L503-509 "暂无审批记录") -->
+      <div v-if="filteredData.length === 0" class="p-12 text-center text-gray-500">
+        <el-icon :size="48" class="text-gray-300 mb-3"><Document /></el-icon>
+        <p>暂无审批记录</p>
+        <p class="text-sm text-gray-400 mt-2">在生产计划/采收申请页面提交申请后，这里将显示审批列表</p>
+      </div>
 
       <!-- 分页 -->
       <div v-if="totalPages > 1" class="px-4 py-3 border-t border-gray-100">
@@ -234,6 +250,51 @@
                 <span class="text-xs text-gray-500">{{ getFieldLabel(key) }}</span>
                 <span class="text-sm font-medium text-gray-900">{{ formatBusinessValue(key, value) }}</span>
               </div>
+            </div>
+          </div>
+
+          <!-- P0-PA-002: 采购物资明细卡片 (V1.1 L588-624) - 仅 purchase 类型显示 -->
+          <div v-if="currentApproval.businessLink?.type === 'purchase' && (currentApproval.purchasePlanDetail?.items?.length > 0 || currentApproval.businessLink?.items?.length > 0)" class="bg-blue-50 rounded-xl p-4">
+            <h4 class="text-sm font-medium text-blue-600 mb-3 flex items-center gap-2">
+              <el-icon><ShoppingCart /></el-icon> 采购物资明细
+            </h4>
+            <el-table :data="currentApproval.purchasePlanDetail?.items || currentApproval.businessLink?.items" size="small">
+              <el-table-column prop="materialName" label="物料名称">
+                <template #default="scope">
+                  <span class="text-gray-900">{{ scope.row.materialName || '-' }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="specification" label="规格型号" min-width="120">
+                <template #default="scope">
+                  <span class="text-gray-600">{{ scope.row.specification || '-' }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="unit" label="单位" width="80" align="center">
+                <template #default="scope">
+                  <span class="text-gray-600">{{ scope.row.unit || '-' }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="quantity" label="数量" width="80" align="right">
+                <template #default="scope">
+                  <span class="text-gray-900 font-medium">{{ scope.row.quantity || 0 }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="estimatedPrice" label="预估单价" width="100" align="right">
+                <template #default="scope">
+                  <span class="text-gray-600">¥{{ Number(scope.row.estimatedPrice || 0).toFixed(2) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="estimatedTotalPrice" label="小计" width="120" align="right">
+                <template #default="scope">
+                  <span class="text-emerald-600 font-medium">¥{{ Number(scope.row.estimatedTotalPrice || 0).toLocaleString() }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+            <div class="flex justify-end mt-2">
+              <span class="text-sm font-medium text-gray-700">总计金额：</span>
+              <span class="text-lg font-bold text-emerald-600 ml-2">
+                ¥{{ purchaseItemsTotal.toLocaleString() }}
+              </span>
             </div>
           </div>
 
@@ -351,15 +412,22 @@ const ApprovalStatus = {
   REJECTED: 'rejected'
 }
 
-// Tab配置
+// Tab配置：与V1.1 ProductionApproval L141-146 完全对齐 4 Tab
+// 修复 P0-PA-005：恢复 V1.1 4 Tab 配置（V2.0 多了 3 个：生产批次/批次变更/批次作废）
+// 备注：以下 3 个 Tab 为 V2.0 P0-EX 自我创造，**不直接删除**（避免破坏 V1.1 数据流与生产依赖），
+// 用注释保留，TODO 待确认。后续专项整改时再决定去留。
+// TODO-P0-EX-PA: 列待确认 - 生产批次审批/批次变更审批/批次作废审批 是否保留？
+//   实际归其他业务页（Production/Crop），非本页面职责
+//   结论: 应全部移除，迁移到对应业务页
+// P0-PA-001: 添加 path 字段供"查看全部 →" 链接使用（V1.1 L142-145）
 const tabs = [
-  { key: 'plan', label: '生产计划审批', icon: Calendar, types: [ApprovalType.PRODUCTION_PLAN] },
-  { key: 'tech', label: '技术方案审批', icon: DocumentCopy, types: [ApprovalType.TECH_SOLUTION] },
-  { key: 'purchase', label: '采购计划审批', icon: ShoppingCart, types: [ApprovalType.PURCHASE_REQUEST] },
-  { key: 'batch', label: '生产批次审批', icon: Box, types: [ApprovalType.PRODUCTION_BATCH] },
-  { key: 'batch_change', label: '批次变更审批', icon: RefreshRight, types: [ApprovalType.BATCH_CHANGE] },
-  { key: 'batch_void', label: '批次作废审批', icon: CircleClose, types: [ApprovalType.BATCH_VOID] },
-  { key: 'harvest', label: '采收申请审批', icon: House, types: [ApprovalType.HARVEST_REQUEST] }
+  { key: 'plan', label: '生产计划审批', icon: Calendar, path: '/production', types: [ApprovalType.PRODUCTION_PLAN] },
+  { key: 'tech', label: '技术方案审批', icon: DocumentCopy, path: '/tech-solution', types: [ApprovalType.TECH_SOLUTION] },
+  { key: 'purchase', label: '采购计划审批', icon: ShoppingCart, path: '/purchase-plan', types: [ApprovalType.PURCHASE_REQUEST] },
+  // TODO-P0-EX-PA: { key: 'batch', label: '生产批次审批', icon: Box, types: [ApprovalType.PRODUCTION_BATCH] },  // 列待确认
+  // TODO-P0-EX-PA: { key: 'batch_change', label: '批次变更审批', icon: RefreshRight, types: [ApprovalType.BATCH_CHANGE] },  // 列待确认
+  // TODO-P0-EX-PA: { key: 'batch_void', label: '批次作废审批', icon: CircleClose, types: [ApprovalType.BATCH_VOID] },  // 列待确认
+  { key: 'harvest', label: '采收申请审批', icon: House, path: '/harvest', types: [ApprovalType.HARVEST_REQUEST] }
 ]
 
 // 当前Tab
@@ -393,6 +461,12 @@ const approvalComment = ref('')
 const currentTabLabel = computed(() => {
   const tab = tabs.find(t => t.key === activeTab.value)
   return tab ? tab.label : ''
+})
+
+// P0-PA-001: 当前Tab对应业务页路径（V1.1 L405-410 Link to=tabs.find.path）
+const currentTabPath = computed(() => {
+  const tab = tabs.find(t => t.key === activeTab.value)
+  return tab?.path || '/'
 })
 
 // 统计数据
@@ -639,9 +713,21 @@ const getBusinessTypeLabel = (type) => {
     harvest: '采收申请信息',
     material: '领料申请信息',
     purchase: '采购申请信息',
+    // P0-PA-003: 业务类型 typeLabelMap 补 4 键（V1.1 L640-643 leave/overtime/transfer/resign）
+    leave: '请假申请信息',
+    overtime: '加班申请信息',
+    transfer: '转岗申请信息',
+    resign: '离职申请信息',
   }
   return labels[type] || '业务信息'
 }
+
+// P0-PA-002: 采购物资明细总计金额（V1.1 L617-622）
+const purchaseItemsTotal = computed(() => {
+  const items = currentApproval.value?.purchasePlanDetail?.items || currentApproval.value?.businessLink?.items
+  if (!items || !Array.isArray(items)) return 0
+  return items.reduce((sum, item) => sum + Number(item.estimatedTotalPrice || 0), 0)
+})
 
 // 字段中文映射
 const getFieldLabel = (key) => {
@@ -680,6 +766,8 @@ const formatBusinessValue = (key, value) => {
       batch_change: '批次变更', batch_void: '批次作废',
       tech_solution: '技术方案', harvest: '采收申请',
       material: '领料申请', purchase: '采购申请',
+      // P0-PA-003: type 映射补 4 键（V1.1 L690-693 leave/overtime/transfer/resign）
+      leave: '请假', overtime: '加班', transfer: '转岗', resign: '离职',
     }
     return typeMap[value] || value
   }
