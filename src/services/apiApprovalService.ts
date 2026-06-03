@@ -367,7 +367,12 @@ function denormalizeApproval(data: Partial<Approval>): Record<string, unknown> {
 // API服务类
 // ============================================================
 
-const API_BASE = '/api/approvals';
+// P0-2 修复 (2026-06-03): 移除重复 /api 前缀
+// 背景：apiClient.ts 的 API_BASE_URL 已含 /api 前缀，service 端不能再加一次
+// 之前：'/api/approvals' → 调用后变成 'http://localhost:5000/api/api/approvals' (404)
+// 现在：'/approvals' → 正确变成 'http://localhost:5000/api/approvals' (200)
+// 同步对照：apiApprovalWorkflowService.ts 用 '/approval-workflows'，apiCropVarietyExtensionService.ts 用 '/crop-varieties'
+const API_BASE = '/approvals';
 
 class ApiApprovalService {
   /**
