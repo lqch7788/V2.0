@@ -21,6 +21,12 @@ export { default as ApprovalList } from './ApprovalList.vue'
 // 审批级别标签组件
 export { default as ApprovalLevelBadge } from './ApprovalLevelBadge.vue'
 
+// 审批级别信息组件（V1.1 子组件，V2.0 1:1 补全 - P0-005）
+export { default as ApprovalLevelInfo } from './ApprovalLevelInfo.vue'
+
+// 审批级别工具提示组件（V1.1 子组件，V2.0 1:1 补全 - P0-005）
+export { default as ApprovalLevelTooltip } from './ApprovalLevelTooltip.vue'
+
 // 审批时间线组件
 export { default as ApprovalTimeline } from './ApprovalTimeline.vue'
 

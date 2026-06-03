@@ -1,11 +1,23 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="审批通知"
     width="700px"
     :close-on-click-modal="true"
     @close="handleClose"
   >
+    <!-- P0-007 修复：使用 el-dialog #header 插槽在弹窗 header 显示未读徽章（V1.1 L67-73 1:1 翻译） -->
+    <template #header>
+      <div class="flex items-center gap-2">
+        <span class="text-base font-semibold text-gray-900">审批通知</span>
+        <span
+          v-if="unreadCount > 0"
+          class="px-2 py-0.5 bg-red-500 text-white text-xs font-medium rounded-full"
+        >
+          {{ unreadCount }} 未读
+        </span>
+      </div>
+    </template>
+
     <!-- Tab切换 -->
     <div class="flex border-b border-gray-200">
       <button
@@ -175,30 +187,22 @@
 import { ref, computed } from 'vue'
 import { Bell, Check, Clock, User, WarningFilled, Info, CircleCheckFilled } from '@element-plus/icons-vue'
 import { ElDialog, ElButton, ElIcon, ElTag } from 'element-plus'
+// P0-006 修复：使用真实 composable 替代 ref([]) mock 数据
+import {
+  useNotification,
+  useDelegation,
+  NotificationType,
+  NotificationLevel,
+  getNotificationIcon as _getNotificationIcon,
+  formatNotificationTime as _formatNotificationTime
+} from '@/composables/useApprovalNotification'
 
 // ============================================================
 // 审批通知面板组件
 // 文件路径：src/components/approval/NotificationPanel.vue
 // ============================================================
 
-// 通知类型枚举
-const NotificationType = {
-  APPROVAL_PENDING: 'approval_pending',
-  APPROVAL_RESULT: 'approval_result',
-  DELEGATION: 'delegation',
-  REMINDER: 'reminder',
-  SYSTEM: 'system'
-}
-
-// 通知级别枚举
-const NotificationLevel = {
-  INFO: 'info',
-  WARNING: 'warning',
-  IMPORTANT: 'important',
-  URGENT: 'urgent'
-}
-
-// 审批类型
+// 审批类型（与 V1.1 1:1 对齐）
 const ApprovalType = {
   PURCHASE_ORDER: 'purchase_order',
   PURCHASE_PLAN: 'purchase_plan',
@@ -235,28 +239,22 @@ const visible = computed({
 // 当前Tab
 const activeTab = ref('notifications')
 
-// 模拟通知数据（实际使用时替换为真实数据）
-const notifications = ref([])
-const unreadCount = computed(() => notifications.value.filter(n => !n.isRead).length)
+// ========== P0-006 修复：接入真实 composable（替代 ref([]) mock） ==========
+// 通知数据 + 委托数据从 composable 拉取（1:1 翻译 V1.1 useNotification + useDelegation）
+const {
+  notifications,
+  unreadCount,
+  markAsRead,
+  markAllAsRead
+} = useNotification()
 
-// 模拟委托数据
-const activeDelegations = ref([])
+const { activeDelegations } = useDelegation()
 
-// 获取通知图标
-const getNotificationIcon = (type) => {
-  switch (type) {
-    case NotificationType.APPROVAL_PENDING:
-      return '📋'
-    case NotificationType.APPROVAL_RESULT:
-      return '✅'
-    case NotificationType.DELEGATION:
-      return '👤'
-    case NotificationType.REMINDER:
-      return '⏰'
-    default:
-      return '📢'
-  }
-}
+// 获取通知图标（composable 已提供 1:1 翻译）
+const getNotificationIcon = (type) => _getNotificationIcon(type)
+
+// 格式化通知时间（composable 已提供 1:1 翻译）
+const formatNotificationTime = (timeStr) => _formatNotificationTime(timeStr)
 
 // 获取级别图标
 const getLevelIcon = (level) => {
@@ -299,22 +297,6 @@ const getApprovalTypeName = (type) => {
   return typeMap[type] || type
 }
 
-// 格式化通知时间
-const formatNotificationTime = (timeStr) => {
-  try {
-    const date = new Date(timeStr)
-    const now = new Date()
-    const diff = now - date
-
-    if (diff < 60000) return '刚刚'
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
-    return date.toLocaleDateString('zh-CN')
-  } catch {
-    return timeStr
-  }
-}
-
 // 格式化日期
 const formatDate = (dateStr) => {
   try {
@@ -324,19 +306,14 @@ const formatDate = (dateStr) => {
   }
 }
 
-// 标记已读
+// 标记已读（包装 composable 的 markAsRead）
 const handleMarkAsRead = (id) => {
-  const notification = notifications.value.find(n => n.id === id)
-  if (notification) {
-    notification.isRead = true
-  }
+  markAsRead(id)
 }
 
-// 全部标记已读
+// 全部标记已读（包装 composable 的 markAllAsRead）
 const handleMarkAllAsRead = () => {
-  notifications.value.forEach(n => {
-    n.isRead = true
-  })
+  markAllAsRead()
 }
 
 // 关闭处理

@@ -100,11 +100,13 @@ export const useApprovalStore = defineStore('approval', () => {
   })
 
   /**
-   * 已办审批列表（已通过 + 已拒绝，与V1.1 useApprovedApprovals 一致）
+   * 已办审批列表（已通过 + 部分通过，与V1.1 useApprovedApprovals L160-162 1:1 一致）
+   * P0-008 修复（2026-06-03）：原 V2.0 = APPROVED + REJECTED 是数据源语义错位
+   * V1.1 useApprovedApprovals = APPROVED + PARTIALLY_APPROVED
    */
   const approvedApprovals = computed(() => {
     return approvals.value.filter(
-      a => a.status === ApprovalStatus.APPROVED || a.status === ApprovalStatus.REJECTED
+      a => a.status === ApprovalStatus.APPROVED || a.status === ApprovalStatus.PARTIALLY_APPROVED
     )
   })
 

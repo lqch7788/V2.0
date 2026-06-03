@@ -33,7 +33,8 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审核</p>
+            <!-- P0-MA-002: "待审核" → "待审批"（V1.1 useMaterialApproval hook L181） -->
+            <p class="text-xs text-gray-500">待审批</p>
           </div>
         </div>
       </div>
@@ -93,6 +94,7 @@
         <!-- 部门 -->
         <div>
           <label class="text-xs text-gray-700 block mb-1">部门</label>
+          <!-- P0-MA-003: 部门下拉硬编码 - 审计标记 V1.1 为 free-form，但实际 V1.1 MaterialApprovalFilters.tsx L80-91 也用 Select 硬编码 4 个固定值（生产部/技术部/后勤部/设备部）。V1.1 与 V2.0 行为一致，无需修改。FALSE POSITIVE -->
           <el-select v-model="searchDepartment" placeholder="全部" class="w-full">
             <el-option label="全部" value="全部" />
             <el-option label="生产部" value="生产部" />
@@ -139,7 +141,8 @@
           <label class="text-xs text-gray-700 block mb-1">状态</label>
           <el-select v-model="statusFilter" placeholder="全部" class="w-full">
             <el-option label="全部" value="全部" />
-            <el-option label="待审核" value="待审核" />
+            <!-- P0-MA-002: "待审核" → "待审批"（V1.1 useMaterialApproval hook L89-91） -->
+            <el-option label="待审批" value="待审批" />
             <el-option label="已通过" value="已通过" />
             <el-option label="已拒绝" value="已拒绝" />
           </el-select>
@@ -442,7 +445,10 @@
           </el-table-column>
         </template>
 
-        <!-- 采购审批表格 -->
+        <!-- 采购审批表格 - P0-MA-001: 'purchase' Tab 已从 tabs 移除（V2.0 自我创造），此块为死代码
+             TODO-P0-EX-MA: 列待确认 - 采购审批专属表格是否需要在 ProductionApproval 中复用？
+             若需要，可迁移到 ProductionApproval.vue。-->
+        <!--
         <template v-else-if="activeTab === 'purchase'">
           <el-table-column width="50" align="center">
             <template #default="{ row }">
@@ -535,6 +541,7 @@
             </template>
           </el-table-column>
         </template>
+        -->
 
         <!-- 通用表格（物料入库库存调拨/种源入库/育苗计划/种植计划/订单管理/补录审批-->
         <template v-else>
@@ -631,7 +638,7 @@
     <!-- 详情弹窗 -->
     <el-dialog
       v-model="detailModal.show"
-      :title="`${activeTab === 'return' ? '退料单' : activeTab === 'purchase' ? '采购单' : '领料单'}详情`"
+      :title="`${activeTab === 'return' ? '退料单' : '领料单'}详情`"
       width="900px"
       :close-on-click-modal="false"
     >
@@ -698,7 +705,7 @@
         <!-- 物料明细 -->
         <div class="mb-6">
           <label class="text-xs text-gray-500 block mb-2">
-            {{ activeTab === 'return' ? '退料单' : activeTab === 'purchase' ? '采购单' : '领料单' }}物料明细
+            {{ activeTab === 'return' ? '退料单' : '领料单' }}物料明细
           </label>
           <el-table v-if="detailModal.item.materials?.length > 0" :data="detailModal.item.materials" size="small">
             <el-table-column prop="materialCode" label="物料编码" width="120">
@@ -843,22 +850,30 @@ const ApprovalType = {
   CROP_STORAGE_SUPPLEMENTARY: 'crop_storage_supplementary',
 }
 
-// Tab配置：10个Tab与V1.1完全对齐
+// Tab配置：与V1.1 useMaterialApproval hook L64-71 完全对齐 6 Tab
+// 修复 P0-MA-001：恢复 V1.1 6 Tab 配置（V2.0 多了 4 个：采购审批/育苗计划/种植计划/订单管理）
+// 备注：以下 4 个 Tab 为 V2.0 P0-EX 自我创造，**不直接删除**（避免破坏 V1.1 数据流与生产依赖），
+// 用注释保留，TODO 待确认。后续专项整改时再决定去留。
+// TODO-P0-EX-MA: 列待确认 - 采购审批/育苗计划/种植计划/订单管理 是否保留？
+//   - 采购审批: 实际归 ProductionApproval 处理（Purchase Tab 已在生产审批页）
+//   - 育苗计划/种植计划/订单管理: 实际归其他业务页（Production/Order），非本页面职责
+//   结论: 应全部移除，迁移到对应业务页或 ProductionApproval
 const tabs = [
   { key: 'material', label: '领料审批', icon: Document, types: [ApprovalType.MATERIAL_REQUEST] },
   { key: 'return', label: '退料审批', icon: RefreshLeft, types: [ApprovalType.RETURN_MATERIAL] },
-  { key: 'purchase', label: '采购审批', icon: ShoppingCart, types: [ApprovalType.PURCHASE_REQUEST] },
+  // TODO-P0-EX-MA: { key: 'purchase', label: '采购审批', icon: ShoppingCart, types: [ApprovalType.PURCHASE_REQUEST] },  // 列待确认
   { key: 'material_inbound', label: '物料入库', icon: Goods, types: [ApprovalType.MATERIAL_INBOUND] },
   { key: 'material_transfer', label: '库存调拨', icon: RefreshRight, types: [ApprovalType.MATERIAL_TRANSFER] },
   { key: 'seed_inbound', label: '种源入库', icon: Box, types: [ApprovalType.SEED_SOURCE_INBOUND] },
-  { key: 'seedling', label: '育苗计划', icon: Orange, types: [ApprovalType.SEEDLING_PLAN] },
-  { key: 'planting', label: '种植计划', icon: Crop, types: [ApprovalType.PLANTING_PLAN] },
-  { key: 'order', label: '订单管理', icon: Tickets, types: [ApprovalType.ORDER_CREATE, ApprovalType.ORDER_CHANGE] },
+  // TODO-P0-EX-MA: { key: 'seedling', label: '育苗计划', icon: Orange, types: [ApprovalType.SEEDLING_PLAN] },  // 列待确认
+  // TODO-P0-EX-MA: { key: 'planting', label: '种植计划', icon: Crop, types: [ApprovalType.PLANTING_PLAN] },  // 列待确认
+  // TODO-P0-EX-MA: { key: 'order', label: '订单管理', icon: Tickets, types: [ApprovalType.ORDER_CREATE, ApprovalType.ORDER_CHANGE] },  // 列待确认
   { key: 'supplementary', label: '补录审批', icon: EditPen, types: [ApprovalType.SEED_SOURCE_SUPPLEMENTARY, ApprovalType.SEEDLING_SUPPLEMENTARY, ApprovalType.CROP_STORAGE_SUPPLEMENTARY] },
 ]
 
-// 仅前3个Tab有专用表格列
-const hasSpecialTable = (tab) => ['material', 'return', 'purchase'].includes(tab)
+// 仅前2个Tab有专用表格列（领料/退料，专用列名/扩展明细）
+// P0-MA-001: 'purchase' 已在 tabs 中移除（V2.0 自我创造，详见 tabs 配置 TODO）
+const hasSpecialTable = (tab) => ['material', 'return'].includes(tab)
 
 // 统计数据
 const stats = reactive({
@@ -1003,7 +1018,8 @@ const filteredData = computed(() => {
       item.code?.includes(searchTerm.value)
     const matchStatus =
       statusFilter.value === '全部' ||
-      (statusFilter.value === '待审核' && item.status === 'pending') ||
+      // P0-MA-002: "待审核" → "待审批"（V1.1 useMaterialApproval hook L89-91）
+      (statusFilter.value === '待审批' && item.status === 'pending') ||
       (statusFilter.value === '已通过' && item.status === 'approved') ||
       (statusFilter.value === '已拒绝' && item.status === 'rejected')
     const matchApplicant = !searchApplicant.value || item.applicantName?.includes(searchApplicant.value)
@@ -1128,7 +1144,8 @@ const getStatusText = (status) => {
   const statusMap = {
     approved: '已通过',
     rejected: '已拒绝',
-    pending: '待审核',
+    // P0-MA-002: "待审核" → "待审批"（V1.1 useMaterialApproval hook L199-200）
+    pending: '待审批',
     cancelled: '已取消',
     draft: '草稿',
   }
@@ -1151,7 +1168,8 @@ const getReturnStatusText = (status) => {
   const statusMap = {
     approved: '已完成',
     rejected: '已驳回',
-    pending: '待审核',
+    // P0-MA-002: "待审核" → "待审批"（V1.1 useMaterialApproval hook L216）
+    pending: '待审批',
     cancelled: '已取消',
   }
   return statusMap[status] || status

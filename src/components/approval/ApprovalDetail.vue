@@ -142,35 +142,118 @@
       </div>
     </div>
 
-    <!-- 申请描述 -->
-    <div v-if="approval.description">
-      <h3 class="text-lg font-semibold text-gray-900 mb-4">申请描述</h3>
-      <p class="text-sm text-gray-700 bg-blue-50 rounded-lg p-3 whitespace-pre-wrap">{{ approval.description }}</p>
+    <!-- 操作按钮（showActions && status === pending 时渲染） -->
+    <!--
+      P0-002 修复：从 V1.1 ApprovalDetail.tsx L246-265 1:1 翻译
+      当父组件传 showActions=true 且当前审批状态为 pending 时，显示 拒绝/通过 按钮
+    -->
+    <div
+      v-if="showActions && approval.status === 'pending'"
+      class="flex justify-end gap-3 pt-4 border-t border-gray-200"
+    >
+      <button
+        v-if="onReject && canReject"
+        @click="handleReject"
+        class="h-10 px-4 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium"
+      >
+        拒绝
+      </button>
+      <button
+        v-if="onApprove && canApprove"
+        @click="handleApprove"
+        class="h-10 px-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium"
+      >
+        通过
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { Check, Close, User, Comment } from '@element-plus/icons-vue'
+import { Check, Close, Clock, User, Comment } from '@element-plus/icons-vue'
 
-// 定义Props
+// ============================================================
+// 审批状态常量（与 V1.1 保持一致）
+// ============================================================
+
+const ApprovalStatus = {
+  DRAFT: 'draft',
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  PARTIALLY_APPROVED: 'partially_approved',
+  REJECTED: 'rejected',
+  CANCELLED: 'cancelled'
+}
+
+// ============================================================
+// Props 定义（1:1 翻译 V1.1 L14-22）
+// ============================================================
+
 const props = defineProps({
+  // 审批对象（必填）
   approval: {
     type: Object,
     required: true
+  },
+  // 是否显示操作按钮（默认 false）
+  showActions: {
+    type: Boolean,
+    default: false
+  },
+  // 通过回调（可选）
+  onApprove: {
+    type: Function,
+    default: undefined
+  },
+  // 拒绝回调（可选）
+  onReject: {
+    type: Function,
+    default: undefined
+  },
+  // 关闭回调（可选）
+  onClose: {
+    type: Function,
+    default: undefined
+  },
+  // 是否有通过权限（默认 true）
+  canApprove: {
+    type: Boolean,
+    default: true
+  },
+  // 是否有拒绝权限（默认 true）
+  canReject: {
+    type: Boolean,
+    default: true
   }
 })
+
+// ============================================================
+// 操作事件触发（V1.1: onClick={() => onApprove(approval.id)}）
+// ============================================================
+
+const handleApprove = () => {
+  if (props.onApprove) {
+    props.onApprove(props.approval.id)
+  }
+}
+
+const handleReject = () => {
+  if (props.onReject) {
+    props.onReject(props.approval.id)
+  }
+}
 
 // 获取状态图标
 const statusIcon = computed(() => {
   switch (props.approval.status) {
-    case 'approved':
+    case ApprovalStatus.APPROVED:
       return Check
-    case 'rejected':
+    case ApprovalStatus.REJECTED:
       return Close
     default:
-      return User // Clock的替代
+      // P0-003 修复：default 状态改回 Clock（V1.1 L40: <Clock className="w-5 h-5 text-yellow-500" />）
+      return Clock
   }
 })
 
@@ -189,17 +272,17 @@ const statusColor = computed(() => {
 // 获取状态文本
 const statusText = computed(() => {
   switch (props.approval.status) {
-    case 'draft':
+    case ApprovalStatus.DRAFT:
       return '草稿'
-    case 'pending':
+    case ApprovalStatus.PENDING:
       return '待审批'
-    case 'approved':
+    case ApprovalStatus.APPROVED:
       return '已通过'
-    case 'partially_approved':
+    case ApprovalStatus.PARTIALLY_APPROVED:
       return '部分通过'
-    case 'rejected':
+    case ApprovalStatus.REJECTED:
       return '已拒绝'
-    case 'cancelled':
+    case ApprovalStatus.CANCELLED:
       return '已撤回'
     default:
       return props.approval.status

@@ -270,6 +270,198 @@
               </div>
             </div>
           </template>
+
+          <!-- 入职办理 -->
+          <template v-else-if="approval.type === 'onboarding'">
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-4">
+                <div v-if="bl.employeeName">
+                  <span class="text-sm text-gray-500">员工姓名</span>
+                  <p class="font-medium">{{ bl.employeeName }}</p>
+                </div>
+                <div v-if="bl.department">
+                  <span class="text-sm text-gray-500">入职部门</span>
+                  <p class="font-medium">{{ bl.department }}</p>
+                </div>
+                <div v-if="bl.position">
+                  <span class="text-sm text-gray-500">入职岗位</span>
+                  <p class="font-medium">{{ bl.position }}</p>
+                </div>
+                <div v-if="bl.joinDate">
+                  <span class="text-sm text-gray-500">入职日期</span>
+                  <p class="font-medium">{{ bl.joinDate }}</p>
+                </div>
+                <div v-if="bl.probationPeriod">
+                  <span class="text-sm text-gray-500">试用期</span>
+                  <p class="font-medium">{{ bl.probationPeriod }} 个月</p>
+                </div>
+                <div v-if="bl.probationSalary">
+                  <span class="text-sm text-gray-500">试用期薪资</span>
+                  <p class="font-medium">{{ bl.probationSalary }} 元/月</p>
+                </div>
+                <div v-if="bl.formalSalary">
+                  <span class="text-sm text-gray-500">转正薪资</span>
+                  <p class="font-medium">{{ bl.formalSalary }} 元/月</p>
+                </div>
+              </div>
+              <div v-if="bl.remarks">
+                <span class="text-sm text-gray-500">备注</span>
+                <p class="text-gray-700">{{ bl.remarks }}</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- 考勤补录 -->
+          <template v-else-if="approval.type === 'attendance_repair'">
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-4">
+                <div v-if="bl.employeeName">
+                  <span class="text-sm text-gray-500">员工姓名</span>
+                  <p class="font-medium">{{ bl.employeeName }}</p>
+                </div>
+                <div v-if="bl.department">
+                  <span class="text-sm text-gray-500">所属部门</span>
+                  <p class="font-medium">{{ bl.department }}</p>
+                </div>
+                <div v-if="bl.date">
+                  <span class="text-sm text-gray-500">补录日期</span>
+                  <p class="font-medium">{{ bl.date }}</p>
+                </div>
+                <div v-if="bl.repairType">
+                  <span class="text-sm text-gray-500">补录类型</span>
+                  <p class="font-medium">{{ repairTypeName(bl.repairType) }}</p>
+                </div>
+                <div v-if="bl.startTime">
+                  <span class="text-sm text-gray-500">开始时间</span>
+                  <p class="font-medium">{{ bl.startTime }}</p>
+                </div>
+                <div v-if="bl.endTime">
+                  <span class="text-sm text-gray-500">结束时间</span>
+                  <p class="font-medium">{{ bl.endTime }}</p>
+                </div>
+              </div>
+              <div v-if="bl.reason">
+                <span class="text-sm text-gray-500">补录原因</span>
+                <p class="text-gray-700">{{ bl.reason }}</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- 调薪申请 -->
+          <template v-else-if="approval.type === 'salary_adjustment'">
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-4">
+                <div v-if="bl.employeeName">
+                  <span class="text-sm text-gray-500">员工姓名</span>
+                  <p class="font-medium">{{ bl.employeeName }}</p>
+                </div>
+                <div v-if="bl.department">
+                  <span class="text-sm text-gray-500">所属部门</span>
+                  <p class="font-medium">{{ bl.department }}</p>
+                </div>
+                <div v-if="bl.currentSalary">
+                  <span class="text-sm text-gray-500">当前薪资</span>
+                  <p class="font-medium">{{ bl.currentSalary }} 元/月</p>
+                </div>
+                <div v-if="bl.newSalary">
+                  <span class="text-sm text-gray-500">调整后薪资</span>
+                  <p class="font-medium">{{ bl.newSalary }} 元/月</p>
+                </div>
+                <div v-if="bl.adjustPercent">
+                  <span class="text-sm text-gray-500">调整幅度</span>
+                  <p class="font-medium">
+                    <el-tag :type="bl.adjustPercent > 0 ? 'success' : bl.adjustPercent < 0 ? 'danger' : ''" size="small">
+                      {{ bl.adjustPercent > 0 ? '+' : '' }}{{ bl.adjustPercent }}%
+                    </el-tag>
+                  </p>
+                </div>
+                <div v-if="bl.effectiveDate">
+                  <span class="text-sm text-gray-500">生效日期</span>
+                  <p class="font-medium">{{ bl.effectiveDate }}</p>
+                </div>
+              </div>
+              <div v-if="bl.reason">
+                <span class="text-sm text-gray-500">调薪原因</span>
+                <p class="text-gray-700">{{ bl.reason }}</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- 合同续签 -->
+          <template v-else-if="approval.type === 'contract_renewal'">
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-4">
+                <div v-if="bl.employeeName">
+                  <span class="text-sm text-gray-500">员工姓名</span>
+                  <p class="font-medium">{{ bl.employeeName }}</p>
+                </div>
+                <div v-if="bl.department">
+                  <span class="text-sm text-gray-500">所属部门</span>
+                  <p class="font-medium">{{ bl.department }}</p>
+                </div>
+                <div v-if="bl.currentContractEndDate">
+                  <span class="text-sm text-gray-500">当前合同到期日</span>
+                  <p class="font-medium">{{ bl.currentContractEndDate }}</p>
+                </div>
+                <div v-if="bl.contractTerm">
+                  <span class="text-sm text-gray-500">续签期限</span>
+                  <p class="font-medium">{{ bl.contractTerm }} 年</p>
+                </div>
+                <div v-if="bl.newContractEndDate">
+                  <span class="text-sm text-gray-500">新合同到期日</span>
+                  <p class="font-medium">{{ bl.newContractEndDate }}</p>
+                </div>
+                <div v-if="bl.newSalary">
+                  <span class="text-sm text-gray-500">续签薪资</span>
+                  <p class="font-medium">{{ bl.newSalary }} 元/月</p>
+                </div>
+              </div>
+              <div v-if="bl.reason">
+                <span class="text-sm text-gray-500">续签原因</span>
+                <p class="text-gray-700">{{ bl.reason }}</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- 工资预算 -->
+          <template v-else-if="approval.type === 'salary_budget'">
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-4">
+                <div v-if="bl.department">
+                  <span class="text-sm text-gray-500">预算部门</span>
+                  <p class="font-medium">{{ bl.department }}</p>
+                </div>
+                <div v-if="bl.budgetPeriod">
+                  <span class="text-sm text-gray-500">预算期间</span>
+                  <p class="font-medium">{{ bl.budgetPeriod }}</p>
+                </div>
+                <div v-if="bl.budgetAmount">
+                  <span class="text-sm text-gray-500">预算金额</span>
+                  <p class="font-medium">{{ bl.budgetAmount }} 元</p>
+                </div>
+                <div v-if="bl.lastYearActual">
+                  <span class="text-sm text-gray-500">上年实际</span>
+                  <p class="font-medium">{{ bl.lastYearActual }} 元</p>
+                </div>
+                <div v-if="bl.headcount">
+                  <span class="text-sm text-gray-500">覆盖人数</span>
+                  <p class="font-medium">{{ bl.headcount }} 人</p>
+                </div>
+                <div v-if="bl.growthRate">
+                  <span class="text-sm text-gray-500">同比增长</span>
+                  <p class="font-medium">
+                    <el-tag :type="bl.growthRate > 0 ? 'warning' : bl.growthRate < 0 ? 'success' : ''" size="small">
+                      {{ bl.growthRate > 0 ? '+' : '' }}{{ bl.growthRate }}%
+                    </el-tag>
+                  </p>
+                </div>
+              </div>
+              <div v-if="bl.remarks">
+                <span class="text-sm text-gray-500">预算说明</span>
+                <p class="text-gray-700">{{ bl.remarks }}</p>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -477,6 +669,10 @@ const leaveTypeName = (t) => leaveTypeNames[t] || t
 // 加班类型映射
 const overtimeTypeNames = { weekday: '工作日加班', weekend: '周末加班', holiday: '节假日加班' }
 const overtimeTypeName = (t) => overtimeTypeNames[t] || t
+
+// 考勤补录类型映射
+const repairTypeNames = { sign_in: '补签上班', sign_out: '补签下班', leave: '补请假', overtime: '补加班', business_trip: '补出差' }
+const repairTypeName = (t) => repairTypeNames[t] || t
 
 // 审批人状态文本
 const approverStatusText = (s) => {

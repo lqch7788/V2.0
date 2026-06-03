@@ -26,7 +26,15 @@
       </div>
     </div>
 
-    <!-- 搜索栏 -->
+    <!-- P0-EX-001 修复：注释掉 V1.1 不存在的独立搜索栏 UI -->
+    <!--
+      V1.1 ApprovalWorkflowConfig.tsx 没有独立搜索栏 UI（V1.1 只有 searchTerm state 但无可见 UI）。
+      V2.0 自创的独立搜索栏 UI（L29-43）属于 P0-EX（自我创造功能）。
+      处理方案：注释掉 UI 块，保留 searchTerm state + filteredWorkflows computed
+      （V1.1 1:1 兼容）以备后续用户决定是否恢复。
+      TODO: 等待用户确认是否完全删除该功能
+    -->
+    <!--
     <div class="bg-white rounded-xl p-4 shadow-none">
       <div class="flex flex-col sm:flex-row gap-4 items-center">
         <el-input
@@ -41,6 +49,7 @@
         </el-input>
       </div>
     </div>
+    -->
 
     <!-- 加载状态 -->
     <div v-if="store.loading" class="flex items-center justify-center h-64">

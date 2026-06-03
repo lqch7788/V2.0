@@ -566,8 +566,9 @@ const { levelConfigs, amountThresholds, typeRules, loading, loadAll, updateLevel
 const activeTab = ref('thresholds')
 
 // 级别颜色映射
+// P0-PM-002 修复：exempt 级别 bg 改回 bg-green-50（V1.1 L34 1:1 对齐）
 const LEVEL_COLORS = {
-  exempt: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-200' },
+  exempt: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
   quick: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
   standard: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
   strict: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' }

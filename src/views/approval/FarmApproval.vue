@@ -146,11 +146,19 @@
             <el-icon class="mr-1"><Download /></el-icon>
             批量导出
           </el-button>
+          <!-- P0-FA-001: "查看全部 →" 链接入口 (V1.1 L298-303) - 与 V1.1 行为 1:1 对齐，无 path 时回落 '/' -->
+          <router-link
+            :to="currentTabPath"
+            class="text-sm text-emerald-600 hover:text-emerald-700 font-medium ml-2"
+          >
+            查看全部 →
+          </router-link>
         </div>
       </div>
 
       <!-- 表格 -->
-      <el-table :data="paginatedData" style="width: 100%">
+      <!-- P0-FA-002: 加载态 (V1.1 L408 由父级 Dialog 处理，但 Material 已加 loading，此处对齐) -->
+      <el-table v-loading="loading" :data="paginatedData" style="width: 100%">
         <el-table-column width="50" align="center">
           <template #default="{ row }">
             <el-button
@@ -195,6 +203,11 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- P0-FA-003: 空态 (V1.1 L334-336 "暂无数据" 单元格) -->
+      <div v-if="!loading && paginatedData.length === 0" class="px-4 py-8 text-center text-gray-500">
+        暂无数据
+      </div>
 
       <!-- 分页 -->
       <div v-if="totalPages > 1" class="px-4 py-3 border-t border-gray-100">
@@ -267,7 +280,7 @@ import { storeToRefs } from 'pinia'
 
 // 审批Store
 const approvalStore = useApprovalStore()
-const { approvals } = storeToRefs(approvalStore)
+const { approvals, isLoading: loading } = storeToRefs(approvalStore)
 
 // 审批类型
 const ApprovalType = {
@@ -314,6 +327,12 @@ const currentApproval = ref(null)
 const currentTabLabel = computed(() => {
   const tab = tabs.find(t => t.key === activeTab.value)
   return tab ? tab.label : ''
+})
+
+// P0-FA-001: 当前Tab对应业务页路径（V1.1 L298-303 Link to=tabs.find.path || '/'）
+const currentTabPath = computed(() => {
+  const tab = tabs.find(t => t.key === activeTab.value)
+  return tab?.path || '/'
 })
 
 // 统计数据
