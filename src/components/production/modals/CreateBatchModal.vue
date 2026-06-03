@@ -43,7 +43,7 @@
               :class="errors.batchCode ? 'border-red-500' : ''"
             />
             <button
-              class="h-9 px-4 rounded-lg text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+              class="h-9 px-4 rounded-lg text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-colors inline-flex items-center justify-center whitespace-nowrap"
               @click="onGenerateCode"
             >
               生成
