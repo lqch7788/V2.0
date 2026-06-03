@@ -85,3 +85,9 @@ login-flow-test.js
 # V1.1→V2.0 sync backup files
 *.db.before-sync
 *.before-sync
+
+# Tool/agent directories (development tools, not source code)
+.mavis/
+.opencode/
+.codegraph/
+audit/planning/
