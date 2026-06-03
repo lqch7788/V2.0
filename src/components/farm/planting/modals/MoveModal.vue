@@ -9,7 +9,9 @@
   <div
     v-if="isOpen"
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
+    tabindex="-1"
     @click.self="handleClose"
+    @keydown.esc="handleClose"
   >
     <div class="bg-white rounded-xl w-full max-w-lg shadow-xl">
       <!-- 标题栏（1:1 V1.1 橙色渐变）-->

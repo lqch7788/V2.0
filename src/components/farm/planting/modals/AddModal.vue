@@ -1,6 +1,6 @@
 <template>
   <!-- 新增种植弹窗 - 1:1 翻译 V1.1 AddModal.tsx 标题文案 -->
-  <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" @click.self="onClose">
+  <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" tabindex="-1" @click.self="onClose" @keydown.esc="onClose">
     <div class="bg-white rounded-xl w-full max-w-4xl shadow-xl max-h-[90vh] flex flex-col">
       <!-- 标题栏 - 渐变背景 -->
       <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-t-xl">
