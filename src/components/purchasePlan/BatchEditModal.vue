@@ -76,7 +76,6 @@
             <el-option label="紧急采购" value="urgent" />
             <el-option label="常规采购" value="routine" />
             <el-option label="通用物资" value="material" />
-            <el-option label="劳保用品" value="safety" />
             <el-option label="设备采购" value="equipment" />
             <el-option label="其他" value="other" />
           </el-select>

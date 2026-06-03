@@ -17,7 +17,7 @@
           <!-- 来源类型 -->
           <div class="col-span-2">
             <label class="block text-gray-700 text-sm mb-2 font-medium">来源类型 *</label>
-            <el-select v-model="formData.sourceType" placeholder="请选择" class="w-full" @change="handleSourceTypeChange">
+            <el-select v-model="formData.sourceType" placeholder="选择来源类型" class="w-full" @change="handleSourceTypeChange">
               <el-option label="种源" value="seed" />
               <el-option label="种苗" value="seedling" />
             </el-select>

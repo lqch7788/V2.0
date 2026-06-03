@@ -19,7 +19,7 @@
             <label class="block text-gray-700 text-sm mb-2 font-medium">作物品种 *</label>
             <el-select
               v-model="formData.selectedCropCode"
-              placeholder="搜索或选择作物品种"
+              placeholder="搜索或选择作物品种..."
               filterable
               clearable
               class="w-full"
