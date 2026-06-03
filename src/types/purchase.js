@@ -7,7 +7,6 @@ export const PurchasePlanStatus = {
   DRAFT: 'draft',
   PENDING: 'pending',
   APPROVED: 'approved',
-  REJECTED: 'rejected',
   COMPLETED: 'completed',
   PURCHASING: 'purchasing',
   CANCELLED: 'cancelled'
