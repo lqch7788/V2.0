@@ -10,6 +10,7 @@
       </div>
       <div v-if="tech" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
         <div class="space-y-4">
+          <!-- 方案编号 + 版本（V1.1 L94-104）-->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">方案编号</label>
@@ -20,10 +21,12 @@
               <input v-model="form.version" :class="inputClass" />
             </div>
           </div>
+          <!-- 方案标题（V1.1 L107-112）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">方案标题</label>
             <input v-model="form.title" :class="inputClass" />
           </div>
+          <!-- 作物品种 + 种植模式（V1.1 L115-143）-->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">作物品种</label>
@@ -47,14 +50,17 @@
             </div>
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">种植模式</label>
-              <el-select v-model="form.plantingMode" class="w-full">
+              <!-- 修复 P0-006：种植模式从字典动态加载（V1.1 用 DictSelect category=planting_mode） -->
+              <el-select v-model="form.plantingMode" class="w-full" placeholder="选择种植模式">
                 <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
               </el-select>
             </div>
           </div>
+          <!-- 适用范围（多选）（V1.1 L146-181）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">适用范围（可多选）</label>
             <div class="flex flex-wrap gap-2">
+              <!-- 修复 P0-005：恢复 V1.1 28 个适用范围枚举（替换 V2.0 7 个"大棚/车间"硬编码） -->
               <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
                 <input
                   type="checkbox"
@@ -66,6 +72,21 @@
               </label>
             </div>
           </div>
+          <!-- 修复 P0-003：补回"关联生产批次号"字段（V1.1 L184-199 缺失） -->
+          <div class="space-y-1.5">
+            <label class="block text-sm font-medium text-gray-700">关联生产批次号</label>
+            <el-select v-model="form.relatedBatchCode" class="w-full" placeholder="请选择">
+              <el-option label="不关联生产批次" value="" />
+              <el-option label="ZZB2026-001" value="ZZB2026-001" />
+              <el-option label="ZZB2026-002" value="ZZB2026-002" />
+              <el-option label="ZZB2026-003" value="ZZB2026-003" />
+              <el-option label="YMB2026-001" value="YMB2026-001" />
+              <el-option label="YMB2026-002" value="YMB2026-002" />
+              <el-option label="JZB2026-001" value="JZB2026-001" />
+              <el-option label="JZB2026-002" value="JZB2026-002" />
+            </el-select>
+          </div>
+          <!-- 编制人 + 创建日期（V1.1 L202-209）-->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">编制人</label>
@@ -76,30 +97,29 @@
               <input :value="tech.createDate" disabled :class="inputClass + ' bg-gray-50'" />
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">最后提交时间</label>
-              <input :value="form.lastSubmitTime || new Date().toISOString().split('T')[0]" disabled :class="inputClass + ' bg-gray-50'" />
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">方案是否有效</label>
-              <el-select v-model="form.isValid" class="w-full">
-                <el-option label="有效" value="有效" />
-                <el-option label="作废" value="作废" />
-              </el-select>
-              <p v-if="form.isValid === '作废'" class="text-xs text-red-600 mt-1 font-medium">
-                ⚠️ 选择"作废"后方案将无法使用，提交后将进入审核流程
-              </p>
-            </div>
-          </div>
+          <!-- 备注（V1.1 L212-218）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">备注</label>
             <textarea v-model="form.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
           </div>
+          <!-- 方案是否有效（V1.1 L221-235）-->
+          <!-- 修复 P0-015：删除 V2.0 自创的"最后提交时间"UI 字段（V1.1 表单 state 含 lastSubmitTime 但 UI 不渲染） -->
+          <div class="space-y-1.5">
+            <label class="block text-sm font-medium text-gray-700">方案是否有效</label>
+            <el-select v-model="form.isValid" class="w-full">
+              <el-option label="有效" value="有效" />
+              <el-option label="作废" value="作废" />
+            </el-select>
+            <p v-if="form.isValid === '作废'" class="text-xs text-red-600 mt-1 font-medium">
+              ⚠️ 选择"作废"后方案将无法使用，提交后将进入审核流程
+            </p>
+          </div>
+          <!-- 方案内容（V1.1 L238-244）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">方案内容</label>
             <textarea v-model="form.content" rows="6" :class="inputClass + ' resize-y'"></textarea>
           </div>
+          <!-- 方案详情文件（V1.1 L247-269）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">方案详情文件</label>
             <div class="flex items-center gap-3">
@@ -129,9 +149,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf, Upload } from 'lucide-vue-next'
+// 修复 P0-005：从共享常量文件导入 28 个适用范围枚举
+import { TECH_SOLUTION_SCOPES, PLANTING_MODE_FALLBACK } from '../constants/techSolutionScopes'
+// 修复 P0-006：从字典 store 加载种植模式选项
+import { useDictionaryStore } from '@/stores/modules/dictionary'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -141,9 +165,40 @@ const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded
 const btnGhost = `${btnBase} hover:bg-gray-100 hover:text-gray-900`
 const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
 
-// 适用范围选项（V9.0多选）
-const TECH_SOLUTION_SCOPES = ['大棚A区', '大棚B区', '大棚C区', '育苗室1', '育苗室2', '包装车间', '仓储区']
-const plantingModes = ['水培', '土培', '基质培', '雾培']
+// 修复 P0-006：种植模式从字典动态加载
+const dictionaryStore = useDictionaryStore()
+const plantingModes = ref<string[]>([...PLANTING_MODE_FALLBACK])
+
+async function loadPlantingModes() {
+  // 优先使用 store 已加载的字典（同步访问）
+  try {
+    if (dictionaryStore.dictionaries && dictionaryStore.dictionaries.length > 0) {
+      const list = dictionaryStore.dictionaries
+        .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
+        .map((d: any) => d.name)
+      if (list.length > 0) {
+        plantingModes.value = list
+        return
+      }
+    }
+  } catch {
+    // 静默降级
+  }
+  // 异步尝试加载字典 store
+  try {
+    await dictionaryStore.loadDictionaries()
+    const list = dictionaryStore.dictionaries
+      .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
+      .map((d: any) => d.name)
+    plantingModes.value = list.length > 0 ? list : [...PLANTING_MODE_FALLBACK]
+  } catch {
+    plantingModes.value = [...PLANTING_MODE_FALLBACK]
+  }
+}
+
+onMounted(() => {
+  loadPlantingModes()
+})
 
 interface Props {
   visible: boolean
@@ -159,6 +214,19 @@ const emit = defineEmits<{
   'update:form': [form: any]
   'update:selectedCrop': [crop: any]
 }>()
+
+// 修复 P0-003：监听 form 变化，如果外部未设置 relatedBatchCode 则用 tech 的值兜底
+watch(
+  () => props.visible,
+  (val) => {
+    if (val && props.tech && props.form) {
+      // 进入弹窗时，如果 form.relatedBatchCode 缺失，用 tech 的原值兜底
+      if (props.form.relatedBatchCode === undefined) {
+        emit('update:form', { ...props.form, relatedBatchCode: props.tech.relatedBatchCode || '' })
+      }
+    }
+  }
+)
 
 const handleCropChange = (code: string, varietyInfo: any) => {
   if (varietyInfo) {

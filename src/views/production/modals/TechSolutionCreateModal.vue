@@ -10,6 +10,7 @@
       </div>
       <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
         <div class="space-y-4">
+          <!-- 第一行：方案编号 + 方案标题（V1.1 L102-129）-->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">方案编号</label>
@@ -19,14 +20,22 @@
               </div>
             </div>
             <div class="space-y-1.5">
+              <label class="block text-sm font-medium text-gray-700">方案标题 <span class="text-red-500">*</span></label>
+              <input v-model="form.title" :class="inputClass" placeholder="请输入方案标题" />
+            </div>
+          </div>
+          <!-- 第二行：版本 + 创建日期（V1.1 L132-142）-->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">版本</label>
               <input v-model="form.version" :class="inputClass" />
             </div>
+            <div class="space-y-1.5">
+              <label class="block text-sm font-medium text-gray-700">创建日期</label>
+              <input :value="new Date().toISOString().split('T')[0]" disabled :class="inputClass + ' bg-gray-50'" />
+            </div>
           </div>
-          <div class="space-y-1.5">
-            <label class="block text-sm font-medium text-gray-700">方案标题 <span class="text-red-500">*</span></label>
-            <input v-model="form.title" :class="inputClass" placeholder="请输入方案标题" />
-          </div>
+          <!-- 第三行：作物品种 + 种植模式（V1.1 L145-173）-->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">作物品种 <span class="text-red-500">*</span></label>
@@ -35,7 +44,7 @@
                 @change="handleCropChange"
                 placeholder="搜索或选择作物品种..."
                 size="md"
-                showFullPath
+                show-full-path
               />
               <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
                 <div class="text-emerald-700 flex items-center gap-1">
@@ -49,20 +58,35 @@
               </div>
             </div>
             <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">作物编码</label>
-              <input :value="form.cropCode" placeholder="自动获取" disabled :class="inputClass + ' bg-gray-50'" />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">种植模式</label>
-              <el-select v-model="form.plantingMode" class="w-full">
+              <!-- 修复 P0-006：种植模式从字典动态加载（V1.1 用 DictSelect category=planting_mode） -->
+              <el-select v-model="form.plantingMode" class="w-full" placeholder="选择种植模式">
                 <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
               </el-select>
+            </div>
+          </div>
+          <!-- 修复 P0-009：移除 V2.0 自创的"作物编码"只读字段（V1.1 不存在此字段，作物编码通过 selectedCrop 块显示） -->
+          <!-- 第四行：适用范围（多选）+ 关联生产批次号（V1.1 L176-229）-->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="block text-sm font-medium text-gray-700">适用范围（可多选）</label>
+              <div class="flex flex-wrap gap-2">
+                <!-- 修复 P0-005：恢复 V1.1 28 个适用范围枚举（替换 V2.0 7 个"大棚/车间"硬编码） -->
+                <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    :checked="form.scopes.includes(scope)"
+                    @change="(e) => toggleScope(scope, (e.target as HTMLInputElement).checked)"
+                    class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span class="text-sm">{{ scope }}</span>
+                </label>
+              </div>
             </div>
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">关联生产批次号</label>
               <el-select v-model="form.relatedBatchCode" class="w-full" placeholder="请选择">
+                <el-option label="不关联生产批次" value="" />
                 <el-option label="ZZB2026-001 - 番茄种植批次" value="ZZB2026-001" />
                 <el-option label="ZZB2026-002 - 黄瓜种植批次" value="ZZB2026-002" />
                 <el-option label="ZZB2026-003 - 草莓种植批次" value="ZZB2026-003" />
@@ -73,20 +97,7 @@
               </el-select>
             </div>
           </div>
-          <div class="space-y-1.5">
-            <label class="block text-sm font-medium text-gray-700">适用范围（可多选）</label>
-            <div class="flex flex-wrap gap-2">
-              <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="form.scopes.includes(scope)"
-                  @change="(e) => toggleScope(scope, (e.target as HTMLInputElement).checked)"
-                  class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <span class="text-sm">{{ scope }}</span>
-              </label>
-            </div>
-          </div>
+          <!-- 第五行：编制人（V1.1 L232-240）-->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">编制人</label>
@@ -94,15 +105,13 @@
                 <el-option v-for="op in operatorOptions" :key="op.value" :label="op.label" :value="op.value" />
               </el-select>
             </div>
-            <div class="space-y-1.5">
-              <label class="block text-sm font-medium text-gray-700">创建日期</label>
-              <input :value="new Date().toISOString().split('T')[0]" disabled :class="inputClass + ' bg-gray-50'" />
-            </div>
           </div>
+          <!-- 第六行：备注（V1.1 L243-250）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">备注</label>
             <textarea v-model="form.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
           </div>
+          <!-- 第七行：方案详细（V1.1 L253-264）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">方案详细</label>
             <div class="flex items-center gap-2">
@@ -125,8 +134,13 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf, Upload } from 'lucide-vue-next'
+// 修复 P0-005：从共享常量文件导入 28 个适用范围枚举
+import { TECH_SOLUTION_SCOPES, PLANTING_MODE_FALLBACK } from '../constants/techSolutionScopes'
+// 修复 P0-006：从字典 store 加载种植模式选项
+import { useDictionaryStore } from '@/stores/modules/dictionary'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -135,9 +149,38 @@ const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-200 h-8
 const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded-md px-3 text-xs`
 const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
 
-// 适用范围选项
-const TECH_SOLUTION_SCOPES = ['大棚A区', '大棚B区', '大棚C区', '育苗室1', '育苗室2', '包装车间', '仓储区']
-const plantingModes = ['水培', '土培', '基质培', '雾培']
+// 修复 P0-006：种植模式从字典动态加载
+const dictionaryStore = useDictionaryStore()
+const plantingModes = ref<string[]>([...PLANTING_MODE_FALLBACK])
+
+async function loadPlantingModes() {
+  try {
+    if (dictionaryStore.dictionaries && dictionaryStore.dictionaries.length > 0) {
+      const list = dictionaryStore.dictionaries
+        .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
+        .map((d: any) => d.name)
+      if (list.length > 0) {
+        plantingModes.value = list
+        return
+      }
+    }
+  } catch {
+    // 静默降级
+  }
+  try {
+    await dictionaryStore.loadDictionaries()
+    const list = dictionaryStore.dictionaries
+      .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
+      .map((d: any) => d.name)
+    plantingModes.value = list.length > 0 ? list : [...PLANTING_MODE_FALLBACK]
+  } catch {
+    plantingModes.value = [...PLANTING_MODE_FALLBACK]
+  }
+}
+
+onMounted(() => {
+  loadPlantingModes()
+})
 
 interface Props {
   visible: boolean

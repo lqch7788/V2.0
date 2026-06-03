@@ -1,12 +1,14 @@
-// 批次状态颜色配置
+// 批次状态颜色配置（1:1 翻译 V1.1 constants.ts L2-12）
 export const batchStatusColors = {
-  draft: 'bg-gray-100 text-gray-600',
-  pending: 'bg-amber-100 text-amber-700',
-  pending_complete: 'bg-orange-100 text-orange-700',
-  published: 'bg-blue-100 text-blue-700',
-  in_progress: 'bg-emerald-100 text-emerald-700',
-  completed: 'bg-green-600 text-white',
-  cancelled: 'bg-gray-300 text-gray-600',
+  draft: 'bg-gray-100 text-gray-600',            // 草稿
+  pending: 'bg-amber-100 text-amber-700',        // 待审批
+  pending_complete: 'bg-orange-100 text-orange-700', // 待审批（完成）
+  published: 'bg-blue-100 text-blue-700',        // 已发布
+  approved: 'bg-blue-100 text-blue-700',         // 已审批通过（P0-003 补回）
+  in_progress: 'bg-emerald-100 text-emerald-700', // 执行中
+  completed: 'bg-green-600 text-white',          // 已完成 - 深绿色底色白字
+  cancelled: 'bg-gray-300 text-gray-600',        // 已作废 - 深灰色
+  rejected: 'bg-red-100 text-red-700',           // 已拒绝（P0-003 补回）
 }
 
 // 计划类型选项配置
@@ -40,15 +42,33 @@ export const planTypeOptions = Object.entries(PlanTypeLabels).map(([value, label
   color: PlanTypeColors[value],
 }))
 
-// 批次状态文本配置
+// 批次状态文本配置（1:1 翻译 V1.1 constants.ts L29-39）
 export const batchStatusLabels = {
   draft: '草稿',
   pending: '待审批',
   pending_complete: '待审批（完成）',
   published: '已发布',
+  approved: '已通过',                              // P0-004 补回
   in_progress: '执行中',
   completed: '已完成',
   cancelled: '已作废',
+  rejected: '已拒绝',                              // P0-004 补回
+}
+
+// 执行状态颜色配置（1:1 翻译 V1.1 constants.ts L42-46）
+// P0-006 补回 - 原 V2.0 错误地内联到 ProductionTable.vue L306-310
+export const executionStatusColors = {
+  pending_execution: 'bg-blue-100 text-blue-700',  // 待执行
+  in_progress: 'bg-orange-100 text-orange-700',    // 进行中
+  completed: 'bg-green-100 text-green-700',         // 已完成
+}
+
+// 执行状态文本配置（1:1 翻译 V1.1 constants.ts L49-53）
+// P0-006 补回 - 原 V2.0 错误地内联到 ProductionTable.vue L313-317
+export const executionStatusLabels = {
+  pending_execution: '待执行',
+  in_progress: '进行中',
+  completed: '已完成',
 }
 
 export const stageProgress = {

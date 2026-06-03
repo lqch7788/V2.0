@@ -48,40 +48,75 @@
     />
 
     <!-- Pagination -->
+    <!-- 修复 P0-008（cycle 2 回归）：恢复 V2.0 自定义 Pagination，与 V1.1 Pagination.tsx L78-178 1:1 对齐
+         V1.1 实际包含 4 个功能：首页(ChevronsLeft) / 末页(ChevronsRight) / 每页下拉(showPageSize) / 共X页文本
+         审计报告误判"无这些功能"，cycle 1 改用 el-pagination 删除了 3 个功能 → cycle 2 恢复
+    -->
     <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-100 rounded-b-xl">
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-500">每页</span>
-        <el-select v-model="pageSize" @change="currentPage = 1" class="w-20">
-          <el-option :value="10" label="10" />
-          <el-option :value="20" label="20" />
-          <el-option :value="50" label="50" />
-        </el-select>
-        <span class="text-sm text-gray-500">条</span>
-      </div>
-      <div class="flex items-center gap-1">
-        <button :class="btnGhost + ' h-9 w-9'" @click="currentPage = 1" :disabled="currentPage === 1">
-          <ChevronsLeft class="w-4 h-4" />
-        </button>
-        <button :class="btnGhost + ' h-9 w-9'" @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1">
-          <ChevronLeft class="w-4 h-4" />
-        </button>
-        <template v-for="(page, index) in visiblePages" :key="`${page}-${index}`">
+      <div class="flex items-center gap-4">
+        <!-- 页码按钮组（V1.1 L76-155：首页/上一页/页码/下一页/末页）-->
+        <div class="flex items-center gap-1">
+          <!-- 首页（V1.1 L78-90）-->
           <button
-            v-if="typeof page === 'number'"
-            :class="['min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-colors', currentPage === page ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100']"
-            @click="currentPage = page"
+            :class="['p-2 rounded-lg transition-colors', currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100']"
+            :disabled="currentPage === 1"
+            @click="currentPage = 1"
+            title="首页"
           >
-            {{ page }}
+            <ChevronsLeft class="w-4 h-4" />
           </button>
-          <span v-else class="px-2 text-gray-400">{{ page }}</span>
-        </template>
-        <button :class="btnGhost + ' h-9 w-9'" @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage >= totalPages">
-          <ChevronRight class="w-4 h-4" />
-        </button>
-        <button :class="btnGhost + ' h-9 w-9'" @click="currentPage = totalPages" :disabled="currentPage >= totalPages">
-          <ChevronsRight class="w-4 h-4" />
-        </button>
-        <span class="text-sm text-gray-500 ml-2">共 {{ totalPages }} 页</span>
+          <!-- 上一页（V1.1 L92-104）-->
+          <button
+            :class="['p-2 rounded-lg transition-colors', currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100']"
+            :disabled="currentPage === 1"
+            @click="currentPage = Math.max(1, currentPage - 1)"
+            title="上一页"
+          >
+            <ChevronLeft class="w-4 h-4" />
+          </button>
+          <!-- 页码（V1.1 L106-126：智能省略号，最多 7 个可见）-->
+          <template v-for="(page, index) in visiblePages" :key="`${page}-${index}`">
+            <button
+              v-if="typeof page === 'number'"
+              :class="['min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-colors', currentPage === page ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100']"
+              @click="currentPage = page"
+            >
+              {{ page }}
+            </button>
+            <span v-else class="px-2 text-gray-400">{{ page }}</span>
+          </template>
+          <!-- 下一页（V1.1 L128-140）-->
+          <button
+            :class="['p-2 rounded-lg transition-colors', currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100']"
+            :disabled="currentPage >= totalPages"
+            @click="currentPage = Math.min(totalPages, currentPage + 1)"
+            title="下一页"
+          >
+            <ChevronRight class="w-4 h-4" />
+          </button>
+          <!-- 末页（V1.1 L142-154）-->
+          <button
+            :class="['p-2 rounded-lg transition-colors', currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100']"
+            :disabled="currentPage >= totalPages"
+            @click="currentPage = totalPages"
+            title="末页"
+          >
+            <ChevronsRight class="w-4 h-4" />
+          </button>
+        </div>
+        <!-- 每页下拉（V1.1 L157-173：showPageSize=true）-->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">每页</span>
+          <select
+            :value="pageSize"
+            @change="(e) => { pageSize = Number((e.target as HTMLSelectElement).value); currentPage = 1 }"
+            class="h-9 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}条</option>
+          </select>
+        </div>
+        <!-- 共X页（V1.1 L175-178）-->
+        <span class="text-sm text-gray-500">共 {{ totalPages }} 页</span>
       </div>
     </div>
 
@@ -119,24 +154,13 @@
     />
 
     <!-- Delete Warning Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl p-6 w-96 shadow-xl">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-red-600"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900">删除警告</h3>
-        </div>
-        <div class="text-sm text-gray-600 space-y-2 mb-6">
-          <p>确定要删除选中的 <strong>{{ selectedRows.length }}</strong> 个项目吗？</p>
-          <p>此操作 <strong class="text-red-600">无法恢复</strong>，删除后数据将永久丢失。</p>
-        </div>
-        <div class="flex gap-3">
-          <button :class="btnSecondary + ' flex-1'" @click="showDeleteModal = false">取消</button>
-          <button :class="btnDestructive + ' flex-1'" @click="handleDeleteConfirm">确认</button>
-        </div>
-      </div>
-    </div>
+    <!-- 修复 P0-014：改用 V2.0 通用 DeleteWarningModal 组件（与 V1.1 DeleteWarningModal.tsx 行为一致） -->
+    <DeleteWarningModal
+      :is-open="showDeleteModal"
+      :selected-count="selectedRows.length"
+      @close="showDeleteModal = false"
+      @confirm="handleDeleteConfirm"
+    />
 
     <!-- Batch Edit Modal -->
     <TechSolutionBatchEditModal
@@ -169,6 +193,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTechSolutionStore } from '@/stores/modules/techSolution'
 import { useApprovalStore } from '@/stores/modules/approval'
+// 修复 P0-002 衍生：导出"种植模式"使用字典 label
+import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { enhancedApiClient } from '@/lib/apiClient'
 import { showAlert } from '@/lib/dialogService'
 import { FileCode, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
@@ -181,6 +207,8 @@ import TechSolutionEditModal from './modals/TechSolutionEditModal.vue'
 import TechSolutionCreateModal from './modals/TechSolutionCreateModal.vue'
 import TechSolutionBatchEditModal from './modals/TechSolutionBatchEditModal.vue'
 import ExportFormatModal from './modals/ExportFormatModal.vue'
+// 修复 P0-014：引入通用 DeleteWarningModal 组件
+import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
 
 // ==================== 样式常量 ====================
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -198,8 +226,29 @@ const exportFormats = [
 // ==================== Store ====================
 const techSolutionStore = useTechSolutionStore()
 const approvalStore = useApprovalStore()
+// 修复 P0-002 衍生：导出时使用字典 label 同步函数（与 V1.1 L483 `getDictItemName` 行为一致）
+const dictionaryStore = useDictionaryStore()
 const { solutions: techSolutions } = storeToRefs(techSolutionStore)
 const { fetchSolutions, addSolution, updateSolution, deleteSolutions } = techSolutionStore
+
+/**
+ * 同步获取字典项名称
+ * 字典 store 内部维护完整字典数据，可同步读取
+ * @param {string} category 字典分类
+ * @param {string} code 字典编码
+ * @returns {string} 字典项 name（找不到时返回原 code）
+ */
+function getDictItemNameSync(category: string, code: string): string {
+  if (!code) return ''
+  try {
+    const item = (dictionaryStore.dictionaries || []).find(
+      (d: any) => d.category === category && d.code === code
+    )
+    return item?.name || code
+  } catch {
+    return code
+  }
+}
 
 // ==================== 过滤器 ====================
 const filters = ref({
@@ -257,6 +306,10 @@ async function loadOperators() {
 onMounted(() => {
   loadOperators()
   fetchSolutions()
+  // 修复 P0-006 衍生：确保字典数据加载（与 V1.1 L117-124 setDictReady 门控对齐）
+  if (dictionaryStore.dictionaries.length === 0) {
+    dictionaryStore.loadDictionaries()
+  }
   document.addEventListener('visibilitychange', handleVisibilityChange)
   window.addEventListener('focus', handleFocus)
 })
@@ -301,24 +354,34 @@ const totalPages = computed(() => {
   return Math.ceil(filteredTechSolutions.value.length / pageSize.value) || 1
 })
 
+// 修复 P0-008（cycle 2 回归）：恢复 visiblePages 智能页码列表
+// 1:1 翻译 V1.1 Pagination.tsx L31-66 getPageNumbers：totalPages>7 时显示省略号
 const visiblePages = computed(() => {
   const current = currentPage.value
   const total = totalPages.value
   const pages: (number | string)[] = []
   const showEllipsis = total > 7
+
   if (!showEllipsis) {
     for (let i = 1; i <= total; i++) pages.push(i)
   } else {
+    // 始终显示第一页
     pages.push(1)
     if (current > 3) pages.push('...')
+    // 显示当前页附近的页码
     const start = Math.max(2, current - 1)
     const end = Math.min(total - 1, current + 1)
     for (let i = start; i <= end; i++) pages.push(i)
     if (current < total - 2) pages.push('...')
+    // 始终显示最后一页
     if (total > 1) pages.push(total)
   }
   return pages
 })
+
+// 修复 P0-008（cycle 2 回归）：pageSizeOptions 与 V1.1 Pagination.tsx L26 默认值 1:1 一致
+// V1.1 默认 pageSizeOptions = [10, 20, 50, 100]
+const pageSizeOptions = ref<number[]>([10, 20, 50, 100])
 
 // ==================== 搜索/重置 ====================
 const handleSearch = () => {
@@ -368,10 +431,14 @@ const editForm = ref({
   isValid: '有效',
   lastSubmitTime: '',
   planDetailFileName: '',
+  // 修复 P0-003：补回"关联生产批次号"字段（V1.1 EditForm L28 有此字段）
+  relatedBatchCode: '',
 })
 
 const editedTechCodes = ref<string[]>([])
 const editedTechs = ref<Record<string, any>>({})
+// 修复 I1 衍生：与 V1.1 L224 一致，保存批量编辑弹窗中当前选中的方案编号
+const selectedTechCode = ref('')
 
 const newPlanForm = ref({
   code: '',
@@ -423,6 +490,9 @@ const handleEditClick = (tech: any) => {
   selectedTech.value = tech
   const varietyInfo = tech.cropCode ? getVarietyByCode(tech.cropCode) : null
   selectedCropEdit.value = varietyInfo
+  // 修复 P0-012：保留原始 lastSubmitTime，不重置（与 V1.1 L344 一致）
+  // V1.1: `lastSubmitTime: tech.lastSubmitTime || ''`
+  // V2.0 原: `new Date().toISOString().split('T')[0]`（强制覆盖为当天，丢失原值）
   editForm.value = {
     title: tech.title,
     crop: tech.crop,
@@ -433,15 +503,17 @@ const handleEditClick = (tech: any) => {
     version: tech.version,
     content: tech.content,
     remarks: tech.remarks || '',
+    relatedBatchCode: tech.relatedBatchCode || '',
     planDetailFileName: tech.planDetailFileName || '',
     isValid: tech.isValid || '有效',
-    lastSubmitTime: new Date().toISOString().split('T')[0],
+    lastSubmitTime: tech.lastSubmitTime || '',
   }
   editModalOpen.value = true
 }
 
 const handleEditSubmit = async () => {
   if (!selectedTech.value) return
+  // 修复 P0-012：lastSubmitTime 仅在原值为空时兜底，不强制覆盖（与 V1.1 L344 一致）
   const updateData = {
     solutionTitle: editForm.value.title,
     cropName: editForm.value.crop,
@@ -452,11 +524,11 @@ const handleEditSubmit = async () => {
     version: editForm.value.version,
     content: editForm.value.content,
     remarks: editForm.value.remarks,
-    relatedBatchCode: selectedTech.value.relatedBatchCode || '',
-    planDetailFileName: selectedTech.value.planDetailFileName || '',
+    relatedBatchCode: editForm.value.relatedBatchCode || '',
+    planDetailFileName: editForm.value.planDetailFileName || '',
     priority: selectedTech.value.priority || 'normal',
     isValid: editForm.value.isValid,
-    lastSubmitTime: editForm.value.lastSubmitTime || new Date().toISOString().split('T')[0],
+    lastSubmitTime: editForm.value.lastSubmitTime || selectedTech.value.lastSubmitTime || '',
   }
   try {
     await updateSolution(selectedTech.value.id, updateData)
@@ -568,20 +640,19 @@ const handleConfirmExport = () => {
 
 const handleDoExport = async () => {
   const selectedData = techSolutions.value.filter((t: any) => selectedRows.value.includes(t.id))
-  const headers = ['方案编号', '关联生产计划批次', '方案标题', '作物品种', '种植模式', '适用范围', '版本', '编制人', '创建日期', '最后提交时间', '审核人', '审批状态', '状态', '方案是否有效']
+  // 修复 P0-001/P0-011 衍生：导出列与 V1.1 L477 一致（11 列，无自创的最后提交时间/审核人/审批状态）
+  const headers = ['方案编号', '关联生产计划批次', '方案标题', '作物品种', '种植模式', '适用范围', '版本', '编制人', '创建日期', '状态', '方案是否有效']
   const exportData = selectedData.map((row: any) => ({
     '方案编号': row.code,
     '关联生产计划批次': row.relatedBatchCode || '-',
     '方案标题': row.title,
     '作物品种': row.crop,
-    '种植模式': row.plantingMode,
+    // 修复 P0-002 衍生：种植模式做字典映射（与 V1.1 L483 一致）
+    '种植模式': getDictItemNameSync('planting_mode', row.plantingMode),
     '适用范围': row.stage,
     '版本': row.version,
     '编制人': row.author,
     '创建日期': row.createDate,
-    '最后提交时间': row.lastSubmitTime ? row.lastSubmitTime.slice(0, 10) : '-',
-    '审核人': row.approver,
-    '审批状态': row.approveStatus,
     '状态': row.status,
     '方案是否有效': row.isValid || '有效'
   }))
@@ -697,6 +768,13 @@ const openBatchEdit = () => {
     showAlert('请先选择要编辑的数据')
     return
   }
+  // 修复 I1 衍生：与 V1.1 L670-674 一致，打开批量编辑弹窗时设置默认选中的方案编号
+  const selectedTechsData = techSolutions.value.filter((t: any) =>
+    selectedRows.value.includes(t.id)
+  )
+  if (selectedTechsData.length > 0) {
+    selectedTechCode.value = selectedTechsData[0].code
+  }
   editedTechCodes.value = []
   editedTechs.value = {}
   showBatchEditModal.value = true
@@ -745,7 +823,8 @@ const cancelBatchEdit = () => {
 const downloadPlanDetail = (tech: any) => {
   const fileName = tech.planDetailFileName
   const isDocx = fileName.endsWith('.docx')
-  const content = `# ${tech.title}\n\n方案编号：${tech.code}\n作物品种：${tech.crop}\n种植模式：${tech.plantingMode}\n适用范围：${tech.stage}\n版本：${tech.version}\n编制人：${tech.author}\n创建日期：${tech.createDate}\n\n---方案内容---\n${tech.content}`
+  // 修复 P0-002 衍生：下载文件内容中"种植模式"使用字典 label（与 V1.1 L696 一致）
+  const content = `# ${tech.title}\n\n方案编号：${tech.code}\n作物品种：${tech.crop}\n种植模式：${getDictItemNameSync('planting_mode', tech.plantingMode)}\n适用范围：${tech.stage}\n版本：${tech.version}\n编制人：${tech.author}\n创建日期：${tech.createDate}\n\n---方案内容---\n${tech.content}`
   const blob = new Blob([content], {
     type: isDocx ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'text/markdown'
   })

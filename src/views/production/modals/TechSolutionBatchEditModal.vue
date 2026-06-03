@@ -10,12 +10,14 @@
       </div>
       <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
         <div class="space-y-4">
+          <!-- Info Banner（V1.1 L86-92）-->
           <div class="bg-blue-50 rounded-lg p-3">
             <p class="text-sm text-blue-800">
               已选择 <strong>{{ selectedRows.length }}</strong> 个技术方案进行批量编辑，
               已编辑 <strong>{{ editedTechCodes.length }}</strong> 个
             </p>
           </div>
+          <!-- Batch Selector（V1.1 L94-114）-->
           <div class="flex items-center gap-4 mb-3">
             <div class="flex-1">
               <label class="block text-sm font-medium text-gray-700 mb-1">选择技术方案编号</label>
@@ -29,11 +31,15 @@
               </el-select>
             </div>
           </div>
+          <!-- Edit Form（V1.1 L116-222）-->
+          <!-- 修复 P0-010：删除 V2.0 自创的"审核人/审批状态/状态"3 字段（V1.1 无此字段） -->
           <div v-if="currentTech" class="grid grid-cols-4 gap-3">
+            <!-- 方案编号 - 不可编辑（V1.1 L120-123）-->
             <div class="bg-gray-100 rounded-lg p-2">
               <div class="text-xs text-gray-500 mb-1">方案编号</div>
               <div class="text-sm font-medium text-gray-900">{{ currentTech.code }}</div>
             </div>
+            <!-- 版本 - 可编辑（V1.1 L126-133）-->
             <div class="bg-gray-50 rounded-lg p-2">
               <div class="text-xs text-gray-500 mb-1">版本</div>
               <input
@@ -42,6 +48,7 @@
                 :class="inputClass + ' h-7 py-0 text-xs'"
               />
             </div>
+            <!-- 方案标题 - 可编辑（V1.1 L136-143）-->
             <div class="bg-gray-50 rounded-lg p-2 col-span-2">
               <div class="text-xs text-gray-500 mb-1">方案标题</div>
               <input
@@ -50,6 +57,7 @@
                 :class="inputClass + ' h-7 py-0 text-xs'"
               />
             </div>
+            <!-- 作物品种 - 可编辑（V1.1 L146-163）-->
             <div class="bg-gray-50 rounded-lg p-2">
               <div class="text-xs text-gray-500 mb-1">作物品种</div>
               <el-select
@@ -60,16 +68,20 @@
                 <el-option v-for="crop in cropOptions" :key="crop" :label="crop" :value="crop" />
               </el-select>
             </div>
+            <!-- 种植模式 - 可编辑（V1.1 L166-174）-->
             <div class="bg-gray-50 rounded-lg p-2">
               <div class="text-xs text-gray-500 mb-1">种植模式</div>
+              <!-- 修复 P0-006：种植模式从字典动态加载 -->
               <el-select
                 :model-value="editedTechs[selectedTechCode]?.plantingMode ?? currentTech.plantingMode"
                 @update:model-value="(v: any) => updateField(selectedTechCode, 'plantingMode', v)"
                 class="w-full"
+                placeholder="选择种植模式"
               >
                 <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
               </el-select>
             </div>
+            <!-- 适用范围 - 可编辑（V1.1 L177-184）-->
             <div class="bg-gray-50 rounded-lg p-2">
               <div class="text-xs text-gray-500 mb-1">适用范围</div>
               <input
@@ -78,36 +90,17 @@
                 :class="inputClass + ' h-7 py-0 text-xs'"
               />
             </div>
+            <!-- 编制人 - 不可编辑（V1.1 L187-190）-->
             <div class="bg-gray-100 rounded-lg p-2">
               <div class="text-xs text-gray-500 mb-1">编制人</div>
               <div class="text-sm text-gray-700">{{ currentTech.author }}</div>
             </div>
+            <!-- 创建日期 - 不可编辑（V1.1 L193-196）-->
             <div class="bg-gray-100 rounded-lg p-2">
               <div class="text-xs text-gray-500 mb-1">创建日期</div>
               <div class="text-sm text-gray-700">{{ currentTech.createDate }}</div>
             </div>
-            <div class="bg-gray-100 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">审核人</div>
-              <div class="text-sm text-gray-700">{{ currentTech.approver }}</div>
-            </div>
-            <div class="bg-gray-100 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">审批状态</div>
-              <span :class="['inline-flex px-2 py-0.5 rounded-full text-xs font-medium', currentTech.approveStatus === '已审批' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700']">
-                {{ currentTech.approveStatus }}
-              </span>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">状态</div>
-              <el-select
-                :model-value="editedTechs[selectedTechCode]?.status ?? currentTech.status"
-                @update:model-value="(v: any) => updateField(selectedTechCode, 'status', v)"
-                class="w-full"
-              >
-                <el-option label="已发布" value="已发布" />
-                <el-option label="审核中" value="审核中" />
-                <el-option label="草稿" value="草稿" />
-              </el-select>
-            </div>
+            <!-- 方案详情文件 - 可编辑（V1.1 L199-220）-->
             <div class="bg-gray-50 rounded-lg p-2 col-span-4">
               <div class="text-xs text-gray-500 mb-1">方案详情文件</div>
               <div class="flex items-center gap-4">
@@ -128,6 +121,7 @@
               </div>
             </div>
           </div>
+          <!-- Footer Buttons（V1.1 L225-232）-->
           <div class="flex justify-end gap-3 pt-4 border-t">
             <button :class="btnSecondary" @click="emit('close')">取消</button>
             <button :class="btnDefault" @click="emit('save')">保存</button>
@@ -139,8 +133,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { Upload } from 'lucide-vue-next'
+import { PLANTING_MODE_FALLBACK } from '../constants/techSolutionScopes'
+// 修复 P0-006：从字典 store 加载种植模式选项
+import { useDictionaryStore } from '@/stores/modules/dictionary'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -149,7 +146,38 @@ const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-200 h-8
 const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded-md px-3 text-xs`
 const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
 
-const plantingModes = ['水培', '土培', '基质培', '雾培']
+// 修复 P0-006：种植模式从字典动态加载
+const dictionaryStore = useDictionaryStore()
+const plantingModes = ref<string[]>([...PLANTING_MODE_FALLBACK])
+
+async function loadPlantingModes() {
+  try {
+    if (dictionaryStore.dictionaries && dictionaryStore.dictionaries.length > 0) {
+      const list = dictionaryStore.dictionaries
+        .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
+        .map((d: any) => d.name)
+      if (list.length > 0) {
+        plantingModes.value = list
+        return
+      }
+    }
+  } catch {
+    // 静默降级
+  }
+  try {
+    await dictionaryStore.loadDictionaries()
+    const list = dictionaryStore.dictionaries
+      .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
+      .map((d: any) => d.name)
+    plantingModes.value = list.length > 0 ? list : [...PLANTING_MODE_FALLBACK]
+  } catch {
+    plantingModes.value = [...PLANTING_MODE_FALLBACK]
+  }
+}
+
+onMounted(() => {
+  loadPlantingModes()
+})
 
 interface Props {
   visible: boolean

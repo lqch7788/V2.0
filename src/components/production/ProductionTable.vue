@@ -296,25 +296,12 @@ import { Pencil, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight 
 import {
   batchStatusColors,
   batchStatusLabels,
+  executionStatusColors,
+  executionStatusLabels,
   PlanTypeLabels as planTypeLabels,
   PlanTypeColors as planTypeColors,
 } from './constants'
 import { showConfirm } from '@/lib/dialogService'
-
-// 执行状态颜色配置（V1.1 constants.ts 中存在，V2.0 暂未迁移）
-// 1:1 翻译自 V1.1 src/components/production/constants.ts
-const executionStatusColors = {
-  pending_execution: 'bg-blue-100 text-blue-700', // 待执行
-  in_progress: 'bg-orange-100 text-orange-700',   // 进行中
-  completed: 'bg-green-100 text-green-700',        // 已完成
-}
-
-// 执行状态文本配置
-const executionStatusLabels = {
-  pending_execution: '待执行',
-  in_progress: '进行中',
-  completed: '已完成',
-}
 
 /**
  * @typedef {import('./constants').PlanType} PlanType

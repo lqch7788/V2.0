@@ -10,6 +10,18 @@
       </div>
       <div v-if="tech" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
         <div class="space-y-4">
+          <!-- 修复 P0-004：按 V1.1 fields 配置 1:1 补回所有缺失/错位字段
+               V1.1 L172-214 字段配置：
+               Row1 方案编号 + 版本
+               Row2 方案标题(full)
+               Row3 作物品种 + 种植模式
+               Row4 适用范围 + 关联批次
+               Row5 编制人 + 创建日期
+               Row6 最后修改时间 + 最后提交时间
+               Row7 状态(Badge) + 方案是否有效
+               Row8 备注 + 方案详情文件
+               Row9 方案内容(full)
+          -->
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="text-sm font-medium text-gray-500">方案编号</label>
@@ -31,7 +43,8 @@
             </div>
             <div>
               <label class="text-sm font-medium text-gray-500">种植模式</label>
-              <p class="text-gray-900">{{ tech.plantingMode }}</p>
+              <!-- 与 V1.1 L183 一致：使用字典映射 -->
+              <p class="text-gray-900">{{ getDictItemNameSync('planting_mode', tech.plantingMode) }}</p>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-4">
@@ -40,8 +53,9 @@
               <p class="text-gray-900">{{ (tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : (tech.stage || '-') }}</p>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-500">备注</label>
-              <p class="text-gray-900">{{ tech.remarks || '-' }}</p>
+              <label class="text-sm font-medium text-gray-500">关联批次</label>
+              <!-- 修复 P0-004：补回"关联批次"字段（V1.1 L193） -->
+              <p class="text-gray-900">{{ tech.relatedBatchCode || '-' }}</p>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-4">
@@ -56,37 +70,47 @@
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-sm font-medium text-gray-500">审核人</label>
-              <p class="text-gray-900">{{ tech.approver }}</p>
+              <label class="text-sm font-medium text-gray-500">最后修改时间</label>
+              <!-- 修复 P0-004：补回"最后修改时间"字段（V1.1 L200） -->
+              <p class="text-gray-900">{{ tech.updateTime ? formatDateTime(tech.updateTime) : '-' }}</p>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-500">审批状态</label>
-              <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium mt-1', tech.approveStatus === '已审批' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700']">
-                {{ tech.approveStatus }}
-              </span>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-500">状态</label>
-              <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium mt-1', tech.statusClass === 'normal' ? 'bg-green-100 text-green-700' : tech.statusClass === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700']">
-                {{ tech.status }}
-              </span>
+              <label class="text-sm font-medium text-gray-500">最后提交时间</label>
+              <!-- 修复 P0-004：补回"最后提交时间"字段（V1.1 L201） -->
+              <p class="text-gray-900">{{ tech.lastSubmitTime ? formatDateTime(tech.lastSubmitTime) : '-' }}</p>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-sm font-medium text-gray-500">审批人</label>
-              <p class="text-gray-900">{{ tech.approver }}</p>
+              <label class="text-sm font-medium text-gray-500">状态</label>
+              <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium mt-1', tech.statusClass === 'normal' ? 'bg-green-100 text-green-700' : tech.statusClass === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700']">
+                {{ tech.status || '草稿' }}
+              </span>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-500">审批日期</label>
-              <p class="text-gray-900">{{ tech.approvalDate }}</p>
+              <label class="text-sm font-medium text-gray-500">方案是否有效</label>
+              <p class="text-gray-900">{{ tech.isValid || '有效' }}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-500">备注</label>
+              <!-- 修复 P0-004：补回"备注"字段（V1.1 L208） -->
+              <p class="text-gray-900">{{ tech.remarks || '-' }}</p>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-500">方案详情文件</label>
+              <!-- 修复 P0-004：补回"方案详情文件"字段（V1.1 L209） -->
+              <p class="text-gray-900">{{ tech.planDetailFileName || '-' }}</p>
             </div>
           </div>
           <div>
             <label class="text-sm font-medium text-gray-500">方案内容</label>
-            <div class="mt-2 p-4 bg-gray-50 rounded-lg text-gray-700 text-sm leading-relaxed">{{ tech.content }}</div>
+            <div class="mt-2 p-4 bg-gray-50 rounded-lg text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{{ tech.content }}</div>
           </div>
-          <!-- 审批记录（V1.1核心功能） -->
+          <!-- 修复 P0-004：删除 V2.0 自创的"审批人/审批日期"行（V1.1 无此字段）
+               V2.0 原 L75-84 的"审批人+审批日期"是 V2.0 端自创的多余字段，移除以严格 1:1 对齐 V1.1 -->
+          <!-- 审批记录（V1.1 核心功能）-->
           <div class="border-t pt-4 mt-4">
             <label class="text-sm font-medium text-gray-700 mb-3 block">审批记录</label>
             <div v-if="approvalsLoading" class="text-sm text-gray-400">加载中...</div>
@@ -122,6 +146,22 @@
 </template>
 
 <script setup lang="ts">
+// 修复 P0-002 衍生：详情弹窗也使用字典映射显示种植模式（与 V1.1 L183 一致）
+import { useDictionaryStore } from '@/stores/modules/dictionary'
+const dictionaryStore = useDictionaryStore()
+
+function getDictItemNameSync(category: string, code: string): string {
+  if (!code) return '-'
+  try {
+    const item = (dictionaryStore.dictionaries || []).find(
+      (d: any) => d.category === category && d.code === code
+    )
+    return item?.name || code
+  } catch {
+    return code
+  }
+}
+
 interface Props {
   visible: boolean
   tech: any
@@ -134,12 +174,12 @@ const emit = defineEmits<{
   'close': []
 }>()
 
-// 格式化时间（含时分秒）
+// 修复 P1-007：与 V1.1 L75 一致，格式化为 YYYY-MM-DD HH:mm（不含秒）
 const formatDateTime = (dateStr: string) => {
   if (!dateStr) return '-'
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
 // 审批操作类型中文映射

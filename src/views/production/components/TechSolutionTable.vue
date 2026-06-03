@@ -56,6 +56,10 @@
                 class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
             </th>
+            <!-- 修复 P0-001/P0-011：列顺序与 V1.1 1:1 对齐
+                 V1.1 列顺序: 方案编号/关联生产计划批次/方案标题/作物品种/种植模式/适用范围/版本/编制人/创建日期/状态/方案是否有效/备注/操作/方案详情文件
+                 V2.0 原顺序错误：含"最后提交时间/审核人/审批状态"3 列多余，且"备注/操作/方案详情文件"列错位
+            -->
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案编号</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">关联生产计划批次</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案标题</th>
@@ -65,14 +69,11 @@
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">版本</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">编制人</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">创建日期</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">最后提交时间</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审核人</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审批状态</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案是否有效</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案详情文件</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">方案详情文件</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-300">
@@ -97,20 +98,16 @@
               <button :class="btnGhost + ' text-green-700 hover:text-green-900 text-xs'" @click="emit('view', tech)">{{ tech.title }}</button>
             </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.crop }}</td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.plantingMode }}</td>
+            <!-- 修复 P0-002：种植模式字典映射（与 V1.1 L181 一致） -->
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+              {{ getDictItemNameSync('planting_mode', tech.plantingMode) }}
+            </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ (tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : (tech.stage || '-') }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.version }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.author }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.createDate }}</td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.lastSubmitTime ? tech.lastSubmitTime.slice(0, 10) : '-' }}</td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.approver }}</td>
             <td class="px-4 py-3 whitespace-nowrap">
-              <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', tech.approveStatus === '已审批' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700']">
-                {{ tech.approveStatus }}
-              </span>
-            </td>
-            <td class="px-4 py-3 whitespace-nowrap">
-              <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', tech.statusClass === 'normal' ? 'bg-green-100 text-green-700' : tech.statusClass === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700']">
+              <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', tech.status === '已发布' ? 'bg-green-100 text-green-700' : tech.status === '待审批' ? 'bg-amber-100 text-amber-700' : tech.status === '已拒绝' ? 'bg-red-100 text-red-700' : tech.status === '已作废' ? 'bg-gray-300 text-gray-600' : 'bg-gray-100 text-gray-700']">
                 {{ tech.status }}
               </span>
             </td>
@@ -119,17 +116,12 @@
                 {{ tech.isValid || '有效' }}
               </span>
             </td>
-            <td class="px-4 py-3 text-sm whitespace-nowrap">
-              <button v-if="tech.planDetailFileName" :class="btnGhost + ' text-blue-600 hover:text-blue-800 text-sm'" :title="'点击下载方案详情'" @click="emit('download', tech)">
-                {{ tech.planDetailFileName }}
-              </button>
-              <span v-else class="text-gray-400">-</span>
-            </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap max-w-xs truncate" :title="tech.remarks">
               {{ tech.remarks || '-' }}
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
               <div class="flex items-center gap-1">
+                <!-- V1.1 L222-242：作废时仅显示"删除"；非作废时显示"编辑"和"删除" -->
                 <button v-if="tech.isValid !== '作废'" :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'" title="编辑" @click="emit('edit', tech)">
                   <Edit class="w-4 h-4" />
                 </button>
@@ -137,6 +129,12 @@
                   <Trash2 class="w-4 h-4" />
                 </button>
               </div>
+            </td>
+            <td class="px-4 py-3 text-sm whitespace-nowrap">
+              <button v-if="tech.planDetailFileName" :class="btnGhost + ' text-blue-600 hover:text-blue-800 text-sm'" :title="'点击下载方案详情'" @click="emit('download', tech)">
+                {{ tech.planDetailFileName }}
+              </button>
+              <span v-else class="text-gray-400">-</span>
             </td>
           </tr>
         </tbody>
@@ -155,6 +153,9 @@
 
 <script setup lang="ts">
 import { Plus, Edit, Trash2, Delete, Download } from 'lucide-vue-next'
+// 修复 P0-002：从数据字典 store 导入同步字典映射函数
+// V1.1 中种植模式列显示的是字典 label（如"水培"），而非 raw value
+import { useDictionaryStore } from '@/stores/modules/dictionary'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -205,4 +206,25 @@ const emit = defineEmits<{
   'cancelBatch': []
   'cancelExport': []
 }>()
+
+// 修复 P0-002：同步字典映射（与 V1.1 `getDictItemName('planting_mode', ...)` 行为一致）
+// 字典 store 内部维护了 dictionaries 列表，可同步查询
+const dictionaryStore = useDictionaryStore()
+
+/**
+ * 同步获取字典项名称
+ * V1.1 在 store 中维护完整字典数据，getDictItemName 为同步函数（直接读取内存）
+ * V2.0 中字典 store 已加载完整数据，因此可同步读取；如加载失败则降级为 code 本身
+ */
+function getDictItemNameSync(category: string, code: string): string {
+  if (!code) return ''
+  try {
+    const item = (dictionaryStore.dictionaries || []).find(
+      (d: any) => d.category === category && d.code === code
+    )
+    return item?.name || code
+  } catch {
+    return code
+  }
+}
 </script>
