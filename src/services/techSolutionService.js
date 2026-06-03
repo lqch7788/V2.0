@@ -116,17 +116,33 @@ export async function resetTechSolutions() {
 
 /**
  * 获取技术方案的审批记录
+ * 修复 P0-007：改回 V1.1 专用端点 /api/approvals/by-business/tech_solution/:id
+ * V2.0 原实现为 GET /approvals + 客户端 filter（全量拉取+内存过滤，破坏专用端点语义）
+ *
  * @param {string} techSolutionId - 技术方案ID
  * @returns {Promise<Array>} 审批记录数组
  */
 export async function getTechSolutionApprovals(techSolutionId) {
-  // 从所有审批中筛选技术方案相关的记录
-  const allApprovals = await enhancedApiClient.get('/approvals')
-  if (!Array.isArray(allApprovals)) return []
-
-  // 筛选与技术方案相关的审批
-  return allApprovals.filter(approval =>
-    approval.businessLink?.type === 'tech_solution' &&
-    approval.businessLink?.requestId === techSolutionId
-  )
+  try {
+    const response = await fetch(
+      `/api/approvals/by-business/tech_solution/${techSolutionId}`
+    )
+    const result = await response.json()
+    if (result.success && Array.isArray(result.data)) {
+      return result.data.map((item) => ({
+        id: item.id,
+        code: item.code,
+        title: item.title,
+        status: item.status,
+        currentStep: item.currentStep,
+        totalSteps: item.totalSteps,
+        records: item.records || [],
+        createdAt: item.created_at,
+      }))
+    }
+    return []
+  } catch (error) {
+    console.error('获取技术方案审批记录失败:', error)
+    return []
+  }
 }

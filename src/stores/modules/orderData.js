@@ -79,10 +79,16 @@ export const useOrderDataStore = defineStore('orderData', () => {
     orders.value = orders.value.filter(o => !ids.includes(o.id))
   }
 
-  // 同步待处理订单（V1.1/V2.0 共用：与 IndexedDB 离线队列一致）
+  // 同步待处理订单（对齐 V1.1 useOrderDataStore.ts:99-101：调用后端同步离线订单队列）
   const syncPending = async () => {
-    // 当前架构无离线队列，直接返回成功
-    return { success: 0, failed: 0 }
+    try {
+      const result = await orderService.syncPendingOrders()
+      return result || { success: 0, failed: 0 }
+    } catch (err) {
+      // 后端可能没有 /crop-orders/sync-pending 接口，404/网络错误时降级为 0，不影响页面主流程
+      console.error('同步待处理订单失败:', err)
+      return { success: 0, failed: 0 }
+    }
   }
 
   return {

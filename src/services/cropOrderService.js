@@ -150,4 +150,18 @@ export async function getOrderStats() {
   return null
 }
 
+/**
+ * 同步待处理订单（V1.1 行为对齐：useOrderDataStore.ts:99-101 调用此方法触发后端同步）
+ * 当前架构无离线队列，后端若无该接口会返回 404，由调用方 catch 后降级为 {success:0, failed:0}
+ * 返回结构：{ success: number, failed: number }
+ */
+export async function syncPendingOrders() {
+  const result = await enhancedApiClient.post('/crop-orders/sync-pending', {})
+  // 后端正常返回 { success, failed }，缺失字段时降级为 0
+  return {
+    success: Number(result?.success) || 0,
+    failed: Number(result?.failed) || 0,
+  }
+}
+
 export { CropOrderStatus }
