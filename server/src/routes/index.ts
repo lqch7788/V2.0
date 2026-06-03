@@ -169,8 +169,8 @@ router.use('/approvals', requireAuth, approvalRouter);
 // 审批联动路由 - 需要认证
 router.use('/approval-linkage', requireAuth, approvalLinkageRouter);
 
-// 操作日志路由 - 需要认证
-router.use('/operation-logs', requireAuth, operationLogRouter);
+// 操作日志路由 - 免认证（系统设置基础数据，登录前后都可读）
+router.use('/operation-logs', operationLogRouter);
 
 // 订单路由 - 需要认证
 router.use('/crop-orders', requireAuth, cropOrderRouter);
@@ -253,14 +253,14 @@ router.use('/salary-budget', requireAuth, salaryBudgetRouter);
 // 施肥管理路由 - V10.0
 router.use('/fertilizer', requireAuth, fertilizerRouter);
 
-// 肥料知识库路由 - V12.0
-router.use('/fertilizer-library', requireAuth, fertilizerLibraryRouter);
+// 肥料知识库路由 - V12.0（免认证：系统设置基础数据）
+router.use('/fertilizer-library', fertilizerLibraryRouter);
 
-// 药剂知识库路由 - V2.0
-router.use('/pesticide-library', requireAuth, pesticideLibraryRouter);
+// 药剂知识库路由 - V2.0（免认证：系统设置基础数据）
+router.use('/pesticide-library', pesticideLibraryRouter);
 
-// 病虫害字典路由 - V12.0
-router.use('/pest-disease-dict', requireAuth, pestDiseaseDictRouter);
+// 病虫害字典路由 - V12.0（免认证：系统设置基础数据）
+router.use('/pest-disease-dict', pestDiseaseDictRouter);
 
 // 每日计划路由 - 需要认证
 router.use('/daily-plans', requireAuth, dailyPlansRouter);
