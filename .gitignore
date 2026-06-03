@@ -78,3 +78,10 @@ login-flow-test.js
 
 # Claude configuration
 .claude/
+
+# Speckit (spec-driven development toolkit)
+.specify/
+
+# V1.1→V2.0 sync backup files
+*.db.before-sync
+*.before-sync
