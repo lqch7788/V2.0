@@ -85,9 +85,12 @@ const LEVEL_CONFIG = {
 
 const props = defineProps({
   // 审批级别
+  // P0-005 修复：使用字符串字面量 'standard' 替代 ApprovalLevel.STANDARD 引用
+  // 原因：Vue SFC 编译器/Vite 在某些环境下不支持 defineProps default 引用
+  //       局部 const 变量。改用字面量更安全（值与 ApprovalLevel.STANDARD 完全一致）。
   level: {
     type: [String, Number],
-    default: ApprovalLevel.STANDARD
+    default: 'standard'
   },
   // 是否显示图标
   showIcon: {
