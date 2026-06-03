@@ -94,6 +94,8 @@ function transformSingle(item) {
     priorityText: item.priorityText || '中',
     status: item.status || 'draft',
     statusText: item.statusText || '草稿',
+    // ✅ 修复 P0-D2: 显式映射 executionStatus（V1.1 L119），未提供时默认 pending_execution
+    executionStatus: item.executionStatus || item.execution_status || 'pending_execution',
     itemCount: item.itemCount || 0,
     items: Array.isArray(item.items) ? item.items.map(transformItem) : [],
     remarks: item.remarks || '',

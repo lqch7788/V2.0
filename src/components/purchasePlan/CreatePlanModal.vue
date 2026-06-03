@@ -252,11 +252,13 @@
                   />
                 </td>
                 <td class="px-1 py-1.5 whitespace-nowrap">
-                  <el-input
+                  <!-- ✅ 修复 P0-7: 物料名称改用 MaterialAutocomplete 组件（V1.1 CreatePlanModal.tsx L551-565 1:1 翻译） -->
+                  <MaterialAutocomplete
                     :model-value="item.materialName"
-                    placeholder="名称"
-                    size="small"
+                    placeholder="输入名称搜索物料库"
+                    not-found-mode="hide"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'materialName', v)"
+                    @select="(m) => handleMaterialSelect(item.id, m)"
                   />
                 </td>
                 <td class="px-1 py-1.5 whitespace-nowrap">
@@ -358,6 +360,8 @@ import { usePlantingStore } from '@/stores/modules/planting'
 import { getNextPurchaseApplicationCode } from '@/services/apiPurchasePlanService'
 import { getDictionaries } from '@/services/dictionaryService'
 import { showAlert } from '@/lib/dialogService'
+// ✅ 修复 P0-7: 引入物料自动补全组件
+import MaterialAutocomplete from '@/components/common/MaterialAutocomplete.vue'
 
 // ==================== JSDoc 类型定义 ====================
 
@@ -661,6 +665,25 @@ function handleUpdateItem(id, field, value) {
       updated.estimatedTotalPrice = Number(updated.quantity) * Number(updated.estimatedPrice)
     }
     return updated
+  })
+  emit('items-change', next)
+}
+
+/** ✅ 修复 P0-7: 选中物料后自动填充主数据字段（V1.1 L159-175 1:1 翻译） */
+function handleMaterialSelect(id, m) {
+  const next = props.createItems.map((item) => {
+    if (item.id !== id) return item
+    return {
+      ...item,
+      materialId: String(m.id),
+      materialCode: m.code,
+      materialName: m.name,
+      category: m.category || '',
+      specification: m.specification || '',
+      unit: m.unit || '',
+      barcode: m.barcode || '',
+      supplier: m.supplier || '',
+    }
   })
   emit('items-change', next)
 }

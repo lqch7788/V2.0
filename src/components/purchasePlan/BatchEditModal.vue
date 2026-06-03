@@ -98,7 +98,21 @@
               :label="opt.label"
               :value="opt.value"
             />
+            <!-- ✅ 修复 P0-11: 补 "其他" option（V1.1 L309-316 1:1 翻译） -->
+            <el-option value="other" label="其他" />
           </el-select>
+        </div>
+
+        <!-- ✅ 修复 P0-12: 关联批次=其他时显示"其他说明"字段（V1.1 L320-330 1:1 翻译） -->
+        <div v-if="(currentEditingPlan?.relatedBatchCode || '') === 'other'" class="col-span-3">
+          <label class="text-xs text-gray-700">其他说明</label>
+          <el-input
+            :model-value="currentEditingPlan?.otherBatchReason || ''"
+            placeholder="请说明采购原因，如：日常用具、劳保用品等"
+            size="small"
+            style="width: 100%"
+            @update:model-value="(v) => handleCurrentEditingChange('otherBatchReason', v)"
+          />
         </div>
 
         <!-- 第2行：申请人 + 申请部门 + 需求日期 -->
@@ -149,6 +163,18 @@
           />
         </div>
 
+        <!-- ✅ 修复 P0-13: 申请日期字段（V1.1 L367-374 1:1 翻译） -->
+        <div>
+          <label class="text-xs text-gray-700">申请日期</label>
+          <el-date-picker
+            v-model="batchEditData.applyDate"
+            type="date"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+            size="small"
+          />
+        </div>
+
         <!-- 第3行：优先级 + 状态（只读不可编辑）+ 备注 -->
         <div>
           <label class="text-xs text-gray-700">优先级</label>
@@ -157,6 +183,18 @@
             <el-option label="高" value="high" />
             <el-option label="中" value="normal" />
             <el-option label="低" value="low" />
+          </el-select>
+        </div>
+        <!-- ✅ 修复 P0-14: 执行状态字段（V1.1 L404-416 1:1 翻译） -->
+        <div>
+          <label class="text-xs text-gray-700">执行状态</label>
+          <el-select v-model="batchEditData.executionStatus" placeholder="请选择" style="width: 100%" size="small">
+            <el-option
+              v-for="o in PURCHASE_EXECUTION_STATUS_OPTIONS"
+              :key="o.value"
+              :label="o.label"
+              :value="o.value"
+            />
           </el-select>
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
@@ -284,6 +322,8 @@ import { ArrowDown, Plus, Delete } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { usePlantingStore } from '@/stores/modules/planting'
+// ✅ 修复 P0-14: 引入执行状态下拉选项
+import { PURCHASE_EXECUTION_STATUS_OPTIONS } from '@/types/purchase'
 
 // ==================== JSDoc 类型 ====================
 
@@ -301,7 +341,19 @@ const props = defineProps({
   currentEditingPlan: { type: Object, default: null },
   batchEditData: {
     type: Object,
-    default: () => ({ purchaseType: '', priority: '', requiredDate: '', remark: '' }),
+    // ✅ 修复 P0-15: 10 字段默认值（V1.1 1:1 翻译）
+    default: () => ({
+      purchaseType: '',
+      relatedBatchCode: '',
+      otherBatchReason: '',
+      applicant: '',
+      applicantDepartment: '',
+      applyDate: '',
+      requiredDate: '',
+      priority: '',
+      remark: '',
+      executionStatus: '',
+    }),
   },
   batchEditItems: { type: Array, default: () => [] },
   batchSelectOpen: { type: Boolean, default: false },
@@ -351,12 +403,15 @@ onMounted(() => {
   }
 })
 
-/** 1:1 翻译 V1.1 departmentOptions */
-const departmentOptions = computed(() =>
-  dictionaries.value
-    .filter((d) => (d.categoryCode || d.category_code || d.category) === 'department')
-    .map((d) => ({ value: d.dictLabel || d.name, label: d.dictLabel || d.name }))
-)
+/** ✅ 修复 P0-18: 部门选项改回 V1.1 硬编码 4 项（V1.1 L188-196 1:1 翻译）
+ *  原 V2.0 用字典查询会导致：1) 与 CreatePlanModal 不一致 2) 与 V1.1 行为不一致
+ *  V1.1 注释：部门选项与 CreatePlanModal 保持一致（硬编码 4 项，DB 字典无 department 分类） */
+const departmentOptions = [
+  { value: '生产部', label: '生产部' },
+  { value: '后勤部', label: '后勤部' },
+  { value: '办公室', label: '办公室' },
+  { value: '技术部', label: '技术部' },
+]
 
 /** 1:1 翻译 V1.1 batchOptions */
 const batchOptions = computed(() =>
@@ -416,14 +471,20 @@ function isPlanEdited(code) {
   return props.editedPlans[code] !== undefined
 }
 
-/** 1:1 翻译 V1.1 handlePlanSelect */
+/** ✅ 修复 P0-15 衍生: 切换批次号时同步 10 字段（V1.1 L213-229 1:1 翻译） */
 function handlePlanSelect(plan) {
   emit('selectedPlanCodeChange', plan.purchaseApplicationCode)
   emit('currentEditingPlanChange', plan)
   emit('batchEditDataChange', 'purchaseType', plan.purchaseType)
-  emit('batchEditDataChange', 'priority', plan.priority)
+  emit('batchEditDataChange', 'relatedBatchCode', plan.relatedBatchCode || '')
+  emit('batchEditDataChange', 'otherBatchReason', plan.otherBatchReason || '')
+  emit('batchEditDataChange', 'applicant', plan.applicant || '')
+  emit('batchEditDataChange', 'applicantDepartment', plan.applicantDepartment || '')
+  emit('batchEditDataChange', 'applyDate', plan.applyDate || '')
   emit('batchEditDataChange', 'requiredDate', plan.requiredDate || '')
+  emit('batchEditDataChange', 'priority', plan.priority)
   emit('batchEditDataChange', 'remark', plan.remark || '')
+  emit('batchEditDataChange', 'executionStatus', plan.executionStatus || 'pending_execution')
   emit('batchEditItemsChange', plan.items || [])
   emit('batchSelectOpenChange', false)
 }

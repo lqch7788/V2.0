@@ -152,6 +152,8 @@
             >
               状态<span v-if="sortConfig?.field === 'status'" class="ml-1">{{ sortConfig.direction === 'asc' ? '↑' : '↓' }}</span>
             </th>
+            <!-- ✅ 修复 P0-1: 补"执行状态"列（V1.1 L288 1:1 翻译） -->
+            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">执行状态</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
           </tr>
         </thead>
@@ -215,9 +217,16 @@
                   {{ getOverdueAlert(plan).level === 'overdue' ? '🔴逾期' : '⚠️将到期' }}
                 </span>
               </td>
+              <!-- ✅ 修复 P0-1: 补"执行状态"列（V1.1 L350-352 1:1 翻译） -->
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span :class="['inline-flex px-2 py-0.5 rounded-full text-xs font-medium', executionStatusClass(plan.executionStatus)]">
+                  {{ executionStatusText(plan.executionStatus) }}
+                </span>
+              </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-1">
-                  <template v-if="plan.status !== 'completed' && plan.status !== 'purchasing'">
+                  <!-- ✅ 修复 P0-6: 归档条件改用 executionStatus（V1.1 L296 / L323 / L380-382） -->
+                  <template v-if="plan.executionStatus !== 'completed' && plan.executionStatus !== 'cancelled'">
                     <el-button
                       link
                       type="primary"
@@ -243,6 +252,7 @@
             </tr>
             <!-- 展开的物料明细行 -->
             <tr v-if="expandedRows.has(plan.id)" class="bg-blue-50/50">
+              <!-- ✅ 修复 P0-1: colspan=12（V1.1 L389 colSpan=12，V2.0 加"执行状态"列后保持 12 列） -->
               <td :colspan="12" class="px-4 py-4">
                 <div class="text-sm font-medium text-gray-700 mb-3">
                   物料明细（共 {{ plan.items?.length || 0 }} 项）
@@ -427,12 +437,13 @@ const paginatedData = computed(() => {
 })
 
 /**
- * 行 class：在批量编辑/删除模式下，已归档（completed/purchasing）行显示为灰色
+ * 行 class：在批量编辑/删除模式下，已归档（completed/cancelled 按 executionStatus）行显示为灰色
+ * ✅ 修复 P0-6: 归档条件改用 executionStatus
  * @param {PurchasePlan} plan
  * @returns {string}
  */
 function rowClass(plan) {
-  const isArchived = plan.status === 'completed' || plan.status === 'purchasing'
+  const isArchived = plan.executionStatus === 'completed' || plan.executionStatus === 'cancelled'
   const inBatch = props.batchEditMode || props.batchDeleteMode
   if (inBatch && isArchived) {
     return 'transition-colors bg-gray-100 hover:bg-gray-100'
@@ -442,12 +453,13 @@ function rowClass(plan) {
 
 /**
  * 行是否在批量模式下被禁用（不允许选择）
+ * ✅ 修复 P0-6: 归档条件改用 executionStatus
  * @param {PurchasePlan} plan
  * @returns {boolean}
  */
 function isRowDisabled(plan) {
   if (!props.batchEditMode && !props.batchDeleteMode) return false
-  return plan.status === 'completed' || plan.status === 'purchasing'
+  return plan.executionStatus === 'completed' || plan.executionStatus === 'cancelled'
 }
 
 /**
@@ -464,6 +476,7 @@ function priorityClass(priority) {
 
 /**
  * 状态 Badge class（V1.1 一致配色）
+ * ✅ 修复 P0-10: 加 'rejected' 分支（V1.1 L92 'bg-red-100 text-red-700'）
  * @param {string} status
  * @returns {string}
  */
@@ -472,7 +485,33 @@ function statusClass(status) {
   if (status === 'purchasing') return 'bg-purple-100 text-purple-700'
   if (status === 'pending') return 'bg-amber-100 text-amber-700'
   if (status === 'approved') return 'bg-blue-100 text-blue-700'
+  if (status === 'rejected') return 'bg-red-100 text-red-700'  // ✅ 修复 P0-10
   return 'bg-gray-100 text-gray-600'
+}
+
+/**
+ * 执行状态 Badge class（V1.1 ExecutionStatusBadge 1:1 翻译）
+ * @param {string} executionStatus
+ * @returns {string}
+ */
+function executionStatusClass(executionStatus) {
+  if (executionStatus === 'completed') return 'bg-green-100 text-green-700'
+  if (executionStatus === 'purchasing') return 'bg-purple-100 text-purple-700'
+  if (executionStatus === 'pending_execution') return 'bg-amber-100 text-amber-700'
+  if (executionStatus === 'cancelled') return 'bg-gray-100 text-gray-600'
+  return 'bg-amber-100 text-amber-700'
+}
+
+/**
+ * 执行状态显示文本（V1.1 PURCHASE_EXECUTION_STATUS_TEXT 1:1 翻译）
+ * @param {string} executionStatus
+ * @returns {string}
+ */
+function executionStatusText(executionStatus) {
+  if (executionStatus === 'completed') return '已完成'
+  if (executionStatus === 'purchasing') return '采购中'
+  if (executionStatus === 'cancelled') return '已取消'
+  return '待执行'  // pending_execution 或未设置
 }
 
 /**

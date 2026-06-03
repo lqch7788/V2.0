@@ -122,3 +122,31 @@ export function calculateOverdueAlert(plan) {
     }
   }
 }
+
+// ============================================================
+// 采购执行状态（V1.1 types/purchase.ts L329-350 1:1 翻译）
+// 修复 P0-2 / P0-11-14: 详情弹窗和批量编辑弹窗需要这些枚举
+// ============================================================
+/** 采购执行状态显示文本（4 档） */
+export const PURCHASE_EXECUTION_STATUS_TEXT = {
+  pending_execution: '待执行',
+  purchasing: '采购中',
+  completed: '已完成',
+  cancelled: '已取消',
+}
+
+/** 采购执行状态 badge 样式（Tailwind 类） */
+export const PURCHASE_EXECUTION_STATUS_STYLE = {
+  pending_execution: { bg: 'bg-amber-100', text: 'text-amber-700' },
+  purchasing: { bg: 'bg-purple-100', text: 'text-purple-700' },
+  completed: { bg: 'bg-green-100', text: 'text-green-700' },
+  cancelled: { bg: 'bg-gray-100', text: 'text-gray-600' },
+}
+
+/** 4 档下拉选项（用于详情弹窗编辑 / 批量编辑） */
+export const PURCHASE_EXECUTION_STATUS_OPTIONS = [
+  { value: 'pending_execution', label: '待执行' },
+  { value: 'purchasing', label: '采购中' },
+  { value: 'completed', label: '已完成' },
+  { value: 'cancelled', label: '已取消' },
+]

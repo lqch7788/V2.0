@@ -86,7 +86,9 @@
     <PlanDetailModal
       :visible="showDetailModal"
       :selected-plan-detail="selectedPlanDetail"
+      :approval-records="selectedPlanApprovals"
       @close="handleCloseDetail"
+      @execution-status-changed="handleExecutionStatusChanged"
     />
 
     <!-- 删除确认弹窗 -->
@@ -140,6 +142,7 @@
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\PurchasePlanPage.tsx
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 
@@ -157,8 +160,8 @@ import { usePurchasePlanStore } from '@/stores/modules/purchasePlan'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { calculateOverdueAlert } from '@/types/purchase'
 import { submitPurchaseApproval } from '@/services/approvalSubmitService'
+import { getNextPurchaseApplicationCode } from '@/services/apiPurchasePlanService'
 import { showAlert } from '@/lib/dialogService'
-// getNextPurchaseApplicationCode: apiPurchasePlanService 未导出（L0 任务 4 implementer 报告），用 try/catch 兜底
 
 // ==================== 类型定义（JSDoc） ====================
 
@@ -204,21 +207,34 @@ const users = computed(() => userStore.users || [])
 /** 1:1 翻译 V1.1 useUserStore((state) => state.loadUsers) */
 const loadUsers = userStore.loadUsers
 
-/** 1:1 翻译 V1.1 usePurchasePlanStore 解构 */
+/** 1:1 翻译 V1.1 usePurchasePlanStore 解构
+ *  ✅ 修复 P0-EMERGENCY（页面空白根因）: use storeToRefs 保留 getter ComputedRef 的响应式
+ *  原代码 `const { getPlansWithStatus } = store` 会丢失响应式（Pinia setup store 解构自动 unwrap，
+ *  导致 getPlansWithStatus 是 array 而非 ComputedRef，purchasePlansData.value 永远 undefined） */
 const {
   plans: rawPlans,
   isLoading,
+  statusUpdates,
+  getPlansWithStatus,
+} = storeToRefs(purchasePlanStore)
+const {
   fetchPlans,
   addPlan,
   updatePlan,
   deletePlan,
   deletePlans,
-  getPlansWithStatus,
-  statusUpdates,
 } = purchasePlanStore
 
-/** 合并 API 数据与审批状态更新（1:1 翻译 V1.1 getPlansWithStatus） */
+/** 合并 API 数据与审批状态更新（1:1 翻译 V1.1 getPlansWithStatus）
+ *  getPlansWithStatus 是 ComputedRef（PURCHASE_PLAN 数组），后续 .value 访问模式保持一致 */
 const purchasePlansData = getPlansWithStatus
+
+// ==================== 1:1 翻译 V1.1 本地时间函数（避免 UTC 跨天）====================
+/** 返回本地时区 YYYY-MM-DD，V1.1 L131-134 1:1 翻译 */
+const todayLocal = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 // ==================== 1:1 翻译 V1.1 useEffect ====================
 // V1.1: useEffect(() => { if (users.length === 0) loadUsers() }, [users.length, loadUsers])
@@ -252,6 +268,14 @@ const lastApprovalStatusSum = computed(() => {
 watch([approvalVersion, lastApprovalStatusSum], () => {
   if (approvalVersion.value === 0) return
   fetchPlans()
+})
+
+/** ✅ 修复 P0-EX-3: 进入采购计划页面时主动加载审批列表（V1.1 L86-91 1:1 翻译）
+ *  用于详情弹窗显示审批记录（避免首次打开时审批 store 为空触发 API 拉取） */
+onMounted(() => {
+  if (typeof approvalStore.fetchApprovals === 'function') {
+    approvalStore.fetchApprovals()
+  }
 })
 
 // ==================== 筛选状态 ====================
@@ -311,6 +335,9 @@ const setBatchSelectOpen = (v) => { batchSelectOpen.value = v }
 /** @type {import('vue').Ref<PurchasePlan | null>} */
 const selectedPlanDetail = ref(null)
 
+/** ✅ 修复 P0-3: 详情弹窗审批记录（V1.1 L128 1:1 翻译） */
+const selectedPlanApprovals = ref([])
+
 // ==================== 创建表单状态 ====================
 /**
  * @typedef {Object} CreateFormState
@@ -334,7 +361,8 @@ const createForm = ref({
   purchaseType: 'production',
   applicant: localStorage.getItem('username') || '',
   applicantDepartment: localStorage.getItem('departmentName') || '生产部',
-  applyDate: new Date().toISOString().split('T')[0],
+  // ✅ 修复 P0-8: 用本地时区生成日期（避免 UTC 跨天）
+  applyDate: todayLocal(),
   requiredDate: '',
   priority: 'normal',
   remark: '',
@@ -354,10 +382,17 @@ const selectedPlanCode = ref('')
 /** @type {import('vue').Ref<PurchasePlan | null>} */
 const currentEditingPlan = ref(null)
 const batchEditData = ref({
+  // ✅ 修复 P0-15: 扩展为 10 字段（V1.1 L160-171 1:1 翻译）
   purchaseType: '',
-  priority: '',
+  relatedBatchCode: '',
+  otherBatchReason: '',
+  applicant: '',
+  applicantDepartment: '',
+  applyDate: '',
   requiredDate: '',
+  priority: '',
   remark: '',
+  executionStatus: '',
 })
 /** @type {import('vue').Ref<PurchasePlanItem[]>} */
 const batchEditItems = ref([])
@@ -473,7 +508,8 @@ async function handleOpenCreateModal() {
     purchaseType: 'production',
     applicant: localStorage.getItem('username') || '',
     applicantDepartment: localStorage.getItem('departmentName') || '生产部',
-    applyDate: new Date().toISOString().split('T')[0],
+    // ✅ 修复 P0-8: 用本地时区生成日期（避免 UTC 跨天）
+    applyDate: todayLocal(),
     requiredDate: '',
     priority: 'normal',
     remark: '',
@@ -571,6 +607,10 @@ async function handleCreateSubmit() {
       } else {
         await showAlert('采购计划已创建并提交审批')
       }
+
+      // ✅ 修复 P0-16: 创建后重新拉取列表（V1.1 L366-367 1:1 翻译）
+      //  确保自动审批/普通审批的状态即时反映
+      await fetchPlans()
     }
   } catch (error) {
     await showAlert('创建采购计划失败，请重试')
@@ -762,27 +802,97 @@ function handleCloseDetail() {
 }
 
 // ==================== 查看详情 ====================
-function handleViewDetail(plan) {
+/** 1:1 翻译 V1.1 L562-571: 合并多个审批单的 records 并按时间升序 */
+function extractAllRecords(approvals) {
+  const all = []
+  approvals.forEach((a) => {
+    const records = a.records || []
+    if (Array.isArray(records)) all.push(...records)
+  })
+  return all.sort((x, y) => String(x.actionTime || '').localeCompare(String(y.actionTime || '')))
+}
+
+/** ✅ 修复 P0-3: 异步加载关联审批 + 自动审批合成记录（V1.1 L573-634 1:1 翻译） */
+async function handleViewDetail(plan) {
   selectedPlanDetail.value = plan
+  selectedPlanApprovals.value = []
   setShowDetailModal(true)
+  try {
+    // 1. 先尝试从 store 缓存拿
+    let matched = (approvalStore.approvals || []).filter((a) => {
+      const link = a.businessLink
+      if (!link) return false
+      return link.type === 'purchase' && (
+        link.requestId === plan.id ||
+        link.requestCode === plan.purchaseApplicationCode ||
+        link.requestId === plan.planCode
+      )
+    })
+    // 2. 缓存未命中则从 API 拉取
+    if (matched.length === 0) {
+      try {
+        const { enhancedApiClient } = await import('@/lib/apiClient')
+        const allApprovals = await enhancedApiClient.get('/approvals')
+        matched = (allApprovals || []).filter((a) => {
+          const link = a.businessLink || a.business_link
+          if (!link) return false
+          const linkObj = typeof link === 'string' ? JSON.parse(link) : link
+          return linkObj.type === 'purchase' && (
+            linkObj.requestId === plan.id ||
+            linkObj.requestCode === plan.purchaseApplicationCode ||
+            linkObj.requestId === plan.planCode
+          )
+        })
+      } catch (apiErr) {
+        console.warn('API 拉取审批单失败:', apiErr)
+      }
+    }
+    // 3. 仍然未命中 + 计划已 approved → 自动审批合成记录
+    if (matched.length === 0 && plan.status === 'approved') {
+      matched = [{
+        records: [{
+          approverId: 'system',
+          approverName: '系统',
+          action: 'approve',
+          comment: '金额在免审批阈值内，已自动通过',
+          actionTime: plan.updatedAt || plan.createdAt || new Date().toISOString(),
+        }],
+      }]
+    }
+    selectedPlanApprovals.value = extractAllRecords(matched)
+  } catch (err) {
+    console.error('加载采购计划审批记录失败:', err)
+  }
+}
+
+/** ✅ 修复 P0-2 配套: 详情弹窗改了执行状态 → 同步更新 + 触发重拉 */
+function handleExecutionStatusChanged(updated) {
+  selectedPlanDetail.value = updated
+  fetchPlans()
 }
 
 // ==================== 单条编辑处理 ====================
 function handleSingleEdit(plan) {
-  // 1:1 翻译 V1.1 canEditPurchasePlan 规则：已归档（completed/cancelled）不可编辑
-  // V1.1 引入自 types/purchase，V2.0 暂未翻译（known L3 偏差），此处内联实现
-  if (plan.status === 'completed' || plan.status === 'cancelled') {
+  // ✅ 修复 P0-5: 按 executionStatus 判断归档（V1.1 L639-642 1:1 翻译）
+  if (plan.executionStatus === 'completed' || plan.executionStatus === 'cancelled') {
     showAlert('该采购计划已归档，无法编辑')
     return
   }
   // 设置选中的 plan 并打开批量编辑弹窗（复用它）
   selectedPlanCode.value = plan.purchaseApplicationCode
   currentEditingPlan.value = plan
+  // ✅ 修复 P0-15: 初始化 10 字段（V1.1 L646-657 1:1 翻译），原 V2.0 只设 4 字段
   batchEditData.value = {
     purchaseType: plan.purchaseType,
-    priority: plan.priority,
+    relatedBatchCode: plan.relatedBatchCode || '',
+    otherBatchReason: plan.otherBatchReason || '',
+    applicant: plan.applicant || '',
+    applicantDepartment: plan.applicantDepartment || '',
+    applyDate: plan.applyDate || '',
     requiredDate: plan.requiredDate || '',
+    priority: plan.priority,
     remark: plan.remark || '',
+    executionStatus: plan.executionStatus || 'pending_execution',
   }
   batchEditItems.value = plan.items || []
   editedPlanCodes.value = []
@@ -811,13 +921,21 @@ function handleBatchEditConfirm() {
   if (selectedPlansData.length > 0) {
     selectedPlanCode.value = selectedPlansData[0].purchaseApplicationCode
     currentEditingPlan.value = selectedPlansData[0]
+    // ✅ 修复 P0-15: 批量编辑确认也补 10 字段（V1.1 L685-690 1:1 翻译）
+    const first = selectedPlansData[0]
     batchEditData.value = {
-      purchaseType: selectedPlansData[0].purchaseType,
-      priority: selectedPlansData[0].priority,
-      requiredDate: selectedPlansData[0].requiredDate || '',
-      remark: selectedPlansData[0].remark || '',
+      purchaseType: first.purchaseType,
+      relatedBatchCode: first.relatedBatchCode || '',
+      otherBatchReason: first.otherBatchReason || '',
+      applicant: first.applicant || '',
+      applicantDepartment: first.applicantDepartment || '',
+      applyDate: first.applyDate || '',
+      requiredDate: first.requiredDate || '',
+      priority: first.priority,
+      remark: first.remark || '',
+      executionStatus: first.executionStatus || 'pending_execution',
     }
-    batchEditItems.value = selectedPlansData[0].items || []
+    batchEditItems.value = first.items || []
   }
   editedPlanCodes.value = []
   editedPlans.value = {}
@@ -859,15 +977,18 @@ async function handleBatchEditNext() {
     // 1. 保存当前编辑
     const selectedUser = users.value.find((u) => u.id === currentEditingPlan.value.applicantId)
     const applicantName = selectedUser?.realName || selectedUser?.name || currentEditingPlan.value.applicant || ''
+    // ✅ 修复 P0-15: 补 executionStatus + 10 字段写入（V1.1 L723-735 1:1 翻译）
     await updatePlan(currentEditingPlan.value.id, {
-      relatedBatchCode: currentEditingPlan.value.relatedBatchCode,
+      relatedBatchCode: batchEditData.value.relatedBatchCode || currentEditingPlan.value.relatedBatchCode,
       purchaseType: batchEditData.value.purchaseType,
       priority: batchEditData.value.priority,
       requiredDate: batchEditData.value.requiredDate,
       remark: batchEditData.value.remark,
+      executionStatus: batchEditData.value.executionStatus,
       applicantId: currentEditingPlan.value.applicantId,
-      applicantName,
-      applicantDepartment: currentEditingPlan.value.applicantDepartment,
+      applicantName: batchEditData.value.applicant || applicantName,
+      applicantDepartment: batchEditData.value.applicantDepartment || currentEditingPlan.value.applicantDepartment,
+      applyDate: batchEditData.value.applyDate,
       items: batchEditItems.value,
     })
 
@@ -897,11 +1018,18 @@ async function handleBatchEditNext() {
     }
     selectedPlanCode.value = nextCode
     currentEditingPlan.value = nextPlan
+    // ✅ 修复 P0-15: 切到下一个时初始化 10 字段（V1.1 L764-775 1:1 翻译）
     batchEditData.value = {
       purchaseType: nextPlan.purchaseType,
-      priority: nextPlan.priority,
+      relatedBatchCode: nextPlan.relatedBatchCode || '',
+      otherBatchReason: nextPlan.otherBatchReason || '',
+      applicant: nextPlan.applicant || '',
+      applicantDepartment: nextPlan.applicantDepartment || '',
+      applyDate: nextPlan.applyDate || '',
       requiredDate: nextPlan.requiredDate || '',
+      priority: nextPlan.priority,
       remark: nextPlan.remark || '',
+      executionStatus: nextPlan.executionStatus || 'pending_execution',
     }
     batchEditItems.value = nextPlan.items || []
     await showAlert(`已保存 ${currentCode}，已切到 ${nextCode}`)
@@ -925,14 +1053,16 @@ async function handleBatchEditSave() {
     const applicantName = selectedUser?.realName || selectedUser?.name || currentEditingPlan.value.applicant || ''
 
     await updatePlan(currentEditingPlan.value.id, {
-      relatedBatchCode: currentEditingPlan.value.relatedBatchCode,
+      relatedBatchCode: batchEditData.value.relatedBatchCode || currentEditingPlan.value.relatedBatchCode,
       purchaseType: batchEditData.value.purchaseType,
       priority: batchEditData.value.priority,
       requiredDate: batchEditData.value.requiredDate,
       remark: batchEditData.value.remark,
+      executionStatus: batchEditData.value.executionStatus,
       applicantId: currentEditingPlan.value.applicantId,
-      applicantName,
-      applicantDepartment: currentEditingPlan.value.applicantDepartment,
+      applicantName: batchEditData.value.applicant || applicantName,
+      applicantDepartment: batchEditData.value.applicantDepartment || currentEditingPlan.value.applicantDepartment,
+      applyDate: batchEditData.value.applyDate,
       items: batchEditItems.value,
     })
     savedCount++

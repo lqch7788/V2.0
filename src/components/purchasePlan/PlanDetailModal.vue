@@ -79,6 +79,56 @@
           <span class="text-sm text-gray-900">{{ selectedPlanDetail.remark || selectedPlanDetail.remarks || '-' }}</span>
         </div>
 
+        <!-- ✅ 修复 P0-2: 行 5.5 执行状态（V1.1 L130-172 1:1 翻译，含编辑 UI） -->
+        <div class="flex items-center col-span-2">
+          <span class="text-sm text-gray-500 w-32 flex-shrink-0">执行状态：</span>
+          <template v-if="!editingExec">
+            <span
+              :class="[
+                'inline-flex px-2 py-0.5 rounded-full text-xs font-medium',
+                executionStatusClass(currentExecutionStatus),
+              ]"
+            >
+              {{ executionStatusText(currentExecutionStatus) }}
+            </span>
+            <el-button link size="small" class="ml-2" :disabled="saving" @click="handleStartEditExec">
+              <el-icon><EditPen /></el-icon>
+            </el-button>
+          </template>
+          <template v-else>
+            <el-select
+              v-model="newExecStatus"
+              size="small"
+              style="width: 180px"
+              :disabled="saving"
+            >
+              <el-option
+                v-for="o in EXEC_OPTIONS"
+                :key="o.value"
+                :label="o.label"
+                :value="o.value"
+              />
+            </el-select>
+            <el-button
+              size="small"
+              type="primary"
+              :disabled="saving"
+              class="ml-2"
+              @click="handleSaveExec"
+            >
+              {{ saving ? '保存中…' : '保存' }}
+            </el-button>
+            <el-button
+              size="small"
+              :disabled="saving"
+              class="ml-1"
+              @click="editingExec = false"
+            >
+              取消
+            </el-button>
+          </template>
+        </div>
+
         <!-- 行 6: 物料明细 (全宽) -->
         <div class="col-span-2">
           <div class="flex items-start">
@@ -216,9 +266,16 @@
  * @file PlanDetailModal.vue
  * @description 采购计划详情弹窗 - 1:1 翻译自 V1.1 PlanDetailModal.tsx
  *              展示采购申请单详情字段 + 物料明细表格 + 可选审批记录
+ *              修复 P0-2: 补可编辑执行状态 UI
+ *              修复 P0-3: approvalRecords prop 已在父组件传递，此处接收
+ *              修复 P0-4: 调用 apiUpdateExecutionStatus
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\PlanDetailModal.tsx
  */
-import { Clock } from '@element-plus/icons-vue'
+import { ref, computed } from 'vue'
+import { Clock, EditPen } from '@element-plus/icons-vue'
+import { PURCHASE_EXECUTION_STATUS_OPTIONS, PURCHASE_EXECUTION_STATUS_STYLE, PURCHASE_EXECUTION_STATUS_TEXT } from '@/types/purchase'
+import { updateExecutionStatus as apiUpdateExecutionStatus } from '@/services/apiPurchasePlanService'
+import { showAlert } from '@/lib/dialogService'
 
 // ==================== JSDoc 类型定义 ====================
 
@@ -249,7 +306,7 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-  /** 审批记录（可选） */
+  /** 审批记录（可选）- V1.1 PlanDetailModal.tsx L28 1:1 */
   approvalRecords: {
     type: Array,
     default: () => [],
@@ -260,8 +317,9 @@ const props = defineProps({
 
 /**
  * @event close 关闭弹窗
+ * @event execution-status-changed 执行状态更新成功回调（让父组件刷新列表）
  */
-const emit = defineEmits(['close', 'update:visible'])
+const emit = defineEmits(['close', 'update:visible', 'execution-status-changed'])
 
 // ==================== Badge 样式映射（1:1 V1.1 PriorityBadge/StatusBadge） ====================
 
@@ -289,6 +347,62 @@ function statusBadgeClass(status) {
   if (status === 'approved') return 'bg-blue-100 text-blue-700'
   if (status === 'draft') return 'bg-gray-100 text-gray-700'
   return 'bg-red-100 text-red-700'
+}
+
+// ==================== ✅ 修复 P0-2: 执行状态编辑（V1.1 L75-106 1:1 翻译） ====================
+
+/** 4 档下拉选项 */
+const EXEC_OPTIONS = PURCHASE_EXECUTION_STATUS_OPTIONS
+
+/** 是否处于编辑态 */
+const editingExec = ref(false)
+
+/** 保存中（按钮 loading） */
+const saving = ref(false)
+
+/** 正在编辑的值 */
+const newExecStatus = ref('pending_execution')
+
+/** 当前展示的执行状态（props 变化时自动重算） */
+const currentExecutionStatus = computed(() => {
+  return props.selectedPlanDetail?.executionStatus || 'pending_execution'
+})
+
+/** Tailwind class（从 PURCHASE_EXECUTION_STATUS_STYLE 拼出） */
+function executionStatusClass(status) {
+  const style = PURCHASE_EXECUTION_STATUS_STYLE[status] || PURCHASE_EXECUTION_STATUS_STYLE.pending_execution
+  return `${style.bg} ${style.text}`
+}
+
+/** 显示文本 */
+function executionStatusText(status) {
+  return PURCHASE_EXECUTION_STATUS_TEXT[status] || '待执行'
+}
+
+/** 点击编辑图标 */
+function handleStartEditExec() {
+  newExecStatus.value = currentExecutionStatus.value
+  editingExec.value = true
+}
+
+/** 保存：调用 updateExecutionStatus API */
+async function handleSaveExec() {
+  if (newExecStatus.value === currentExecutionStatus.value) {
+    editingExec.value = false
+    return
+  }
+  saving.value = true
+  try {
+    const updated = await apiUpdateExecutionStatus(props.selectedPlanDetail.id, newExecStatus.value)
+    if (updated) {
+      emit('execution-status-changed', updated)
+    }
+    editingExec.value = false
+  } catch (err) {
+    showAlert('更新执行状态失败: ' + (err && err.message ? err.message : err))
+  } finally {
+    saving.value = false
+  }
 }
 
 // ==================== 关闭 ====================

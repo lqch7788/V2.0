@@ -120,6 +120,8 @@ function transformSingle(item: BackendPurchasePlan): PurchasePlan {
     priorityText: item.priorityText || '中',
     status: item.status || 'draft',
     statusText: item.statusText || '草稿',
+    // ✅ 修复 P0-D2: 显式映射 executionStatus（V1.1 L119），未提供时默认 pending_execution
+    executionStatus: (item as any).executionStatus || (item as any).execution_status || 'pending_execution',
     itemCount: item.itemCount || 0,
     items: Array.isArray(item.items) ? item.items.map(transformItem) : [],
     remarks: item.remarks || '',
@@ -222,4 +224,20 @@ export async function resetPurchasePlans(): Promise<void> {
 export async function getNextPurchaseApplicationCode(): Promise<string> {
   const result = await enhancedApiClient.get<{ code: string }>('/purchase-plans/next-code');
   return result?.code || '';
+}
+
+/**
+ * 更新采购计划执行状态（pending_execution / purchasing / completed / cancelled）
+ * 1:1 对齐 V1.1 apiPurchasePlanService.ts L222-232
+ * PATCH /purchase-plans/{id}/execution-status
+ */
+export async function updateExecutionStatus(
+  id: string,
+  executionStatus: string
+): Promise<PurchasePlan | null> {
+  const result = await enhancedApiClient.put<{ data: PurchasePlan }>(
+    `/purchase-plans/${id}/execution-status`,
+    { executionStatus }
+  );
+  return result?.data ? transformPurchasePlan(result.data) as PurchasePlan : null;
 }
