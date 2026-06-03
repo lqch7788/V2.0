@@ -11,32 +11,64 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  * 包装 axios 适配器，添加 3 次指数退避重试
  * 1:1 对齐 V1.1 src/lib/apiClient.ts 的重试策略
  *
- * axios 1.x adapter 解析策略（修复 "No axios adapter available" 错误）：
- * 1. 优先用传入的 adapter（来自 axios.create 配置）
- * 2. fallback 到 axios.getAdapter（axios 1.x 内置方法，按 env 返回 xhr/http/fetch）
- * 3. fallback 到 axios.defaults.adapter（axios 0.x 兼容，但 1.x 此项是 object 不是 function）
- * 4. 都不可用才抛错
+ * 实现：基于原生 fetch（浏览器 + Node 18+ 都支持），避免 axios 1.x
+ * adapter 解析陷阱（axios.defaults.adapter 是 object 非 function，
+ * axios.getAdapter 需 config 参数）。
  */
-const resolveAdapter = (adapter) => {
-  if (typeof adapter === 'function') return adapter
-  if (typeof axios.getAdapter === 'function') return axios.getAdapter
-  if (typeof axios.defaults.adapter === 'function') return axios.defaults.adapter
-  return null
+const fetchAdapter = async (config) => {
+  const baseURL = config.baseURL || ''
+  const fullUrl = /^https?:\/\//.test(config.url || '')
+    ? config.url
+    : baseURL.replace(/\/$/, '') + (config.url?.startsWith('/') ? config.url : '/' + (config.url || ''))
+
+  const headers = new Headers()
+  Object.entries(config.headers || {}).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) headers.set(k, String(v))
+  })
+
+  // axios 1.x 默认 Content-Type 由 fetch 自动嗅探
+  if (config.data && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+
+  const controller = new AbortController()
+  const timeoutId = config.timeout
+    ? setTimeout(() => controller.abort(), config.timeout)
+    : null
+
+  try {
+    const response = await fetch(fullUrl, {
+      method: (config.method || 'get').toUpperCase(),
+      headers,
+      body: config.data ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : undefined,
+      signal: controller.signal,
+      credentials: 'include',
+    })
+    if (timeoutId) clearTimeout(timeoutId)
+
+    const contentType = response.headers.get('content-type') || ''
+    const data = contentType.includes('application/json') ? await response.json() : await response.text()
+
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      config,
+      request: response,
+    }
+  } catch (error) {
+    if (timeoutId) clearTimeout(timeoutId)
+    if (error && error.name === 'AbortError') {
+      throw new Error('timeout of ' + config.timeout + 'ms exceeded')
+    }
+    throw error
+  }
 }
 
 const retryAdapter = (adapter) => {
-  const safeAdapter = resolveAdapter(adapter)
-  if (!safeAdapter) {
-    console.warn('[request] axios adapter 完全不可用，重试机制将退化为单次请求')
-  }
   return async (config) => {
-    const runOnce = async (cfg) => {
-      if (safeAdapter) {
-        return safeAdapter(cfg)
-      }
-      return Promise.reject(new Error('No axios adapter available'))
-    }
-    // 如果显式禁用重试（默认 false），则不重试
+    const runOnce = (cfg) => adapter(cfg)
     if (config.retry === false) {
       return runOnce(config)
     }
@@ -47,7 +79,7 @@ const retryAdapter = (adapter) => {
         return await runOnce(config)
       } catch (error) {
         lastError = error
-        console.warn(`[request] 请求失败 (${i + 1}/${maxRetries}):`, error?.message || error)
+        console.warn(`[request] 请求失败 (${i + 1}/${maxRetries}):`, (error && error.message) || error)
         if (i < maxRetries - 1) {
           const backoff = 1000 * Math.pow(2, i)
           await delay(backoff)
@@ -65,9 +97,8 @@ const request = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  // 注入重试适配器（与 V1.1 enhancedApiClient.request 重试策略一致）
-  // 使用 axios.getAdapter() 替代 axios.defaults.adapter（axios 1.x 后者非 function）
-  adapter: retryAdapter(axios.getAdapter?.())
+  // 注入基于 fetch 的重试适配器（避免 axios 1.x adapter 解析陷阱）
+  adapter: retryAdapter(fetchAdapter)
 })
 
 // 请求拦截器
