@@ -5,7 +5,7 @@
       <div
         id="order-detail-dialog"
         class="bg-white rounded-xl w-full shadow-xl flex flex-col relative"
-        :style="{ maxWidth: '48rem', maxHeight: '85vh', minWidth: '40rem', minHeight: '25rem' }"
+        :style="{ width: '700px', height: '600px', maxWidth: '90vw', maxHeight: '90vh', minWidth: '40rem' }"
         @click.stop
       >
         <!-- 右下角缩放拖动条 -->
