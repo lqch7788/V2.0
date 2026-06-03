@@ -10,17 +10,30 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 /**
  * 包装 axios 适配器，添加 3 次指数退避重试
  * 1:1 对齐 V1.1 src/lib/apiClient.ts 的重试策略
+ *
+ * axios 1.x adapter 解析策略（修复 "No axios adapter available" 错误）：
+ * 1. 优先用传入的 adapter（来自 axios.create 配置）
+ * 2. fallback 到 axios.getAdapter（axios 1.x 内置方法，按 env 返回 xhr/http/fetch）
+ * 3. fallback 到 axios.defaults.adapter（axios 0.x 兼容，但 1.x 此项是 object 不是 function）
+ * 4. 都不可用才抛错
  */
+const resolveAdapter = (adapter) => {
+  if (typeof adapter === 'function') return adapter
+  if (typeof axios.getAdapter === 'function') return axios.getAdapter
+  if (typeof axios.defaults.adapter === 'function') return axios.defaults.adapter
+  return null
+}
+
 const retryAdapter = (adapter) => {
-  // 防御性：axios.defaults.adapter 在某些环境下可能为 undefined
-  const safeAdapter = typeof adapter === 'function' ? adapter : axios.defaults.adapter
-  if (typeof safeAdapter !== 'function') {
-    console.warn('[request] axios adapter 不可用，重试机制将退化为单次请求')
+  const safeAdapter = resolveAdapter(adapter)
+  if (!safeAdapter) {
+    console.warn('[request] axios adapter 完全不可用，重试机制将退化为单次请求')
   }
   return async (config) => {
-    const runOnce = (cfg) => {
-      if (typeof safeAdapter === 'function') return safeAdapter(cfg)
-      // 无可用 adapter，抛出明确错误
+    const runOnce = async (cfg) => {
+      if (safeAdapter) {
+        return safeAdapter(cfg)
+      }
       return Promise.reject(new Error('No axios adapter available'))
     }
     // 如果显式禁用重试（默认 false），则不重试
@@ -53,7 +66,8 @@ const request = axios.create({
     'Content-Type': 'application/json'
   },
   // 注入重试适配器（与 V1.1 enhancedApiClient.request 重试策略一致）
-  adapter: retryAdapter(axios.defaults.adapter)
+  // 使用 axios.getAdapter() 替代 axios.defaults.adapter（axios 1.x 后者非 function）
+  adapter: retryAdapter(axios.getAdapter?.())
 })
 
 // 请求拦截器
