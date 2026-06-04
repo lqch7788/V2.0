@@ -122,6 +122,9 @@
               </span>
             </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.orderCode || '-' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate" :title="batch.remarks">
+              {{ batch.remarks || '-' }}
+            </td>
             <td class="px-4 py-3 text-sm whitespace-nowrap">
               <template v-if="batch.planDetailFileName">
                 <button
@@ -135,23 +138,21 @@
               <span v-else class="text-gray-400">-</span>
             </td>
             <td class="px-4 py-3">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
-                  class="inline-flex items-center gap-1 h-8 px-2 rounded text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                  class="h-8 w-8 flex items-center justify-center rounded text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                   title="编辑"
                   @click="onEdit(batch)"
                 >
-                  <Pencil class="w-3.5 h-3.5" />
-                  <span>编辑</span>
+                  <Pencil class="w-4 h-4" />
                 </button>
                 <button
-                  class="inline-flex items-center gap-1 h-8 px-2 rounded text-sm text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+                  class="h-8 w-8 flex items-center justify-center rounded text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
                   title="删除"
                   @click="handleDelete(batch)"
                 >
-                  <Trash2 class="w-3.5 h-3.5" />
-                  <span>删除</span>
+                  <Trash2 class="w-4 h-4" />
                 </button>
               </div>
             </td>
