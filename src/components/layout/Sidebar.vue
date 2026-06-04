@@ -151,15 +151,21 @@
                 </router-link>
               </li>
               <li>
+                <router-link to="/pest-control" class="submenu-item" :class="{ active: isActive('/pest-control') }">
+                  <el-icon :size="16"><WarnTriangleFilled /></el-icon>
+                  <span>病虫害管理</span>
+                </router-link>
+              </li>
+              <li>
                 <router-link to="/crop-inventory" class="submenu-item" :class="{ active: isActive('/crop-inventory') }">
                   <el-icon :size="16"><Box /></el-icon>
                   <span>作物库存</span>
                 </router-link>
               </li>
               <li>
-                <router-link to="/crop/instance" class="submenu-item" :class="{ active: isActive('/crop/instance') }">
-                  <el-icon :size="16"><View /></el-icon>
-                  <span>实例追溯</span>
+                <router-link to="/crop/outbound-records" class="submenu-item" :class="{ active: isActive('/crop/outbound-records') }">
+                  <el-icon :size="16"><Document /></el-icon>
+                  <span>出库记录</span>
                 </router-link>
               </li>
             </ul>
@@ -194,19 +200,19 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/farm/schedule" class="submenu-item" :class="{ active: isActive('/farm/schedule') }">
+                <router-link to="/schedule" class="submenu-item" :class="{ active: isActive('/schedule') }">
                   <el-icon :size="16"><Calendar /></el-icon>
                   <span>排班调度</span>
                 </router-link>
               </li>
               <li>
-                <router-link to="/farm/team" class="submenu-item" :class="{ active: isActive('/farm/team') }">
+                <router-link to="/team" class="submenu-item" :class="{ active: isActive('/team') }">
                   <el-icon :size="16"><Folder /></el-icon>
                   <span>班组分配</span>
                 </router-link>
               </li>
               <li>
-                <router-link to="/farm/daily-summary" class="submenu-item" :class="{ active: isActive('/farm/daily-summary') }">
+                <router-link to="/daily-work-summary" class="submenu-item" :class="{ active: isActive('/daily-work-summary') }">
                   <el-icon :size="16"><Calendar /></el-icon>
                   <span>每日工单汇总</span>
                 </router-link>
@@ -215,7 +221,7 @@
           </transition>
         </li>
 
-        <!-- 库存管理 -->
+        <!-- 物资管理 -->
         <li>
           <button
             class="menu-item menu-item-submenu"
@@ -223,7 +229,7 @@
             @click="toggleInventory"
           >
             <el-icon :size="20"><Box /></el-icon>
-            <span v-if="!collapsed" class="menu-text">库存管理</span>
+            <span v-if="!collapsed" class="menu-text">物资管理</span>
             <el-icon v-if="!collapsed" :size="16" class="submenu-arrow" :class="{ expanded: inventoryExpanded }">
               <CaretRight />
             </el-icon>
@@ -233,7 +239,7 @@
               <li>
                 <router-link to="/warehouse-overview" class="submenu-item" :class="{ active: isActive('/warehouse-overview') }">
                   <el-icon :size="16"><TakeawayBox /></el-icon>
-                  <span>库存总览</span>
+                  <span>物料库存</span>
                 </router-link>
               </li>
               <li>
@@ -427,7 +433,6 @@ import {
   Cherry,
   CircleCheck,
   Box,
-  View,
   List,
   Calendar,
   Folder,
@@ -476,7 +481,7 @@ const isCropActive = computed(() => {
 })
 
 const isFarmActive = computed(() => {
-  return ['/farm-hub', '/task-center', '/farm/schedule', '/farm/team', '/farm/daily-summary', '/schedule', '/team', '/daily-work-summary'].some(p => route.path.startsWith(p))
+  return ['/farm-hub', '/task-center', '/schedule', '/team', '/daily-work-summary'].some(p => route.path.startsWith(p))
 })
 
 const isInventoryActive = computed(() => {

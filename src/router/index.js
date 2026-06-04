@@ -56,30 +56,6 @@ const routes = [
     meta: { title: '基地架构' }
   },
   {
-    path: '/settings/base-management',
-    name: 'BaseManagement',
-    component: () => import('@/views/system/BaseManagement.vue'),
-    meta: { title: '基地管理' }
-  },
-  {
-    path: '/settings/block',
-    name: 'BlockManagement',
-    component: () => import('@/views/system/BlockManagement.vue'),
-    meta: { title: '区块管理' }
-  },
-  {
-    path: '/settings/partitions',
-    name: 'Partitions',
-    component: () => import('@/views/system/FarmPartitionManagement.vue'),
-    meta: { title: '分区管理' }
-  },
-  {
-    path: '/settings/area-systems',
-    name: 'AreaSystems',
-    component: () => import('@/views/system/AreaSystemManagement.vue'),
-    meta: { title: '区域系统' }
-  },
-  {
     path: '/settings/user-permission',
     name: 'UserPermission',
     component: () => import('@/views/system/authority/UserPermissionHub.vue'),
@@ -116,12 +92,6 @@ const routes = [
     meta: { title: '用户权限' }
   },
   {
-    path: '/settings/user-base-permission',
-    name: 'UserBasePermission',
-    component: () => import('@/views/system/authority/UserBasePermission.vue'),
-    meta: { title: '用户基地权限' }
-  },
-  {
     path: '/settings/approval-workflow',
     name: 'ApprovalWorkflow',
     component: () => import('@/views/system/ApprovalWorkflowConfig.vue'),
@@ -152,106 +122,16 @@ const routes = [
     meta: { title: '药剂库' }
   },
   {
-    path: '/settings/processes',
-    name: 'ProcessManagement',
-    component: () => import('@/views/system/ProcessManagement.vue'),
-    meta: { title: '工序管理' }
-  },
-  {
-    path: '/settings/plant-settings',
-    name: 'PlantSettings',
-    component: () => import('@/views/system/PlantSettingManagement.vue'),
-    meta: { title: '品种设置' }
-  },
-  {
-    path: '/settings/cost-accounting',
-    name: 'CostAccounting',
-    component: () => import('@/views/system/CostAccounting.vue'),
-    meta: { title: '成本计算' }
-  },
-  {
-    path: '/settings/device-systems',
-    name: 'DeviceSystems',
-    component: () => import('@/views/system/DeviceSystemManagement.vue'),
-    meta: { title: '系统管理' }
-  },
-  {
-    path: '/settings/cameras',
-    name: 'Cameras',
-    component: () => import('@/views/system/CameraManagement.vue'),
-    meta: { title: '视频管理' }
-  },
-  {
-    path: '/settings/water-fertilizer',
-    name: 'WaterFertilizer',
-    component: () => import('@/views/system/WaterFertilizerManagement.vue'),
-    meta: { title: '水肥一体化机' }
-  },
-  {
-    path: '/settings/device',
-    name: 'DeviceManagement',
-    component: () => import('@/views/system/DeviceManagement.vue'),
-    meta: { title: '设备管理' }
-  },
-  {
-    path: '/settings/device-distribution',
-    name: 'DeviceDistribution',
-    component: () => import('@/views/system/DeviceDistributionManagement.vue'),
-    meta: { title: '设备分配' }
-  },
-  {
-    path: '/settings/project-debug',
-    name: 'ProjectDebug',
-    component: () => import('@/views/system/ProjectDebugManagement.vue'),
-    meta: { title: '工程调试' }
-  },
-  {
-    path: '/settings/monitor',
-    name: 'SystemMonitor',
-    component: () => import('@/views/system/SystemMonitor.vue'),
-    meta: { title: '系统监控' }
-  },
-  {
-    path: '/settings/backup',
-    name: 'Backup',
-    component: () => import('@/views/system/BackupRecovery.vue'),
-    meta: { title: '备份恢复' }
-  },
-  {
-    path: '/settings/energy-configs',
-    name: 'EnergyConfigs',
-    component: () => import('@/views/system/EnergyConfigManagement.vue'),
-    meta: { title: '能耗管理' }
-  },
-  {
-    path: '/settings/alarm-configs',
-    name: 'AlarmConfigs',
-    component: () => import('@/views/system/AlarmConfigManagement.vue'),
-    meta: { title: '报表管理' }
-  },
-  {
     path: '/settings/warehouse',
     name: 'WarehouseManagement',
     component: () => import('@/views/system/WarehouseManagement.vue'),
     meta: { title: '仓库管理' }
   },
   {
-    path: '/settings/greenhouse-management',
-    name: 'GreenhouseManagement',
-    component: () => import('@/views/system/GreenhouseManagement.vue'),
-    meta: { title: '温室管理' }
-  },
-  {
     path: '/settings/team',
     name: 'TeamManagement',
     component: () => import('@/views/system/TeamManagement.vue'),
     meta: { title: '小组管理' }
-  },
-  {
-    path: '/settings/personnel',
-    name: 'PersonnelManagement',
-    component: () => import('@/views/system/PersonnelManagement.vue'),
-    meta: { title: '人事管理' }
   },
   {
     path: '/settings/fertilizer-library',
@@ -281,33 +161,22 @@ const routes = [
     path: '/park',
     redirect: '/park-archive'
   },
+  // 农事管理 - 子路由（路径与V1.1完全对齐：/schedule、/team、/daily-work-summary）
   {
-    path: '/farm',
-    name: 'Farm',
-    component: () => import('@/views/farm/FarmHub.vue'),
-    meta: { title: '农业管理' }
-  },
-  {
-    path: '/farm/task',
-    name: 'FarmTask',
-    component: () => import('@/views/farm/TaskCenter.vue'),
-    meta: { title: '任务中心' }
-  },
-  {
-    path: '/farm/schedule',
-    name: 'FarmSchedule',
+    path: '/schedule',
+    name: 'Schedule',
     component: () => import('@/views/farm/Schedule.vue'),
     meta: { title: '排班调度' }
   },
   {
-    path: '/farm/team',
-    name: 'FarmTeam',
+    path: '/team',
+    name: 'Team',
     component: () => import('@/views/farm/Team.vue'),
-    meta: { title: '小组分配' }
+    meta: { title: '班组分配' }
   },
   {
-    path: '/farm/daily-summary',
-    name: 'FarmDailySummary',
+    path: '/daily-work-summary',
+    name: 'DailyWorkSummary',
     component: () => import('@/views/farm/DailyWorkSummary.vue'),
     meta: { title: '每日工单汇总' }
   },
@@ -353,34 +222,7 @@ const routes = [
     component: () => import('@/views/crop/Harvest.vue'),
     meta: { title: '收获入库' }
   },
-  {
-    path: '/crop/harvest-inbound',
-    name: 'HarvestInbound',
-    component: () => import('@/views/crop/Harvest.vue'),
-    meta: { title: '收获入库' }
-  },
-  // 仓库物料模块
-  {
-    path: '/warehouse',
-    name: 'Warehouse',
-    redirect: '/warehouse/materials',
-    meta: { title: '仓库管理' },
-    children: [
-      {
-        path: 'materials',
-        name: 'WarehouseMaterials',
-        component: () => import('@/views/warehouse/Materials.vue'),
-        meta: { title: '仓库物料' }
-      },
-      {
-        path: 'inbound',
-        name: 'WarehouseInbound',
-        component: () => import('@/views/warehouse/WarehouseInbound.vue'),
-        meta: { title: '物料入库' }
-      }
-    ]
-  },
-  // 库存管理模块路由（与仓库边线菜单对应）
+  // 仓库物料模块（路径与V1.1对齐：/warehouse-overview、/warehouse-inbound）
   {
     path: '/warehouse-inbound',
     name: 'WarehouseInboundDirect',
@@ -391,36 +233,23 @@ const routes = [
     path: '/warehouse-overview',
     name: 'WarehouseOverview',
     component: () => import('@/views/warehouse/WarehouseOverview.vue'),
-    meta: { title: '库存总览' }
+    meta: { title: '物料库存' }
   },
-  // 供应商管理
+  // 物资管理主页（V1.1 路径 /materials，对应 V2.0 仓库物料页面）
   {
-    path: '/supplier',
-    name: 'Supplier',
-    component: () => import('@/views/supplier/SupplierManagement.vue'),
-    meta: { title: '供应商管理' }
+    path: '/materials',
+    name: 'Materials',
+    component: () => import('@/views/warehouse/Materials.vue'),
+    meta: { title: '物资管理' }
   },
+  // 供应商管理（V1.1 路径 /supplier-management）
   {
     path: '/supplier-management',
     name: 'SupplierManagementDirect',
     component: () => import('@/views/supplier/SupplierManagement.vue'),
     meta: { title: '供应商管理' }
   },
-  // 物料模块
-  {
-    path: '/material',
-    name: 'Material',
-    redirect: '/material/return',
-    meta: { title: '物料管理' },
-    children: [
-      {
-        path: 'return',
-        name: 'MaterialReturn',
-        component: () => import('@/views/material/MaterialReturn.vue'),
-        meta: { title: '生产退料' }
-      }
-    ]
-  },
+  // 物料模块（V1.1 路径 /material-return、/material-receiving）
   {
     path: '/material-return',
     name: 'MaterialReturnDirect',
@@ -431,7 +260,7 @@ const routes = [
     path: '/material-receiving',
     name: 'MaterialReceiving',
     component: () => import('@/views/material/MaterialReceiving.vue'),
-    meta: { title: '生产退料' }
+    meta: { title: '生产领料' }
   },
   // TODO [P0-EX-001 fix 2026-06-03]: ApprovalIndex.vue 是 V2.0 自我创造（V1.1 不存在）
   // 该路由指向的 src/views/approval/ApprovalIndex.vue 已备份为 .disabled，原文件已移到回收站
@@ -467,16 +296,17 @@ const routes = [
     component: () => import('@/views/production/Production.vue'),
     meta: { title: '生产计划' }
   },
-  // 计划管理子路由（/production/list 重新定向到 /production，与V1.1对齐）
+  // 计划管理子路由（/production/list 重定向到 /production，与V1.1对齐）
   {
     path: '/production/list',
     redirect: '/production'
   },
+  // 病虫害管理（V1.1 路径 /pest-control，对应作物管理子菜单）
   {
-    path: '/production/index',
-    name: 'ProductionIndex',
-    component: () => import('@/views/production/ProductionIndex.vue'),
-    meta: { title: '生产管理' }
+    path: '/pest-control',
+    name: 'PestControl',
+    component: () => import('@/views/farm/pest-control/PestControlPage.vue'),
+    meta: { title: '病虫害管理' }
   },
   {
     path: '/crop/order',
@@ -502,11 +332,12 @@ const routes = [
     component: () => import('@/views/crop/CropInventory.vue'),
     meta: { title: '物料库存' }
   },
+  // 作物出库记录（V1.1 路径 /crop/outbound-records）
   {
-    path: '/crop/instance',
-    name: 'CropInstance',
-    component: () => import('@/views/crop/Instance.vue'),
-    meta: { title: '物料实例' }
+    path: '/crop/outbound-records',
+    name: 'CropOutboundRecords',
+    component: () => import('@/views/crop/OutboundRecords.vue'),
+    meta: { title: '出库记录' }
   },
   {
     path: '/tech-solution',
@@ -848,12 +679,6 @@ const routes = [
     name: 'HrApproval',
     component: () => import('@/views/approval/HrApproval.vue'),
     meta: { title: '人事审批' }
-  },
-  {
-    path: '/hr-approval-detail/:id',
-    name: 'HrApprovalDetail',
-    component: () => import('@/views/approval/HrApprovalDetail.vue'),
-    meta: { title: '审批详情' }
   },
   // P0-EX: HrApprovalDocuments.vue 已被备份为 .disabled（V1.1 端无对应页面，V2.0 端是新增扩展）
   // TODO: 等用户决策（删除/保留为 V2.0 扩展）后再恢复路由
