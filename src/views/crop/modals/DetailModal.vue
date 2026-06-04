@@ -1,5 +1,5 @@
 <template>
-  <!-- 订单详情弹窗组件 - V1.1样式（纯div自定义弹窗） -->
+  <!-- 订单详情弹窗组件 - V1.1 DetailModal 扁平 12 行布局（与 V1.1 OrderDetailModal.tsx 字段 1:1 对齐） -->
   <Teleport to="body">
     <div v-if="isOpen && record" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="handleClose">
       <div
@@ -28,7 +28,7 @@
             订单详情
           </h3>
           <div class="flex items-center gap-1">
-            <!-- 最大化/还原按钮（修复轮 10 P0-004：与 AddModal/EditModal 一致使用 rgba(255,255,255,0.8) 白色） -->
+            <!-- 最大化/还原按钮 -->
             <el-button link @click="toggleMaximize" style="color: rgba(255,255,255,0.8);" @mousedown.stop>
               <el-icon style="color: white;">
                 <component :is="isMaximized ? 'ScaleToOriginal' : 'FullScreen'" />
@@ -41,137 +41,100 @@
           </div>
         </div>
 
-        <!-- 内容 -->
+        <!-- 内容 — V1.1 DetailModal 12 行扁平 grid 布局（与 V1.1 OrderDetailModal.tsx L59-103 字段配置 1:1 对齐） -->
         <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(85vh - 140px);">
-          <div class="space-y-4">
-            <!-- 订单基本信息 -->
+          <div class="grid grid-cols-2 gap-4">
+            <!-- 行 1: 订单编号 | 订单类型 -->
             <div>
-              <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <el-icon class="text-emerald-600"><Package /></el-icon>
-                订单信息
-              </h3>
-              <div class="bg-gray-50 rounded-lg p-4">
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">订单编号</p>
-                    <p class="text-sm font-medium text-emerald-600">{{ record.orderCode }}</p>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">订单名称</p>
-                    <p class="text-sm font-medium text-gray-900">{{ record.orderName }}</p>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">订单类型</p>
-                    <span :class="getOrderTypeBadgeClass(record.orderType)">
-                      {{ getOrderTypeLabel(record.orderType) }}
-                    </span>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">订单状态</p>
-                    <span :class="getStatusBadgeClass(record.status)">
-                      {{ getStatusLabel(record.status) }}
-                    </span>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">订单日期</p>
-                    <p class="text-sm text-gray-900">{{ record.orderDate }}</p>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">预计完成日期</p>
-                    <p class="text-sm text-gray-900">{{ record.expectedCompletionDate || '-' }}</p>
-                  </div>
-                </div>
-              </div>
+              <label class="block text-xs text-gray-500 mb-1">订单编号</label>
+              <p class="text-sm font-medium text-emerald-600">{{ record.orderCode }}</p>
             </div>
-
-            <!-- 作物信息 -->
             <div>
-              <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <el-icon class="text-emerald-600"><Location /></el-icon>
-                作物信息
-              </h3>
-              <div class="bg-gray-50 rounded-lg p-4">
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">品种路径</p>
-                    <p class="text-sm font-medium text-gray-900">{{ record.cropCategory || '-' }}</p>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">作物品种</p>
-                    <p class="text-sm font-medium text-gray-900">{{ record.cropVariety }}</p>
-                  </div>
-                </div>
-              </div>
+              <label class="block text-xs text-gray-500 mb-1">订单类型</label>
+              <span :class="getOrderTypeBadgeClass(record.orderType)">
+                {{ getOrderTypeLabel(record.orderType) }}
+              </span>
             </div>
-
-            <!-- 客户信息 -->
+            <!-- 行 2: 订单名称（fullWidth） -->
+            <div class="col-span-2">
+              <label class="block text-xs text-gray-500 mb-1">订单名称</label>
+              <p class="text-sm font-medium text-gray-900">{{ record.orderName }}</p>
+            </div>
+            <!-- 行 3: 订单状态 | 订单日期 -->
             <div>
-              <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <el-icon class="text-emerald-600"><User /></el-icon>
-                客户信息
-              </h3>
-              <div class="bg-gray-50 rounded-lg p-4">
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">客户名称</p>
-                    <p class="text-sm font-medium text-gray-900">{{ record.customerName || '-' }}</p>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">客户电话</p>
-                    <p class="text-sm text-gray-900">{{ record.customerPhone || '-' }}</p>
-                  </div>
-                  <div class="col-span-2">
-                    <p class="text-xs text-gray-500 mb-1">收货地址</p>
-                    <p class="text-sm text-gray-900">{{ record.deliveryAddress || '-' }}</p>
-                  </div>
-                </div>
-              </div>
+              <label class="block text-xs text-gray-500 mb-1">订单状态</label>
+              <span :class="getStatusBadgeClass(record.status)">
+                {{ getStatusLabel(record) }}
+              </span>
             </div>
-
-            <!-- 数量信息 -->
             <div>
-              <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <el-icon class="text-emerald-600"><Package /></el-icon>
-                数量信息
-              </h3>
-              <div class="bg-gray-50 rounded-lg p-4">
-                <div class="grid grid-cols-3 gap-4">
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">计划数量</p>
-                    <p class="text-sm font-medium text-gray-900">
-                      {{ record.plannedQuantity }} {{ record.unit }}
-                    </p>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">完成数量</p>
-                    <p class="text-sm font-medium text-gray-900">
-                      {{ record.completedQuantity || 0 }} {{ record.unit }}
-                    </p>
-                  </div>
-                  <div>
-                    <p class="text-xs text-gray-500 mb-1">完成进度</p>
-                    <p class="text-sm font-medium text-emerald-600">
-                      {{ record.plannedQuantity > 0
-                        ? Math.round((record.completedQuantity / record.plannedQuantity) * 100)
-                        : 0 }}%
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <label class="block text-xs text-gray-500 mb-1">订单日期</label>
+              <p class="text-sm text-gray-900">{{ record.orderDate }}</p>
             </div>
-
-            <!-- 备注 -->
+            <!-- 行 4: 预计完成日期 | 完成进度 -->
             <div>
-              <h3 class="text-sm font-bold text-gray-700 mb-3">备注</h3>
-              <div class="bg-gray-50 rounded-lg p-4">
-                <p class="text-sm text-gray-900">{{ record.remarks || '-' }}</p>
-              </div>
+              <label class="block text-xs text-gray-500 mb-1">预计完成日期</label>
+              <p class="text-sm text-gray-900">{{ record.expectedCompletionDate || '-' }}</p>
             </div>
-
-            <!-- 创建信息 -->
-            <div class="flex items-center gap-4 text-xs text-gray-500 pt-4 border-t border-gray-100">
-              <span>创建人：{{ record.createBy || '-' }}</span>
-              <span>创建时间：{{ record.createTime || '-' }}</span>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">完成进度</label>
+              <p class="text-sm text-gray-900">{{ completionRate }}</p>
+            </div>
+            <!-- 行 5: 品种路径（fullWidth） -->
+            <div class="col-span-2">
+              <label class="block text-xs text-gray-500 mb-1">品种路径</label>
+              <p class="text-sm text-gray-900">{{ record.cropCategory || '-' }}</p>
+            </div>
+            <!-- 行 6: 作物品种（fullWidth） -->
+            <div class="col-span-2">
+              <label class="block text-xs text-gray-500 mb-1">作物品种</label>
+              <p class="text-sm text-gray-900">{{ record.cropVariety || '-' }}</p>
+            </div>
+            <!-- 行 7: 单位 | 完成数量 -->
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">单位</label>
+              <p class="text-sm text-gray-900">{{ record.unit || '株' }}</p>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">完成数量</label>
+              <p class="text-sm text-gray-900">{{ record.completedQuantity || 0 }}</p>
+            </div>
+            <!-- 行 8: 计划数量 | 完成进度（V1.1 DetailModal L86-87 字段重复，按 V1.1 1:1 保留） -->
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">计划数量</label>
+              <p class="text-sm text-gray-900">{{ record.plannedQuantity }}</p>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">完成进度</label>
+              <p class="text-sm text-gray-900">{{ record.plannedQuantity > 0 ? Math.round((record.completedQuantity / record.plannedQuantity) * 100) + '%' : '0%' }}</p>
+            </div>
+            <!-- 行 9: 客户名称 | 客户电话 -->
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">客户名称</label>
+              <p class="text-sm text-gray-900">{{ record.customerName || '-' }}</p>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">客户电话</label>
+              <p class="text-sm text-gray-900">{{ record.customerPhone || '-' }}</p>
+            </div>
+            <!-- 行 10: 收货地址（fullWidth） -->
+            <div class="col-span-2">
+              <label class="block text-xs text-gray-500 mb-1">收货地址</label>
+              <p class="text-sm text-gray-900">{{ record.deliveryAddress || '-' }}</p>
+            </div>
+            <!-- 行 11: 创建人 | 创建时间 -->
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">创建人</label>
+              <p class="text-sm text-gray-900">{{ record.createBy || '-' }}</p>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">创建时间</label>
+              <p class="text-sm text-gray-900">{{ record.createTime || '-' }}</p>
+            </div>
+            <!-- 行 12: 备注（fullWidth） -->
+            <div class="col-span-2">
+              <label class="block text-xs text-gray-500 mb-1">备注</label>
+              <p class="text-sm text-gray-900">{{ record.remarks || '-' }}</p>
             </div>
           </div>
         </div>
@@ -186,9 +149,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { Package } from 'lucide-vue-next'
-import { View, Close, FullScreen, ScaleToOriginal, Location, User } from '@element-plus/icons-vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
 import { CropOrderStatus } from '@/types/crop'
 
 const props = defineProps({
@@ -209,16 +171,27 @@ const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
 const isResizing = ref(false)
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
 
-// 获取状态标签（与V1.1一致：根据completedQuantity动态判断）
-const getStatusLabel = (status) => {
-  if (status === CropOrderStatus.COMPLETED) return '已完成'
-  if (status === CropOrderStatus.CANCELLED) return '已取消'
-  // 根据完成数量动态判断（统一为 completedQuantity）
-  if (props.record && (props.record.completedQuantity || 0) > 0) return '进行中'
+// 完成率（V1.1 DetailModal.tsx L54-56 1:1 对齐）
+const completionRate = computed(() => {
+  if (!props.record) return '0%'
+  return props.record.plannedQuantity > 0
+    ? `${Math.round((props.record.completedQuantity / props.record.plannedQuantity) * 100)}%`
+    : '0%'
+})
+
+// 获取状态标签（与V1.1 DetailModal.tsx L20-33 1:1 对齐）
+const getStatusLabel = (record) => {
+  if (!record) return ''
+  if (record.status === CropOrderStatus.COMPLETED) return '已完成'
+  if (record.status === CropOrderStatus.CANCELLED) return '已取消'
+  if (record.status === CropOrderStatus.IN_PROGRESS) return '进行中'
+  if (record.status === CropOrderStatus.PLANNED) return '已计划'
+  // 非终态：根据完成数量判断
+  if ((record.completedQuantity || 0) > 0) return '进行中'
   return '已计划'
 }
 
-// 获取状态样式
+// 获取状态样式（与V1.1 DetailModal.tsx L20-33 1:1 对齐）
 const getStatusBadgeClass = (status) => {
   switch (status) {
     case CropOrderStatus.PLANNED:
@@ -234,7 +207,7 @@ const getStatusBadgeClass = (status) => {
   }
 }
 
-// 获取订单类型标签
+// 获取订单类型标签（与V1.1 DetailModal.tsx L36-51 1:1 对齐）
 const getOrderTypeLabel = (type) => {
   switch (type) {
     case 'breeding': return '育种订单'
@@ -242,11 +215,11 @@ const getOrderTypeLabel = (type) => {
     case 'production': return '生产订单'
     case 'research': return '研发订单'
     case 'other': return '其他'
-    default: return type
+    default: return type || ''
   }
 }
 
-// 获取订单类型样式
+// 获取订单类型样式（与V1.1 DetailModal.tsx L36-51 1:1 对齐）
 const getOrderTypeBadgeClass = (type) => {
   switch (type) {
     case 'breeding':
@@ -277,7 +250,7 @@ const handleDragStart = (e) => {
   }
 }
 
-// 拖动中（V2.0 第6轮 P0 修复：addEventListener 提取为具名函数 + onUnmounted 清理防内存泄漏）
+// 拖动中
 let moveHandler = null
 let upHandler = null
 watch(isDragging, (val) => {
@@ -322,7 +295,7 @@ const handleResizeStart = (e) => {
   }
 }
 
-// 缩放中（V2.0 第6轮 P0 修复：addEventListener 提取为具名函数 + onUnmounted 清理防内存泄漏）
+// 缩放中
 let resizeMoveHandler = null
 let resizeUpHandler = null
 watch(isResizing, (val) => {
@@ -379,7 +352,7 @@ const toggleMaximize = () => {
   isMaximized.value = !isMaximized.value
 }
 
-// 关闭（V2.0 第6轮 P0 修复：清理拖动/缩放监听器防内存泄漏）
+// 关闭
 const handleClose = () => {
   isDragging.value = false
   isResizing.value = false
@@ -398,7 +371,7 @@ const handleClose = () => {
   emit('close')
 }
 
-// ESC 键关闭弹窗（V2.0 第6轮 P0 修复 - 与 V1.1 Modal.tsx L97-105 行为一致）
+// ESC 键关闭弹窗
 const handleEscKey = (e) => {
   if (e.key === 'Escape' && props.isOpen) handleClose()
 }
