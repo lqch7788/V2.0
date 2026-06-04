@@ -88,6 +88,7 @@ function normalizeBatch(raw) {
     cropType: (r.cropType) || '',
     // 后端返回 cropVariety，前端用 variety
     variety: (r.variety) || (r.cropVariety) || '',
+    // 后端 greenhouseId 永远为 null，用 greenhouseName（字符串，逗号分隔）作为唯一标识
     greenhouseId: (r.greenhouseId) || (r.greenhouseName) || '',
     greenhouseName: (r.greenhouseName) || '',
     plantingArea: (r.plantingArea) || 0,
@@ -104,9 +105,10 @@ function normalizeBatch(raw) {
     batchStatus: (r.batchStatus) || (r.status) || 'draft',
     plantingMode: (r.plantingMode) || '',
     responsiblePerson: (r.responsiblePerson) || '',
-    publisher: r.publisher,
+    // 后端返回 createBy/updateTime，前端期望 publisher/lastModifyDate
+    publisher: (r.publisher) || (r.createBy) || '',
     publishDate: r.publishDate,
-    lastModifyDate: r.lastModifyDate,
+    lastModifyDate: (r.lastModifyDate) || (r.updateTime) || '',
     planDetailFileName: r.planDetailFileName,
     planDetail: r.planDetail,
     planType: r.planType,

@@ -11,9 +11,12 @@
   -->
   <ElModal
     v-model="visible"
-    size="xxl"
+    :width="1024"
+    :height="'calc(100vh - 32px)'"
+    :plain-header="true"
     :show-submit="false"
     :show-cancel="false"
+    :show-close="false"
     @close="handleClose"
   >
     <!--
@@ -21,7 +24,12 @@
       蓝底白字 + 标题 + "已选择 X 条" 蓝色 badge + X 关闭按钮
     -->
     <template #header>
-      <div class="flex items-center justify-between bg-blue-600 px-6 py-4 rounded-t-lg">
+      <!--
+        ElModal 的 #header 插槽外层 .el-modal-header 是 display:flex，
+        其唯一子元素默认 shrink-to-content，必须显式 w-full 才能撑满父宽度。
+        bg-blue-600 才能完整填满整个 header 区域（与 V1.1 一致）。
+      -->
+      <div class="flex items-center justify-between bg-blue-600 w-full px-4 py-4 border-b border-blue-700">
         <div class="flex items-center gap-4">
           <h3 class="text-lg font-semibold text-white">批量编辑生产计划</h3>
           <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded">
@@ -124,15 +132,17 @@
                 <input
                   type="checkbox"
                   :id="`edit-gh-${g.id}`"
-                  :checked="formState.greenhouseId.includes(g.id)"
-                  @change="toggleGreenhouse(g)"
+                  :checked="isGreenhouseChecked(g.name)"
+                  @change="(e) => toggleGreenhouseByName(g.name, e.target.checked)"
                   class="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                 />
                 <label :for="`edit-gh-${g.id}`" class="text-sm cursor-pointer">{{ g.name }}</label>
               </div>
+              <div v-if="activeGreenhouses.length === 0" class="text-xs text-gray-400 py-2 px-1">暂无温室数据（请先访问系统管理→温室模块加载数据）</div>
             </div>
             <div v-else class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 flex items-center">
-              {{ formState.greenhouseId.length === 0 ? '请选择' : formState.greenhouseId.map(id => activeGreenhouses.find(g => g.id === id)?.name).filter(Boolean).join(', ') }}
+              <!-- 1:1 对应 V1.1 L72-76：直接展示 greenhouseName 字符串（后端 API 返的逗号分隔名字）-->
+              {{ formState.greenhouseName || '请选择' }}
             </div>
           </div>
 
@@ -585,6 +595,25 @@ function toggleGreenhouse(greenhouse) {
   }
   handleFieldChange('greenhouseId', current)
   handleFieldChange('greenhouseName', current.map(id => props.greenhouses.find(g => g.id === id)?.name).filter(Boolean).join(','))
+}
+
+// 1:1 翻译 V1.1 L226-235 handleFieldChange('greenhouseName', ...)
+// 因为后端 API greenhouseId 永远 null，只能按 name 字符串匹配
+function toggleGreenhouseByName(name, checked) {
+  const currentNames = (formState.value.greenhouseName || '').split(',').map(s => s.trim()).filter(Boolean)
+  const index = currentNames.indexOf(name)
+  if (checked && index === -1) {
+    currentNames.push(name)
+    handleFieldChange('greenhouseName', currentNames.join(','))
+  } else if (!checked && index !== -1) {
+    currentNames.splice(index, 1)
+    handleFieldChange('greenhouseName', currentNames.join(','))
+  }
+}
+
+function isGreenhouseChecked(name) {
+  const currentNames = (formState.value.greenhouseName || '').split(',').map(s => s.trim()).filter(Boolean)
+  return currentNames.includes(name)
 }
 
 function handleFileUpload() {
