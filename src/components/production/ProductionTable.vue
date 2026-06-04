@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div>
+    <div class="overflow-x-auto">
       <table class="w-full">
         <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <tr>
@@ -80,7 +80,7 @@
             </td>
             <td class="px-4 py-3 text-sm font-medium whitespace-nowrap">
               <button
-                class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                class="text-blue-600 hover:text-blue-800 hover:underline"
                 title="点击查看详情"
                 @click="onBatchCodeClick(batch)"
               >
@@ -122,13 +122,16 @@
               </span>
             </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.orderCode || '-' }}</td>
-            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate" :title="batch.remarks">
+            <td
+              class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate"
+              :title="batch.remarks || ''"
+            >
               {{ batch.remarks || '-' }}
             </td>
             <td class="px-4 py-3 text-sm whitespace-nowrap">
               <template v-if="batch.planDetailFileName">
                 <button
-                  class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                  class="text-blue-600 hover:text-blue-800"
                   title="点击下载生产计划文件"
                   @click="downloadPlanFile(batch)"
                 >
@@ -141,14 +144,14 @@
               <div class="flex items-center gap-1">
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
-                  class="inline-flex items-center justify-center h-8 px-2 rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                  class="text-gray-600 hover:text-blue-600"
                   title="编辑"
                   @click="onEdit(batch)"
                 >
                   <Pencil class="w-4 h-4" />
                 </button>
                 <button
-                  class="inline-flex items-center justify-center h-8 px-2 rounded text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+                  class="text-gray-600 hover:text-red-600"
                   title="删除"
                   @click="handleDelete(batch)"
                 >
