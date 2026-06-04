@@ -144,14 +144,14 @@
               <div class="flex items-center gap-1">
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
-                  class="text-gray-600 hover:text-blue-600"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-600"
                   title="编辑"
                   @click="onEdit(batch)"
                 >
                   <Pencil class="w-4 h-4" />
                 </button>
                 <button
-                  class="text-gray-600 hover:text-red-600"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600"
                   title="删除"
                   @click="handleDelete(batch)"
                 >
@@ -341,6 +341,15 @@ import { showConfirm } from '@/lib/dialogService'
 
 export default defineComponent({
   name: 'ProductionTable',
+  // 显式注册 lucide-vue-next 组件到 components map（template 中 <Pencil> 需要这里注册）
+  components: {
+    Pencil,
+    Trash2,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
+  },
   props: {
     /** @type {{ type: import('vue').PropType<CropBatch[]>, default: () => CropBatch[] }} */
     filteredBatches: { type: Array, default: () => [] },
