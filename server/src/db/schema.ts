@@ -2016,7 +2016,8 @@ export function initializeDatabase() {
     'supplier_name',
     'seedling_site_name',
     'seed_quantity',
-    'target_seedling_count'
+    'target_seedling_count',
+    'execution_status'
   ];
 
   for (const col of productionPlanColumns) {
