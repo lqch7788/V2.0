@@ -173,6 +173,10 @@ export default {
       localStatus: 'all',
       /** @type {String} 计划类型下拉本地值 */
       localPlanType: 'all',
+      // 暴露 import 常量给 template（Options API 中 import 不自动暴露）
+      // 1:1 对应 V1.1 line 58, 118 Object.entries(PlanTypeLabels/batchStatusLabels)
+      PlanTypeLabels,
+      batchStatusLabels,
     }
   },
   watch: {
