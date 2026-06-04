@@ -92,8 +92,8 @@
         :on-batch-select-all="hook.handleBatchSelectAll"
         :on-batch-delete-select-all="hook.handleBatchDeleteSelectAll"
         :on-batch-code-click="hook.setSelectedBatch"
-        :on-edit="hook.handleSingleEdit"
-        :on-delete="hook.handleSingleDelete"
+        :edit-handler="hook.handleSingleEdit"
+        :delete-handler="hook.handleSingleDelete"
         :total-count="hook.filteredBatches.value.length"
       />
     </div>

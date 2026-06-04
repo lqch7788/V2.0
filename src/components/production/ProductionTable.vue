@@ -153,7 +153,7 @@
                 <button
                   class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600"
                   title="删除"
-                  @click="handleDelete(batch)"
+                  @click="onDeleteClick(batch)"
                 >
                   <Trash2 class="w-4 h-4" />
                 </button>
@@ -365,6 +365,13 @@ export default defineComponent({
     batchDeleteMode: { type: Boolean, default: false },
     /** @type {{ type: import('vue').PropType<string[]>, default: () => string[] }} */
     selectedRows: { type: Array, default: () => [] },
+    // 1:1 对应 V1.1 line 24-25 的 onEdit/onDelete callback props
+    // 注意：Vue 3 规则 - prop 名以 'on' 开头会被当作 emit 监听器自动 unwrap
+    // 所以改用 editHandler/deleteHandler 避开 'on' 前缀
+    /** @type {{ type: Function, required: true }} */
+    editHandler: { type: Function, required: true },
+    /** @type {{ type: Function, required: true }} */
+    deleteHandler: { type: Function, required: true },
   },
   emits: [
     'pageChange',
@@ -465,12 +472,13 @@ export default defineComponent({
     }
 
     /**
-     * 处理删除（弹确认框后触发 emit）
+     * 处理删除按钮点击（弹确认框后调用 props.deleteHandler 回调）
+     * 1:1 对应 V1.1 line 232-236 onClick 内联逻辑
      * @param {CropBatch} batch
      */
-    async function handleDelete(batch) {
+    async function onDeleteClick(batch) {
       if (await showConfirm(`确定要删除生产计划 ${batch.batchCode} 吗？`)) {
-        emit('delete', batch)
+        props.deleteHandler(batch)
       }
     }
 
@@ -519,8 +527,9 @@ export default defineComponent({
     function onBatchCodeClick(batch) {
       emit('batchCodeClick', batch)
     }
+    // 1:1 对应 V1.1 line 222 onClick={() => onEdit(batch)}
     function onEdit(batch) {
-      emit('edit', batch)
+      props.editHandler(batch)
     }
 
     return {
@@ -534,7 +543,7 @@ export default defineComponent({
       localPageSize,
       getRowClassName,
       handleBatchEditRowToggle,
-      handleDelete,
+      onDeleteClick,
       downloadPlanFile,
       onPageChange,
       onSelectRow,
