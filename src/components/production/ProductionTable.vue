@@ -137,18 +137,18 @@
               </template>
               <span v-else class="text-gray-400">-</span>
             </td>
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-1">
+            <td class="px-4 py-3 whitespace-nowrap w-24">
+              <div class="flex items-center gap-1 flex-shrink-0">
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
-                  class="h-9 w-9 flex items-center justify-center rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                  class="h-9 w-9 flex items-center justify-center rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors flex-shrink-0"
                   title="编辑"
                   @click="onEdit(batch)"
                 >
                   <Pencil class="w-4 h-4" />
                 </button>
                 <button
-                  class="h-9 w-9 flex items-center justify-center rounded text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+                  class="h-9 w-9 flex items-center justify-center rounded text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors flex-shrink-0"
                   title="删除"
                   @click="handleDelete(batch)"
                 >
