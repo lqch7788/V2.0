@@ -48,7 +48,7 @@
       <AuthorityConfiguration v-else-if="activeTab === 'authority'" />
       <UserManagement v-else-if="activeTab === 'users'" />
       <UserAuthorityConfig v-else-if="activeTab === 'user-authority'" />
-      <UserBasePermission v-else-if="activeTab === 'user-base'" />
+      <!-- V1.1 UserPermissionHub 5 tab 布局（与 V1.1 一致），V2.0 自创的 user-base tab 已删除 -->
     </div>
   </div>
 </template>
@@ -61,8 +61,7 @@ import {
   User,
   Share,
   Key,
-  ArrowLeft,
-  MapLocation
+  ArrowLeft
 } from '@element-plus/icons-vue'
 
 // 子组件
@@ -71,7 +70,7 @@ import RoleManagement from './RoleManagement.vue'
 import AuthorityConfiguration from './AuthorityConfiguration.vue'
 import UserManagement from './UserManagement.vue'
 import UserAuthorityConfig from './UserAuthorityConfig.vue'
-import UserBasePermission from './UserBasePermission.vue'
+// V2.0 自创的 UserBasePermission 已删除（V1.1 无此 tab）
 
 // Tab配置
 const TABS = [
@@ -79,8 +78,8 @@ const TABS = [
   { key: 'roles', label: '角色管理', icon: Lock },
   { key: 'authority', label: '权限配置', icon: Key },
   { key: 'users', label: '用户管理', icon: User },
-  { key: 'user-authority', label: '用户权限覆盖', icon: Share },
-  { key: 'user-base', label: '用户基地权限', icon: MapLocation }
+  { key: 'user-authority', label: '用户权限覆盖', icon: Share }
+  // V2.0 自创的 user-base tab 已删除（V1.1 无此功能）
 ]
 
 // 当前激活的Tab
