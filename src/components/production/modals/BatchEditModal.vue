@@ -6,13 +6,14 @@
     @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\production\modals\BatchEditModal.tsx
     @fix P0-005: 执行状态下拉恢复 3 个选项（pending_execution/in_progress/completed）
     @fix P1-007: 布局从单一 grid-cols-4 改为 6 个独立 grid-cols-2 行
+    @fix 2026-06-04: 用本地 formState 替代 computed + v-model（v-model 在 computed 子属性上不写回 props，edits 永不持久化）
+    @fix 2026-06-04: 改用 #header 插槽的 ElModal 包装 + 移除 :show-close="false"，确保关闭按钮渲染
   -->
   <ElModal
     v-model="visible"
     size="xxl"
     :show-submit="false"
     :show-cancel="false"
-    :show-close="false"
     @close="handleClose"
   >
     <!--
@@ -20,7 +21,7 @@
       蓝底白字 + 标题 + "已选择 X 条" 蓝色 badge + X 关闭按钮
     -->
     <template #header>
-      <div class="flex items-center justify-between bg-blue-600 -m-4 p-4 rounded-t-lg">
+      <div class="flex items-center justify-between bg-blue-600 px-6 py-4 rounded-t-lg">
         <div class="flex items-center gap-4">
           <h3 class="text-lg font-semibold text-white">批量编辑生产计划</h3>
           <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded">
@@ -31,9 +32,10 @@
           type="button"
           class="text-white hover:bg-blue-700 rounded p-1 inline-flex items-center justify-center"
           title="关闭"
+          aria-label="关闭批量编辑弹窗"
           @click="handleClose"
         >
-          <X class="w-5 h-5" />
+          <el-icon :size="20"><Close /></el-icon>
         </button>
       </div>
     </template>
@@ -79,7 +81,7 @@
           <div>
             <div class="text-xs text-gray-500 mb-1">作物品种</div>
             <CropCodeSelector
-              :model-value="editedDataProxy.cropCode || currentBatch.cropCode || ''"
+              :model-value="formState.cropCode || currentBatch.cropCode || ''"
               placeholder="搜索或选择作物品种..."
               size="sm"
               show-full-path
@@ -122,7 +124,7 @@
                 <input
                   type="checkbox"
                   :id="`edit-gh-${g.id}`"
-                  :checked="editedDataProxy.greenhouseId.includes(g.id)"
+                  :checked="formState.greenhouseId.includes(g.id)"
                   @change="toggleGreenhouse(g)"
                   class="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                 />
@@ -130,7 +132,7 @@
               </div>
             </div>
             <div v-else class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 flex items-center">
-              {{ editedDataProxy.greenhouseId.length === 0 ? '请选择' : editedDataProxy.greenhouseId.map(id => activeGreenhouses.find(g => g.id === id)?.name).filter(Boolean).join(', ') }}
+              {{ formState.greenhouseId.length === 0 ? '请选择' : formState.greenhouseId.map(id => activeGreenhouses.find(g => g.id === id)?.name).filter(Boolean).join(', ') }}
             </div>
           </div>
 
@@ -157,7 +159,7 @@
                 <input
                   type="checkbox"
                   :id="`edit-pm-${mode.value}`"
-                  :checked="editedDataProxy.plantingMode.includes(mode.value)"
+                  :checked="formState.plantingMode.includes(mode.value)"
                   @change="togglePlantingMode(mode.value)"
                   class="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                 />
@@ -165,7 +167,7 @@
               </div>
             </div>
             <div v-else class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 flex items-center">
-              {{ editedDataProxy.plantingMode.length === 0 ? '请选择' : editedDataProxy.plantingMode.map(v => plantingModeOptions.find(m => m.value === v)?.label).filter(Boolean).join(', ') }}
+              {{ formState.plantingMode.length === 0 ? '请选择' : formState.plantingMode.map(v => plantingModeOptions.find(m => m.value === v)?.label).filter(Boolean).join(', ') }}
             </div>
           </div>
         </div>
@@ -175,17 +177,19 @@
           <div>
             <label class="text-xs text-gray-500 mb-1 block">开始时间</label>
             <input
-              v-model="editedDataProxy.startDate"
+              :value="formState.startDate"
               type="date"
               class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              @input="handleFieldChange('startDate', $event.target.value)"
             />
           </div>
           <div>
             <label class="text-xs text-gray-500 mb-1 block">预计结束时间</label>
             <input
-              v-model="editedDataProxy.expectedHarvestDate"
+              :value="formState.expectedHarvestDate"
               type="date"
               class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              @input="handleFieldChange('expectedHarvestDate', $event.target.value)"
             />
           </div>
         </div>
@@ -195,8 +199,9 @@
           <div>
             <label class="text-xs text-gray-500 mb-1 block">负责人</label>
             <select
-              v-model="editedDataProxy.responsiblePerson"
+              :value="formState.responsiblePerson"
               class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white"
+              @change="handleFieldChange('responsiblePerson', $event.target.value)"
             >
               <option value="" disabled>请选择</option>
               <option v-for="name in RESPONSIBLE_PERSONS" :key="name" :value="name">{{ name }}</option>
@@ -206,17 +211,19 @@
             <div>
               <label class="text-xs text-gray-500 mb-1 block">目标产量</label>
               <input
-                v-model="editedDataProxy.targetYield"
+                :value="formState.targetYield"
                 type="number"
                 placeholder="0"
                 class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                @input="handleFieldChange('targetYield', $event.target.value)"
               />
             </div>
             <div>
               <label class="text-xs text-gray-500 mb-1 block">单位</label>
               <select
-                v-model="editedDataProxy.unit"
+                :value="formState.unit"
                 class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white"
+                @change="handleFieldChange('unit', $event.target.value)"
               >
                 <option value="" disabled>选择单位</option>
                 <option value="kg">kg</option>
@@ -233,17 +240,19 @@
           <div>
             <label class="text-xs text-gray-500 mb-1 block">种植面积</label>
             <input
-              v-model="editedDataProxy.plantingArea"
+              :value="formState.plantingArea"
               type="number"
               placeholder="0"
               class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              @input="handleFieldChange('plantingArea', $event.target.value)"
             />
           </div>
           <div>
             <label class="text-xs text-gray-500 mb-1 block">面积单位</label>
             <select
-              v-model="editedDataProxy.plantingAreaUnit"
+              :value="formState.plantingAreaUnit"
               class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white"
+              @change="handleFieldChange('plantingAreaUnit', $event.target.value)"
             >
               <option value="" disabled>选择单位</option>
               <option value="m²">m²</option>
@@ -288,8 +297,9 @@
             <div class="flex-1">
               <label class="text-xs text-gray-500 mb-1 block">执行状态</label>
               <select
-                v-model="editedDataProxy.executionStatus"
+                :value="formState.executionStatus"
                 class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white"
+                @change="handleFieldChange('executionStatus', $event.target.value)"
               >
                 <option value="" disabled>请选择执行状态</option>
                 <option value="pending_execution">待执行</option>
@@ -304,9 +314,9 @@
         <div class="bg-gray-50 rounded-lg p-3">
           <div class="text-xs text-gray-500 mb-2">计划详情文件</div>
           <div class="flex items-center gap-4">
-            <template v-if="editedDataProxy.planDetailFileName">
+            <template v-if="formState.planDetailFileName">
               <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-700">{{ editedDataProxy.planDetailFileName }}</span>
+                <span class="text-sm text-gray-700">{{ formState.planDetailFileName }}</span>
                 <button
                   class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
                   @click="handleFileUpload"
@@ -365,9 +375,12 @@
  *              字段来源与新建弹窗保持一致
  *              P0-005: 执行状态选项已恢复 V1.1 风格
  *              P1-007: 布局从单一 grid-cols-4 改为多个 grid-cols-2 行
+ *              2026-06-04: 改用本地 formState + 显式 handler（修复 v-model 在 computed 子属性上不写回 props 的 bug）
+ *              2026-06-04: 配合 ElModal #header 插槽 + 移除 :show-close="false"
  */
 import { computed, ref, watch } from 'vue'
-import { ChevronUp, ChevronDown, Upload, X } from 'lucide-vue-next'
+import { ChevronUp, ChevronDown, Upload } from 'lucide-vue-next'
+import { Close } from '@element-plus/icons-vue'
 import { ElModal } from '@/components/ui'
 import {
   batchStatusColors,
@@ -429,7 +442,7 @@ const currentBatch = computed(() =>
 const allModes = [...SEED_BREEDING_MODES, ...SEEDLING_MODES, ...PLANTING_MODES]
 const modeMap = Object.fromEntries(allModes.map(m => [m.value, m.label]))
 
-// 模式选项 - 根据当前批次的计划类型
+// 模式选项 - 根据当前批次的计划类型（与 CreateBatchModal 一致）
 const plantingModeOptions = computed(() => {
   if (!currentBatch.value) return PLANTING_MODES
   return getModesByPlanType(currentBatch.value.planType)
@@ -438,43 +451,19 @@ const plantingModeOptions = computed(() => {
 // 已选品种的详情（用于显示完整路径）- 1:1 对应 V1.1 setSelectedCrop + selectedCrop
 const selectedCrop = ref(null)
 
-// 计算 editedData - 支持数组类型字段
-const editedDataProxy = computed({
-  get: () => {
-    if (!localSelectedBatchCode.value) return defaultEditedData()
-    const base = props.batches.find(b => b.batchCode === localSelectedBatchCode.value) || {}
-    const edited = props.editedBatches[localSelectedBatchCode.value] || {}
-    return {
-      plantingMode: parseArray(edited.plantingMode ?? base.plantingMode),
-      cropName: edited.cropName ?? base.cropName ?? '',
-      variety: edited.variety ?? base.variety ?? '',
-      greenhouseId: parseArray(edited.greenhouseId ?? base.greenhouseId),
-      greenhouseName: edited.greenhouseName ?? base.greenhouseName ?? '',
-      plantingArea: edited.plantingArea ?? base.plantingArea ?? '',
-      plantingAreaUnit: edited.plantingAreaUnit ?? base.plantingAreaUnit ?? '',
-      unit: edited.unit ?? base.unit ?? '',
-      startDate: edited.startDate ?? base.startDate ?? '',
-      expectedHarvestDate: edited.expectedHarvestDate ?? base.expectedHarvestDate ?? '',
-      responsiblePerson: edited.responsiblePerson ?? base.responsiblePerson ?? '',
-      targetYield: edited.targetYield ?? base.targetYield ?? '',
-      executionStatus: edited.executionStatus ?? base.executionStatus ?? '',
-      planDetailFileName: edited.planDetailFileName ?? base.planDetailFileName ?? '',
-      planDetail: edited.planDetail ?? base.planDetail ?? ''
-    }
-  },
-  set: (val) => {
-    if (!localSelectedBatchCode.value) return
-    const updated = { ...props.editedBatches, [localSelectedBatchCode.value]: { ...props.editedBatches[localSelectedBatchCode.value], ...val } }
-    emit('update:editedBatches', updated)
-    if (!props.editedBatchCodes.includes(localSelectedBatchCode.value)) {
-      emit('update:editedBatchCodes', [...props.editedBatchCodes, localSelectedBatchCode.value])
-    }
-  }
-})
+/**
+ * 本地表单状态（修复 v-model 失效问题）
+ * 旧实现：editedDataProxy 是 computed（get 返回新对象，set 调用 emit），
+ *        但 Vue 的 v-model="editedDataProxy.field" 展开为对返回对象的临时属性赋值，
+ *        set 永远不会被调用，导致 editedBatches 永远为空。
+ * 新实现：本地 formState ref + 显式 handler 直接 emit
+ *        （更接近 V1.1 React 风格的 onChange + 1:1 行为对齐）
+ */
+const formState = ref(defaultEditedData())
 
 function defaultEditedData() {
   return {
-    plantingMode: [],
+    cropCode: '',
     cropName: '',
     variety: '',
     greenhouseId: [],
@@ -487,6 +476,7 @@ function defaultEditedData() {
     responsiblePerson: '',
     targetYield: '',
     executionStatus: '',
+    plantingMode: [],
     planDetailFileName: '',
     planDetail: ''
   }
@@ -501,6 +491,37 @@ function parseArray(val) {
   return []
 }
 
+/**
+ * 当选中批次变化时，从 base + edited 合并到 formState
+ * 与 V1.1 editedData = { ...editedBatches[selectedBatchCode], ...base } 等价
+ */
+watch(currentBatch, (batch) => {
+  selectedCrop.value = null
+  if (!batch) {
+    formState.value = defaultEditedData()
+    return
+  }
+  const edited = props.editedBatches[batch.batchCode] || {}
+  formState.value = {
+    cropCode: edited.cropCode ?? batch.cropCode ?? '',
+    cropName: edited.cropName ?? batch.cropName ?? '',
+    variety: edited.variety ?? batch.variety ?? '',
+    greenhouseId: parseArray(edited.greenhouseId ?? batch.greenhouseId),
+    greenhouseName: edited.greenhouseName ?? batch.greenhouseName ?? '',
+    plantingArea: edited.plantingArea ?? batch.plantingArea ?? '',
+    plantingAreaUnit: edited.plantingAreaUnit ?? batch.plantingAreaUnit ?? '',
+    unit: edited.unit ?? batch.unit ?? '',
+    startDate: edited.startDate ?? batch.startDate ?? '',
+    expectedHarvestDate: edited.expectedHarvestDate ?? batch.expectedHarvestDate ?? '',
+    responsiblePerson: edited.responsiblePerson ?? batch.responsiblePerson ?? '',
+    targetYield: edited.targetYield ?? batch.targetYield ?? '',
+    executionStatus: edited.executionStatus ?? batch.executionStatus ?? '',
+    plantingMode: parseArray(edited.plantingMode ?? batch.plantingMode),
+    planDetailFileName: edited.planDetailFileName ?? batch.planDetailFileName ?? '',
+    planDetail: edited.planDetail ?? batch.planDetail ?? ''
+  }
+}, { immediate: true })
+
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen && props.selectedRows.length > 0 && !localSelectedBatchCode.value) {
     const first = selectedBatches.value[0]
@@ -510,16 +531,22 @@ watch(() => props.modelValue, (isOpen) => {
   }
 })
 
-// 当前批次变化时，重置 selectedCrop - 1:1 对应 V1.1 setSelectedCrop 在 useState 中
-watch(currentBatch, (batch) => {
-  selectedCrop.value = null
-  if (batch) {
-    // 保留供 V1.1 兼容：清除已编辑中的临时选择
-  }
-})
-
+/**
+ * 单字段变更 - 1:1 翻译 V1.1 handleFieldChange
+ * 直接 emit 'update:editedBatches' 和 'update:editedBatchCodes'
+ */
 function handleFieldChange(field, value) {
-  editedDataProxy.value = { ...editedDataProxy.value, [field]: value }
+  formState.value = { ...formState.value, [field]: value }
+  if (!localSelectedBatchCode.value) return
+  const currentEdited = props.editedBatches[localSelectedBatchCode.value] || {}
+  const updated = {
+    ...props.editedBatches,
+    [localSelectedBatchCode.value]: { ...currentEdited, [field]: value }
+  }
+  emit('update:editedBatches', updated)
+  if (!props.editedBatchCodes.includes(localSelectedBatchCode.value)) {
+    emit('update:editedBatchCodes', [...props.editedBatchCodes, localSelectedBatchCode.value])
+  }
 }
 
 // 作物变更 - 1:1 对应 V1.1 handleCropChange
@@ -538,7 +565,7 @@ function handleCropChange(code, varietyInfo) {
 }
 
 function togglePlantingMode(value) {
-  const current = [...editedDataProxy.value.plantingMode]
+  const current = [...(formState.value.plantingMode || [])]
   const index = current.indexOf(value)
   if (index === -1) {
     current.push(value)
@@ -549,7 +576,7 @@ function togglePlantingMode(value) {
 }
 
 function toggleGreenhouse(greenhouse) {
-  const current = [...editedDataProxy.value.greenhouseId]
+  const current = [...(formState.value.greenhouseId || [])]
   const index = current.indexOf(greenhouse.id)
   if (index === -1) {
     current.push(greenhouse.id)

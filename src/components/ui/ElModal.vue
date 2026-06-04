@@ -29,7 +29,23 @@
           </template>
 
           <!-- Header -->
+          <!--
+            ✅ 修复: 兼容自定义 #header 插槽
+            - 旧实现：硬编码 <div class="el-modal-header"> 包裹 title + actions
+            - 修复后：用 v-if 优先使用消费者传入的 #header 插槽，否则降级到默认 header
+            - 影响：BatchEditModal 等多个 1:1 翻译自 V1.1 的弹窗可以正常使用 #header 插槽放关闭按钮
+          -->
+          <template v-if="$slots.header">
+            <div
+              class="el-modal-header"
+              :class="{ 'el-modal-header-plain': plainHeader }"
+              @dblclick="handleMaximize"
+            >
+              <slot name="header" />
+            </div>
+          </template>
           <div
+            v-else
             class="el-modal-header"
             :class="{ 'el-modal-header-plain': plainHeader }"
             @dblclick="handleMaximize"
