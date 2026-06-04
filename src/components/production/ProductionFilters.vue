@@ -92,10 +92,10 @@
           />
         </el-select>
       </div>
-      <!-- 操作按钮 -->
+      <!-- 操作按钮 - 1:1 对应 V1.1 line 126-132 shadcn Button：重置=secondary 灰底，搜索=primary 绿底 -->
       <div class="flex gap-2 ml-2">
         <button
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
           @click="handleReset"
         >
           重置
@@ -114,7 +114,7 @@
 
 <script>
 import { Search } from 'lucide-vue-next'
-import { batchStatusLabels, PlanTypeLabels as planTypeLabels } from './constants'
+import { batchStatusLabels, PlanTypeLabels } from './constants'
 
 /**
  * 生产计划筛选器 - 1:1 翻译自 V1.1 ProductionFilters.tsx
@@ -173,26 +173,6 @@ export default {
       localStatus: 'all',
       /** @type {String} 计划类型下拉本地值 */
       localPlanType: 'all',
-      // 1:1 翻译 V1.1 types/index.ts:16-20 PlanTypeLabels
-      /** @type {Record<string, string>} 计划类型文本映射 */
-      PlanTypeLabels: {
-        seed_breeding: '育种计划',
-        seedling: '育苗计划',
-        planting: '种植计划',
-      },
-      // 1:1 翻译 V1.1 constants.ts:29-39 batchStatusLabels
-      /** @type {Record<string, string>} 批次状态文本映射 */
-      batchStatusLabels: {
-        draft: '草稿',
-        pending: '待审批',
-        pending_complete: '待审批（完成）',
-        published: '已发布',
-        approved: '已通过',
-        in_progress: '执行中',
-        completed: '已完成',
-        cancelled: '已作废',
-        rejected: '已拒绝',
-      },
     }
   },
   watch: {

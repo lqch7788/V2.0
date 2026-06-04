@@ -9,12 +9,34 @@
   -->
   <ElModal
     v-model="visible"
-    title="批量编辑生产计划"
     size="xxl"
     :show-submit="false"
     :show-cancel="false"
+    :show-close="false"
     @close="handleClose"
   >
+    <!--
+      自定义 header - 1:1 对应 V1.1 line 128-138
+      蓝底白字 + 标题 + "已选择 X 条" 蓝色 badge + X 关闭按钮
+    -->
+    <template #header>
+      <div class="flex items-center justify-between bg-blue-600 -m-4 p-4 rounded-t-lg">
+        <div class="flex items-center gap-4">
+          <h3 class="text-lg font-semibold text-white">批量编辑生产计划</h3>
+          <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded">
+            已选择 {{ selectedRows.length }} 条
+          </span>
+        </div>
+        <button
+          type="button"
+          class="text-white hover:bg-blue-700 rounded p-1 inline-flex items-center justify-center"
+          title="关闭"
+          @click="handleClose"
+        >
+          <X class="w-5 h-5" />
+        </button>
+      </div>
+    </template>
     <!-- Info Banner - 1:1 对应 V1.1 L144-172 -->
     <div class="p-4 bg-gray-50 border-b border-gray-200 -mx-4 sm:-mx-6 -mt-4">
       <div class="bg-blue-50 rounded-lg p-3 mb-3">
@@ -53,17 +75,25 @@
             <div class="text-sm font-medium text-gray-900">{{ currentBatch.batchCode }}</div>
           </div>
 
-          <!-- 作物品种 - 可编辑（与新建一致） -->
+          <!-- 作物品种 - 可编辑（与新建一致） - 1:1 对应 V1.1 L182-201 -->
           <div>
-            <label class="text-xs text-gray-500 block mb-1 text-center">作物品种</label>
-            <select
-              v-model="editedDataProxy.variety"
-              class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white"
+            <div class="text-xs text-gray-500 mb-1">作物品种</div>
+            <CropCodeSelector
+              :model-value="editedDataProxy.cropCode || currentBatch.cropCode || ''"
+              placeholder="搜索或选择作物品种..."
+              size="sm"
+              show-full-path
+              @change="handleCropChange"
+            />
+            <div
+              v-if="selectedCrop"
+              class="mt-1.5 p-2 bg-emerald-50 border border-emerald-200 rounded text-xs"
             >
-              <option value="" disabled>请选择品种</option>
-              <option v-for="v in currentVarieties" :key="v" :value="v">{{ v }}</option>
-            </select>
-            <p class="text-xs text-gray-400 mt-1">当前作物：{{ currentBatch.cropName || '-' }}</p>
+              <span class="text-emerald-700">
+                {{ selectedCrop.categoryName }} &gt; {{ selectedCrop.typeName }} &gt; {{ selectedCrop.varietyName }}
+                {{ selectedCrop.subVariety1Name && ` > ${selectedCrop.subVariety1Name}` }}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -337,7 +367,7 @@
  *              P1-007: 布局从单一 grid-cols-4 改为多个 grid-cols-2 行
  */
 import { computed, ref, watch } from 'vue'
-import { ChevronUp, ChevronDown, Upload } from 'lucide-vue-next'
+import { ChevronUp, ChevronDown, Upload, X } from 'lucide-vue-next'
 import { ElModal } from '@/components/ui'
 import {
   batchStatusColors,
@@ -348,7 +378,7 @@ import {
   SEED_BREEDING_MODES,
   SEEDLING_MODES
 } from '../constants'
-import { getAllVarieties } from '@/services/cropVarietyService'
+import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -405,26 +435,8 @@ const plantingModeOptions = computed(() => {
   return getModesByPlanType(currentBatch.value.planType)
 })
 
-// 品种选项 - 来自 cropVarietyService
-const allVarieties = computed(() => getAllVarieties())
-const cropOptions = computed(() => {
-  const map = new Map()
-  allVarieties.value.forEach(v => {
-    if (!map.has(v.varietyName)) {
-      map.set(v.varietyName, {
-        name: v.varietyName,
-        typeName: v.typeName,
-        varieties: [v.subVariety1Name || v.varietyName].filter(Boolean)
-      })
-    }
-  })
-  return Array.from(map.values())
-})
-
-const currentVarieties = computed(() => {
-  const crop = cropOptions.value.find(c => c.name === (editedDataProxy.value.cropName || currentBatch.value?.cropName))
-  return crop?.varieties || []
-})
+// 已选品种的详情（用于显示完整路径）- 1:1 对应 V1.1 setSelectedCrop + selectedCrop
+const selectedCrop = ref(null)
 
 // 计算 editedData - 支持数组类型字段
 const editedDataProxy = computed({
@@ -498,8 +510,31 @@ watch(() => props.modelValue, (isOpen) => {
   }
 })
 
+// 当前批次变化时，重置 selectedCrop - 1:1 对应 V1.1 setSelectedCrop 在 useState 中
+watch(currentBatch, (batch) => {
+  selectedCrop.value = null
+  if (batch) {
+    // 保留供 V1.1 兼容：清除已编辑中的临时选择
+  }
+})
+
 function handleFieldChange(field, value) {
   editedDataProxy.value = { ...editedDataProxy.value, [field]: value }
+}
+
+// 作物变更 - 1:1 对应 V1.1 handleCropChange
+function handleCropChange(code, varietyInfo) {
+  if (varietyInfo) {
+    selectedCrop.value = varietyInfo
+    handleFieldChange('cropCode', varietyInfo.cropCode)
+    handleFieldChange('cropName', varietyInfo.varietyName)
+    handleFieldChange('variety', varietyInfo.subVariety1Name || varietyInfo.varietyName)
+  } else {
+    selectedCrop.value = null
+    handleFieldChange('cropCode', '')
+    handleFieldChange('cropName', '')
+    handleFieldChange('variety', '')
+  }
 }
 
 function togglePlantingMode(value) {
