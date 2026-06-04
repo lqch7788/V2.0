@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="overflow-x-auto">
+    <div>
       <table class="w-full">
         <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <tr>
@@ -50,7 +50,7 @@
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">关联订单</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">生产计划文件</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-32 sticky right-0 bg-gradient-to-r from-blue-500 to-blue-600">操作</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-300">
@@ -137,18 +137,18 @@
               </template>
               <span v-else class="text-gray-400">-</span>
             </td>
-            <td class="px-4 py-3 whitespace-nowrap w-32 sticky right-0 bg-white">
-              <div class="flex items-center gap-1 flex-shrink-0">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-1">
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
-                  class="h-9 w-9 flex items-center justify-center rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors flex-shrink-0"
+                  class="inline-flex items-center justify-center h-8 px-2 rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
                   title="编辑"
                   @click="onEdit(batch)"
                 >
                   <Pencil class="w-4 h-4" />
                 </button>
                 <button
-                  class="h-9 w-9 flex items-center justify-center rounded text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors flex-shrink-0"
+                  class="inline-flex items-center justify-center h-8 px-2 rounded text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
                   title="删除"
                   @click="handleDelete(batch)"
                 >
