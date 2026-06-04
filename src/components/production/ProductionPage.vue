@@ -21,17 +21,17 @@
     </div>
 
     <!-- 统计卡片 -->
-    <ProductionStatsCards :batches="hook.batches.value" />
+    <ProductionStatsCards :batches="hook.batches" />
 
     <!-- 筛选器 -->
     <ProductionFilters
-      :batch-code-search="hook.batchCodeSearch.value"
-      :planting-mode-search="hook.plantingModeSearch.value"
-      :crop-name-search="hook.cropNameSearch.value"
-      :variety-search="hook.varietySearch.value"
-      :greenhouse-search="hook.greenhouseSearch.value"
-      :status-filter="hook.statusFilter.value"
-      :plan-type-filter="hook.planTypeFilter.value"
+      :batch-code-search="hook.batchCodeSearch"
+      :planting-mode-search="hook.plantingModeSearch"
+      :crop-name-search="hook.cropNameSearch"
+      :variety-search="hook.varietySearch"
+      :greenhouse-search="hook.greenhouseSearch"
+      :status-filter="hook.statusFilter"
+      :plan-type-filter="hook.planTypeFilter"
       :on-batch-code-change="hook.setBatchCodeSearch"
       :on-planting-mode-change="hook.setPlantingModeSearch"
       :on-crop-name-change="hook.setCropNameSearch"
@@ -48,22 +48,22 @@
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900">生产计划列表</h3>
         <!-- 工具栏按钮区：根据模式动态切换 -->
-        <div v-if="hook.exportMode.value" class="flex gap-2">
+        <div v-if="hook.exportMode" class="flex gap-2">
           <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.handleConfirmExport">确认导出</button>
           <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="hook.handleCancelExport">取消</button>
         </div>
-        <div v-else-if="hook.batchEditMode.value" class="flex gap-2">
+        <div v-else-if="hook.batchEditMode" class="flex gap-2">
           <button
             class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700"
-            :disabled="hook.selectedRows.value.length === 0"
+            :disabled="hook.selectedRows.length === 0"
             @click="hook.setShowBatchEditModal(true)"
           >批量编辑</button>
           <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelBatchEdit">取消</button>
         </div>
-        <div v-else-if="hook.batchDeleteMode.value" class="flex gap-2">
+        <div v-else-if="hook.batchDeleteMode" class="flex gap-2">
           <button
             class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white hover:bg-red-700"
-            :disabled="hook.selectedRows.value.length === 0"
+            :disabled="hook.selectedRows.length === 0"
             @click="hook.setShowDeleteWarning(true)"
           >确认删除</button>
           <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelBatchDelete">取消</button>
@@ -78,33 +78,33 @@
 
       <!-- 表格 -->
       <ProductionTable
-        :filtered-batches="hook.filteredBatches.value"
-        :current-page="hook.currentPage.value"
-        :page-size="hook.pageSize.value"
-        :export-mode="hook.exportMode.value"
-        :batch-edit-mode="hook.batchEditMode.value"
-        :batch-delete-mode="hook.batchDeleteMode.value"
-        :selected-rows="hook.selectedRows.value"
-        :on-page-change="hook.setCurrentPage"
-        :on-page-size-change="hook.handlePageSizeChange"
-        :on-select-row="hook.handleSelectRow"
-        :on-select-all="hook.handleSelectAll"
-        :on-batch-select-all="hook.handleBatchSelectAll"
-        :on-batch-delete-select-all="hook.handleBatchDeleteSelectAll"
-        :on-batch-code-click="hook.setSelectedBatch"
+        :filtered-batches="hook.filteredBatches"
+        :current-page="hook.currentPage"
+        :page-size="hook.pageSize"
+        :export-mode="hook.exportMode"
+        :batch-edit-mode="hook.batchEditMode"
+        :batch-delete-mode="hook.batchDeleteMode"
+        :selected-rows="hook.selectedRows"
+        :page-change-handler="hook.setCurrentPage"
+        :page-size-change-handler="hook.handlePageSizeChange"
+        :select-row-handler="hook.handleSelectRow"
+        :select-all-handler="hook.handleSelectAll"
+        :batch-select-all-handler="hook.handleBatchSelectAll"
+        :batch-delete-select-all-handler="hook.handleBatchDeleteSelectAll"
+        :batch-code-click-handler="hook.setSelectedBatch"
         :edit-handler="hook.handleSingleEdit"
         :delete-handler="hook.handleSingleDelete"
-        :total-count="hook.filteredBatches.value.length"
+        :total-count="hook.filteredBatches.length"
       />
     </div>
 
     <!-- 新增批次弹窗 -->
     <CreateBatchModal
-      v-model="hook.showCreateModal.value"
-      :form-data="hook.formData.value"
-      :errors="hook.errors.value"
-      :greenhouses="hook.greenhouses.value"
-      :orders="hook.orders.value"
+      v-model="hook.showCreateModal"
+      :form-data="hook.formData"
+      :errors="hook.errors"
+      :greenhouses="hook.greenhouses"
+      :orders="hook.orders"
       @close="hook.handleClose"
       @save-draft="hook.handleSaveDraft"
       @submit-for-approval="hook.handleSubmitForApproval"
@@ -115,15 +115,15 @@
     <!-- 批次详情弹窗 -->
     <BatchDetailModal
       v-model="detailVisible"
-      :batch="hook.selectedBatch.value"
+      :batch="hook.selectedBatch"
       @close="handleCloseDetail"
     />
 
     <!-- 导出格式弹窗 -->
     <MaterialExportModal
-      :is-open="hook.showExportModal.value"
-      :export-format="hook.exportFormat.value"
-      :selected-count="hook.selectedRows.value.length"
+      :is-open="hook.showExportModal"
+      :export-format="hook.exportFormat"
+      :selected-count="hook.selectedRows.length"
       @format-change="hook.setExportFormat"
       @close="hook.setShowExportModal(false)"
       @export="hook.handleDoExport"
@@ -131,13 +131,13 @@
 
     <!-- 批量编辑弹窗 -->
     <BatchEditModal
-      v-model="hook.showBatchEditModal.value"
-      :selected-rows="hook.selectedRows.value"
-      :batches="hook.batches.value"
-      :greenhouses="hook.greenhouses.value"
-      :edited-batch-codes="hook.editedBatchCodes.value"
-      :edited-batches="hook.editedBatches.value"
-      :selected-batch-code="hook.selectedBatchCode.value"
+      v-model="hook.showBatchEditModal"
+      :selected-rows="hook.selectedRows"
+      :batches="hook.batches"
+      :greenhouses="hook.greenhouses"
+      :edited-batch-codes="hook.editedBatchCodes"
+      :edited-batches="hook.editedBatches"
+      :selected-batch-code="hook.selectedBatchCode"
       :on-selected-batch-code-change="hook.setSelectedBatchCode"
       :on-edited-batches-change="hook.setEditedBatches"
       :on-edited-batch-codes-change="hook.setEditedBatchCodes"
@@ -150,14 +150,14 @@
 
     <!-- 作废警告弹窗 -->
     <VoidWarningModal
-      v-model="hook.showVoidWarning.value"
+      v-model="hook.showVoidWarning"
       @confirm="hook.handleVoidConfirm"
     />
 
     <!-- 删除警告弹窗 -->
     <DeleteWarningModal
-      v-model="hook.showDeleteWarning.value"
-      :selected-count="hook.selectedRows.value.length"
+      v-model="hook.showDeleteWarning"
+      :selected-count="hook.selectedRows.length"
       @confirm="hook.handleDeleteConfirm"
     />
   </div>
@@ -170,7 +170,7 @@
  *              逻辑全部由 useProductionPage composable 提供（L2 翻译成果）
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\production\ProductionPage.tsx
  */
-import { computed } from 'vue'
+import { computed, reactive } from 'vue'
 import { FileText } from 'lucide-vue-next'
 import { useProductionPage } from '@/composables/production/useProductionPage'
 import ProductionStatsCards from './ProductionStatsCards.vue'
@@ -184,7 +184,11 @@ import DeleteWarningModal from './modals/DeleteWarningModal.vue'
 import MaterialExportModal from '@/views/warehouse/components/MaterialExportModal.vue'
 
 // 全部使用 useProductionPage 的状态和方法（1:1 对应 V1.1 hook）
-const hook = useProductionPage()
+// 用 reactive 包装 hook，让 ref 属性在 template 中自动 unwrap
+// （Vue 3 模板只对顶层 ref 自动 unwrap，hook 是普通对象里的 ref 不自动 unwrap）
+// reactive 包装后 hook.showCreateModal 在 template 中就是 ref.value（boolean）
+// hook.setShowCreateModal 仍是函数（reactive 不动方法）
+const hook = reactive(useProductionPage())
 
 // 权限控制 - 1:1 对应 V1.1（V1.1 中所有权限均为 true）
 const canCreate = true
@@ -194,7 +198,7 @@ const canExport = true
 
 // 详情弹窗可见性：1:1 对应 V1.1（selectedBatch 不为 null 时显示）
 const detailVisible = computed({
-  get: () => hook.selectedBatch.value !== null,
+  get: () => hook.selectedBatch !== null,
   set: (val) => {
     if (!val) hook.setSelectedBatch(null)
   }

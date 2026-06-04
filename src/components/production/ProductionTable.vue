@@ -365,9 +365,23 @@ export default defineComponent({
     batchDeleteMode: { type: Boolean, default: false },
     /** @type {{ type: import('vue').PropType<string[]>, default: () => string[] }} */
     selectedRows: { type: Array, default: () => [] },
-    // 1:1 对应 V1.1 line 24-25 的 onEdit/onDelete callback props
+    // 1:1 对应 V1.1 ProductionTableProps line 17-26 所有 callback props
     // 注意：Vue 3 规则 - prop 名以 'on' 开头会被当作 emit 监听器自动 unwrap
-    // 所以改用 editHandler/deleteHandler 避开 'on' 前缀
+    // 所以全部用 xxxHandler 命名避开 'on' 前缀
+    /** @type {{ type: Function, required: true }} */
+    pageChangeHandler: { type: Function, required: true },
+    /** @type {{ type: Function, required: true }} */
+    pageSizeChangeHandler: { type: Function, required: true },
+    /** @type {{ type: Function, required: true }} */
+    selectRowHandler: { type: Function, required: true },
+    /** @type {{ type: Function, required: true }} */
+    selectAllHandler: { type: Function, required: true },
+    /** @type {{ type: Function, required: true }} */
+    batchSelectAllHandler: { type: Function, required: true },
+    /** @type {{ type: Function, required: true }} */
+    batchDeleteSelectAllHandler: { type: Function, required: true },
+    /** @type {{ type: Function, required: true }} */
+    batchCodeClickHandler: { type: Function, required: true },
     /** @type {{ type: Function, required: true }} */
     editHandler: { type: Function, required: true },
     /** @type {{ type: Function, required: true }} */
@@ -508,24 +522,28 @@ export default defineComponent({
       URL.revokeObjectURL(url)
     }
 
-    // ============ 事件透传（emit 包装）============
+    // ============ 事件透传（callback props 包装）============
+    // 1:1 对应 V1.1 onXxx props
     function onPageChange(page) {
-      emit('pageChange', page)
+      props.pageChangeHandler(page)
+    }
+    function onPageSizeChange(size) {
+      props.pageSizeChangeHandler(size)
     }
     function onSelectRow(id) {
-      emit('selectRow', id)
+      props.selectRowHandler(id)
     }
     function onSelectAll() {
-      emit('selectAll')
+      props.selectAllHandler()
     }
     function onBatchSelectAll() {
-      emit('batchSelectAll')
+      props.batchSelectAllHandler()
     }
     function onBatchDeleteSelectAll() {
-      emit('batchDeleteSelectAll')
+      props.batchDeleteSelectAllHandler()
     }
     function onBatchCodeClick(batch) {
-      emit('batchCodeClick', batch)
+      props.batchCodeClickHandler(batch)
     }
     // 1:1 对应 V1.1 line 222 onClick={() => onEdit(batch)}
     function onEdit(batch) {
