@@ -91,3 +91,9 @@ login-flow-test.js
 .opencode/
 .codegraph/
 audit/planning/
+
+# Playwright MCP debug output (browser snapshots, not source code)
+.playwright-mcp/
+
+# SQLite database backups (created during data import, not source code)
+server/data/yuanxingtu_backup_*.db
