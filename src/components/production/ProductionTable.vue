@@ -50,7 +50,7 @@
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">关联订单</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">生产计划文件</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-24">操作</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-32 sticky right-0 bg-gradient-to-r from-blue-500 to-blue-600">操作</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-300">
@@ -137,7 +137,7 @@
               </template>
               <span v-else class="text-gray-400">-</span>
             </td>
-            <td class="px-4 py-3 whitespace-nowrap w-24">
+            <td class="px-4 py-3 whitespace-nowrap w-32 sticky right-0 bg-white">
               <div class="flex items-center gap-1 flex-shrink-0">
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
