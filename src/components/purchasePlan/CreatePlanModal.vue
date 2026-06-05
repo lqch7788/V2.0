@@ -4,16 +4,71 @@
   @description 新增采购申请单弹窗：基本信息表单 + 物料明细可编辑表格
 -->
 <template>
-  <el-dialog
-    :model-value="isOpen"
-    title="新增采购申请单"
-    width="1280px"
-    :close-on-click-modal="false"
-    :destroy-on-close="false"
-    @close="handleClose"
-    @update:model-value="(v) => !v && handleClose()"
-  >
-    <div class="space-y-4">
+  <!-- 新增采购计划弹窗 - 1:1 对齐 V2.0 订单管理 AddModal 风格（Teleport + 可拖动 + 可缩放 + 可最大化 + 绿色渐变头部） -->
+  <Teleport to="body">
+    <div
+      v-if="isOpen"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm"
+      @click="handleClose"
+    >
+      <div
+        id="purchase-plan-add-dialog"
+        class="bg-white rounded-xl w-full shadow-xl flex flex-col relative"
+        :style="{
+          width: '1280px',
+          height: '700px',
+          maxWidth: '90vw',
+          maxHeight: '90vh',
+          minWidth: '40rem',
+        }"
+        @click.stop
+      >
+        <!-- 右下角缩放拖动条 -->
+        <div
+          v-if="!isMaximized"
+          class="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-10"
+          @mousedown="handleResizeStart"
+        >
+          <svg class="w-full h-full text-gray-300 hover:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22 22H20V20H22V22ZM22 18H20V16H22V18ZM18 22H16V20H18V22ZM22 14H20V12H22V14ZM18 18H16V16H18V18ZM14 22H12V20H14V22Z" />
+          </svg>
+        </div>
+
+        <!-- 头部 — 绿色渐变（与订单管理 AddModal L24 一致） -->
+        <div
+          class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
+          @mousedown="handleDragStart"
+        >
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2 select-none">
+            新增采购申请单
+          </h3>
+          <div class="flex items-center gap-1">
+            <!-- 最大化/还原按钮 -->
+            <el-button
+              link
+              @click="toggleMaximize"
+              class="hover:bg-white/10"
+              style="color: rgba(255,255,255,0.8);"
+            >
+              <el-icon style="color: white;">
+                <component :is="isMaximized ? 'ScaleToOriginal' : 'FullScreen'" />
+              </el-icon>
+            </el-button>
+            <!-- 关闭按钮 -->
+            <el-button
+              link
+              class="hover:bg-white/10"
+              style="color: rgba(255,255,255,0.8);"
+              @click="handleClose"
+            >
+              <el-icon style="color: white;"><Close /></el-icon>
+            </el-button>
+          </div>
+        </div>
+
+        <!-- 弹窗内容区（与订单管理 AddModal L50 max-height 计算风格一致） -->
+        <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(85vh - 140px);">
+          <div class="space-y-4">
       <!-- 采购申请批次号 单独一行 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
@@ -358,23 +413,24 @@
       </div>
     </div>
 
-    <template #footer>
-      <div class="flex justify-end gap-3">
-        <button
-          class="h-8 px-4 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200"
-          @click="handleClose"
-        >
-          取消
-        </button>
-        <button
-          class="h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700"
-          @click="handleSubmit"
-        >
-          提交
-        </button>
+        <!-- 底部按钮（订单管理 AddModal 风格：灰底 footer） -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-xl">
+          <button
+            class="h-8 px-4 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200"
+            @click="handleClose"
+          >
+            取消
+          </button>
+          <button
+            class="h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700"
+            @click="handleSubmit"
+          >
+            提交
+          </button>
+        </div>
       </div>
-    </template>
-  </el-dialog>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -384,9 +440,9 @@
  *              新增采购申请单：基本信息表单 + 物料明细可编辑表格
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\CreatePlanModal.tsx
  */
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import * as XLSX from 'xlsx'
-import { Refresh, Upload, Plus, Delete, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
+import { Refresh, Upload, Plus, Delete, ArrowUp, ArrowDown, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
 import { usePlantingStore } from '@/stores/modules/planting'
 import { getNextPurchaseApplicationCode } from '@/services/apiPurchasePlanService'
 import { getDictionaries } from '@/services/dictionaryService'
@@ -771,7 +827,153 @@ async function handleGenerateCode() {
 
 // ==================== 关闭/提交 ====================
 
+// 最大化/拖动/缩放状态（1:1 翻译订单管理 AddModal 风格）
+const isMaximized = ref(false)
+const isDragging = ref(false)
+const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
+const isResizing = ref(false)
+const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
+
+// 拖动开始
+function handleDragStart(e) {
+  if (isMaximized.value) return
+  if (e.target.closest('button')) return
+  e.preventDefault()
+  isDragging.value = true
+  const dialog = document.getElementById('purchase-plan-add-dialog')
+  if (dialog) {
+    const rect = dialog.getBoundingClientRect()
+    dragStart.value = { x: e.clientX, y: e.clientY, left: rect.left, top: rect.top }
+  }
+}
+
+// 拖动中
+let moveHandler = null
+let upHandler = null
+watch(isDragging, (val) => {
+  if (val) {
+    moveHandler = (e) => {
+      if (!isDragging.value) return
+      const deltaX = e.clientX - dragStart.value.x
+      const deltaY = e.clientY - dragStart.value.y
+      const dialog = document.getElementById('purchase-plan-add-dialog')
+      if (dialog) {
+        dialog.style.position = 'fixed'
+        dialog.style.left = `${dragStart.value.left + deltaX}px`
+        dialog.style.top = `${dragStart.value.top + deltaY}px`
+        dialog.style.margin = '0'
+      }
+    }
+    upHandler = () => {
+      isDragging.value = false
+    }
+    document.addEventListener('mousemove', moveHandler)
+    document.addEventListener('mouseup', upHandler)
+  } else if (moveHandler) {
+    document.removeEventListener('mousemove', moveHandler)
+    document.removeEventListener('mouseup', upHandler)
+    moveHandler = null
+    upHandler = null
+  }
+})
+
+// 缩放开始
+function handleResizeStart(e) {
+  if (isMaximized.value) return
+  e.preventDefault()
+  e.stopPropagation()
+  isResizing.value = true
+  const dialog = document.getElementById('purchase-plan-add-dialog')
+  resizeStart.value = {
+    x: e.clientX,
+    y: e.clientY,
+    width: dialog?.clientWidth || 0,
+    height: dialog?.clientHeight || 0,
+  }
+}
+
+// 缩放中
+let resizeMoveHandler = null
+let resizeUpHandler = null
+watch(isResizing, (val) => {
+  if (val) {
+    resizeMoveHandler = (e) => {
+      if (!isResizing.value) return
+      const deltaX = e.clientX - resizeStart.value.x
+      const deltaY = e.clientY - resizeStart.value.y
+      const newWidth = Math.max(640, resizeStart.value.width + deltaX)
+      const newHeight = Math.max(400, resizeStart.value.height + deltaY)
+      const dialog = document.getElementById('purchase-plan-add-dialog')
+      if (dialog) {
+        dialog.style.width = `${newWidth}px`
+        dialog.style.maxWidth = 'none'
+        dialog.style.height = `${newHeight}px`
+        dialog.style.maxHeight = 'none'
+      }
+    }
+    resizeUpHandler = () => {
+      isResizing.value = false
+    }
+    document.addEventListener('mousemove', resizeMoveHandler)
+    document.addEventListener('mouseup', resizeUpHandler)
+  } else if (resizeMoveHandler) {
+    document.removeEventListener('mousemove', resizeMoveHandler)
+    document.removeEventListener('mouseup', resizeUpHandler)
+    resizeMoveHandler = null
+    resizeUpHandler = null
+  }
+})
+
+// 最大化/还原
+function toggleMaximize() {
+  const dialog = document.getElementById('purchase-plan-add-dialog')
+  if (!isMaximized.value && dialog) {
+    dialog.style.width = '100vw'
+    dialog.style.height = '100vh'
+    dialog.style.maxWidth = 'none'
+    dialog.style.maxHeight = 'none'
+    dialog.style.borderRadius = '0'
+    dialog.style.left = '0'
+    dialog.style.top = '0'
+    dialog.style.margin = '0'
+  } else if (dialog) {
+    dialog.style.width = ''
+    dialog.style.height = ''
+    dialog.style.maxWidth = ''
+    dialog.style.maxHeight = ''
+    dialog.style.borderRadius = ''
+    dialog.style.left = ''
+    dialog.style.top = ''
+    dialog.style.margin = ''
+  }
+  isMaximized.value = !isMaximized.value
+}
+
+// ESC 键关闭
+function handleEscKey(e) {
+  if (e.key === 'Escape' && props.isOpen) {
+    handleClose()
+  }
+}
+onMounted(() => document.addEventListener('keydown', handleEscKey))
+onUnmounted(() => document.removeEventListener('keydown', handleEscKey))
+
+// 关闭（清理拖动/缩放监听器）
 function handleClose() {
+  isDragging.value = false
+  isResizing.value = false
+  if (moveHandler) {
+    document.removeEventListener('mousemove', moveHandler)
+    document.removeEventListener('mouseup', upHandler)
+    moveHandler = null
+    upHandler = null
+  }
+  if (resizeMoveHandler) {
+    document.removeEventListener('mousemove', resizeMoveHandler)
+    document.removeEventListener('mouseup', resizeUpHandler)
+    resizeMoveHandler = null
+    resizeUpHandler = null
+  }
   emit('update:isOpen', false)
   emit('close')
 }
@@ -782,20 +984,50 @@ function handleSubmit() {
 </script>
 
 <style scoped>
-/* 对齐 V2.0 生产计划页面弹窗输入框样式：border-gray-500 + rounded-lg + focus border-emerald-500 */
+/* 1:1 对齐 V2.0 订单管理 AddModal 弹窗输入框样式：
+   V1.1 AddModal L199 inputDeepClass = px-4 py-3 border border-gray-400 rounded-lg text-sm
+   focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner
+   Element Plus 主题覆盖 */
 :deep(.el-input__wrapper),
-:deep(.el-textarea__inner),
-:deep(.el-select__wrapper) {
+:deep(.el-textarea__inner) {
+  padding: 0 11px !important;
+  box-shadow: 0 0 0 1px #9ca3af inset !important;
   border-radius: 0.5rem !important;
-  box-shadow: 0 0 0 1px #6b7280 inset !important;
+  transition: box-shadow 0.15s ease-in-out;
+  min-height: 38px;
 }
 :deep(.el-input__wrapper:hover),
-:deep(.el-select__wrapper:hover) {
-  box-shadow: 0 0 0 1px #374151 inset !important;
+:deep(.el-textarea__inner:hover) {
+  box-shadow: 0 0 0 1px #10b981 inset !important;
 }
-:deep(.el-input.is-focus .el-input__wrapper),
-:deep(.el-select.is-focused .el-select__wrapper),
+:deep(.el-input__wrapper.is-focus),
 :deep(.el-textarea__inner:focus) {
-  box-shadow: 0 0 0 1px #059669 inset !important;
+  box-shadow: 0 0 0 1px #10b981 inset, 0 0 0 2px rgba(16, 185, 129, 0.2) inset !important;
+  outline: none;
+}
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-size: 14px !important;
+}
+:deep(.el-select__wrapper) {
+  padding: 0 11px !important;
+  box-shadow: 0 0 0 1px #9ca3af inset !important;
+  border-radius: 0.5rem !important;
+  min-height: 38px;
+  background: #fff;
+}
+:deep(.el-select__wrapper:hover) {
+  box-shadow: 0 0 0 1px #10b981 inset !important;
+}
+:deep(.el-select__wrapper.is-focused) {
+  box-shadow: 0 0 0 1px #10b981 inset, 0 0 0 2px rgba(16, 185, 129, 0.2) inset !important;
+}
+:deep(.el-select__placeholder) {
+  font-size: 14px;
+  color: #9ca3af;
+}
+/* 错误状态（V1.1 errors.orderCode 触发 border-red-500） */
+:deep(.el-input__wrapper.is-error) {
+  box-shadow: 0 0 0 1px #ef4444 inset !important;
 }
 </style>
