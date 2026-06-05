@@ -43,16 +43,15 @@
             新增采购申请单
           </h3>
           <div class="flex items-center gap-1">
-            <!-- 最大化/还原按钮 -->
+            <!-- 最大化/还原按钮（用 v-if/v-else 避免 <component> 解析问题） -->
             <el-button
               link
               @click="toggleMaximize"
               class="hover:bg-white/10"
               style="color: rgba(255,255,255,0.8);"
             >
-              <el-icon style="color: white;">
-                <component :is="isMaximized ? 'ScaleToOriginal' : 'FullScreen'" />
-              </el-icon>
+              <el-icon v-if="isMaximized" style="color: white;"><ScaleToOriginal /></el-icon>
+              <el-icon v-else style="color: white;"><FullScreen /></el-icon>
             </el-button>
             <!-- 关闭按钮 -->
             <el-button
