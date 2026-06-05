@@ -49,10 +49,12 @@
         </template>
         <!-- 导出模式 -->
         <template v-else-if="exportMode">
-          <el-button size="small" @click="handleExportConfirm">
+          <!-- V1.1 ActionToolbar.tsx L140-143 确认导出：默认 Button（绿底白字）— V2.0 用 type="primary" 1:1 对齐 -->
+          <el-button type="primary" size="small" @click="handleExportConfirm">
             <Download class="w-4 h-4" />
             确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
           </el-button>
+          <!-- V1.1 ActionToolbar.tsx L144-146 取消选择：variant="secondary"（灰底）— V2.0 默认白底等效 -->
           <el-button size="small" @click="handleExportCancel">取消选择</el-button>
         </template>
         <!-- 正常模式 -->
@@ -61,7 +63,8 @@
             <Plus class="w-4 h-4" />
             新增
           </el-button>
-          <el-button size="small" @click="handleExportClick">
+          <!-- V1.1 ActionToolbar.tsx L102-107 导出按钮：默认 Button（绿底白字）— V2.0 用 type="primary" 1:1 对齐 -->
+          <el-button type="primary" size="small" @click="handleExportClick">
             <Download class="w-4 h-4" />
             导出
           </el-button>
