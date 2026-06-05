@@ -25,7 +25,9 @@ function generateId(prefix: string): string {
  * 注意：queryToObjects已经将数据库snake_case转为camelCase，所以这里直接映射camelCase字段
  */
 function mapFieldsToFrontend(item: Record<string, unknown>): Record<string, unknown> {
-  // queryToObjects 返回数据库原始列名（snake_case），需要映射为前端期望的 camelCase 字段名
+  // 1:1 翻译 V1.1 productionPlan.ts L27-86 mapFieldsToFrontend
+  // V1.1 已经在 queryToObjects 之后做一次 camelCase→前端期望字段的双重映射
+  // 这里保持 V1.1 的双重映射逻辑
   const fieldMap: Record<string, string> = {
     id: 'id',
     plan_code: 'batchCode',
@@ -34,21 +36,29 @@ function mapFieldsToFrontend(item: Record<string, unknown>): Record<string, unkn
     crop_name: 'cropName',
     crop_variety: 'variety',
     greenhouse_name: 'greenhouseName',
+    greenhouse_id: 'greenhouseId',
     area_name: 'areaName',
+    area_id: 'areaId',
     planned_quantity: 'targetQuantity',
     actual_quantity: 'actualYield',
     planting_date: 'startDate',
     expected_harvest_date: 'expectedHarvestDate',
     actual_harvest_date: 'actualHarvestDate',
     planting_area: 'plantingArea',
+    planting_area_unit: 'plantingAreaUnit',
     planting_mode: 'plantingMode',
     responsible_person: 'responsiblePerson',
     status: 'status',
+    stage: 'stage',
+    stage_name: 'stageName',
+    target_yield: 'targetYield',
+    actual_yield: 'actualYield',
     priority: 'priority',
     remarks: 'remarks',
-    create_by: 'createBy',
+    create_by: 'publisher',
     create_time: 'createTime',
-    update_time: 'updateTime',
+    // DB 列 update_time -> 前端 CropBatch.lastModifyDate（与编辑/详情弹窗字段名对齐）
+    update_time: 'lastModifyDate',
     unit: 'unit',
     publish_date: 'publishDate',
     batch_status: 'batchStatus',
@@ -58,6 +68,12 @@ function mapFieldsToFrontend(item: Record<string, unknown>): Record<string, unkn
     seedling_site_name: 'seedlingSiteName',
     seed_quantity: 'seedQuantity',
     target_seedling_count: 'targetSeedlingCount',
+    end_type: 'endType',
+    // 关联订单字段
+    order_id: 'orderId',
+    order_code: 'orderCode',
+    // 执行状态字段
+    execution_status: 'executionStatus',
   };
 
   const result: Record<string, unknown> = {};
@@ -246,9 +262,10 @@ router.post('/', (req: Request, res: Response) => {
         planting_date, expected_harvest_date, actual_harvest_date,
         status, priority, remarks, create_by, create_time, update_time,
         responsible_person, unit, publish_date, batch_status,
-        plan_detail, plan_detail_file_name, planting_area, planting_mode,
-        supplier_name, seedling_site_name, seed_quantity, target_seedling_count
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        plan_detail, plan_detail_file_name, planting_area, planting_area_unit, planting_mode,
+        supplier_name, seedling_site_name, seed_quantity, target_seedling_count,
+        order_id, order_code, execution_status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       code,
@@ -259,10 +276,10 @@ router.post('/', (req: Request, res: Response) => {
       greenhouseName || '',
       areaName || '',
       targetQuantity || targetYield || 0,
-      actualYield || 0,
+      0,
       startDate || '',
       expectedHarvestDate || '',
-      actualHarvestDate || '',
+      '',
       status || 'planning',
       priority || 'normal',
       remarks || '',
@@ -276,16 +293,28 @@ router.post('/', (req: Request, res: Response) => {
       planDetail || '',
       planDetailFileName || '',
       plantingArea || 0,
+      plantingAreaUnit || 'm²',
       plantingMode || '',
       supplierName || '',
       seedlingSiteName || '',
       seedQuantity || 0,
-      targetSeedlingCount || 0
+      targetSeedlingCount || 0,
+      orderId || '',
+      orderCode || '',
+      executionStatus || 'pending_execution'
     ]);
 
     saveDatabase();
 
-    res.status(201).json({ success: true, message: '生产计划创建成功', id, code });
+    // 返回完整数据（与 V1.1 GET /:id 保持一致）- 1:1 翻译 V1.1 L314-322
+    const createdPlans = queryToObjects<Record<string, unknown>>(
+      db,
+      'SELECT * FROM production_plans WHERE id = ?',
+      [id]
+    );
+    const createdData = createdPlans.length > 0 ? mapFieldsToFrontend(createdPlans[0]) : null;
+
+    res.status(201).json({ success: true, message: '生产计划创建成功', data: createdData });
   } catch (error) {
     console.error('创建生产计划失败:', error);
     res.status(500).json({ success: false, error: '创建生产计划失败' });

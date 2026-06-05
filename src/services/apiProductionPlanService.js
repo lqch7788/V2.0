@@ -4,20 +4,17 @@
  *
  * 核心原则：服务器数据是唯一真相来源
  *
- * 数据流：API → request（无缓存）→ 组件
- *
- * 缓存策略（已确认无三级缓存）：
- * - L1：Pinia Store 内存数组
- * - L2：（未使用）无 IndexedDB 缓存
- * - L3：（未使用）生产计划页面不读取 localStorage
- *
- * 网络策略：失败时由 request 拦截器统一处理
+ * 数据流：API → enhancedApiClient（无缓存）→ 组件
  *
  * 1:1 翻译自 V1.1 src/services/apiProductionPlanService.ts
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\services\apiProductionPlanService.ts
+ *
+ * V2.0 修改（P0-1 架构统一）：
+ * - 客户端：request (axios) → enhancedApiClient (fetch)，与 order/tech/purchase 一致
+ * - normalizeBatch：去掉 snake_case 兼容分支，后端 mapFieldsToFrontend 已完整映射
  */
 
-import request from '../api/request'
+import { enhancedApiClient } from '@/lib/apiClient'
 
 /**
  * 作物批次接口
@@ -73,8 +70,7 @@ import request from '../api/request'
 
 /**
  * 标准化 API 返回数据到 CropBatch 接口
- * 处理后端字段名与前端接口名不一致的问题
- * 兼容多种后端字段名：planCode/batchCode、plantingDate/startDate、plannedQuantity/targetYield
+ * 1:1 翻译 V1.1 normalizeBatch：后端 mapFieldsToFrontend 已做 snake_case→camelCase→前端期望字段映射
  * @param {Record<string, unknown> | null | undefined} raw
  * @returns {CropBatch}
  */
@@ -82,12 +78,10 @@ function normalizeBatch(raw) {
   const r = raw || {}
   return {
     id: r.id,
-    // 后端返回 planCode，前端用 batchCode
-    batchCode: r.batchCode || r.planCode || '',
+    batchCode: r.batchCode || '',
     cropName: (r.cropName) || '',
     cropType: (r.cropType) || '',
-    // 后端返回 cropVariety，前端用 variety
-    variety: (r.variety) || (r.cropVariety) || '',
+    variety: (r.variety) || '',
     // 后端 greenhouseId 永远为 null，用 greenhouseName（字符串，逗号分隔）作为唯一标识
     greenhouseId: (r.greenhouseId) || (r.greenhouseName) || '',
     greenhouseName: (r.greenhouseName) || '',
@@ -95,26 +89,25 @@ function normalizeBatch(raw) {
     plantingAreaUnit: r.plantingAreaUnit,
     stage: (r.stage) || 'seedling',
     stageName: (r.stageName) || '',
-    // 后端返回 plantingDate，前端用 startDate
-    startDate: (r.startDate) || (r.plantingDate) || '',
+    startDate: (r.startDate) || '',
     expectedHarvestDate: (r.expectedHarvestDate) || '',
-    // 后端返回 plannedQuantity，前端用 targetYield
-    targetYield: (r.targetYield) || (r.plannedQuantity) || (r.targetQuantity) || 0,
+    // API 返回 targetQuantity（后端 mapFieldsToFrontend: plannedQuantity→targetQuantity），前端用 targetYield
+    targetYield: (r.targetYield) || (r.targetQuantity) || 0,
     actualYield: (r.actualYield) || 0,
     // API 返回 status，前端用 batchStatus
     batchStatus: (r.batchStatus) || (r.status) || 'draft',
     plantingMode: (r.plantingMode) || '',
     responsiblePerson: (r.responsiblePerson) || '',
-    // 后端返回 createBy/updateTime，前端期望 publisher/lastModifyDate
-    publisher: (r.publisher) || (r.createBy) || '',
+    // 后端 mapFieldsToFrontend: create_by→publisher, update_time→lastModifyDate
+    publisher: r.publisher || '',
     publishDate: r.publishDate,
-    lastModifyDate: (r.lastModifyDate) || (r.updateTime) || '',
+    lastModifyDate: r.lastModifyDate || '',
     planDetailFileName: r.planDetailFileName,
     planDetail: r.planDetail,
     planType: r.planType,
     planTypeName: r.planTypeName,
     locationName: r.locationName,
-    targetQuantity: r.targetQuantity || r.plannedQuantity || 0,
+    targetQuantity: r.targetQuantity,
     unit: r.unit,
     supplierName: r.supplierName,
     seedQuantity: r.seedQuantity,
@@ -130,103 +123,82 @@ function normalizeBatch(raw) {
 
 /**
  * 获取所有生产计划
+ * 1:1 翻译 V1.1 getProductionPlans
  * @param {ProductionPlanFilters} [filters]
  * @returns {Promise<CropBatch[]>}
  */
 export async function getProductionPlans(filters) {
-  // 过滤掉空值字段（保留与 V1.1 一致的 URLSearchParams 行为）
-  const params = {}
+  // V1.1: URLSearchParams + 字符串拼接；V2.0 用 URLSearchParams 保持一致
+  const params = new URLSearchParams()
   if (filters) {
-    if (filters.status) params.status = filters.status
-    if (filters.planType) params.plan_type = filters.planType
-    if (filters.keyword) params.keyword = filters.keyword
-    if (filters.page) params.page = filters.page
-    if (filters.limit) params.limit = filters.limit
+    if (filters.status) params.append('status', filters.status)
+    if (filters.planType) params.append('plan_type', filters.planType)
+    if (filters.keyword) params.append('keyword', filters.keyword)
+    if (filters.page) params.append('page', String(filters.page))
+    if (filters.limit) params.append('limit', String(filters.limit))
   }
 
-  const data = await request({
-    url: '/production-plans',
-    method: 'get',
-    params
-  })
+  const url = params.toString() ? `/production-plans?${params.toString()}` : '/production-plans'
+  const data = await enhancedApiClient.get(url)
   if (!Array.isArray(data)) return []
-  return data.map((item) => normalizeBatch(item))
+  return data.map(normalizeBatch)
 }
 
 /**
  * 根据ID获取单个生产计划
+ * 1:1 翻译 V1.1 getProductionPlanById
  * @param {string} id
  * @returns {Promise<CropBatch | undefined>}
  */
 export async function getProductionPlanById(id) {
-  const data = await request({
-    url: `/production-plans/${id}`,
-    method: 'get'
-  })
+  const data = await enhancedApiClient.get(`/production-plans/${id}`)
   if (!data) return undefined
   return normalizeBatch(data)
 }
 
 /**
  * 创建生产计划
- * 后端返回 {success: true, message, id, code} 格式（data 字段在顶层），
- * 而 request 拦截器对 success 状态返回 data 字段（即 undefined）。
- * 修复：传入整个 plan 数据 + 后端返回的 id/code 构造 CropBatch
+ * 1:1 翻译 V1.1 createProductionPlan
+ * 后端 P0-3 修复：现在 POST 返回 {success, message, data: createdData}，data 是完整对象
  * @param {Omit<CropBatch, 'id'>} plan
  * @returns {Promise<CropBatch>}
  */
 export async function createProductionPlan(plan) {
-  await request({
-    url: '/production-plans',
-    method: 'post',
-    data: plan
-  })
-  // 后端返回 {success, message, id, code}，data 字段为 undefined
-  // 直接用 plan 数据 + 生成的 id 构造 CropBatch
-  return normalizeBatch({
-    ...plan,
-    id: plan.id || `PP${Date.now()}`
-  })
+  const data = await enhancedApiClient.post('/production-plans', plan)
+  return normalizeBatch(data)
 }
 
 /**
  * 更新生产计划
+ * 1:1 翻译 V1.1 updateProductionPlan
  * @param {string} id
  * @param {Partial<CropBatch>} updates
  * @returns {Promise<CropBatch | null>}
  */
 export async function updateProductionPlan(id, updates) {
-  const data = await request({
-    url: `/production-plans/${id}`,
-    method: 'put',
-    data: updates
-  })
+  const data = await enhancedApiClient.put(`/production-plans/${id}`, updates)
   if (!data) return null
   return normalizeBatch(data)
 }
 
 /**
  * 删除生产计划
+ * 1:1 翻译 V1.1 deleteProductionPlan
  * @param {string} id
  * @returns {Promise<boolean>}
  */
 export async function deleteProductionPlan(id) {
-  await request({
-    url: `/production-plans/${id}`,
-    method: 'delete'
-  })
+  await enhancedApiClient.delete(`/production-plans/${id}`)
   return true
 }
 
 /**
  * 批量删除生产计划
+ * 1:1 翻译 V1.1 deleteProductionPlans
  * @param {string[]} ids
  * @returns {Promise<boolean>}
  */
 export async function deleteProductionPlans(ids) {
-  await request({
-    url: `/production-plans/batch?ids=${ids.join(',')}`,
-    method: 'delete'
-  })
+  await enhancedApiClient.delete(`/production-plans/batch?ids=${ids.join(',')}`)
   return true
 }
