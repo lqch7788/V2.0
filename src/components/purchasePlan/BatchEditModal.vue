@@ -19,7 +19,7 @@
     @close="handleClose"
   >
     <!-- Info Banner - 1:1 对齐 V1.1 L257-259 -->
-    <div class="bg-blue-50 rounded-lg p-4 mb-4">
+    <div class="bg-blue-50 rounded-lg p-4">
       <p class="text-sm text-blue-800">已选择 <strong>{{ selectedRows.length }}</strong> 个采购计划进行编辑</p>
     </div>
 
