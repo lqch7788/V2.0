@@ -400,6 +400,9 @@ router.put('/:id', (req: Request, res: Response) => {
       targetSeedlingCount: 'target_seedling_count',
       orderId: 'order_id',
       orderCode: 'order_code',
+      // 修复 P0: PUT fieldMap 缺 executionStatus 映射，导致 UPDATE 报
+      // "no such column: executionStatus"，保存时 500
+      executionStatus: 'execution_status',
     };
 
     const updateFields: string[] = [];
