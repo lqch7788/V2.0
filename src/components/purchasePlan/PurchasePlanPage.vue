@@ -1111,6 +1111,7 @@ async function handleBatchEditSave() {
     setShowBatchEditModal(false)
     batchEditMode.value = false
     selectedRows.value = []
+    editedPlanCodes.value = []
     editedPlans.value = {}
     batchEditItems.value = []
   } catch (error) {
