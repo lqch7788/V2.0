@@ -25,7 +25,7 @@
               class="flex-1"
               @update:model-value="(v) => emitFormChange('purchaseApplicationCode', v)"
             />
-            <el-button size="small" @click="handleGenerateCode">
+            <el-button size="small" plain type="success" @click="handleGenerateCode">
               <el-icon><Refresh /></el-icon>
               生成
             </el-button>
@@ -189,11 +189,11 @@
             物料明细（{{ createItems.length }}种物料）
           </h4>
           <div class="flex items-center gap-2">
-            <el-button size="small" type="primary" @click="handleImportClick">
+            <el-button size="small" plain type="success" @click="handleImportClick">
               <el-icon><Upload /></el-icon>
               导入物料
             </el-button>
-            <el-button size="small" @click="handleAddItem">
+            <el-button size="small" plain type="success" @click="handleAddItem">
               <el-icon><Plus /></el-icon>
               添加物料
             </el-button>

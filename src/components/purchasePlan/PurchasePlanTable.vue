@@ -42,6 +42,8 @@
         <template v-if="exportMode">
           <el-button
             size="small"
+            plain
+            type="success"
             @click="$emit('exportConfirm')"
           >
             <el-icon><Download /></el-icon>
@@ -56,6 +58,8 @@
         <el-button
           v-if="canCreate"
           size="small"
+          plain
+          type="success"
           @click="$emit('create')"
         >
           <el-icon><Plus /></el-icon>
@@ -64,7 +68,8 @@
         <el-button
           v-if="canEdit"
           size="small"
-          type="primary"
+          plain
+          type="success"
           @click="$emit('batchEdit')"
         >
           <el-icon><Edit /></el-icon>
@@ -73,6 +78,7 @@
         <el-button
           v-if="canDelete"
           size="small"
+          plain
           type="danger"
           @click="$emit('batchDelete')"
         >
@@ -82,6 +88,8 @@
         <el-button
           v-if="canExport"
           size="small"
+          plain
+          type="success"
           @click="$emit('export')"
         >
           <el-icon><Download /></el-icon>

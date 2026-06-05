@@ -98,10 +98,10 @@
           style="width: 100%"
         />
       </div>
-      <!-- 操作按钮 -->
+      <!-- 操作按钮（V1.1 button.tsx 无 variant = default 但实际渲染绿 outline 风格） -->
       <div class="flex gap-2 items-end ml-auto">
-        <el-button size="small" @click="$emit('reset')">重置</el-button>
-        <el-button size="small" @click="$emit('search')">
+        <el-button size="small" plain type="success" @click="$emit('reset')">重置</el-button>
+        <el-button size="small" plain type="success" @click="$emit('search')">
           <el-icon><Search /></el-icon>
           搜索
         </el-button>
