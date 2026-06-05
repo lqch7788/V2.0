@@ -248,31 +248,43 @@ export const CropOrderFilters = {
 /**
  * 作物订单（与 V1.1 types/crop.ts CropOrder 接口完全一致）
  * @typedef {Object} CropOrder
- * @property {string} id
- * @property {string} orderCode
- * @property {string} orderName
- * @property {'breeding'|'seedling'|'production'|'research'|'other'} orderType
- * @property {string[]} instanceIds - 关联的作物实例ID列表
- * @property {string} cropCategory
- * @property {string} cropName
- * @property {string} cropVariety
- * @property {number} plannedQuantity
- * @property {number} completedQuantity
- * @property {string} unit
- * @property {string} [supplierId]
- * @property {string} [supplierName]
- * @property {string} [customerId]
- * @property {string} [customerName]
- * @property {string} [customerPhone]
- * @property {string} [deliveryAddress]
- * @property {string} orderDate
- * @property {string} [expectedCompletionDate]
- * @property {string} [actualHarvestDate]
- * @property {CropOrderStatus} status
- * @property {string} [remarks]
- * @property {string} createBy
- * @property {string} createTime
- * @property {string} updateTime
+ * @property {string} id - 订单唯一ID
+ * @property {string} orderCode - 订单编号（如 DD202601001）
+ * @property {string} orderName - 订单名称
+ * @property {'breeding'|'seedling'|'production'|'research'|'other'} orderType - 订单类型
+ * @property {string[]} [instanceIds] - 关联的作物实例ID列表
+ * @property {string} [cropCategory] - 作物分类路径（如 茄果类>番茄>红颜）
+ * @property {string} [cropName] - 作物名称
+ * @property {string} [cropVariety] - 作物品种
+ * @property {number} [plannedQuantity] - 计划数量
+ * @property {number} [completedQuantity] - 完成数量
+ * @property {string} [unit] - 单位（默认"株"）
+ * @property {string} [supplierId] - 供应商ID
+ * @property {string} [supplierName] - 供应商名称
+ * @property {string} [customerId] - 客户ID
+ * @property {string} [customerName] - 客户名称
+ * @property {string} [customerPhone] - 客户电话
+ * @property {string} [deliveryAddress] - 交付地址
+ * @property {string} [orderDate] - 订单日期（YYYY-MM-DD）
+ * @property {string} [expectedCompletionDate] - 预计完成日期
+ * @property {string} [actualHarvestDate] - 实际采收日期
+ * @property {CropOrderStatus} [status] - 订单状态（已计划/进行中/已完成/已取消）
+ * @property {string} [remarks] - 备注
+ * @property {string} [createBy] - 创建人
+ * @property {string} [createTime] - 创建时间（ISO 8601）
+ * @property {string} [updateTime] - 更新时间（ISO 8601）
+ * @example
+ * const order = {
+ *   id: 'DD123',
+ *   orderCode: 'DD202601001',
+ *   orderName: '番茄订单',
+ *   orderType: 'production',
+ *   plannedQuantity: 1000,
+ *   completedQuantity: 0,
+ *   unit: '株',
+ *   status: 'planned',
+ *   orderDate: '2026-01-15'
+ * }
  */
 export const CropOrder = {
   id: '',

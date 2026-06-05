@@ -172,18 +172,27 @@ interface CropOrder {
   orderCode: string
   orderName: string
   orderType: string
+  instanceIds?: string[]
   cropCategory?: string
+  cropName?: string
   cropVariety?: string
   plannedQuantity?: number
   completedQuantity?: number
   unit?: string
+  supplierId?: string
+  supplierName?: string
+  customerId?: string
+  customerName?: string
+  customerPhone?: string
+  deliveryAddress?: string
   orderDate?: string
   expectedCompletionDate?: string
+  actualHarvestDate?: string
   status: string
+  remarks?: string
   createBy?: string
   createTime?: string
-  customerName?: string
-  remarks?: string
+  updateTime?: string
 }
 
 interface Pagination {

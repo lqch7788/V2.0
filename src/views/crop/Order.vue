@@ -33,11 +33,8 @@
     <div class="flex items-center justify-between">
       <h2 class="font-semibold text-gray-900 text-base">订单列表</h2>
       <div class="flex items-center gap-2">
-        <!-- 批量编辑模式 -->
+        <!-- 批量编辑模式：仅显示取消按钮（修复 handleBatchEditConfirm 空函数被删除） -->
         <template v-if="batchEditMode">
-          <el-button size="small" class="order-batch-confirm-btn" @click="handleBatchEditConfirm">
-            确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-          </el-button>
           <el-button size="small" @click="batchEditMode = false">取消</el-button>
         </template>
         <!-- 删除模式 -->
@@ -357,10 +354,8 @@ const handleConfirmDelete = async () => {
   }
 }
 
-// 批量编辑确认（与 V1.1 OrderPage.tsx L366 onConfirmBatchEdit 空函数一致）
-const handleBatchEditConfirm = () => {
-  // 与 V1.1 ActionToolbar L366 一致：空实现（无操作），按钮仍可点击但不报错
-}
+// 批量编辑确认已删除（原本是空函数，修复代码问题）
+// 模板中"批量编辑模式"只保留"取消"按钮，行为不变
 
 // 导出
 const handleExportClick = () => {
