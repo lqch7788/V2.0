@@ -17,7 +17,7 @@
       <!-- 采购申请批次号 单独一行 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm text-gray-700 mb-1">采购申请批次号</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">采购申请批次号</label>
           <div class="flex gap-2">
             <el-input
               :model-value="createForm.purchaseApplicationCode"
@@ -39,7 +39,7 @@
       <!-- 采购类型 + 关联生产批次 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm text-gray-700 mb-1">采购类型</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">采购类型</label>
           <el-select
             :model-value="createForm.purchaseType"
             placeholder="请选择"
@@ -56,7 +56,7 @@
           </el-select>
         </div>
         <div>
-          <label class="block text-sm text-gray-700 mb-1">关联生产批次号</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">关联生产批次号</label>
           <el-select
             :model-value="createForm.relatedBatchCode || ''"
             placeholder="请选择"
@@ -73,7 +73,7 @@
           </el-select>
         </div>
         <div v-if="createForm.relatedBatchCode === 'other'">
-          <label class="block text-sm text-gray-700 mb-1">其他说明</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">其他说明</label>
           <el-input
             :model-value="createForm.otherBatchReason || ''"
             placeholder="请说明采购原因，如：日常用具、劳保用品等"
@@ -85,14 +85,14 @@
       <!-- 申请人 + 申请部门 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm text-gray-700 mb-1">申请人</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">申请人</label>
           <el-input
             :model-value="createForm.applicant"
             @update:model-value="(v) => emitFormChange('applicant', v)"
           />
         </div>
         <div>
-          <label class="block text-sm text-gray-700 mb-1">申请部门</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">申请部门</label>
           <el-select
             :model-value="createForm.applicantDepartment"
             placeholder="请选择部门"
@@ -113,7 +113,7 @@
       <!-- 申请日期 + 需求日期 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm text-gray-700 mb-1">申请日期</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">申请日期</label>
           <el-date-picker
             :model-value="createForm.applyDate"
             type="date"
@@ -124,7 +124,7 @@
           />
         </div>
         <div>
-          <label class="block text-sm text-gray-700 mb-1">需求日期</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">需求日期</label>
           <el-date-picker
             :model-value="createForm.requiredDate"
             type="date"
@@ -139,7 +139,7 @@
       <!-- 优先级 + 备注（同行布局，对齐 V1.1 L422-445） -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm text-gray-700 mb-1">优先级</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">优先级</label>
           <el-select
             :model-value="createForm.priority"
             placeholder="请选择"
@@ -153,7 +153,7 @@
           </el-select>
         </div>
         <div>
-          <label class="block text-sm text-gray-700 mb-1">备注</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
           <el-input
             :model-value="createForm.remark || ''"
             placeholder="请输入备注"
@@ -780,3 +780,22 @@ function handleSubmit() {
   emit('submit')
 }
 </script>
+
+<style scoped>
+/* 对齐 V2.0 生产计划页面弹窗输入框样式：border-gray-500 + rounded-lg + focus border-emerald-500 */
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner),
+:deep(.el-select__wrapper) {
+  border-radius: 0.5rem !important;
+  box-shadow: 0 0 0 1px #6b7280 inset !important;
+}
+:deep(.el-input__wrapper:hover),
+:deep(.el-select__wrapper:hover) {
+  box-shadow: 0 0 0 1px #374151 inset !important;
+}
+:deep(.el-input.is-focus .el-input__wrapper),
+:deep(.el-select.is-focused .el-select__wrapper),
+:deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 1px #059669 inset !important;
+}
+</style>

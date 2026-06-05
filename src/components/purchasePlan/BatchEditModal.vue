@@ -70,7 +70,7 @@
           </div>
         </div>
         <div>
-          <label class="text-xs text-gray-700">采购类型</label>
+          <label class="text-sm font-medium text-gray-700">采购类型</label>
           <el-select v-model="batchEditData.purchaseType" placeholder="请选择" style="width: 100%" size="small">
             <el-option label="生产物资采购" value="production" />
             <el-option label="紧急采购" value="urgent" />
@@ -82,7 +82,7 @@
           </el-select>
         </div>
         <div>
-          <label class="text-xs text-gray-700">关联生产批次号</label>
+          <label class="text-sm font-medium text-gray-700">关联生产批次号</label>
           <el-select
             :model-value="currentEditingPlan?.relatedBatchCode || ''"
             placeholder="不关联批次"
@@ -105,7 +105,7 @@
 
         <!-- ✅ 修复 P0-12: 关联批次=其他时显示"其他说明"字段（V1.1 L320-330 1:1 翻译） -->
         <div v-if="(currentEditingPlan?.relatedBatchCode || '') === 'other'" class="md:col-span-3">
-          <label class="text-xs text-gray-700">其他说明</label>
+          <label class="text-sm font-medium text-gray-700">其他说明</label>
           <el-input
             :model-value="currentEditingPlan?.otherBatchReason || ''"
             placeholder="请说明采购原因，如：日常用具、劳保用品等"
@@ -117,7 +117,7 @@
 
         <!-- 第2行：申请人 + 申请部门 + 申请日期（1:1 翻译 V1.1 L332-374） -->
         <div>
-          <label class="text-xs text-gray-700">申请人</label>
+          <label class="text-sm font-medium text-gray-700">申请人</label>
           <el-select
             :model-value="currentEditingPlan?.applicantId || ''"
             placeholder="请选择"
@@ -136,7 +136,7 @@
           </el-select>
         </div>
         <div>
-          <label class="text-xs text-gray-700">申请部门</label>
+          <label class="text-sm font-medium text-gray-700">申请部门</label>
           <el-select
             :model-value="currentEditingPlan?.applicantDepartment || ''"
             placeholder="请选择"
@@ -153,7 +153,7 @@
           </el-select>
         </div>
         <div>
-          <label class="text-xs text-gray-700">申请日期</label>
+          <label class="text-sm font-medium text-gray-700">申请日期</label>
           <el-date-picker
             v-model="batchEditData.applyDate"
             type="date"
@@ -165,7 +165,7 @@
 
         <!-- 第3行：需求日期（独占一行，1:1 V1.1 L376-385） -->
         <div>
-          <label class="text-xs text-gray-700">需求日期</label>
+          <label class="text-sm font-medium text-gray-700">需求日期</label>
           <el-date-picker
             v-model="batchEditData.requiredDate"
             type="date"
@@ -177,7 +177,7 @@
 
         <!-- 第3行：优先级 + 状态（只读不可编辑）+ 备注 -->
         <div>
-          <label class="text-xs text-gray-700">优先级</label>
+          <label class="text-sm font-medium text-gray-700">优先级</label>
           <el-select v-model="batchEditData.priority" placeholder="请选择" style="width: 100%" size="small">
             <el-option label="紧急" value="urgent" />
             <el-option label="高" value="high" />
@@ -187,7 +187,7 @@
         </div>
         <!-- ✅ 修复 P0-14: 执行状态字段（V1.1 L404-416 1:1 翻译） -->
         <div>
-          <label class="text-xs text-gray-700">执行状态</label>
+          <label class="text-sm font-medium text-gray-700">执行状态</label>
           <el-select v-model="batchEditData.executionStatus" placeholder="请选择" style="width: 100%" size="small">
             <el-option
               v-for="o in PURCHASE_EXECUTION_STATUS_OPTIONS"
@@ -214,7 +214,7 @@
           </div>
         </div>
         <div>
-          <label class="text-xs text-gray-700">备注</label>
+          <label class="text-sm font-medium text-gray-700">备注</label>
           <el-input
             v-model="batchEditData.remark"
             placeholder="输入备注"
@@ -595,3 +595,22 @@ function handleNext() {
   emit('next')
 }
 </script>
+
+<style scoped>
+/* 对齐 V2.0 生产计划页面弹窗输入框样式：border-gray-500 + rounded-lg + focus border-emerald-500 */
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner),
+:deep(.el-select__wrapper) {
+  border-radius: 0.5rem !important;
+  box-shadow: 0 0 0 1px #6b7280 inset !important;
+}
+:deep(.el-input__wrapper:hover),
+:deep(.el-select__wrapper:hover) {
+  box-shadow: 0 0 0 1px #374151 inset !important;
+}
+:deep(.el-input.is-focus .el-input__wrapper),
+:deep(.el-select.is-focused .el-select__wrapper),
+:deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 1px #059669 inset !important;
+}
+</style>
