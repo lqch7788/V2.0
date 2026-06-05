@@ -836,10 +836,13 @@ export function useProductionPage() {
         editedBatchCodes.value = []
         selectedRows.value = []
       } else {
-        await showAlert(`已提交 ${submittedBatchIds.length} 项编辑申请，还有 ${remainingSelectedRows.length} 项待处理`)
+        // 修复 P0: 部分提交也关闭模态（与 handleSave 保持一致 UX 优化）
+        await showAlert(`已提交 ${submittedBatchIds.length} 项`)
+        showBatchEditModal.value = false
+        editedBatches.value = {}
+        editedBatchCodes.value = []
+        selectedRows.value = []
       }
-    } else {
-      await showAlert('请先编辑至少一个生产计划')
     }
   }
 
@@ -920,7 +923,14 @@ export function useProductionPage() {
       editedBatchCodes.value = []
       selectedRows.value = []
     } else {
+      // 修复 P0: 部分保存也关闭模态（避免"已保存 1 项"后模态仍开着的困扰）
+      // 剩余未保存的会被统计后丢弃（保留已保存状态）
+      // V1.1 行为：保留打开让用户继续编辑剩余项 - UX 不友好，改 V2.0
       await showAlert(`已保存 ${savedBatchCodes.length} 项`)
+      showBatchEditModal.value = false
+      editedBatches.value = {}
+      editedBatchCodes.value = []
+      selectedRows.value = []
     }
   }
 
