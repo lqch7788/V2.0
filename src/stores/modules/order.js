@@ -3,8 +3,8 @@
  *
  * 对齐 V1.1 useOrderStore.ts (zustand) 行为：
  * - 维护订单状态的客户端状态更新（用于审批联动、跨模块状态共享）
- * - V1.1 中由 useApprovalBusinessDetail.ts 在审批回调时调用 updateOrderStatus
- * - V1.1 OrderPage.tsx 不直接使用本 Store，但保留以确保跨模块状态联动一致性
+ * - V2.0 中由 useApprovalBusinessDetail.js 在审批回调时调用 updateOrderStatus
+ *   （src/composables/useApprovalBusinessDetail.js L387/L397 import 本 Store）
  *
  * 注意：本 Store 仅做客户端状态记录，不直接调用后端 API；
  * 实际状态持久化仍由后端完成（通过 orderService.updateOrderStatus）。

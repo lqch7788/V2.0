@@ -89,7 +89,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * OrderFilter 订单筛选工具栏组件
  * 对应 V1.1 src/components/farm/order/components/OrderFilter.tsx 1:1 翻译
@@ -104,30 +104,30 @@
  */
 import { Search, RotateCcw } from 'lucide-vue-next'
 
-defineProps({
-  filters: {
-    type: Object,
-    required: true
-  },
-  onChange: {
-    type: Function,
-    required: true
-  },
-  onSearch: {
-    type: Function,
-    required: true
-  },
-  onReset: {
-    type: Function,
-    required: true
-  },
-  orderStatusOptions: {
-    type: Array,
-    required: true
-  },
-  cropNames: {
-    type: Array,
-    required: true
-  }
-})
+interface Filters {
+  orderCode: string
+  orderName: string
+  cropName: string
+  status: string
+  startDate: string
+  endDate: string
+  createBy: string
+  orderDate: string
+}
+
+interface OptionItem {
+  value: string
+  label: string
+}
+
+interface Props {
+  filters: Filters
+  onChange: (val: Filters) => void
+  onSearch: () => void
+  onReset: () => void
+  orderStatusOptions: OptionItem[]
+  cropNames: OptionItem[]
+}
+
+defineProps<Props>()
 </script>

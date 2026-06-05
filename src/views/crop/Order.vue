@@ -150,6 +150,8 @@ import { Plus, Download, ClipboardList } from 'lucide-vue-next'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
 import { showAlert, showConfirm } from '@/lib/dialogService'
+// 修复 P0-A/P0-B：提取共享工具函数（与 OrderTable.vue 复用）
+import { getOrderStatusLabel as getStatusLabel, getOrderTypeLabel as getOrderTypeLabelForExport } from '@/utils/orderHelpers'
 import OrderStats from '@/views/crop/components/OrderStats.vue'
 import OrderFilter from '@/views/crop/components/OrderFilter.vue'
 import OrderTable from '@/views/crop/components/OrderTable.vue'
@@ -264,13 +266,7 @@ const filteredData = computed(() => {
   })
 })
 
-// 状态标签（与 V1.1 一致 - 供导出使用）
-const getStatusLabel = (record) => {
-  if (record.status === CropOrderStatus.COMPLETED) return '已完成'
-  if (record.status === CropOrderStatus.CANCELLED) return '已取消'
-  if ((record.completedQuantity || 0) > 0) return '进行中'
-  return '已计划'
-}
+// 状态标签和订单类型标签已抽到 @/utils/orderHelpers（修复 P0-A/P0-B 与 OrderTable.vue 复用）
 
 // 搜索
 const handleSearch = () => {
@@ -412,7 +408,8 @@ const handleDoExport = () => {
       '完成数量': record.completedQuantity,
       '单位': record.unit,
       '订单日期': record.orderDate,
-      '预计完成日期': record.expectedCompletionDate || '',
+      // 修复 P0-C：键名与 headers 一致（headers 用"预计完成时间"），避免该列导出空白
+      '预计完成时间': record.expectedCompletionDate || '',
       '状态': getStatusLabel(record),
       '创建人': record.createBy,
       '创建时间': record.createTime,
@@ -467,17 +464,7 @@ const handleDoExport = () => {
   }
 }
 
-// 订单类型标签（导出用）
-const getOrderTypeLabelForExport = (type) => {
-  switch (type) {
-    case 'breeding': return '育种订单'
-    case 'seedling': return '育苗订单'
-    case 'production': return '生产订单'
-    case 'research': return '研发订单'
-    case 'other': return '其他'
-    default: return type || ''
-  }
-}
+// 订单类型标签（导出用）已抽到 @/utils/orderHelpers
 
 // 初始化
 onMounted(async () => {

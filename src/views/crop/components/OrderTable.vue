@@ -131,7 +131,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * OrderTable 订单数据表格组件
  * 对应 V1.1 src/components/farm/order/components/OrderTable.tsx 1:1 翻译
@@ -158,26 +158,63 @@
 import { computed } from 'vue'
 import { Pencil, Trash2 } from 'lucide-vue-next'
 import { CropOrderStatus } from '@/types/crop'
+// 修复 P0-A/P0-B：使用共享工具函数（与 Order.vue 复用，避免重复定义）
+import {
+  getOrderStatusLabel as getStatusLabel,
+  getOrderStatusBadgeClass as getStatusBadgeClassFn,
+  getOrderTypeLabel as getOrderTypeLabelFn,
+  getOrderTypeBadgeClass as getOrderTypeBadgeClassFn
+} from '@/utils/orderHelpers'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
-const props = defineProps({
-  data: { type: Array, required: true },
-  pagination: { type: Object, required: true },
-  onChange: { type: Function, required: true },
-  selectedRows: { type: Array, required: true },
-  onSelectionChange: { type: Function, required: true },
-  onDetail: { type: Function, required: true },
-  onEdit: { type: Function, required: true },
-  onDelete: { type: Function, required: true },
-  onAdd: { type: Function, required: true },
-  exportMode: { type: Boolean, required: true },
-  batchEditMode: { type: Boolean, required: true },
-  onExportSelectAll: { type: Function, required: true },
-  onExportCancel: { type: Function, required: true },
-  onConfirmExport: { type: Function, required: true },
-  canCreate: { type: Boolean, default: true },
-  canDelete: { type: Boolean, default: true },
-  canExport: { type: Boolean, default: true }
+interface CropOrder {
+  id: string
+  orderCode: string
+  orderName: string
+  orderType: string
+  cropCategory?: string
+  cropVariety?: string
+  plannedQuantity?: number
+  completedQuantity?: number
+  unit?: string
+  orderDate?: string
+  expectedCompletionDate?: string
+  status: string
+  createBy?: string
+  createTime?: string
+  customerName?: string
+  remarks?: string
+}
+
+interface Pagination {
+  current: number
+  pageSize: number
+}
+
+interface Props {
+  data: CropOrder[]
+  pagination: Pagination
+  onChange: (val: Pagination) => void
+  selectedRows: string[]
+  onSelectionChange: (val: string[]) => void
+  onDetail: (record: CropOrder) => void
+  onEdit: (record: CropOrder) => void
+  onDelete: (ids: string[]) => void
+  onAdd: () => void
+  exportMode: boolean
+  batchEditMode: boolean
+  onExportSelectAll: () => void
+  onExportCancel: () => void
+  onConfirmExport: () => void
+  canCreate?: boolean
+  canDelete?: boolean
+  canExport?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  canCreate: true,
+  canDelete: true,
+  canExport: true
 })
 
 // 总页数
@@ -206,52 +243,6 @@ const onDeleteRow = (record) => {
   props.onDelete([record.id])
 }
 
-// 状态标签（与V1.1 OrderTable.tsx L53-66 1:1 对齐）
-const getStatusLabel = (record) => {
-  if (record.status === CropOrderStatus.COMPLETED) return '已完成'
-  if (record.status === CropOrderStatus.CANCELLED) return '已取消'
-  if ((record.completedQuantity || 0) > 0) return '进行中'
-  return '已计划'
-}
-
-const getStatusBadgeClass = (record) => {
-  if (record.status === CropOrderStatus.COMPLETED) {
-    return 'px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full'
-  }
-  if (record.status === CropOrderStatus.CANCELLED) {
-    return 'px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full'
-  }
-  if ((record.completedQuantity || 0) > 0) {
-    return 'px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full'
-  }
-  return 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
-}
-
-const getOrderTypeLabel = (type) => {
-  switch (type) {
-    case 'breeding': return '育种订单'
-    case 'seedling': return '育苗订单'
-    case 'production': return '生产订单'
-    case 'research': return '研发订单'
-    case 'other': return '其他'
-    default: return type || ''
-  }
-}
-
-const getOrderTypeBadgeClass = (type) => {
-  switch (type) {
-    case 'breeding':
-      return 'px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded-full'
-    case 'seedling':
-      return 'px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full'
-    case 'production':
-      return 'px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full'
-    case 'research':
-      return 'px-2 py-1 bg-cyan-100 text-cyan-700 text-xs rounded-full'
-    case 'other':
-      return 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
-    default:
-      return 'px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full'
-  }
-}
+// 状态标签/类型标签/样式已抽到 @/utils/orderHelpers（修复 P0-A/P0-B 与 Order.vue 复用）
+// 模板中继续使用本地 getStatusLabel/getStatusBadgeClass/getOrderTypeLabel/getOrderTypeBadgeClass 名称（已通过 import 别名映射）
 </script>

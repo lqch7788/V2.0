@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * OrderStats 订单统计卡片组件
  * 对应 V1.1 src/components/farm/order/components/OrderStats.tsx 1:1 翻译
@@ -35,12 +35,18 @@
 import { computed } from 'vue'
 import { Package, TrendingUp, CheckCircle, Calendar } from 'lucide-vue-next'
 
-const props = defineProps({
-  data: {
-    type: Object,
-    required: true
-  }
-})
+interface StatsData {
+  total: number
+  inProgress: number
+  completed: number
+  thisMonth: number
+}
+
+interface Props {
+  data: StatsData
+}
+
+const props = defineProps<Props>()
 
 const stats = computed(() => [
   {
