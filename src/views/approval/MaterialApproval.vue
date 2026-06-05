@@ -1095,7 +1095,12 @@ const handleConfirmReject = async () => {
   }
   const item = rejectModal.item
   if (item) {
-    await approvalStore.reject(item.id, rejectModal.reason)
+    // ✅ 修复 P0: 检查 reject 返回值，false 时显示错误
+    const success = await approvalStore.reject(item.id, rejectModal.reason)
+    if (!success) {
+      ElMessage.error(approvalStore.error || '审批拒绝失败')
+      return
+    }
     await approvalStore.fetchApprovals()
     ElMessage.success('已拒绝该申请')
   }
@@ -1111,11 +1116,16 @@ const handleApprove = async (item) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-    await approvalStore.approve(item.id)
+    // ✅ 修复 P0: 检查 approve 返回值，false 时不显示"已通过"提示
+    const success = await approvalStore.approve(item.id)
+    if (!success) {
+      ElMessage.error(approvalStore.error || '审批通过失败')
+      return
+    }
     await approvalStore.fetchApprovals()
     ElMessage.success('已通过该申请')
     detailModal.show = false
-  } catch {
+  } catch (err) {
     // 用户取消
   }
 }
