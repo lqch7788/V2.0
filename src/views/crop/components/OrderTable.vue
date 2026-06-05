@@ -159,11 +159,13 @@ import { computed } from 'vue'
 import { Pencil, Trash2 } from 'lucide-vue-next'
 import { CropOrderStatus } from '@/types/crop'
 // 修复 P0-A/P0-B：使用共享工具函数（与 Order.vue 复用，避免重复定义）
+// 注意：必须保留旧名（getStatusBadgeClass/getOrderTypeLabel/getOrderTypeBadgeClass）
+// 因为 template 中通过 _ctx.xxx 引用这些名字，不能改名
 import {
   getOrderStatusLabel as getStatusLabel,
-  getOrderStatusBadgeClass as getStatusBadgeClassFn,
-  getOrderTypeLabel as getOrderTypeLabelFn,
-  getOrderTypeBadgeClass as getOrderTypeBadgeClassFn
+  getOrderStatusBadgeClass as getStatusBadgeClass,
+  getOrderTypeLabel as getOrderTypeLabel,
+  getOrderTypeBadgeClass as getOrderTypeBadgeClass
 } from '@/utils/orderHelpers'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
