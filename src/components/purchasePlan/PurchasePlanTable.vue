@@ -70,11 +70,11 @@
         </button>
         <button
           v-if="canEdit"
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
           @click="$emit('batchEdit')"
         >
           <el-icon><Edit /></el-icon>
-          编辑
+          批量编辑
         </button>
         <button
           v-if="canDelete"
