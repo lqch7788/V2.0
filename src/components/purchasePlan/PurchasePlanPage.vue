@@ -854,6 +854,12 @@ async function handleViewDetail(plan) {
             linkObj.requestId === plan.planCode
           )
         })
+        // ✅ 1:1 对齐 V1.1 L607-611: 规范化 businessLink + records 字段
+        matched = matched.map((a) => ({
+          ...a,
+          businessLink: typeof a.businessLink === 'string' ? JSON.parse(a.businessLink) : a.businessLink,
+          records: typeof a.records === 'string' ? JSON.parse(a.records) : a.records,
+        }))
       } catch (apiErr) {
         console.warn('API 拉取审批单失败:', apiErr)
       }
