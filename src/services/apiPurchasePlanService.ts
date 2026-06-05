@@ -235,7 +235,9 @@ export async function updateExecutionStatus(
   id: string,
   executionStatus: string
 ): Promise<PurchasePlan | null> {
-  const result = await enhancedApiClient.put<{ data: PurchasePlan }>(
+  // ✅ 修复 P0-1: HTTP 方法对齐 V1.1（V1.1 L227-230 用 patch，V2.0 server router.patch）
+  // 原 V2.0 用 put，与 server 不一致导致 404/405
+  const result = await enhancedApiClient.patch<{ data: PurchasePlan }>(
     `/purchase-plans/${id}/execution-status`,
     { executionStatus }
   );

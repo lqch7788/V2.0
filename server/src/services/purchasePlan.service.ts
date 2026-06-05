@@ -442,23 +442,31 @@ export class PurchasePlanService {
       throw new Error('已审批通过的采购计划不允许修改');
     }
 
+    // ✅ 修复 P0-2: 1:1 翻译 V1.1 service.ts L156-182 FIELD_MAP
+    // V2.0 原本缺 6 个字段映射，导致 PUT 更新时这些字段无法写入 DB
     const FIELD_MAP: Record<string, string> = {
       planCode: 'plan_code',
       planTitle: 'plan_title',
       planType: 'plan_type',
       departmentId: 'department_id',
       departmentName: 'department_name',
+      applicantDepartment: 'department_name', // V1.1 L163
       applicantId: 'applicant_id',
       applicantName: 'applicant_name',
+      applicant: 'applicant_name',           // V1.1 L179: 前端字段名 applicant → 实际列 applicant_name
       applyDate: 'apply_date',
       expectedDate: 'expected_date',
+      requiredDate: 'expected_date',         // V1.1 L168
       supplierId: 'supplier_id',
       supplierName: 'supplier_name',
       totalAmount: 'total_amount',
       priority: 'priority',
       status: 'status',
       approvalStatus: 'approval_status',
+      executionStatus: 'execution_status',   // V1.1 L175
       remarks: 'remarks',
+      remark: 'remarks',                     // V1.1 L177
+      otherBatchReason: 'otherBatchReason',  // V1.1 L178
       relatedBatchCode: 'related_batch_code',
       approvalPerson: 'approval_person',
       createBy: 'create_by',

@@ -782,14 +782,25 @@ function handleDeleteClick() {
 // ==================== 删除确认（开发测试阶段：可删除所有状态）====================
 async function handleDeleteConfirm() {
   try {
-    const selectedIds = selectedRows.value
+    // ✅ 修复 P0-5: 防御性 code → id 映射（V1.1 L540-545 1:1 翻译）
+    // selectedRows 存的是 purchaseApplicationCode（handleSelectAll/handleSingleEdit 写入）
+    // 但 deletePlans 期望 plan.id 列表。后端 service.deleteMany 按 id 删除。
+    const codeSet = new Set(purchasePlansData.value.map((p) => p.purchaseApplicationCode))
+    const selectedIds = selectedRows.value.map((v) => (
+      codeSet.has(v)
+        ? (purchasePlansData.value.find((p) => p.purchaseApplicationCode === v)?.id ?? v)
+        : v
+    ))
+
     const result = await deletePlans(selectedIds)
     setShowDeleteModal(false)
     batchDeleteMode.value = false
     selectedRows.value = []
-    // V1.1: result 是 { deleted, skipped }，V2.0 store 返回 boolean
+    // ✅ 修复 P0-3: 用 result.deleted 而非 selectedIds.length（V1.1 L553-554 1:1 翻译）
+    // 部分被 skipped 时，selectedIds.length 会高估实际删除数
+    const deletedCount = result?.deleted ?? selectedIds.length
     const skipMsg = result && result.skipped && result.skipped.length > 0 ? `，${result.skipped.length} 个被跳过` : ''
-    await showAlert(`已删除 ${selectedIds.length} 个采购计划${skipMsg}`)
+    await showAlert(`已删除 ${deletedCount} 个采购计划${skipMsg}`)
   } catch (error) {
     await showAlert('删除失败，请重试')
   }
