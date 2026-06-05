@@ -1,9 +1,9 @@
 <template>
   <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-    <!-- 单行布局：flex-nowrap 强制不换行，overflow-x-auto 防止溢出 -->
+    <!-- 单行布局：8 字段均布（flex-1），2 按钮固定宽度在右（shrink-0） -->
     <div class="flex flex-nowrap gap-3 items-end">
       <!-- 关联生产批次 -->
-      <div class="shrink-0" style="width: 130px;">
+      <div class="flex-1 min-w-0">
         <label class="text-gray-700 text-sm block mb-1">关联生产批次</label>
         <el-input
           :model-value="relatedBatchCode"
@@ -12,7 +12,7 @@
         />
       </div>
       <!-- 申请人 -->
-      <div class="shrink-0" style="width: 100px;">
+      <div class="flex-1 min-w-0">
         <label class="text-gray-700 text-sm block mb-1">申请人</label>
         <el-input
           :model-value="applicant"
@@ -21,7 +21,7 @@
         />
       </div>
       <!-- 申请部门 -->
-      <div class="shrink-0" style="width: 100px;">
+      <div class="flex-1 min-w-0">
         <label class="text-gray-700 text-sm block mb-1">申请部门</label>
         <el-input
           :model-value="applicantDepartment"
@@ -30,7 +30,7 @@
         />
       </div>
       <!-- 优先级 -->
-      <div class="shrink-0" style="width: 90px;">
+      <div class="flex-1 min-w-0">
         <label class="text-gray-700 text-sm block mb-1">优先级</label>
         <el-select
           :model-value="priority"
@@ -46,7 +46,7 @@
         </el-select>
       </div>
       <!-- 状态 -->
-      <div class="shrink-0" style="width: 100px;">
+      <div class="flex-1 min-w-0">
         <label class="text-gray-700 text-sm block mb-1">状态</label>
         <el-select
           :model-value="status"
@@ -64,7 +64,7 @@
         </el-select>
       </div>
       <!-- 预警状态 -->
-      <div class="shrink-0" style="width: 110px;">
+      <div class="flex-1 min-w-0">
         <label class="text-gray-700 text-sm block mb-1">预警状态</label>
         <el-select
           :model-value="alertFilter"
@@ -77,8 +77,8 @@
           <el-option label="即将到期" value="warning" />
         </el-select>
       </div>
-      <!-- 需求开始日期（窄一点：140px） -->
-      <div class="shrink-0" style="width: 140px;">
+      <!-- 需求开始日期 -->
+      <div class="flex-1 min-w-0">
         <label class="text-gray-700 text-sm block mb-1">需求开始日期</label>
         <el-date-picker
           :model-value="requiredStartDate"
@@ -88,8 +88,8 @@
           style="width: 100%"
         />
       </div>
-      <!-- 需求结束日期（窄一点：140px） -->
-      <div class="shrink-0" style="width: 140px;">
+      <!-- 需求结束日期 -->
+      <div class="flex-1 min-w-0">
         <label class="text-gray-700 text-sm block mb-1">需求结束日期</label>
         <el-date-picker
           :model-value="requiredEndDate"
@@ -99,8 +99,8 @@
           style="width: 100%"
         />
       </div>
-      <!-- 操作按钮（在最后，紧跟所有搜索框） -->
-      <div class="flex gap-2 items-end ml-auto shrink-0">
+      <!-- 操作按钮（固定宽度，不参与字段均布，固定在最右） -->
+      <div class="flex gap-2 items-end shrink-0">
         <button
           class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
           @click="$emit('reset')"
