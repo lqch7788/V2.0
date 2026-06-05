@@ -705,7 +705,7 @@ const modules = computed(() => [
     gradient: 'bg-gradient-to-br from-blue-500 via-cyan-500 to-sky-600',
     actionText: t.value.dataAnalysisStatus,
     disabled: true,
-    onClick: () => router.push('/summary/overview')
+    onClick: () => router.push('/reports')
   },
   {
     title: t.value.expertAI,

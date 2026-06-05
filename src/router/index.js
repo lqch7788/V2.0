@@ -12,6 +12,11 @@ const routes = [
     path: '/home',
     redirect: '/'
   },
+  // V1.1 App.tsx:294 - 数据分析系统旧路由重定向（与 V1.1 1:1 对齐）
+  {
+    path: '/reports',
+    redirect: '/summary/overview'
+  },
   // V1.1兼容路由 - /settings 指向系统设置首页
   {
     path: '/settings',
