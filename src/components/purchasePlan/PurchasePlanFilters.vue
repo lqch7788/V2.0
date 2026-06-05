@@ -1,9 +1,10 @@
 <template>
   <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-    <div class="flex flex-wrap gap-4 items-end">
+    <!-- 单行布局：flex-nowrap 强制不换行，overflow-x-auto 防止溢出 -->
+    <div class="flex flex-nowrap gap-3 items-end">
       <!-- 关联生产批次 -->
-      <div class="min-w-[120px]">
-        <label class="text-gray-700">关联生产批次</label>
+      <div class="shrink-0" style="width: 130px;">
+        <label class="text-gray-700 text-sm block mb-1">关联生产批次</label>
         <el-input
           :model-value="relatedBatchCode"
           @update:model-value="(v) => $emit('relatedBatchCodeChange', v)"
@@ -11,8 +12,8 @@
         />
       </div>
       <!-- 申请人 -->
-      <div class="min-w-[90px]">
-        <label class="text-gray-700">申请人</label>
+      <div class="shrink-0" style="width: 100px;">
+        <label class="text-gray-700 text-sm block mb-1">申请人</label>
         <el-input
           :model-value="applicant"
           @update:model-value="(v) => $emit('applicantChange', v)"
@@ -20,8 +21,8 @@
         />
       </div>
       <!-- 申请部门 -->
-      <div class="min-w-[90px]">
-        <label class="text-gray-700">申请部门</label>
+      <div class="shrink-0" style="width: 100px;">
+        <label class="text-gray-700 text-sm block mb-1">申请部门</label>
         <el-input
           :model-value="applicantDepartment"
           @update:model-value="(v) => $emit('applicantDepartmentChange', v)"
@@ -29,8 +30,8 @@
         />
       </div>
       <!-- 优先级 -->
-      <div class="min-w-[70px]">
-        <label class="text-gray-700">优先级</label>
+      <div class="shrink-0" style="width: 90px;">
+        <label class="text-gray-700 text-sm block mb-1">优先级</label>
         <el-select
           :model-value="priority"
           @update:model-value="(v) => $emit('priorityChange', v)"
@@ -45,8 +46,8 @@
         </el-select>
       </div>
       <!-- 状态 -->
-      <div class="min-w-[90px]">
-        <label class="text-gray-700">状态</label>
+      <div class="shrink-0" style="width: 100px;">
+        <label class="text-gray-700 text-sm block mb-1">状态</label>
         <el-select
           :model-value="status"
           @update:model-value="(v) => $emit('statusChange', v)"
@@ -63,8 +64,8 @@
         </el-select>
       </div>
       <!-- 预警状态 -->
-      <div class="min-w-[100px]">
-        <label class="text-gray-700">预警状态</label>
+      <div class="shrink-0" style="width: 110px;">
+        <label class="text-gray-700 text-sm block mb-1">预警状态</label>
         <el-select
           :model-value="alertFilter"
           @update:model-value="(v) => $emit('alertFilterChange', v)"
@@ -76,9 +77,9 @@
           <el-option label="即将到期" value="warning" />
         </el-select>
       </div>
-      <!-- 需求开始日期 -->
-      <div class="min-w-[110px]">
-        <label class="text-gray-700">需求开始日期</label>
+      <!-- 需求开始日期（窄一点：140px） -->
+      <div class="shrink-0" style="width: 140px;">
+        <label class="text-gray-700 text-sm block mb-1">需求开始日期</label>
         <el-date-picker
           :model-value="requiredStartDate"
           @update:model-value="(v) => $emit('requiredStartDateChange', v)"
@@ -87,9 +88,9 @@
           style="width: 100%"
         />
       </div>
-      <!-- 需求结束日期 -->
-      <div class="min-w-[110px]">
-        <label class="text-gray-700">需求结束日期</label>
+      <!-- 需求结束日期（窄一点：140px） -->
+      <div class="shrink-0" style="width: 140px;">
+        <label class="text-gray-700 text-sm block mb-1">需求结束日期</label>
         <el-date-picker
           :model-value="requiredEndDate"
           @update:model-value="(v) => $emit('requiredEndDateChange', v)"
@@ -98,8 +99,8 @@
           style="width: 100%"
         />
       </div>
-      <!-- 操作按钮（V1.1 button.tsx 重置=secondary 灰底白字，搜索=primary 绿底白字） -->
-      <div class="flex gap-2 items-end ml-auto">
+      <!-- 操作按钮（在最后，紧跟所有搜索框） -->
+      <div class="flex gap-2 items-end ml-auto shrink-0">
         <button
           class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
           @click="$emit('reset')"
