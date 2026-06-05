@@ -5,6 +5,13 @@
 import { getDatabase, saveDatabase } from '../db';
 import { queryToObjects, execCount } from '../utils/queryHelper';
 
+// ✅ 修复 P1: 状态白名单常量（1:1 翻译 V1.1 server/src/services/purchasePlan.service.ts L16-35）
+// 用于 create/update 时的字段值校验，防止脏数据写入 DB
+export const PURCHASE_PLAN_STATUSES = ['draft', 'pending', 'approved', 'purchasing', 'completed', 'cancelled'] as const;
+export const PURCHASE_APPROVAL_STATUSES = ['pending', 'approved', 'rejected'] as const;
+export const PURCHASE_TYPES = ['production', 'urgent', 'routine', 'material', 'safety', 'equipment', 'other'] as const;
+export const PURCHASE_PRIORITIES = ['urgent', 'high', 'normal', 'low'] as const;
+
 export interface PurchasePlan {
   id: string;
   plan_code: string;
@@ -44,6 +51,31 @@ export interface PurchasePlanQuery {
 }
 
 export class PurchasePlanService {
+  /**
+   * ✅ 修复 P1: 状态/优先级/类型白名单校验（1:1 翻译 V1.1 L382-390）
+   * create() 和 update() 都应调用。返回 null 表示通过，返回字符串为错误信息。
+   */
+  private validateStatusValues(input: {
+    status?: string;
+    approvalStatus?: string;
+    priority?: string;
+    purchaseType?: string;
+  }): string | null {
+    if (input.status !== undefined && !(PURCHASE_PLAN_STATUSES as readonly string[]).includes(input.status)) {
+      return `无效的 status: ${input.status}（允许值: ${PURCHASE_PLAN_STATUSES.join(', ')}）`;
+    }
+    if (input.approvalStatus !== undefined && !(PURCHASE_APPROVAL_STATUSES as readonly string[]).includes(input.approvalStatus)) {
+      return `无效的 approvalStatus: ${input.approvalStatus}（允许值: ${PURCHASE_APPROVAL_STATUSES.join(', ')}）`;
+    }
+    if (input.priority !== undefined && !(PURCHASE_PRIORITIES as readonly string[]).includes(input.priority)) {
+      return `无效的 priority: ${input.priority}（允许值: ${PURCHASE_PRIORITIES.join(', ')}）`;
+    }
+    if (input.purchaseType !== undefined && !(PURCHASE_TYPES as readonly string[]).includes(input.purchaseType)) {
+      return `无效的 purchaseType: ${input.purchaseType}（允许值: ${PURCHASE_TYPES.join(', ')}）`;
+    }
+    return null;
+  }
+
   private toCamelCase(str: string): string {
     return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
   }
@@ -374,9 +406,20 @@ export class PurchasePlanService {
 
   async create(plan: Partial<PurchasePlan>): Promise<string> {
     const db = getDatabase();
-    const now = new Date().toISOString();
+    // ✅ 修复 P1: 时区补偿（1:1 翻译 V1.1 L481-483），避免跨天写入错误日期
+    const dateNow = new Date();
+    const now = new Date(dateNow.getTime() - dateNow.getTimezoneOffset() * 60000).toISOString();
     const newId = plan.id || `PP${Date.now()}`;
     const planCode = plan.plan_code || this.generatePurchasePlanCode();
+
+    // ✅ 修复 P1: 状态/优先级/类型白名单校验（1:1 翻译 V1.1 L460-466）
+    const statusError = this.validateStatusValues({
+      status: plan.status,
+      approvalStatus: plan.approval_status,
+      priority: plan.priority,
+      purchaseType: plan.plan_type,
+    });
+    if (statusError) throw new Error(statusError);
 
     db.run(`
       INSERT INTO purchase_plans (
@@ -403,7 +446,8 @@ export class PurchasePlanService {
       plan.supplier_id || '',
       plan.supplier_name || '',
       plan.total_amount || 0,
-      plan.priority || 'medium',
+      // ✅ 修复 P1: priority 默认值 'medium' → 'normal'（V1.1 L408 用 'normal'，PURCHASE_PRIORITIES 也不含 'medium'）
+      plan.priority || 'normal',
       plan.status || 'draft',
       plan.approval_status || 'pending',
       plan.remarks || '',
@@ -422,7 +466,9 @@ export class PurchasePlanService {
 
   async update(id: string, updates: Partial<PurchasePlan>): Promise<boolean> {
     const db = getDatabase();
-    const now = new Date().toISOString();
+    // ✅ 修复 P1: 时区补偿（1:1 翻译 V1.1 L481-483）
+    const dateNow = new Date();
+    const now = new Date(dateNow.getTime() - dateNow.getTimezoneOffset() * 60000).toISOString();
 
     // 检查采购计划是否存在
     const stmt = db.prepare('SELECT status FROM purchase_plans WHERE id = ?');
@@ -441,6 +487,15 @@ export class PurchasePlanService {
     if (plan.status === 'approved' || plan.approval_status === 'approved') {
       throw new Error('已审批通过的采购计划不允许修改');
     }
+
+    // ✅ 修复 P1: 状态/优先级/类型白名单校验（1:1 翻译 V1.1 L569-573）
+    const statusError = this.validateStatusValues({
+      status: updates.status,
+      approvalStatus: updates.approval_status,
+      priority: updates.priority,
+      purchaseType: updates.plan_type,
+    });
+    if (statusError) throw new Error(statusError);
 
     // ✅ 修复 P0-2: 1:1 翻译 V1.1 service.ts L156-182 FIELD_MAP
     // V2.0 原本缺 6 个字段映射，导致 PUT 更新时这些字段无法写入 DB

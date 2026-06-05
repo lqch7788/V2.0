@@ -556,7 +556,8 @@ function handleUpdateBatchItem(id, field, value, isNumeric) {
     if (item.id !== id) return item
     const updated = { ...item, [field]: isNumeric ? Number(value) || 0 : value }
     if (field === 'quantity' || field === 'estimatedPrice') {
-      updated.estimatedTotalPrice = Number(updated.quantity) * Number(updated.estimatedPrice)
+      // 1:1 翻译 V1.1: 保留 2 位小数（避免浮点精度问题）
+      updated.estimatedTotalPrice = Math.round(Number(updated.quantity) * Number(updated.estimatedPrice) * 100) / 100
     }
     return updated
   })

@@ -660,9 +660,9 @@ function handleUpdateItem(id, field, value) {
   const next = props.createItems.map((item) => {
     if (item.id !== id) return item
     const updated = { ...item, [field]: value }
-    // 1:1 翻译 V1.1: 数量/单价变化时自动计算总价
+    // 1:1 翻译 V1.1 L212-213: 数量/单价变化时自动计算总价，保留 2 位小数（避免浮点精度问题）
     if (field === 'quantity' || field === 'estimatedPrice') {
-      updated.estimatedTotalPrice = Number(updated.quantity) * Number(updated.estimatedPrice)
+      updated.estimatedTotalPrice = Math.round(Number(updated.quantity) * Number(updated.estimatedPrice) * 100) / 100
     }
     return updated
   })
