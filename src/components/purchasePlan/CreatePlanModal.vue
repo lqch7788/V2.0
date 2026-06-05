@@ -25,10 +25,13 @@
               class="flex-1"
               @update:model-value="(v) => emitFormChange('purchaseApplicationCode', v)"
             />
-            <el-button size="small" plain type="success" @click="handleGenerateCode">
+            <button
+              class="h-9 px-4 rounded-lg text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-colors inline-flex items-center justify-center whitespace-nowrap"
+              @click="handleGenerateCode"
+            >
               <el-icon><Refresh /></el-icon>
               生成
-            </el-button>
+            </button>
           </div>
         </div>
       </div>
@@ -189,14 +192,20 @@
             物料明细（{{ createItems.length }}种物料）
           </h4>
           <div class="flex items-center gap-2">
-            <el-button size="small" plain type="success" @click="handleImportClick">
+            <button
+              class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+              @click="handleImportClick"
+            >
               <el-icon><Upload /></el-icon>
               导入物料
-            </el-button>
-            <el-button size="small" plain type="success" @click="handleAddItem">
+            </button>
+            <button
+              class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+              @click="handleAddItem"
+            >
               <el-icon><Plus /></el-icon>
               添加物料
-            </el-button>
+            </button>
           </div>
           <input
             ref="fileInputRef"
@@ -350,8 +359,20 @@
     </div>
 
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleSubmit">提交</el-button>
+      <div class="flex justify-end gap-3">
+        <button
+          class="h-8 px-4 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200"
+          @click="handleClose"
+        >
+          取消
+        </button>
+        <button
+          class="h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700"
+          @click="handleSubmit"
+        >
+          提交
+        </button>
+      </div>
     </template>
   </el-dialog>
 </template>

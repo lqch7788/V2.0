@@ -98,13 +98,21 @@
           style="width: 100%"
         />
       </div>
-      <!-- 操作按钮（V1.1 button.tsx 无 variant = default 但实际渲染绿 outline 风格） -->
+      <!-- 操作按钮（V1.1 button.tsx 重置=secondary 灰底白字，搜索=primary 绿底白字） -->
       <div class="flex gap-2 items-end ml-auto">
-        <el-button size="small" plain type="success" class="!px-2.5" @click="$emit('reset')">重置</el-button>
-        <el-button size="small" plain type="success" class="!px-2.5" @click="$emit('search')">
+        <button
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+          @click="$emit('reset')"
+        >
+          重置
+        </button>
+        <button
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          @click="$emit('search')"
+        >
           <el-icon><Search /></el-icon>
           搜索
-        </el-button>
+        </button>
       </div>
     </div>
   </div>

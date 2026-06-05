@@ -108,23 +108,20 @@
                 :value="o.value"
               />
             </el-select>
-            <el-button
-              size="small"
-              type="primary"
+            <button
+              class="ml-2 h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="saving"
-              class="ml-2"
               @click="handleSaveExec"
             >
               {{ saving ? '保存中…' : '保存' }}
-            </el-button>
-            <el-button
-              size="small"
+            </button>
+            <button
+              class="ml-1 h-8 px-4 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="saving"
-              class="ml-1"
               @click="editingExec = false"
             >
               取消
-            </el-button>
+            </button>
           </template>
         </div>
 
@@ -255,7 +252,14 @@
     </div>
 
     <template #footer>
-      <el-button @click="handleClose">关闭</el-button>
+      <div class="flex justify-end">
+        <button
+          class="h-8 px-4 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200"
+          @click="handleClose"
+        >
+          关闭
+        </button>
+      </div>
     </template>
   </el-dialog>
 </template>

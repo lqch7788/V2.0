@@ -5,96 +5,93 @@
 -->
 <template>
   <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-    <!-- 工具栏 - 与技术方案页面保持一致 -->
+    <!-- 工具栏 - 与 V2.0 生产计划页面按钮风格 1:1 对齐 -->
     <div class="p-4 border-b border-gray-100 flex items-center justify-between">
       <h3 class="text-lg font-semibold text-gray-900">采购计划列表</h3>
       <div v-if="isInMode" class="flex gap-2">
         <!-- 批量编辑模式 -->
         <template v-if="batchEditMode">
-          <el-button
-            size="small"
-            type="primary"
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
             @click="handleBatchEditConfirm"
           >
             <el-icon><Edit /></el-icon>
             编辑
-          </el-button>
-          <el-button size="small" @click="$emit('batchEditCancel')">
+          </button>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+            @click="$emit('batchEditCancel')"
+          >
             取消
-          </el-button>
+          </button>
         </template>
         <!-- 批量删除模式 -->
         <template v-if="batchDeleteMode">
-          <el-button
-            size="small"
-            type="danger"
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="selectedRows.length === 0"
             @click="handleBatchDeleteConfirm"
           >
             <el-icon><Delete /></el-icon>
             删除
-          </el-button>
-          <el-button size="small" @click="$emit('batchDeleteCancel')">
+          </button>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+            @click="$emit('batchDeleteCancel')"
+          >
             取消
-          </el-button>
+          </button>
         </template>
         <!-- 导出模式 -->
         <template v-if="exportMode">
-          <el-button
-            size="small"
-            plain
-            type="success"
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
             @click="$emit('exportConfirm')"
           >
             <el-icon><Download /></el-icon>
             确认导出
-          </el-button>
-          <el-button size="small" @click="$emit('exportCancel')">
+          </button>
+          <button
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+            @click="$emit('exportCancel')"
+          >
             取消
-          </el-button>
+          </button>
         </template>
       </div>
       <div v-else class="flex gap-2">
-        <el-button
+        <button
           v-if="canCreate"
-          size="small"
-          plain
-          type="success"
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
           @click="$emit('create')"
         >
           <el-icon><Plus /></el-icon>
           新增
-        </el-button>
-        <el-button
+        </button>
+        <button
           v-if="canEdit"
-          size="small"
-          plain
-          type="success"
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
           @click="$emit('batchEdit')"
         >
           <el-icon><Edit /></el-icon>
           编辑
-        </el-button>
-        <el-button
+        </button>
+        <button
           v-if="canDelete"
-          size="small"
-          plain
-          type="danger"
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700"
           @click="$emit('batchDelete')"
         >
           <el-icon><Delete /></el-icon>
           删除
-        </el-button>
-        <el-button
+        </button>
+        <button
           v-if="canExport"
-          size="small"
-          plain
-          type="success"
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
           @click="$emit('export')"
         >
           <el-icon><Download /></el-icon>
           导出
-        </el-button>
+        </button>
       </div>
     </div>
 

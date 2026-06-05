@@ -226,25 +226,23 @@
         <!-- 第4行：物料明细（展开显示） -->
         <div class="md:col-span-3 border-t border-gray-300 pt-3 mt-2">
           <div class="flex items-center justify-between">
-            <el-button
-              text
-              size="small"
+            <button
+              class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
               @click="handleToggleItemsExpanded"
             >
               <el-icon :class="['w-4 h-4 transition-transform', showEditItemsExpanded ? 'rotate-180' : '']">
                 <ArrowDown />
               </el-icon>
               物料明细（{{ batchEditItems.length || 0 }}种物料）
-            </el-button>
-            <el-button
+            </button>
+            <button
               v-if="showEditItemsExpanded"
-              size="small"
-              type="primary"
+              class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
               @click="handleAddBatchItem"
             >
               <el-icon><Plus /></el-icon>
               新增物料
-            </el-button>
+            </button>
           </div>
 
           <div
@@ -269,9 +267,13 @@
                   class="hover:bg-gray-50"
                 >
                   <td class="px-2 py-2 text-center">
-                    <el-button text size="small" @click="handleRemoveBatchItem(item.id)">
-                      <el-icon color="#ef4444"><Delete /></el-icon>
-                    </el-button>
+                    <button
+                      class="h-7 w-7 inline-flex items-center justify-center rounded text-red-500 hover:bg-red-50 hover:text-red-600"
+                      title="删除"
+                      @click="handleRemoveBatchItem(item.id)"
+                    >
+                      <el-icon><Delete /></el-icon>
+                    </button>
                   </td>
                   <td
                     v-for="col in editColumns"
@@ -303,9 +305,24 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button @click="handleNext">确认（下一个）</el-button>
-        <el-button type="primary" @click="handleSubmit">保存</el-button>
+        <button
+          class="h-8 px-4 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200"
+          @click="handleClose"
+        >
+          取消
+        </button>
+        <button
+          class="h-8 px-4 rounded-md text-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+          @click="handleNext"
+        >
+          确认（下一个）
+        </button>
+        <button
+          class="h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700"
+          @click="handleSubmit"
+        >
+          保存
+        </button>
       </div>
     </template>
   </el-dialog>
