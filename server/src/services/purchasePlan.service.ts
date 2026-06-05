@@ -143,6 +143,152 @@ export class PurchasePlanService {
     return `PP${year}${month}${day}${seq}`;
   }
 
+  // ----------------------------------------------------------
+  // 字典查询（供路由 /options 端点使用，1:1 翻译 V1.1 L198-229）
+  // ----------------------------------------------------------
+  private readonly STATUS_VALUES = ['draft', 'pending', 'approved', 'purchasing', 'completed', 'cancelled'];
+  private readonly STATUS_TEXT: Record<string, string> = {
+    draft: '草稿', pending: '待审批', approved: '已通过', in_progress: '执行中',
+    purchasing: '采购中', completed: '已完成', cancelled: '已作废', rejected: '已拒绝',
+  };
+  private readonly PRIORITY_VALUES = ['urgent', 'high', 'normal', 'low'];
+  private readonly PRIORITY_TEXT: Record<string, string> = {
+    urgent: '紧急', high: '高', normal: '中', low: '低',
+  };
+  private readonly PURCHASE_TYPE_VALUES = ['production', 'urgent', 'routine', 'safety', 'material', 'equipment', 'other'];
+  private readonly PURCHASE_TYPE_TEXT: Record<string, string> = {
+    production: '生产物资采购', urgent: '紧急采购', routine: '常规采购',
+    safety: '劳保用品', material: '通用物资', equipment: '设备采购', other: '其他',
+  };
+  // 4 档执行状态白名单
+  private readonly EXECUTION_STATUSES = new Set([
+    'pending_execution', 'purchasing', 'completed', 'cancelled',
+  ]);
+
+  getStatusOptions(): Array<{ value: string; label: string }> {
+    return this.STATUS_VALUES.map(v => ({ value: v, label: this.STATUS_TEXT[v] || v }))
+  }
+  getPriorityOptions(): Array<{ value: string; label: string }> {
+    return this.PRIORITY_VALUES.map(v => ({ value: v, label: this.PRIORITY_TEXT[v] || v }))
+  }
+  getPurchaseTypeOptions(): Array<{ value: string; label: string }> {
+    return this.PURCHASE_TYPE_VALUES.map(v => ({ value: v, label: this.PURCHASE_TYPE_TEXT[v] || v }))
+  }
+
+  /**
+   * 按 PA+YYYYMM+4位流水号 规则生成下一个可用的采购申请批次号
+   * 1:1 翻译 V1.1 service.nextPurchaseApplicationCode（L267-303）
+   * 性能：利用 idx_purchase_plans_code_unique 索引，O(log n)
+   */
+  nextPurchaseApplicationCode(): { success: boolean; data?: { code: string }; error?: string } {
+    try {
+      const db = getDatabase()
+      const now = new Date()
+      const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`
+      const prefix = `PA${ym}`
+
+      // SUBSTR 取后 4 位为数字部分，CAST 比较保证正确顺序
+      const stmt = db.prepare(`
+        SELECT plan_code AS planCode
+        FROM purchase_plans
+        WHERE plan_code LIKE ? AND SUBSTR(plan_code, 9) GLOB '[0-9][0-9][0-9][0-9]'
+        ORDER BY CAST(SUBSTR(plan_code, 9) AS INTEGER) DESC
+        LIMIT 1
+      `)
+      stmt.bind([`${prefix}%`])
+
+      let maxSerial = 0
+      if (stmt.step()) {
+        const row = stmt.getAsObject() as { planCode?: string }
+        if (row.planCode) {
+          const serial = row.planCode.slice(prefix.length)
+          const n = parseInt(serial, 10)
+          if (!isNaN(n) && n >= 0) maxSerial = n
+        }
+      }
+      stmt.free()
+
+      const nextSerial = String(maxSerial + 1).padStart(4, '0')
+      return { success: true, data: { code: `${prefix}${nextSerial}` } }
+    } catch (error) {
+      return { success: false, error: `生成采购申请批次号失败: ${(error as Error).message}` }
+    }
+  }
+
+  /**
+   * 更新采购执行状态（4 档白名单校验，1:1 翻译 V1.1 L664-688）
+   */
+  async updateExecutionStatus(id: string, executionStatus: string): Promise<{ success: boolean; data?: Record<string, unknown>; error?: string }> {
+    try {
+      if (!this.EXECUTION_STATUSES.has(executionStatus)) {
+        return { success: false, error: `无效的执行状态: ${executionStatus}` }
+      }
+      const db = getDatabase()
+      const existing = db.prepare('SELECT id FROM purchase_plans WHERE id = ?')
+      existing.bind([id])
+      const found = existing.step()
+      existing.free()
+      if (!found) {
+        return { success: false, error: '采购计划不存在' }
+      }
+      const now = new Date()
+      const nowIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString()
+      db.run(
+        'UPDATE purchase_plans SET execution_status = ?, update_time = ? WHERE id = ?',
+        [executionStatus, nowIso, id]
+      )
+      saveDatabase()
+      return this.getById(id).then(r => r ? { success: true, data: r } : { success: false, error: '返回数据失败' })
+    } catch (error) {
+      return { success: false, error: `更新执行状态失败: ${(error as Error).message}` }
+    }
+  }
+
+  /**
+   * 批量删除（1:1 翻译 V1.1 L711-735 deleteMany，状态校验版）
+   * 返回 { deleted, skipped[] }
+   */
+  async deleteMany(ids: string[]): Promise<{ success: boolean; data?: { deleted: number; skipped: { id: string; reason: string }[] }; error?: string; message?: string }> {
+    try {
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return { success: false, error: '请选择要删除的采购计划' }
+      }
+      const db = getDatabase()
+      const DELETABLE = new Set(['draft', 'pending', 'rejected'])
+      const deleted: string[] = []
+      const skipped: { id: string; reason: string }[] = []
+
+      for (const id of ids) {
+        const stmt = db.prepare('SELECT id, status, approval_status FROM purchase_plans WHERE id = ?')
+        stmt.bind([id])
+        const existing = stmt.step() ? stmt.getAsObject() : null
+        stmt.free()
+        if (!existing) {
+          skipped.push({ id, reason: '记录不存在' })
+          continue
+        }
+        const status = String(existing.status || '')
+        const approval = String(existing.approval_status || '')
+        const canDelete = DELETABLE.has(status) || approval === 'rejected'
+        if (!canDelete) {
+          skipped.push({ id, reason: `状态 ${status} 不允许删除` })
+          continue
+        }
+        db.run('DELETE FROM purchase_plans WHERE id = ?', [id])
+        deleted.push(id)
+      }
+
+      if (deleted.length > 0) saveDatabase()
+      return {
+        success: true,
+        data: { deleted: deleted.length, skipped },
+        message: `成功删除 ${deleted.length} 个采购计划${skipped.length > 0 ? `，跳过 ${skipped.length} 个不允许删除的` : ''}`,
+      }
+    } catch (error) {
+      return { success: false, error: `批量删除采购计划失败: ${(error as Error).message}` }
+    }
+  }
+
   async getPurchasePlans(params: PurchasePlanQuery): Promise<{ data: Record<string, unknown>[]; total: number }> {
     const db = getDatabase();
     const { planType, status, approvalStatus, departmentName, applicantName, priority, page = 1, limit = 50 } = params;

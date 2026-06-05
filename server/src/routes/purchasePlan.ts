@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { getDatabase, saveDatabase } from '../db';
 import { queryToObjects, execCount } from '../utils/queryHelper';
+import { purchasePlanService } from '../services/purchasePlan.service';
 
 const router = Router();
 
@@ -197,6 +198,37 @@ router.get('/', (req: Request, res: Response) => {
     console.error('获取采购计划列表失败:', error);
     res.status(500).json({ success: false, error: '获取采购计划列表失败' });
   }
+});
+
+/**
+ * 获取下拉选项（状态/优先级/采购类型）
+ * GET /api/purchase-plans/options
+ * 1:1 翻译 V1.1 L26-35
+ * 必须放在 /:id 之前，否则会被 :id 捕获
+ */
+router.get('/options', (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: {
+      statuses: purchasePlanService.getStatusOptions(),
+      priorities: purchasePlanService.getPriorityOptions(),
+      purchaseTypes: purchasePlanService.getPurchaseTypeOptions(),
+    },
+  });
+});
+
+/**
+ * 按 PA+YYYYMM+4位流水号 规则获取下一个可用的采购申请批次号
+ * GET /api/purchase-plans/next-code
+ * 1:1 翻译 V1.1 L42-48 service.nextPurchaseApplicationCode
+ * 必须放在 /:id 之前
+ */
+router.get('/next-code', (_req: Request, res: Response) => {
+  const result = purchasePlanService.nextPurchaseApplicationCode();
+  if (!result.success) {
+    return res.status(500).json({ success: false, error: result.error });
+  }
+  res.json(result);
 });
 
 /**
@@ -509,25 +541,35 @@ router.delete('/:id', (req: Request, res: Response) => {
 /**
  * 批量删除采购计划
  * POST /api/purchase-plans/batch-delete
+ * 1:1 翻译 V1.1 service.deleteMany：返回 { deleted, skipped[] }
  */
-router.post('/batch-delete', (req: Request, res: Response) => {
-  try {
-    const { ids } = req.body;
-    const db = getDatabase();
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ success: false, error: '请选择要删除的采购计划' });
-    }
-
-    const placeholders = ids.map(() => '?').join(',');
-    db.run(`DELETE FROM purchase_plans WHERE id IN (${placeholders})`, ids);
-    saveDatabase();
-
-    res.json({ success: true, message: `成功删除 ${ids.length} 个采购计划` });
-  } catch (error) {
-    console.error('批量删除采购计划失败:', error);
-    res.status(500).json({ success: false, error: '批量删除采购计划失败' });
+router.post('/batch-delete', async (req: Request, res: Response) => {
+  const { ids } = req.body || {};
+  const result = await purchasePlanService.deleteMany(ids);
+  if (!result.success) {
+    return res.status(400).json(result);
   }
+  res.json(result);
+});
+
+/**
+ * 更新采购执行状态（4 档：pending_execution / purchasing / completed / cancelled）
+ * PATCH /api/purchase-plans/:id/execution-status
+ * 1:1 翻译 V1.1 service.updateExecutionStatus
+ */
+router.patch('/:id/execution-status', async (req: Request, res: Response) => {
+  const { executionStatus } = req.body || {};
+  if (!executionStatus || typeof executionStatus !== 'string') {
+    return res.status(400).json({ success: false, error: '执行状态不能为空' });
+  }
+  const result = await purchasePlanService.updateExecutionStatus(req.params.id, executionStatus);
+  if (!result.success) {
+    const status = result.error?.includes('不存在') ? 404
+      : result.error?.includes('无效') ? 400
+      : 500;
+    return res.status(status).json(result);
+  }
+  res.json(result);
 });
 
 export default router;
