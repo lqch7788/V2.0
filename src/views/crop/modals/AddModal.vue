@@ -206,7 +206,7 @@
 
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
-import { Plus, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
+import { Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { useCustomerStore } from '@/stores/modules/customer'
 import { useUserStore } from '@/stores/modules/user'

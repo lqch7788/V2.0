@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Download, Close } from '@element-plus/icons-vue'
+import { Close } from '@element-plus/icons-vue'
 
 // 修复轮 10 P0-001：prop 名 exportFileType（与 Order.vue L354 `:export-file-type="exportFormat"` 一致）
 const props = defineProps({

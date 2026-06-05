@@ -234,7 +234,7 @@
 
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
-import { Edit, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
+import { Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
 import { Search, X } from 'lucide-vue-next'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { useCustomerStore } from '@/stores/modules/customer'
