@@ -250,7 +250,7 @@
             class="mt-3 overflow-auto rounded-lg border border-gray-300 bg-white"
           >
             <table class="w-full text-xs">
-              <thead class="bg-gray-50 text-gray-700">
+              <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                 <tr>
                   <th class="px-2 py-2 text-center font-semibold w-10">操作</th>
                   <th
@@ -592,20 +592,43 @@ function handleNext() {
 </script>
 
 <style scoped>
-/* 对齐 V2.0 生产计划页面弹窗输入框样式：border-gray-500 + rounded-lg + focus border-emerald-500 */
+/*
+ * 输入框样式 1:1 对齐 V1.1 BatchEditModal L78 deepInputClass：
+ * px-4 py-3 border border-gray-400 rounded-lg text-sm
+ * focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner
+ */
 :deep(.el-input__wrapper),
 :deep(.el-textarea__inner),
 :deep(.el-select__wrapper) {
   border-radius: 0.5rem !important;
-  box-shadow: 0 0 0 1px #6b7280 inset !important;
+  padding: 0.5rem 0.75rem !important;
+  box-shadow:
+    inset 0 2px 4px 0 rgb(0 0 0 / 0.05),
+    0 0 0 1px #9ca3af inset !important;
 }
 :deep(.el-input__wrapper:hover),
 :deep(.el-select__wrapper:hover) {
-  box-shadow: 0 0 0 1px #374151 inset !important;
+  box-shadow:
+    inset 0 2px 4px 0 rgb(0 0 0 / 0.05),
+    0 0 0 1px #6b7280 inset !important;
 }
 :deep(.el-input.is-focus .el-input__wrapper),
 :deep(.el-select.is-focused .el-select__wrapper),
 :deep(.el-textarea__inner:focus) {
-  box-shadow: 0 0 0 1px #059669 inset !important;
+  box-shadow:
+    inset 0 2px 4px 0 rgb(0 0 0 / 0.05),
+    0 0 0 1px #10b981 inset,
+    0 0 0 4px #a7f3d0 inset !important;
+}
+/* V1.1 L289 SelectTrigger h-9 text-xs - 强制 select 触发器尺寸 */
+:deep(.el-select__wrapper) {
+  min-height: 36px !important;
+}
+:deep(.el-select__placeholder),
+:deep(.el-select__selected-item) {
+  font-size: 12px !important;
+}
+:deep(.el-input__inner) {
+  font-size: 14px !important;
 }
 </style>
