@@ -474,6 +474,17 @@ router.post('/', (req, res) => {
     const now = new Date().toISOString();
     const approvalCode = code || generateApprovalCode(type);
 
+    // 修复双重 JSON 编码 bug：HTTP body 解析后 req.body 中的 approvers/records/business_link 等
+    // 已经是 string 类型的 JSON（前端 axios 自动 JSON.stringify），不能再 JSON.stringify 一次，
+    // 否则会变成外层带引号的字符串（双重编码），后续 PATCH 联动 JSON.parse 后仍是 string
+    // → businessLink.type 是 undefined → 联动跳过 → 采购计划永远不更新
+    const safeApprovers = typeof approvers === 'string' ? approvers : JSON.stringify(approvers || []);
+    const safeRecords = typeof records === 'string' ? records : JSON.stringify(records || []);
+    const safeBusinessLink = typeof businessLink === 'string' ? businessLink : JSON.stringify(businessLink || null);
+    const safeAttachments = typeof attachments === 'string' ? attachments : JSON.stringify(attachments || []);
+    const safeRelatedTaskIds = typeof relatedTaskIds === 'string' ? relatedTaskIds : JSON.stringify(relatedTaskIds || []);
+    const safeMaterials = typeof materials === 'string' ? materials : JSON.stringify(materials || []);
+
     db.run(
       `INSERT INTO approvals (
         id, code, type, type_name, category, title, description,
@@ -499,19 +510,19 @@ router.post('/', (req, res) => {
         applyTime || now.substring(11, 19),
         currentStep || 1,
         totalSteps || 1,
-        JSON.stringify(approvers || []),
-        JSON.stringify(records || []),
+        safeApprovers,
+        safeRecords,
         status || 'pending',
-        JSON.stringify(businessLink || null),
-        JSON.stringify(attachments || []),
+        safeBusinessLink,
+        safeAttachments,
         priority || 'normal',
         dueDate || '',
         0, // reminder_count
         relatedBatchCode || '',
-        JSON.stringify(relatedTaskIds || []),
+        safeRelatedTaskIds,
         0, // notification_sent
         amount || '',
-        JSON.stringify(materials || []),
+        safeMaterials,
         workflowId || '',
         workflowName || '',
         now,
@@ -711,8 +722,31 @@ router.patch('/:id/action', (req, res) => {
     }
 
     const now = new Date().toISOString();
-    const approvers: Approver[] = approval.approvers ? JSON.parse(approval.approvers as string) : [];
-    const records: ApprovalRecord[] = approval.records ? JSON.parse(approval.records as string) : [];
+    // ✅ 容错：审批单字段可能是 string、array、null（sql.js getAsObject 有时已自动 JSON.parse）
+    let approvers: Approver[] = [];
+    try {
+      if (Array.isArray(approval.approvers)) {
+        approvers = approval.approvers as unknown as Approver[];
+      } else if (approval.approvers) {
+        approvers = JSON.parse(approval.approvers as string);
+      }
+      if (!Array.isArray(approvers)) approvers = [];
+    } catch (parseErr) {
+      console.warn('【审批】approvers 字段解析失败:', parseErr);
+      approvers = [];
+    }
+    let records: ApprovalRecord[] = [];
+    try {
+      if (Array.isArray(approval.records)) {
+        records = approval.records as unknown as ApprovalRecord[];
+      } else if (approval.records) {
+        records = JSON.parse(approval.records as string);
+      }
+      if (!Array.isArray(records)) records = [];
+    } catch (parseErr) {
+      console.warn('【审批】records 字段 JSON.parse 失败，使用空数组:', parseErr);
+      records = [];
+    }
 
     let newStatus = approval.status as string;
     let newCurrentStep = approval.current_step as number;
@@ -836,7 +870,20 @@ router.patch('/:id/action', (req, res) => {
 
     // 审批操作完成后，调用审批联动更新业务表（覆盖所有业务类型）
     if (newStatus === 'approved' || newStatus === 'rejected' || newStatus === 'cancelled' || newStatus === 'partially_approved') {
-      const businessLink = approval.business_link ? JSON.parse(approval.business_link as string) : null;
+      // 兼容 sql.js 自动 JSON.parse：business_link 可能是 string 也可能是已 parse 的 object
+      let businessLink: any = null;
+      try {
+        if (approval.business_link) {
+          if (typeof approval.business_link === 'string') {
+            businessLink = JSON.parse(approval.business_link as string);
+          } else {
+            businessLink = approval.business_link;
+          }
+        }
+      } catch (e) {
+        console.warn('【审批】business_link 解析失败:', e);
+        businessLink = null;
+      }
       if (businessLink?.type && businessLink?.requestId) {
         try {
           const linkageAction = newStatus === 'approved' ? 'approved' as const

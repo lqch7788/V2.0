@@ -98,15 +98,19 @@ function updateMaterialRequest(db: any, id: string, status: string, approvalCode
 function updatePurchasePlan(db: any, id: string, status: string, approvalCode: string, extra?: Record<string, unknown>): boolean {
   try {
     const now = new Date().toISOString();
+    // ✅ 修复 P0: 去掉 schema 中不存在的列（approval_code / approved_at），
+    // 这些列不在 purchase_plans 表里，UPDATE 会抛 "no such column" 异常，
+    // 被 try/catch 吞掉导致业务联动静默失败、前端显示"通过"但采购计划状态不变
     db.run(`
       UPDATE purchase_plans SET
         status = ?,
         approval_status = ?,
-        approval_code = ?,
-        approved_at = ?,
         update_time = ?
       WHERE id = ?
-    `, [status, status, approvalCode, now, now, id]);
+    `, [status, status, now, id]);
+    // ✅ 关键：sql.js 是内存数据库，db.run 不会自动持久化到磁盘，必须调 saveDatabase()
+    // 否则前端刷新页面后看到的状态仍是旧值
+    require('../db').saveDatabase();
     return true;
   } catch (e) {
     console.error('更新采购计划失败:', e);
