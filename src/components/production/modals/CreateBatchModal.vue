@@ -282,7 +282,7 @@
           <label class="text-sm font-medium text-gray-700 block mb-1">种植面积</label>
           <input
             :value="formData.plantingArea"
-            @input="handlePlantingAreaInput"
+            @input="handlePlantingAreaInput($event)"
             type="number"
             placeholder="0"
             class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
@@ -490,8 +490,13 @@ function toggleOrder(order) {
   emit('formChange', 'orderCode', currentCode)
 }
 
-function handlePlantingAreaInput(val) {
-  const formatted = val.replace(/[^\d.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/(\..{2})./g, '$1')
+function handlePlantingAreaInput(event) {
+  // 修复 P0: 模板必须传 $event，这里才能拿到 event 对象
+  // 修复前：模板写 @input="handlePlantingAreaInput" 没传 $event，函数收到 Event 对象
+  // 调用 val.replace() 抛 TypeError → emit 失败 → formData 不更新
+  // → 失焦后被 :value="" 覆盖清空 → 种植面积丢失
+  const raw = event.target.value
+  const formatted = raw.replace(/[^\d.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/(\..{2})./g, '$1')
   emit('formChange', 'plantingArea', formatted)
 }
 
