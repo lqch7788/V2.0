@@ -77,15 +77,17 @@ export async function getTechSolutionById(id) {
 
 /**
  * 创建技术方案
- * 修复 P0-AX：与 V1.1 L124-132 一致，使用后端返回的完整数据（包含 status/statusClass/scopes 重新计算）
+ * 修复 P0-AX + 修复新增列表字段不显示：
+ * enhancedApiClient 已自动 unwrap {success, data}，所以 result 本身就是 data（方案对象）
+ * 直接用 transformSingle(result) 返回完整字段（status/statusClass/scopes/batchStatus 等）
  */
 export async function addTechSolution(solution) {
   const result = await enhancedApiClient.post('/tech-solutions', solution)
-  if (result && result.data) {
-    return transformSingle(result.data)
+  if (result && result.id) {
+    return transformSingle(result)
   }
-  // 降级：使用前端构建的数据
-  return { ...solution, id: result?.id || `TS_${Date.now()}` }
+  // 降级：使用前端构建的数据（仅当后端无返回时）
+  return transformSingle({ ...solution, id: result?.id || `TS_${Date.now()}` })
 }
 
 /**
@@ -94,8 +96,8 @@ export async function addTechSolution(solution) {
  */
 export async function updateTechSolution(id, updates) {
   const result = await enhancedApiClient.put(`/tech-solutions/${id}`, updates)
-  if (result && result.data) {
-    return transformSingle(result.data)
+  if (result && result.id) {
+    return transformSingle(result)
   }
   return null
 }

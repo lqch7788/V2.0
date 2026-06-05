@@ -537,6 +537,9 @@ const handleEditSubmit = async () => {
     const success = await updateSolution(selectedTech.value.id, updateData)
     // 修复 P0-K：仅成功时才关闭弹窗（避免 alert 后弹窗被卸载丢失上下文）
     if (success) {
+      // 修复 P0-LIST-EDIT：与 V1.1 L358-360 一致，编辑后显式刷新列表
+      // 解决"编辑保存后字段不显示"问题
+      await fetchSolutions()
       editModalOpen.value = false
     } else {
       await showAlert('更新失败，请重试')
@@ -600,6 +603,9 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
       await enhancedApiClient.post('/approvals', approvalData)
       await approvalStore.refreshApprovals()
     }
+    // 修复 P0-LIST：与 V1.1 L430 一致，关闭弹窗前显式刷新列表
+    // 解决"新增后字段不显示"问题（addSolution 内存添加的数据可能缺字段/编码问题，强制从服务端拉一遍）
+    await fetchSolutions()
     createModalOpen.value = false
     // 修复 P0-AU/AV：与 V1.1 L435-449 一致，完整重置表单
     newPlanForm.value = {
