@@ -457,8 +457,8 @@ function rowClass(plan) {
  * @returns {boolean}
  */
 function isRowDisabled(plan) {
-  if (!props.batchEditMode && !props.batchDeleteMode) return false
-  return plan.executionStatus === 'completed' || plan.executionStatus === 'cancelled'
+  // ✅ 全部状态可勾选：取消 V1.1 executionStatus 归档过滤（与单条操作按钮一致）
+  return false
 }
 
 /**
