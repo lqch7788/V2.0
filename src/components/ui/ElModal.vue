@@ -162,14 +162,37 @@ let initialPosition = { x: 0, y: 0 }
 let rafId = null
 
 // 初始尺寸
+// 修复 P0-XXX: 支持 CSS 字符串值（如 'calc(100vh - 32px)' / '720px' / '80vh'）
+// 之前 parseInt('calc(...)') 返回 NaN，导致 modalSize.height 失效、容器无高度限制、
+// 弹窗内容超出视口、底部按钮无法看到也无法点击
 function getDefaultSize() {
   if (props.width && props.height) {
     return {
-      width: typeof props.width === 'number' ? props.width : parseInt(props.width),
-      height: typeof props.height === 'number' ? props.height : parseInt(props.height)
+      width: props.width,
+      height: props.height
     }
   }
   return sizeMap[props.size] || sizeMap.md
+}
+
+// 判断是否为 CSS 字符串（含非数字字符如 calc/vh/%/px）
+function isCssSizeString(val) {
+  if (typeof val !== 'string') return false
+  return /[a-z%]/.test(val)
+}
+
+// 解析居中用的像素值（CSS 字符串无法精确解析，使用默认尺寸估算）
+function parseSizeForCentering(val, defaultVal) {
+  if (typeof val === 'number') return val
+  if (typeof val === 'string') {
+    if (val.endsWith('px')) {
+      const n = parseInt(val)
+      return isNaN(n) ? defaultVal : n
+    }
+    // calc/vh/% 等 CSS 值，使用默认尺寸
+    return defaultVal
+  }
+  return defaultVal
 }
 
 function resetState() {
@@ -182,11 +205,15 @@ function resetState() {
 
 function centerModal() {
   if (isMaximized.value) return
-  const w = modalSize.value.width
-  const h = modalSize.value.height
+  // 修复 P0-XXX: CSS 字符串高度（如 calc(100vh - 32px)）无法精确解析，
+  // 必须等 modal 真正渲染后用实际 offsetHeight 来计算居中位置
+  const defaultSize = sizeMap[props.size] || sizeMap.md
+  const targetW = parseSizeForCentering(modalSize.value.width, defaultSize.width)
+  // 用实际渲染高度（max-height 限制下可能小于传入的 CSS 字符串）
+  const actualH = modalRef.value?.offsetHeight || parseSizeForCentering(modalSize.value.height, defaultSize.height)
   position.value = {
-    x: Math.max(BOUNDARY_PADDING, (window.innerWidth - w) / 2),
-    y: Math.max(BOUNDARY_PADDING, (window.innerHeight - h) / 2)
+    x: Math.max(BOUNDARY_PADDING, (window.innerWidth - targetW) / 2),
+    y: Math.max(BOUNDARY_PADDING, (window.innerHeight - actualH) / 2)
   }
 }
 
@@ -200,11 +227,26 @@ const containerStyle = computed(() => {
       height: 'calc(100vh - 32px)'
     }
   }
+  // 修复 P0-XXX:
+  // - 数字值 → 精确 height/width（用 px）
+  // - CSS 字符串值（calc/vh/%/px） → 用作 max-height/max-width（让弹窗可缩放，footer 始终在视口内）
+  const formatSize = (val, isMax = false) => {
+    if (isCssSizeString(val)) {
+      return isMax ? { max: val } : { exact: val }
+    }
+    return isMax ? { max: val + 'px' } : { exact: val + 'px' }
+  }
+  const w = formatSize(modalSize.value.width, false)
+  const h = formatSize(modalSize.value.height, false)
+  const maxW = formatSize(modalSize.value.width, true)
+  const maxH = formatSize(modalSize.value.height, true)
   return {
     left: position.value.x + 'px',
     top: position.value.y + 'px',
-    width: modalSize.value.width + 'px',
-    height: modalSize.value.height + 'px'
+    width: w.exact,
+    height: h.exact,
+    maxWidth: maxW.max,
+    maxHeight: maxH.max
   }
 })
 
@@ -258,7 +300,12 @@ function handleDragMouseUp() {
 function handleResizeMouseDown(e, dir) {
   isResizing.value = true
   resizeDir = dir
-  initialSize = { ...modalSize.value }
+  // 修复 P0-XXX: CSS 字符串 size 无法参与 resize 计算，退回默认尺寸
+  const defaultSize = sizeMap[props.size] || sizeMap.md
+  initialSize = {
+    width: parseSizeForCentering(modalSize.value.width, defaultSize.width),
+    height: parseSizeForCentering(modalSize.value.height, defaultSize.height)
+  }
   initialMouse = { x: e.clientX, y: e.clientY }
   initialPosition = { ...position.value }
 
@@ -380,6 +427,8 @@ onBeforeUnmount(() => {
   pointer-events: auto;
   overflow: hidden;
   user-select: none;
+  /* 修复 P0-XXX: 弹窗最大高度不超视口，避免内容过长时 footer 被推到视口外 */
+  max-height: calc(100vh - 32px);
 }
 
 .el-modal-container.is-maximized {
