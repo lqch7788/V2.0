@@ -227,28 +227,25 @@
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-1">
-                  <!-- ✅ 修复 P0-6: 归档条件改用 executionStatus（V1.1 L296 / L323 / L380-382） -->
-                  <template v-if="plan.executionStatus !== 'completed' && plan.executionStatus !== 'cancelled'">
-                    <el-button
-                      link
-                      type="primary"
-                      size="small"
-                      title="编辑"
-                      @click="$emit('edit', plan)"
-                    >
-                      <el-icon><Edit /></el-icon>
-                    </el-button>
-                    <el-button
-                      link
-                      type="danger"
-                      size="small"
-                      title="删除"
-                      @click="handleDeleteClick(plan)"
-                    >
-                      <el-icon><Delete /></el-icon>
-                    </el-button>
-                  </template>
-                  <span v-else class="text-xs text-gray-400">已归档</span>
+                  <!-- ✅ 全部状态可编辑/删除：取消 V1.1 executionStatus 归档过滤，按用户要求所有采购计划统一可操作 -->
+                  <el-button
+                    link
+                    type="primary"
+                    size="small"
+                    title="编辑"
+                    @click="$emit('edit', plan)"
+                  >
+                    <el-icon><Edit /></el-icon>
+                  </el-button>
+                  <el-button
+                    link
+                    type="danger"
+                    size="small"
+                    title="删除"
+                    @click="handleDeleteClick(plan)"
+                  >
+                    <el-icon><Delete /></el-icon>
+                  </el-button>
                 </div>
               </td>
             </tr>
