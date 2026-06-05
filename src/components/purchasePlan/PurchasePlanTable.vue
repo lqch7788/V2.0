@@ -42,7 +42,6 @@
         <template v-if="exportMode">
           <el-button
             size="small"
-            type="success"
             @click="$emit('exportConfirm')"
           >
             <el-icon><Download /></el-icon>
@@ -57,7 +56,6 @@
         <el-button
           v-if="canCreate"
           size="small"
-          type="primary"
           @click="$emit('create')"
         >
           <el-icon><Plus /></el-icon>
@@ -84,7 +82,6 @@
         <el-button
           v-if="canExport"
           size="small"
-          type="success"
           @click="$emit('export')"
         >
           <el-icon><Download /></el-icon>
@@ -273,7 +270,7 @@
                         <th class="px-2 py-2 text-center text-xs font-semibold whitespace-nowrap">单位</th>
                         <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">数量</th>
                         <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">预估单价</th>
-                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">小计</th>
+                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">预估总价</th>
                         <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">供应商</th>
                         <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">用途说明</th>
                         <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">备注</th>
@@ -291,8 +288,8 @@
                         <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.specification }}</td>
                         <td class="px-2 py-2 text-xs text-gray-600 text-center whitespace-nowrap">{{ item.unit }}</td>
                         <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">{{ item.quantity }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">¥{{ (item.estimatedPrice || 0).toFixed(2) }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">¥{{ (item.estimatedTotalPrice || 0).toLocaleString() }}</td>
+                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">¥{{ (item.estimatedPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">¥{{ (item.estimatedTotalPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
                         <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.supplier }}</td>
                         <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.purpose }}</td>
                         <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.remark }}</td>

@@ -25,7 +25,7 @@
               class="flex-1"
               @update:model-value="(v) => emitFormChange('purchaseApplicationCode', v)"
             />
-            <el-button type="primary" size="small" @click="handleGenerateCode">
+            <el-button size="small" @click="handleGenerateCode">
               <el-icon><Refresh /></el-icon>
               生成
             </el-button>
@@ -59,7 +59,7 @@
             placeholder="请选择"
             class="w-full"
             clearable
-            @update:model-value="(v) => emitFormChange('relatedBatchCode', v || '')"
+            @update:model-value="(v) => emitFormChange('relatedBatchCode', v || undefined)"
           >
             <el-option
               v-for="opt in batchOptions"
@@ -133,7 +133,7 @@
         </div>
       </div>
 
-      <!-- 优先级 -->
+      <!-- 优先级 + 备注（同行布局，对齐 V1.1 L422-445） -->
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm text-gray-700 mb-1">优先级</label>
@@ -149,10 +149,6 @@
             <el-option label="低" value="low" />
           </el-select>
         </div>
-      </div>
-
-      <!-- 备注 -->
-      <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm text-gray-700 mb-1">备注</label>
           <el-input
@@ -166,17 +162,27 @@
       <!-- 物料明细 -->
       <div class="border-t border-gray-300 pt-4 mt-4">
         <!-- 审批规则提示：金额阈值说明（数据源：基础数据→字典→amount_threshold，动态读取） -->
-        <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 leading-relaxed">
-          <div class="flex items-center gap-1 font-medium mb-1">
-            <span>📋</span>
-            <span>采购金额审批规则</span>
+        <div class="mb-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 leading-relaxed overflow-hidden">
+          <button
+            type="button"
+            @click="showApprovalRules = !showApprovalRules"
+            class="w-full px-3 py-2 flex items-center justify-between hover:bg-blue-100/50 transition-colors"
+          >
+            <span class="flex items-center gap-1 font-medium">
+              <span>📋</span>
+              <span>采购金额审批规则</span>
+            </span>
+            <el-icon v-if="showApprovalRules"><ArrowUp /></el-icon>
+            <el-icon v-else><ArrowDown /></el-icon>
+          </button>
+          <div v-if="showApprovalRules" class="px-3 pb-3 border-t border-blue-200/60">
+            <div class="pt-2">总金额 = 物料明细「数量 × 单价」之和。规则如下：</div>
+            <ul v-if="thresholdDisplay.length > 0" class="mt-1 ml-3 space-y-0.5">
+              <li v-for="(t, i) in thresholdDisplay" :key="i">• {{ t.max }} → <span :class="`font-semibold ${t.color}`">{{ t.label }}</span></li>
+            </ul>
+            <div v-else class="mt-1 text-blue-600">阈值未配置，请联系管理员</div>
+            <div class="mt-1 text-blue-600">阈值可在「基础数据 → 字典管理 → amount_threshold」分类下调整</div>
           </div>
-          <div>总金额 = 物料明细「数量 × 单价」之和。规则如下：</div>
-          <ul v-if="thresholdDisplay.length > 0" class="mt-1 ml-3 space-y-0.5">
-            <li v-for="(t, i) in thresholdDisplay" :key="i">• {{ t.max }} → <span :class="`font-semibold ${t.color}`">{{ t.label }}</span></li>
-          </ul>
-          <div v-else class="mt-1 text-blue-600">阈值未配置，请联系管理员</div>
-          <div class="mt-1 text-blue-600">阈值可在「基础数据 → 字典管理 → amount_threshold」分类下调整</div>
         </div>
         <div class="flex items-center justify-between mb-3">
           <h4 class="text-sm font-semibold text-gray-800">
@@ -187,7 +193,7 @@
               <el-icon><Upload /></el-icon>
               导入物料
             </el-button>
-            <el-button size="small" type="success" @click="handleAddItem">
+            <el-button size="small" @click="handleAddItem">
               <el-icon><Plus /></el-icon>
               添加物料
             </el-button>
@@ -289,6 +295,8 @@
                   <el-input
                     :model-value="String(item.quantity || '')"
                     type="number"
+                    :min="0"
+                    :step="0.01"
                     placeholder="0"
                     size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'quantity', Number(v) || 0)"
@@ -298,6 +306,8 @@
                   <el-input
                     :model-value="String(item.estimatedPrice || '')"
                     type="number"
+                    :min="0"
+                    :step="0.01"
                     placeholder="0"
                     size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'estimatedPrice', Number(v) || 0)"
@@ -305,7 +315,7 @@
                 </td>
                 <td class="px-1 py-1.5 whitespace-nowrap text-right">
                   <span class="text-xs text-gray-900 font-medium">
-                    ¥{{ (item.estimatedTotalPrice || 0).toLocaleString() }}
+                    ¥{{ (item.estimatedTotalPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
                   </span>
                 </td>
                 <td class="px-1 py-1.5 whitespace-nowrap">
@@ -355,13 +365,16 @@
  */
 import { ref, computed, onMounted, watch } from 'vue'
 import * as XLSX from 'xlsx'
-import { Refresh, Upload, Plus, Delete } from '@element-plus/icons-vue'
+import { Refresh, Upload, Plus, Delete, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
 import { usePlantingStore } from '@/stores/modules/planting'
 import { getNextPurchaseApplicationCode } from '@/services/apiPurchasePlanService'
 import { getDictionaries } from '@/services/dictionaryService'
 import { showAlert } from '@/lib/dialogService'
 // ✅ 修复 P0-7: 引入物料自动补全组件
 import MaterialAutocomplete from '@/components/common/MaterialAutocomplete.vue'
+
+// ✅ 修复 P0-18: 审批规则折叠状态（V1.1 L450-479 1:1 翻译）
+const showApprovalRules = ref(false)
 
 // ==================== JSDoc 类型定义 ====================
 

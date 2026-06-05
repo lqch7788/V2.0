@@ -101,7 +101,7 @@
       <!-- 操作按钮 -->
       <div class="flex gap-2 items-end ml-auto">
         <el-button size="small" @click="$emit('reset')">重置</el-button>
-        <el-button size="small" type="primary" @click="$emit('search')">
+        <el-button size="small" @click="$emit('search')">
           <el-icon><Search /></el-icon>
           搜索
         </el-button>

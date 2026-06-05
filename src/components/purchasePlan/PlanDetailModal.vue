@@ -81,7 +81,6 @@
 
         <!-- ✅ 修复 P0-2: 行 5.5 执行状态（V1.1 L130-172 1:1 翻译，含编辑 UI） -->
         <div class="flex items-center col-span-2">
-          <span class="text-sm text-gray-500 w-32 flex-shrink-0">执行状态：</span>
           <template v-if="!editingExec">
             <span
               :class="[
@@ -140,7 +139,7 @@
               >
                 <div style="min-width: 1600px">
                   <table class="w-full bg-white rounded-lg overflow-hidden text-xs">
-                    <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                    <thead class="bg-gray-50">
                       <tr>
                         <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
                         <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
@@ -149,7 +148,7 @@
                         <th class="px-2 py-2 text-center text-xs font-semibold whitespace-nowrap">单位</th>
                         <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">数量</th>
                         <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">预估单价</th>
-                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">小计</th>
+                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">预估总价</th>
                         <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">供应商</th>
                         <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">用途说明</th>
                         <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">备注</th>
@@ -180,10 +179,10 @@
                           {{ item.quantity }}
                         </td>
                         <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">
-                          ¥{{ (item.estimatedPrice || 0).toFixed(2) }}
+                          ¥{{ (item.estimatedPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
                         </td>
                         <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">
-                          ¥{{ (item.estimatedTotalPrice || 0).toLocaleString() }}
+                          ¥{{ (item.estimatedTotalPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
                         </td>
                         <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">
                           {{ item.supplier || '-' }}

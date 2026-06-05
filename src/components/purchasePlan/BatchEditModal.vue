@@ -104,7 +104,7 @@
         </div>
 
         <!-- ✅ 修复 P0-12: 关联批次=其他时显示"其他说明"字段（V1.1 L320-330 1:1 翻译） -->
-        <div v-if="(currentEditingPlan?.relatedBatchCode || '') === 'other'" class="col-span-3">
+        <div v-if="(currentEditingPlan?.relatedBatchCode || '') === 'other'" class="md:col-span-3">
           <label class="text-xs text-gray-700">其他说明</label>
           <el-input
             :model-value="currentEditingPlan?.otherBatchReason || ''"
@@ -115,7 +115,7 @@
           />
         </div>
 
-        <!-- 第2行：申请人 + 申请部门 + 需求日期 -->
+        <!-- 第2行：申请人 + 申请部门 + 申请日期（1:1 翻译 V1.1 L332-374） -->
         <div>
           <label class="text-xs text-gray-700">申请人</label>
           <el-select
@@ -153,9 +153,9 @@
           </el-select>
         </div>
         <div>
-          <label class="text-xs text-gray-700">需求日期</label>
+          <label class="text-xs text-gray-700">申请日期</label>
           <el-date-picker
-            v-model="batchEditData.requiredDate"
+            v-model="batchEditData.applyDate"
             type="date"
             value-format="YYYY-MM-DD"
             style="width: 100%"
@@ -163,11 +163,11 @@
           />
         </div>
 
-        <!-- ✅ 修复 P0-13: 申请日期字段（V1.1 L367-374 1:1 翻译） -->
+        <!-- 第3行：需求日期（独占一行，1:1 V1.1 L376-385） -->
         <div>
-          <label class="text-xs text-gray-700">申请日期</label>
+          <label class="text-xs text-gray-700">需求日期</label>
           <el-date-picker
-            v-model="batchEditData.applyDate"
+            v-model="batchEditData.requiredDate"
             type="date"
             value-format="YYYY-MM-DD"
             style="width: 100%"
