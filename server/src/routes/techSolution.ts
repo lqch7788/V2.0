@@ -218,9 +218,6 @@ router.post('/', (req: Request, res: Response) => {
     // 默认草稿状态
     const batchStatus = req.body.batchStatus || 'draft';
 
-    console.log('[技术方案创建] relatedBatchCode:', relatedBatchCode);
-    console.log('[技术方案创建] req.body:', JSON.stringify(req.body, null, 2));
-
     const id = generateId('TS');
     // 优先使用前端传入的编号，否则按规则生成
     const solutionCode = code || generateSolutionCode();
@@ -261,7 +258,6 @@ router.post('/', (req: Request, res: Response) => {
     ]);
 
     saveDatabase();
-    console.log('[技术方案创建] 插入数据 - related_batch_code:', relatedBatchCode || '');
 
     const newItems = queryToObjects(db, 'SELECT * FROM tech_solutions WHERE id = ?', [id]);
     const resultData = newItems.length > 0 ? mapFieldsToFrontend(newItems[0]) : {};
@@ -288,8 +284,10 @@ router.put('/:id', (req: Request, res: Response) => {
     const {
       solutionTitle = '',
       cropName = '',
+      cropCode = '',  // 修复 P0-CV：补 cropCode，编辑保存后 crop_code 列才更新
       plantingMode = '',
       stage = '',
+      author = '', // 修复 P0-CU：补 author，编制人编辑才落地
       version = 'V1.0',
       content = '',
       relatedBatchCode = '',
@@ -302,48 +300,36 @@ router.put('/:id', (req: Request, res: Response) => {
     } = req.body;
 
     const now = new Date().toISOString();
-    // 如果方案被标记为作废，更新 batch_status
-    const batchStatus = isValid === '作废' ? 'cancelled' : 'pending';
+    // 修复 P0-CW：与 V1.1 L362-366 一致，保持原状态不变，只有显式设置时（isValid==='作废'）才改变
+    // V2.0 原版强制覆盖为 'pending' 会丢失 approved/published 等状态
+    const batchStatus = isValid === '作废' ? 'cancelled' : undefined;
     // V9.0: 适用范围数组转字符串
     const scopeNamesStr = Array.isArray(scopeNames) ? scopeNames.join(',') : (scopeNames || '');
 
-    db.run(`
-      UPDATE tech_solutions SET
-        solution_title = ?,
-        crop_name = ?,
-        planting_mode = ?,
-        stage = ?,
-        version = ?,
-        content = ?,
-        related_batch_code = ?,
-        plan_detail_file_name = ?,
-        priority = ?,
-        remarks = ?,
-        update_time = ?,
-        batch_status = ?,
-        is_valid = ?,
-        last_submit_time = ?,
-        scope_names = ?
-      WHERE id = ?
-    `, [
-      solutionTitle,
-      cropName,
-      plantingMode,
-      stage,
-      version,
-      content,
-      relatedBatchCode,
-      planDetailFileName,
-      priority,
-      remarks,
-      now,
-      batchStatus,
-      isValid,
-      lastSubmitTime || now,
-      scopeNamesStr,
-      id,
-    ]);
+    // 修复 P0-CU/P0-CV：动态构建更新字段（与 V1.1 L365-380 一致）
+    const fields = [
+      'solution_title = ?', 'crop_name = ?', 'crop_code = ?', 'planting_mode = ?', 'stage = ?',
+      'author = ?', 'version = ?', 'content = ?', 'related_batch_code = ?', 'plan_detail_file_name = ?',
+      'priority = ?', 'remarks = ?', 'update_time = ?', 'is_valid = ?', 'last_submit_time = ?',
+      'scope_names = ?'
+    ];
+    const values = [
+      solutionTitle, cropName, cropCode, plantingMode, stage,
+      author, version, content, relatedBatchCode, planDetailFileName,
+      priority, remarks, now, isValid, lastSubmitTime || now,
+      scopeNamesStr
+    ];
 
+    // 只有显式设置状态时才更新 batch_status
+    if (batchStatus !== undefined) {
+      fields.push('batch_status = ?');
+      values.push(batchStatus);
+    }
+
+    const sql = `UPDATE tech_solutions SET ${fields.join(', ')} WHERE id = ?`;
+    values.push(id);
+
+    db.run(sql, values);
     saveDatabase();
 
     const updatedItems = queryToObjects<Record<string, unknown>>(db, 'SELECT * FROM tech_solutions WHERE id = ?', [id]);

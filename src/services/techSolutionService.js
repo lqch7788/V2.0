@@ -77,18 +77,27 @@ export async function getTechSolutionById(id) {
 
 /**
  * 创建技术方案
+ * 修复 P0-AX：与 V1.1 L124-132 一致，使用后端返回的完整数据（包含 status/statusClass/scopes 重新计算）
  */
 export async function addTechSolution(solution) {
   const result = await enhancedApiClient.post('/tech-solutions', solution)
-  return { ...solution, id: result.id }
+  if (result && result.data) {
+    return transformSingle(result.data)
+  }
+  // 降级：使用前端构建的数据
+  return { ...solution, id: result?.id || `TS_${Date.now()}` }
 }
 
 /**
  * 更新技术方案
+ * 修复 P0-AY：与 V1.1 L138-144 一致，使用后端返回的 transformTechSolution
  */
 export async function updateTechSolution(id, updates) {
   const result = await enhancedApiClient.put(`/tech-solutions/${id}`, updates)
-  return result ? { ...updates, id } : null
+  if (result && result.data) {
+    return transformSingle(result.data)
+  }
+  return null
 }
 
 /**
@@ -109,9 +118,11 @@ export async function deleteTechSolutions(ids) {
 
 /**
  * 重置技术方案
+ * 修复 P0-BE：与 V1.1 L167-169 一致，提供完整实现
  */
 export async function resetTechSolutions() {
   await enhancedApiClient.post('/tech-solutions/reset')
+  return true
 }
 
 /**

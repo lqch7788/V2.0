@@ -32,76 +32,157 @@
             </div>
           </div>
           <!-- Edit Form（V1.1 L116-222）-->
-          <!-- 修复 P0-010：删除 V2.0 自创的"审核人/审批状态/状态"3 字段（V1.1 无此字段） -->
-          <div v-if="currentTech" class="grid grid-cols-4 gap-3">
-            <!-- 方案编号 - 不可编辑（V1.1 L120-123）-->
-            <div class="bg-gray-100 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">方案编号</div>
-              <div class="text-sm font-medium text-gray-900">{{ currentTech.code }}</div>
+          <!-- 修复 P0-CZ：与 V1.1 字段顺序 1:1 对齐
+               V1.1 行1(4列)：方案编号 / 版本 / 编制人 / 创建日期
+               V1.1 行2(横跨)：方案标题
+               V1.1 行3(4列)：作物品种 / 种植模式 / 关联批次号 / 方案是否有效
+               V1.1 行4(横跨)：适用范围
+               V1.1 行5(2列)：备注 / 方案内容
+               V1.1 行6(横跨)：方案详情文件 -->
+          <div v-if="currentTech" class="space-y-3">
+            <!-- 行1(4列)：方案编号 / 版本 / 编制人 / 创建日期（V1.1 L168-202）-->
+            <div class="grid grid-cols-4 gap-3">
+              <div class="bg-gray-100 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">方案编号</div>
+                <div class="text-sm font-medium text-gray-900">{{ currentTech.code }}</div>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">版本</div>
+                <input
+                  :value="editedTechs[selectedTechCode]?.version ?? currentTech.version"
+                  @input="(e) => updateField(selectedTechCode, 'version', (e.target as HTMLInputElement).value)"
+                  :class="inputClass + ' h-7 py-0 text-xs'"
+                />
+              </div>
+              <div class="bg-gray-100 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">编制人</div>
+                <div class="text-sm text-gray-700">{{ currentTech.author }}</div>
+              </div>
+              <div class="bg-gray-100 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">创建日期</div>
+                <div class="text-sm text-gray-700">{{ currentTech.createDate }}</div>
+              </div>
             </div>
-            <!-- 版本 - 可编辑（V1.1 L126-133）-->
+
+            <!-- 行2(横跨)：方案标题（V1.1 L204-212）-->
             <div class="bg-gray-50 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">版本</div>
-              <input
-                :value="editedTechs[selectedTechCode]?.version ?? currentTech.version"
-                @input="(e) => updateField(selectedTechCode, 'version', (e.target as HTMLInputElement).value)"
-                :class="inputClass + ' h-7 py-0 text-xs'"
-              />
-            </div>
-            <!-- 方案标题 - 可编辑（V1.1 L136-143）-->
-            <div class="bg-gray-50 rounded-lg p-2 col-span-2">
-              <div class="text-xs text-gray-500 mb-1">方案标题</div>
+              <div class="text-xs text-gray-500 mb-1">方案标题 <span class="text-red-500">*</span></div>
               <input
                 :value="editedTechs[selectedTechCode]?.title ?? currentTech.title"
                 @input="(e) => updateField(selectedTechCode, 'title', (e.target as HTMLInputElement).value)"
                 :class="inputClass + ' h-7 py-0 text-xs'"
               />
             </div>
-            <!-- 作物品种 - 可编辑（V1.1 L146-163）-->
+
+            <!-- 行3(4列)：作物品种 / 种植模式 / 关联批次号 / 方案是否有效（V1.1 L214-266）-->
+            <div class="grid grid-cols-4 gap-3">
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">作物品种 <span class="text-red-500">*</span></div>
+                <CropCodeSelector
+                  :model-value="editedTechs[selectedTechCode]?.cropCode ?? currentTech.cropCode ?? ''"
+                  @update:model-value="(v: any) => updateField(selectedTechCode, 'cropCode', v)"
+                  @change="(code: string, varietyInfo: any) => { if (varietyInfo) { updateField(selectedTechCode, 'crop', varietyInfo.subVariety1Name || varietyInfo.varietyName); updateField(selectedTechCode, 'cropCode', varietyInfo.cropCode) }}"
+                  placeholder="搜索或选择作物品种..."
+                  size="sm"
+                  show-full-path
+                />
+              </div>
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">种植模式</div>
+                <el-select
+                  :model-value="editedTechs[selectedTechCode]?.plantingMode ?? currentTech.plantingMode"
+                  @update:model-value="(v: any) => updateField(selectedTechCode, 'plantingMode', v)"
+                  class="w-full"
+                  placeholder="选择种植模式"
+                >
+                  <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
+                </el-select>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">关联生产批次号</div>
+                <el-select
+                  :model-value="editedTechs[selectedTechCode]?.relatedBatchCode ?? currentTech.relatedBatchCode ?? ''"
+                  @update:model-value="(v: any) => updateField(selectedTechCode, 'relatedBatchCode', v)"
+                  class="w-full"
+                  placeholder="请选择"
+                >
+                  <el-option label="不关联" value="" />
+                  <el-option label="ZZB2026-001 - 番茄种植批次" value="ZZB2026-001" />
+                  <el-option label="ZZB2026-002 - 黄瓜种植批次" value="ZZB2026-002" />
+                  <el-option label="ZZB2026-003 - 生菜种植批次" value="ZZB2026-003" />
+                  <el-option label="ZZB2026-004 - 辣椒种植批次" value="ZZB2026-004" />
+                  <el-option label="ZZB2026-005 - 茄子种植批次" value="ZZB2026-005" />
+                  <el-option label="ZZB2026-006 - 番茄种植批次" value="ZZB2026-006" />
+                  <el-option label="ZZB2026-007 - 百合种植批次" value="ZZB2026-007" />
+                </el-select>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">方案是否有效</div>
+                <el-select
+                  :model-value="editedTechs[selectedTechCode]?.isValid ?? currentTech.isValid ?? '有效'"
+                  @update:model-value="(v: any) => updateField(selectedTechCode, 'isValid', v)"
+                  class="w-full"
+                >
+                  <el-option label="有效" value="有效" />
+                  <el-option label="作废" value="作废" />
+                </el-select>
+              </div>
+            </div>
+
+            <!-- 行4(横跨)：适用范围（V1.1 L268-297）-->
             <div class="bg-gray-50 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">作物品种</div>
-              <el-select
-                :model-value="editedTechs[selectedTechCode]?.crop ?? currentTech.crop"
-                @update:model-value="(v: any) => updateField(selectedTechCode, 'crop', v)"
-                class="w-full"
-              >
-                <el-option v-for="crop in cropOptions" :key="crop" :label="crop" :value="crop" />
-              </el-select>
+              <div class="text-xs text-gray-500 mb-1 flex items-center justify-between">
+                <span>适用范围（可多选）</span>
+                <button
+                  type="button"
+                  @click="scopeExpanded = !scopeExpanded"
+                  class="text-emerald-600 text-xs hover:underline"
+                >
+                  {{ scopeExpanded ? '收起' : '展开' }}
+                </button>
+              </div>
+              <div v-if="scopeExpanded" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
+                <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    :checked="currentScopes.includes(scope)"
+                    @change="(e) => toggleScope(scope, (e.target as HTMLInputElement).checked)"
+                    class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span class="text-xs">{{ scope }}</span>
+                </label>
+              </div>
+              <div v-else class="h-7 px-2 border border-gray-300 rounded-lg text-xs text-gray-600 bg-white flex items-center">
+                {{ currentScopes.length === 0 ? '请选择' : currentScopes.join(', ') }}
+              </div>
             </div>
-            <!-- 种植模式 - 可编辑（V1.1 L166-174）-->
+
+            <!-- 行5(2列)：备注 / 方案内容（V1.1 L300-321）-->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">备注</div>
+                <textarea
+                  :value="editedTechs[selectedTechCode]?.remarks ?? currentTech.remarks ?? ''"
+                  @input="(e) => updateField(selectedTechCode, 'remarks', (e.target as HTMLTextAreaElement).value)"
+                  placeholder="请输入备注信息"
+                  rows="2"
+                  class="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-y"
+                ></textarea>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-2">
+                <div class="text-xs text-gray-500 mb-1">方案内容</div>
+                <textarea
+                  :value="editedTechs[selectedTechCode]?.content ?? currentTech.content ?? ''"
+                  @input="(e) => updateField(selectedTechCode, 'content', (e.target as HTMLTextAreaElement).value)"
+                  placeholder="请输入方案内容"
+                  rows="4"
+                  class="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-y"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- 行6(横跨)：方案详情文件（V1.1 L323-345）-->
             <div class="bg-gray-50 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">种植模式</div>
-              <!-- 修复 P0-006：种植模式从字典动态加载 -->
-              <el-select
-                :model-value="editedTechs[selectedTechCode]?.plantingMode ?? currentTech.plantingMode"
-                @update:model-value="(v: any) => updateField(selectedTechCode, 'plantingMode', v)"
-                class="w-full"
-                placeholder="选择种植模式"
-              >
-                <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
-              </el-select>
-            </div>
-            <!-- 适用范围 - 可编辑（V1.1 L177-184）-->
-            <div class="bg-gray-50 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">适用范围</div>
-              <input
-                :value="editedTechs[selectedTechCode]?.stage ?? currentTech.stage"
-                @input="(e) => updateField(selectedTechCode, 'stage', (e.target as HTMLInputElement).value)"
-                :class="inputClass + ' h-7 py-0 text-xs'"
-              />
-            </div>
-            <!-- 编制人 - 不可编辑（V1.1 L187-190）-->
-            <div class="bg-gray-100 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">编制人</div>
-              <div class="text-sm text-gray-700">{{ currentTech.author }}</div>
-            </div>
-            <!-- 创建日期 - 不可编辑（V1.1 L193-196）-->
-            <div class="bg-gray-100 rounded-lg p-2">
-              <div class="text-xs text-gray-500 mb-1">创建日期</div>
-              <div class="text-sm text-gray-700">{{ currentTech.createDate }}</div>
-            </div>
-            <!-- 方案详情文件 - 可编辑（V1.1 L199-220）-->
-            <div class="bg-gray-50 rounded-lg p-2 col-span-4">
               <div class="text-xs text-gray-500 mb-1">方案详情文件</div>
               <div class="flex items-center gap-4">
                 <template v-if="(editedTechs[selectedTechCode]?.planDetailFileName ?? currentTech.planDetailFileName)">
@@ -135,9 +216,11 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
 import { Upload } from 'lucide-vue-next'
-import { PLANTING_MODE_FALLBACK } from '../constants/techSolutionScopes'
+import { PLANTING_MODE_FALLBACK, TECH_SOLUTION_SCOPES } from '../constants/techSolutionScopes'
 // 修复 P0-006：从字典 store 加载种植模式选项
 import { useDictionaryStore } from '@/stores/modules/dictionary'
+// 修复 P0-CZ：作物品种选择器
+import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -199,6 +282,25 @@ const emit = defineEmits<{
 const selectedTechCode = ref('')
 const localEditedTechs = ref<Record<string, any>>({})
 const localEditedTechCodes = ref<string[]>([])
+// 修复 P0-CZ：scopes 折叠状态
+const scopeExpanded = ref(false)
+// 修复 P0-CZ：当前方案的 scopes
+const currentScopes = computed(() => {
+  const editedData = localEditedTechs.value[selectedTechCode.value]
+  if (editedData?.scopes !== undefined) return editedData.scopes
+  return currentTech.value?.scopes || []
+})
+
+// 修复 P0-CZ：scopes 切换
+const toggleScope = (scope: string, checked: boolean) => {
+  const code = selectedTechCode.value
+  if (!code) return
+  const current = currentScopes.value
+  const next = checked
+    ? [...current, scope]
+    : current.filter((s: string) => s !== scope)
+  updateField(code, 'scopes', next)
+}
 
 // 同步外部 props 到本地
 watch(() => props.editedTechs, (val) => {

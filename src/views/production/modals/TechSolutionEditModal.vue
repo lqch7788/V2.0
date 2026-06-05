@@ -86,11 +86,13 @@
               <el-option label="JZB2026-002" value="JZB2026-002" />
             </el-select>
           </div>
-          <!-- 编制人 + 创建日期（V1.1 L202-209）-->
+          <!-- 编制人 + 创建日期（V1.1 L204-216：编制人改为 Select 可编辑，与 CreateModal 一致） -->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">编制人</label>
-              <input :value="tech.author" disabled :class="inputClass + ' bg-gray-50'" />
+              <el-select v-model="form.author" class="w-full">
+                <el-option v-for="op in operatorOptions" :key="op.value" :label="op.label" :value="op.value" />
+              </el-select>
             </div>
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">创建日期</label>
@@ -205,9 +207,14 @@ interface Props {
   tech: any
   form: any
   selectedCrop: any
+  // 修复 P0-CY：与 V1.1 EditModal L41 一致，接收 operatorOptions 用于编制人 Select
+  operatorOptions?: { value: string; label: string }[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  operatorOptions: () => [],
+})
+
 const emit = defineEmits<{
   'close': []
   'submit': []

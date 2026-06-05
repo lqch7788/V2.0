@@ -135,6 +135,7 @@
       :tech="selectedTech"
       :form="editForm"
       :selected-crop="selectedCropEdit"
+      :operator-options="operatorOptions"
       @close="editModalOpen = false"
       @submit="handleEditSubmit"
       @update:form="(v) => editForm = v"
@@ -513,7 +514,8 @@ const handleEditClick = (tech: any) => {
 
 const handleEditSubmit = async () => {
   if (!selectedTech.value) return
-  // 修复 P0-012：lastSubmitTime 仅在原值为空时兜底，不强制覆盖（与 V1.1 L344 一致）
+  // 修复 P0-CU：补 author 字段，编制人编辑才落地（与 V1.1 L344 一致）
+  // 修复 P0-012：lastSubmitTime 仅在原值为空时兜底，不强制覆盖
   const updateData = {
     solutionTitle: editForm.value.title,
     cropName: editForm.value.crop,
@@ -521,6 +523,7 @@ const handleEditSubmit = async () => {
     plantingMode: editForm.value.plantingMode,
     stage: editForm.value.stage,
     scopeNames: editForm.value.scopes,
+    author: editForm.value.author, // 修复 P0-CU
     version: editForm.value.version,
     content: editForm.value.content,
     remarks: editForm.value.remarks,
@@ -531,8 +534,13 @@ const handleEditSubmit = async () => {
     lastSubmitTime: editForm.value.lastSubmitTime || selectedTech.value.lastSubmitTime || '',
   }
   try {
-    await updateSolution(selectedTech.value.id, updateData)
-    editModalOpen.value = false
+    const success = await updateSolution(selectedTech.value.id, updateData)
+    // 修复 P0-K：仅成功时才关闭弹窗（避免 alert 后弹窗被卸载丢失上下文）
+    if (success) {
+      editModalOpen.value = false
+    } else {
+      await showAlert('更新失败，请重试')
+    }
   } catch (error) {
     console.error('更新技术方案失败:', error)
     await showAlert('更新失败，请重试')
@@ -541,7 +549,10 @@ const handleEditSubmit = async () => {
 
 const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
   const today = new Date().toISOString().split('T')[0]
+  // 修复 P0-BQ/BR：与 V1.1 L373-391 一致，传 code + solutionCode 兼容后端
   const techSolutionData = {
+    code: newPlanForm.value.code, // 方案编号（V1.1 L373）
+    solutionCode: newPlanForm.value.code, // 兼容后端字段名
     solutionTitle: newPlanForm.value.title,
     cropName: newPlanForm.value.crop,
     cropCode: newPlanForm.value.cropCode,
@@ -566,7 +577,8 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
         type: 'tech_solution',
         typeName: '技术方案',
         title: `技术方案审批：${newPlanForm.value.title}`,
-        description: `作物：${newPlanForm.value.crop}\n种植模式：${newPlanForm.value.plantingMode}\n适用范围：${newPlanForm.value.scopes?.join('、') || newPlanForm.value.stage}`,
+        // 修复 P0-BU：与 V1.1 L405 一致，description 用 stage 字段（不 scopes.join）
+        description: `作物：${newPlanForm.value.crop}\n种植模式：${newPlanForm.value.plantingMode}\n适用范围：${newPlanForm.value.stage}`,
         applicantId: localStorage.getItem('userId') || '',
         applicantName: localStorage.getItem('username') || '',
         applicantDepartment: localStorage.getItem('department') || '',
@@ -580,7 +592,8 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
           solutionTitle: newPlanForm.value.title,
           cropName: newPlanForm.value.crop,
           plantingMode: newPlanForm.value.plantingMode,
-          stage: newPlanForm.value.scopes?.join('、') || newPlanForm.value.stage,
+          // 修复 P0-AT：与 V1.1 L419 一致，stage 用 newPlanForm.stage 不用 scopes.join
+          stage: newPlanForm.value.stage,
           version: newPlanForm.value.version || 'V1.0',
         },
       }
@@ -588,6 +601,7 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
       await approvalStore.refreshApprovals()
     }
     createModalOpen.value = false
+    // 修复 P0-AU/AV：与 V1.1 L435-449 一致，完整重置表单
     newPlanForm.value = {
       code: '',
       title: '',
@@ -604,7 +618,7 @@ const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
       relatedBatchCode: '',
     }
   } catch (error) {
-    console.error('创建技术方案失败:', error)
+    console.error('创建技术方案失败，请重试:', error)
     await showAlert('创建技术方案失败，请重试')
   }
 }
@@ -785,17 +799,23 @@ const saveBatchEdit = async () => {
     for (const tech of techSolutions.value) {
       const edited = editedTechs.value[tech.code]
       if (edited) {
+        // 修复 P0-CZ：补全所有字段（author/scopeNames/relatedBatchCode/isValid/remarks/lastSubmitTime）
         await updateSolution(tech.id, {
           solutionTitle: edited.title ?? tech.title,
           cropName: edited.crop ?? tech.crop,
+          cropCode: edited.cropCode ?? tech.cropCode ?? '',
           plantingMode: edited.plantingMode ?? tech.plantingMode,
           stage: edited.stage ?? tech.stage,
+          scopeNames: edited.scopes ?? tech.scopes ?? [],
           version: edited.version ?? tech.version,
           content: edited.content ?? tech.content,
-          relatedBatchCode: tech.relatedBatchCode || '',
-          planDetailFileName: (edited.planDetailFileName ?? tech.planDetailFileName) || '',
+          author: edited.author ?? tech.author ?? '',
+          relatedBatchCode: edited.relatedBatchCode ?? tech.relatedBatchCode ?? '',
+          planDetailFileName: edited.planDetailFileName ?? tech.planDetailFileName ?? '',
           priority: tech.priority || 'normal',
-          remarks: '',
+          remarks: edited.remarks ?? tech.remarks ?? '',
+          isValid: edited.isValid ?? tech.isValid ?? '有效',
+          lastSubmitTime: tech.lastSubmitTime || '',
         })
       }
     }
