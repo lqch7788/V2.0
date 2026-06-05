@@ -91,7 +91,7 @@
             style="width: 100%"
             size="small"
             clearable
-            @update:model-value="(v) => handleCurrentEditingChange('relatedBatchCode', v || '')"
+            @update:model-value="(v) => handleRelatedBatchChange(v)"
           >
             <el-option value="" label="不关联批次" />
             <el-option
@@ -513,6 +513,17 @@ function handleApplicantChange(value) {
     applicantId: value,
     applicant: applicantName,
   })
+}
+
+/** 关联生产批次号变更：1:1 对齐 V1.1 L301-305
+ *  - 切换为 'other' 时不清空 otherBatchReason（用户可继续编辑）
+ *  - 切换为非 'other' 时清空 otherBatchReason（避免脏数据）
+ */
+function handleRelatedBatchChange(value) {
+  handleCurrentEditingChange('relatedBatchCode', value || '')
+  if (value !== 'other') {
+    handleCurrentEditingChange('otherBatchReason', '')
+  }
 }
 
 /** 关联生产批次号/申请部门 等直接字段变更 */
