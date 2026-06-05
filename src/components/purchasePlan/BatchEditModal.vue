@@ -8,8 +8,8 @@
   <ElModal
     :model-value="visible"
     title="编辑采购申请单"
-    width="1280px"
-    height="700px"
+    width="1080px"
+    height="650px"
     size="xxl"
     :close-on-click-modal="false"
     :destroy-on-close="false"

@@ -174,11 +174,13 @@ export async function addPurchasePlan(plan: Omit<PurchasePlan, 'id'>): Promise<P
 /**
  * 更新采购计划
  * 降级策略：API → 离线队列
+ *
+ * 1:1 对齐 V1.1 apiPurchasePlanService.ts L173-177：
+ * enhancedApiClient 已自动解包 { success, data }，result 就是 plan 本身
  */
 export async function updatePurchasePlan(id: string, updates: Partial<PurchasePlan>): Promise<PurchasePlan | null> {
-  const result = await enhancedApiClient.put<{ data: PurchasePlan }>(`/purchase-plans/${id}`, updates);
-  // PUT 响应现在返回经过 mapToFrontendFormat 的完整更新数据
-  return result?.data ? transformPurchasePlan(result.data) as PurchasePlan : null;
+  const result = await enhancedApiClient.put<PurchasePlan>(`/purchase-plans/${id}`, updates);
+  return result ? transformPurchasePlan(result) as PurchasePlan : null;
 }
 
 /**
@@ -230,6 +232,8 @@ export async function getNextPurchaseApplicationCode(): Promise<string> {
  * 更新采购计划执行状态（pending_execution / purchasing / completed / cancelled）
  * 1:1 对齐 V1.1 apiPurchasePlanService.ts L222-232
  * PATCH /purchase-plans/{id}/execution-status
+ *
+ * enhancedApiClient 已自动解包 { success, data }，result 就是 plan 本身
  */
 export async function updateExecutionStatus(
   id: string,
@@ -237,9 +241,9 @@ export async function updateExecutionStatus(
 ): Promise<PurchasePlan | null> {
   // ✅ 修复 P0-1: HTTP 方法对齐 V1.1（V1.1 L227-230 用 patch，V2.0 server router.patch）
   // 原 V2.0 用 put，与 server 不一致导致 404/405
-  const result = await enhancedApiClient.patch<{ data: PurchasePlan }>(
+  const result = await enhancedApiClient.patch<PurchasePlan>(
     `/purchase-plans/${id}/execution-status`,
     { executionStatus }
   );
-  return result?.data ? transformPurchasePlan(result.data) as PurchasePlan : null;
+  return result ? transformPurchasePlan(result) as PurchasePlan : null;
 }

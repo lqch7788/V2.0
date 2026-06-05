@@ -339,17 +339,16 @@ function priorityBadgeClass(priority) {
 }
 
 /**
- * 状态 Badge 样式（1:1 翻译 V1.1 StatusBadge）
+ * 状态 Badge 样式（1:1 翻译 V1.1 StatusBadge L52-63）
+ * V1.1 配色：rejected=红, pending=琥珀, approved=蓝, 其他=灰
  * @param {string} status
  * @returns {string}
  */
 function statusBadgeClass(status) {
-  if (status === 'completed') return 'bg-green-100 text-green-700'
-  if (status === 'purchasing') return 'bg-purple-100 text-purple-700'
+  if (status === 'rejected') return 'bg-red-100 text-red-700'
   if (status === 'pending') return 'bg-amber-100 text-amber-700'
   if (status === 'approved') return 'bg-blue-100 text-blue-700'
-  if (status === 'draft') return 'bg-gray-100 text-gray-700'
-  return 'bg-red-100 text-red-700'
+  return 'bg-gray-100 text-gray-700'
 }
 
 // ==================== ✅ 修复 P0-2: 执行状态编辑（V1.1 L75-106 1:1 翻译） ====================

@@ -68,8 +68,8 @@ async function submitApproval(businessData) {
       updatedAt: now.toISOString(),
     }
 
-    // 4. 调用API保存审批数据
-    const response = await enhancedApiClient.post('/api/approvals', approval)
+    // 4. 调用API保存审批数据（baseURL 已含 /api 前缀，路径不带 /api；1:1 对齐 V1.1）
+    const response = await enhancedApiClient.post('/approvals', approval)
 
     if (!response || !response.success) {
       return {
@@ -85,7 +85,7 @@ async function submitApproval(businessData) {
       console.log('【审批提交】自动通过审批，触发PATCH联动，businessLink:', businessData.businessLink)
       try {
         await enhancedApiClient.patch(
-          `/api/approvals/${approval.id}/action`,
+          `/approvals/${approval.id}/action`,
           {
             action: 'approve',
             comment: '免审批自动通过',

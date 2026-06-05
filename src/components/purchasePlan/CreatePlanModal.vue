@@ -15,8 +15,8 @@
         id="purchase-plan-add-dialog"
         class="bg-white rounded-xl w-full shadow-xl flex flex-col relative"
         :style="{
-          width: '1280px',
-          height: '700px',
+          width: '1080px',
+          height: '650px',
           maxWidth: '90vw',
           maxHeight: '90vh',
           minWidth: '40rem',
@@ -98,6 +98,7 @@
             :model-value="createForm.purchaseType"
             placeholder="请选择"
             class="w-full"
+            :teleported="true"
             @update:model-value="handlePurchaseTypeChange"
           >
             <el-option label="生产物资采购" value="production" />
@@ -115,6 +116,7 @@
             :model-value="createForm.relatedBatchCode || ''"
             placeholder="请选择"
             class="w-full"
+            :teleported="true"
             clearable
             @update:model-value="(v) => emitFormChange('relatedBatchCode', v || undefined)"
           >
@@ -151,6 +153,7 @@
             :model-value="createForm.applicantDepartment"
             placeholder="请选择部门"
             class="w-full"
+            :teleported="true"
             :disabled="departmentOptions.length === 0"
             @update:model-value="(v) => emitFormChange('applicantDepartment', v)"
           >
@@ -174,6 +177,7 @@
             value-format="YYYY-MM-DD"
             format="YYYY-MM-DD"
             class="w-full"
+            :teleported="true"
             @update:model-value="(v) => emitFormChange('applyDate', v || '')"
           />
         </div>
@@ -185,6 +189,7 @@
             value-format="YYYY-MM-DD"
             format="YYYY-MM-DD"
             class="w-full"
+            :teleported="true"
             @update:model-value="(v) => emitFormChange('requiredDate', v || '')"
           />
         </div>
@@ -198,6 +203,7 @@
             :model-value="createForm.priority"
             placeholder="请选择"
             class="w-full"
+            :teleported="true"
             @update:model-value="(v) => emitFormChange('priority', v)"
           >
             <el-option label="紧急" value="urgent" />
@@ -306,17 +312,15 @@
                 <td class="px-2 py-1.5 whitespace-nowrap">
                   <el-button
                     text
-                    size="small"
                     @click="handleDeleteItem(item.id)"
                   >
-                    <el-icon color="#ef4444"><Delete /></el-icon>
+                    <el-icon color="#ef4444" :size="14"><Delete /></el-icon>
                   </el-button>
                 </td>
                 <td class="px-1 py-1.5 whitespace-nowrap">
                   <el-input
                     :model-value="item.materialCode"
                     placeholder="编码"
-                    size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'materialCode', v)"
                   />
                 </td>
@@ -326,6 +330,7 @@
                     :model-value="item.materialName"
                     placeholder="输入名称搜索物料库"
                     not-found-mode="hide"
+                    style="min-width: 160px"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'materialName', v)"
                     @select="(m) => handleMaterialSelect(item.id, m)"
                   />
@@ -334,7 +339,6 @@
                   <el-input
                     :model-value="item.category"
                     placeholder="分类"
-                    size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'category', v)"
                   />
                 </td>
@@ -342,7 +346,6 @@
                   <el-input
                     :model-value="item.specification"
                     placeholder="规格"
-                    size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'specification', v)"
                   />
                 </td>
@@ -350,7 +353,6 @@
                   <el-input
                     :model-value="item.unit"
                     placeholder="单位"
-                    size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'unit', v)"
                   />
                 </td>
@@ -361,7 +363,6 @@
                     :min="0"
                     :step="0.01"
                     placeholder="0"
-                    size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'quantity', Number(v) || 0)"
                   />
                 </td>
@@ -372,7 +373,6 @@
                     :min="0"
                     :step="0.01"
                     placeholder="0"
-                    size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'estimatedPrice', Number(v) || 0)"
                   />
                 </td>
@@ -385,7 +385,6 @@
                   <el-input
                     :model-value="item.supplier"
                     placeholder="供应商"
-                    size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'supplier', v)"
                   />
                 </td>
@@ -393,15 +392,15 @@
                   <el-input
                     :model-value="item.purpose"
                     placeholder="用途"
-                    size="small"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'purpose', v)"
                   />
                 </td>
                 <td class="px-1 py-1.5 whitespace-nowrap">
+                  <!-- V1.1 L640: 备注列特殊样式 h-6 w-14 p-1 text-xs rounded border-gray-300 -->
                   <el-input
                     :model-value="item.remark"
                     placeholder="备注"
-                    size="small"
+                    style="width: 56px"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'remark', v)"
                   />
                 </td>
@@ -412,16 +411,16 @@
       </div>
     </div>
 
-        <!-- 底部按钮（订单管理 AddModal 风格：灰底 footer） -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-xl">
+        <!-- 底部按钮（V1.1 Modal 默认 footer：size=default h-10 px-4 py-2，1:1 对齐 V1.1 Modal.tsx L356-375） -->
+        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
           <button
-            class="h-8 px-4 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200"
+            class="h-10 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center justify-center"
             @click="handleClose"
           >
             取消
           </button>
           <button
-            class="h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700"
+            class="h-10 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center justify-center"
             @click="handleSubmit"
           >
             提交
@@ -597,16 +596,19 @@ const amountThresholds = computed(() => {
   })
 })
 
-/** 1:1 翻译 V1.1 - 阈值列表（含隐含的">=最大值"档） */
+/** 1:1 翻译 V1.1 L273-299 - 阈值列表（最后一档显示为"≥最大值"） */
 const thresholdDisplay = computed(() => {
   const list = /** @type {{ max: string; label: string; color: string }[]} */ ([])
   const colorMap = ['green', 'amber', 'orange', 'red'] // exempt/quick/standard/strict
   if (amountThresholds.value.length === 0) return list
   amountThresholds.value.forEach((t, i) => {
-    const prev = i > 0 ? amountThresholds.value[i - 1].maxAmount : 0
-    const range = i === 0
-      ? `金额 < ${t.maxAmount.toLocaleString()} 元`
-      : `金额 ${prev.toLocaleString()} ~ ${t.maxAmount.toLocaleString()} 元`
+    // 1:1 翻译 V1.1 L277-283: 最后一档用 ≥ 表示，前一档用 ~ 表示
+    const isLast = i === amountThresholds.value.length - 1
+    const range = isLast
+      ? `金额 ≥ ${t.maxAmount.toLocaleString()} 元`
+      : i === 0
+        ? `金额 < ${t.maxAmount.toLocaleString()} 元`
+        : `金额 ${amountThresholds.value[i - 1].maxAmount.toLocaleString()} ~ ${t.maxAmount.toLocaleString()} 元`
     const color = colorMap[i] || 'gray'
     const colorClass = {
       green: 'text-green-700',
@@ -615,17 +617,11 @@ const thresholdDisplay = computed(() => {
       red: 'text-red-700',
       gray: 'text-gray-700',
     }[color]
+    // 1:1 翻译 V1.1 L292-295: 优先使用 displayName，否则兜底为"需相应审批"
     const label = t.displayName && t.displayName.trim() && t.displayName !== String(t.maxAmount)
       ? t.displayName
       : '需相应审批'
     list.push({ max: range, label, color: colorClass })
-  })
-  // 隐含的">=最大值"档
-  const last = amountThresholds.value[amountThresholds.value.length - 1]
-  list.push({
-    max: `金额 ≥ ${last.maxAmount.toLocaleString()} 元`,
-    label: '需严格审批',
-    color: 'text-red-700',
   })
   return list
 })

@@ -549,6 +549,8 @@ function handleBatchEditDataChange(field, value) {
 
 // ==================== 创建提交 ====================
 async function handleCreateSubmit() {
+  /** 1:1 翻译 V1.1 L305-373：成功后才关闭弹窗，失败保持打开 */
+  let success = false
   try {
     const totalAmount = createItems.value.reduce((sum, item) => sum + (item.estimatedTotalPrice || 0), 0)
 
@@ -611,11 +613,15 @@ async function handleCreateSubmit() {
       // ✅ 修复 P0-16: 创建后重新拉取列表（V1.1 L366-367 1:1 翻译）
       //  确保自动审批/普通审批的状态即时反映
       await fetchPlans()
+      success = true
     }
   } catch (error) {
     await showAlert('创建采购计划失败，请重试')
   } finally {
-    setShowCreateModal(false)
+    // ✅ 修复 P0-D：仅成功时才关闭弹窗（避免 alert 弹窗弹出时采购弹窗已被卸载丢失上下文）
+    if (success) {
+      setShowCreateModal(false)
+    }
   }
 }
 

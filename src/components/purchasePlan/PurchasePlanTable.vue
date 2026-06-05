@@ -9,10 +9,10 @@
     <div class="p-4 border-b border-gray-100 flex items-center justify-between">
       <h3 class="text-lg font-semibold text-gray-900">采购计划列表</h3>
       <div v-if="isInMode" class="flex gap-2">
-        <!-- 批量编辑模式 -->
+        <!-- 批量编辑模式（按钮 variant=blue 与 V1.1 L180-181 1:1 对齐） -->
         <template v-if="batchEditMode">
           <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
             @click="handleBatchEditConfirm"
           >
             <el-icon><Edit /></el-icon>
