@@ -26,54 +26,61 @@ function generateId(prefix: string): string {
  */
 function mapFieldsToFrontend(item: Record<string, unknown>): Record<string, unknown> {
   // 1:1 翻译 V1.1 productionPlan.ts L27-86 mapFieldsToFrontend
-  // V1.1 已经在 queryToObjects 之后做一次 camelCase→前端期望字段的双重映射
-  // 这里保持 V1.1 的双重映射逻辑
+  // 关键：queryToObjects 已经把 DB 的 snake_case 转为 camelCase
+  // 所以 mapField 键必须是 camelCase（如 planCode），不是 snake_case（plan_code）
+  // 之前 V2.0 用 snake_case 键导致映射失效，前端拿到的还是 planCode/cropVariety，批次号列空
   const fieldMap: Record<string, string> = {
+    // id保持不变
     id: 'id',
-    plan_code: 'batchCode',
-    plan_name: 'batchName',
-    plan_type: 'planType',
-    crop_name: 'cropName',
-    crop_variety: 'variety',
-    greenhouse_name: 'greenhouseName',
-    greenhouse_id: 'greenhouseId',
-    area_name: 'areaName',
-    area_id: 'areaId',
-    planned_quantity: 'targetQuantity',
-    actual_quantity: 'actualYield',
-    planting_date: 'startDate',
-    expected_harvest_date: 'expectedHarvestDate',
-    actual_harvest_date: 'actualHarvestDate',
-    planting_area: 'plantingArea',
-    planting_area_unit: 'plantingAreaUnit',
-    planting_mode: 'plantingMode',
-    responsible_person: 'responsiblePerson',
+    // planCode -> batchCode (前端期望)
+    planCode: 'batchCode',
+    planName: 'batchName',
+    planType: 'planType',
+    cropName: 'cropName',
+    // cropVariety -> variety (前端期望)
+    cropVariety: 'variety',
+    greenhouseName: 'greenhouseName',
+    greenhouseId: 'greenhouseId',
+    areaName: 'areaName',
+    areaId: 'areaId',
+    // plannedQuantity -> targetQuantity (前端期望)
+    plannedQuantity: 'targetQuantity',
+    actualQuantity: 'actualYield',
+    // plantingDate -> startDate (前端期望)
+    plantingDate: 'startDate',
+    expectedHarvestDate: 'expectedHarvestDate',
+    actualHarvestDate: 'actualHarvestDate',
+    plantingArea: 'plantingArea',
+    plantingAreaUnit: 'plantingAreaUnit',
+    plantingMode: 'plantingMode',
+    responsiblePerson: 'responsiblePerson',
     status: 'status',
     stage: 'stage',
-    stage_name: 'stageName',
-    target_yield: 'targetYield',
-    actual_yield: 'actualYield',
+    stageName: 'stageName',
+    targetYield: 'targetYield',
+    actualYield: 'actualYield',
     priority: 'priority',
     remarks: 'remarks',
-    create_by: 'publisher',
-    create_time: 'createTime',
-    // DB 列 update_time -> 前端 CropBatch.lastModifyDate（与编辑/详情弹窗字段名对齐）
-    update_time: 'lastModifyDate',
+    // createBy -> publisher (前端期望，与 V1.1 一致)
+    createBy: 'publisher',
+    createTime: 'createTime',
+    // update_time -> 前端 CropBatch.lastModifyDate（与编辑/详情弹窗字段名对齐）
+    updateTime: 'lastModifyDate',
     unit: 'unit',
-    publish_date: 'publishDate',
-    batch_status: 'batchStatus',
-    plan_detail: 'planDetail',
-    plan_detail_file_name: 'planDetailFileName',
-    supplier_name: 'supplierName',
-    seedling_site_name: 'seedlingSiteName',
-    seed_quantity: 'seedQuantity',
-    target_seedling_count: 'targetSeedlingCount',
-    end_type: 'endType',
+    publishDate: 'publishDate',
+    batchStatus: 'batchStatus',
+    planDetail: 'planDetail',
+    planDetailFileName: 'planDetailFileName',
+    supplierName: 'supplierName',
+    seedlingSiteName: 'seedlingSiteName',
+    seedQuantity: 'seedQuantity',
+    targetSeedlingCount: 'targetSeedlingCount',
+    endType: 'endType',
     // 关联订单字段
-    order_id: 'orderId',
-    order_code: 'orderCode',
+    orderId: 'orderId',
+    orderCode: 'orderCode',
     // 执行状态字段
-    execution_status: 'executionStatus',
+    executionStatus: 'executionStatus',
   };
 
   const result: Record<string, unknown> = {};
@@ -241,11 +248,15 @@ router.post('/', (req: Request, res: Response) => {
       planDetail,
       planDetailFileName,
       plantingArea,
+      plantingAreaUnit,
       plantingMode,
       supplierName,
       seedlingSiteName,
       seedQuantity,
-      targetSeedlingCount
+      targetSeedlingCount,
+      orderId,
+      orderCode,
+      executionStatus
     } = req.body;
 
     if (!id) {
