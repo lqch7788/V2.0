@@ -1239,7 +1239,9 @@ export function useProductionPage() {
     setFormData: formData,
     setErrors: errors,
     setExportMode: (v) => { exportMode.value = v },
-    setSelectedRows: selectedRows,
+    // 修复 P0: 与其他 setter 保持一致，把 setSelectedRows 暴露为函数（v） => selectedRows.value = v
+    // 之前直接返回 ref，导致 enterBatchEditMode 中 hook.setSelectedRows([]) 报 TypeError
+    setSelectedRows: (v) => { selectedRows.value = v },
     setExportFormat: (v) => { exportFormat.value = v },
     setShowExportModal: (v) => { showExportModal.value = v },
     setBatchEditMode: (v) => { batchEditMode.value = v },

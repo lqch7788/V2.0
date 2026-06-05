@@ -452,8 +452,9 @@ export default defineComponent({
     const localPageSize = computed({
       get: () => props.pageSize,
       set: (v) => {
-        emit('pageSizeChange', v)
-        emit('pageChange', 1)
+        // 修复 P0: 与 V1.1 React 风格一致，调用 props.xxxHandler 而非 emit
+        props.pageSizeChangeHandler(v)
+        props.pageChangeHandler(1)
       },
     })
 
@@ -481,7 +482,10 @@ export default defineComponent({
      */
     function handleBatchEditRowToggle(batch) {
       if (batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled') {
-        emit('selectRow', batch.id)
+        // 修复 P0: 与 V1.1 React 风格一致，调用 props.selectRowHandler 而非 emit
+        // 之前 emit('selectRow', batch.id) 没有父级监听（父级用 :select-row-handler 接收）
+        // 导致单选/多选失效，只能依赖"全选"按钮
+        props.selectRowHandler(batch.id)
       }
     }
 
