@@ -5,14 +5,18 @@
   @description 9 字段编辑表单 + 物料明细展开（MaterialItemsTable edit 模式）
 -->
 <template>
-  <el-dialog
+  <ElModal
     :model-value="visible"
     title="编辑采购申请单"
     width="1280px"
+    height="700px"
+    size="xl"
     :close-on-click-modal="false"
     :destroy-on-close="false"
-    @close="handleClose"
+    :show-footer="false"
+    :show-maximize="true"
     @update:model-value="(v) => !v && handleClose()"
+    @close="handleClose"
   >
     <!-- Info Banner - 与生产计划 BatchEditModal 样式 1:1 对齐 -->
     <div class="p-4 bg-gray-50 border-b border-gray-200 -mx-4 sm:-mx-6 -mt-4">
@@ -44,7 +48,7 @@
         </div>
         <div
           v-if="batchSelectOpen"
-          class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
         >
           <template v-if="selectedRows.length > 0">
             <div
@@ -331,7 +335,7 @@
         </button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
@@ -342,6 +346,7 @@
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ArrowDown, Plus, Delete } from '@element-plus/icons-vue'
+import { ElModal } from '@/components/ui'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { usePlantingStore } from '@/stores/modules/planting'
