@@ -142,6 +142,7 @@
             </td>
             <td class="px-4 py-3">
               <div class="flex items-center gap-1">
+                <!-- P0-XXX: 单行编辑保留（高频 1 步直达），单行删除已移除（删除走批量入口更安全） -->
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
                   class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-600"
@@ -149,13 +150,6 @@
                   @click="onEdit(batch)"
                 >
                   <Pencil class="w-4 h-4" />
-                </button>
-                <button
-                  class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600"
-                  title="删除"
-                  @click="onDeleteClick(batch)"
-                >
-                  <Trash2 class="w-4 h-4" />
                 </button>
               </div>
             </td>
@@ -298,7 +292,7 @@
  * - delete(batch): 删除单行
  */
 import { computed, defineComponent } from 'vue'
-import { Pencil, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
+import { Pencil, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
 import {
   batchStatusColors,
   batchStatusLabels,
@@ -307,7 +301,6 @@ import {
   PlanTypeLabels as planTypeLabels,
   PlanTypeColors as planTypeColors,
 } from './constants'
-import { showConfirm } from '@/lib/dialogService'
 
 /**
  * @typedef {import('./constants').PlanType} PlanType
@@ -344,7 +337,6 @@ export default defineComponent({
   // 显式注册 lucide-vue-next 组件到 components map（template 中 <Pencil> 需要这里注册）
   components: {
     Pencil,
-    Trash2,
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
@@ -490,17 +482,6 @@ export default defineComponent({
     }
 
     /**
-     * 处理删除按钮点击（弹确认框后调用 props.deleteHandler 回调）
-     * 1:1 对应 V1.1 line 232-236 onClick 内联逻辑
-     * @param {CropBatch} batch
-     */
-    async function onDeleteClick(batch) {
-      if (await showConfirm(`确定要删除生产计划 ${batch.batchCode} 吗？`)) {
-        props.deleteHandler(batch)
-      }
-    }
-
-    /**
      * 下载生产计划文件
      * 根据文件名后缀判断 docx / markdown，构造 Blob 下载
      * @param {CropBatch} batch
@@ -565,7 +546,6 @@ export default defineComponent({
       localPageSize,
       getRowClassName,
       handleBatchEditRowToggle,
-      onDeleteClick,
       downloadPlanFile,
       onPageChange,
       onSelectRow,
@@ -575,7 +555,6 @@ export default defineComponent({
       onBatchCodeClick,
       onEdit,
       Pencil,
-      Trash2,
       ChevronLeft,
       ChevronRight,
       ChevronsLeft,
