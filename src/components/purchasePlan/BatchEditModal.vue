@@ -14,16 +14,22 @@
     @close="handleClose"
     @update:model-value="(v) => !v && handleClose()"
   >
-    <div class="space-y-4">
-      <!-- 提示信息 -->
-      <div class="bg-blue-50 rounded-lg p-4">
+    <!-- Info Banner - 与生产计划 BatchEditModal 样式 1:1 对齐 -->
+    <div class="p-4 bg-gray-50 border-b border-gray-200 -mx-4 sm:-mx-6 -mt-4">
+      <div class="bg-blue-50 rounded-lg p-3 mb-3 flex items-center gap-3">
         <p class="text-sm text-blue-800">
-          已选择 <strong>{{ selectedRows.length }}</strong> 个采购计划进行编辑
+          已选择 <strong>{{ selectedRows.length }}</strong> 个采购计划进行批量编辑，已编辑
+          <strong>{{ editedPlans ? Object.keys(editedPlans).length : 0 }}</strong> 个
         </p>
+        <span class="px-2 py-0.5 bg-blue-600 text-white text-xs rounded">
+          已选择 {{ selectedRows.length }} 条
+        </span>
       </div>
+    </div>
 
+    <div class="space-y-4">
       <!-- 采购申请批次号下拉（V1.1 L238-250 BatchSelectDropdown） -->
-      <div class="mb-4 relative" ref="batchSelectRef">
+    <div class="relative" ref="batchSelectRef">
         <label class="text-gray-700">选择采购申请批次号</label>
         <div
           class="w-full h-10 px-3 border border-gray-300 rounded-lg bg-white flex items-center justify-between cursor-pointer hover:border-blue-400"
@@ -70,7 +76,7 @@
           </div>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-700">采购类型</label>
+          <label class="text-xs text-gray-500 mb-1 block">采购类型</label>
           <el-select v-model="batchEditData.purchaseType" placeholder="请选择" style="width: 100%" size="small">
             <el-option label="生产物资采购" value="production" />
             <el-option label="紧急采购" value="urgent" />
@@ -82,7 +88,7 @@
           </el-select>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-700">关联生产批次号</label>
+          <label class="text-xs text-gray-500 mb-1 block">关联生产批次号</label>
           <el-select
             :model-value="currentEditingPlan?.relatedBatchCode || ''"
             placeholder="不关联批次"
@@ -105,7 +111,7 @@
 
         <!-- ✅ 修复 P0-12: 关联批次=其他时显示"其他说明"字段（V1.1 L320-330 1:1 翻译） -->
         <div v-if="(currentEditingPlan?.relatedBatchCode || '') === 'other'" class="md:col-span-3">
-          <label class="text-sm font-medium text-gray-700">其他说明</label>
+          <label class="text-xs text-gray-500 mb-1 block">其他说明</label>
           <el-input
             :model-value="currentEditingPlan?.otherBatchReason || ''"
             placeholder="请说明采购原因，如：日常用具、劳保用品等"
@@ -117,7 +123,7 @@
 
         <!-- 第2行：申请人 + 申请部门 + 申请日期（1:1 翻译 V1.1 L332-374） -->
         <div>
-          <label class="text-sm font-medium text-gray-700">申请人</label>
+          <label class="text-xs text-gray-500 mb-1 block">申请人</label>
           <el-select
             :model-value="currentEditingPlan?.applicantId || ''"
             placeholder="请选择"
@@ -136,7 +142,7 @@
           </el-select>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-700">申请部门</label>
+          <label class="text-xs text-gray-500 mb-1 block">申请部门</label>
           <el-select
             :model-value="currentEditingPlan?.applicantDepartment || ''"
             placeholder="请选择"
@@ -153,7 +159,7 @@
           </el-select>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-700">申请日期</label>
+          <label class="text-xs text-gray-500 mb-1 block">申请日期</label>
           <el-date-picker
             v-model="batchEditData.applyDate"
             type="date"
@@ -165,7 +171,7 @@
 
         <!-- 第3行：需求日期（独占一行，1:1 V1.1 L376-385） -->
         <div>
-          <label class="text-sm font-medium text-gray-700">需求日期</label>
+          <label class="text-xs text-gray-500 mb-1 block">需求日期</label>
           <el-date-picker
             v-model="batchEditData.requiredDate"
             type="date"
@@ -177,7 +183,7 @@
 
         <!-- 第3行：优先级 + 状态（只读不可编辑）+ 备注 -->
         <div>
-          <label class="text-sm font-medium text-gray-700">优先级</label>
+          <label class="text-xs text-gray-500 mb-1 block">优先级</label>
           <el-select v-model="batchEditData.priority" placeholder="请选择" style="width: 100%" size="small">
             <el-option label="紧急" value="urgent" />
             <el-option label="高" value="high" />
@@ -187,7 +193,7 @@
         </div>
         <!-- ✅ 修复 P0-14: 执行状态字段（V1.1 L404-416 1:1 翻译） -->
         <div>
-          <label class="text-sm font-medium text-gray-700">执行状态</label>
+          <label class="text-xs text-gray-500 mb-1 block">执行状态</label>
           <el-select v-model="batchEditData.executionStatus" placeholder="请选择" style="width: 100%" size="small">
             <el-option
               v-for="o in PURCHASE_EXECUTION_STATUS_OPTIONS"
@@ -214,7 +220,7 @@
           </div>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-700">备注</label>
+          <label class="text-xs text-gray-500 mb-1 block">备注</label>
           <el-input
             v-model="batchEditData.remark"
             placeholder="输入备注"
@@ -250,7 +256,7 @@
             class="mt-3 overflow-auto rounded-lg border border-gray-300 bg-white"
           >
             <table class="w-full text-xs">
-              <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+              <thead class="bg-gray-50 text-gray-700">
                 <tr>
                   <th class="px-2 py-2 text-center font-semibold w-10">操作</th>
                   <th
@@ -312,13 +318,13 @@
           取消
         </button>
         <button
-          class="h-8 px-4 rounded-md text-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+          class="h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700"
           @click="handleNext"
         >
           确认（下一个）
         </button>
         <button
-          class="h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700"
+          class="h-8 px-4 rounded-md text-sm bg-blue-600 text-white hover:bg-blue-700"
           @click="handleSubmit"
         >
           保存
