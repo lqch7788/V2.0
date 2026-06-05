@@ -642,4 +642,13 @@ function handleNext() {
 :deep(.el-input__inner) {
   font-size: 14px !important;
 }
+/* V1.1 MaterialItemsTable L190: h-7 p-1 text-xs - 物料明细表格内 input 尺寸 */
+table :deep(.el-input__wrapper) {
+  padding: 0.25rem !important;
+  min-height: 28px !important;
+  box-shadow: 0 0 0 1px #d1d5db inset !important;
+}
+table :deep(.el-input__inner) {
+  font-size: 12px !important;
+}
 </style>
