@@ -8,7 +8,7 @@
  * - 自动重试：指数退避
  */
 
-import { storageGet } from './storageService';
+import { storageGet, storageRemove } from './storageService';
 import { getSystemConfigValueNumber } from '../config/systemConfigReader';
 
 // API基础配置
@@ -159,10 +159,19 @@ class EnhancedApiClient {
 
       // 如果是 401（未授权），可能是 token 无效，清除 token 并重试
       if (response.status === 401) {
-        console.warn('[EnhancedApiClient] Token 无效或已过期，清除 token 并重试');
-        // 清除本地存储中的无效 token
-        localStorage.removeItem('token');
-        storageRemove('token');
+        console.warn('[EnhancedApiClient] Token 无效或已过期，清除 token');
+        // 按 V1.1 apiClient.ts L189-195 1:1 翻译：用 try/catch 包装，
+        // 避免 storageRemove 引用错误遮蔽真正的 401 错误信息
+        try {
+          localStorage.removeItem('token');
+        } catch {
+          // 忽略清理错误
+        }
+        try {
+          storageRemove('token');
+        } catch {
+          // 忽略清理错误
+        }
         // 尝试清除用户 store 中的 token
         try {
           const { useUserStore } = await import('../stores');
