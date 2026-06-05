@@ -11,49 +11,22 @@
   -->
   <ElModal
     v-model="visible"
-    :width="1024"
-    :height="'calc(100vh - 32px)'"
-    :plain-header="true"
+    title="批量编辑生产计划"
+    size="xl"
     :show-submit="false"
     :show-cancel="false"
-    :show-close="false"
     @close="handleClose"
   >
-    <!--
-      自定义 header - 1:1 对应 V1.1 line 128-138
-      蓝底白字 + 标题 + "已选择 X 条" 蓝色 badge + X 关闭按钮
-    -->
-    <template #header>
-      <!--
-        ElModal 的 #header 插槽外层 .el-modal-header 是 display:flex，
-        其唯一子元素默认 shrink-to-content，必须显式 w-full 才能撑满父宽度。
-        bg-blue-600 才能完整填满整个 header 区域（与 V1.1 一致）。
-      -->
-      <div class="flex items-center justify-between bg-blue-600 w-full px-4 py-4 border-b border-blue-700">
-        <div class="flex items-center gap-4">
-          <h3 class="text-lg font-semibold text-white">批量编辑生产计划</h3>
-          <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded">
-            已选择 {{ selectedRows.length }} 条
-          </span>
-        </div>
-        <button
-          type="button"
-          class="text-white hover:bg-blue-700 rounded p-1 inline-flex items-center justify-center"
-          title="关闭"
-          aria-label="关闭批量编辑弹窗"
-          @click="handleClose"
-        >
-          <el-icon :size="20"><Close /></el-icon>
-        </button>
-      </div>
-    </template>
-    <!-- Info Banner - 1:1 对应 V1.1 L144-172 -->
+    <!-- Info Banner - "已选择 X 条" badge 从 header 移到这里（与新建弹窗 Info Banner 一致） -->
     <div class="p-4 bg-gray-50 border-b border-gray-200 -mx-4 sm:-mx-6 -mt-4">
-      <div class="bg-blue-50 rounded-lg p-3 mb-3">
+      <div class="bg-blue-50 rounded-lg p-3 mb-3 flex items-center gap-3">
         <p class="text-sm text-blue-800">
-          已选择 <strong>{{ selectedRows.length }}</strong> 个生产计划进行批量编辑，
-          已编辑 <strong>{{ editedBatchCodes.length }}</strong> 个
+          已选择 <strong>{{ selectedRows.length }}</strong> 个生产计划进行批量编辑，已编辑
+          <strong>{{ editedBatchCodes.length }}</strong> 个
         </p>
+        <span class="px-2 py-0.5 bg-blue-600 text-white text-xs rounded">
+          已选择 {{ selectedRows.length }} 条
+        </span>
       </div>
 
       <div class="flex items-center gap-4 mb-3">
@@ -391,7 +364,6 @@
  */
 import { computed, ref, watch } from 'vue'
 import { ChevronUp, ChevronDown, Upload } from 'lucide-vue-next'
-import { Close } from '@element-plus/icons-vue'
 import { ElModal } from '@/components/ui'
 import {
   batchStatusColors,
