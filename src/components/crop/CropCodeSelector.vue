@@ -16,6 +16,11 @@
             {{ selectedVariety.cropCode }}
           </span>
         </template>
+        <!-- 修复 P0: 列表里有 variety 但无 cropCode 时，用 displayLabel 显示品种名 -->
+        <template v-else-if="displayLabel">
+          <el-icon class="text-emerald-500 flex-shrink-0"><Leaf /></el-icon>
+          <span class="truncate text-gray-900">{{ displayLabel }}</span>
+        </template>
         <span v-else class="text-gray-400 truncate">{{ placeholder }}</span>
       </div>
       <el-icon class="flex-shrink-0">
@@ -144,6 +149,9 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
   size: { type: String, default: 'md' },
   showFullPath: { type: Boolean, default: true },
+  // 修复 P0: 当 modelValue（cropCode）为空时，用 displayLabel 作为显示文本
+  // 解决编辑时列表里有 variety 名（如"红富士"）但弹窗里显示空的问题
+  displayLabel: { type: String, default: '' },
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])

@@ -90,6 +90,7 @@
             <div class="text-xs text-gray-500 mb-1">作物品种</div>
             <CropCodeSelector
               :model-value="formState.cropCode || currentBatch.cropCode || ''"
+              :display-label="currentBatch.variety"
               placeholder="搜索或选择作物品种..."
               size="sm"
               show-full-path
