@@ -2,19 +2,85 @@
  * 采购计划数据 API 服务
  * 对接后端 /api/purchase-plans
  *
- * 1:1 翻译 V1.1 src/services/apiPurchasePlanService.ts
- * 按用户要求"所有后端数据库对接样式都要与V1.1保持一样"
- *
- * 数据流：API → enhancedApiClient → SQLite DB
+ * 降级策略：
+ * - GET 请求：API → 失败时自动降级
+ * - POST/PUT/DELETE：API → 失败时抛出错误
  */
 
-import { enhancedApiClient } from '@/lib/apiClient'
+import request from '../api/request'
 
-// 后端返回的数据字段类型
+/**
+ * 获取所有采购计划
+ */
+export async function getPurchasePlans() {
+  const data = await request.get('/purchase-plans')
+  return transformPurchasePlan(data)
+}
+
+/**
+ * 根据ID获取单个采购计划
+ */
+export async function getPurchasePlanById(id) {
+  const data = await request.get(`/purchase-plans/${id}`)
+  return transformPurchasePlan(data)
+}
+
+/**
+ * 创建采购计划
+ */
+export async function addPurchasePlan(plan) {
+  const result = await request.post('/purchase-plans', plan)
+  return transformPurchasePlan(result)
+}
+
+/**
+ * 更新采购计划
+ */
+export async function updatePurchasePlan(id, updates) {
+  const result = await request.put(`/purchase-plans/${id}`, updates)
+  if (result?.data) {
+    return transformPurchasePlan(result.data)
+  }
+  return transformPurchasePlan(result)
+}
+
+/**
+ * 删除采购计划
+ */
+export async function deletePurchasePlan(id) {
+  await request.delete(`/purchase-plans/${id}`)
+  return true
+}
+
+/**
+ * 批量删除采购计划
+ */
+export async function deletePurchasePlans(ids) {
+  await request.post('/purchase-plans/batch-delete', { ids })
+  return true
+}
+
+/**
+ * 重置采购计划
+ */
+export async function resetPurchasePlans() {
+  await request.post('/purchase-plans/reset')
+}
+
+// ==================== 数据转换 ====================
+
+function transformPurchasePlan(data) {
+  if (Array.isArray(data)) {
+    return data.map((item) => transformSingle(item))
+  }
+  if (!data) return data
+  return transformSingle(data)
+}
+
 function transformSingle(item) {
   if (!item || typeof item !== 'object') return item
   return {
-    id: item.id,
+    id: item.id || '',
     purchaseApplicationCode: item.purchaseApplicationCode || '',
     relatedBatchCode: item.relatedBatchCode || '',
     purchaseType: item.purchaseType || '',
@@ -28,7 +94,8 @@ function transformSingle(item) {
     priorityText: item.priorityText || '中',
     status: item.status || 'draft',
     statusText: item.statusText || '草稿',
-    executionStatus: (item.executionStatus || item.execution_status || 'pending_execution'),
+    // ✅ 修复 P0-D2: 显式映射 executionStatus（V1.1 L119），未提供时默认 pending_execution
+    executionStatus: item.executionStatus || item.execution_status || 'pending_execution',
     itemCount: item.itemCount || 0,
     items: Array.isArray(item.items) ? item.items.map(transformItem) : [],
     remarks: item.remarks || '',
@@ -72,86 +139,4 @@ function transformItem(item) {
     remark: item.remark || '',
     relatedBatchCode: item.relatedBatchCode,
   }
-}
-
-function transformPurchasePlan(data) {
-  if (Array.isArray(data)) {
-    return data.map((item) => transformSingle(item))
-  }
-  return transformSingle(data)
-}
-
-/**
- * 获取所有采购计划
- * 1:1 翻译 V1.1 apiPurchasePlanService.ts L145-148
- */
-export async function getPurchasePlans() {
-  const data = await enhancedApiClient.get('/purchase-plans')
-  return transformPurchasePlan(data)
-}
-
-/**
- * 根据ID获取单个采购计划
- */
-export async function getPurchasePlanById(id) {
-  const data = await enhancedApiClient.get(`/purchase-plans/${id}`)
-  return transformPurchasePlan(data)
-}
-
-/**
- * 创建采购计划
- */
-export async function addPurchasePlan(plan) {
-  const result = await enhancedApiClient.post('/purchase-plans', plan)
-  return transformPurchasePlan(result)
-}
-
-/**
- * 更新采购计划
- */
-export async function updatePurchasePlan(id, updates) {
-  const result = await enhancedApiClient.put(`/purchase-plans/${id}`, updates)
-  return result ? transformPurchasePlan(result) : null
-}
-
-/**
- * 删除采购计划
- */
-export async function deletePurchasePlan(id) {
-  await enhancedApiClient.delete(`/purchase-plans/${id}`)
-  return true
-}
-
-/**
- * 批量删除采购计划
- */
-export async function deletePurchasePlans(ids) {
-  const result = await enhancedApiClient.post('/purchase-plans/batch-delete', { ids })
-  return result || { deleted: 0, skipped: [] }
-}
-
-/**
- * 重置采购计划
- */
-export async function resetPurchasePlans() {
-  await enhancedApiClient.post('/purchase-plans/reset')
-}
-
-/**
- * 获取下一个采购申请批次号
- */
-export async function getNextPurchaseApplicationCode() {
-  const result = await enhancedApiClient.get('/purchase-plans/next-code')
-  return result?.code || ''
-}
-
-/**
- * 更新采购执行状态
- */
-export async function updateExecutionStatus(id, executionStatus) {
-  const result = await enhancedApiClient.patch(
-    `/purchase-plans/${id}/execution-status`,
-    { executionStatus }
-  )
-  return result ? transformPurchasePlan(result) : null
 }
