@@ -111,7 +111,13 @@
             <label class="block text-sm font-medium text-gray-700">备注</label>
             <textarea v-model="form.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
           </div>
-          <!-- 第七行：方案详细（V1.1 L253-264）-->
+          <!-- 第七行：方案内容（与 EditModal L238-244 + BatchEditModal L299-321 对齐）
+               V1.1 CreateModal 原版无此字段，但 Edit/BatchEdit 都有，补全统一 -->
+          <div class="space-y-1.5">
+            <label class="block text-sm font-medium text-gray-700">方案内容</label>
+            <textarea v-model="form.content" rows="6" :class="inputClass + ' resize-y'" placeholder="请输入方案内容"></textarea>
+          </div>
+          <!-- 第八行：方案详细（V1.1 L253-264）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">方案详细</label>
             <div class="flex items-center gap-2">
