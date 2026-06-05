@@ -227,7 +227,7 @@
         <div class="md:col-span-3 border-t border-gray-300 pt-3 mt-2">
           <div class="flex items-center justify-between">
             <button
-              class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+              class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 hover:bg-gray-100 text-gray-900"
               @click="handleToggleItemsExpanded"
             >
               <el-icon :class="['w-4 h-4 transition-transform', showEditItemsExpanded ? 'rotate-180' : '']">
