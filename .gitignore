@@ -97,3 +97,6 @@ audit/planning/
 
 # SQLite database backups (created during data import, not source code)
 server/data/yuanxingtu_backup_*.db
+
+# Git worktree working directories (not source code)
+.worktrees/
