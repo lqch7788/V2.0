@@ -7,9 +7,9 @@ import { enhancedApiClient } from '../lib/apiClient'
 /**
  * 获取物料申请列表
  */
-export async function getMaterialRequests(params) {
+export async function getMaterialRequests(params: any) {
   try {
-    const response = await enhancedApiClient.get('/material-requests', params)
+    const response: any = await enhancedApiClient.get('/material-requests', params)
     return {
       data: response?.data || [],
       total: response?.meta?.total || response?.data?.length || 0
@@ -23,7 +23,7 @@ export async function getMaterialRequests(params) {
 /**
  * 获取单个物料申请详情
  */
-export async function getMaterialRequestById(id) {
+export async function getMaterialRequestById(id: string | number) {
   try {
     return await enhancedApiClient.get(`/material-requests/${id}`)
   } catch (err) {
@@ -35,20 +35,20 @@ export async function getMaterialRequestById(id) {
 /**
  * 创建物料申请
  */
-export async function createMaterialRequest(data) {
+export async function createMaterialRequest(data: any) {
   return enhancedApiClient.post('/material-requests', data)
 }
 
 /**
  * 更新物料申请
  */
-export async function updateMaterialRequest(id, updates) {
+export async function updateMaterialRequest(id: string | number, updates: any) {
   return enhancedApiClient.put(`/material-requests/${id}`, updates)
 }
 
 /**
  * 删除物料申请
  */
-export async function deleteMaterialRequest(id) {
+export async function deleteMaterialRequest(id: string | number) {
   return enhancedApiClient.delete(`/material-requests/${id}`)
 }

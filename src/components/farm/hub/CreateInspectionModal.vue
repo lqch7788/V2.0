@@ -231,7 +231,7 @@
             :min="0"
             placeholder="选填"
             class="w-full"
-            @change="(val) => updateField('duration', val !== undefined && val !== null ? val : '')"
+            @change="(val: any) => updateField('duration', val !== undefined && val !== null ? val : '')"
           />
         </div>
       </div>
@@ -261,7 +261,7 @@
             :precision="1"
             placeholder="选填"
             class="w-full"
-            @change="(val) => updateField('plantHeight', val !== undefined && val !== null ? val : '')"
+            @change="(val: any) => updateField('plantHeight', val !== undefined && val !== null ? val : '')"
           />
         </div>
         <div>
@@ -271,7 +271,7 @@
             :min="0"
             placeholder="选填"
             class="w-full"
-            @change="(val) => updateField('leafCount', val !== undefined && val !== null ? val : '')"
+            @change="(val: any) => updateField('leafCount', val !== undefined && val !== null ? val : '')"
           />
         </div>
       </div>
@@ -287,7 +287,7 @@
               :precision="2"
               placeholder="0.00"
               class="w-full"
-              @change="(val) => updateField('airTemperature', val !== undefined && val !== null ? val : '')"
+              @change="(val: any) => updateField('airTemperature', val !== undefined && val !== null ? val : '')"
             />
           </div>
           <div>
@@ -297,7 +297,7 @@
               :precision="2"
               placeholder="0.00"
               class="w-full"
-              @change="(val) => updateField('airHumidity', val !== undefined && val !== null ? val : '')"
+              @change="(val: any) => updateField('airHumidity', val !== undefined && val !== null ? val : '')"
             />
           </div>
           <div>
@@ -307,7 +307,7 @@
               :precision="2"
               placeholder="0.00"
               class="w-full"
-              @change="(val) => updateField('lightIntensity', val !== undefined && val !== null ? val : '')"
+              @change="(val: any) => updateField('lightIntensity', val !== undefined && val !== null ? val : '')"
             />
           </div>
           <div>
@@ -317,7 +317,7 @@
               :precision="2"
               placeholder="0.00"
               class="w-full"
-              @change="(val) => updateField('co2Concentration', val !== undefined && val !== null ? val : '')"
+              @change="(val: any) => updateField('co2Concentration', val !== undefined && val !== null ? val : '')"
             />
           </div>
           <div>
@@ -327,7 +327,7 @@
               :precision="2"
               placeholder="0.00"
               class="w-full"
-              @change="(val) => updateField('soilTemperature', val !== undefined && val !== null ? val : '')"
+              @change="(val: any) => updateField('soilTemperature', val !== undefined && val !== null ? val : '')"
             />
           </div>
           <div>
@@ -337,7 +337,7 @@
               :precision="2"
               placeholder="0.00"
               class="w-full"
-              @change="(val) => updateField('soilMoisture', val !== undefined && val !== null ? val : '')"
+              @change="(val: any) => updateField('soilMoisture', val !== undefined && val !== null ? val : '')"
             />
           </div>
           <div>
@@ -347,7 +347,7 @@
               :precision="2"
               placeholder="0.00"
               class="w-full"
-              @change="(val) => updateField('soilEc', val !== undefined && val !== null ? val : '')"
+              @change="(val: any) => updateField('soilEc', val !== undefined && val !== null ? val : '')"
             />
           </div>
           <div>
@@ -357,7 +357,7 @@
               :precision="2"
               placeholder="0.00"
               class="w-full"
-              @change="(val) => updateField('soilPh', val !== undefined && val !== null ? val : '')"
+              @change="(val: any) => updateField('soilPh', val !== undefined && val !== null ? val : '')"
             />
           </div>
         </div>
@@ -561,7 +561,7 @@
             model-value=""
             placeholder="+ 选择反馈人员"
             class="w-full"
-            @change="(val) => { if (val) toggleFeedbackUser(val) }"
+            @change="(val: any) => { if (val) toggleFeedbackUser(val) }"
           >
             <el-option value="__add__" label="+ 选择反馈人员" disabled />
             <el-option
@@ -596,7 +596,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, type PropType } from 'vue'
 import { Close, FullScreen, Camera } from '@element-plus/icons-vue'
 import {
   WEATHER_OPTIONS,
@@ -630,12 +630,12 @@ const props = defineProps({
   generateRecordCode: { type: Function, required: true },
   onImageUpload: { type: Function, default: () => {} },
   onRemoveImage: { type: Function, default: () => {} },
-  greenhouses: { type: Array, default: () => [] },
-  users: { type: Array, default: () => [] },
-  cropTypes: { type: Array, default: () => [] },
-  cropBatches: { type: Array, default: () => [] },
-  equipmentRecords: { type: Array, default: () => [] },
-  infrastructureRecords: { type: Array, default: () => [] },
+  greenhouses: { type: Array as PropType<any[]>, default: () => [] },
+  users: { type: Array as PropType<any[]>, default: () => [] },
+  cropTypes: { type: Array as PropType<any[]>, default: () => [] },
+  cropBatches: { type: Array as PropType<any[]>, default: () => [] },
+  equipmentRecords: { type: Array as PropType<any[]>, default: () => [] },
+  infrastructureRecords: { type: Array as PropType<any[]>, default: () => [] },
   onOpenQRScanner: { type: Function, default: () => {} },
 })
 
@@ -685,7 +685,7 @@ const currentPresets = computed(() => {
 // 日期代理（Vue响应式兼容）
 const checkDateProxy = computed({
   get: () => localRecord.checkDate ? new Date(localRecord.checkDate) : null,
-  set: (val) => {
+  set: (val: any) => {
     if (val instanceof Date) {
       updateField('checkDate', val.toISOString().split('T')[0])
     } else if (typeof val === 'string') {
@@ -697,14 +697,14 @@ const checkDateProxy = computed({
 // 时间代理（Vue响应式兼容）
 const checkTimeProxy = computed({
   get: () => localRecord.checkTime || '',
-  set: (val) => updateField('checkTime', val || ''),
+  set: (val: any) => updateField('checkTime', val || ''),
 })
 
 // ============================================
 // 方法
 // ============================================
 // 更新字段
-const updateField = (field, value) => {
+const updateField = (field: string, value: any) => {
   const updated = { ...localRecord, [field]: value }
   props.onNewRecordChange(updated)
   Object.assign(localRecord, { [field]: value })
@@ -717,7 +717,7 @@ const generateCode = () => {
 }
 
 // 巡查类型变更
-const onTypeChange = (val) => {
+const onTypeChange = (val: any) => {
   // 切换类型时重置相关字段
   const reset = {
     ...localRecord,
@@ -734,7 +734,7 @@ const onTypeChange = (val) => {
 }
 
 // 设备选择变更
-const onEquipmentChange = (val) => {
+const onEquipmentChange = (val: any) => {
   const eq = (props.equipmentRecords || []).find(x => x.id === val)
   const updated = {
     ...localRecord,
@@ -746,7 +746,7 @@ const onEquipmentChange = (val) => {
 }
 
 // 基础设施选择变更
-const onInfrastructureChange = (val) => {
+const onInfrastructureChange = (val: any) => {
   const inf = (props.infrastructureRecords || []).find(x => x.id === val)
   const updated = {
     ...localRecord,
@@ -758,7 +758,7 @@ const onInfrastructureChange = (val) => {
 }
 
 // 设置巡查结果
-const setInspectionResult = (val) => {
+const setInspectionResult = (val: any) => {
   const updated = {
     ...localRecord,
     inspectionResult: val,
@@ -769,16 +769,16 @@ const setInspectionResult = (val) => {
 }
 
 // 问题分类是否选中
-const isIssueCategorySelected = (value) => {
+const isIssueCategorySelected = (value: any) => {
   return (localRecord.issueCategories || []).includes(value)
 }
 
 // 切换问题分类
-const toggleIssueCategory = (value) => {
+const toggleIssueCategory = (value: any) => {
   const current = localRecord.issueCategories || []
   let newCategories
   if (current.includes(value)) {
-    newCategories = current.filter(c => c !== value)
+    newCategories = current.filter((c: any) => c !== value)
   } else {
     newCategories = [...current, value]
   }
@@ -788,11 +788,11 @@ const toggleIssueCategory = (value) => {
 }
 
 // 切换预设问题
-const togglePreset = (preset) => {
+const togglePreset = (preset: any) => {
   const current = localRecord.issuePresets || []
   let newPresets
   if (current.includes(preset)) {
-    newPresets = current.filter(p => p !== preset)
+    newPresets = current.filter((p: any) => p !== preset)
   } else {
     newPresets = [...current, preset]
   }
@@ -800,11 +800,11 @@ const togglePreset = (preset) => {
 }
 
 // 切换反馈人员
-const toggleFeedbackUser = (userId) => {
+const toggleFeedbackUser = (userId: any) => {
   const current = localRecord.feedbackUsers || []
   let newUsers
   if (current.includes(userId)) {
-    newUsers = current.filter(id => id !== userId)
+    newUsers = current.filter((id: any) => id !== userId)
   } else {
     newUsers = [...current, userId]
   }
@@ -812,20 +812,20 @@ const toggleFeedbackUser = (userId) => {
 }
 
 // 获取用户名
-const getUserName = (userId) => {
+const getUserName = (userId: any) => {
   const user = props.users.find(u => u.id === userId)
   return user?.name || userId
 }
 
 // 删除问题照片
-const removeIssuePhoto = (idx) => {
+const removeIssuePhoto = (idx: any) => {
   const newPhotos = [...(localRecord.issuePhotos || [])]
   newPhotos.splice(idx, 1)
   updateField('issuePhotos', newPhotos)
 }
 
 // 处理照片上传
-const handlePhotoUpload = (e) => {
+const handlePhotoUpload = (e: any) => {
   const files = (e.target as HTMLInputElement).files
   if (!files) return
   const currentCount = (localRecord.issuePhotos || []).length

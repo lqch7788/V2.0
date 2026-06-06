@@ -33,7 +33,7 @@ function getLocalOrders(): CropOrder[] {
 function saveLocalOrders(orders: CropOrder[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
-  } catch (error) {
+  } catch (error: any) {
     console.error('[apiCropOrderService] 保存到localStorage失败:', error);
   }
 }
@@ -56,7 +56,7 @@ function getPendingOrders(): CropOrder[] {
 function savePendingOrders(orders: CropOrder[]): void {
   try {
     localStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(orders));
-  } catch (error) {
+  } catch (error: any) {
     console.error('[apiCropOrderService] 保存待同步订单失败:', error);
   }
 }
@@ -135,7 +135,7 @@ export async function getOrders(): Promise<CropOrder[]> {
       saveLocalOrders(data);
       return data;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] API获取失败，降级到本地存储:', error);
   }
 
@@ -156,7 +156,7 @@ export async function getOrders(): Promise<CropOrder[]> {
 export async function getOrderById(id: string): Promise<CropOrder | undefined> {
   try {
     return await enhancedApiClient.get<CropOrder>(`/crop-orders/${id}`);
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] 获取订单详情失败:', error);
     // 尝试从本地存储查找
     const localOrders = getLocalOrders();
@@ -191,7 +191,7 @@ export async function createOrder(
 
     console.log('[apiCropOrderService] 创建订单成功:', result);
     return result;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] API创建失败，降级到localStorage:', error);
 
     // 第二级：失败时写入 localStorage
@@ -222,7 +222,7 @@ export async function updateOrder(
 
     // API 成功，尝试获取更新后的数据
     return await getOrderById(id);
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] API更新失败，降级到localStorage:', error);
 
     // 第二级：失败时更新 localStorage
@@ -252,7 +252,7 @@ export async function deleteOrder(id: string): Promise<boolean> {
   try {
     await enhancedApiClient.delete(`/crop-orders/${id}`);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] API删除失败，标记本地删除:', error);
 
     // 第二级：失败时从 localStorage 标记删除
@@ -284,7 +284,7 @@ export async function linkInstances(orderId: string, instanceIds: string[]): Pro
   try {
     await enhancedApiClient.post(`/crop-orders/${orderId}/link-instances`, { instanceIds });
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] 关联实例失败:', error);
     return false;
   }
@@ -297,7 +297,7 @@ export async function unlinkInstances(orderId: string, instanceIds: string[]): P
   try {
     await enhancedApiClient.post(`/crop-orders/${orderId}/unlink-instances`, { instanceIds });
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] 取消关联实例失败:', error);
     return false;
   }
@@ -310,7 +310,7 @@ export async function updateOrderStatus(id: string, status: CropOrderStatus): Pr
   try {
     await enhancedApiClient.put(`/crop-orders/${id}/status`, { status });
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] 更新订单状态失败:', error);
     // 降级到本地更新
     await updateOrder(id, { status });
@@ -357,7 +357,7 @@ export async function getOrderStats(): Promise<OrderStats | null> {
       completed: backendStats.delivered + backendStats.shipped,
       thisMonth: 0,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[apiCropOrderService] 获取订单统计失败:', error);
     return null;
   }
@@ -396,7 +396,7 @@ export async function syncPendingOrders(): Promise<{ success: number; failed: nu
 
       success++;
       console.log(`[apiCropOrderService] 同步订单成功: ${order.id} -> ${result?.id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.warn(`[apiCropOrderService] 同步订单失败: ${order.id}`, error);
       failed++;
     }

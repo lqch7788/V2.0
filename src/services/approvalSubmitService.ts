@@ -133,7 +133,7 @@ class ApprovalSubmitService {
           ? '金额在免审批阈值内，已自动通过'
           : `已提交审批，等待 ${levelResult.approverCount} 位审批人处理`,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('【审批提交】提交审批失败', error);
       return {
         success: false,
@@ -663,6 +663,7 @@ export async function submitProductionBatchApproval(params: {
       type: 'production_batch',
       requestId: params.batchId,
       batchCode: params.batchCode,
+      requestCode: params.batchCode,
     },
   });
 }
@@ -693,6 +694,7 @@ export async function submitBatchChangeApproval(params: {
     businessLink: {
       type: 'batch_change',
       requestId: params.changeId,
+      requestCode: params.batchCode,
       batchCode: params.batchCode,
     },
   });
@@ -721,6 +723,7 @@ export async function submitBatchVoidApproval(params: {
     applicantDepartment: params.department,
     businessLink: {
       type: 'batch_void',
+      requestCode: params.batchCode,
       requestId: params.voidId,
       batchCode: params.batchCode,
     },
@@ -841,6 +844,7 @@ export async function submitInspectionIssueApproval(params: {
       type: 'inspection_issue',
       requestId: params.issueId,
       inspectionCode: params.issueCode,
+      requestCode: params.issueCode,
     },
   });
 }
@@ -870,6 +874,7 @@ export async function submitIssueResolveApproval(params: {
       type: 'issue_resolve',
       requestId: params.resolveId,
       inspectionCode: params.issueCode,
+      requestCode: params.issueCode,
     },
   });
 }
@@ -1020,6 +1025,7 @@ export async function submitIndicatorApproval(params: {
       type: 'indicator',
       requestId: params.indicatorId,
       indicatorName: params.indicatorName,
+      requestCode: params.indicatorName,
     },
   });
 }
@@ -1049,6 +1055,7 @@ export async function submitAnnouncementApproval(params: {
       type: 'announcement',
       requestId: params.announcementId,
       announcementTitle: params.announcementTitle,
+      requestCode: params.announcementTitle,
     },
   });
 }
@@ -1078,6 +1085,7 @@ export async function submitBudgetCreateApproval(params: {
       type: 'budget_create',
       requestId: params.budgetId,
       budgetAmount: params.amount,
+      requestCode: String(params.amount),
     },
   });
 }
@@ -1110,6 +1118,7 @@ export async function submitBudgetAdjustApproval(params: {
       requestId: params.adjustId,
       originalBudget: params.originalBudget,
       newBudget: params.newBudget,
+      requestCode: String(params.originalBudget),
     },
   });
 }

@@ -28,7 +28,7 @@ function getStoredDepartments(): Department[] {
   if (stored) {
     try {
       return JSON.parse(stored);
-    } catch (error) {
+    } catch (error: any) {
       console.error('部门数据解析失败:', error);
       return [];
     }
@@ -56,10 +56,10 @@ export function initDepartments(): Department[] {
  */
 export async function getDepartments(): Promise<Department[]> {
   try {
-    const data = await apiClient.get<Department[]>('/basic-data/departments');
+    const data = await enhancedApiClient.get<Department[]>('/basic-data/departments');
     saveDepartmentsToStorage(data);
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('API获取部门数据失败，使用本地数据:', error);
     return getStoredDepartments();
   }
@@ -86,7 +86,7 @@ export async function getDepartmentName(id: string): Promise<string> {
  */
 export async function saveDepartments(departments: Department[]): Promise<void> {
   // API模式下通过后端保存
-  await apiClient.post('/basic-data/departments', departments);
+  await enhancedApiClient.post('/basic-data/departments', departments);
   saveDepartmentsToStorage(departments);
 }
 

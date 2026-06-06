@@ -70,7 +70,7 @@ async function updateBusinessTableAPI(
       success: result.success,
       message: result.message || (result.success ? '业务表已更新' : '更新失败'),
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('【审批联动】调用后端API失败:', error);
     return { success: false, message: `API调用失败: ${error}` };
   }
@@ -106,7 +106,7 @@ async function batchUpdateBusinessTableAPI(
       results.successCount = (result.data as BatchUpdateResultItem[]).filter((r) => r.success).length;
       results.failCount = (result.data as BatchUpdateResultItem[]).filter((r) => !r.success).length;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('【审批联动】批量更新失败:', error);
     results.failCount = approvals.length;
   }
@@ -123,7 +123,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== 业务审批（10种）==========
 
   // 1. 物资/领料申请
-  onMaterialRequestApproved: async (approval, link) => {
+  onMaterialRequestApproved: async (approval: any, link: any) => {
     console.log('【联动】领料申请审批通过，实际更新库存', {
       approvalCode: approval.code,
       materials: link.materials,
@@ -133,7 +133,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
     await updateBusinessTableAPI(approval, 'approved');
   },
 
-  onMaterialRequestPartiallyApproved: async (approval, link, approvedItems) => {
+  onMaterialRequestPartiallyApproved: async (approval: any, link: any, approvedItems: any) => {
     console.log('【联动】领料申请部分通过，更新批准数量', {
       approvalCode: approval.code,
       approvedItems,
@@ -142,7 +142,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 2. 退料单
-  onReturnMaterialApproved: async (approval, link) => {
+  onReturnMaterialApproved: async (approval: any, link: any) => {
     console.log('【联动】退料单审批通过，更新库存', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -151,7 +151,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 3. 采购申请
-  onPurchaseRequestApproved: async (approval, link) => {
+  onPurchaseRequestApproved: async (approval: any, link: any) => {
     console.log('【联动】采购申请审批通过，更新采购状态', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -160,7 +160,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 4. 物料入库
-  onMaterialInboundApproved: async (approval, link) => {
+  onMaterialInboundApproved: async (approval: any, link: any) => {
     console.log('【联动】物料入库审批通过，更新库存', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -169,7 +169,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 5. 库存调拨
-  onMaterialTransferApproved: async (approval, link) => {
+  onMaterialTransferApproved: async (approval: any, link: any) => {
     console.log('【联动】库存调拨审批通过，执行调拨', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -178,7 +178,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 6. 种源入库
-  onSeedSourceInboundApproved: async (approval, link) => {
+  onSeedSourceInboundApproved: async (approval: any, link: any) => {
     console.log('【联动】种源入库审批通过，更新种源库存', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -187,7 +187,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 7. 育苗计划
-  onSeedlingPlanApproved: async (approval, link) => {
+  onSeedlingPlanApproved: async (approval: any, link: any) => {
     console.log('【联动】育苗计划审批通过，更新计划状态', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -196,7 +196,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 8. 种植计划
-  onPlantingPlanApproved: async (approval, link) => {
+  onPlantingPlanApproved: async (approval: any, link: any) => {
     console.log('【联动】种植计划审批通过，更新计划状态', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -205,7 +205,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 9. 订单创建
-  onOrderCreateApproved: async (approval, link) => {
+  onOrderCreateApproved: async (approval: any, link: any) => {
     console.log('【联动】订单创建审批通过，激活订单', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -214,7 +214,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 10. 订单变更
-  onOrderChangeApproved: async (approval, link) => {
+  onOrderChangeApproved: async (approval: any, link: any) => {
     console.log('【联动】订单变更审批通过，应用变更', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -225,7 +225,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== 生产审批（5种）==========
 
   // 11. 生产计划
-  onProductionPlanApproved: async (approval, link) => {
+  onProductionPlanApproved: async (approval: any, link: any) => {
     console.log('【联动】生产计划审批通过，更新计划状态', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -234,7 +234,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 12. 生产批次
-  onProductionBatchApproved: async (approval, link) => {
+  onProductionBatchApproved: async (approval: any, link: any) => {
     console.log('【联动】生产批次审批通过，激活批次', {
       approvalCode: approval.code,
       batchCode: link.batchCode,
@@ -243,7 +243,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 13. 批次变更
-  onBatchChangeApproved: async (approval, link) => {
+  onBatchChangeApproved: async (approval: any, link: any) => {
     console.log('【联动】批次变更审批通过，应用变更', {
       approvalCode: approval.code,
       batchCode: link.batchCode,
@@ -252,7 +252,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 14. 批次作废
-  onBatchVoidApproved: async (approval, link) => {
+  onBatchVoidApproved: async (approval: any, link: any) => {
     console.log('【联动】批次作废审批通过，作废批次', {
       approvalCode: approval.code,
       batchCode: link.batchCode,
@@ -261,7 +261,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 15. 技术方案
-  onTechSolutionApproved: async (approval, link) => {
+  onTechSolutionApproved: async (approval: any, link: any) => {
     console.log('【联动】技术方案审批通过，激活方案', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -272,7 +272,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== 农事审批（4种）==========
 
   // 16. 任务派发
-  onTaskDispatchApproved: async (approval, link) => {
+  onTaskDispatchApproved: async (approval: any, link: any) => {
     console.log('【联动】任务派发审批通过，激活任务', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -281,7 +281,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 17. 任务变更
-  onTaskChangeApproved: async (approval, link) => {
+  onTaskChangeApproved: async (approval: any, link: any) => {
     console.log('【联动】任务变更审批通过，应用变更', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -290,7 +290,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 18. 巡查问题
-  onInspectionIssueApproved: async (approval, link) => {
+  onInspectionIssueApproved: async (approval: any, link: any) => {
     console.log('【联动】巡查问题审批通过，更新问题状态', {
       approvalCode: approval.code,
       issueCode: link.inspectionCode,
@@ -299,7 +299,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 19. 问题整改
-  onIssueResolveApproved: async (approval, link) => {
+  onIssueResolveApproved: async (approval: any, link: any) => {
     console.log('【联动】问题整改审批通过，完成整改', {
       approvalCode: approval.code,
       issueCode: link.inspectionCode,
@@ -310,7 +310,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== 采收审批（1种）==========
 
   // 20. 采收申请
-  onHarvestRequestApproved: async (approval, link) => {
+  onHarvestRequestApproved: async (approval: any, link: any) => {
     console.log('【联动】采收申请审批通过，安排采收', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -321,7 +321,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== 作物补录审批（3种）==========
 
   // 21. 种源补录
-  onSeedSourceSupplementaryApproved: async (approval, link) => {
+  onSeedSourceSupplementaryApproved: async (approval: any, link: any) => {
     console.log('【联动】种源补录审批通过，更新数据', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -330,7 +330,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 22. 育苗补录
-  onSeedlingSupplementaryApproved: async (approval, link) => {
+  onSeedlingSupplementaryApproved: async (approval: any, link: any) => {
     console.log('【联动】育苗补录审批通过，更新数据', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -339,7 +339,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 23. 作物入库补录
-  onCropStorageSupplementaryApproved: async (approval, link) => {
+  onCropStorageSupplementaryApproved: async (approval: any, link: any) => {
     console.log('【联动】作物入库补录审批通过，更新数据', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -350,7 +350,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== 指标/公告审批（2种）==========
 
   // 24. 指标审批
-  onIndicatorApprovalApproved: async (approval, link) => {
+  onIndicatorApprovalApproved: async (approval: any, link: any) => {
     console.log('【联动】指标审批通过，发布指标', {
       approvalCode: approval.code,
       indicatorName: link.indicatorName,
@@ -359,7 +359,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 25. 公告审批
-  onAnnouncementApprovalApproved: async (approval, link) => {
+  onAnnouncementApprovalApproved: async (approval: any, link: any) => {
     console.log('【联动】公告审批通过，发布公告', {
       approvalCode: approval.code,
       announcementTitle: link.announcementTitle,
@@ -370,7 +370,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== 成本审批（2种）==========
 
   // 26. 预算编制
-  onBudgetCreateApproved: async (approval, link) => {
+  onBudgetCreateApproved: async (approval: any, link: any) => {
     console.log('【联动】预算编制审批通过，激活预算', {
       approvalCode: approval.code,
       budgetAmount: link.budgetAmount,
@@ -379,7 +379,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 27. 预算调整
-  onBudgetAdjustApproved: async (approval, link) => {
+  onBudgetAdjustApproved: async (approval: any, link: any) => {
     console.log('【联动】预算调整审批通过，应用调整', {
       approvalCode: approval.code,
       originalBudget: link.originalBudget,
@@ -391,7 +391,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== HR审批（11种）==========
 
   // 28. 请假
-  onLeaveApproved: async (approval, link) => {
+  onLeaveApproved: async (approval: any, link: any) => {
     console.log('【联动】请假审批通过，更新请假记录', {
       approvalCode: approval.code,
       applicantName: approval.applicantName,
@@ -402,7 +402,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 29. 加班
-  onOvertimeApproved: async (approval, link) => {
+  onOvertimeApproved: async (approval: any, link: any) => {
     console.log('【联动】加班审批通过，更新加班记录', {
       approvalCode: approval.code,
       applicantName: approval.applicantName,
@@ -413,7 +413,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 30. 离职
-  onResignationApproved: async (approval, link) => {
+  onResignationApproved: async (approval: any, link: any) => {
     console.log('【联动】离职审批通过，更新员工状态', {
       approvalCode: approval.code,
       applicantName: approval.applicantName,
@@ -423,7 +423,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 31. 招聘
-  onRecruitmentApproved: async (approval, link) => {
+  onRecruitmentApproved: async (approval: any, link: any) => {
     console.log('【联动】招聘审批通过，更新招聘流程', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -432,7 +432,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 32. 入职
-  onOnboardingApproved: async (approval, link) => {
+  onOnboardingApproved: async (approval: any, link: any) => {
     console.log('【联动】入职审批通过，创建员工档案', {
       approvalCode: approval.code,
       applicantName: approval.applicantName,
@@ -441,7 +441,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 33. 考勤补录
-  onAttendanceRepairApproved: async (approval, link) => {
+  onAttendanceRepairApproved: async (approval: any, link: any) => {
     console.log('【联动】考勤补录审批通过，更新考勤记录', {
       approvalCode: approval.code,
       applicantName: approval.applicantName,
@@ -450,7 +450,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 34. 调薪
-  onSalaryAdjustmentApproved: async (approval, link) => {
+  onSalaryAdjustmentApproved: async (approval: any, link: any) => {
     console.log('【联动】调薪审批通过，更新薪资信息', {
       approvalCode: approval.code,
       applicantName: approval.applicantName,
@@ -459,7 +459,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 35. 合同续签
-  onContractRenewalApproved: async (approval, link) => {
+  onContractRenewalApproved: async (approval: any, link: any) => {
     console.log('【联动】合同续签审批通过，更新合同状态', {
       approvalCode: approval.code,
       applicantName: approval.applicantName,
@@ -468,7 +468,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 36. 工资预算
-  onSalaryBudgetApproved: async (approval, link) => {
+  onSalaryBudgetApproved: async (approval: any, link: any) => {
     console.log('【联动】工资预算审批通过，激活预算', {
       approvalCode: approval.code,
       requestCode: link.requestCode,
@@ -477,7 +477,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 37. 转岗
-  onTransferApproved: async (approval, link) => {
+  onTransferApproved: async (approval: any, link: any) => {
     console.log('【联动】转岗审批通过，执行转岗', {
       approvalCode: approval.code,
       applicantName: approval.applicantName,
@@ -490,7 +490,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   // ========== 通用回调 ==========
 
   // 处理审批拒绝
-  onApprovalRejected: async (approval, reason) => {
+  onApprovalRejected: async (approval: any, reason: any) => {
     console.log('【联动】审批被拒绝，更新业务状态', {
       approvalCode: approval.code,
       reason,
@@ -500,7 +500,7 @@ const businessIntegrationHandler: ApprovalIntegrationHandler = {
   },
 
   // 处理审批撤回
-  onApprovalCancelled: async (approval, reason) => {
+  onApprovalCancelled: async (approval: any, reason: any) => {
     console.log('【联动】审批被撤回，更新业务状态', {
       approvalCode: approval.code,
       reason,

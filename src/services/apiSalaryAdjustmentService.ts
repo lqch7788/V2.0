@@ -84,7 +84,7 @@ export async function getSalaryAdjustmentRecords(
     const paramsStr = new URLSearchParams(params).toString();
     const url = paramsStr ? `/salary_adjustment?${paramsStr}` : '/salary_adjustment';
     return await enhancedApiClient.get(url);
-  } catch (error) {
+  } catch (error: any) {
     // 后端无此接口时返回空数据
     console.warn('调薪记录 API 不可用，返回空数据:', error);
     return {
@@ -101,7 +101,7 @@ export async function getSalaryAdjustmentRecords(
 export async function getSalaryAdjustmentById(id: string): Promise<SalaryAdjustmentRecord | null> {
   try {
     return await enhancedApiClient.get<SalaryAdjustmentRecord>(`/salary_adjustment/${id}`);
-  } catch (error) {
+  } catch (error: any) {
     console.warn('调薪记录详情 API 不可用:', error);
     return null;
   }
@@ -114,7 +114,7 @@ export async function getSalaryAdjustmentById(id: string): Promise<SalaryAdjustm
 export async function createSalaryAdjustmentRecord(record: CreateSalaryAdjustmentParams): Promise<SalaryAdjustmentRecord> {
   try {
     return await enhancedApiClient.post<SalaryAdjustmentRecord>('/salary_adjustment', record);
-  } catch (error) {
+  } catch (error: any) {
     // 离线模式下创建本地记录
     console.warn('调薪记录创建 API 不可用，使用本地记录:', error);
     const localRecord: SalaryAdjustmentRecord = {
@@ -149,7 +149,7 @@ export async function updateSalaryAdjustmentRecord(id: string, updates: UpdateSa
   try {
     const result = await enhancedApiClient.put<{ id: string }>(`/salary_adjustment/${id}`, updates);
     return result ? { ...updates, id } as SalaryAdjustmentRecord : null;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('调薪记录更新 API 不可用:', error);
     return null;
   }
@@ -163,7 +163,7 @@ export async function deleteSalaryAdjustmentRecord(id: string): Promise<boolean>
   try {
     await enhancedApiClient.delete(`/salary_adjustment/${id}`);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('调薪记录删除 API 不可用:', error);
     return false;
   }
@@ -177,7 +177,7 @@ export async function deleteSalaryAdjustmentRecords(ids: string[]): Promise<bool
   try {
     await enhancedApiClient.post('/salary_adjustment/batch-delete', { ids });
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('调薪记录批量删除 API 不可用:', error);
     return false;
   }
@@ -191,7 +191,7 @@ export async function updateSalaryAdjustmentStatus(id: string, status: 'approved
   try {
     await enhancedApiClient.post(`/salary_adjustment/${id}/status`, { status });
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('调薪状态更新 API 不可用:', error);
     return false;
   }

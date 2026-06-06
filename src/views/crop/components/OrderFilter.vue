@@ -9,7 +9,7 @@
           :model-value="filters.orderCode"
           placeholder="请输入订单编号"
           clearable
-          @update:model-value="(val) => onChange({ ...filters, orderCode: val })"
+          @update:model-value="(val: any) => onChange({ ...filters, orderCode: val })"
         />
       </div>
 
@@ -20,7 +20,7 @@
           :model-value="filters.orderName"
           placeholder="请输入订单名称"
           clearable
-          @update:model-value="(val) => onChange({ ...filters, orderName: val })"
+          @update:model-value="(val: any) => onChange({ ...filters, orderName: val })"
         />
       </div>
 
@@ -32,7 +32,7 @@
           placeholder="请选择"
           clearable
           class="w-full"
-          @change="(val) => onChange({ ...filters, cropName: val })"
+          @change="(val: any) => onChange({ ...filters, cropName: val })"
         >
           <el-option
             v-for="item in cropNames"
@@ -51,7 +51,7 @@
           placeholder="请选择"
           clearable
           class="w-full"
-          @change="(val) => onChange({ ...filters, status: val })"
+          @change="(val: any) => onChange({ ...filters, status: val })"
         >
           <el-option
             v-for="opt in orderStatusOptions"
@@ -70,7 +70,7 @@
           type="date"
           value-format="YYYY-MM-DD"
           class="w-full"
-          @update:model-value="(val) => onChange({ ...filters, orderDate: val })"
+          @update:model-value="(val: any) => onChange({ ...filters, orderDate: val })"
         />
       </div>
 

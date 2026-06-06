@@ -298,9 +298,9 @@ watch(() => props.variety, (newVariety) => {
 }, { immediate: true })
 
 // 解析别名
-function parseAlias(aliasStr) {
+function parseAlias(aliasStr: string): string[] {
   if (!aliasStr.trim()) return []
-  return aliasStr.split(/[,，;；]/).map(s => s.trim()).filter(s => s)
+  return aliasStr.split(/[,，;；]/).map((s: string) => s.trim()).filter((s: string) => s)
 }
 
 // 提交
@@ -310,7 +310,7 @@ async function handleSubmit() {
 
     // 判断更新哪个字段
     const hasDetail = props.variety.detailVarietyCode && props.variety.detailVarietyCode !== '00'
-    const updateData = {
+    const updateData: Record<string, any> = {
       alias: parseAlias(formData.alias),
       image: formData.image || undefined,
       description: formData.description || undefined,
@@ -342,7 +342,8 @@ async function handleSubmit() {
     emit('success')
     handleClose()
   } catch (error) {
-    ElMessage.error('保存失败: ' + (error.message || '未知错误'))
+    const msg = error instanceof Error ? error.message : '未知错误'
+    ElMessage.error('保存失败: ' + msg)
   }
 }
 

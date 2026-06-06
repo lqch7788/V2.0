@@ -402,7 +402,7 @@ export async function getDictionaries(category?: string): Promise<Dictionary[]> 
     // API成功时同步到 localStorage
     localStorage.setItem(DICTIONARY_STORAGE_KEY, JSON.stringify(mappedData));
     return mappedData;
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[DictionaryService] API获取失败，降级到localStorage:', error);
 
     // API失败时尝试从 localStorage 读取
@@ -439,7 +439,7 @@ export async function getDictionaryCategories(): Promise<string[]> {
       return data;
     }
     throw new Error('Invalid response format');
-  } catch (error) {
+  } catch (error: any) {
     console.warn('[DictionaryService] 获取分类失败，降级到localStorage:', error);
 
     // API失败时尝试从 localStorage 读取
@@ -520,13 +520,13 @@ export async function saveDictionaries(data: {
         }
 
         localStorage.setItem(DICTIONARY_STORAGE_KEY, JSON.stringify(currentData));
-      } catch (e) {
+      } catch (e: any) {
         console.warn('[DictionaryService] 同步localStorage失败:', e);
       }
     }
 
     return result;
-  } catch (error) {
+  } catch (error: any) {
     console.error('[DictionaryService] 保存字典失败:', error);
     throw error;
   }
@@ -563,7 +563,7 @@ export async function getSystemConfigs(configKey?: string): Promise<SystemConfig
     // API成功时保存到本地存储
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
     return data;
-  } catch (error) {
+  } catch (error: any) {
     // API失败时尝试从本地存储读取
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
@@ -608,7 +608,7 @@ export async function getWarehouses(status?: string): Promise<Warehouse[]> {
     const data = await apiClient.get<Warehouse[]>(url);
     localStorage.setItem(WAREHOUSE_STORAGE_KEY, JSON.stringify(data));
     return data;
-  } catch (error) {
+  } catch (error: any) {
     const stored = localStorage.getItem(WAREHOUSE_STORAGE_KEY);
     if (stored) {
       try {
@@ -660,7 +660,7 @@ export async function getBases(status?: string, orgOid?: string): Promise<Base[]
     const data = await apiClient.get<Base[]>(url);
     localStorage.setItem(BASE_STORAGE_KEY, JSON.stringify(data));
     return data;
-  } catch (error) {
+  } catch (error: any) {
     const stored = localStorage.getItem(BASE_STORAGE_KEY);
     if (stored) {
       try {
@@ -708,7 +708,7 @@ export async function getGreenhouses(status?: string, baseOid?: string): Promise
     const data = await apiClient.get<Greenhouse[]>(url);
     localStorage.setItem(GREENHOUSE_STORAGE_KEY, JSON.stringify(data));
     return data;
-  } catch (error) {
+  } catch (error: any) {
     const stored = localStorage.getItem(GREENHOUSE_STORAGE_KEY);
     if (stored) {
       try {

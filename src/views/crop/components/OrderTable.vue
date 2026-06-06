@@ -74,7 +74,7 @@
               {{ record.completedQuantity || 0 }} {{ record.unit }}
             </td>
             <td class="px-4 py-3 text-sm whitespace-nowrap">
-              {{ record.plannedQuantity > 0 ? Math.round(((record.completedQuantity || 0) / record.plannedQuantity) * 100) + '%' : '0%' }}
+              {{ record.plannedQuantity ? Math.round(((record.completedQuantity || 0) / record.plannedQuantity) * 100) + '%' : '0%' }}
             </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap truncate max-w-xs">
               {{ record.customerName || '-' }}
@@ -124,8 +124,8 @@
         :page-size="pagination.pageSize"
         :page-size-options="[10, 20, 50]"
         :show-page-size="true"
-        @page-change="(page) => onChange({ ...pagination, current: page })"
-        @page-size-change="(size) => onChange({ pageSize: size, current: 1 })"
+        @page-change="(page: any) => onChange({ ...pagination, current: page })"
+        @page-size-change="(size: any) => onChange({ pageSize: size, current: 1 })"
       />
     </div>
   </div>
@@ -239,16 +239,16 @@ const paginatedData = computed(() => {
 })
 
 // 单行选中切换
-const handleSelectRow = (id) => {
+const handleSelectRow = (id: any) => {
   if (props.selectedRows.includes(id)) {
-    props.onSelectionChange(props.selectedRows.filter(row => row !== id))
+    props.onSelectionChange(props.selectedRows.filter((row: any) => row !== id))
   } else {
     props.onSelectionChange([...props.selectedRows, id])
   }
 }
 
 // 行内删除（带确认弹窗，与 V1.1 OrderTable.tsx L213-216 行为一致）
-const onDeleteRow = (record) => {
+const onDeleteRow = (record: any) => {
   // V1.1 在 OrderTable 内自带 showConfirm 确认；V2.0 抽到 Order.vue 处理
   // 这里直接回调，由父组件负责确认弹窗
   props.onDelete([record.id])

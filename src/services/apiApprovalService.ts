@@ -402,7 +402,7 @@ class ApiApprovalService {
       }
 
       return [];
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ApiApprovalService] 获取审批列表失败:', error);
       throw error;
     }
@@ -421,7 +421,7 @@ class ApiApprovalService {
       }
 
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ApiApprovalService] 获取审批详情失败:', error);
       throw error;
     }
@@ -451,7 +451,7 @@ class ApiApprovalService {
       );
 
       return response as { success: boolean; error?: string };
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ApiApprovalService] 执行审批动作失败:', error);
       return { success: false, error: (error as Error).message };
     }
@@ -498,7 +498,7 @@ class ApiApprovalService {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ApiApprovalService] 批量审批通过失败:', error);
       return { success: false, error: (error as Error).message };
     }
@@ -517,7 +517,7 @@ class ApiApprovalService {
         return normalizeApproval((response as { success: boolean; data: unknown }).data as Record<string, unknown>);
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ApiApprovalService] 创建审批失败:', error);
       return null;
     }
@@ -533,7 +533,7 @@ class ApiApprovalService {
         `${API_BASE}/${id}`, body
       );
       return (response as { success: boolean }).success;
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ApiApprovalService] 更新审批失败:', error);
       return false;
     }
@@ -546,7 +546,7 @@ class ApiApprovalService {
     try {
       const response = await enhancedApiClient.delete<{ success: boolean }>(`${API_BASE}/${id}`);
       return { success: (response as { success: boolean }).success || false };
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ApiApprovalService] 删除审批失败:', error);
       return { success: false, error: (error as Error).message };
     }
@@ -575,7 +575,7 @@ class ApiApprovalService {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ApiApprovalService] 批量审批拒绝失败:', error);
       return { success: false, error: (error as Error).message };
     }

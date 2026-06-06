@@ -49,7 +49,7 @@ export async function getWorkers(forceRefresh: boolean = false): Promise<Worker[
     cachedWorkers = workers;
     cacheTime = now;
     return workers;
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取员工列表失败，使用降级方案:', error);
     // API失败时返回降级数据
     return FALLBACK_WORKERS;
@@ -81,7 +81,7 @@ export async function getWorkerList(forceRefresh: boolean = false): Promise<Work
     cachedWorkers = workers;
     cacheTime = now;
     return workers;
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取在职员工列表失败，使用降级方案:', error);
     // API失败时返回降级数据
     return FALLBACK_WORKERS;
@@ -98,7 +98,7 @@ export async function getWorkerNameById(employeeId: string): Promise<string> {
     const workers = await getWorkers();
     const worker = workers.find(w => w.id === employeeId || w.workerId === employeeId);
     return worker?.name || '未知员工';
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取员工姓名失败:', error);
     // 尝试从降级数据中查找
     const fallbackWorker = FALLBACK_WORKERS.find(w => w.id === employeeId || w.workerId === employeeId);

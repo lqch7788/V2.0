@@ -46,7 +46,7 @@ export async function getMaterialReturns(params?: Record<string, string>): Promi
     const qs = new URLSearchParams(params).toString();
     if (qs) url += `?${qs}`;
   }
-  const resp = await enhancedApiClient.get<MaterialReturnRecord[]>(url);
+  const resp: any = await enhancedApiClient.get(url);
   if (resp?.data) return resp.data;
   if (resp?.success && resp?.data) return resp.data;
   return Array.isArray(resp) ? resp : [];
@@ -54,7 +54,7 @@ export async function getMaterialReturns(params?: Record<string, string>): Promi
 
 /** 创建退料记录 */
 export async function createMaterialReturn(data: Omit<MaterialReturnRecord, 'id'>): Promise<MaterialReturnRecord | null> {
-  const result = await enhancedApiClient.post<MaterialReturnRecord>('/material-returns', data);
+  const result: any = await enhancedApiClient.post('/material-returns', data);
   return result?.data || result;
 }
 

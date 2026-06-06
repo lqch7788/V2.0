@@ -121,7 +121,7 @@ function transformSingle(item: BackendPurchasePlan): PurchasePlan {
     status: item.status || 'draft',
     statusText: item.statusText || '草稿',
     // ✅ 修复 P0-D2: 显式映射 executionStatus（V1.1 L119），未提供时默认 pending_execution
-    executionStatus: (item as any).executionStatus || (item as any).execution_status || 'pending_execution',
+    ...((item as any).executionStatus !== undefined ? { executionStatus: (item as any).executionStatus } : { executionStatus: 'pending_execution' }),
     itemCount: item.itemCount || 0,
     items: Array.isArray(item.items) ? item.items.map(transformItem) : [],
     remarks: item.remarks || '',
@@ -166,9 +166,9 @@ export async function getPurchasePlanById(id: string): Promise<PurchasePlan | un
  * 降级策略：API → 离线队列
  */
 export async function addPurchasePlan(plan: Omit<PurchasePlan, 'id'>): Promise<PurchasePlan> {
-  const result = await enhancedApiClient.post<PurchasePlan>('/purchase-plans', plan);
+  const result = await enhancedApiClient.post<PurchasePlan>('/purchase-plans', plan as any);
   // POST 响应现在返回经过 mapToFrontendFormat 的完整数据
-  return transformPurchasePlan(result) as PurchasePlan;
+  return transformPurchasePlan(result as any) as PurchasePlan;
 }
 
 /**
@@ -179,8 +179,8 @@ export async function addPurchasePlan(plan: Omit<PurchasePlan, 'id'>): Promise<P
  * enhancedApiClient 已自动解包 { success, data }，result 就是 plan 本身
  */
 export async function updatePurchasePlan(id: string, updates: Partial<PurchasePlan>): Promise<PurchasePlan | null> {
-  const result = await enhancedApiClient.put<PurchasePlan>(`/purchase-plans/${id}`, updates);
-  return result ? transformPurchasePlan(result) as PurchasePlan : null;
+  const result = await enhancedApiClient.put<PurchasePlan>(`/purchase-plans/${id}`, updates as any);
+  return result ? transformPurchasePlan(result as any) as PurchasePlan : null;
 }
 
 /**
@@ -243,7 +243,7 @@ export async function updateExecutionStatus(
   // 原 V2.0 用 put，与 server 不一致导致 404/405
   const result = await enhancedApiClient.patch<PurchasePlan>(
     `/purchase-plans/${id}/execution-status`,
-    { executionStatus }
+    { executionStatus } as any
   );
-  return result ? transformPurchasePlan(result) as PurchasePlan : null;
+  return result ? transformPurchasePlan(result as any) as PurchasePlan : null;
 }

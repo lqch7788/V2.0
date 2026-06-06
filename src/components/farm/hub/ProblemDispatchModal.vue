@@ -82,7 +82,7 @@
             <label class="block text-sm text-gray-600 mb-2">优先级:</label>
             <div class="flex gap-2">
               <el-button
-                v-for="level in ['高', '中', '低']"
+                v-for="level in (['高', '中', '低'] as const)"
                 :key="level"
                 size="small"
                 :class="priority === level ? priorityButtonClass(level) : 'bg-gray-100 hover:bg-gray-200 text-gray-600'"
@@ -147,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, type PropType } from 'vue'
 
 // ============================================
 // 严重程度配置（与V1.1完全一致）
@@ -176,7 +176,7 @@ const props = defineProps({
   /** 问题数据（从外部传入） */
   problem: { type: Object, default: null },
   /** 可用工人列表 */
-  availableWorkers: { type: Array, default: () => [] },
+  availableWorkers: { type: Array as PropType<any[]>, default: () => [] },
 })
 
 const emit = defineEmits(['dispatch'])

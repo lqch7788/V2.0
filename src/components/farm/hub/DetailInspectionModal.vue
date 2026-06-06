@@ -506,7 +506,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type PropType } from 'vue'
 
 // ============================================
 // 动作类型中文映射（与V1.1完全一致）
@@ -536,9 +536,9 @@ const props = defineProps({
   /** 问题数据（从外部传入） */
   problemData: { type: Object, default: null },
   /** 流转记录列表（从外部传入） */
-  problemFlowRecords: { type: Array, default: () => [] },
+  problemFlowRecords: { type: Array as PropType<any[]>, default: () => [] },
   /** 用户列表（用于解析用户名） */
-  users: { type: Array, default: () => [] },
+  users: { type: Array as PropType<any[]>, default: () => [] },
 })
 
 // ============================================
@@ -618,7 +618,7 @@ const getSeverityBadgeClass = (severity: string) => {
 
 // 获取用户名
 const getUserName = (userId: string) => {
-  const user = (props.users || []).find(u => u.id === userId)
+  const user = (props.users || []).find((u: any) => u.id === userId)
   return user?.name || userId
 }
 
