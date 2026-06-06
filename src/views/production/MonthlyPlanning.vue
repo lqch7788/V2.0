@@ -590,8 +590,17 @@ const regeneratePlan = () => {
 // 修复 P0-1: 删除模块级 regeneratePlan() 调用
 // 初始化由上方 onMounted (line 412) 统一处理：先 fetch plans 再 regeneratePlan
 
-// 批次选择变化时重新生成
+// 第二阶段 Y8：批次选择变化时重新生成（debounce 200ms 避免快速勾选多个时重复重算）
+let regenerateTimer = null
+const debouncedRegenerate = () => {
+  if (regenerateTimer) clearTimeout(regenerateTimer)
+  regenerateTimer = setTimeout(() => {
+    regeneratePlan()
+    regenerateTimer = null
+  }, 200)
+}
+
 watch(selectedBatches, () => {
-  regeneratePlan()
+  debouncedRegenerate()
 }, { deep: true })
 </script>

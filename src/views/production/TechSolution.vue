@@ -241,17 +241,20 @@ const dictionaryStore = useDictionaryStore()
 const { solutions: techSolutions } = storeToRefs(techSolutionStore)
 const { fetchSolutions, addSolution, updateSolution, deleteSolutions } = techSolutionStore
 
-// ==================== 过滤器 ====================
-const filters = ref({
-  code: '',
-  cropFilter: '全部',
-  author: '',
-  status: '全部',
-  startDate: '',
-  endDate: '',
-})
-const currentPage = ref(1)
-const pageSize = ref(10)
+// ==================== 过滤器/分页/选中行 ====================
+// 第二阶段 Y7 重构：filters/pagination/selectedRows 状态抽 composable
+import { useTechSolutionState } from '@/composables/production/useTechSolutionState'
+const {
+  filters,
+  currentPage,
+  pageSize,
+  selectedRows,
+  isAllSelected,
+  toggleRow,
+  toggleSelectAll,
+  resetFilters,
+  triggerSearch,
+} = useTechSolutionState()
 
 // ==================== 操作人员选项 ====================
 // 第二阶段 Y4 重构：编制人下拉数据从 composable 导入
@@ -375,7 +378,7 @@ const batchEditMode = ref(false)
 const batchDeleteMode = ref(false)
 const showDeleteModal = ref(false)
 const showBatchEditModal = ref(false)
-const selectedRows = ref<(string | number)[]>([])
+// 第二阶段 Y7 重构：selectedRows 已从 useTechSolutionState 导入
 const exportFormat = ref('excel')
 const showExportModal = ref(false)
 const selectedTech = ref<any>(null)
@@ -397,6 +400,8 @@ const editForm = ref({
   planDetailFileName: '',
   // 修复 P0-003：补回"关联生产批次号"字段（V1.1 EditForm L28 有此字段）
   relatedBatchCode: '',
+  // 修复 P0-CU-2：补 author 字段，编制人编辑后才能正确保存（与 V1.1 L344 一致）
+  author: '',
 })
 
 const editedTechCodes = ref<string[]>([])
@@ -471,6 +476,8 @@ const handleEditClick = (tech: any) => {
     planDetailFileName: tech.planDetailFileName || '',
     isValid: tech.isValid || '有效',
     lastSubmitTime: tech.lastSubmitTime || '',
+    // 修复 P0-CU-2：从 tech.author 同步给表单，编辑后才能保存（与 V1.1 L344 一致）
+    author: tech.author || '',
   }
   editModalOpen.value = true
 }
@@ -609,7 +616,7 @@ const handleSelectAll = () => {
 
 const handleSelectRow = (id: string | number) => {
   if (selectedRows.value.includes(id)) {
-    selectedRows.value = selectedRows.value.filter(rowId => rowId !== id)
+    selectedRows.value = selectedRows.value.filter((rowId: string | number) => rowId !== id)
   } else {
     selectedRows.value = [...selectedRows.value, id]
   }
