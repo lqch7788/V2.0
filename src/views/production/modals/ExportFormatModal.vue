@@ -56,5 +56,3 @@ const emit = defineEmits<{
   'update:visible': [val: boolean]
 }>()
 </script>
-
-</invoke>
