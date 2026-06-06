@@ -541,16 +541,6 @@ function overdueAlertClass(level) {
 }
 
 /**
- * 排序指示器
- * @param {string} field
- * @returns {string|null}
- */
-function getSortIndicator(field) {
-  if (props.sortConfig?.field !== field) return null
-  return props.sortConfig.direction === 'asc' ? ' ↑' : ' ↓'
-}
-
-/**
  * 批量编辑确认：选中行数为 0 时提示
  */
 async function handleBatchEditConfirm() {
