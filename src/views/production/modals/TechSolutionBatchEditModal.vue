@@ -216,9 +216,9 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
 import { Upload } from 'lucide-vue-next'
-import { PLANTING_MODE_FALLBACK, TECH_SOLUTION_SCOPES } from '../constants/techSolutionScopes'
-// 修复 P0-006：从字典 store 加载种植模式选项
-import { useDictionaryStore } from '@/stores/modules/dictionary'
+import { TECH_SOLUTION_SCOPES } from '../constants/techSolutionScopes'
+// 第二阶段 Y1 重构：种植模式加载抽 composable
+import { usePlantingModes } from '@/composables/production/usePlantingModes'
 // 修复 P0-CZ：作物品种选择器
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 // 修复 P1-2：去重文件读取（共用 utils）
@@ -231,34 +231,8 @@ const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-200 h-8
 const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded-md px-3 text-xs`
 const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
 
-// 修复 P0-006：种植模式从字典动态加载
-const dictionaryStore = useDictionaryStore()
-const plantingModes = ref<string[]>([...PLANTING_MODE_FALLBACK])
-
-async function loadPlantingModes() {
-  try {
-    if (dictionaryStore.dictionaries && dictionaryStore.dictionaries.length > 0) {
-      const list = dictionaryStore.dictionaries
-        .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
-        .map((d: any) => d.name)
-      if (list.length > 0) {
-        plantingModes.value = list
-        return
-      }
-    }
-  } catch {
-    // 静默降级
-  }
-  try {
-    await dictionaryStore.loadDictionaries()
-    const list = dictionaryStore.dictionaries
-      .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
-      .map((d: any) => d.name)
-    plantingModes.value = list.length > 0 ? list : [...PLANTING_MODE_FALLBACK]
-  } catch {
-    plantingModes.value = [...PLANTING_MODE_FALLBACK]
-  }
-}
+// 修复 P0-006：种植模式从字典动态加载（第二阶段 Y1 重构：抽 composable）
+const { plantingModes, loadPlantingModes } = usePlantingModes()
 
 onMounted(() => {
   loadPlantingModes()

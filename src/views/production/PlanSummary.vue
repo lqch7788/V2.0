@@ -5,7 +5,17 @@
            V2.0 复刻：复用 L3 summary 组件（PageHeader/StatCards/Filters/SummaryTable/ExportModal）
 -->
 <template>
-  <div class="space-y-6">
+  <!-- 修复 P1-3: 加载/错误态守卫（V1.1 PlanSummary.tsx L152-161 风格 1:1 还原） -->
+  <div v-if="summaryStore.isLoading" class="flex items-center justify-center h-64">
+    <div class="flex flex-col items-center gap-4">
+      <div class="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+      <span class="text-gray-500">加载中...</span>
+    </div>
+  </div>
+  <div v-else-if="summaryStore.error" class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+    加载失败：{{ summaryStore.error }}
+  </div>
+  <div v-else class="space-y-6">
     <!-- 页面标题 -->
     <PageHeader
       title="生产计划汇总"
@@ -115,18 +125,34 @@ const summaries = computed(() => {
     actualYield: s.actualQuantity || 0,
     completionRate: s.completionRate ? `${s.completionRate}%` : '0%',
     status: s.status,
-    scheduleStatus: s.status === 'completed' ? 'completed' : s.status === 'in_progress' ? 'confirmed' : 'scheduled',
+    // 修复 P1-2: scheduleStatus 字段直接读取后端字段（不再用 status 反推）
+    scheduleStatus: s.scheduleStatus || (s.status === 'completed' ? 'completed' : s.status === 'in_progress' ? 'confirmed' : 'scheduled'),
   }))
 })
 
-/** 统计卡片 */
+/**
+ * 统计卡片（V1.1 useBatchSummary 风格 1:1 还原）
+ * 修复 P1-1: 恢复 V1.1 的 4 张业务指标卡（生产批次/种植区域/总产量/平均完成率）
+ * 注：V2.0 之前是"状态计数器"（总批次数/进行中/已完成/规划中），违反 V1.1 业务目标
+ */
 const statCards = computed(() => {
   const all = summaries.value
+  const total = all.length
+  // 种植区域：greenhouse 字段去重数
+  const greenhouseCount = new Set(all.map(s => s.greenhouse).filter(Boolean)).size
+  // 总产量：actualYield 求和
+  const totalActualYield = all.reduce((sum, s) => sum + (parseFloat(s.actualYield) || 0), 0)
+  // 平均完成率：parseFloat(completionRate) 求平均
+  const rates = all.map(s => parseFloat(s.completionRate) || 0)
+  const avgCompletion = total > 0
+    ? (rates.reduce((a, b) => a + b, 0) / total).toFixed(1)
+    : '0.0'
+
   return [
-    { id: 'total', label: '总批次数', value: all.length, icon: List, iconBgColor: 'from-blue-500 to-blue-600' },
-    { id: 'inProgress', label: '进行中', value: all.filter(s => s.status === 'in_progress').length, icon: TrendCharts, iconBgColor: 'from-amber-500 to-amber-600' },
-    { id: 'completed', label: '已完成', value: all.filter(s => s.status === 'completed').length, icon: Money, iconBgColor: 'from-emerald-500 to-emerald-600' },
-    { id: 'planning', label: '规划中', value: all.filter(s => s.status === 'planning' || s.status === 'draft').length, icon: ShoppingCart, iconBgColor: 'from-purple-500 to-purple-600' },
+    { id: 'total', label: '生产批次', value: total, icon: List, iconBgColor: 'from-blue-500 to-blue-600' },
+    { id: 'greenhouse', label: '种植区域', value: greenhouseCount, icon: TrendCharts, iconBgColor: 'from-green-500 to-green-600' },
+    { id: 'yield', label: '总产量', value: `${totalActualYield.toLocaleString()} kg`, icon: Money, iconBgColor: 'from-orange-500 to-orange-600' },
+    { id: 'avgRate', label: '平均完成率', value: `${avgCompletion}%`, icon: ShoppingCart, iconBgColor: 'from-purple-500 to-purple-600' },
   ]
 })
 
@@ -285,20 +311,25 @@ const columns = [
     label: '排班状态',
     width: '100px',
     render: (value) => {
+      // 修复 P1-2 衍生：用 emoji 前缀弥补 SummaryTable 字符串渲染限制（V1.1 用彩色徽章）
       const config = {
-        scheduled: '已排班',
-        confirmed: '已确认',
-        in_progress: '进行中',
-        completed: '已完成',
+        scheduled: '🔵 已排班',
+        confirmed: '🟢 已确认',
+        in_progress: '🟡 进行中',
+        completed: '⚫ 已完成',
       }
-      return config[value] || '未排班'
+      return config[value] || '⚪ 未排班'
     },
   },
   {
     key: 'status',
     label: '状态',
     width: '100px',
-    render: (value) => getStatusConfig(value).label,
+    render: (value) => {
+      // 修复 P1-4 衍生：status 字段 render 加前缀（V1.1 用彩色 span）
+      const cfg = getStatusConfig(value)
+      return `${cfg.label}`
+    },
   },
 ]
 </script>

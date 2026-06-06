@@ -200,9 +200,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf, Upload, ChevronDown, ChevronUp } from 'lucide-vue-next'
 // 修复 P0-005：从共享常量文件导入 28 个适用范围枚举
-import { TECH_SOLUTION_SCOPES, PLANTING_MODE_FALLBACK } from '../constants/techSolutionScopes'
-// 修复 P0-006：从字典 store 加载种植模式选项
-import { useDictionaryStore } from '@/stores/modules/dictionary'
+import { TECH_SOLUTION_SCOPES } from '../constants/techSolutionScopes'
+// 第二阶段 Y1 重构：种植模式加载抽 composable（移除 useDictionaryStore 直接引用）
+import { usePlantingModes } from '@/composables/production/usePlantingModes'
 // 修复 P1-2/P1-3：去重文件读取与方案编号生成（共用 utils）
 import { pickAndReadFile } from '@/utils/fileUpload'
 import { generateTechSolutionCode } from '@/utils/techSolutionHelpers'
@@ -215,34 +215,8 @@ const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded
 const btnGhost = `${btnBase} hover:bg-gray-100 hover:text-gray-900`
 const inputClass = 'flex h-10 w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
 
-// 修复 P0-006：种植模式从字典动态加载
-const dictionaryStore = useDictionaryStore()
-const plantingModes = ref<string[]>([...PLANTING_MODE_FALLBACK])
-
-async function loadPlantingModes() {
-  try {
-    if (dictionaryStore.dictionaries && dictionaryStore.dictionaries.length > 0) {
-      const list = dictionaryStore.dictionaries
-        .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
-        .map((d: any) => d.name)
-      if (list.length > 0) {
-        plantingModes.value = list
-        return
-      }
-    }
-  } catch {
-    // 静默降级
-  }
-  try {
-    await dictionaryStore.loadDictionaries()
-    const list = dictionaryStore.dictionaries
-      .filter((d: any) => d.category === 'planting_mode' && d.status !== 'inactive')
-      .map((d: any) => d.name)
-    plantingModes.value = list.length > 0 ? list : [...PLANTING_MODE_FALLBACK]
-  } catch {
-    plantingModes.value = [...PLANTING_MODE_FALLBACK]
-  }
-}
+// 修复 P0-006：种植模式从字典动态加载（第二阶段 Y1 重构：抽 composable）
+const { plantingModes, loadPlantingModes } = usePlantingModes()
 
 onMounted(() => {
   loadPlantingModes()
