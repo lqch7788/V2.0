@@ -27,6 +27,7 @@
           </div>
         </div>
       </div>
+    </div>
     <template #footer>
       <button :class="btnSecondary" @click="emit('close')">取消</button>
       <button :class="btnDefault" @click="emit('confirm')">导出</button>
