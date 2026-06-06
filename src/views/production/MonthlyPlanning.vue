@@ -410,12 +410,12 @@ const { generateMonthlyPlan } = useMonthlyTaskPlanning()
 
 // 初始化时从 API 加载批次数据
 onMounted(async () => {
-  loading.value = true
+  // 修复 P0-3: 删除 loading.value 引用（loading 变量已删除）
   try {
     await productionPlanStore.fetchPlans()
     regeneratePlan()
-  } finally {
-    loading.value = false
+  } catch (e) {
+    console.error('[MonthlyPlanning] 加载批次数据失败:', e)
   }
 })
 
@@ -426,7 +426,7 @@ const selectedMonth = ref(dayjs().format('YYYY-MM'))
 const selectedBatches = ref([])
 const activeSubTab = ref('overview')
 const monthlyPlan = ref(null)
-const loading = ref(false)
+// 修复 P0-3: 删除 unused loading 变量（页面无 v-loading 守卫）
 
 // 批次分页
 const batchPage = ref(1)
@@ -582,8 +582,8 @@ const regeneratePlan = () => {
   monthlyPlan.value = generateMonthlyPlan(selectedMonth.value, selectedBatches.value)
 }
 
-// 初始化
-regeneratePlan()
+// 修复 P0-1: 删除模块级 regeneratePlan() 调用
+// 初始化由上方 onMounted (line 412) 统一处理：先 fetch plans 再 regeneratePlan
 
 // 批次选择变化时重新生成
 watch(selectedBatches, () => {

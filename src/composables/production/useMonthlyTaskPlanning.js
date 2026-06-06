@@ -769,8 +769,9 @@ export function useMonthlyTaskPlanning() {
     const endDateObj = new Date(endDate)
 
     // 只处理执行中或已发布的批次
+    // 修复 P0-2: 与 view 端过滤条件一致（去掉冗余的 status 字段判断）
     const activeBatches = batches.filter(
-      b => b.batchStatus === 'in_progress' || b.batchStatus === 'published' || b.status === 'in_progress'
+      b => b.batchStatus === 'in_progress' || b.batchStatus === 'published'
     )
 
     while (currentDate <= endDateObj) {
@@ -1158,7 +1159,7 @@ export function useMonthlyTaskPlanning() {
     // 过滤指定批次的执行中/已发布批次
     const targetBatches = batchIds.length > 0
       ? batches.filter(b => batchIds.includes(b.id))
-      : batches.filter(b => b.batchStatus === 'in_progress' || b.batchStatus === 'published' || b.status === 'in_progress')
+      : batches.filter(b => b.batchStatus === 'in_progress' || b.batchStatus === 'published')
 
     // 预测未来30天任务
     const allTasks = predictTasks(startDate, endDate, targetBatches)

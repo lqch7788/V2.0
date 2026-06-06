@@ -516,9 +516,11 @@ const handleEditSubmit = async () => {
     lastSubmitTime: editForm.value.lastSubmitTime || selectedTech.value.lastSubmitTime || '',
   }
   try {
-    const success = await updateSolution(selectedTech.value.id, updateData)
+    // 修复 R2：updateSolution 返回的是 updated 对象，变量名 success 误命名（对象为 null 时才进入 else）
+    // 改为 result，统一判断 !== null
+    const result = await updateSolution(selectedTech.value.id, updateData)
     // 修复 P0-K：仅成功时才关闭弹窗（避免 alert 后弹窗被卸载丢失上下文）
-    if (success) {
+    if (result !== null && result !== undefined) {
       // 修复 P0-LIST-EDIT：与 V1.1 L358-360 一致，编辑后显式刷新列表
       // 解决"编辑保存后字段不显示"问题
       await fetchSolutions()
@@ -651,7 +653,8 @@ const handleDoExport = async () => {
     '作物品种': row.crop,
     // 修复 P0-002 衍生：种植模式做字典映射（与 V1.1 L483 一致）
     '种植模式': getDictItemNameSync('planting_mode', row.plantingMode),
-    '适用范围': row.stage,
+    // 修复 R4：导出 scopes 字段（V1.1 后端已迁到 scopes 数组模式）
+    '适用范围': (row.scopes && row.scopes.length > 0) ? row.scopes.join('、') : (row.stage || '-'),
     '版本': row.version,
     '编制人': row.author,
     '创建日期': row.createDate,

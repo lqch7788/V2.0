@@ -264,7 +264,8 @@ const emit = defineEmits<{
 }>()
 
 // 修复 P0-1：适用范围折叠状态（V1.1 L177 scopeExpanded=true 才渲染 Checkbox 列表）
-const scopeExpanded = ref(false)
+// 修复 R3：初值改为 true，让首屏直接看到 28 个适用范围复选框，无需点击"展开"
+const scopeExpanded = ref(true)
 
 // ========== 弹窗交互状态（V1.1 Modal 行为 1:1 对齐） ==========
 // 默认 size="xxxl" = 1080x650（V1.1 Modal.tsx L51）

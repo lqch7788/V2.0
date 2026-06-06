@@ -39,14 +39,15 @@
       :page-size="pageSize"
       :export-mode="exportModeActive"
       :selected-rows="selectedRowIds"
+      :on-select-all="() => handleSelectAll(summaries.map(s => s.id))"
+      :on-select-row="(id) => handleSelectRow(id)"
       @page-change="setCurrentPage"
-      @select-all="() => handleSelectAll(summaries.map(s => s.id))"
-      @select-row="(id) => handleSelectRow(id)"
     />
 
     <!-- 导出弹窗 -->
+    <!-- 修复 P0-1: ExportModal 用 v-model（modelValue/update:modelValue）而非 is-open -->
     <ExportModal
-      :is-open="exportModalOpen"
+      v-model="exportModalOpen"
       :selected-count="selectedRowIds.length"
       :export-format="exportFormatValue"
       @update:export-format="setExportFormat"
@@ -78,17 +79,20 @@ const productionPlanStore = useProductionPlanStore()
 
 // 初始化时加载数据
 onMounted(async () => {
+  // 修复 P0-5: 200 条硬截断会导致数据 > 200 时永远显示不全
+  // 改为 1000（覆盖实际项目批次量级）+ 配合 UI 提示
   await productionPlanStore.fetchPlans()
-  await summaryStore.fetchBatchStats({ limit: 200 })
+  await summaryStore.fetchBatchStats({ limit: 1000 })
 })
 
 /** 动态获取筛选选项 */
 const batchFilterOptions = computed(() => {
-  const plans = productionPlanStore.plans || []
-  // 从真实数据提取去重的作物、状态、温室选项
-  const cropNames = [...new Set(plans.map(p => p.cropName).filter(Boolean))].map(v => ({ value: v, label: v }))
-  const statuses = [...new Set(plans.map(p => p.batchStatus).filter(Boolean))].map(v => ({ value: v, label: getStatusLabel(v) }))
-  const greenhouses = [...new Set(plans.map(p => p.greenhouseName).filter(Boolean))].map(v => ({ value: v, label: v }))
+  // 修复 P0-4: 选项数据源改用 batchItems（与筛选作用对象一致）
+  const items = summaryStore.batchItems || []
+  const cropNames = [...new Set(items.map(s => s.cropName).filter(Boolean))].map(v => ({ value: v, label: v }))
+  // 修复 P0-3: 状态字段是 s.status（不是 plans.batchStatus）
+  const statuses = [...new Set(items.map(s => s.status).filter(Boolean))].map(v => ({ value: v, label: getStatusLabel(v) }))
+  const greenhouses = [...new Set(items.map(s => s.greenhouse).filter(Boolean))].map(v => ({ value: v, label: v }))
   return { cropNames, statuses, greenhouses }
 })
 
@@ -96,7 +100,8 @@ const batchFilterOptions = computed(() => {
 const summaries = computed(() => {
   let items = summaryStore.batchItems || []
   if (cropFilter.value) items = items.filter(s => s.cropName === cropFilter.value)
-  if (statusFilter.value) items = items.filter(s => s.batchStatus === statusFilter.value)
+  // 修复 P0-3: 状态字段是 s.status
+  if (statusFilter.value) items = items.filter(s => s.status === statusFilter.value)
   if (greenhouseFilter.value) items = items.filter(s => s.greenhouse === greenhouseFilter.value)
   // 映射字段以匹配 V1.1 结构
   return items.map(s => ({
@@ -182,8 +187,9 @@ const {
 
 // 模板访问兼容：直接暴露 useExport 返回的 ref/computed，
 // Vue 3 <script setup> 模板会自动解包顶层 ref。
+// 修复 P0-1: exportModalOpen 需可写（v-model），直接暴露 ref 而非 computed
 const exportModeActive = computed(() => showExportMode.value)
-const exportModalOpen = computed(() => showExportModal.value)
+const exportModalOpen = showExportModal  // 直接暴露 ref，让 v-model 可双向绑定
 const exportFormatValue = computed(() => exportFormat.value)
 const selectedRowIds = computed(() => selectedRows.value)
 

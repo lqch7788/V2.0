@@ -24,7 +24,7 @@
               type="date"
               placeholder="选择日期"
               value-format="YYYY-MM-DD"
-              @change="handleDateChange"
+              <!-- 修复 P0-2: 删除 @change 避免与 watch 双触发 -->
             />
           </div>
           <el-button @click="handleRefresh" :loading="loading">
@@ -666,6 +666,16 @@ const handleRefresh = () => {
 }
 
 const handleConfirmDispatch = async () => {
+  // 修复 P0-8: 派发前加确认弹窗（避免误操作直接循环创建任务）
+  try {
+    await ElMessageBox.confirm(
+      `将创建 ${pendingTasks.value.length} 个工单并写入数据库，确认继续？`,
+      '确认派发',
+      { type: 'warning', confirmButtonText: '确认派发', cancelButtonText: '取消' }
+    )
+  } catch {
+    return // 用户取消
+  }
   dispatching.value = true
   try {
     // 实际创建任务
@@ -713,14 +723,13 @@ const handleConfirmDispatch = async () => {
 const loadData = async () => {
   loading.value = true
   try {
-    // 确保生产计划数据已加载
-    if (!productionPlanStore.plans || productionPlanStore.plans.length === 0) {
-      await productionPlanStore.fetchPlans()
-    }
-
-    // 确保农事任务数据已加载
+    // 修复 P0-5: 删除 productionPlanStore.fetchPlans() 误调（结果未被消费）
+    // 修复 P0-4: 临时任务数据从未拉取，补上 fetchTasks
     if (!farmTaskStore.tasks || farmTaskStore.tasks.length === 0) {
       await farmTaskStore.fetchTasks()
+    }
+    if (!tempTaskStore.tasks || tempTaskStore.tasks.length === 0) {
+      await tempTaskStore.fetchTasks({})
     }
 
     const tasks = farmTaskStore.tasks || []
@@ -737,7 +746,9 @@ const loadData = async () => {
       batchCode: '',
       cropName: '',
       greenhouseId: '',
-      greenhouseName: t.actualAssignee || '',
+      // 修复 P0-1: 派发任务时 greenhouseName 不能用 actualAssignee（那是执行人姓名）
+      // 留空让 createTask 业务侧校验或后续从原始 farmTask 关联补全
+      greenhouseName: '',
       plantingArea: 0,
       stage: '',
       stageName: '',
