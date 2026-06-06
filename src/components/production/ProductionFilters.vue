@@ -182,15 +182,15 @@ watch(() => props.statusFilter, (v) => { localStatus.value = v }, { immediate: t
 watch(() => props.planTypeFilter, (v) => { localPlanType.value = v }, { immediate: true })
 
 // 1:1 翻译 V1.1 onChange={(e) => onBatchCodeChange(e.target.value)}
-function handleBatchCodeChange(v) { emit('batchCodeChange', v) }
-function handlePlantingModeChange(v) { emit('plantingModeChange', v) }
-function handleCropNameChange(v) { emit('cropNameChange', v) }
-function handleVarietyChange(v) { emit('varietyChange', v) }
-function handleGreenhouseChange(v) { emit('greenhouseChange', v) }
+function handleBatchCodeChange(v: string) { emit('batchCodeChange', v) }
+function handlePlantingModeChange(v: string) { emit('plantingModeChange', v) }
+function handleCropNameChange(v: string) { emit('cropNameChange', v) }
+function handleVarietyChange(v: string) { emit('varietyChange', v) }
+function handleGreenhouseChange(v: string) { emit('greenhouseChange', v) }
 
 // 1:1 翻译 V1.1 onValueChange={(v) => onStatusChange(v)}
-function handleStatusChange(v) { emit('statusChange', v) }
-function handlePlanTypeChange(v) { emit('planTypeChange', v) }
+function handleStatusChange(v: string) { emit('statusChange', v) }
+function handlePlanTypeChange(v: string) { emit('planTypeChange', v) }
 
 // 1:1 翻译 V1.1 onClick={onReset} / onClick={onSearch}
 function handleReset() { emit('reset') }
