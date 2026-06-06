@@ -146,21 +146,8 @@
 </template>
 
 <script setup lang="ts">
-// 修复 P0-002 衍生：详情弹窗也使用字典映射显示种植模式（与 V1.1 L183 一致）
-import { useDictionaryStore } from '@/stores/modules/dictionary'
-const dictionaryStore = useDictionaryStore()
-
-function getDictItemNameSync(category: string, code: string): string {
-  if (!code) return '-'
-  try {
-    const item = (dictionaryStore.dictionaries || []).find(
-      (d: any) => d.category === category && d.code === code
-    )
-    return item?.name || code
-  } catch {
-    return code
-  }
-}
+// 修复 P1-1：详情弹窗也使用共享字典映射（与 V1.1 L183 行为一致）
+import { getDictItemNameSync } from '@/utils/dictHelpers'
 
 interface Props {
   visible: boolean

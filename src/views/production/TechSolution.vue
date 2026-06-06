@@ -201,6 +201,9 @@ import { showAlert } from '@/lib/dialogService'
 import { FileCode, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
 import { getVarietyByCode } from '@/services/cropVarietyService'
 import { getTechSolutionApprovals } from '@/services/techSolutionService'
+// 修复 P1-1/P1-3：去重字典映射与方案编号生成（3 文件共用同一工具）
+import { getDictItemNameSync } from '@/utils/dictHelpers'
+import { generateTechSolutionCode } from '@/utils/techSolutionHelpers'
 import TechSolutionFilters from './components/TechSolutionFilters.vue'
 import TechSolutionTable from './components/TechSolutionTable.vue'
 import TechSolutionDetailModal from './modals/TechSolutionDetailModal.vue'
@@ -231,25 +234,6 @@ const approvalStore = useApprovalStore()
 const dictionaryStore = useDictionaryStore()
 const { solutions: techSolutions } = storeToRefs(techSolutionStore)
 const { fetchSolutions, addSolution, updateSolution, deleteSolutions } = techSolutionStore
-
-/**
- * 同步获取字典项名称
- * 字典 store 内部维护完整字典数据，可同步读取
- * @param {string} category 字典分类
- * @param {string} code 字典编码
- * @returns {string} 字典项 name（找不到时返回原 code）
- */
-function getDictItemNameSync(category: string, code: string): string {
-  if (!code) return ''
-  try {
-    const item = (dictionaryStore.dictionaries || []).find(
-      (d: any) => d.category === category && d.code === code
-    )
-    return item?.name || code
-  } catch {
-    return code
-  }
-}
 
 // ==================== 过滤器 ====================
 const filters = ref({
@@ -460,9 +444,7 @@ const newPlanForm = ref({
 const selectedCrop = ref<any>(null)
 const selectedCropEdit = ref<any>(null)
 
-const generateCode = () => {
-  return `T${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`
-}
+const generateCode = generateTechSolutionCode
 
 const setSelectedRows = (rows: (string | number)[]) => {
   selectedRows.value = rows

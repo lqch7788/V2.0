@@ -221,6 +221,8 @@ import { PLANTING_MODE_FALLBACK, TECH_SOLUTION_SCOPES } from '../constants/techS
 import { useDictionaryStore } from '@/stores/modules/dictionary'
 // 修复 P0-CZ：作物品种选择器
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
+// 修复 P1-2：去重文件读取（共用 utils）
+import { pickAndReadFile } from '@/utils/fileUpload'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -342,20 +344,13 @@ const updateField = (code: string, field: string, value: any) => {
 }
 
 const handleFileUpload = (code: string) => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.md,.docx,.txt'
-  input.onchange = (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (file) {
-      updateField(code, 'planDetailFileName', file.name)
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        updateField(code, 'content', event.target?.result as string)
-      }
-      reader.readAsText(file)
-    }
-  }
-  input.click()
+  pickAndReadFile({
+    accept: '.md,.docx,.txt',
+    onLoad: ({ fileName, content }) => {
+      // 1:1 保留 V2.0 原行为：先写 planDetailFileName，再异步写 content
+      updateField(code, 'planDetailFileName', fileName)
+      updateField(code, 'content', content)
+    },
+  })
 }
 </script>

@@ -158,6 +158,8 @@ import { Leaf, Upload } from 'lucide-vue-next'
 import { TECH_SOLUTION_SCOPES, PLANTING_MODE_FALLBACK } from '../constants/techSolutionScopes'
 // 修复 P0-006：从字典 store 加载种植模式选项
 import { useDictionaryStore } from '@/stores/modules/dictionary'
+// 修复 P1-2：去重文件读取（共用 utils）
+import { pickAndReadFile } from '@/utils/fileUpload'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -257,23 +259,15 @@ const toggleScope = (scope: string, checked: boolean) => {
 }
 
 const handleFileUpload = () => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.txt,.md,.docx'
-  input.onchange = (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        emit('update:form', {
-          ...props.form,
-          content: event.target?.result as string,
-          planDetailFileName: file.name,
-        })
-      }
-      reader.readAsText(file)
-    }
-  }
-  input.click()
+  pickAndReadFile({
+    accept: '.txt,.md,.docx',
+    onLoad: ({ fileName, content }) => {
+      emit('update:form', {
+        ...props.form,
+        content,
+        planDetailFileName: fileName,
+      })
+    },
+  })
 }
 </script>

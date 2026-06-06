@@ -70,17 +70,29 @@
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-sm font-medium text-gray-700">适用范围（可多选）</label>
-              <div class="flex flex-wrap gap-2">
-                <!-- 修复 P0-005：恢复 V1.1 28 个适用范围枚举（替换 V2.0 7 个"大棚/车间"硬编码） -->
-                <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    :checked="form.scopes.includes(scope)"
-                    @change="(e) => toggleScope(scope, (e.target as HTMLInputElement).checked)"
-                    class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span class="text-sm">{{ scope }}</span>
-                </label>
+              <!-- 修复 P0-1：恢复 V1.1 折叠功能（默认折叠，点击"展开"才显示 28 个 Checkbox）
+                   V1.1 L177-211: scopeExpanded=false 时只渲染"展开"按钮，true 时渲染 Checkbox 列表 -->
+              <div class="space-y-2">
+                <button
+                  type="button"
+                  :class="btnGhost + ' flex items-center gap-1 text-gray-600'"
+                  @click="scopeExpanded = !scopeExpanded"
+                >
+                  <component :is="scopeExpanded ? ChevronUp : ChevronDown" class="w-4 h-4" />
+                  <span>{{ scopeExpanded ? '收起' : '展开' }}</span>
+                </button>
+                <div v-if="scopeExpanded" class="flex flex-wrap gap-2">
+                  <!-- 修复 P0-005：恢复 V1.1 28 个适用范围枚举（替换 V2.0 7 个"大棚/车间"硬编码） -->
+                  <label v-for="scope in TECH_SOLUTION_SCOPES" :key="scope" class="flex items-center gap-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      :checked="form.scopes.includes(scope)"
+                      @change="(e) => toggleScope(scope, (e.target as HTMLInputElement).checked)"
+                      class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span class="text-sm">{{ scope }}</span>
+                  </label>
+                </div>
               </div>
             </div>
             <div class="space-y-1.5">
@@ -106,16 +118,15 @@
               </el-select>
             </div>
           </div>
-          <!-- 第六行：备注（V1.1 L243-250）-->
+          <!-- 第六行：备注（V1.1 L243-250，rows=3）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">备注</label>
-            <textarea v-model="form.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
+            <textarea v-model="form.remarks" rows="3" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
           </div>
-          <!-- 第七行：方案内容（与 EditModal L238-244 + BatchEditModal L299-321 对齐）
-               V1.1 CreateModal 原版无此字段，但 Edit/BatchEdit 都有，补全统一 -->
+          <!-- 第七行：方案内容（V1.1 L252-260）-->
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">方案内容</label>
-            <textarea v-model="form.content" rows="6" :class="inputClass + ' resize-y'" placeholder="请输入方案内容"></textarea>
+            <textarea v-model="form.content" rows="6" :class="inputClass + ' resize-y'" placeholder="请输入方案内容（也可通过下方导入文件自动填充）"></textarea>
           </div>
           <!-- 第八行：方案详细（V1.1 L253-264）-->
           <div class="space-y-1.5">
@@ -142,18 +153,22 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
-import { Leaf, Upload } from 'lucide-vue-next'
+import { Leaf, Upload, ChevronDown, ChevronUp } from 'lucide-vue-next'
 // 修复 P0-005：从共享常量文件导入 28 个适用范围枚举
 import { TECH_SOLUTION_SCOPES, PLANTING_MODE_FALLBACK } from '../constants/techSolutionScopes'
 // 修复 P0-006：从字典 store 加载种植模式选项
 import { useDictionaryStore } from '@/stores/modules/dictionary'
+// 修复 P1-2/P1-3：去重文件读取与方案编号生成（共用 utils）
+import { pickAndReadFile } from '@/utils/fileUpload'
+import { generateTechSolutionCode } from '@/utils/techSolutionHelpers'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
 const btnDefault = `${btnBase} bg-emerald-600 text-white hover:bg-emerald-700 h-8 rounded-md px-3 text-xs`
 const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-200 h-8 rounded-md px-3 text-xs`
 const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded-md px-3 text-xs`
-const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
+const btnGhost = `${btnBase} hover:bg-gray-100 hover:text-gray-900`
+const inputClass = 'flex h-10 w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
 
 // 修复 P0-006：种植模式从字典动态加载
 const dictionaryStore = useDictionaryStore()
@@ -203,6 +218,9 @@ const emit = defineEmits<{
   'update:selectedCrop': [crop: any]
 }>()
 
+// 修复 P0-1：适用范围折叠状态（V1.1 L177 scopeExpanded=true 才渲染 Checkbox 列表）
+const scopeExpanded = ref(false)
+
 const handleCropChange = (code: string, varietyInfo: any) => {
   if (varietyInfo) {
     emit('update:selectedCrop', varietyInfo)
@@ -224,28 +242,18 @@ const toggleScope = (scope: string, checked: boolean) => {
   emit('update:form', { ...props.form, scopes })
 }
 
-const generateCode = () => {
-  return `T${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`
-}
+const generateCode = generateTechSolutionCode
 
 const handleFileUpload = () => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.txt,.md,.docx'
-  input.onchange = (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        emit('update:form', {
-          ...props.form,
-          content: event.target?.result as string,
-          planDetailFileName: file.name,
-        })
-      }
-      reader.readAsText(file)
-    }
-  }
-  input.click()
+  pickAndReadFile({
+    accept: '.txt,.md,.docx',
+    onLoad: ({ fileName, content }) => {
+      emit('update:form', {
+        ...props.form,
+        content,
+        planDetailFileName: fileName,
+      })
+    },
+  })
 }
 </script>

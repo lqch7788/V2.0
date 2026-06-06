@@ -153,9 +153,9 @@
 
 <script setup lang="ts">
 import { Plus, Edit, Trash2, Delete, Download } from 'lucide-vue-next'
-// 修复 P0-002：从数据字典 store 导入同步字典映射函数
+// 修复 P1-1：从共享工具函数导入字典映射（合并 3 处重复实现）
 // V1.1 中种植模式列显示的是字典 label（如"水培"），而非 raw value
-import { useDictionaryStore } from '@/stores/modules/dictionary'
+import { getDictItemNameSync } from '@/utils/dictHelpers'
 
 // 样式常量
 const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
@@ -206,25 +206,4 @@ const emit = defineEmits<{
   'cancelBatch': []
   'cancelExport': []
 }>()
-
-// 修复 P0-002：同步字典映射（与 V1.1 `getDictItemName('planting_mode', ...)` 行为一致）
-// 字典 store 内部维护了 dictionaries 列表，可同步查询
-const dictionaryStore = useDictionaryStore()
-
-/**
- * 同步获取字典项名称
- * V1.1 在 store 中维护完整字典数据，getDictItemName 为同步函数（直接读取内存）
- * V2.0 中字典 store 已加载完整数据，因此可同步读取；如加载失败则降级为 code 本身
- */
-function getDictItemNameSync(category: string, code: string): string {
-  if (!code) return ''
-  try {
-    const item = (dictionaryStore.dictionaries || []).find(
-      (d: any) => d.category === category && d.code === code
-    )
-    return item?.name || code
-  } catch {
-    return code
-  }
-}
 </script>
