@@ -48,10 +48,10 @@
           查看详情
         </button>
       </div>
+      <!-- 修复 P0: 移除冗余 :tech-solutions（ProductionChainTable 内部 onMounted 自行 fetch，此 prop 未被声明为可接收） -->
       <ProductionChainTable
         :type="activeConfig?.tableType || 'plans'"
         :data="tableData"
-        :tech-solutions="techSolutions"
         @view="(record) => console.log('查看记录:', record)"
       />
     </div>

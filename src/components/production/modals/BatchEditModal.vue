@@ -558,18 +558,6 @@ function togglePlantingMode(value) {
   handleFieldChange('plantingMode', current)
 }
 
-function toggleGreenhouse(greenhouse) {
-  const current = [...(formState.value.greenhouseId || [])]
-  const index = current.indexOf(greenhouse.id)
-  if (index === -1) {
-    current.push(greenhouse.id)
-  } else {
-    current.splice(index, 1)
-  }
-  handleFieldChange('greenhouseId', current)
-  handleFieldChange('greenhouseName', current.map(id => props.greenhouses.find(g => g.id === id)?.name).filter(Boolean).join(','))
-}
-
 // 1:1 翻译 V1.1 L226-235 handleFieldChange('greenhouseName', ...)
 // 因为后端 API greenhouseId 永远 null，只能按 name 字符串匹配
 function toggleGreenhouseByName(name, checked) {

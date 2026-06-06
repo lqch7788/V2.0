@@ -461,7 +461,6 @@ export function useProductionPage() {
   async function handleSaveDraft() {
     if (!validateForm()) return
 
-    const today = new Date().toISOString().slice(0, 10)
     const greenhouseIds = formData.value.greenhouseId.join(',')
     // 调试：检查温室ID匹配
     const greenhouseNames = greenhouses.value
@@ -618,10 +617,8 @@ export function useProductionPage() {
       resetForm()
       errors.value = {}
     } catch (error) {
-      console.error('[提交审批失败] 详细错误:', error)
-      console.error('[提交审批失败] error.message:', error?.message)
-      console.error('[提交审批失败] error.stack:', error?.stack)
-      console.error('[提交审批失败] apiData:', apiData)
+      // 修复 P0: 清理调试时遗留的 4 个 console.error（仅保留 1 个）
+      console.error('[提交审批失败]', error)
       await showAlert(`提交审批失败：${error?.message || '请重试'}`)
     }
   }
