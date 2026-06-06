@@ -1,15 +1,14 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/50" @click="emit('close')"></div>
-    <div class="bg-white rounded-xl shadow-xl flex flex-col fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 1080px; max-height: 90vh;">
-      <div class="modal-header flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl cursor-default select-none">
-        <h3 class="text-lg font-semibold text-white">批量编辑技术方案</h3>
-        <button class="text-white hover:bg-emerald-500 rounded-lg p-1" @click="emit('close')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      </div>
-      <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
-        <div class="space-y-4">
+  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
+  <BaseModal
+    :visible="visible"
+    @update:visible="(v) => emit('update:visible', v)"
+    title="批量编辑技术方案"
+    :width="1080"
+    @close="emit('close')"
+  >
+    <div class="p-6">
+      <div class="space-y-4">
           <!-- Info Banner（V1.1 L86-92）-->
           <div class="bg-blue-50 rounded-lg p-3">
             <p class="text-sm text-blue-800">
@@ -202,19 +201,19 @@
               </div>
             </div>
           </div>
-          <!-- Footer Buttons（V1.1 L225-232）-->
-          <div class="flex justify-end gap-3 pt-4 border-t">
-            <button :class="btnSecondary" @click="emit('close')">取消</button>
-            <button :class="btnDefault" @click="emit('save')">保存</button>
-          </div>
         </div>
       </div>
     </div>
-  </div>
+    <template #footer>
+      <button :class="btnSecondary" @click="emit('close')">取消</button>
+      <button :class="btnDefault" @click="emit('save')">保存</button>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
+import BaseModal from '../components/BaseModal.vue'
 import { Upload } from 'lucide-vue-next'
 import { TECH_SOLUTION_SCOPES } from '../constants/techSolutionScopes'
 // 第二阶段 Y1 重构：种植模式加载抽 composable
@@ -248,6 +247,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'close': []
   'save': []
+  'update:visible': [val: boolean]
   'update:editedTechs': [val: Record<string, any>]
   'update:editedTechCodes': [val: string[]]
 }>()

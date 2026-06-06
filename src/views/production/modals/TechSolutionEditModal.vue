@@ -1,15 +1,14 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/50" @click="emit('close')"></div>
-    <div class="bg-white rounded-xl shadow-xl flex flex-col fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 700px; max-height: 90vh;">
-      <div class="modal-header flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl cursor-default select-none">
-        <h3 class="text-lg font-semibold text-white">编辑方案</h3>
-        <button class="text-white hover:bg-emerald-500 rounded-lg p-1" @click="emit('close')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      </div>
-      <div v-if="tech" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
-        <div class="space-y-4">
+  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
+  <BaseModal
+    :visible="visible"
+    @update:visible="(v) => emit('update:visible', v)"
+    title="编辑方案"
+    :width="700"
+    @close="emit('close')"
+  >
+    <div v-if="tech" class="p-6">
+      <div class="space-y-4">
           <!-- 方案编号 + 版本（V1.1 L94-104）-->
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
@@ -142,16 +141,17 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
-        <button :class="btnSecondary" @click="emit('close')">取消</button>
-        <button :class="btnDefault" @click="emit('submit')">保存</button>
-      </div>
     </div>
-  </div>
+    <template #footer>
+      <button :class="btnSecondary" @click="emit('close')">取消</button>
+      <button :class="btnDefault" @click="emit('submit')">保存</button>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import BaseModal from '../components/BaseModal.vue'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf, Upload } from 'lucide-vue-next'
 // 修复 P0-005：从共享常量文件导入 28 个适用范围枚举
@@ -188,6 +188,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'close': []
   'submit': []
+  'update:visible': [val: boolean]
   'update:form': [form: any]
   'update:selectedCrop': [crop: any]
 }>()

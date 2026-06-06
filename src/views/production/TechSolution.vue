@@ -213,6 +213,10 @@ import TechSolutionBatchEditModal from './modals/TechSolutionBatchEditModal.vue'
 import ExportFormatModal from './modals/ExportFormatModal.vue'
 // 修复 P0-014：引入通用 DeleteWarningModal 组件
 import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
+// 第二阶段 Y4 重构：导出格式 + 编制人 + 作物下拉统一从 composables 导入
+import { useExportFormats } from '@/composables/production/useExportFormats'
+import { useOperatorOptions } from '@/composables/production/useOperatorOptions'
+import { useCropOptions } from '@/composables/production/useCropOptions'
 
 // ==================== 样式常量 ====================
 // 第二阶段 Y2 重构：按钮样式抽常量（共享 src/views/production/constants/buttonStyles.js）
@@ -227,11 +231,7 @@ const escapeHtml = (s: any) => String(s ?? '')
   .replace(/'/g, '&#39;')
 
 // ==================== 常量 ====================
-const exportFormats = [
-  { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
-  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' },
-]
+const { exportFormats } = useExportFormats()
 
 // ==================== Store ====================
 const techSolutionStore = useTechSolutionStore()
@@ -254,44 +254,8 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 
 // ==================== 操作人员选项 ====================
-const operatorOptions = ref<{ value: string; label: string }[]>([])
-
-async function loadOperators() {
-  try {
-    const token = localStorage.getItem('token')
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (token) headers['Authorization'] = `Bearer ${token}`
-    const response = await fetch('/api/dictionary/dictionaries?category=operator', { headers })
-    let options: { value: string; label: string }[] = []
-    if (response.ok) {
-      const rawData = await response.json()
-      let data: any[] = []
-      if (Array.isArray(rawData)) data = rawData
-      else if (Array.isArray(rawData?.data)) data = rawData.data
-      else if (Array.isArray(rawData?.result)) data = rawData.result
-      options = data.map((d: any) => ({
-        value: d.dict_label || d.name,
-        label: d.dict_label || d.name,
-      }))
-    }
-    if (options.length === 0) {
-      options = [
-        { value: '陆启闯', label: '陆启闯' },
-        { value: '郭靖', label: '郭靖' },
-        { value: '黄蓉', label: '黄蓉' },
-        { value: '张无忌', label: '张无忌' }
-      ]
-    }
-    operatorOptions.value = options
-  } catch (error) {
-    operatorOptions.value = [
-      { value: '陆启闯', label: '陆启闯' },
-      { value: '郭靖', label: '郭靖' },
-      { value: '黄蓉', label: '黄蓉' },
-      { value: '张无忌', label: '张无忌' }
-    ]
-  }
-}
+// 第二阶段 Y4 重构：编制人下拉数据从 composable 导入
+const { operatorOptions, loadOperators } = useOperatorOptions()
 
 // ==================== 生命周期 ====================
 onMounted(() => {
@@ -331,9 +295,8 @@ const handleFocus = () => {
 }
 
 // ==================== 计算属性 ====================
-const cropOptions = computed(() => {
-  return Array.from(new Set(techSolutions.value.map((t: any) => t.crop).filter(Boolean)))
-})
+// 第二阶段 Y4 重构：作物下拉从 composable 派生
+const { cropOptions } = useCropOptions(() => techSolutions.value)
 
 const filteredTechSolutions = computed(() => {
   return techSolutions.value.filter((tech: any) => {

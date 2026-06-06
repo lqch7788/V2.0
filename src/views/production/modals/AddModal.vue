@@ -1,10 +1,13 @@
 <template>
-  <el-dialog
-    :model-value="visible"
+  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳（订单模块统一对齐技术方案样式） -->
+  <BaseModal
+    :visible="visible"
+    @update:visible="(v) => emit('update:visible', v)"
     title="新增订单"
-    width="800px"
+    :width="800"
     @close="handleClose"
   >
+    <div class="p-6">
     <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
       <el-row :gutter="20">
         <el-col :span="12">
@@ -81,17 +84,19 @@
         <el-input v-model="form.remarks" type="textarea" :rows="3" placeholder="请输入备注" />
       </el-form-item>
     </el-form>
+    </div>
 
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
       <el-button type="primary" @click="handleSubmit" :loading="submitting">提交</el-button>
     </template>
-  </el-dialog>
+  </BaseModal>
 </template>
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import BaseModal from '../components/BaseModal.vue'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import dayjs from 'dayjs'
 
@@ -99,7 +104,7 @@ const props = defineProps({
   visible: Boolean
 })
 
-const emit = defineEmits(['close', 'success'])
+const emit = defineEmits(['close', 'success', 'update:visible'])
 
 const orderDataStore = useOrderDataStore()
 const formRef = ref()

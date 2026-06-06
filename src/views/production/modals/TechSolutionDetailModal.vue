@@ -1,15 +1,14 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/50" @click="emit('close')"></div>
-    <div class="bg-white rounded-xl shadow-xl flex flex-col fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 700px; max-height: 90vh;">
-      <div class="modal-header flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl cursor-default select-none">
-        <h3 class="text-lg font-semibold text-white">方案详情</h3>
-        <button class="text-white hover:bg-emerald-500 rounded-lg p-1" @click="emit('close')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      </div>
-      <div v-if="tech" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col">
-        <div class="space-y-4">
+  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
+  <BaseModal
+    :visible="visible"
+    @update:visible="(v) => emit('update:visible', v)"
+    title="方案详情"
+    :width="700"
+    @close="emit('close')"
+  >
+    <div v-if="tech" class="p-6">
+      <div class="space-y-4">
           <!-- 修复 P0-004：按 V1.1 fields 配置 1:1 补回所有缺失/错位字段
                V1.1 L172-214 字段配置：
                Row1 方案编号 + 版本
@@ -142,10 +141,11 @@
         </div>
       </div>
     </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
+import BaseModal from '../components/BaseModal.vue'
 // 修复 P1-1：详情弹窗也使用共享字典映射（与 V1.1 L183 行为一致）
 import { getDictItemNameSync } from '@/utils/dictHelpers'
 
@@ -159,6 +159,7 @@ interface Props {
 defineProps<Props>()
 const emit = defineEmits<{
   'close': []
+  'update:visible': [val: boolean]
 }>()
 
 // 修复 P1-007：与 V1.1 L75 一致，格式化为 YYYY-MM-DD HH:mm（不含秒）

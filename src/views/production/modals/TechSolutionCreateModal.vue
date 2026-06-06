@@ -1,62 +1,18 @@
 <template>
-  <!-- 修复 P0-UI-MODAL：补齐 V1.1 Modal 缺失的拖动/最大化/调整大小/关闭按钮
-       1:1 翻译 V1.1 CreatePlanModal.tsx 弹窗外壳 + V1.1 Modal.tsx 行为
-       (size="xxxl" 默认 1080x650，showMaximize=true，enableDrag=true，enableResize=true，showCloseButton=true) -->
-  <Teleport to="body">
-    <div
-      v-if="visible"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm"
-      @click="handleClose"
-    >
-      <div
-        id="tech-solution-add-dialog"
-        class="bg-white rounded-xl w-full shadow-xl flex flex-col relative"
-        :style="dialogStyle"
-        @click.stop
-      >
-        <!-- 右下角缩放拖动条（V1.1 enableResize） -->
-        <div
-          v-if="!isMaximized"
-          class="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-10"
-          @mousedown="handleResizeStart"
-        >
-          <svg class="w-full h-full text-gray-300 hover:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22 22H20V20H22V22ZM22 18H20V16H22V18ZM18 22H16V20H18V22ZM22 14H20V12H22V14ZM18 18H16V16H18V18ZM14 22H12V20H14V22Z" />
-          </svg>
-        </div>
-
-        <!-- 头部（V1.1 Modal 渐变 + 最大化 + 关闭） -->
-        <div
-          class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
-          @mousedown="handleDragStart"
-        >
-          <h3 class="text-lg font-semibold text-white flex items-center gap-2 select-none">
-            新增方案
-          </h3>
-          <div class="flex items-center gap-1">
-            <el-button
-              link
-              @click="toggleMaximize"
-              class="hover:bg-white/10"
-              style="color: rgba(255,255,255,0.8);"
-            >
-              <el-icon v-if="isMaximized" style="color: white;"><ScaleToOriginal /></el-icon>
-              <el-icon v-else style="color: white;"><FullScreen /></el-icon>
-            </el-button>
-            <el-button
-              link
-              class="hover:bg-white/10"
-              style="color: rgba(255,255,255,0.8);"
-              @click="handleClose"
-            >
-              <el-icon style="color: white;"><Close /></el-icon>
-            </el-button>
-          </div>
-        </div>
-
-        <!-- 中间滚动内容区 -->
-        <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(85vh - 140px);">
-          <div class="space-y-4">
+  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳（V1.1 size=xxxl 1080x650 + 拖拽+最大化+缩放） -->
+  <BaseModal
+    :visible="visible"
+    @update:visible="(v) => emit('update:visible', v)"
+    title="新增方案"
+    :width="1080"
+    :height="650"
+    :show-maximize="true"
+    :enable-drag="true"
+    :enable-resize="true"
+    @close="emit('close')"
+  >
+    <div class="p-6">
+      <div class="space-y-4">
             <!-- 第一行：方案编号 + 方案标题（V1.1 L102-129）-->
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-1.5">
@@ -185,18 +141,19 @@
           </div>
         </div>
 
-        <!-- 底部按钮（V1.1 Modal showFooter + footer） -->
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
-          <button :class="btnSecondary" @click="emit('submit', 'draft')">存为草稿</button>
-          <button :class="btnDefault" @click="emit('submit', 'submit')">提交审批</button>
-        </div>
+    <!-- 底部按钮（V1.1 Modal showFooter + footer） -->
+    <template #footer>
+      <div class="flex items-center justify-end gap-3">
+        <button :class="btnSecondary" @click="emit('submit', 'draft')">存为草稿</button>
+        <button :class="btnDefault" @click="emit('submit', 'submit')">提交审批</button>
       </div>
-    </div>
-  </Teleport>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import BaseModal from '../components/BaseModal.vue'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf, Upload, ChevronDown, ChevronUp } from 'lucide-vue-next'
 // 修复 P0-005：从共享常量文件导入 28 个适用范围枚举
@@ -229,6 +186,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'close': []
   'submit': [mode: 'draft' | 'submit']
+  'update:visible': [val: boolean]
   'update:form': [form: any]
   'update:selectedCrop': [crop: any]
 }>()
@@ -236,131 +194,6 @@ const emit = defineEmits<{
 // 修复 P0-1：适用范围折叠状态（V1.1 L177 scopeExpanded=true 才渲染 Checkbox 列表）
 // 修复 R3：初值改为 true，让首屏直接看到 28 个适用范围复选框，无需点击"展开"
 const scopeExpanded = ref(true)
-
-// ========== 弹窗交互状态（V1.1 Modal 行为 1:1 对齐） ==========
-// 默认 size="xxxl" = 1080x650（V1.1 Modal.tsx L51）
-const isMaximized = ref(false)
-const dialogPosition = ref({ x: 0, y: 0 })
-const dialogSize = ref({ width: 1080, height: 650 })
-
-// 拖动相关
-let isDragging = false
-let dragOffset = { x: 0, y: 0 }
-
-// 缩放相关
-let isResizing = false
-let resizeStart = { x: 0, y: 0, width: 0, height: 0 }
-
-const dialogStyle = computed(() => {
-  if (isMaximized.value) {
-    return {
-      position: 'fixed' as const,
-      top: '0',
-      left: '0',
-      width: '100vw',
-      height: '100vh',
-      maxWidth: '100vw',
-      maxHeight: '100vh',
-      borderRadius: '0',
-      zIndex: 100,
-    }
-  }
-  return {
-    position: 'fixed' as const,
-    top: dialogPosition.value.y ? `${dialogPosition.value.y}px` : '50%',
-    left: dialogPosition.value.x ? `${dialogPosition.value.x}px` : '50%',
-    transform: dialogPosition.value.x || dialogPosition.value.y ? 'none' : 'translate(-50%, -50%)',
-    width: `${dialogSize.value.width}px`,
-    height: `${dialogSize.value.height}px`,
-    maxWidth: '90vw',
-    maxHeight: '90vh',
-    minWidth: '40rem',
-  }
-})
-
-// ========== 拖动处理（V1.1 Modal enableDrag） ==========
-const handleDragStart = (e: MouseEvent) => {
-  if (isMaximized.value) return
-  isDragging = true
-  // 兼容已定位与 transform 居中两种状态
-  const rect = (e.currentTarget as HTMLElement).parentElement?.getBoundingClientRect()
-  if (rect) {
-    dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top }
-  } else {
-    dragOffset = { x: 0, y: 0 }
-  }
-  e.preventDefault()
-}
-
-const onDragMove = (e: MouseEvent) => {
-  if (!isDragging || isMaximized.value) return
-  const newX = e.clientX - dragOffset.x
-  const newY = e.clientY - dragOffset.y
-  // 边界保护
-  const maxX = window.innerWidth - 100
-  const maxY = window.innerHeight - 50
-  dialogPosition.value = {
-    x: Math.max(0, Math.min(newX, maxX)),
-    y: Math.max(0, Math.min(newY, maxY)),
-  }
-}
-
-const onDragEnd = () => {
-  isDragging = false
-}
-
-// ========== 缩放处理（V1.1 Modal enableResize） ==========
-const handleResizeStart = (e: MouseEvent) => {
-  if (isMaximized.value) return
-  e.preventDefault()
-  isResizing = true
-  resizeStart = {
-    x: e.clientX,
-    y: e.clientY,
-    width: dialogSize.value.width,
-    height: dialogSize.value.height,
-  }
-  document.addEventListener('mousemove', onResizeMove)
-  document.addEventListener('mouseup', onResizeEnd)
-}
-
-const onResizeMove = (e: MouseEvent) => {
-  if (!isResizing) return
-  const dx = e.clientX - resizeStart.x
-  const dy = e.clientY - resizeStart.y
-  dialogSize.value = {
-    width: Math.max(640, resizeStart.width + dx),
-    height: Math.max(400, resizeStart.height + dy),
-  }
-}
-
-const onResizeEnd = () => {
-  isResizing = false
-  document.removeEventListener('mousemove', onResizeMove)
-  document.removeEventListener('mouseup', onResizeEnd)
-}
-
-// ========== 最大化（V1.1 Modal showMaximize） ==========
-const toggleMaximize = () => {
-  isMaximized.value = !isMaximized.value
-}
-
-// ========== 关闭（点击遮罩 + 关闭按钮 + ESC） ==========
-const handleClose = () => {
-  emit('close')
-}
-
-// 拖动/缩放事件挂在 document 上
-onMounted(() => {
-  document.addEventListener('mousemove', onDragMove)
-  document.addEventListener('mouseup', onDragEnd)
-})
-onUnmounted(() => {
-  document.removeEventListener('mousemove', onDragMove)
-  document.removeEventListener('mouseup', onDragEnd)
-  document.removeEventListener('mousemove', onResizeMove)
-  document.removeEventListener('mouseup', onResizeEnd)
-})
 
 const handleCropChange = (code: string, varietyInfo: any) => {
   if (varietyInfo) {

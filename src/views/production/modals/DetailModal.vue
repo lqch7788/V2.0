@@ -1,10 +1,13 @@
 <template>
-  <el-dialog
-    :model-value="visible"
+  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
+  <BaseModal
+    :visible="visible"
+    @update:visible="(v) => emit('update:visible', v)"
     title="订单详情"
-    width="700px"
+    :width="700"
     @close="handleClose"
   >
+    <div class="p-6">
     <div class="space-y-4" v-if="record">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="订单编号">
@@ -53,19 +56,21 @@
         </el-descriptions-item>
       </el-descriptions>
     </div>
+    </div>
 
     <template #footer>
       <el-button @click="handleClose">关闭</el-button>
     </template>
-  </el-dialog>
+  </BaseModal>
 </template>
 
 <script setup>
+import BaseModal from '../components/BaseModal.vue'
 import {  CropOrder  } from '@/types/crop'
 
 defineProps({})
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'update:visible'])
 
 const getOrderTypeName = (type) => {
   const typeMap = {
