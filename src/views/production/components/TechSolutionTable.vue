@@ -157,13 +157,8 @@ import { Plus, Edit, Trash2, Delete, Download } from 'lucide-vue-next'
 // V1.1 中种植模式列显示的是字典 label（如"水培"），而非 raw value
 import { getDictItemNameSync } from '@/utils/dictHelpers'
 
-// 样式常量
-const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
-const btnDefault = `${btnBase} bg-emerald-600 text-white hover:bg-emerald-700 h-8 rounded-md px-3 text-xs`
-const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-200 h-8 rounded-md px-3 text-xs`
-const btnDestructive = `${btnBase} bg-red-600 text-white hover:bg-red-700 h-8 rounded-md px-3 text-xs`
-const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded-md px-3 text-xs`
-const btnGhost = `${btnBase} hover:bg-gray-100 hover:text-gray-900`
+// 第二阶段 Y2 重构：按钮样式抽常量
+import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnGhost } from '../constants/buttonStyles'
 
 interface Props {
   data: any[]

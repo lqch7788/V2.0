@@ -162,12 +162,8 @@ import { usePlantingModes } from '@/composables/production/usePlantingModes'
 import { pickAndReadFile } from '@/utils/fileUpload'
 
 // 样式常量
-const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
-const btnDefault = `${btnBase} bg-emerald-600 text-white hover:bg-emerald-700 h-8 rounded-md px-3 text-xs`
-const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-200 h-8 rounded-md px-3 text-xs`
-const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded-md px-3 text-xs`
-const btnGhost = `${btnBase} hover:bg-gray-100 hover:text-gray-900`
-const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'
+// 第二阶段 Y2 重构：按钮样式抽常量（EditModal 沿用紧凑版 inputClass）
+import { btnDefault, btnSecondary, btnBlue, btnGhost, inputClass } from '../constants/buttonStyles'
 
 // 修复 P0-006：种植模式从字典动态加载（第二阶段 Y1 重构：抽 composable）
 const { plantingModes, loadPlantingModes } = usePlantingModes()

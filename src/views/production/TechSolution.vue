@@ -215,10 +215,8 @@ import ExportFormatModal from './modals/ExportFormatModal.vue'
 import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
 
 // ==================== 样式常量 ====================
-const btnBase = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
-const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-200 h-8 rounded-md px-3 text-xs`
-const btnDestructive = `${btnBase} bg-red-600 text-white hover:bg-red-700 h-8 rounded-md px-3 text-xs`
-const btnGhost = `${btnBase} hover:bg-gray-100 hover:text-gray-900`
+// 第二阶段 Y2 重构：按钮样式抽常量（共享 src/views/production/constants/buttonStyles.js）
+import { btnSecondary, btnDestructive, btnGhost } from './constants/buttonStyles'
 
 // ==================== 常量 ====================
 const exportFormats = [
