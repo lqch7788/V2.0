@@ -253,28 +253,31 @@ function useComprehensiveDispatchPlaceholder() {
  * }}
  */
 export function useDailyTaskPlanning() {
-  // 获取农事任务数据
-  const { tasks, createTask, updateTask } = useTasks()
+  // 获取农事任务数据（V1.1 1:1 翻译）
+  // - tasks: 在 getWorkerLoadAnalysis + getPendingDispatchTasks 消费
+  // - createTask: 在 confirmAndDispatch 消费
+  // - updateTask: V1.1 解构但本文件未使用，修复 P0 删除避免 lint 抑制
+  const { tasks, createTask } = useTasks()
 
   // 获取临时任务数据（V1.1 行为：tempTasks 列表，用于 getWorkerLoadAnalysis 统计）
   const { tempTasks } = useTempTasksPlaceholder()
 
-  // 获取考勤数据
-  const { attendance } = usePersistentAttendance()
-
-  // 获取工人匹配功能（V1.1 中 getRecommendations 未在本文件实际使用，保留 1:1 接口）
-  const { getRecommendations } = useComprehensiveDispatchPlaceholder()
+  // 修复 P0: 删除 V1.1 解构但本文件未使用的变量（保持代码清爽）
+  // - attendance: usePersistentAttendance 的返回值在本文件未消费
+  // - getRecommendations: useComprehensiveDispatchPlaceholder 的返回值未使用
+  // - fetchProductionPlans: computed 包装的 fetchPlans 未在文件内调用
 
   // 响应式订阅生产计划 Store 数据（V1.1: useProductionPlanStore selector）
   const productionPlanStore = useProductionPlanStore()
   const storeBatches = computed(() => productionPlanStore.plans || [])
-  const fetchProductionPlans = computed(() => productionPlanStore.fetchPlans)
 
   // 每日计划 Store（持久化到服务器）
   const dailyPlanStore = useDailyPlanningStore()
 
   // 存储上次任务执行日期记录（仍使用 localStorage）
-  const [lastTaskDates, setLastTaskDates] = useLocalStorage('yuanxingtu_daily_planning_last_tasks', {})
+  // - lastTaskDates 未在文件内直接读取（仅 setLastTaskDates 在 confirmAndDispatch 消费）
+  // 修复 P0：移除未使用的 lastTaskDates 解构
+  const [, setLastTaskDates] = useLocalStorage('yuanxingtu_daily_planning_last_tasks', {})
 
   // 初始化时从服务器获取每日计划
   // 1:1 翻译 V1.1 useEffect(() => { dailyPlanStore.fetchPlans(); }, [])
@@ -618,17 +621,8 @@ export function useDailyTaskPlanning() {
   }
 
   // ============================================
-  // 1:1 翻译 V1.1：保留解构引用（虽然后续未使用，避免破坏 V1.1 行为约定）
+  // 修复 P0: 移除 V1.1 行为约定的 5 个 void 抑制（未使用解构已在上方清理）
   // ============================================
-  // V1.1 中 createTask/updateTask/getRecommendations/attendance/fetchProductionPlans
-  // 均已解构用于函数体或被消费，本实现保持对应消费关系。
-
-  // 静默引用未使用变量以保持 V1.1 解构完整性（防止 lint 误报，且不改变运行时行为）
-  void updateTask
-  void attendance
-  void getRecommendations
-  void fetchProductionPlans
-  void lastTaskDates
 
   return {
     generateDailyPlan,

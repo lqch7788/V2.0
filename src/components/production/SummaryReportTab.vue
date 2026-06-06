@@ -49,10 +49,11 @@
         </button>
       </div>
       <!-- 修复 P0: 移除冗余 :tech-solutions（ProductionChainTable 内部 onMounted 自行 fetch，此 prop 未被声明为可接收） -->
+      <!-- 修复 P0: @view 改为真实导航（与顶部"查看详情"按钮行为一致，调用 router.push） -->
       <ProductionChainTable
         :type="activeConfig?.tableType || 'plans'"
         :data="tableData"
-        @view="(record) => console.log('查看记录:', record)"
+        @view="handleViewRecord"
       />
     </div>
   </div>
@@ -174,10 +175,15 @@ const tableData = computed(() => {
   }
 })
 
-// 查看详情跳转
+// 查看详情跳转（顶部"查看详情"按钮）
 function handleViewDetail() {
   if (activeConfig.value) {
     router.push(activeConfig.value.routePath)
   }
+}
+
+// 修复 P0: 行级"查看"按钮：与顶部按钮行为一致，跳转到当前 Tab 对应页面
+function handleViewRecord() {
+  handleViewDetail()
 }
 </script>

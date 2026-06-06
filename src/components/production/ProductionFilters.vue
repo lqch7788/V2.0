@@ -112,10 +112,7 @@
   </div>
 </template>
 
-<script>
-import { Search } from 'lucide-vue-next'
-import { batchStatusLabels, PlanTypeLabels } from './constants'
-
+<script setup lang="ts">
 /**
  * 生产计划筛选器 - 1:1 翻译自 V1.1 ProductionFilters.tsx
  *
@@ -124,130 +121,78 @@ import { batchStatusLabels, PlanTypeLabels } from './constants'
  *
  * @example V1.1: onBatchCodeChange: (value: string) => void
  *          V2.0: emit('batchCodeChange', value)
+ *
+ * 修复 P0: 从 Options API 改写为 <script setup> 风格
+ * （与 V2.0 其他组件保持一致，移除显式 emits 数组 + this.$emit 改为 emit()）
+ * - props/emit 接口 1:1 保持不变
+ * - data() 转为 ref()（Vue 3 自动 unwrap，template 无需改）
+ * - methods 转为普通函数
  */
-export default {
-  name: 'ProductionFilters',
-  props: {
-    /** @type {String} 批次编号搜索值 - 对应 V1.1 batchCodeSearch */
-    batchCodeSearch: { type: String, default: '' },
-    /** @type {String} 种植模式搜索值 - 对应 V1.1 plantingModeSearch */
-    plantingModeSearch: { type: String, default: '' },
-    /** @type {String} 作物名称搜索值 - 对应 V1.1 cropNameSearch */
-    cropNameSearch: { type: String, default: '' },
-    /** @type {String} 作物品种搜索值 - 对应 V1.1 varietySearch */
-    varietySearch: { type: String, default: '' },
-    /** @type {String} 种植区域搜索值 - 对应 V1.1 greenhouseSearch */
-    greenhouseSearch: { type: String, default: '' },
-    /** @type {String} 状态下拉值 - 对应 V1.1 statusFilter */
-    statusFilter: { type: String, default: 'all' },
-    /** @type {String} 计划类型下拉值 - 对应 V1.1 planTypeFilter */
-    planTypeFilter: { type: String, default: 'all' },
-  },
-  emits: [
-    // 1:1 翻译 V1.1 onXxxChange 回调名
-    'batchCodeChange',
-    'plantingModeChange',
-    'cropNameChange',
-    'varietyChange',
-    'greenhouseChange',
-    'statusChange',
-    'planTypeChange',
-    // 1:1 翻译 V1.1 onReset / onSearch
-    'reset',
-    'search',
-  ],
-  data() {
-    return {
-      // 1:1 翻译 V1.1 受控输入的本地镜像（对应 V1.1 useState）
-      /** @type {String} 批次编号本地值 */
-      localBatchCode: '',
-      /** @type {String} 种植模式本地值 */
-      localPlantingMode: '',
-      /** @type {String} 作物名称本地值 */
-      localCropName: '',
-      /** @type {String} 作物品种本地值 */
-      localVariety: '',
-      /** @type {String} 种植区域本地值 */
-      localGreenhouse: '',
-      /** @type {String} 状态下拉本地值 */
-      localStatus: 'all',
-      /** @type {String} 计划类型下拉本地值 */
-      localPlanType: 'all',
-      // 暴露 import 常量给 template（Options API 中 import 不自动暴露）
-      // 1:1 对应 V1.1 line 58, 118 Object.entries(PlanTypeLabels/batchStatusLabels)
-      PlanTypeLabels,
-      batchStatusLabels,
-    }
-  },
-  watch: {
-    // 1:1 同步 props 到本地镜像（对应 V1.1 受控组件 props 流向）
-    batchCodeSearch: {
-      immediate: true,
-      handler(v) { this.localBatchCode = v },
-    },
-    plantingModeSearch: {
-      immediate: true,
-      handler(v) { this.localPlantingMode = v },
-    },
-    cropNameSearch: {
-      immediate: true,
-      handler(v) { this.localCropName = v },
-    },
-    varietySearch: {
-      immediate: true,
-      handler(v) { this.localVariety = v },
-    },
-    greenhouseSearch: {
-      immediate: true,
-      handler(v) { this.localGreenhouse = v },
-    },
-    statusFilter: {
-      immediate: true,
-      handler(v) { this.localStatus = v },
-    },
-    planTypeFilter: {
-      immediate: true,
-      handler(v) { this.localPlanType = v },
-    },
-  },
-  methods: {
-    // 1:1 翻译 V1.1 onChange={(e) => onBatchCodeChange(e.target.value)}
-    /** @param {string} v 输入值 */
-    handleBatchCodeChange(v) {
-      this.$emit('batchCodeChange', v)
-    },
-    /** @param {string} v 输入值 */
-    handlePlantingModeChange(v) {
-      this.$emit('plantingModeChange', v)
-    },
-    /** @param {string} v 输入值 */
-    handleCropNameChange(v) {
-      this.$emit('cropNameChange', v)
-    },
-    /** @param {string} v 输入值 */
-    handleVarietyChange(v) {
-      this.$emit('varietyChange', v)
-    },
-    /** @param {string} v 输入值 */
-    handleGreenhouseChange(v) {
-      this.$emit('greenhouseChange', v)
-    },
-    // 1:1 翻译 V1.1 onValueChange={(v) => onStatusChange(v)}
-    /** @param {string} v 下拉选中值 */
-    handleStatusChange(v) {
-      this.$emit('statusChange', v)
-    },
-    /** @param {string} v 下拉选中值 */
-    handlePlanTypeChange(v) {
-      this.$emit('planTypeChange', v)
-    },
-    // 1:1 翻译 V1.1 onClick={onReset} / onClick={onSearch}
-    handleReset() {
-      this.$emit('reset')
-    },
-    handleSearch() {
-      this.$emit('search')
-    },
-  },
-}
+import { ref, watch } from 'vue'
+import { Search } from 'lucide-vue-next'
+import { batchStatusLabels, PlanTypeLabels } from './constants'
+
+const props = defineProps({
+  /** @type {String} 批次编号搜索值 - 对应 V1.1 batchCodeSearch */
+  batchCodeSearch: { type: String, default: '' },
+  /** @type {String} 种植模式搜索值 - 对应 V1.1 plantingModeSearch */
+  plantingModeSearch: { type: String, default: '' },
+  /** @type {String} 作物名称搜索值 - 对应 V1.1 cropNameSearch */
+  cropNameSearch: { type: String, default: '' },
+  /** @type {String} 作物品种搜索值 - 对应 V1.1 varietySearch */
+  varietySearch: { type: String, default: '' },
+  /** @type {String} 种植区域搜索值 - 对应 V1.1 greenhouseSearch */
+  greenhouseSearch: { type: String, default: '' },
+  /** @type {String} 状态下拉值 - 对应 V1.1 statusFilter */
+  statusFilter: { type: String, default: 'all' },
+  /** @type {String} 计划类型下拉值 - 对应 V1.1 planTypeFilter */
+  planTypeFilter: { type: String, default: 'all' },
+})
+
+const emit = defineEmits([
+  // 1:1 翻译 V1.1 onXxxChange 回调名
+  'batchCodeChange',
+  'plantingModeChange',
+  'cropNameChange',
+  'varietyChange',
+  'greenhouseChange',
+  'statusChange',
+  'planTypeChange',
+  // 1:1 翻译 V1.1 onReset / onSearch
+  'reset',
+  'search',
+])
+
+// 1:1 翻译 V1.1 受控输入的本地镜像（对应 V1.1 useState）
+const localBatchCode = ref('')
+const localPlantingMode = ref('')
+const localCropName = ref('')
+const localVariety = ref('')
+const localGreenhouse = ref('')
+const localStatus = ref('all')
+const localPlanType = ref('all')
+
+// 1:1 同步 props 到本地镜像（对应 V1.1 受控组件 props 流向）
+watch(() => props.batchCodeSearch, (v) => { localBatchCode.value = v }, { immediate: true })
+watch(() => props.plantingModeSearch, (v) => { localPlantingMode.value = v }, { immediate: true })
+watch(() => props.cropNameSearch, (v) => { localCropName.value = v }, { immediate: true })
+watch(() => props.varietySearch, (v) => { localVariety.value = v }, { immediate: true })
+watch(() => props.greenhouseSearch, (v) => { localGreenhouse.value = v }, { immediate: true })
+watch(() => props.statusFilter, (v) => { localStatus.value = v }, { immediate: true })
+watch(() => props.planTypeFilter, (v) => { localPlanType.value = v }, { immediate: true })
+
+// 1:1 翻译 V1.1 onChange={(e) => onBatchCodeChange(e.target.value)}
+function handleBatchCodeChange(v) { emit('batchCodeChange', v) }
+function handlePlantingModeChange(v) { emit('plantingModeChange', v) }
+function handleCropNameChange(v) { emit('cropNameChange', v) }
+function handleVarietyChange(v) { emit('varietyChange', v) }
+function handleGreenhouseChange(v) { emit('greenhouseChange', v) }
+
+// 1:1 翻译 V1.1 onValueChange={(v) => onStatusChange(v)}
+function handleStatusChange(v) { emit('statusChange', v) }
+function handlePlanTypeChange(v) { emit('planTypeChange', v) }
+
+// 1:1 翻译 V1.1 onClick={onReset} / onClick={onSearch}
+function handleReset() { emit('reset') }
+function handleSearch() { emit('search') }
 </script>
