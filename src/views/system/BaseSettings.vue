@@ -405,8 +405,8 @@ const loadCompanyGroups = () => {
 // 保存数据到 localStorage 并通知园区总览更新
 const saveCompanyGroups = (data) => {
   localStorage.setItem(COMPANY_GROUPS_KEY, JSON.stringify(data))
-  // 触发园区总览页面刷新
-  window.dispatchEvent(new CustomEvent('companyGroupsUpdated'))
+  // 触发园区总览页面刷新（事件名与 V1.1 FarmStructureManagement 一致：farmStructureUpdated）
+  window.dispatchEvent(new CustomEvent('farmStructureUpdated'))
 }
 
 // 响应式数据

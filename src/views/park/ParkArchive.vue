@@ -334,6 +334,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Search, ArrowDown, ArrowRight, Location, MapLocation, Back, FullScreen, Rank, Setting } from '@element-plus/icons-vue'
+// 修复 P1-1：接入 V2.0 真实 API 数据源（与 V1.1 行为对齐）
+import { useBaseStore } from '@/stores/modules/baseStore'
 
 // localStorage key - 与 V1.1 保持一致
 const COMPANY_GROUPS_KEY = 'yuanxingtu_company_groups'
@@ -383,6 +385,68 @@ let mapInstance = null
 let mapInitTimer = null // V1.1: useEffect cleanup 中的 clearTimeout(timer)
 
 const companyGroups = ref(loadCompanyGroupsFromStorage())
+
+// 修复 P1-1：V2.0 真实数据源（V1.1 同款 loadCompanyGroupsFromAPI 行为）
+// 后端 API 不可用时自动回退到 localStorage 兜底（V2.0 比 V1.1 更安全）
+const baseStore = useBaseStore()
+
+/**
+ * 将 V2.0 baseStore 数据转换为 V1.1 companyGroups 格式
+ * 修复 P1-1：与 V1.1 loadCompanyGroupsFromAPI 输出结构 1:1 对齐
+ */
+function buildCompanyGroupsFromAPI(bases) {
+  const companyMap = new Map()
+  bases.forEach((base) => {
+    const companyOid = base.companyOid || 'default'
+    const companyName = base.companyName || '未知公司'
+    if (!companyMap.has(companyOid)) {
+      companyMap.set(companyOid, {
+        id: parseInt(companyOid.replace(/\D/g, '').slice(-8)) || Date.now(),
+        name: companyName,
+        bases: [],
+      })
+    }
+    companyMap.get(companyOid).bases.push({
+      id: base.id || parseInt((base.oid || '').replace(/\D/g, '').slice(-8)) || Date.now(),
+      name: base.name,
+      area: base.area || 0,
+      unit: base.unit || '亩',
+      crop: base.crop || '',
+      growthDay: base.growthDay || 0,
+      status: base.status || 'active',
+      statusText: base.status === 'active' ? '种植中' : base.status === 'inactive' ? '已停用' : '种植中',
+      manager: base.manager || '',
+      phone: base.phone || '',
+      soilType: base.soilType || '',
+      ph: base.ph || 0,
+      coords: base.lng && base.lat ? `${base.lng},${base.lat}` : '',
+      city: base.city || '',
+      province: base.province || '',
+      lng: base.lng || 0,
+      lat: base.lat || 0,
+      intro: base.intro || '',
+      greenhouseCount: base.greenhouseCount || 0,
+      fieldArea: base.fieldArea || 0,
+    })
+  })
+  return Array.from(companyMap.values())
+}
+
+async function loadRealBasesFromAPI() {
+  try {
+    await baseStore.loadBases()
+    const realBases = baseStore.bases || []
+    if (realBases.length > 0) {
+      // API 有数据：覆盖 localStorage 数据（V1.1 行为）
+      companyGroups.value = buildCompanyGroupsFromAPI(realBases)
+      expandedCompanies.value = companyGroups.value.map(g => g.id)
+    }
+    // API 无数据：保持 localStorage 兜底
+  } catch (e) {
+    // 静默回退：保持 localStorage 数据
+    console.warn('API 加载基地数据失败，使用本地兜底:', e?.message)
+  }
+}
 
 const searchName = ref('')
 const statusFilter = ref('all')
@@ -623,12 +687,15 @@ const handleShowBaseDetail = (e) => {
   }
 }
 
-// 监听基地设置更新事件 - V1.1: window.addEventListener('companyGroupsUpdated', ...)
+// 监听基地设置更新事件 - V1.1: window.addEventListener('farmStructureUpdated', ...)
 const handleUpdate = () => {
   companyGroups.value = loadCompanyGroupsFromStorage()
 }
 
 onMounted(() => {
+  // 修复 P1-1：异步加载真实 API 数据（与 V1.1 loadCompanyGroupsFromAPI 行为一致）
+  loadRealBasesFromAPI()
+
   // V1.1: setTimeout → 检查 window.L → initMap
   mapInitTimer = setTimeout(() => {
     if (window.L) {
@@ -640,8 +707,8 @@ onMounted(() => {
 
   // V1.1: 监听地图弹窗中的查看详情按钮点击
   window.addEventListener('showBaseDetail', handleShowBaseDetail)
-  // V1.1: 监听基地设置更新事件
-  window.addEventListener('companyGroupsUpdated', handleUpdate)
+  // V1.1: 监听基地设置更新事件（事件名与 V1.1 FarmStructureManagement 一致：farmStructureUpdated）
+  window.addEventListener('farmStructureUpdated', handleUpdate)
 })
 
 onUnmounted(() => {
@@ -655,7 +722,7 @@ onUnmounted(() => {
     mapInstance = null
   }
   window.removeEventListener('showBaseDetail', handleShowBaseDetail)
-  window.removeEventListener('companyGroupsUpdated', handleUpdate)
+  window.removeEventListener('farmStructureUpdated', handleUpdate)
 })
 </script>
 
