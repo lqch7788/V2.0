@@ -33,6 +33,10 @@
           <el-option label="已发布" value="已发布" />
           <el-option label="草稿" value="草稿" />
           <el-option label="审核中" value="审核中" />
+          <!-- 修复 Y5: 补全待审批/已拒绝/已作废（与表格实际状态对齐） -->
+          <el-option label="待审批" value="待审批" />
+          <el-option label="已拒绝" value="已拒绝" />
+          <el-option label="已作废" value="已作废" />
         </el-select>
       </div>
       <div class="flex-1 min-w-[180px]">

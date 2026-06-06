@@ -218,6 +218,14 @@ import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
 // 第二阶段 Y2 重构：按钮样式抽常量（共享 src/views/production/constants/buttonStyles.js）
 import { btnSecondary, btnDestructive, btnGhost } from './constants/buttonStyles'
 
+// 修复 Y6: HTML 转义工具函数（导出时防止 XSS 和表格结构破坏）
+const escapeHtml = (s: any) => String(s ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;')
+
 // ==================== 常量 ====================
 const exportFormats = [
   { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
@@ -302,14 +310,24 @@ onUnmounted(() => {
   window.removeEventListener('focus', handleFocus)
 })
 
-const handleVisibilityChange = () => {
-  if (document.visibilityState === 'visible') {
+// 修复 Y4: visibilitychange + focus 同时触发 fetchSolutions 会发起 2 次请求
+// 改为单一入口 + 1 秒节流，避免重复请求
+let lastFetchAt = 0
+const refreshIfStale = () => {
+  if (Date.now() - lastFetchAt > 1000) {
+    lastFetchAt = Date.now()
     fetchSolutions()
   }
 }
 
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    refreshIfStale()
+  }
+}
+
 const handleFocus = () => {
-  fetchSolutions()
+  refreshIfStale()
 }
 
 // ==================== 计算属性 ====================
@@ -456,7 +474,9 @@ const handleViewClick = async (tech: any) => {
   try {
     const approvals = await getTechSolutionApprovals(tech.id)
     viewApprovals.value = approvals || []
-  } catch {
+  } catch (err) {
+    // 修复 Y7: catch 块增加日志（Rule 12 Fail Loud）
+    console.error('[TechSolution] 获取审批记录失败:', err)
     viewApprovals.value = []
   } finally {
     viewApprovalsLoading.value = false
@@ -665,13 +685,18 @@ const handleDoExport = async () => {
   let extension = ''
 
   if (exportFormat.value === 'csv') {
+    // 修复 Y6: CSV 字段值中的逗号/引号需转义（避免破坏列结构）
     content = headers.join(',') + '\n' + exportData.map((row: any) =>
-      headers.map((h: string) => `"${row[h as keyof typeof row] || ''}"`).join(',')
+      headers.map((h: string) => {
+        const cell = String(row[h as keyof typeof row] ?? '').replace(/"/g, '""')
+        return `"${cell}"`
+      }).join(',')
     ).join('\n')
     mimeType = 'text/csv;charset=utf-8'
     extension = 'csv'
   } else if (exportFormat.value === 'excel') {
-    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map((h: string) => `<th>${h}</th>`).join('')}</tr>${exportData.map((row: any) => `<tr>${headers.map((h: string) => `<td>${row[h as keyof typeof row] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    // 修复 Y6: Excel 单元格值需 HTML 转义（防 < > & " ' 破坏表格结构）
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map((h: string) => `<th>${escapeHtml(h)}</th>`).join('')}</tr>${exportData.map((row: any) => `<tr>${headers.map((h: string) => `<td>${escapeHtml(row[h as keyof typeof row])}</td>`).join('')}</tr>`).join('')}</table></body></html>`
     mimeType = 'application/vnd.ms-excel;charset=utf-8'
     extension = 'xls'
   } else if (exportFormat.value === 'word') {
@@ -732,9 +757,8 @@ const handleDeleteClick = () => {
 }
 
 const handleDeleteConfirm = async () => {
-  const selectedIds = techSolutions.value
-    .filter((t: any) => selectedRows.value.includes(t.id))
-    .map((t: any) => t.id)
+  // 修复 Y8: 简化 filter+map（selectedRows 已是 id 数组，直接用）
+  const selectedIds = [...selectedRows.value]
   try {
     await deleteSolutions(selectedIds)
   } catch (error) {

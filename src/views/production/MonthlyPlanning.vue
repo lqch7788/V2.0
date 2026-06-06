@@ -127,7 +127,7 @@
               <td class="px-4 py-3 text-center whitespace-nowrap">
                 <span :class="[
                   'inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-sm font-semibold',
-                  batch.batchStatus === 'in_progress' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                  batch.batchStatus === 'in_progress' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
                 ]">
                   {{ batchStatusLabel(batch.batchStatus) }}
                 </span>
@@ -171,7 +171,13 @@
       <!-- Tab内容 -->
       <div class="p-4">
         <!-- 规划概览 -->
-        <div v-if="activeSubTab === 'overview' && monthlyPlan" class="space-y-6">
+        <!-- 修复 Y11: 统一空态守卫（5 个 tab 共享） -->
+        <div v-if="!monthlyPlan" class="bg-white rounded-xl shadow-sm p-12 text-center">
+          <el-icon class="text-6xl text-gray-300 mb-4"><Document /></el-icon>
+          <p class="text-gray-500 text-lg">暂无月度计划数据</p>
+          <p class="text-gray-400 text-sm mt-2">请选择月份和批次后点击"重新生成"按钮</p>
+        </div>
+        <div v-else-if="activeSubTab === 'overview' && monthlyPlan" class="space-y-6">
           <h3 class="text-lg font-semibold text-gray-900">任务类型分布</h3>
           <div class="grid grid-cols-4 gap-4">
             <div v-for="(item, index) in taskTypeSummary.slice(0, 4)" :key="index" class="bg-gray-50 rounded-lg p-4 border border-gray-100">
@@ -498,10 +504,9 @@ const paginatedMaterialData = computed(() => {
   return monthlyPlan.value.materialRequirements.slice(start, start + materialPageSize.value)
 })
 const materialTotalPages = computed(() => Math.ceil((monthlyPlan.value?.materialRequirements.length || 0) / materialPageSize.value))
-const materialTotalPrice = computed(() => {
-  if (!monthlyPlan.value) return 0
-  return monthlyPlan.value.materialRequirements.reduce((sum, m) => sum + m.estimatedTotalPrice, 0)
-})
+// 修复 Y7: 直接用 plan.costBreakdown.materialCost（避免双重聚合）
+// 原 materialTotalPrice computed 与 plan.costBreakdown.materialCost 重复计算同一份数据
+const materialTotalPrice = computed(() => monthlyPlan.value?.costBreakdown?.materialCost || 0)
 
 /** 分页后的人员需求 */
 const paginatedWorkerData = computed(() => {
