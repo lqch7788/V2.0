@@ -5,7 +5,8 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <a
-            href="/settings"
+            href="javascript:void(0)"
+            @click="router.push('/settings')"
             class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
             title="返回系统设置"
           >
@@ -75,7 +76,8 @@
           />
           <!-- 状态 -->
           <el-select v-model="pestDiseaseStore.filters.status" placeholder="状态" class="w-28">
-            <el-option label="状态" value="" />
+            <!-- 修复 P1-8: label 改为"全部"避免与 placeholder 重复 -->
+            <el-option label="全部" value="" />
             <el-option label="启用" value="active" />
             <el-option label="禁用" value="inactive" />
           </el-select>
@@ -96,12 +98,17 @@
       <!-- 表格 -->
       <div class="p-4">
         <el-table
-          :data="pestDiseaseStore.filteredItems"
+          :data="paginatedItems"
           v-loading="pestDiseaseStore.loading"
           stripe
           style="width: 100%"
         >
-          <el-table-column prop="dictCode" label="编码" width="150" />
+          <el-table-column prop="dictCode" label="编码" width="150">
+            <!-- 修复 P1-3: 编码列蓝色 mono 字体（V1.1 PestDiseaseDictTable.tsx L93 风格） -->
+            <template #default="{ row }">
+              <span class="font-mono text-blue-600">{{ row.dictCode }}</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="dictName" label="名称" min-width="150" />
           <el-table-column prop="dictType" label="类型" width="100">
             <template #default="{ row }">
@@ -115,19 +122,32 @@
           <el-table-column label="操作" width="180" fixed="right">
             <template #default="{ row }">
               <div class="flex items-center gap-1">
-                <el-button text size="small" @click="handleDetail(row)" class="action-btn edit-btn">
+                <!-- 修复 P1-5: 操作列加 title tooltip（V1.1 PestDiseaseDictTable.tsx 风格） -->
+                <el-button text size="small" @click="handleDetail(row)" class="action-btn edit-btn" title="查看详情">
                   <el-icon><View /></el-icon>
                 </el-button>
-                <el-button text size="small" @click="handleEdit(row)" class="action-btn edit-btn">
+                <el-button text size="small" @click="handleEdit(row)" class="action-btn edit-btn" title="编辑">
                   <el-icon><Edit /></el-icon>
                 </el-button>
-                <el-button text size="small" @click="handleDelete(row)" class="action-btn delete-btn">
+                <el-button text size="small" @click="handleDelete(row)" class="action-btn delete-btn" title="删除">
                   <el-icon><Delete /></el-icon>
                 </el-button>
               </div>
             </template>
           </el-table-column>
         </el-table>
+        <!-- 修复 P1-2: 表格分页（V1.1 PestDiseaseDictTable.tsx L152 风格） -->
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-end">
+          <el-pagination
+            v-model:current-page="currentPage"
+            :page-size="pageSize"
+            :total="pestDiseaseStore.filteredItems.length"
+            layout="prev, pager, next, sizes, total"
+            :page-sizes="[10, 20, 50]"
+            background
+            @current-change="() => {}"
+          />
+        </div>
       </div>
     </div>
 
@@ -135,7 +155,7 @@
     <el-dialog
       v-model="addDialogVisible"
       :title="`新增${activeTab === 'pest' ? '虫害' : '病害'}字典`"
-      width="900px"
+      width="1100px"
       :close-on-click-modal="false"
     >
       <div class="space-y-4 max-h-[70vh] overflow-y-auto">
@@ -189,7 +209,8 @@
             <div v-if="filteredPesticides.length === 0" class="text-center text-gray-400 py-4 text-sm">无匹配药剂</div>
             <div v-for="pesticide in filteredPesticides" :key="pesticide.id" @click="togglePesticide(pesticide.id)" :class="['px-3 py-2 rounded-lg text-sm cursor-pointer mb-1 transition-all', selectedPesticideIds.includes(pesticide.id) ? 'bg-green-100 border border-green-300 text-green-700' : 'bg-white border border-gray-200 hover:bg-gray-50']">
               <div class="font-medium">{{ pesticide.pesticideName }}</div>
-              <div class="text-xs text-gray-500">{{ pesticide.pesticideCode }} · {{ pesticide.functionDesc || '无描述' }}</div>
+              <!-- 修复 P1-4: 删除 functionDesc 显示 -->
+              <div class="text-xs text-gray-500">{{ pesticide.pesticideCode }}</div>
             </div>
           </div>
         </div>
@@ -204,7 +225,7 @@
     <el-dialog
       v-model="editDialogVisible"
       :title="`编辑${formData.dictType === 'pest' ? '虫害' : '病害'}字典 - ${formData.dictCode}`"
-      width="700px"
+      width="800px"
       :close-on-click-modal="false"
     >
       <div class="space-y-4 max-h-[60vh] overflow-y-auto">
@@ -341,16 +362,17 @@
               ]"
             >
               <div class="font-medium">{{ pesticide.pesticideName }}</div>
-              <div class="text-xs text-gray-500">
-                {{ pesticide.pesticideCode }} · {{ pesticide.functionDesc || '无描述' }}
-              </div>
+              <!-- 修复 P1-4: 删除 functionDesc 显示（V1.1 AddPestDiseaseModal.tsx L294-296 只显示名称+编码） -->
+              <div class="text-xs text-gray-500">{{ pesticide.pesticideCode }}</div>
             </div>
           </div>
         </div>
       </div>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave" :loading="pestDiseaseStore.saveLoading">保存</el-button>
+        <!-- 修复 P0-2: dialogVisible 在 V2.0 不存在，正确引用应为 editDialogVisible -->
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <!-- 修复 P1-10: 编辑弹窗用 warning 样式 + "保存修改" 文案（V1.1 EditPestDiseaseModal.tsx L323 风格） -->
+        <el-button type="warning" @click="handleSave" :loading="pestDiseaseStore.saveLoading">保存修改</el-button>
       </template>
     </el-dialog>
 
@@ -384,6 +406,20 @@
           <span class="text-gray-500 w-24">描述：</span>
           <span class="text-gray-900">{{ currentRecord.description || '-' }}</span>
         </div>
+        <!-- 修复 P1-1: 详情页补 createTime/updateTime 字段（V1.1 PestDiseaseDetailModal.tsx L101-102 风格） -->
+        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+          <div>
+            <span class="text-gray-500 w-24 text-sm">创建时间：</span>
+            <!-- 修复 P1-2: 用 toLocaleString() 本地化时间显示 -->
+            <span class="text-gray-900 text-xs font-mono">{{ currentRecord.createTime ? new Date(currentRecord.createTime).toLocaleString() : '-' }}</span>
+          </div>
+          <div>
+            <span class="text-gray-500 w-24 text-sm">状态：</span>
+            <span :class="currentRecord.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'" class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium">
+              {{ currentRecord.status === 'active' ? '启用' : '禁用' }}
+            </span>
+          </div>
+        </div>
         <!-- 关联药剂 - V1.1 风格：列表式 + 三色 Badge -->
         <div class="mt-4 pt-4 border-t border-gray-200" v-if="currentRecord.relatedPesticides && currentRecord.relatedPesticides.length > 0">
           <h4 class="text-sm font-bold text-gray-900 mb-2">关联药剂 ({{ currentRecord.relatedPesticides.length }})</h4>
@@ -395,16 +431,19 @@
             >
               <span class="font-mono text-sm text-blue-600">{{ pest.pesticideCode || pest.code }}</span>
               <span class="text-gray-900 font-medium">{{ pest.pesticideName || pest.name }}</span>
+              <!-- 修复 P0-6 + 兼容 P2-6: 'biological' 视为 'bio' 别名 -->
               <span
                 :class="[
                   'inline-flex px-2 py-0.5 rounded-full text-xs font-medium',
                   pest.controlType === 'chemical' ? 'bg-red-100 text-red-700' :
-                  pest.controlType === 'biological' ? 'bg-green-100 text-green-700' :
+                  (pest.controlType === 'bio' || pest.controlType === 'biological') ? 'bg-green-100 text-green-700' :
                   pest.controlType === 'physical' ? 'bg-blue-100 text-blue-700' :
                   'bg-gray-100 text-gray-700'
                 ]"
               >
-                {{ pest.controlType === 'chemical' ? '化学防治' : pest.controlType === 'biological' ? '生物防治' : pest.controlType === 'physical' ? '物理防治' : '未分类' }}
+                {{ pest.controlType === 'chemical' ? '化学防治' :
+                   (pest.controlType === 'bio' || pest.controlType === 'biological') ? '生物防治' :
+                   pest.controlType === 'physical' ? '物理防治' : '未分类' }}
               </span>
             </div>
           </div>
@@ -419,6 +458,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Warning,
@@ -431,6 +471,9 @@ import {
 } from '@element-plus/icons-vue'
 import { usePestDiseaseDictStore } from '@/stores/modules/pestDiseaseDict'
 import { usePesticideLibraryStore } from '@/stores/modules/pesticideLibrary'
+
+// 修复共性 P0-2: 使用 Vue Router 替代 <a href>
+const router = useRouter()
 
 // 使用 Store
 const pestDiseaseStore = usePestDiseaseDictStore()
@@ -449,6 +492,9 @@ const editDialogVisible = ref(false)
 const detailVisible = ref(false)
 const isEdit = ref(false)
 const currentRecord = ref(null)
+// 修复 P1-2: 分页状态
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 // 新增/编辑表单
 const formData = reactive({
@@ -471,10 +517,12 @@ const filteredPesticides = computed(() => {
   let list = pesticideStore.items || []
   if (pesticideSearch.value) {
     const kw = pesticideSearch.value.toLowerCase()
+    // 修复 P1-3: 增加 ingredient 成分搜索（V1.1 AddPestDiseaseModal.tsx L83-93 风格）
     list = list.filter(p =>
       (p.pesticideName && p.pesticideName.toLowerCase().includes(kw)) ||
       (p.pesticideCode && p.pesticideCode.toLowerCase().includes(kw)) ||
-      (p.functionDesc && p.functionDesc.toLowerCase().includes(kw))
+      (p.functionDesc && p.functionDesc.toLowerCase().includes(kw)) ||
+      (p.ingredient && p.ingredient.toLowerCase().includes(kw))
     )
   }
   if (pesticideTypeFilter.value !== 'all') {
@@ -499,10 +547,20 @@ const getPesticideName = (pesticideId) => {
   return pesticide ? pesticide.pesticideName : pesticideId
 }
 
+// 修复 P1-2: 表格分页（基于 store.filteredItems 切片）
+const paginatedItems = computed(() => {
+  const items = pestDiseaseStore.filteredItems || []
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return items.slice(start, end)
+})
+
 // 监听 Tab 切换，同步到 Store 并重新加载数据
 watch(activeTab, (newTab) => {
   pestDiseaseStore.activeTab = newTab
   formData.dictType = newTab
+  // 修复 P1-2: 切换 Tab 时重置分页
+  currentPage.value = 1
   pestDiseaseStore.loadData()
 })
 
@@ -515,6 +573,8 @@ const handleReset = () => {
   pestDiseaseStore.searchKeyword = ''
   pestDiseaseStore.filters.targetCrops = ''
   pestDiseaseStore.filters.status = ''
+  // 修复 P1-5: 重置分页
+  currentPage.value = 1
 }
 
 const handleAdd = async () => {
@@ -546,9 +606,17 @@ const handleAdd = async () => {
   addDialogVisible.value = true
 }
 
-const handleDetail = (record) => {
+const handleDetail = async (record) => {
+  // 修复 P0-7/P1-6: 详情打开时调 fetchRelatedPesticides 加载关联药剂
   currentRecord.value = record
   detailVisible.value = true
+  try {
+    const relatedPesticides = await pestDiseaseStore.fetchRelatedPesticides(record.id)
+    currentRecord.value = { ...record, relatedPesticides }
+  } catch (e) {
+    console.error('[PestDiseaseDictPage] 加载关联药剂失败:', e)
+    currentRecord.value = { ...record, relatedPesticides: [] }
+  }
 }
 
 const handleEdit = async (record) => {
@@ -561,15 +629,15 @@ const handleEdit = async (record) => {
   // 加载药剂列表
   await pesticideStore.fetchItems()
 
-  // 推断已关联的药剂：从所有药剂的 targetPests 文本中匹配当前 pestName
-  const pestName = record.dictName || ''
-  if (pestName) {
-    selectedPesticideIds.value = pesticideStore.items
-      .filter(p => {
-        const targets = p.targetPests || ''
-        return targets.split(/[,，;；]/).map(s => s.trim()).includes(pestName)
-      })
-      .map(p => p.id)
+  // 修复 P0-1/8: 用 pestDiseaseStore.fetchRelatedPesticides 取代字符串推断
+  // 旧逻辑从 pesticide.targetPests 文本反推关联（不可靠）
+  // 新逻辑直接调 GET /pest-disease-dict/:id/relations 拿权威数据
+  try {
+    const relatedPesticides = await pestDiseaseStore.fetchRelatedPesticides(record.id)
+    selectedPesticideIds.value = relatedPesticides.map(p => p.id)
+  } catch (e) {
+    console.error('[PestDiseaseDictPage] 加载关联药剂失败:', e)
+    selectedPesticideIds.value = []
   }
 
   editDialogVisible.value = true
@@ -613,12 +681,12 @@ const handleSave = async () => {
       ElMessage.success('新增成功')
     }
 
-    // 保存关联药剂 - 从药剂视角遍历更新关联关系
-    if (selectedPesticideIds.value.length > 0) {
-      const pestId = savedItem ? savedItem.id : formData.id
-      for (const pesticideId of selectedPesticideIds.value) {
-        await pesticideStore.updateRelations(pesticideId, [pestId])
-      }
+    // 修复 P0-8: 在病虫害侧用 pestDiseaseStore.updateRelations 一次性差集同步
+    // 旧逻辑在药剂侧循环 N 次 updateRelations（颠倒方向，不删除旧关联）
+    // 新逻辑在病虫害侧调 PUT/POST/DELETE 差集（V1.1 风格）
+    const pestId = savedItem ? savedItem.id : formData.id
+    if (pestId) {
+      await pestDiseaseStore.updateRelations(pestId, [...selectedPesticideIds.value])
     }
 
     addDialogVisible.value = false

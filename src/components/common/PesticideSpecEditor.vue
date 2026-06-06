@@ -16,7 +16,7 @@
       <div
         v-for="(spec, index) in specs"
         :key="index"
-        class="grid grid-cols-8 gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 relative"
+        class="grid grid-cols-9 gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 relative"
       >
         <el-button
           type="danger"
@@ -115,6 +115,17 @@
             :disabled="disabled"
           />
         </div>
+
+        <!-- 备注 - 修复 P0-3: 恢复 V1.1 PesticideSpecEditor 的第 9 字段 -->
+        <div>
+          <label class="text-xs text-gray-500 block mb-1">备注</label>
+          <el-input
+            v-model="spec.remark"
+            size="small"
+            placeholder="备注信息"
+            :disabled="disabled"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -180,7 +191,8 @@ const handleAddSpec = () => {
     suggestedDosage: '',
     suggestedRatio: '',
     dosageUnit: 'g/L',
-    mechanism: ''
+    mechanism: '',
+    remark: ''  // 修复 P0-3: 补齐备注字段
   }
   emit('update:specs', [...props.specs, newSpec])
 }

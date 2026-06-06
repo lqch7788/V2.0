@@ -115,6 +115,8 @@ export const usePesticideLibraryStore = defineStore('pesticideLibrary', () => {
       if (filters.control_type) queryParams.set('control_type', filters.control_type)
       if (filters.keyword) queryParams.set('keyword', filters.keyword)
       if (filters.pesticide_name) queryParams.set('pesticide_name', filters.pesticide_name)
+      // 修复 P0-5: 支持生产厂家过滤
+      if (filters.manufacturer) queryParams.set('manufacturer', filters.manufacturer)
       queryParams.set('limit', '10000')
 
       const query = queryParams.toString()

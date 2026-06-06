@@ -4,7 +4,8 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <a
-          href="/settings"
+          href="javascript:void(0)"
+          @click="router.push('/settings')"
           class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
           title="返回系统设置"
         >
@@ -97,9 +98,11 @@
 
       <!-- 表格 -->
       <el-table
-        :data="filteredItems"
+        :data="paginatedItems"
         v-loading="loading"
         class="w-full"
+        :header-cell-style="{background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: 'white', fontWeight: '600'}"
+        empty-text="暂无肥料记录"
         @selection-change="handleSelectionChange"
       >
         <el-table-column v-if="exportMode" type="selection" width="55" />
@@ -118,7 +121,12 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="fertilizerName" label="肥料名称" min-width="160" />
+        <el-table-column prop="fertilizerName" label="肥料名称" min-width="160">
+          <!-- 修复 P0-3: 名称列加粗（V1.1 风格） -->
+          <template #default="{ row }">
+            <span class="font-bold text-gray-900">{{ row.fertilizerName }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="fertilizerType" label="肥料类型" width="120">
           <template #default="{ row }">
             {{ getFertilizerTypeName(row.fertilizerType) }}
@@ -127,7 +135,8 @@
         <el-table-column prop="applicationTiming" label="施肥时期" width="150">
           <template #default="{ row }">
             <div class="flex flex-wrap gap-1">
-              <el-tag v-for="timing in (row.applicationTiming || '').split(',').filter(t => t)" :key="timing" size="small" type="warning" class="mr-1">
+              <!-- 修复 P0-9: 三色 Badge（V1.1 风格） -->
+              <el-tag v-for="timing in (row.applicationTiming || '').split(',').filter(t => t)" :key="timing" size="small" :type="getTimingTagType(timing.trim())" class="mr-1">
                 {{ getTimingName(timing.trim()) }}
               </el-tag>
               <span v-if="!row.applicationTiming">-</span>
@@ -190,6 +199,17 @@
           </template>
         </el-table-column>
       </el-table>
+      <!-- 修复 P0-1: 表格分页 -->
+      <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-end">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="filteredItems.length"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+        />
+      </div>
     </div>
 
     <!-- 新增/编辑弹窗 -->
@@ -200,6 +220,8 @@
       :close-on-click-modal="false"
     >
       <div class="space-y-4">
+        <!-- 修复 P0-12: 区域标题 emoji（V1.1 AddFertilizerModal.tsx 风格） -->
+        <h3 class="text-sm font-bold text-gray-900 border-b pb-2">📋 基础信息</h3>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -232,7 +254,8 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">施肥时期</label>
-            <el-select v-model="formData.applicationTiming" multiple placeholder="请选择" class="w-full">
+            <!-- 修复 P0-6: 改回 V1.1 风格单选（V1.1 AddFertilizerModal.tsx L289 无 multiple 属性） -->
+            <el-select v-model="formData.applicationTiming" placeholder="请选择" class="w-full">
               <el-option label="底肥" value="base" />
               <el-option label="追肥" value="dressing" />
               <el-option label="叶面肥" value="foliar" />
@@ -244,6 +267,9 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">功能说明</label>
           <el-input v-model="formData.functionDesc" type="textarea" :rows="3" placeholder="请输入功能说明" />
         </div>
+
+        <!-- 修复 P0-12: 区域标题 emoji -->
+        <h3 class="text-sm font-bold text-gray-900 border-b pb-2 mt-4">📝 功能与禁忌</h3>
 
         <!-- V1.1 风格：规格信息编辑器 -->
         <div class="border-t border-gray-200 pt-4">
@@ -267,7 +293,17 @@
                 <el-input v-model="spec.specContent" size="small" placeholder="成份与含量" />
                 <el-input v-model="spec.manufacturer" size="small" placeholder="生产厂家" />
                 <el-input v-model="spec.suggestedDosage" size="small" placeholder="建议用量" />
-                <el-input v-model="spec.dosageUnit" size="small" placeholder="单位" />
+                <!-- 修复 P0-4: 单位改为字典下拉（V1.1 UnitDictSelect 风格） -->
+                <el-select v-model="spec.dosageUnit" size="small" placeholder="选择单位" clearable>
+                  <el-option label="kg/亩" value="kg/亩" />
+                  <el-option label="g/L" value="g/L" />
+                  <el-option label="mg/L" value="mg/L" />
+                  <el-option label="mL/L" value="mL/L" />
+                  <el-option label="%" value="%" />
+                  <el-option label="倍" value="倍" />
+                  <el-option label="kg/hm²" value="kg/hm²" />
+                  <el-option label="g/株" value="g/株" />
+                </el-select>
                 <el-input v-model="spec.suggestedRatio" size="small" placeholder="稀释比例" />
                 <el-input v-model="spec.remark" size="small" placeholder="备注" />
               </div>
@@ -282,6 +318,9 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">使用禁忌</label>
           <el-input v-model="formData.tabooDesc" type="textarea" :rows="2" placeholder="请输入使用禁忌" />
         </div>
+
+        <!-- 修复 P0-12: 区域标题 emoji -->
+        <h3 class="text-sm font-bold text-gray-900 border-b pb-2 mt-4">🏪 存储与供应链</h3>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -314,7 +353,18 @@
       title="肥料详情"
       width="600px"
     >
-      <div class="space-y-4">
+      <div class="space-y-4" v-if="currentRecord">
+        <!-- 修复 P0-7: 详情弹窗大字号头部（V1.1 FertilizerDetailModal.tsx L83-91 风格） -->
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 mb-4 border border-amber-100">
+          <div class="text-xs text-gray-500 mb-1">肥料编码</div>
+          <div class="text-xl font-mono font-bold text-amber-700">{{ currentRecord.fertilizerCode || '-' }}</div>
+          <div class="text-sm text-gray-500 mt-1 flex items-center gap-2">
+            {{ currentRecord.fertilizerName }}
+            <el-tag v-if="currentRecord.applicationTiming" :type="getTimingTagType(currentRecord.applicationTiming.split(',')[0]?.trim())" size="small">
+              {{ getTimingName(currentRecord.applicationTiming.split(',')[0]?.trim()) }}
+            </el-tag>
+          </div>
+        </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-sm font-medium text-gray-500">肥料编码</label>
@@ -334,7 +384,8 @@
             <label class="text-sm font-medium text-gray-500">施肥时期</label>
             <p class="mt-1 text-gray-900">
               <div class="flex flex-wrap gap-1">
-                <el-tag v-for="timing in (currentRecord?.applicationTiming || '').split(',').filter(t => t)" :key="timing" size="small" type="warning" class="mr-1">
+                <!-- 修复 P0-9: 三色 Badge（V1.1 风格） -->
+                <el-tag v-for="timing in (currentRecord?.applicationTiming || '').split(',').filter(t => t)" :key="timing" size="small" :type="getTimingTagType(timing.trim())" class="mr-1">
                   {{ getTimingName(timing.trim()) }}
                 </el-tag>
                 <span v-if="!currentRecord?.applicationTiming">-</span>
@@ -363,6 +414,18 @@
         <div>
           <label class="text-sm font-medium text-gray-500">供应商信息</label>
           <p class="mt-1 text-gray-900">{{ currentRecord?.supplierInfo || '-' }}</p>
+        </div>
+
+        <!-- 修复 P0-8: 补 createTime/updateTime（V1.1 风格：审计追溯） -->
+        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+          <div>
+            <label class="text-sm font-medium text-gray-500">创建时间</label>
+            <p class="mt-1 text-gray-900 text-xs font-mono">{{ currentRecord?.createTime || '-' }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">更新时间</label>
+            <p class="mt-1 text-gray-900 text-xs font-mono">{{ currentRecord?.updateTime || '-' }}</p>
+          </div>
         </div>
 
         <!-- 规格明细（V1.1 风格：7 列表格） -->
@@ -427,6 +490,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Plus,
@@ -442,6 +506,9 @@ import {
   Sugar
 } from '@element-plus/icons-vue'
 import { useFertilizerLibraryStore } from '@/stores/modules/fertilizerLibrary'
+
+// 修复共性 P0-2: 使用 Vue Router 替代 <a href>，避免整页刷新丢失 SPA 状态
+const router = useRouter()
 
 // ========== 类型映射 ==========
 const fertilizerTypeMap = {
@@ -463,6 +530,15 @@ const timingMap = {
 const getFertilizerTypeName = (type) => fertilizerTypeMap[type] || type || '-'
 const getTimingName = (timing) => timingMap[timing] || timing || '-'
 
+// 修复 P0-9: 施肥时期 Badge 三色（V1.1 FertilizerDetailModal.tsx L19-26 风格）
+// base(底肥)→amber, dressing(追肥)→green, foliar(叶面肥)→blue
+const timingTagTypeMap = {
+  base: 'warning',
+  dressing: 'success',
+  foliar: 'primary'
+}
+const getTimingTagType = (timing) => timingTagTypeMap[timing] || 'info'
+
 // ========== Store ==========
 const fertilizerLibraryStore = useFertilizerLibraryStore()
 
@@ -472,6 +548,9 @@ const searchKeyword = ref('')
 const loading = ref(false)
 const error = ref(null)
 const expandedRows = ref(new Set())
+// 修复 P0-1: 表格分页状态
+const currentPage = ref(1)
+const pageSize = ref(10)
 
 // 导出相关
 const exportMode = ref(false)
@@ -492,7 +571,7 @@ const formData = reactive({
   fertilizerCode: '',
   fertilizerName: '',
   fertilizerType: 'organic',
-  applicationTiming: [],
+  applicationTiming: '',  // 修复 P0-6: 字符串（V1.1 单选）而非数组
   functionDesc: '',
   tabooDesc: '',
   shelfLife: '',
@@ -521,6 +600,13 @@ const filteredItems = computed(() => {
   return result
 })
 
+// 修复 P0-1: 分页数据切片
+const paginatedItems = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredItems.value.slice(start, end)
+})
+
 // ========== 方法 ==========
 const loadData = async () => {
   loading.value = true
@@ -542,7 +628,12 @@ const handleTabChange = () => {
 }
 
 const handleSearch = () => {
-  // 搜索时会通过 computed 自动过滤
+  // 修复 P0-13: 搜索走后端（V1.1 FertilizerLibraryPage.tsx L54-58 风格）
+  currentPage.value = 1
+  fertilizerLibraryStore.fetchItems({
+    fertilizer_type: activeTab.value,
+    keyword: searchKeyword.value
+  })
 }
 
 const handleReset = () => {
@@ -573,7 +664,7 @@ const handleAdd = async () => {
     id: '',
     fertilizerName: '',
     fertilizerType: activeTab.value,
-    applicationTiming: [],
+    applicationTiming: '',  // 修复 P0-6: 字符串（V1.1 单选）
     functionDesc: '',
     tabooDesc: '',
     shelfLife: '',
@@ -616,14 +707,16 @@ const handleEdit = async (row) => {
   dialogMode.value = 'edit'
   // 拉取完整详情（含 specs）
   const fullRecord = await fertilizerLibraryStore.fetchItemById(row.id) || row
-  // applicationTiming 可能是逗号分隔的字符串，需要转为数组
-  const timings = fullRecord.applicationTiming ? fullRecord.applicationTiming.split(',').map(t => t.trim()).filter(Boolean) : []
+  // 修复 P0-6: applicationTiming 改为单选字符串（V1.1 风格）
+  // 兼容旧数据：若后端返回的是多值字符串（如 "base,dressing"），仅取第一项
+  const rawTiming = fullRecord.applicationTiming || ''
+  const timingValue = rawTiming ? rawTiming.split(',')[0].trim() : ''
   Object.assign(formData, {
     id: fullRecord.id,
     fertilizerCode: fullRecord.fertilizerCode,
     fertilizerName: fullRecord.fertilizerName,
     fertilizerType: fullRecord.fertilizerType,
-    applicationTiming: timings,
+    applicationTiming: timingValue,
     functionDesc: fullRecord.functionDesc || '',
     tabooDesc: fullRecord.tabooDesc || '',
     shelfLife: fullRecord.shelfLife || '',
@@ -666,13 +759,29 @@ const handleSave = async () => {
     ElMessage.error('请输入肥料名称')
     return
   }
+  // 修复 P0-7: 编码空值校验
+  // 新增模式：必须先生成编码（点新增时已自动调用 generateCode）
+  // 编辑模式：编码不会为空
+  if (dialogMode.value === 'add' && !formData.fertilizerCode?.trim()) {
+    ElMessage.error('肥料编码未生成，请重新点击"新增"按钮')
+    return
+  }
+  // 修复 P0-11: 编码重复校验
+  if (formData.fertilizerCode?.trim()) {
+    const exists = fertilizerLibraryStore.items.some(
+      item => item.fertilizerCode === formData.fertilizerCode && item.id !== formData.id
+    )
+    if (exists) {
+      ElMessage.error('该肥料编码已存在，请重新生成')
+      return
+    }
+  }
 
   dialogLoading.value = true
   try {
-    // 将 applicationTiming 数组转为逗号分隔的字符串
+    // 修复 P0-6: applicationTiming 已是单选字符串，无需 join
     const submitData = {
-      ...formData,
-      applicationTiming: formData.applicationTiming.join(',')
+      ...formData
     }
 
     if (dialogMode.value === 'add') {

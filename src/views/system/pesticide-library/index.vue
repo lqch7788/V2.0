@@ -4,7 +4,8 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <a
-          href="/settings"
+          href="javascript:void(0)"
+          @click="router.push('/settings')"
           class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
           title="返回系统设置"
         >
@@ -49,6 +50,10 @@
 
       <!-- Tab内容 -->
       <div class="mt-4">
+        <!-- 修复 P1-8: 错误提示区（V1.1 PesticideLibraryPage.tsx L226-230 风格） -->
+        <div v-if="pesticideStore.error" class="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+          加载出错：{{ pesticideStore.error }}
+        </div>
         <!-- 筛选工具栏 -->
         <div class="bg-white rounded-xl px-4 py-3 shadow-none border border-gray-100 mb-4">
           <div class="flex items-center gap-4">
@@ -64,6 +69,15 @@
                 <el-icon><Search /></el-icon>
               </template>
             </el-input>
+            <!-- 修复 P0-5: 生产厂家独立筛选（V1.1 PesticideLibraryFilter.tsx 风格） -->
+            <el-input
+              v-model="manufacturerFilter"
+              placeholder="生产厂家"
+              clearable
+              class="w-48"
+              @clear="handleSearch"
+              @keyup.enter="handleSearch"
+            />
             <el-button type="primary" @click="handleSearch">
               <el-icon><Search /></el-icon>
               搜索
@@ -115,11 +129,41 @@
             stripe
           >
             <el-table-column v-if="exportMode" type="selection" width="55" />
-            <el-table-column prop="pesticideCode" label="药剂编码" width="140" />
-            <el-table-column prop="pesticideName" label="药剂名称" min-width="150" />
+            <!-- 修复 P1-1: 表格展开/折叠规格明细（V1.1 PesticideLibraryTable.tsx L67-91 风格） -->
+            <el-table-column type="expand" width="50">
+              <template #default="{ row }">
+                <div v-if="row.specs && row.specs.length > 0" class="p-3 bg-emerald-50">
+                  <h4 class="text-sm font-semibold text-emerald-800 mb-2">规格明细 ({{ row.specs.length }})</h4>
+                  <el-table :data="row.specs" size="small" border>
+                    <el-table-column prop="brandName" label="品牌名称" width="100" />
+                    <el-table-column prop="specContent" label="含量" width="80" />
+                    <el-table-column prop="formulation" label="剂型" width="100" />
+                    <el-table-column prop="manufacturer" label="生产厂家" min-width="120" />
+                    <el-table-column prop="suggestedDosage" label="建议用量" width="90" />
+                    <el-table-column prop="dosageUnit" label="单位" width="60" />
+                    <el-table-column prop="suggestedRatio" label="稀释比例" width="90" />
+                    <el-table-column prop="mechanism" label="作用机制" width="80" />
+                    <el-table-column prop="remark" label="备注" min-width="80" show-overflow-tooltip />
+                  </el-table>
+                </div>
+                <div v-else class="p-3 text-center text-gray-400 text-sm">暂无规格明细</div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="pesticideCode" label="药剂编码" width="140">
+              <!-- 修复 P1-4: 编码点击查看详情（V1.1 PesticideLibraryTable.tsx L175-183 风格） -->
+              <template #default="{ row }">
+                <el-link type="primary" :underline="false" class="font-mono" @click="handleDetail(row)">{{ row.pesticideCode }}</el-link>
+              </template>
+            </el-table-column>
+            <el-table-column prop="pesticideName" label="药剂名称" min-width="150">
+              <!-- 修复 P1-6: 药剂名称加粗（V1.1 风格） -->
+              <template #default="{ row }">
+                <span class="font-bold text-gray-900">{{ row.pesticideName }}</span>
+              </template>
+            </el-table-column>
             <el-table-column prop="ingredient" label="药剂成分" min-width="120" show-overflow-tooltip />
             <el-table-column prop="mechanism" label="作用机制" min-width="100" show-overflow-tooltip />
-            <el-table-column prop="controlTypeName" label="防治类型" width="100">
+            <el-table-column prop="controlType" label="防治类型" width="100">
               <template #default="{ row }">
                 <el-tag :type="getControlTypeTagType(row.controlType)" size="small">
                   {{ getControlTypeName(row.controlType) }}
@@ -177,6 +221,8 @@
     >
       <div class="max-h-[60vh] overflow-y-auto pr-2">
         <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
+          <!-- 修复 P1-7: 区域标题 emoji（V1.1 AddPesticideModal.tsx 风格） -->
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2 mb-3">📋 基础信息</h3>
           <div class="grid grid-cols-2 gap-4">
             <el-form-item label="药剂编码" prop="pesticideCode">
               <div class="flex gap-2">
@@ -215,6 +261,9 @@
             <el-input v-model="formData.tabooDesc" type="textarea" :rows="2" placeholder="请输入使用禁忌" />
           </el-form-item>
 
+          <!-- 修复 P1-7: 区域标题 emoji -->
+          <h3 class="text-sm font-bold text-gray-900 border-b pb-2 mb-3 mt-4">📦 规格与关联</h3>
+
           <!-- 规格编辑器 -->
           <el-form-item label="规格信息">
             <PesticideSpecEditor v-model="specs" />
@@ -233,7 +282,7 @@
                 </div>
                 <div class="max-h-[150px] overflow-y-auto space-y-1">
                   <div v-if="filteredPests.length === 0" class="text-center text-gray-400 py-3 text-sm">无匹配病虫害</div>
-                  <button v-for="pest in filteredPests" :key="pest.id" type="button" @click="togglePest(pest.id)" :class="['w-full text-left px-2 py-1 rounded text-sm transition-colors', selectedPests.includes(pest.id) ? 'bg-emerald-100 text-emerald-700' : 'hover:bg-gray-50 text-gray-700']">
+                  <button v-for="pest in filteredPests" :key="pest.id" type="button" @click="togglePest(pest.id)" :class="['w-full text-left px-2 py-1 rounded text-sm transition-colors', selectedPests.includes(pest.id) ? 'bg-green-100 text-green-700' : 'hover:bg-gray-50 text-gray-700']">
                     {{ pest.dictName }}
                     <span class="text-xs text-gray-400 ml-1">({{ pest.dictType === 'pest' ? '虫' : '病' }})</span>
                   </button>
@@ -244,9 +293,9 @@
                 <div class="text-xs text-gray-500 mb-2">已选病虫害 ({{ selectedPests.length }})</div>
                 <div class="max-h-[200px] overflow-y-auto space-y-1">
                   <div v-if="selectedPests.length === 0" class="text-center text-gray-400 py-3 text-sm">请从左侧选择</div>
-                  <div v-for="id in selectedPests" :key="id" class="flex items-center justify-between px-2 py-1 bg-emerald-50 rounded">
-                    <span class="text-sm text-emerald-700">{{ getPestName(id) }}</span>
-                    <button type="button" @click="togglePest(id)" class="text-emerald-500 hover:text-emerald-700 font-bold px-1">×</button>
+                  <div v-for="id in selectedPests" :key="id" class="flex items-center justify-between px-2 py-1 bg-green-50 rounded">
+                    <span class="text-sm text-green-700">{{ getPestName(id) }}</span>
+                    <button type="button" @click="togglePest(id)" class="text-green-500 hover:text-green-700 font-bold px-1">×</button>
                   </div>
                 </div>
               </div>
@@ -262,7 +311,18 @@
 
     <!-- 详情弹窗 -->
     <el-dialog v-model="detailVisible" title="药剂详情" width="700px">
-      <div class="space-y-4">
+      <div class="space-y-4" v-if="currentRow">
+        <!-- 修复 P1-3: 详情页顶部药剂编码渐变头部（V1.1 PesticideDetailModal.tsx L77-84 风格） -->
+        <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 mb-4 border border-red-100">
+          <div class="text-xs text-gray-500 mb-1">药剂编码</div>
+          <div class="text-xl font-mono font-bold text-red-700">{{ currentRow.pesticideCode || '-' }}</div>
+          <div class="text-sm text-gray-700 mt-1 flex items-center gap-2">
+            {{ currentRow.pesticideName }}
+            <el-tag :type="getControlTypeTagType(currentRow.controlType)" size="small">
+              {{ getControlTypeName(currentRow.controlType) }}
+            </el-tag>
+          </div>
+        </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-sm text-gray-500">药剂编码</label>
@@ -301,6 +361,17 @@
           <label class="text-sm text-gray-500">使用禁忌</label>
           <p class="mt-1 text-gray-900">{{ currentRow?.tabooDesc || '-' }}</p>
         </div>
+        <!-- 修复 P0-7: 详情弹窗补 createTime/updateTime 字段（V1.1 风格） -->
+        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+          <div>
+            <label class="text-sm text-gray-500">创建时间</label>
+            <p class="mt-1 text-gray-900 text-xs font-mono">{{ currentRow?.createTime || '-' }}</p>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">更新时间</label>
+            <p class="mt-1 text-gray-900 text-xs font-mono">{{ currentRow?.updateTime || '-' }}</p>
+          </div>
+        </div>
         <!-- 规格明细 -->
         <div v-if="currentRow?.specs?.length > 0">
           <label class="text-sm text-gray-500 mb-2 block">规格明细</label>
@@ -312,6 +383,8 @@
             <el-table-column prop="suggestedDosage" label="建议用量" width="90" />
             <el-table-column prop="dosageUnit" label="单位" width="60" />
             <el-table-column prop="suggestedRatio" label="稀释比例" width="90" />
+            <!-- 修复 P1-2: 详情页规格子表加"作用机制"列 -->
+            <el-table-column prop="mechanism" label="作用机制" width="80" show-overflow-tooltip />
             <el-table-column prop="remark" label="备注" min-width="80" show-overflow-tooltip />
           </el-table>
         </div>
@@ -350,6 +423,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   ArrowLeft,
@@ -370,6 +444,9 @@ import PesticideSpecEditor from '@/components/common/PesticideSpecEditor.vue'
 import { usePesticideLibraryStore } from '@/stores/modules/pesticideLibrary'
 import { usePestDiseaseDictStore } from '@/stores/modules/pestDiseaseDict'
 
+// 修复共性 P0-2: 使用 Vue Router 替代 <a href>
+const router = useRouter()
+
 // 药剂库 Store
 const pesticideStore = usePesticideLibraryStore()
 const pestDiseaseStore = usePestDiseaseDictStore()
@@ -384,6 +461,7 @@ const controlTypeMap = {
 // 状态
 const activeTab = ref('chemical')
 const searchKeyword = ref('')
+const manufacturerFilter = ref('')  // 修复 P0-5: 生产厂家筛选
 const currentPage = ref(1)
 const pageSize = ref(10)
 
@@ -451,9 +529,30 @@ const formData = reactive({
   targetPests: ''
 })
 
+// 修复 P0-3: 编码重复检测状态
+const codeExists = ref(false)
+const checkCodeExists = (code) => {
+  if (!code) return false
+  return pesticideStore.items.some(item => item.pesticideCode === code && item.id !== editingId.value)
+}
+
 const formRules = {
   pesticideName: [{ required: true, message: '请输入药剂名称', trigger: 'blur' }],
-  controlType: [{ required: true, message: '请选择防治类型', trigger: 'change' }]
+  controlType: [{ required: true, message: '请选择防治类型', trigger: 'change' }],
+  // 修复 P0-3 + P1-5: 编码必填 + 重复校验
+  pesticideCode: [
+    { required: true, message: '请输入或生成药剂编码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value && checkCodeExists(value)) {
+          callback(new Error('该编码已存在，请重新生成'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
 }
 
 // 计算属性：根据Tab和搜索过滤数据
@@ -492,6 +591,7 @@ function getControlTypeName(controlType) {
 async function handleTabChange() {
   currentPage.value = 1
   searchKeyword.value = ''
+  manufacturerFilter.value = ''  // 修复 P0-5: 切换 Tab 时清空厂家
   selectedRows.value = []
   exportMode.value = false
   await loadData()
@@ -499,21 +599,28 @@ async function handleTabChange() {
 
 // 加载数据
 async function loadData() {
-  await pesticideStore.fetchItems({ control_type: activeTab.value })
+  // 修复 P0-5: 传入 manufacturer 过滤参数
+  const filters = { control_type: activeTab.value }
+  if (manufacturerFilter.value) filters.manufacturer = manufacturerFilter.value
+  await pesticideStore.fetchItems(filters)
 }
 
 // 搜索
 function handleSearch() {
   currentPage.value = 1
-  pesticideStore.fetchItems({
+  // 修复 P0-5: 传入 manufacturer 过滤参数
+  const filters = {
     control_type: activeTab.value,
     keyword: searchKeyword.value
-  })
+  }
+  if (manufacturerFilter.value) filters.manufacturer = manufacturerFilter.value
+  pesticideStore.fetchItems(filters)
 }
 
 // 重置
 function handleReset() {
   searchKeyword.value = ''
+  manufacturerFilter.value = ''  // 修复 P0-5: 同时清空厂家
   currentPage.value = 1
   loadData()
 }
@@ -541,16 +648,18 @@ function handleSelectionChange(selection) {
   selectedRows.value = selection.map(item => item.id)
 }
 
-function handleDoExport() {
+async function handleDoExport() {
+  // 修复 P0-1: 导出模式下用 pesticideStore.items（不存在的 dataList.value 会导致 ReferenceError）
   const exportData = exportMode.value
-    ? dataList.value.filter(item => selectedRows.value.includes(item.id))
+    ? pesticideStore.items.filter(item => selectedRows.value.includes(item.id))
     : filteredData.value
 
   const headers = ['药剂编码', '药剂名称', '防治类型', '药剂成分', '作用机制', '功能说明', '使用禁忌', '防治对象']
+  // 修复 P0-7: 用 getControlTypeName(record.controlType) 替代不存在的 controlTypeName
   const rows = exportData.map(record => [
     record.pesticideCode || '',
     record.pesticideName || '',
-    record.controlTypeName || '',
+    getControlTypeName(record.controlType) || '',
     record.ingredient || '',
     record.mechanism || '',
     record.functionDesc || '',
@@ -579,19 +688,16 @@ function handleDoExport() {
     link.click()
     ElMessage.success('导出成功')
   } else {
-    // Excel格式 - 使用数组方式
+    // 修复 P0-6: Excel 真 xlsx 导出（V1.1 XLSX.writeFile 风格）
     try {
-      const worksheet = [headers, ...rows]
-      const csvContent = worksheet.map(row =>
-        row.map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`).join(',')
-      ).join('\n')
-      const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = `${fileName}.xls`
-      link.click()
+      const XLSX = await import('xlsx')
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '药剂知识库')
+      XLSX.writeFile(wb, `${fileName}.xlsx`)
       ElMessage.success('导出成功')
     } catch (e) {
+      console.error('[PesticideLibrary] Excel 导出失败:', e)
       ElMessage.error('导出失败')
     }
   }
@@ -613,9 +719,12 @@ function openAddDialog() {
 
 // 生成编码
 function generateCode() {
-  const prefix = activeTab.value === 'chemical' ? 'PC-C-' : activeTab.value === 'bio' ? 'PC-B-' : 'PC-P-'
+  // 修复 P0-6: 用 formData.controlType 而非 activeTab.value
+  // 表单允许用户切换 controlType，编码前缀必须与表单当前值一致
+  const controlType = formData.controlType || activeTab.value
+  const prefix = controlType === 'chemical' ? 'PC-C-' : controlType === 'bio' ? 'PC-B-' : 'PC-P-'
   const existingCodes = pesticideStore.items
-    .filter(item => item.controlType === activeTab.value)
+    .filter(item => item.controlType === controlType)
     .map(item => item.pesticideCode)
     .filter(code => code && code.startsWith(prefix))
   let maxNum = 0
@@ -628,6 +737,8 @@ function generateCode() {
   })
   const newNum = maxNum + 1
   formData.pesticideCode = `${prefix}${newNum.toString().padStart(4, '0')}`
+  // 修复 P0-3: 生成编码后清除重复提示
+  codeExists.value = false
 }
 
 // 打开编辑弹窗
@@ -643,9 +754,13 @@ async function handleEdit(row) {
   formData.tabooDesc = row.tabooDesc || ''
   formData.targetPests = row.targetPests || ''
   // 加载规格数据
-  const fullRecord = await pesticideStore.fetchItemById(row.id)
-  specs.value = (fullRecord?.specs || []).map(s => ({ ...s, _isNew: false }))
-  originalSpecs.value = JSON.parse(JSON.stringify(fullRecord?.specs || []))
+  // 修复 P0-5: 网络失败时回退到 row 数据（V1.1 setEditTarget(fullRecord || record) 风格）
+  let fullRecord = await pesticideStore.fetchItemById(row.id)
+  if (!fullRecord || !fullRecord.specs) {
+    fullRecord = { ...row, specs: row.specs || [] }
+  }
+  specs.value = (fullRecord.specs || []).map(s => ({ ...s, _isNew: false }))
+  originalSpecs.value = JSON.parse(JSON.stringify(fullRecord.specs || []))
   deletedSpecIds.value = []
   // 加载关联病虫害
   try {
@@ -660,9 +775,17 @@ async function handleEdit(row) {
 }
 
 // 查看详情
-function handleDetail(row) {
+// 修复 P0-5: 详情打开时调 fetchItemById 加载完整规格数据，失败时回退到 row
+async function handleDetail(row) {
   currentRow.value = row
   detailVisible.value = true
+  try {
+    const fullRecord = await pesticideStore.fetchItemById(row.id)
+    currentRow.value = fullRecord || row
+  } catch (e) {
+    console.error('[PesticideLibrary] 加载详情失败:', e)
+    currentRow.value = row
+  }
 }
 
 // 删除
@@ -692,6 +815,14 @@ async function handleSave() {
       // 编辑
       const result = await pesticideStore.updateItem(editingId.value, formData)
       if (result.success) {
+        // 修复 P0-4: 保存前差集检测被删除的 spec id 写入 deletedSpecIds
+        // PesticideSpecEditor 子组件删除行时仅 emit update:specs，无法感知 id 差集，需父组件计算
+        const currentSpecIds = new Set(specs.value.filter(s => s.id).map(s => s.id))
+        for (const original of originalSpecs.value) {
+          if (original.id && !currentSpecIds.has(original.id) && !deletedSpecIds.value.includes(original.id)) {
+            deletedSpecIds.value.push(original.id)
+          }
+        }
         // specs 三步同步（V1.1 风格）
         // 1. 新增 _isNew 项
         for (const spec of specs.value) {
@@ -728,10 +859,10 @@ async function handleSave() {
           await pesticideStore.deleteSpec(id)
         }
         // 4. 同步关联病虫害
+        // 修复 P0-2: 颠倒 updateRelations 参数顺序
+        // V1.1 接口: updateRelations(pesticideId, pestIds) - 第一个参数是药剂 ID
         if (JSON.stringify([...selectedPests.value].sort()) !== JSON.stringify([...originalSelectedPests.value].sort())) {
-          for (const pestId of selectedPests.value) {
-            await pesticideStore.updateRelations(pestId, [editingId.value])
-          }
+          await pesticideStore.updateRelations(editingId.value, [...selectedPests.value])
         }
         ElMessage.success('保存成功')
         dialogVisible.value = false
@@ -742,22 +873,34 @@ async function handleSave() {
       }
     } else {
       // 新增
-      const result = await pesticideStore.createItem(formData)
-      if (result.success && specs.value.length > 0) {
-        // 同时保存规格
+      // 修复 P0-4: 把 selectedPests 翻译成 targetPests 文本字段冗余（V1.1 风格）
+      const targetPestsText = [...selectedPests.value]
+        .map(id => pestDiseaseStore.items.find(p => p.id === id)?.dictName)
+        .filter(Boolean)
+        .join(', ')
+      const submitData = { ...formData, targetPests: targetPestsText }
+      const result = await pesticideStore.createItem(submitData)
+      if (result.success) {
         const newId = result.data?.id
-        if (newId) {
+        // 同时保存规格
+        if (newId && specs.value.length > 0) {
           for (const spec of specs.value) {
             if (spec.specContent || spec.formulation || spec.manufacturer) {
               await pesticideStore.createSpec(newId, spec)
             }
           }
         }
-        ElMessage.success('新增成功')
-        dialogVisible.value = false
-        resetForm()
-        loadData()
-      } else if (result.success) {
+        // 修复 P0-4: 保存关联病虫害（在药剂侧 updateRelations，POST 端点不存在时降级到 pestDisease 侧 addRelation）
+        if (newId && selectedPests.value.length > 0) {
+          for (const pestId of selectedPests.value) {
+            try {
+              await pestDiseaseStore.addRelation(result.data?.id, pestId)
+            } catch (e) {
+              // 关联失败不阻塞主流程
+              console.error('[PesticideLibrary] 保存关联失败:', e)
+            }
+          }
+        }
         ElMessage.success('新增成功')
         dialogVisible.value = false
         resetForm()
