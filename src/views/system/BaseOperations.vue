@@ -485,7 +485,10 @@ function buildTreeData(bases, greenhouses, zones, blocks, currentBaseOid, search
                   key: `block_${b.oid}`,
                   title: highlightText(`${b.blockCode || ''} ${b.blockName || ''}`, searchQuery),
                   type: 'block',
-                  oid: b.oid
+                  oid: b.oid,
+                  // P1-8: 补 zoneOid 让 block 节点保持回溯关系(对齐 V1.1 父子链路完整)
+                  zoneOid: b.zoneOid,
+                  greenhouseOid: z.greenhouseOid
                 }))
             }))
         }))
@@ -520,7 +523,10 @@ function buildTreeData(bases, greenhouses, zones, blocks, currentBaseOid, search
                   key: `block_${b.oid}`,
                   title: highlightText(`${b.blockCode || ''} ${b.blockName || ''}`, searchQuery),
                   type: 'block',
-                  oid: b.oid
+                  oid: b.oid,
+                  // P1-8: 补 zoneOid/greenhouseOid 让 block 节点关系链完整
+                  zoneOid: b.zoneOid,
+                  greenhouseOid: z.greenhouseOid
                 }))
             }))
         }))
@@ -777,6 +783,8 @@ const filteredZones = computed(() => {
 
 const filteredRecords = computed(() => {
   if (!baseOidFromUrl.value) return plantingStore.records || []
+  // P1-6: 统一 facilityOid → baseOid 二次查询(与树状视图过滤一致)
+  // 列表视图按 baseOid → greenhouseOids → records.facilityOid in greenhouseOids
   const baseGhOids = new Set(filteredGreenhouses.value.map(g => g.oid))
   return (plantingStore.records || []).filter(r => baseGhOids.has(r.facilityOid))
 })
@@ -949,9 +957,9 @@ async function loadAllData() {
   }
 }
 
-// 自动展开基地节点
-watch(baseOidFromUrl, (val) => {
-  if (val && baseStore.bases.length > 0) {
+// 自动展开基地节点 - P2-4: 同时监听 bases 变化(基地数据异步加载完成后再展开)
+watch([baseOidFromUrl, () => baseStore.bases.length], ([val, basesLen]) => {
+  if (val && basesLen > 0) {
     const baseKey = `base_${val}`
     if (!expandedKeys.value.includes(baseKey)) {
       expandedKeys.value = [baseKey]

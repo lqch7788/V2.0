@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { enhancedApiClient } from '@/lib/apiClient'
+import { getDictionaries } from '@/services/dictionaryService'
 
 export const useGreenhouseStore = defineStore('greenhouse', () => {
   // 状态
@@ -12,13 +13,9 @@ export const useGreenhouseStore = defineStore('greenhouse', () => {
   const loading = ref(false)
   const error = ref(null)
 
-  // 设施类型选项
-  const greenhouseTypes = [
-    { dictCode: 'film_greenhouse', dictLabel: '薄膜温室' },
-    { dictCode: 'glass_greenhouse', dictLabel: '玻璃温室' },
-    { dictCode: 'arch_greenhouse', dictLabel: '拱棚' },
-    { dictCode: 'sunlight_greenhouse', dictLabel: '日光温室' }
-  ]
+  // 设施类型选项 - 改用字典动态加载(对齐 V1.1 useDictionaryStore + dictionaryService)
+  const greenhouseTypes = ref([])
+  const typesLoading = ref(false)
 
   // ==================== 字段映射 ====================
 
@@ -98,6 +95,27 @@ export const useGreenhouseStore = defineStore('greenhouse', () => {
     }
   }
 
+  /**
+   * 加载温室类型字典 - 改用 dictionaryService.getDictionaries('greenhouse_type')
+   * 对齐 V1.1 useDictionaryStore 的动态加载方式
+   */
+  const loadGreenhouseTypes = async () => {
+    if (greenhouseTypes.value.length > 0) return greenhouseTypes.value
+    typesLoading.value = true
+    try {
+      const dicts = await getDictionaries('greenhouse_type')
+      greenhouseTypes.value = (dicts || []).map(d => ({
+        dictCode: d.code,
+        dictLabel: d.name
+      }))
+    } catch (err) {
+      console.warn('[GreenhouseStore] 加载温室类型字典失败:', err)
+    } finally {
+      typesLoading.value = false
+    }
+    return greenhouseTypes.value
+  }
+
   // 添加温室
   const addGreenhouse = async (ghData) => {
     try {
@@ -148,6 +166,8 @@ export const useGreenhouseStore = defineStore('greenhouse', () => {
     loading,
     error,
     greenhouseTypes,
+    typesLoading,
+    loadGreenhouseTypes,
     loadGreenhouses,
     addGreenhouse,
     editGreenhouse,

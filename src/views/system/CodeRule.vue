@@ -363,10 +363,10 @@ const addSubTitle = computed(() => {
 onMounted(async () => {
   await store.loadCategories()
   if (store.categories.length > 0) {
-    // 默认展开前7个大类（与V1.1一致）
-    const bigCodes = store.categories.slice(0, 7).map(c => c.code)
-    expandedBig.value = new Set(bigCodes)
-    // 初始化展开中类（与V1.1一致）
+    // P1-1 修复：与 V1.1 严格对齐 - 固定展开 7 大类（SP/EQ/OP/PH/IT/EC/OT）
+    const fixedBigCodes = ['SP', 'EQ', 'OP', 'PH', 'IT', 'EC', 'OT']
+    expandedBig.value = new Set(fixedBigCodes)
+    // 初始化展开中类（与V1.1一致 - 默认展开所有中类）
     const midKeys = []
     store.categories.forEach(big => {
       if (big.midCategories) {

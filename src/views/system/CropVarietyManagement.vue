@@ -574,6 +574,42 @@
         <el-button type="danger" @click="confirmDelete">确认删除</el-button>
       </template>
     </el-dialog>
+
+    <!-- P1-8 修复：新增类别弹窗 - 替代阻塞式 prompt -->
+    <el-dialog
+      v-model="showAddCategoryDialog"
+      title="新增类别"
+      width="420px"
+      :close-on-click-modal="false"
+    >
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            类别编码 <span class="text-red-500">*</span>
+          </label>
+          <el-input
+            v-model="newCategoryForm.code"
+            placeholder="2位大写字母，如：FR"
+            maxlength="4"
+            class="w-full"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            类别名称 <span class="text-red-500">*</span>
+          </label>
+          <el-input
+            v-model="newCategoryForm.name"
+            placeholder="如：水果类"
+            class="w-full"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showAddCategoryDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmAddCategory">确认新增</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -809,15 +845,29 @@ function handleInlineAddCancel() {
   inlineAddName.value = ''
 }
 
-// 新增类别
+// 新增类别 - P1-8 修复：与 V1.1 一致 - 使用 el-dialog 替代 prompt 阻塞
+const showAddCategoryDialog = ref(false)
+const newCategoryForm = reactive({ code: '', name: '' })
+
 function handleAddCategory() {
-  const code = prompt('请输入类别编码（2位大写字母，如：FR）：')
-  if (!code || !code.trim()) return
-  const name = prompt('请输入类别名称（如：水果类）：')
-  if (!name || !name.trim()) return
-  extensionService.addCategoryExtension(code.trim().toUpperCase(), name.trim())
-    .then(() => handleTreeRefresh())
-    .catch(err => ElMessage.error('新增类别失败: ' + err.message))
+  newCategoryForm.code = ''
+  newCategoryForm.name = ''
+  showAddCategoryDialog.value = true
+}
+
+async function handleConfirmAddCategory() {
+  if (!newCategoryForm.code.trim() || !newCategoryForm.name.trim()) {
+    ElMessage.warning('请填写类别编码和名称')
+    return
+  }
+  try {
+    await extensionService.addCategoryExtension(newCategoryForm.code.trim().toUpperCase(), newCategoryForm.name.trim())
+    ElMessage.success('新增类别成功')
+    showAddCategoryDialog.value = false
+    handleTreeRefresh()
+  } catch (err) {
+    ElMessage.error('新增类别失败: ' + err.message)
+  }
 }
 
 // 树形刷新
@@ -921,11 +971,10 @@ function handleCodeGenSubVariety1Change() {
 }
 
 // 编码生成器 - 详细品种名称变化
+// P1-7 修复：与 V1.1 一致 - 名称变化时不自动重生成，需手动点击"生成"按钮
 function handleDetailVarietyNameChange() {
-  // 名称变化时自动重新生成编码
-  if (codeGenCategory.value && codeGenType.value && codeGenVariety.value) {
-    handleGenerateCode()
-  }
+  // V1.1 行为：名称变化不立即重生成，用户必须点击"生成"按钮
+  // 原 V2.0 行为：name onInput 自动调用 handleGenerateCode，与 V1.1 不一致
 }
 
 // 生成编码

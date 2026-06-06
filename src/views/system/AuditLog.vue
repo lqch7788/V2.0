@@ -312,7 +312,11 @@ import {
   Filter
 } from '@element-plus/icons-vue'
 import { get } from '@/api/request'
+import * as XLSX from 'xlsx'
+import { ElMessage } from 'element-plus'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
+// P1-1 修复：引入 useAuthStore 用于权限过滤 - 非管理员只能看自己的日志
+import { useAuthStore } from '@/stores/modules/auth'
 
 // 空白统计数据
 const EMPTY_STATS = { total: 0, today: 0, info: 0, warning: 0, error: 0 }
@@ -371,31 +375,26 @@ const toggleSelection = (id) => {
   }
 }
 
-// V1.1 风格：硬编码 8 个模块选项 + 显示名映射
+// V1.1 风格：硬编码 7 个模块选项 + 显示名映射
+// P1-8 修复：与 V1.1 MODULE_OPTIONS (AuditLog.tsx L40-49) 1:1 对齐 - 去掉 'order'，用 'schedule' 替换 'plan'
 const MODULE_OPTIONS = [
   { value: 'farm', label: '农事管理' },
   { value: 'crop', label: '作物管理' },
-  { value: 'plan', label: '计划管理' },
+  { value: 'schedule', label: '计划管理' },
   { value: 'labor', label: '用工管理' },
   { value: 'material', label: '物资管理' },
-  { value: 'system', label: '系统管理' },
-  { value: 'approval', label: '审批管理' },
-  { value: 'order', label: '订单管理' }
+  { value: 'system', label: '系统设置' },
+  { value: 'approval', label: '审批' }
 ]
 
 // V1.1 风格：模块显示名映射（与 V1.1 getModuleDisplayName 等价）
+// P1-8 修复：与 V1.1 getModuleDisplayName (AuditLog.tsx L168-174) 1:1 对齐
 const getModuleDisplayName = (moduleCode) => {
-  const map = {
-    farm_task: '农事管理', temp_task: '农事管理', patrol: '农事管理', problem: '农事管理',
-    crop: '作物管理', crop_instance: '作物管理', planting: '作物管理',
-    plan: '计划管理', production_plan: '计划管理', purchase_plan: '计划管理',
-    labor: '用工管理', attendance: '用工管理', performance: '用工管理',
-    material: '物资管理', material_request: '物资管理', material_receiving: '物资管理',
-    system: '系统管理', config: '系统管理', auth: '系统管理',
-    approval: '审批管理', approval_workflow: '审批管理',
-    order: '订单管理', crop_order: '订单管理'
-  }
-  return map[moduleCode] || moduleCode
+  if (!moduleCode) return '-'
+  // 农事相关模块统一显示为"农事管理"
+  const farmModules = ['农事任务', '临时任务', '巡查', '问题']
+  if (farmModules.includes(moduleCode)) return '农事管理'
+  return moduleCode
 }
 
 // 获取模块列表（合并 V1.1 标准 + 实际数据中的模块）
@@ -405,6 +404,8 @@ const modules = computed(() => {
 })
 
 // 前端二次筛选
+// P1-1 修复：增加 useAuthStore 权限过滤 - 非管理员只能看自己的日志（与 V1.1 useAuthStore 1:1 对齐）
+const authStore = useAuthStore()
 const filteredLogs = computed(() => {
   return logs.value.filter((log) => {
     const matchSearch =
@@ -415,7 +416,12 @@ const filteredLogs = computed(() => {
     const matchUser =
       !filterUser.value ||
       (log.username && log.username.includes(filterUser.value))
-    return matchSearch && matchUser
+    // 权限过滤：非管理员只能看到自己的日志
+    const matchAuth = authStore.isAdmin ||
+      !authStore.currentUser ||
+      log.username === authStore.currentUser.username ||
+      log.userId === authStore.currentUser.oid
+    return matchSearch && matchUser && matchAuth
   })
 })
 
@@ -524,7 +530,8 @@ const fetchData = async () => {
         totalRecords.value = 0
       }
     } else {
-      console.error('获取日志失败:', logsResult.reason)
+      // P2-6 修复：用户感知错误（ElMessage 替代 console.error）
+      ElMessage.error('获取日志失败')
       logs.value = []
     }
 
@@ -541,10 +548,12 @@ const fetchData = async () => {
         }
       }
     } else {
-      console.error('获取统计失败:', statsResult.reason)
+      // P2-6 修复：仅控制台告警（统计数据非关键）
+      console.warn('获取统计失败:', statsResult.reason)
     }
   } catch (err) {
-    console.error('AuditLog fetch error:', err)
+    // P2-6 修复：用户感知错误
+    ElMessage.error('加载审计日志失败')
   } finally {
     loading.value = false
   }
@@ -632,7 +641,7 @@ const handleDoExport = () => {
     link.download = `操作日志_${new Date().toISOString().slice(0, 10)}.csv`
     link.click()
   } else {
-    // Excel格式 - 需要XLSX库
+    // Excel格式 - 使用 XLSX 库生成真实 .xlsx（与 V1.1 AuditLog.tsx L262-268 1:1 对齐）
     const excelHeaders = ['时间', '用户', '操作', '模块', '描述', 'IP', '级别']
     const excelData = [excelHeaders, ...dataToExport.map((log) => [
       log.created_at ? new Date(log.created_at).toLocaleString('zh-CN') : '-',
@@ -643,13 +652,10 @@ const handleDoExport = () => {
       log.ipAddress || '-',
       getLevelLabel(log.level || log.status)
     ])]
-    // 使用简单方式导出Excel
-    const csv = excelData.map(row => row.join(',')).join('\n')
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `操作日志_${new Date().toISOString().slice(0, 10)}.xls`
-    link.click()
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, '操作日志')
+    XLSX.writeFile(workbook, `操作日志_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   showExportModal.value = false

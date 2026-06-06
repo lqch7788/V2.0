@@ -26,31 +26,6 @@
       </div>
     </div>
 
-    <!-- P0-EX-001 修复：注释掉 V1.1 不存在的独立搜索栏 UI -->
-    <!--
-      V1.1 ApprovalWorkflowConfig.tsx 没有独立搜索栏 UI（V1.1 只有 searchTerm state 但无可见 UI）。
-      V2.0 自创的独立搜索栏 UI（L29-43）属于 P0-EX（自我创造功能）。
-      处理方案：注释掉 UI 块，保留 searchTerm state + filteredWorkflows computed
-      （V1.1 1:1 兼容）以备后续用户决定是否恢复。
-      TODO: 等待用户确认是否完全删除该功能
-    -->
-    <!--
-    <div class="bg-white rounded-xl p-4 shadow-none">
-      <div class="flex flex-col sm:flex-row gap-4 items-center">
-        <el-input
-          v-model="searchTerm"
-          placeholder="搜索流程名称、编码、模块..."
-          clearable
-          class="w-full sm:w-80"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-      </div>
-    </div>
-    -->
-
     <!-- 加载状态 -->
     <div v-if="store.loading" class="flex items-center justify-center h-64">
       <el-icon class="is-loading" :size="32" color="#059669">
@@ -70,7 +45,7 @@
     <!-- 流程列表 -->
     <div v-else class="space-y-4">
       <div
-        v-for="workflow in filteredWorkflows"
+        v-for="workflow in store.workflows"
         :key="workflow.id"
         class="bg-white rounded-xl shadow-none border border-gray-100 overflow-hidden"
       >
@@ -270,7 +245,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Guide,
   ArrowLeft,
-  Search,
   Edit,
   Delete,
   ArrowRight,
@@ -302,7 +276,6 @@ const getModuleLabel = (moduleValue) => {
 }
 
 // 状态 - 使用Store的状态
-const searchTerm = ref('')
 const showModal = ref(false)
 const editingWorkflow = ref(null)
 const expandedWorkflows = ref([])
@@ -316,17 +289,6 @@ const newWorkflow = reactive({
   triggerCondition: '',
   nodes: [],
   status: 'active'
-})
-
-// 筛选后的工作流
-const filteredWorkflows = computed(() => {
-  if (!searchTerm.value) return store.workflows
-  const term = searchTerm.value.toLowerCase()
-  return store.workflows.filter(w =>
-    w.name.toLowerCase().includes(term) ||
-    w.code.toLowerCase().includes(term) ||
-    w.module.toLowerCase().includes(term)
-  )
 })
 
 // 加载工作流数据 - 调用Store方法

@@ -33,8 +33,11 @@
 import { computed, ref, nextTick, watch } from 'vue'
 import { Check, Close, EditPen } from '@element-plus/icons-vue'
 
+// P1-9 修复：与 EditCell.vue 统一命名 - 主属性使用 'type'，
+// 保留 'cellType' 作为别名以兼容现有调用
 const props = defineProps({
-  cellType: { type: String, required: true },
+  type: { type: String, default: undefined },
+  cellType: { type: String, default: undefined },
   categoryCode: { type: String, required: true },
   typeCode: { type: String, default: undefined },
   subCode: { type: String, default: undefined },
@@ -47,11 +50,14 @@ defineEmits(['startEdit', 'saveEdit', 'cancelEdit', 'update:editValue'])
 
 const inputRef = ref(null)
 
+// 统一使用 type 作为 cell 类型
+const cellTypeValue = computed(() => props.type || props.cellType)
+
 // 判断当前单元格是否处于编辑状态
 const isEditing = computed(() => {
   if (!props.editingCell) return false
   const c = props.editingCell
-  return c.type === props.cellType &&
+  return c.type === cellTypeValue.value &&
     c.categoryCode === props.categoryCode &&
     c.typeCode === props.typeCode &&
     c.subCode === props.subCode

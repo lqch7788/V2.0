@@ -4,15 +4,16 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
-          <a
-            href="/settings"
+          <button
+            type="button"
             class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-gray-200 hover:to-gray-300 transition-colors"
             title="返回系统设置"
+            @click="goBackToSettings"
           >
             <el-icon :size="20" class="text-gray-600">
               <ArrowLeft />
             </el-icon>
-          </a>
+          </button>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
             <el-icon :size="24" color="white">
               <OfficeBuilding />
@@ -332,14 +333,11 @@
 </template>
 
 <script>
-// 导出给其他组件使用的函数
-export const getCompanyGroups = () => {
-  return loadCompanyGroups()
-}
+// P2-1: getCompanyGroups 死代码移除(原 L334-339 已迁移到 useBaseStore 真实 API,无任何调用方)
 </script>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -357,60 +355,57 @@ import {
   WarningFilled,
   OfficeBuilding
 } from '@element-plus/icons-vue'
+import { useBaseStore } from '@/stores/modules/baseStore'
 
-// localStorage key
-const COMPANY_GROUPS_KEY = 'yuanxingtu_company_groups'
-
-// 初始数据 - 与园区基地总览表一致
-const defaultCompanyGroups = [
-  {
-    id: 1,
-    name: '宁波帮帮忙公司',
-    bases: [
-      { id: 2, name: '上海松江基地', area: 300, unit: '亩', crop: '水稻', growthDay: 30, status: 'planting', statusText: '种植中', manager: '郭靖', phone: '13800138002', soilType: '沙壤土', ph: 6.8, coords: '121.2234,31.0342', city: '上海', province: '上海', lng: 121.2234, lat: 31.0342, intro: '总种植面积300亩，包含玻璃温室2个，连栋薄膜温室5个，日光拱棚10个，大田200亩。', greenhouseCount: 17, fieldArea: 200 },
-      { id: 3, name: '上海崇明基地', area: 800, unit: '亩', crop: '小麦', growthDay: 0, status: 'fallow', statusText: '休耕中', manager: '萧峰', phone: '13800138003', soilType: '黏土', ph: 6.2, coords: '121.24416,31.73610', city: '上海', province: '上海', lng: 121.24416, lat: 31.73610, intro: '总种植面积800亩，包含玻璃温室3个，连栋薄膜温室8个，日光拱棚15个，大田650亩。', greenhouseCount: 26, fieldArea: 650 },
-      { id: 7, name: '上海嘉定基地', area: 350, unit: '亩', crop: '蔬菜', growthDay: 25, status: 'planting', statusText: '种植中', manager: '杨过', phone: '13800138007', soilType: '沙土', ph: 7.0, coords: '121.2654,31.3754', city: '上海', province: '上海', lng: 121.2654, lat: 31.3754, intro: '总种植面积350亩，包含玻璃温室4个，连栋薄膜温室6个，日光拱棚8个，大田200亩。', greenhouseCount: 18, fieldArea: 200 },
-      { id: 12, name: '上海奉贤基地', area: 550, unit: '亩', crop: '玉米', growthDay: 50, status: 'planting', statusText: '种植中', manager: '张无忌', phone: '13800138012', soilType: '黏土', ph: 6.8, coords: '121.4745,30.9123', city: '上海', province: '上海', lng: 121.4745, lat: 30.9123, intro: '总种植面积550亩，包含玻璃温室2个，连栋薄膜温室4个，日光拱棚12个，大田450亩。', greenhouseCount: 18, fieldArea: 450 },
-    ]
-  },
-  {
-    id: 2,
-    name: '成都帮帮您公司',
-    bases: [
-      { id: 1, name: '西安雁塔基地', area: 500, unit: '亩', crop: '番茄', growthDay: 45, status: 'planting', statusText: '种植中', manager: '令狐冲', phone: '13800138001', soilType: '壤土', ph: 6.5, coords: '108.9470,34.2194', city: '西安', province: '陕西', lng: 108.9470, lat: 34.2194, intro: '总种植面积500亩，包含玻璃温室3个，连栋薄膜温室7个，日光拱棚12个，大田380亩。', greenhouseCount: 22, fieldArea: 380 },
-      { id: 6, name: '西安高新基地', area: 200, unit: '亩', crop: '草莓', growthDay: 55, status: 'planting', statusText: '种植中', manager: '狄云', phone: '13800138006', soilType: '营养土', ph: 6.4, coords: '108.8789,34.2181', city: '西安', province: '陕西', lng: 108.8789, lat: 34.2181, intro: '总种植面积200亩，包含玻璃温室5个，连栋薄膜温室3个，日光拱棚5个，大田100亩。', greenhouseCount: 13, fieldArea: 100 },
-      { id: 4, name: '宁波北仑基地', area: 600, unit: '亩', crop: '茶叶', growthDay: 60, status: 'planting', statusText: '种植中', manager: '石破天', phone: '13800138004', soilType: '壤土', ph: 6.6, coords: '121.9701,29.8947', city: '宁波', province: '浙江', lng: 121.9701, lat: 29.8947, intro: '总种植面积600亩，包含玻璃温室1个，连栋薄膜温室4个，日光拱棚8个，大田550亩。', greenhouseCount: 13, fieldArea: 550 },
-      { id: 8, name: '宁波镇海基地', area: 280, unit: '亩', crop: '水稻', growthDay: 40, status: 'planting', statusText: '种植中', manager: '陈家洛', phone: '13800138008', soilType: '壤土', ph: 6.7, coords: '121.7532,29.9543', city: '宁波', province: '浙江', lng: 121.7532, lat: 29.9543, intro: '总种植面积280亩，包含玻璃温室2个，连栋薄膜温室3个，日光拱棚6个，大田220亩。', greenhouseCount: 11, fieldArea: 220 },
-      { id: 10, name: '宁波慈溪基地', area: 420, unit: '亩', crop: '葡萄', growthDay: 75, status: 'planting', statusText: '种植中', manager: '袁承志', phone: '13800138010', soilType: '壤土', ph: 6.5, coords: '121.2678,30.1543', city: '宁波', province: '浙江', lng: 121.2678, lat: 30.1543, intro: '总种植面积420亩，包含玻璃温室3个，连栋薄膜温室5个，日光拱棚10个，大田320亩。', greenhouseCount: 18, fieldArea: 320 },
-    ]
-  },
-]
-
-// 数据类型定义
+const baseStore = useBaseStore()
 const router = useRouter()
 
-// 从 localStorage 读取数据
-const loadCompanyGroups = () => {
-  try {
-    const stored = localStorage.getItem(COMPANY_GROUPS_KEY)
-    if (stored) {
-      return JSON.parse(stored)
-    }
-  } catch (e) {
-    console.error('读取基地数据失败:', e)
-  }
-  return defaultCompanyGroups
-}
-
-// 保存数据到 localStorage 并通知园区总览更新
-const saveCompanyGroups = (data) => {
-  localStorage.setItem(COMPANY_GROUPS_KEY, JSON.stringify(data))
-  // 触发园区总览页面刷新（事件名与 V1.1 FarmStructureManagement 一致：farmStructureUpdated）
+// 触发园区总览页面刷新（事件名与 V1.1 FarmStructureManagement 一致：farmStructureUpdated）
+const notifyFarmStructureUpdated = () => {
   window.dispatchEvent(new CustomEvent('farmStructureUpdated'))
 }
 
+// 将 baseStore.bases 转为按 companyOid 分组的 companyGroups 结构
+const companyGroups = computed(() => {
+  const groups = new Map()
+  for (const b of baseStore.bases || []) {
+    const key = b.companyOid || b.companyName || 'unassigned'
+    if (!groups.has(key)) {
+      groups.set(key, {
+        id: key,
+        oid: b.companyOid || key,
+        name: b.companyName || '未分配公司',
+        bases: []
+      })
+    }
+    groups.get(key).bases.push({
+      id: b.id || b.oid,
+      oid: b.oid,
+      name: b.name,
+      area: b.area || 0,
+      unit: b.unit || '亩',
+      crop: b.crop || '',
+      growthDay: b.growthDay || 0,
+      status: b.status === 'inactive' ? 'fallow' : 'planting',
+      statusText: b.status === 'inactive' ? '休耕中' : '种植中',
+      manager: b.manager || '',
+      phone: b.phone || '',
+      soilType: b.soilType || '',
+      ph: b.ph || 0,
+      coords: (b.lng != null && b.lat != null) ? `${b.lng},${b.lat}` : '',
+      city: b.city || '',
+      province: b.province || '',
+      lng: b.lng || 0,
+      lat: b.lat || 0,
+      intro: b.intro || '',
+      greenhouseCount: b.greenhouseCount || 0,
+      fieldArea: b.fieldArea || 0
+    })
+  }
+  return Array.from(groups.values())
+})
+
 // 响应式数据
-const companyGroups = ref(loadCompanyGroups())
 const searchName = ref('')
 const statusFilter = ref('all')
 const cropFilter = ref('all')
@@ -468,11 +463,14 @@ const stats = computed(() => ({
   fallow: parkData.value.filter(p => p.status === 'fallow').length
 }))
 
-const crops = computed(() => [...new Set(parkData.value.map(p => p.crop))])
+// P2-2: crops 从 parkData 自由文本提取(V1.1 BaseSettings 无该筛选,V2.0 保留为空数组以避免 UI 抖动)
+const crops = computed(() => [])
 
 const formDialogTitle = computed(() => {
   if (editingItem.value) {
-    return editingItem.value.type === 'company' ? '编辑公司' : '编辑基地'
+    if (editingItem.value.type === 'company') return '编辑公司'
+    if (editingItem.value.type === 'view') return '查看基地'
+    return '编辑基地'
   }
   return addType.value === 'company' ? '新增公司' : '新增基地'
 })
@@ -514,7 +512,12 @@ const toggleEditMode = () => {
 }
 
 const navigateToPark = (item) => {
-  router.push({ path: '/', state: { baseId: item.id, baseName: item.name } })
+  router.push({ path: '/', state: { baseId: item.oid || item.id, baseName: item.name } })
+}
+
+// 返回系统设置 - 与V1.1 `<a href="/settings">` 行为一致
+const goBackToSettings = () => {
+  router.push('/settings')
 }
 
 const openAddDialog = () => {
@@ -526,32 +529,32 @@ const openAddDialog = () => {
 }
 
 const openEditCompanyDialog = (company) => {
-  editingItem.value = { type: 'company', data: company }
-  formData.name = company.name
-  showFormDialog.value = true
+  // 公司维度当前V2.0未实现store（参考V1.1 useOrganizationStore），仅展示不允许编辑
+  ElMessage.warning('公司维度编辑功能待 V2.0 useOrganizationStore 补全后启用')
 }
 
 const openEditBaseDialog = (item, companyId) => {
   editingItem.value = { type: 'base', data: item, companyId }
-  formData.name = item.name
-  formData.area = item.area
-  formData.unit = item.unit
-  formData.crop = item.crop
-  formData.manager = item.manager
-  formData.phone = item.phone
-  formData.intro = item.intro
+  formData.name = item.name || ''
+  formData.area = item.area || 0
+  formData.unit = item.unit || '亩'
+  formData.crop = item.crop || ''
+  formData.manager = item.manager || ''
+  formData.phone = item.phone || ''
+  formData.intro = item.intro || ''
   showFormDialog.value = true
 }
 
 const openViewBaseDialog = (item, companyId) => {
-  editingItem.value = { type: 'base', data: item, companyId }
-  formData.name = item.name
-  formData.area = item.area
-  formData.unit = item.unit
-  formData.crop = item.crop
-  formData.manager = item.manager
-  formData.phone = item.phone
-  formData.intro = item.intro
+  // 查看模式：复用编辑弹窗但隐藏保存按钮
+  editingItem.value = { type: 'view', data: item, companyId }
+  formData.name = item.name || ''
+  formData.area = item.area || 0
+  formData.unit = item.unit || '亩'
+  formData.crop = item.crop || ''
+  formData.manager = item.manager || ''
+  formData.phone = item.phone || ''
+  formData.intro = item.intro || ''
   showFormDialog.value = true
 }
 
@@ -572,37 +575,26 @@ const closeFormDialog = () => {
 }
 
 const confirmDeleteCompany = (company) => {
-  confirmModalConfig.title = '删除公司警告'
-  confirmModalConfig.message = '删除公司会导致所有相关数据无法读取和使用！请提前备份数据，否则后果自负！'
-  confirmModalConfig.type = 'danger'
-  confirmModalConfig.onConfirm = () => {
-    confirmModalConfig.title = '确认删除'
-    confirmModalConfig.message = `确定要删除公司 ${company.name} 吗？此操作不可恢复！`
-    confirmModalConfig.onConfirm = () => {
-      companyGroups.value = companyGroups.value.filter(c => c.id !== company.id)
-      saveCompanyGroups(companyGroups.value)
-      showConfirmModal.value = false
-    }
-  }
-  showConfirmModal.value = true
+  // 公司维度当前V2.0未实现store，仅展示
+  ElMessage.warning('公司维度删除功能待 V2.0 useOrganizationStore 补全后启用')
 }
 
 const confirmDeleteBase = (item, company) => {
   confirmModalConfig.title = '删除基地警告'
   confirmModalConfig.message = '删除基地会导致所有相关数据无法读取和使用！请提前备份数据，否则后果自负！'
   confirmModalConfig.type = 'danger'
-  confirmModalConfig.onConfirm = () => {
+  confirmModalConfig.onConfirm = async () => {
     confirmModalConfig.title = '确认删除'
     confirmModalConfig.message = `确定要删除基地 ${item.name} 吗？此操作不可恢复！`
-    confirmModalConfig.onConfirm = () => {
-      companyGroups.value = companyGroups.value.map(c => {
-        if (c.id === company.id) {
-          return { ...c, bases: c.bases.filter(b => b.id !== item.id) }
-        }
-        return c
-      })
-      saveCompanyGroups(companyGroups.value)
-      showConfirmModal.value = false
+    confirmModalConfig.onConfirm = async () => {
+      try {
+        const targetOid = item.oid || item.id
+        await baseStore.removeBase(targetOid)
+        notifyFarmStructureUpdated()
+        showConfirmModal.value = false
+      } catch (err) {
+        ElMessage.error('删除基地失败：' + (err.message || '未知错误'))
+      }
     }
   }
   showConfirmModal.value = true
@@ -621,99 +613,82 @@ const handleConfirmDelete = () => {
   }
 }
 
-const submitForm = () => {
+const submitForm = async () => {
   if (!formData.name) {
     ElMessage.error('请输入名称')
     return
   }
 
-  if (editingItem.value) {
-    // 编辑模式
-    if (editingItem.value.type === 'company') {
-      const targetId = editingItem.value.data.id
-      companyGroups.value = companyGroups.value.map(c =>
-        c.id === targetId ? { ...c, name: formData.name } : c
-      )
-      ElMessage.success('公司名称已更新')
-    } else {
-      const targetId = editingItem.value.data.id
-      companyGroups.value = companyGroups.value.map(c => {
-        if (c.id === editingItem.value.companyId) {
-          return {
-            ...c,
-            bases: c.bases.map(b =>
-              b.id === targetId ? {
-                ...b,
-                name: formData.name,
-                area: formData.area,
-                unit: formData.unit,
-                crop: formData.crop,
-                manager: formData.manager,
-                phone: formData.phone,
-                intro: formData.intro
-              } : b
-            )
-          }
-        }
-        return c
+  try {
+    if (editingItem.value && editingItem.value.type === 'view') {
+      // 查看模式不允许保存
+      closeFormDialog()
+      return
+    }
+
+    if (editingItem.value && editingItem.value.type === 'base') {
+      // 编辑基地 - 调用真实API
+      const targetOid = editingItem.value.data.oid || editingItem.value.data.id
+      await baseStore.editBase(targetOid, {
+        name: formData.name,
+        area: formData.area,
+        unit: formData.unit,
+        manager: formData.manager,
+        phone: formData.phone,
+        intro: formData.intro
       })
       ElMessage.success('基地信息已更新')
-    }
-  } else {
-    // 新增模式
-    if (addType.value === 'company') {
-      companyGroups.value.push({
-        id: Date.now(),
+    } else if (!editingItem.value && addType.value === 'base') {
+      // 新增基地
+      const payload = {
         name: formData.name,
-        bases: []
-      })
-    } else {
-      if (!selectedCompanyId.value) {
-        ElMessage.error('请选择公司')
-        return
+        area: formData.area,
+        unit: formData.unit,
+        manager: formData.manager,
+        phone: formData.phone,
+        intro: formData.intro,
+        status: 'active'
       }
-      companyGroups.value = companyGroups.value.map(c => {
-        if (c.id === selectedCompanyId.value) {
-          return {
-            ...c,
-            bases: [...c.bases, {
-              id: Date.now(),
-              name: formData.name,
-              area: formData.area,
-              unit: formData.unit,
-              crop: formData.crop,
-              growthDay: 0,
-              status: 'planting',
-              statusText: '种植中',
-              manager: formData.manager,
-              phone: formData.phone,
-              soilType: '',
-              ph: 0,
-              coords: '',
-              city: '',
-              province: '',
-              lng: 0,
-              lat: 0,
-              intro: formData.intro
-            }]
-          }
+      // 如果选择了公司，关联 companyOid/companyName
+      if (selectedCompanyId.value) {
+        const group = companyGroups.value.find(c => c.id === selectedCompanyId.value)
+        if (group) {
+          payload.companyOid = group.oid
+          payload.companyName = group.name
         }
-        return c
-      })
+      }
+      await baseStore.addBase(payload)
       selectedCompanyId.value = null
+      ElMessage.success('基地已新增')
+    } else {
+      // 公司新增/编辑 - V2.0 useOrganizationStore 暂未实现，跳过
+      ElMessage.warning('公司维度编辑功能待 V2.0 useOrganizationStore 补全后启用')
+      return
     }
+    notifyFarmStructureUpdated()
+    closeFormDialog()
+  } catch (err) {
+    ElMessage.error('保存失败：' + (err.message || '未知错误'))
   }
-
-  saveCompanyGroups(companyGroups.value)
-  closeFormDialog()
 }
 
 // 监听 companyGroups 更新，同步更新 expandedCompanies
-watch(companyGroups, (newVal) => {
-  if (newVal.length > 0) {
-    expandedCompanies.value = newVal.map(g => g.id)
+// P2-3: 性能优化 — 改用浅监听 length,避免 deep:true 在每次基地数据更新时
+// 重新计算引用并强制重置展开状态,只在公司数量变化时才同步
+watch(() => companyGroups.value.length, (newLen) => {
+  if (newLen > 0) {
+    expandedCompanies.value = companyGroups.value.map(g => g.id)
   }
-}, { immediate: true, deep: true })
+}, { immediate: true })
+
+// 挂载时调用真实API加载基地数据（对齐 V1.1 useBaseStore.loadBases）
+onMounted(async () => {
+  try {
+    await baseStore.loadBases()
+  } catch (err) {
+    console.error('[BaseSettings] 加载基地数据失败:', err)
+  }
+})
 </script>
 
 <style scoped>

@@ -8,6 +8,8 @@ import { ref } from 'vue'
 import { enhancedApiClient } from '@/lib/apiClient'
 
 // 事件类型选项
+// P1-2 修复：补齐 JSDoc 类型（与 src/types/notification.d.ts 1:1 对齐）
+/** @type {import('@/types/notification').EventOption[]} */
 export const EVENT_OPTIONS = [
   { value: 'approval_pending', label: '审批待办' },
   { value: 'approval_result', label: '审批结果' },
@@ -20,6 +22,7 @@ export const EVENT_OPTIONS = [
 ]
 
 // 发送频率选项
+/** @type {import('@/types/notification').FrequencyOption[]} */
 export const FREQUENCY_OPTIONS = [
   { value: 'immediate', label: '立即发送' },
   { value: 'hourly', label: '每小时汇总' },
@@ -27,6 +30,7 @@ export const FREQUENCY_OPTIONS = [
 ]
 
 // 渠道类型选项
+/** @type {import('@/types/notification').ChannelTypeOption[]} */
 export const CHANNEL_TYPES = [
   { value: 'email', label: '邮件' },
   { value: 'sms', label: '短信' },

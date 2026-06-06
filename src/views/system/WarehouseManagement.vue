@@ -95,7 +95,7 @@
         <div class="grid grid-cols-2 gap-3 text-sm mb-3">
           <div>
             <p class="text-gray-500">类型</p>
-            <p class="text-gray-900 font-medium">{{ warehouse.warehouseType || '-' }}</p>
+            <p class="text-gray-900 font-medium">{{ getWarehouseTypeLabel(warehouse.warehouseType) }}</p>
           </div>
           <div>
             <p class="text-gray-500">负责人</p>
@@ -200,6 +200,31 @@ import { getWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from
 // 仓库类型选项
 const WAREHOUSE_TYPES = ['原料仓库', '成品仓库', '耗材仓库', '农药仓库', '化肥仓库', '设备仓库', '其他']
 
+// P1-4 修复：仓库类型中文标签 - 兼容后端可能返回英文 code 的场景，统一显示中文标签
+const WAREHOUSE_TYPE_LABELS = {
+  raw_material: '原料仓库',
+  finished: '成品仓库',
+  consumable: '耗材仓库',
+  pesticide: '农药仓库',
+  fertilizer: '化肥仓库',
+  equipment: '设备仓库',
+  other: '其他',
+  // 中文值直通
+  原料仓库: '原料仓库',
+  成品仓库: '成品仓库',
+  耗材仓库: '耗材仓库',
+  农药仓库: '农药仓库',
+  化肥仓库: '化肥仓库',
+  设备仓库: '设备仓库',
+  其他: '其他'
+}
+
+/** 仓库类型中文标签 - 与 V1.1 保持完全一致 */
+const getWarehouseTypeLabel = (typeCode) => {
+  if (!typeCode) return '-'
+  return WAREHOUSE_TYPE_LABELS[typeCode] || typeCode
+}
+
 // 搜索关键词
 const searchTerm = ref('')
 
@@ -274,7 +299,8 @@ const loadWarehouses = async () => {
     const data = await getWarehouses()
     allWarehouses.value = data || []
   } catch (error) {
-    console.error('加载仓库失败:', error)
+    // P2-6 修复：保留 console 调试信息（开发用）+ 用户感知 ElMessage
+    console.error('[WarehouseManagement] 加载仓库失败:', error)
     ElMessage.error('加载仓库数据失败')
   } finally {
     isLoading.value = false
@@ -297,10 +323,12 @@ const handleCreate = async () => {
           status: formData.status,
           description: formData.description
         })
+        ElMessage.success('创建成功')
         handleCloseModal()
         loadWarehouses()
       } catch (error) {
-        console.error('创建仓库失败:', error)
+        // P2-6 修复：保留 console 调试信息
+        console.error('[WarehouseManagement] 创建仓库失败:', error)
         ElMessage.error('创建仓库失败')
       }
     }
@@ -324,10 +352,12 @@ const handleUpdate = async () => {
           status: formData.status,
           description: formData.description
         })
+        ElMessage.success('更新成功')
         handleCloseModal()
         loadWarehouses()
       } catch (error) {
-        console.error('更新仓库失败:', error)
+        // P2-6 修复：保留 console 调试信息
+        console.error('[WarehouseManagement] 更新仓库失败:', error)
         ElMessage.error('更新仓库失败')
       }
     }

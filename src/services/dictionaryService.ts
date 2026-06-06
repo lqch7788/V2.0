@@ -367,108 +367,32 @@ const DEFAULT_DICTIONARIES: Dictionary[] = [];
  * 优先从后端API获取，失败时降级到 localStorage
  * 后端返回字段: category_code, dict_code, dict_label, dict_value, sort_order, status, created_at, updated_at
  * 前端期望字段: category, code, name, sortNumber, status, createdAt, updatedAt
+ *
+ * P1-5: 改用 enhancedApiClient 统一处理 401 token 过期重试逻辑
  */
 export async function getDictionaries(category?: string): Promise<Dictionary[]> {
   // 使用相对路径，与V1.1保持一致
-  let url = '/api/dictionary/dictionaries';
+  let url = '/dictionary/dictionaries';
   if (category) {
     url += `?category=${encodeURIComponent(category)}`;
   }
 
-  // 获取认证 token
-  const token = localStorage.getItem('token');
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   try {
-    // 添加超时控制
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
-    const response = await fetch(url, { headers, signal: controller.signal });
-    clearTimeout(timeoutId);
+    // enhancedApiClient 内部已实现 401 → 清 token → 不带 token 重试
+    const data = await apiClient.get<unknown[]>(url, { retryCount: 1 });
 
-    // 如果是 401（未授权），可能是 token 无效，清除 token 并重试
-    if (response.status === 401) {
-      console.warn('[DictionaryService] Token 无效或已过期，清除 token');
-      localStorage.removeItem('token');
-      // 不带 token 重试
-      delete headers['Authorization'];
-      const retryController = new AbortController();
-      const retryTimeoutId = setTimeout(() => retryController.abort(), 10000);
-      const retryResponse = await fetch(url, { headers, signal: retryController.signal });
-      clearTimeout(retryTimeoutId);
-      if (!retryResponse.ok) {
-        throw new Error(`HTTP error! status: ${retryResponse.status}`);
-      }
-      const rawData = await retryResponse.json();
-      // 处理响应数据
-      let data: Record<string, unknown>[] = [];
-      if (Array.isArray(rawData)) {
-        data = rawData;
-      } else if (rawData && typeof rawData === 'object') {
-        if (Array.isArray((rawData as any).data)) {
-          data = (rawData as any).data;
-        } else if (Array.isArray((rawData as any).result)) {
-          data = (rawData as any).result;
-        }
-      }
-      if (data.length === 0) {
-        throw new Error('API 返回空数据');
-      }
-      const mappedData: Dictionary[] = data.map((item: Record<string, unknown>) => ({
-        id: item.id as string,
-        category: item.category_code as string,
-        code: item.dict_code as string,
-        name: item.dict_label as string,
-        displayName: (item.display_name as string) || (item.dict_label as string),
-        sortNumber: item.sort_order as number,
-        status: item.status as string,
-        createdAt: item.created_at as string,
-        updatedAt: item.updated_at as string,
-      }));
-      localStorage.setItem(DICTIONARY_STORAGE_KEY, JSON.stringify(mappedData));
-      return mappedData;
-    }
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const rawData = await response.json();
-
-    // 处理多种可能的响应格式
-    let data: Record<string, unknown>[] = [];
-
-    console.log('[DictionaryService] rawData type:', typeof rawData, Array.isArray(rawData) ? 'array' : 'not array');
-
-    if (Array.isArray(rawData)) {
-      // 格式1: 直接返回数组
-      data = rawData;
-    } else if (rawData && typeof rawData === 'object') {
-      // 格式2: 包装格式 {success: true, data: [...]} 或 {data: [...]}
-      if (Array.isArray((rawData as any).data)) {
-        data = (rawData as any).data;
-      } else if (Array.isArray((rawData as any).result)) {
-        data = (rawData as any).result;
-      }
-    }
-
-    console.log('[DictionaryService] parsed data length:', data.length);
-
-    if (data.length === 0) {
+    if (!data || (Array.isArray(data) && data.length === 0)) {
       throw new Error('API 返回空数据');
     }
 
+    const rawData = data as Record<string, unknown>[];
     // 字段映射：将后端字段转换为前端字段
-    const mappedData: Dictionary[] = data.map((item: Record<string, unknown>) => ({
+    const mappedData: Dictionary[] = rawData.map((item: Record<string, unknown>) => ({
       id: item.id as string,
       category: item.category_code as string,
       code: item.dict_code as string,
       name: item.dict_label as string,
+      displayName: (item.display_name as string) || (item.dict_label as string),
       sortNumber: item.sort_order as number,
       status: item.status as string,
       createdAt: item.created_at as string,
@@ -477,8 +401,6 @@ export async function getDictionaries(category?: string): Promise<Dictionary[]> 
 
     // API成功时同步到 localStorage
     localStorage.setItem(DICTIONARY_STORAGE_KEY, JSON.stringify(mappedData));
-    console.log('[DictionaryService] 从API获取并缓存字典数据:', mappedData.length, '条');
-
     return mappedData;
   } catch (error) {
     console.warn('[DictionaryService] API获取失败，降级到localStorage:', error);
@@ -492,7 +414,6 @@ export async function getDictionaries(category?: string): Promise<Dictionary[]> 
         if (category) {
           return parsed.filter(d => d.category === category);
         }
-        console.log('[DictionaryService] 从localStorage恢复字典数据:', parsed.length, '条');
         return parsed;
       } catch {
         return DEFAULT_DICTIONARIES;
@@ -505,75 +426,14 @@ export async function getDictionaries(category?: string): Promise<Dictionary[]> 
 /**
  * 获取字典分类列表
  * 优先从后端API获取，失败时降级到 localStorage
+ *
+ * P1-5: 改用 enhancedApiClient 统一处理 401 token 过期重试
  */
 export async function getDictionaryCategories(): Promise<string[]> {
-  // 使用相对路径，与V1.1保持一致
-
   try {
-    // 后端直接返回数组格式，不用 apiClient
-    // 获取认证 token
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const data = await apiClient.get<string[]>('/dictionary/dictionaries/categories', { retryCount: 1 });
 
-    const response = await fetch('/api/dictionary/dictionaries/categories', { headers });
-
-    // 如果是 401（未授权），可能是 token 无效，清除 token 并重试
-    if (response.status === 401) {
-      console.warn('[DictionaryService] Token 无效或已过期，清除 token');
-      localStorage.removeItem('token');
-      delete headers['Authorization'];
-      const retryResponse = await fetch('/api/dictionary/dictionaries/categories', { headers });
-      if (!retryResponse.ok) {
-        throw new Error(`HTTP error! status: ${retryResponse.status}`);
-      }
-      const rawData = await retryResponse.json();
-      let data: string[] = [];
-      if (Array.isArray(rawData)) {
-        data = rawData;
-      } else if (rawData && typeof rawData === 'object') {
-        if (Array.isArray((rawData as any).data)) {
-          data = (rawData as any).data;
-        } else if (Array.isArray((rawData as any).result)) {
-          data = (rawData as any).result;
-        }
-      }
-      if (data.length > 0) {
-        console.log('[DictionaryService] 从API获取到分类:', data.length);
-        localStorage.setItem(DICTIONARY_CATEGORIES_STORAGE_KEY, JSON.stringify(data));
-        return data;
-      }
-      throw new Error('Invalid response format');
-    }
-
-    // 检查响应状态
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const rawData = await response.json();
-
-    // 处理多种可能的响应格式
-    let data: string[] = [];
-
-    if (Array.isArray(rawData)) {
-      // 格式1: 直接返回数组
-      data = rawData;
-    } else if (rawData && typeof rawData === 'object') {
-      // 格式2: 包装格式
-      if (Array.isArray((rawData as any).data)) {
-        data = (rawData as any).data;
-      } else if (Array.isArray((rawData as any).result)) {
-        data = (rawData as any).result;
-      }
-    }
-
-    if (data.length > 0) {
-      console.log('[DictionaryService] 从API获取到分类:', data.length);
+    if (Array.isArray(data) && data.length > 0) {
       // API成功时同步到 localStorage
       localStorage.setItem(DICTIONARY_CATEGORIES_STORAGE_KEY, JSON.stringify(data));
       return data;
@@ -587,7 +447,6 @@ export async function getDictionaryCategories(): Promise<string[]> {
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as string[];
-        console.log('[DictionaryService] 从localStorage恢复分类数据:', parsed.length, '条');
         return parsed;
       } catch {
         return [];
@@ -599,16 +458,15 @@ export async function getDictionaryCategories(): Promise<string[]> {
 
 /**
  * 保存字典（新增或更新）
- * 使用 fetch 直接调用，绕过 apiClient 的响应格式验证
  * 前端字段: category, code, name, sortNumber -> 后端字段: category_code, dict_code, dict_label, sort_order
+ *
+ * P1-5: 改用 enhancedApiClient 统一处理 401 token 过期重试
  */
 export async function saveDictionaries(data: {
   inserted: Dictionary[];
   updated: Dictionary[];
   deleted: string[];
 }): Promise<SaveResult<Dictionary>> {
-  // 使用相对路径，与V1.1保持一致
-
   // 转换字段格式：前端 -> 后端
   const convertToBackend = (dict: Dictionary) => ({
     id: dict.id,
@@ -626,30 +484,14 @@ export async function saveDictionaries(data: {
     deleted: data.deleted,
   };
 
-  // 获取认证 token
-  const token = localStorage.getItem('token');
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   try {
-    const response = await fetch('/api/dictionary/dictionaries', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(backendData)
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = response.json();
+    const result = await apiClient.post<SaveResult<Dictionary>>(
+      '/dictionary/dictionaries',
+      backendData,
+      { retryCount: 1 }
+    );
 
     // 保存成功后，同步更新 localStorage
-    // 从 localStorage 读取当前数据
     const stored = localStorage.getItem(DICTIONARY_STORAGE_KEY);
     if (stored) {
       try {
@@ -678,7 +520,6 @@ export async function saveDictionaries(data: {
         }
 
         localStorage.setItem(DICTIONARY_STORAGE_KEY, JSON.stringify(currentData));
-        console.log('[DictionaryService] 保存后同步localStorage，当前共', currentData.length, '条');
       } catch (e) {
         console.warn('[DictionaryService] 同步localStorage失败:', e);
       }

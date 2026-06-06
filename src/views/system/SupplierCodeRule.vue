@@ -12,7 +12,9 @@
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">供应商编码规则</h1>
+            <!-- P1-3 修复：补充"流水号 3 位"提示，与 V1.1 描述完全一致 -->
             <p class="text-gray-500">编码结构：大类代码(2位) + 中类代码(2位) + 流水号(3位)，前缀 SU_</p>
+            <p class="text-xs text-amber-600 mt-1">提示：流水号为 3 位数字（如 001, 002...），系统按供应商添加顺序自动递增</p>
           </div>
         </div>
         <div class="flex items-center gap-2">

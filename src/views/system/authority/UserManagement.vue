@@ -33,7 +33,7 @@
           </el-icon>
           <el-input
             v-model="searchTerm"
-            placeholder="搜索..."
+            placeholder="请输入..."
             clearable
             class="w-36 pl-8"
             size="small"
@@ -79,7 +79,7 @@
           <tr
             v-for="user in pagedUsers"
             :key="user.oid"
-            class="border-b border-gray-100 hover:bg-blue-50"
+            class="border-b border-gray-200 hover:bg-blue-50"
           >
             <td class="py-2 px-4 text-gray-700 font-medium">{{ user.username || user.aid }}</td>
             <td class="py-2 px-4 text-gray-700">{{ user.real_name || user.name }}</td>
@@ -135,8 +135,9 @@
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
           :total="filteredUsers.length"
-          layout="prev, pager, next"
+          layout="prev, pager, next, sizes"
           background
         />
       </div>
@@ -146,8 +147,9 @@
     <el-dialog
       v-model="userDialogVisible"
       :title="editingUser ? '编辑用户' : '新增用户'"
-      width="550px"
+      width="700px"
       :close-on-click-modal="false"
+      draggable
     >
       <div class="space-y-3">
         <div class="grid grid-cols-2 gap-3">
@@ -216,8 +218,9 @@
     <el-dialog
       v-model="passwordDialogVisible"
       :title="'修改密码' + (passwordUser ? ' - ' + (passwordUser.real_name || passwordUser.name) : '')"
-      width="400px"
+      width="500px"
       :close-on-click-modal="false"
+      draggable
     >
       <div>
         <label class="block text-xs text-gray-500 mb-1">新密码</label>
@@ -233,8 +236,9 @@
     <el-dialog
       v-model="deleteDialogVisible"
       title="确认删除用户"
-      width="400px"
+      width="500px"
       :close-on-click-modal="false"
+      draggable
     >
       <p class="text-sm text-gray-600">删除后用户将无法登录系统，确定要删除吗？</p>
       <template #footer>
@@ -285,7 +289,7 @@ const departments = computed(() => departmentStore.departments || [])
 const searchTerm = ref('')
 const statusFilter = ref('all')
 const currentPage = ref(1)
-const pageSize = 10
+const pageSize = ref(10)
 
 // 弹窗状态
 const userDialogVisible = ref(false)
@@ -324,10 +328,10 @@ const filteredUsers = computed(() => {
 })
 
 // 分页
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize))
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize.value))
 const pagedUsers = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  return filteredUsers.value.slice(start, start + pageSize)
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredUsers.value.slice(start, start + pageSize.value)
 })
 
 // 获取组织名称
@@ -362,7 +366,14 @@ const handleReset = () => {
   searchTerm.value = ''
   statusFilter.value = 'all'
   currentPage.value = 1
+  // V1.1 一致: 重置后重新拉取数据,服务端按 status=all 过滤(若后端支持)
+  loadUsers({ status: 'all' })
 }
+
+// 状态筛选变化时,推到服务端做 query 过滤(若后端支持);前端仍保留 client-side 过滤作为兜底
+watch(statusFilter, (newVal) => {
+  loadUsers({ status: newVal === 'all' ? undefined : newVal })
+})
 
 // 弹窗操作
 const openAddModal = () => {
@@ -424,7 +435,7 @@ const handleUserSave = async () => {
       try {
         await assignUserRoles(payload.oid, userRoleOids.value)
       } catch (err) {
-        console.error('保存用户角色失败:', err)
+        ElMessage.error('保存用户角色失败')
       }
     }
 

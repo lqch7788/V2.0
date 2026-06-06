@@ -9,7 +9,7 @@
         </el-icon>
         <el-input
           v-model="searchUserTerm"
-          placeholder="搜索..."
+          placeholder="请输入..."
           clearable
           class="w-36 pl-7"
           size="small"
@@ -76,7 +76,7 @@
             <tr
               v-for="(proc, index) in allProcesses"
               :key="proc.oid"
-              class="border-b border-gray-100 hover:bg-blue-50"
+              class="border-b border-gray-200 hover:bg-blue-50"
             >
               <td class="py-1.5 px-2 text-center text-gray-500 text-xs">{{ index + 1 }}</td>
               <td class="py-1.5 px-3 text-gray-700">

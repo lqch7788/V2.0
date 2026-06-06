@@ -115,9 +115,11 @@ export function deleteOrganization(oid) {
 
 /**
  * 获取角色列表
+ * 与 V1.1 authorityService.getRoles 签名对齐: 支持 orgOid/sort/order 三个 query 参数
+ * 若后端不支持 query 过滤,服务端忽略这些参数即可(不会报错),前端再做客户端 fallback
  */
-export function getRoles() {
-  return get('/authority/roles')
+export function getRoles(params) {
+  return get('/authority/roles', params)
 }
 
 /**
@@ -143,9 +145,11 @@ export function deleteRole(oid) {
 
 /**
  * 获取用户列表
+ * 与 V1.1 authorityService.getUsers 签名对齐: 支持 orgOid/status 两个 query 参数
+ * 若后端不支持 query 过滤,服务端忽略这些参数即可(不会报错),前端再做客户端 fallback
  */
-export function getUsers() {
-  return get('/authority/users')
+export function getUsers(params) {
+  return get('/authority/users', params)
 }
 
 /**

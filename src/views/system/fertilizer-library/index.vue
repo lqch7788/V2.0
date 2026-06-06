@@ -615,7 +615,7 @@ const handleDeleteSpec = (index) => {
 const handleEdit = async (row) => {
   dialogMode.value = 'edit'
   // 拉取完整详情（含 specs）
-  const fullRecord = await fertilizerStore.fetchItemById(row.id) || row
+  const fullRecord = await fertilizerLibraryStore.fetchItemById(row.id) || row
   // applicationTiming 可能是逗号分隔的字符串，需要转为数组
   const timings = fullRecord.applicationTiming ? fullRecord.applicationTiming.split(',').map(t => t.trim()).filter(Boolean) : []
   Object.assign(formData, {
@@ -640,7 +640,7 @@ const handleEdit = async (row) => {
 
 const handleDetail = async (row) => {
   // 拉取完整详情（含 specs）
-  const fullRecord = await fertilizerStore.fetchItemById(row.id) || row
+  const fullRecord = await fertilizerLibraryStore.fetchItemById(row.id) || row
   currentRecord.value = fullRecord
   detailVisible.value = true
 }

@@ -236,17 +236,22 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">开始时间 *</label>
-            <el-time-select
+            <!-- P2-5 修复：el-time-picker 替代 el-time-select - V1.1 使用 type="time" 文本输入框 -->
+            <el-time-picker
               v-model="shiftForm.startTime"
               placeholder="选择开始时间"
+              format="HH:mm"
+              value-format="HH:mm"
               class="w-full"
             />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">结束时间 *</label>
-            <el-time-select
+            <el-time-picker
               v-model="shiftForm.endTime"
               placeholder="选择结束时间"
+              format="HH:mm"
+              value-format="HH:mm"
               class="w-full"
             />
           </div>
@@ -285,7 +290,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UserFilled, Plus, Edit, Delete, ArrowLeft, Clock } from '@element-plus/icons-vue'
-import { getTeams, createTeam, updateTeam, deleteTeam, getShifts, createShift, updateShift, deleteShift } from '@/services/apiBasicDataService'
+import { useTeamShiftStore } from '@/stores/modules/teamShift'
 
 // ========== 班次类型颜色映射 ==========
 const shiftTypeColors = {
@@ -302,9 +307,11 @@ const tabs = [
 
 const activeTab = ref('teams')
 const searchTerm = ref('')
-const teams = ref([])
-const shifts = ref([])
-const isLoading = ref(false)
+// 班组/班次 - 使用 Pinia store（镜像 V1.1 useTeamStore）
+const teamStore = useTeamShiftStore()
+const teams = computed(() => teamStore.teams)
+const shifts = computed(() => teamStore.shifts)
+const isLoading = computed(() => teamStore.loading)
 
 // 班组弹窗状态
 const showTeamModal = ref(false)
@@ -361,15 +368,12 @@ const formatDate = (dateStr) => {
  * 加载班组数据
  */
 const loadTeams = async () => {
-  isLoading.value = true
   try {
-    const data = await getTeams()
-    teams.value = data || []
+    await teamStore.loadTeams(true)
   } catch (error) {
-    console.error('加载班组失败:', error)
+    // P2-6 修复：保留 console 调试信息
+    console.error('[TeamManagement] 加载班组失败:', error)
     ElMessage.error('加载班组数据失败')
-  } finally {
-    isLoading.value = false
   }
 }
 
@@ -377,15 +381,12 @@ const loadTeams = async () => {
  * 加载班次数据
  */
 const loadShifts = async () => {
-  isLoading.value = true
   try {
-    const data = await getShifts()
-    shifts.value = data || []
+    await teamStore.loadShifts()
   } catch (error) {
-    console.error('加载班次失败:', error)
+    // P2-6 修复：保留 console 调试信息
+    console.error('[TeamManagement] 加载班次失败:', error)
     ElMessage.error('加载班次数据失败')
-  } finally {
-    isLoading.value = false
   }
 }
 
@@ -441,38 +442,32 @@ const handleSaveTeam = async () => {
     return
   }
 
+  const payload = {
+    teamName: teamForm.value.teamName,
+    teamCode: teamForm.value.teamCode,
+    leaderName: teamForm.value.leaderName,
+    departmentOid: teamForm.value.departmentOid,
+    departmentName: teamForm.value.departmentName,
+    shiftType: teamForm.value.shiftType,
+    memberCount: teamForm.value.memberCount,
+    description: teamForm.value.description,
+    status: teamForm.value.status,
+  }
+
   try {
     if (editingTeam.value) {
       // 编辑模式
-      await updateTeam(editingTeam.value.id, {
-        teamName: teamForm.value.teamName,
-        teamCode: teamForm.value.teamCode,
-        leaderName: teamForm.value.leaderName,
-        departmentOid: teamForm.value.departmentOid,
-        departmentName: teamForm.value.departmentName,
-        shiftType: teamForm.value.shiftType,
-        memberCount: teamForm.value.memberCount,
-        description: teamForm.value.description,
-        status: teamForm.value.status,
-      })
+      await teamStore.editTeam(editingTeam.value.id, payload)
     } else {
       // 新增模式
-      await createTeam({
-        teamName: teamForm.value.teamName,
-        teamCode: teamForm.value.teamCode,
-        leaderName: teamForm.value.leaderName,
-        departmentOid: teamForm.value.departmentOid,
-        departmentName: teamForm.value.departmentName,
-        shiftType: teamForm.value.shiftType,
-        memberCount: teamForm.value.memberCount,
-        description: teamForm.value.description,
-        status: teamForm.value.status,
-      })
+      await teamStore.addTeam(payload)
     }
+    ElMessage.success('保存成功')
     closeTeamModal()
     loadTeams()
   } catch (error) {
-    console.error('保存班组失败:', error)
+    // P2-6 修复：保留 console 调试信息
+    console.error('[TeamManagement] 保存班组失败:', error)
     ElMessage.error('保存失败')
   }
 }
@@ -491,10 +486,10 @@ const handleDeleteTeam = async (id) => {
     return // 用户取消
   }
   try {
-    await deleteTeam(id)
-    teams.value = teams.value.filter(t => t.id !== id)
+    await teamStore.removeTeam(id)
   } catch (error) {
-    console.error('删除班组失败:', error)
+    // P2-6 修复：保留 console 调试信息
+    console.error('[TeamManagement] 删除班组失败:', error)
     ElMessage.error('删除失败')
   }
 }
@@ -542,34 +537,30 @@ const handleSaveShift = async () => {
     return
   }
 
+  const payload = {
+    shiftCode: shiftForm.value.shiftCode,
+    shiftName: shiftForm.value.shiftName,
+    startTime: shiftForm.value.startTime,
+    endTime: shiftForm.value.endTime,
+    shiftType: shiftForm.value.shiftType,
+    description: shiftForm.value.description,
+    status: shiftForm.value.status,
+  }
+
   try {
     if (editingShift.value) {
       // 编辑模式
-      await updateShift(editingShift.value.id, {
-        shiftCode: shiftForm.value.shiftCode,
-        shiftName: shiftForm.value.shiftName,
-        startTime: shiftForm.value.startTime,
-        endTime: shiftForm.value.endTime,
-        shiftType: shiftForm.value.shiftType,
-        description: shiftForm.value.description,
-        status: shiftForm.value.status,
-      })
+      await teamStore.editShift(editingShift.value.id, payload)
     } else {
       // 新增模式
-      await createShift({
-        shiftCode: shiftForm.value.shiftCode,
-        shiftName: shiftForm.value.shiftName,
-        startTime: shiftForm.value.startTime,
-        endTime: shiftForm.value.endTime,
-        shiftType: shiftForm.value.shiftType,
-        description: shiftForm.value.description,
-        status: shiftForm.value.status,
-      })
+      await teamStore.addShift(payload)
     }
+    ElMessage.success('保存成功')
     closeShiftModal()
     loadShifts()
   } catch (error) {
-    console.error('保存班次失败:', error)
+    // P2-6 修复：保留 console 调试信息
+    console.error('[TeamManagement] 保存班次失败:', error)
     ElMessage.error('保存失败')
   }
 }
@@ -588,10 +579,10 @@ const handleDeleteShift = async (id) => {
     return // 用户取消
   }
   try {
-    await deleteShift(id)
-    shifts.value = shifts.value.filter(s => s.id !== id)
+    await teamStore.removeShift(id)
   } catch (error) {
-    console.error('删除班次失败:', error)
+    // P2-6 修复：保留 console 调试信息
+    console.error('[TeamManagement] 删除班次失败:', error)
     ElMessage.error('删除失败')
   }
 }

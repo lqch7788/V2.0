@@ -130,7 +130,7 @@
       <!-- 操作按钮 -->
       <div class="flex items-center justify-between">
         <el-button
-          variant="outline"
+          plain
           @click="scanLocalStorage"
           :disabled="isScanning || isChecking || isMigrating"
         >
@@ -139,14 +139,14 @@
 
         <div class="flex gap-4">
           <el-button
-            variant="outline"
+            plain
             @click="fetchDbStats"
             :disabled="isScanning || isChecking || isMigrating"
           >
             刷新统计
           </el-button>
           <el-button
-            variant="outline"
+            plain
             @click="executeFieldCheck"
             :disabled="isScanning || isChecking || isMigrating || migrationItems.every(i => i.localCount === 0)"
           >
@@ -224,7 +224,7 @@
  *  5. 不覆盖、不删除后端已有数据
  *  6. 生成详细的迁移报告
  */
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ArrowLeft, DataAnalysis } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -522,7 +522,7 @@ function scanLocalStorage() {
         skippedCount: 0,
       })
     } catch (error) {
-      console.error(`扫描 ${key} 失败:`, error)
+      ElMessage.error(`扫描 ${key} 失败: ${error?.message || error}`)
       items.push({
         key,
         name: config.name,
@@ -553,7 +553,7 @@ async function fetchDbStats() {
       }))
     }
   } catch (error) {
-    console.error('获取数据库统计失败:', error)
+    ElMessage.error(`获取数据库统计失败: ${error?.message || error}`)
   }
 }
 
@@ -706,7 +706,7 @@ async function checkDataConflicts(item) {
 
     return { totalConflicts: conflicts.length, conflicts: conflicts.slice(0, 20) }
   } catch (error) {
-    console.error('检测数据冲突失败:', error)
+    ElMessage.warning(`检测数据冲突失败（已跳过）: ${error?.message || error}`)
     return { totalConflicts: 0, conflicts: [] }
   }
 }
@@ -979,7 +979,9 @@ const isMigratingBtnDisabled = computed(() => {
     ))
 })
 
-// 初始化扫描
-scanLocalStorage()
-fetchDbStats()
+// 初始化扫描（与 V1.1 useEffect 一致）
+onMounted(() => {
+  scanLocalStorage()
+  fetchDbStats()
+})
 </script>

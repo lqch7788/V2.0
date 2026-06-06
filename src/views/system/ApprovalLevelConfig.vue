@@ -536,6 +536,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useApprovalLevelStore } from '@/stores/modules/approvalLevel'
+import { getApprovalTypeName } from '@/types/approval'
 import { ElMessage } from 'element-plus'
 import {
   ArrowLeft,
@@ -607,15 +608,20 @@ const sortedLevelConfigs = computed(() => {
   return [...levelConfigs].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
 })
 
+// P1-3 修复：抽取统一查找函数 getLevelByCode，消除 4 处 levelConfigs.find 重复
+const getLevelByCode = (levelCode) => {
+  if (!levelCode) return null
+  return levelConfigs.value.find(l => l.levelCode === levelCode) || null
+}
+
 // 获取级别名称
 const getLevelName = (levelCode) => {
-  const config = levelConfigs.value.find(l => l.levelCode === levelCode)
-  return config?.levelName || levelCode
+  return getLevelByCode(levelCode)?.levelName || levelCode
 }
 
 // 获取审批人文本
 const getApproverText = (levelCode) => {
-  const config = levelConfigs.value.find(l => l.levelCode === levelCode)
+  const config = getLevelByCode(levelCode)
   if (!config) return ''
   if (config.approverCount === 0) return '无需审批'
   return `需要 ${config.approverCount} 位审批人`
@@ -627,51 +633,6 @@ const getForceLevelColors = (rule) => {
   if (rule.forceStrict) return LEVEL_COLORS.strict
   if (rule.forcedLevel) return LEVEL_COLORS[rule.forcedLevel] || LEVEL_COLORS.standard
   return LEVEL_COLORS.standard
-}
-
-// 审批类型名称映射（简化版，完整映射在 V1.1 types/approval.ts）
-const getApprovalTypeName = (type) => {
-  const typeNames = {
-    material_request: '领料申请',
-    return_material: '退料单',
-    purchase_request: '采购申请',
-    material_inbound: '物料入库',
-    material_transfer: '库存调拨',
-    seed_source_inbound: '种源入库',
-    seedling_plan: '育苗计划',
-    planting_plan: '种植计划',
-    order_create: '订单创建',
-    order_change: '订单变更',
-    production_plan: '生产计划',
-    production_batch: '生产批次',
-    batch_change: '批次变更',
-    batch_void: '批次作废',
-    tech_solution: '技术方案',
-    task_dispatch: '任务派发',
-    task_change: '任务变更',
-    inspection_issue: '巡查问题',
-    issue_resolve: '问题整改',
-    harvest_request: '采收申请',
-    seed_source_supplementary: '种源补录',
-    seedling_supplementary: '育苗补录',
-    crop_storage_supplementary: '作物入库补录',
-    indicator_approval: '指标发布',
-    indicator_adjust: '指标调整',
-    announcement_approval: '公告审批',
-    budget_create: '预算编制',
-    budget_adjust: '预算调整',
-    leave: '请假',
-    overtime: '加班',
-    resignation: '离职',
-    recruitment: '招聘',
-    onboarding: '入职',
-    attendance_repair: '考勤补录',
-    salary_adjustment: '调薪',
-    contract_renewal: '合同续签',
-    salary_budget: '工资预算',
-    transfer: '转岗'
-  }
-  return typeNames[type] || type
 }
 
 // ============================================

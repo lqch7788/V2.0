@@ -398,6 +398,8 @@ const editingId = ref(null)
 const editValue = ref('')
 const showAddModal = ref(false)
 const isMaximized = ref(false)
+// P1-6 修复：使用 ref() 包裹对象，访问时统一用 newConfig.value.xxx，避免响应式丢失
+// 注意：不能直接 const newConfig = { ... }（非响应式），也避免 reactive() 与模板 v-model 冲突
 const newConfig = ref({
   configKey: '',
   configValue: '',
@@ -405,6 +407,17 @@ const newConfig = ref({
   category: 'system',
   description: ''
 })
+
+/** 重置 newConfig 内部对象 - 必须用 Object.assign 保留 ref 引用 */
+const resetNewConfig = () => {
+  Object.assign(newConfig.value, {
+    configKey: '',
+    configValue: '',
+    configType: 'string',
+    category: 'system',
+    description: ''
+  })
+}
 
 // 弹窗拖拽状态
 const dialogRef = ref(null)
@@ -511,26 +524,14 @@ const handleDeleteConfig = async (id) => {
 
 /** 打开新增弹窗 */
 const openAddModal = () => {
-  newConfig.value = {
-    configKey: '',
-    configValue: '',
-    configType: 'string',
-    category: 'system',
-    description: ''
-  }
+  resetNewConfig()
   showAddModal.value = true
 }
 
 /** 关闭新增弹窗 */
 const closeAddModal = () => {
   showAddModal.value = false
-  newConfig.value = {
-    configKey: '',
-    configValue: '',
-    configType: 'string',
-    category: 'system',
-    description: ''
-  }
+  resetNewConfig()
 }
 
 /** 添加配置 */
@@ -682,6 +683,10 @@ const toggleMaximize = () => {
     dialogEl.style.borderRadius = ''
   }
   isMaximized.value = !isMaximized.value
+  // P0 修复：切换最大化后必须重置 dragStart / resizeStart 偏移基线
+  // 避免还原后拖拽/缩放位置错位（基于旧 dialog rect 计算导致跳变）
+  dragStart.value = { x: 0, y: 0, left: 0, top: 0 }
+  resizeStart.value = { x: 0, y: 0, w: 0, h: 0, left: 0, top: 0 }
 }
 
 // 卸载时清理全局鼠标事件

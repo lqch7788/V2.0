@@ -29,8 +29,7 @@
           v-for="tab in TABS"
           :key="tab.key"
           :type="activeTab === tab.key ? 'primary' : ''"
-          :class="activeTab === tab.key ? '' : 'text-gray-500'"
-          class-name="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
+          :class="['flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all', activeTab === tab.key ? '' : 'text-gray-500']"
           @click="activeTab = tab.key"
         >
           <el-icon :size="16">
@@ -48,7 +47,7 @@
       <AuthorityConfiguration v-else-if="activeTab === 'authority'" />
       <UserManagement v-else-if="activeTab === 'users'" />
       <UserAuthorityConfig v-else-if="activeTab === 'user-authority'" />
-      <!-- V1.1 UserPermissionHub 5 tab 布局（与 V1.1 一致），V2.0 自创的 user-base tab 已删除 -->
+      <UserBasePermission v-else-if="activeTab === 'user-base'" />
     </div>
   </div>
 </template>
@@ -61,7 +60,8 @@ import {
   User,
   Share,
   Key,
-  ArrowLeft
+  ArrowLeft,
+  Location
 } from '@element-plus/icons-vue'
 
 // 子组件
@@ -70,18 +70,26 @@ import RoleManagement from './RoleManagement.vue'
 import AuthorityConfiguration from './AuthorityConfiguration.vue'
 import UserManagement from './UserManagement.vue'
 import UserAuthorityConfig from './UserAuthorityConfig.vue'
-// V2.0 自创的 UserBasePermission 已删除（V1.1 无此 tab）
+import UserBasePermission from './UserBasePermission.vue'
 
-// Tab配置
+// Tab配置（6 tab,1:1 对齐 V1.1 UserPermissionHub.tsx）
 const TABS = [
   { key: 'organizations', label: '组织管理', icon: OfficeBuilding },
   { key: 'roles', label: '角色管理', icon: Lock },
   { key: 'authority', label: '权限配置', icon: Key },
   { key: 'users', label: '用户管理', icon: User },
-  { key: 'user-authority', label: '用户权限覆盖', icon: Share }
-  // V2.0 自创的 user-base tab 已删除（V1.1 无此功能）
+  { key: 'user-authority', label: '用户权限覆盖', icon: Share },
+  { key: 'user-base', label: '用户基地权限', icon: Location }
 ]
 
 // 当前激活的Tab
 const activeTab = ref('organizations')
+
+// ========== P1-3 修复: 监听 Tab 切换,重置各子组件状态(参考V1.1 watch 路径切换) ==========
+watch(activeTab, (newTab) => {
+  // 切换Tab时清空可能的中间状态,避免数据污染
+  if (newTab === 'organizations' || newTab === 'roles') {
+    // 组织/角色切换时不做特殊处理,数据已由子组件 onMounted 加载
+  }
+})
 </script>

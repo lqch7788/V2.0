@@ -36,7 +36,7 @@
           </el-icon>
           <el-input
             v-model="searchTerm"
-            placeholder="搜索..."
+            placeholder="请输入..."
             clearable
             class="w-40"
             size="small"
@@ -76,7 +76,7 @@
       <div v-else class="divide-y divide-gray-100">
         <div v-for="org in paginatedOrganizations" :key="org.oid">
           <div
-            class="flex items-center gap-2 px-4 py-3 hover:bg-blue-50 border-b border-gray-50"
+            class="flex items-center gap-2 px-4 py-3 hover:bg-blue-50 border-b border-gray-100"
             :style="{ paddingLeft: `${getLevel(org) * 24 + 16}px` }"
           >
             <!-- 展开/折叠按钮 -->
@@ -144,8 +144,9 @@
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
           :total="filteredOrganizations.length"
-          layout="prev, pager, next"
+          layout="prev, pager, next, sizes"
           background
         />
       </div>
@@ -155,7 +156,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="editingOrg?.oid ? '编辑组织' : '新增组织'"
-      width="500px"
+      width="700px"
       :close-on-click-modal="false"
       draggable
     >
@@ -164,7 +165,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">
             组织编码 <span class="text-red-500">*</span>
           </label>
-          <el-input v-model="formData.aid" placeholder="如：ORG001" />
+          <el-input v-model="formData.aid" placeholder="请输入组织编码" />
         </div>
 
         <div>
@@ -273,7 +274,7 @@ const activeDepartments = computed(() =>
 // 搜索和分页
 const searchTerm = ref('')
 const currentPage = ref(1)
-const pageSize = 10
+const pageSize = ref(10)
 
 // 展开状态
 const expandedOids = ref(new Set())
@@ -307,33 +308,42 @@ const filteredOrganizations = computed(() => {
 })
 
 // 分页
-const totalPages = computed(() => Math.ceil(filteredOrganizations.value.length / pageSize))
+const totalPages = computed(() => Math.ceil(filteredOrganizations.value.length / pageSize.value))
 const paginatedOrganizations = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  return filteredOrganizations.value.slice(start, start + pageSize)
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredOrganizations.value.slice(start, start + pageSize.value)
 })
 
-// 计算组织层级深度
-const getLevel = (org, orgList = organizations.value || []) => {
-  // 递归查找组织在树中的层级
-  const findLevel = (targetOid, nodes, currentLevel = 0) => {
-    for (const node of nodes || []) {
-      if (node.oid === targetOid) {
-        return currentLevel
-      }
-      if (node.children && node.children.length > 0) {
-        const childLevel = findLevel(targetOid, node.children, currentLevel + 1)
-        if (childLevel !== -1) {
-          return childLevel
-        }
-      }
-    }
-    return -1 // 未找到
-  }
+// ========== P2-1 优化: 工具函数抽离,O(N²) -> O(N) ==========
+// 构建父oid -> level 映射表(一次性构建)
+const _levelCache = new Map()
+let _cachedRootsKey = ''
 
-  const level = findLevel(org.oid, orgList)
-  return level >= 0 ? level : 0
+const buildLevelMap = (nodes) => {
+  const map = new Map()
+  const walk = (list, lvl) => {
+    for (const n of list || []) {
+      map.set(n.oid, lvl)
+      if (n.children?.length) walk(n.children, lvl + 1)
+    }
+  }
+  walk(nodes, 0)
+  return map
 }
+
+const getLevelByCode = (org) => {
+  const key = (organizations.value || []).map(o => o.oid).join(',')
+  if (key !== _cachedRootsKey) {
+    _levelCache.clear()
+    const map = buildLevelMap(organizations.value || [])
+    for (const [k, v] of map) _levelCache.set(k, v)
+    _cachedRootsKey = key
+  }
+  return _levelCache.get(org.oid) ?? 0
+}
+
+// 计算组织层级深度(原 O(N²) 实现,保留兼容)
+const getLevel = (org) => getLevelByCode(org)
 
 // 切换展开状态 — 必须替换整个Set以触发Vue3响应式
 const toggleExpand = (oid) => {

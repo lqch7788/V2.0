@@ -20,7 +20,7 @@
     <div class="space-y-2 max-h-64 overflow-y-auto">
       <div
         v-for="(rule, idx) in rules"
-        :key="idx"
+        :key="rule.id || idx"
         :class="[
           'flex items-center gap-2 p-2 rounded-lg border',
           rule.enabled ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-400'
@@ -112,11 +112,18 @@ import { computed } from 'vue'
 import { Delete, Plus, CircleCheckFilled, CircleCloseFilled, User } from '@element-plus/icons-vue'
 
 /** 委托规则数据结构 */
+// P1-7 修复：增加 id 字段 - 规则列表必须具备稳定唯一标识，避免删除/重排后 v-for 错位
 interface DelegationRule {
+  id: string
   fromRole: string
   toRole: string
   enabled: boolean
   remark: string
+}
+
+/** 生成规则 ID - 时间戳 + 随机数避免重复 */
+const generateRuleId = (): string => {
+  return `rule_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 }
 
 /** 角色选项 - 与V1.1完全一致 */
@@ -165,6 +172,7 @@ const addRule = () => {
   rules.value = [
     ...rules.value,
     {
+      id: generateRuleId(),
       fromRole: 'manager',
       toRole: 'department_head',
       enabled: true,

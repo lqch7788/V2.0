@@ -185,6 +185,7 @@
     </div>
 
     <!-- 新增/编辑弹窗 -->
+    <!-- P1-5 + P2-7 修复：移除"基本信息"区块视觉强化 - 与 V1.1 DepartmentModal (DepartmentSettings.tsx L72-159) 1:1 对齐：扁平布局 -->
     <el-dialog
       v-model="showModal"
       :title="isEdit ? '编辑部门' : '新增部门'"
@@ -193,32 +194,25 @@
       @close="handleModalClose"
     >
       <div class="p-6 overflow-y-auto max-h-[60vh] space-y-4">
-        <!-- 基本信息区块 -->
-        <div class="bg-emerald-50 rounded-lg p-4">
-          <h4 class="text-sm font-semibold text-emerald-700 mb-3">基本信息</h4>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs mb-1">
-                部门编码 <span class="text-red-500">*</span>
-              </label>
-              <el-input
-                v-model="formData.code"
-                placeholder="如: DEPT_TECH"
-              />
-            </div>
-            <div>
-              <label class="block text-xs mb-1">
-                部门名称 <span class="text-red-500">*</span>
-              </label>
-              <el-input
-                v-model="formData.name"
-                placeholder="如: 技术部"
-              />
-            </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">
+              部门编码 <span class="text-red-500">*</span>
+            </label>
+            <el-input
+              v-model="formData.code"
+              placeholder="如: DEPT_TECH"
+            />
           </div>
-        </div>
-        <!-- 其他信息区块 -->
-        <div class="rounded-lg p-4 border border-gray-100 space-y-4">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">
+              部门名称 <span class="text-red-500">*</span>
+            </label>
+            <el-input
+              v-model="formData.name"
+              placeholder="如: 技术部"
+            />
+          </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">上级部门</label>
             <el-select v-model="formData.parentOid" placeholder="-- 无（顶级部门）--" clearable class="w-full">
@@ -238,32 +232,32 @@
               placeholder="负责人姓名"
             />
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">排序号</label>
-              <el-input
-                type="number"
-                v-model.number="formData.sortNumber"
-                placeholder="排序号"
-              />
-            </div>
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">状态</label>
-              <el-select v-model="formData.status" class="w-full">
-                <el-option label="启用" value="active" />
-                <el-option label="停用" value="inactive" />
-              </el-select>
-            </div>
-          </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">职能描述</label>
+            <label class="block text-xs text-gray-500 mb-1">排序号</label>
+            <!-- P2-3 修复：改用 input 事件 + parseInt 风格，与 V1.1 DepartmentModal.tsx L121-125 1:1 对齐 -->
             <el-input
-              v-model="formData.description"
-              placeholder="部门职能描述..."
-              type="textarea"
-              :rows="2"
+              type="number"
+              :model-value="formData.sortNumber"
+              @input="(val) => formData.sortNumber = parseInt(val) || 0"
+              placeholder="排序号"
             />
           </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">状态</label>
+            <el-select v-model="formData.status" class="w-full">
+              <el-option label="启用" value="active" />
+              <el-option label="停用" value="inactive" />
+            </el-select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">职能描述</label>
+          <el-input
+            v-model="formData.description"
+            placeholder="部门职能描述..."
+            type="textarea"
+            :rows="2"
+          />
         </div>
       </div>
       <template #footer>

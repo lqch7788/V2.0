@@ -67,6 +67,8 @@
                 <th class="py-3 px-4 text-left font-medium whitespace-nowrap">区块编码</th>
                 <th class="py-3 px-4 text-left font-medium whitespace-nowrap">区块名称</th>
                 <th class="py-3 px-4 text-left font-medium whitespace-nowrap">所属设施</th>
+                <!-- P1-3: 区块的"区域类型"列(对齐 V1.1 L480) -->
+                <th class="py-3 px-4 text-left font-medium whitespace-nowrap">区域类型</th>
                 <th class="py-3 px-4 text-left font-medium whitespace-nowrap">所属基地</th>
                 <th class="py-3 px-4 text-right font-medium whitespace-nowrap">面积(亩)</th>
                 <th class="py-3 px-4 text-center font-medium whitespace-nowrap">状态</th>
@@ -88,7 +90,7 @@
             <!-- 区块数据 -->
             <template v-if="activeLayer === 'zone'">
               <tr v-if="filteredZones.length === 0">
-                <td colspan="7" class="px-4 py-12 text-center text-gray-400">
+                <td colspan="8" class="px-4 py-12 text-center text-gray-400">
                   <el-icon class="mx-auto mb-2" :size="32"><Grid /></el-icon>
                   <div>暂无区块数据</div>
                 </td>
@@ -101,6 +103,8 @@
                 <td class="py-3 px-4 font-mono whitespace-nowrap">{{ z.zoneCode || '-' }}</td>
                 <td class="py-3 px-4 font-medium whitespace-nowrap">{{ z.zoneName }}</td>
                 <td class="py-3 px-4 whitespace-nowrap">{{ z.greenhouseName || '-' }}</td>
+                <!-- P1-3: 区域类型单元格 -->
+                <td class="py-3 px-4 whitespace-nowrap">{{ getZoneTypeLabel(z.zoneType) }}</td>
                 <td class="py-3 px-4 whitespace-nowrap">{{ z.baseName || '-' }}</td>
                 <td class="py-3 px-4 text-right whitespace-nowrap">{{ z.area || 0 }}</td>
                 <td class="py-3 px-4 text-center whitespace-nowrap">
@@ -136,7 +140,7 @@
                 <td class="py-3 px-4 font-mono whitespace-nowrap">{{ b.blockCode || '-' }}</td>
                 <td class="py-3 px-4 font-medium whitespace-nowrap">{{ b.blockName }}</td>
                 <td class="py-3 px-4 whitespace-nowrap">{{ b.zoneName || '-' }}</td>
-                <td class="py-3 px-4 whitespace-nowrap">{{ b.blockType || '-' }}</td>
+                <td class="py-3 px-4 whitespace-nowrap">{{ getBlockTypeLabel(b.blockType) }}</td>
                 <td class="py-3 px-4 text-right whitespace-nowrap">{{ b.area || 0 }}</td>
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <el-tag :type="b.status === 'active' ? 'success' : 'info'" size="small">
@@ -192,13 +196,31 @@
             </div>
             <div>
               <label class="block text-xs text-gray-600 mb-1">区块编码</label>
-              <el-input v-model="formData.zoneCode" placeholder="区块编码" />
+              <div class="flex gap-2">
+                <el-input v-model="formData.zoneCode" placeholder="区块编码" class="flex-1" />
+                <el-button
+                  v-if="!editingItem"
+                  size="small"
+                  :disabled="!formData.greenhouseOid"
+                  @click="handleGenerateZoneCode"
+                >
+                  生成
+                </el-button>
+              </div>
             </div>
             <div>
               <label class="block text-xs text-gray-600 mb-1">所属设施</label>
               <el-select v-model="formData.greenhouseOid" placeholder="请选择" class="w-full" @change="handleGreenhouseChange">
                 <el-option label="请选择" value="" />
                 <el-option v-for="gh in greenhouses" :key="gh.oid" :label="gh.name" :value="gh.oid" />
+              </el-select>
+            </div>
+            <!-- P1-3: 区块表单补"区域类型"字段(对齐 V1.1 L567-572 zoneType) -->
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">区域类型</label>
+              <el-select v-model="formData.zoneType" placeholder="请选择" class="w-full">
+                <el-option label="请选择" value="" />
+                <el-option v-for="opt in zoneTypes" :key="opt.dictCode" :label="opt.dictLabel" :value="opt.dictCode" />
               </el-select>
             </div>
             <div>
@@ -229,7 +251,7 @@
               <label class="block text-xs text-gray-600 mb-1">地块类型</label>
               <el-select v-model="formData.blockType" placeholder="请选择" class="w-full">
                 <el-option label="请选择" value="" />
-                <el-option v-for="opt in blockTypes" :key="opt.dictCode" :label="opt.dictLabel" :value="opt.dictLabel" />
+                <el-option v-for="opt in blockTypes" :key="opt.dictCode" :label="opt.dictLabel" :value="opt.dictCode" />
               </el-select>
             </div>
             <div>
@@ -270,6 +292,7 @@ import { ref, computed, onMounted } from 'vue'
 import { Search, Plus, Edit, Delete, Grid } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useZoneStore, useBlockStore, useGreenhouseStore } from '@/stores'
+import { getDictionaries } from '@/services/dictionaryService'
 
 const PAGE_SIZE = 10
 
@@ -293,18 +316,43 @@ const editingItem = ref(null)
 const deleteItem = ref(null)
 const deleteType = ref('')
 
-// 地块类型选项
-const blockTypes = [
+// P1-3: 区域类型字典(对齐 V1.1 L430-437)
+const zoneTypes = ref([
+  { dictCode: 'greenhouse', dictLabel: '温室大棚' },
+  { dictCode: 'plastic_house', dictLabel: '塑料大棚' },
+  { dictCode: 'glass_house', dictLabel: '玻璃温室' },
+  { dictCode: 'solar_greenhouse', dictLabel: '日光温室' },
+  { dictCode: 'open_field', dictLabel: '露天种植区' },
+  { dictCode: 'other', dictLabel: '其他' }
+])
+
+// P2-7: 地块类型字典(从 block_type 字典加载,失败回落默认 4 项)
+const blockTypes = ref([
   { dictCode: 'planting', dictLabel: '种植区' },
   { dictCode: 'fallow', dictLabel: '休耕区' },
   { dictCode: 'nursery', dictLabel: '育苗区' },
   { dictCode: 'experimental', dictLabel: '试验区' }
-]
+])
 
-// 表单数据
+// P1-3: 区域类型 code → label
+const getZoneTypeLabel = (code) => {
+  if (!code) return '-'
+  const found = zoneTypes.value.find(t => t.dictCode === code)
+  return found ? found.dictLabel : code
+}
+
+// P2-7: 地块类型 code → label
+const getBlockTypeLabel = (code) => {
+  if (!code) return '-'
+  const found = blockTypes.value.find(t => t.dictCode === code)
+  return found ? found.dictLabel : code
+}
+
+// 表单数据 - P1-3: 补 zoneType 字段
 const formData = ref({
   zoneName: '',
   zoneCode: '',
+  zoneType: '',
   greenhouseOid: '',
   greenhouseName: '',
   baseOid: '',
@@ -313,7 +361,6 @@ const formData = ref({
   blockName: '',
   blockCode: '',
   zoneOid: '',
-  zoneName: '',
   blockType: '',
   status: 'active'
 })
@@ -367,16 +414,41 @@ const handleGreenhouseChange = (ghOid) => {
 }
 
 // 区块变更 - 联动填充区块信息
+// P2-6: 补 baseOid/baseName 联动，避免地块层与所属基地脱钩
 const handleZoneChange = (zoneOid) => {
   const zone = zones.value.find(z => z.oid === zoneOid)
   if (zone) {
     formData.value.zoneOid = zoneOid
     formData.value.zoneName = zone.zoneName
     formData.value.zoneCode = zone.zoneCode
+    // 联动：地块→区块→基地
+    formData.value.baseOid = zone.baseOid || ''
+    formData.value.baseName = zone.baseName || ''
   } else {
     formData.value.zoneOid = ''
     formData.value.zoneName = ''
     formData.value.zoneCode = ''
+    formData.value.baseOid = ''
+    formData.value.baseName = ''
+  }
+}
+
+// P0-5: 调用 /api/code-generator/next-zone-code 生成区块编码
+const handleGenerateZoneCode = async () => {
+  if (!formData.value.greenhouseOid) {
+    ElMessage.warning('请先选择所属设施')
+    return
+  }
+  try {
+    const res = await fetch(`/api/code-generator/next-zone-code?greenhouseOid=${formData.value.greenhouseOid}`)
+    const json = await res.json()
+    if (json.success && json.data?.code) {
+      formData.value.zoneCode = json.data.code
+    } else {
+      ElMessage.error(json.error || '生成编码失败')
+    }
+  } catch (err) {
+    ElMessage.error('生成编码失败，请检查网络')
   }
 }
 
@@ -394,12 +466,13 @@ const loadData = async () => {
   loading.value = false
 }
 
-// 新增
+// 新增 - P1-3: 补 zoneType/blockType 字段
 const handleAdd = () => {
   editingItem.value = null
   formData.value = {
     zoneName: '',
     zoneCode: '',
+    zoneType: '',
     greenhouseOid: '',
     greenhouseName: '',
     baseOid: '',
@@ -408,7 +481,6 @@ const handleAdd = () => {
     blockName: '',
     blockCode: '',
     zoneOid: '',
-    zoneName: '',
     blockType: '',
     status: 'active'
   }
@@ -422,6 +494,7 @@ const handleEdit = (item, type) => {
     formData.value = {
       zoneName: item.zoneName,
       zoneCode: item.zoneCode,
+      zoneType: item.zoneType || '',
       greenhouseOid: item.greenhouseOid || '',
       greenhouseName: item.greenhouseName || '',
       baseOid: item.baseOid || '',
@@ -444,7 +517,7 @@ const handleEdit = (item, type) => {
   dialogVisible.value = true
 }
 
-// 保存
+// 保存 - P2-8: 补 toast
 const handleSave = async () => {
   try {
     if (activeLayer.value === 'zone') {
@@ -454,8 +527,10 @@ const handleSave = async () => {
       }
       if (editingItem.value) {
         await zoneStore.editZone(editingItem.value.oid, formData.value)
+        ElMessage.success('区块已更新')
       } else {
         await zoneStore.addZone(formData.value)
+        ElMessage.success('区块已新增')
       }
     } else {
       if (!formData.value.blockName) {
@@ -464,8 +539,10 @@ const handleSave = async () => {
       }
       if (editingItem.value) {
         await blockStore.editBlock(editingItem.value.oid, formData.value)
+        ElMessage.success('地块已更新')
       } else {
         await blockStore.addBlock(formData.value)
+        ElMessage.success('地块已新增')
       }
     }
     dialogVisible.value = false
@@ -482,13 +559,15 @@ const handleDeleteConfirm = (item, type) => {
   deleteDialogVisible.value = true
 }
 
-// 删除
+// 删除 - P2-8: 补 toast
 const handleDelete = async () => {
   try {
     if (deleteType.value === 'zone') {
       await zoneStore.removeZone(deleteItem.value.oid)
+      ElMessage.success('区块已删除')
     } else {
       await blockStore.removeBlock(deleteItem.value.oid)
+      ElMessage.success('地块已删除')
     }
     deleteDialogVisible.value = false
     await loadData()
@@ -497,8 +576,19 @@ const handleDelete = async () => {
   }
 }
 
-// 生命周期
-onMounted(() => {
+// 生命周期 - P2-7: 尝试从 block_type 字典加载,失败保留默认 4 项
+onMounted(async () => {
+  try {
+    const dicts = await getDictionaries('block_type')
+    if (dicts && dicts.length > 0) {
+      blockTypes.value = dicts.map(d => ({
+        dictCode: d.code,
+        dictLabel: d.name
+      }))
+    }
+  } catch (err) {
+    // 忽略字典加载错误,使用默认值
+  }
   loadData()
 })
 </script>

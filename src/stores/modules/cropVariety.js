@@ -134,6 +134,7 @@ export const useCropVarietyStore = defineStore('cropVariety', {
 
     /**
      * 初始化并加载所有品种
+     * V1.1 兼容：优先从 V1.1 localStorage 迁移 206+ 历史品种，确保首次启动可见
      */
     async loadItems() {
       if (this.isLoading) return;
@@ -142,15 +143,12 @@ export const useCropVarietyStore = defineStore('cropVariety', {
       this.error = null;
 
       try {
-        const data = await initVarieties();
-        // 若服务端返回数据 < 100 条，尝试从 V1.1 localStorage 迁移
-        if (!data || data.length < 100) {
-          const migrated = this.migrateFromLocalStorage()
-          if (!migrated) {
-            this.items = data || []
-          }
-        } else {
-          this.items = data
+        // 1) 优先从 V1.1 localStorage 迁移历史品种（确保 206+ 历史数据可见）
+        const migrated = this.migrateFromLocalStorage()
+        if (!migrated) {
+          // 2) V1.1 localStorage 无数据，再调用 API + 默认数据兜底
+          const data = await initVarieties();
+          this.items = data || []
         }
         this.isInitialized = true;
         this.updateStats();

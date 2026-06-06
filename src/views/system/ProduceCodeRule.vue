@@ -391,7 +391,7 @@
 
 <script setup>
 import { ArrowLeft, ArrowDown, ArrowRight, Plus, Edit, Check, Delete, WarningFilled, Collection } from '@element-plus/icons-vue'
-import { useProduceCodeRule } from '@/composables/useProduceCodeRule'
+import { useProduceCodeRuleForm as useProduceCodeRule } from './components/ProduceCodeRule/hooks/useProduceCodeRuleForm'
 import CategoryEditCell from './components/CategoryEditCell.vue'
 
 const {

@@ -9,7 +9,20 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import { enhancedApiClient } from '@/lib/apiClient'
+
+/**
+ * 统一 logger - 用户感知失败用 ElMessage,内部静默回滚保留 console.warn
+ * 减少控制台噪音 + 提供用户反馈
+ */
+const logger = {
+  warn: (msg, err) => console.warn(msg, err),
+  notifyError: (msg, err) => {
+    console.warn(msg, err)
+    try { ElMessage.error(msg) } catch { /* ElMessage 不可用时静默 */ }
+  },
+}
 
 // ============================================
 // 工具函数
@@ -163,7 +176,7 @@ export const useIndicatorStore = defineStore('indicators', () => {
       indicators.value = Array.isArray(data) ? data.map(item => normalizeIndicator(item)) : []
       pagination.value.total = meta.total || indicators.value.length
     } catch (err) {
-      console.warn('[IndicatorStore] 获取指标列表失败:', err)
+      logger.notifyError('获取指标列表失败', err)
       error.value = err.message
       // 保持现有indicators不变（从localStorage恢复或空数组）
     } finally {
@@ -201,7 +214,7 @@ export const useIndicatorStore = defineStore('indicators', () => {
       }
       return saved || optimisticItem
     } catch (err) {
-      console.warn('[IndicatorStore] 创建指标失败，回滚:', err)
+      logger.notifyError('创建指标失败，已回滚', err)
       indicators.value = indicators.value.filter(item => item.id !== localId)
       throw err
     }
@@ -217,7 +230,7 @@ export const useIndicatorStore = defineStore('indicators', () => {
       const body = denormalizeIndicator(indicatorData)
       await enhancedApiClient.put(`/indicators/${id}`, body)
     } catch (err) {
-      console.warn('[IndicatorStore] 更新指标失败，回滚:', err)
+      logger.notifyError('更新指标失败，已回滚', err)
       if (prev) {
         indicators.value = indicators.value.map(item =>
           item.id === id ? prev : item
@@ -234,7 +247,7 @@ export const useIndicatorStore = defineStore('indicators', () => {
       await enhancedApiClient.delete(`/indicators/${id}`)
       return true
     } catch (err) {
-      console.warn('[IndicatorStore] 删除指标失败，回滚:', err)
+      logger.notifyError('删除指标失败，已回滚', err)
       if (prev) {
         indicators.value = [...indicators.value, prev]
       }
@@ -283,7 +296,7 @@ export const useIndicatorStore = defineStore('indicators', () => {
         evaluationData.value = normalized
       }
     } catch (err) {
-      console.warn('[IndicatorStore] 评估数据API获取失败:', err)
+      logger.warn('[IndicatorStore] 评估数据API获取失败（非阻断）:', err)
     }
   }
 

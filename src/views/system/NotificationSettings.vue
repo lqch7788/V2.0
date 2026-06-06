@@ -285,7 +285,7 @@
     <el-dialog
       v-model="ruleModalVisible"
       :title="editingRule ? '编辑通知规则' : '新增通知规则'"
-      width="520px"
+      width="600px"
       :close-on-click-modal="false"
     >
 
@@ -357,6 +357,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useNotificationSettingsStore, EVENT_OPTIONS, FREQUENCY_OPTIONS, CHANNEL_TYPES } from '@/stores/modules/notificationSettings'
+import { useAuthStore } from '@/stores/modules/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   ArrowLeft,
@@ -374,6 +375,7 @@ import {
 
 // Store
 const notificationStore = useNotificationSettingsStore()
+const authStore = useAuthStore()
 const { channels, rules, preferences, loading, error, loadAll, loadPreferences, toggleChannelActive, addChannel, updateChannel, removeChannel, toggleRuleActive, addRule, updateRule, removeRule, saveUserPreferences } = notificationStore
 
 // Tabs配置
@@ -485,7 +487,7 @@ const updateLocalPref = (key, value) => {
 
 // 保存偏好
 const handleSavePrefs = async () => {
-  const userId = localStorage.getItem('yuanxingtu_user_oid') || 'default'
+  const userId = authStore.currentUser?.oid || 'default'
   await saveUserPreferences(userId, localPrefs)
   prefsDirty.value = false
 }
@@ -646,7 +648,7 @@ watch(preferences, (newPrefs) => {
 // 初始化
 onMounted(async () => {
   await loadAll()
-  const userId = localStorage.getItem('yuanxingtu_user_oid') || 'default'
+  const userId = authStore.currentUser?.oid || 'default'
   await loadPreferences(userId)
 })
 </script>

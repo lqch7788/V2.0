@@ -2,7 +2,7 @@
   <!-- 递归树节点渲染组件 -->
   <div class="org-tree-node">
     <div
-      class="flex items-center gap-2 px-4 py-3 hover:bg-blue-50 border-b border-gray-50"
+      class="flex items-center gap-2 px-4 py-3 hover:bg-blue-50 border-b border-gray-100"
       :style="{ paddingLeft: `${level * 24 + 16}px` }"
     >
       <!-- 展开/折叠按钮 -->

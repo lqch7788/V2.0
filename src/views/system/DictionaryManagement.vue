@@ -78,7 +78,7 @@
       <div
         v-for="mod in DICTIONARY_MODULES"
         :key="mod.code"
-        v-show="!searchTerm || moduleHasMatch(mod.code)"
+        v-if="!searchTerm || moduleHasMatch(mod.code)"
         class="bg-white rounded-xl shadow-none overflow-hidden"
       >
         <!-- 模块头部 - V1.1样式: 淡紫渐变背景 -->
@@ -108,7 +108,7 @@
               <div
                 v-for="category in getCategoriesInModule(mod.code)"
                 :key="category"
-                v-show="!searchTerm || categoryHasMatch(category)"
+                v-if="!searchTerm || categoryHasMatch(category)"
                 class="border border-gray-100 rounded-lg overflow-hidden"
               >
                 <!-- 分类头部 -->
@@ -148,6 +148,7 @@
                       <tr class="bg-gradient-to-r from-blue-500 to-blue-600 text-left text-white">
                         <th class="py-1.5 pl-3 font-medium">编码</th>
                         <th class="py-1.5 text-center font-medium">名称</th>
+                        <th class="py-1.5 text-center font-medium">显示名称</th>
                         <th class="py-1.5 text-center font-medium">排序</th>
                         <th class="py-1.5 text-center font-medium">状态</th>
                         <th class="py-1.5 pr-2 text-right font-medium">操作</th>
@@ -164,6 +165,9 @@
                         </td>
                         <td class="py-1 text-center">
                           <span class="text-gray-900 truncate block font-bold">{{ item.name }}</span>
+                        </td>
+                        <td class="py-1 text-center">
+                          <span class="text-gray-600 truncate block">{{ item.displayName || item.name }}</span>
                         </td>
                         <td class="py-1 text-center text-gray-500">
                           {{ item.sortNumber || 0 }}
@@ -223,19 +227,15 @@
       </div>
     </div>
 
-    <!-- 新增/编辑字典项弹窗 -->
-    <div v-if="isModalOpen && editingItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
-        <div class="flex items-center justify-between p-4 border-b border-gray-100">
-          <h3 class="text-lg font-semibold text-gray-900">
-            {{ isNewItem && !editingItem.id ? '新增字典项' : '编辑字典项' }}
-          </h3>
-          <el-button text @click="isModalOpen = false" class="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-            <el-icon :size="20" color="#6B7280"><Close /></el-icon>
-          </el-button>
-        </div>
-
-        <div class="p-4 space-y-4">
+    <!-- 新增/编辑字典项弹窗 - P2-5 修复：统一使用 el-dialog -->
+    <el-dialog
+      v-model="isModalOpen"
+      :title="isNewItem && !editingItem?.id ? '新增字典项' : '编辑字典项'"
+      width="500px"
+      :close-on-click-modal="false"
+      align-center
+    >
+      <div v-if="editingItem" class="space-y-4">
           <!-- 分类（只读） -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">分类</label>
@@ -304,22 +304,19 @@
               class="w-full"
             />
           </div>
-        </div>
-
-        <!-- V1.1按钮样式 -->
-        <div class="flex items-center justify-end gap-2 p-4 border-t border-gray-100">
-          <el-button @click="isModalOpen = false" class="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">取消</el-button>
-          <el-button
-            @click="handleSave"
-            :loading="loading"
-            :disabled="!editingItem.code || !editingItem.name"
-            class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium flex items-center gap-1"
-          >
-            保存
-          </el-button>
-        </div>
       </div>
-    </div>
+      <template #footer>
+        <el-button @click="isModalOpen = false" class="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">取消</el-button>
+        <el-button
+          @click="handleSave"
+          :loading="loading"
+          :disabled="!editingItem || !editingItem.code || !editingItem.name"
+          class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium flex items-center gap-1"
+        >
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
 
     <!-- 新增分类弹窗 -->
     <el-dialog

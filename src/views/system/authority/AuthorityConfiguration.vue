@@ -5,8 +5,7 @@
       <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
         <el-button
           :type="activeTab === 'authority' ? 'primary' : ''"
-          :class="activeTab === 'authority' ? '' : 'text-gray-600'"
-          class-name="px-3 py-1 rounded-md text-xs font-semibold transition-colors"
+          :class="['px-3 py-1 rounded-md text-xs font-semibold transition-colors', activeTab === 'authority' ? '' : 'text-gray-600']"
           @click="activeTab = 'authority'"
         >
           <el-icon :size="14"><Key /></el-icon>
@@ -14,8 +13,7 @@
         </el-button>
         <el-button
           :type="activeTab === 'processes' ? 'primary' : ''"
-          :class="activeTab === 'processes' ? '' : 'text-gray-600'"
-          class-name="px-3 py-1 rounded-md text-xs font-semibold transition-colors"
+          :class="['px-3 py-1 rounded-md text-xs font-semibold transition-colors', activeTab === 'processes' ? '' : 'text-gray-600']"
           @click="activeTab = 'processes'"
         >
           <el-icon :size="14"><Menu /></el-icon>
@@ -47,7 +45,7 @@
         <div v-else-if="processes.length === 0" class="p-8 text-center text-gray-400">
           暂无工序数据，点击上方按钮新增
         </div>
-        <div v-else class="divide-y divide-gray-50">
+        <div v-else class="divide-y divide-gray-200">
           <template v-for="proc in flatProcessList" :key="proc.oid">
             <div
               class="flex items-center gap-2 py-2 px-3 hover:bg-blue-50"
@@ -200,7 +198,7 @@
               <tr
                 v-for="proc in filteredProcesses"
                 :key="proc.oid"
-                class="border-b border-gray-100 hover:bg-blue-50"
+                class="border-b border-gray-200 hover:bg-blue-50"
               >
                 <td class="py-1.5 px-3 text-gray-700">{{ proc.process_name }}</td>
                 <td class="py-1.5 px-3 text-xs text-gray-400 font-mono">{{ proc.process_code }}</td>
@@ -230,23 +228,24 @@
     <el-dialog
       v-model="processDialogVisible"
       :title="editingProcess?.oid ? '编辑工序' : '新增工序'"
-      width="550px"
+      width="700px"
       :close-on-click-modal="false"
+      draggable
     >
       <div class="space-y-3">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-gray-500 mb-1">工序名称 <span class="text-red-500">*</span></label>
-            <el-input v-model="processForm.name" placeholder="如：订单管理" />
+            <el-input v-model="processForm.name" placeholder="请输入工序名称" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">工序编码 <span class="text-red-500">*</span></label>
-            <el-input v-model="processForm.code" placeholder="如：crop-orders" />
+            <el-input v-model="processForm.code" placeholder="请输入工序编码" />
           </div>
         </div>
         <div>
           <label class="block text-xs text-gray-500 mb-1">前端路由</label>
-          <el-input v-model="processForm.route" placeholder="如：/production/orders" />
+          <el-input v-model="processForm.route" placeholder="请输入前端路由" />
         </div>
         <div>
           <label class="block text-xs text-gray-500 mb-1">描述</label>
@@ -494,6 +493,10 @@ const refreshData = async () => {
 
 const handleAppTypeChange = () => {
   loadProcesses({ appType: selectedAppType.value })
+  // ========== P1-3 修复: APP切换时同时刷新已选角色的权限数据 ==========
+  if (selectedRoleOid.value) {
+    loadRoleAuthority()
+  }
 }
 
 // 工序CRUD

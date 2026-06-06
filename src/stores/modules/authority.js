@@ -145,11 +145,12 @@ export const useAuthorityStore = defineStore('authority', () => {
   const rolesError = ref(null)
 
   // 加载角色列表（API失败时回退localStorage）
-  const loadRoles = async () => {
+  // params 可选: { orgOid, sort, order } 透传给后端 (与 V1.1 authorityService.getRoles 一致)
+  const loadRoles = async (params) => {
     rolesLoading.value = true
     rolesError.value = null
     try {
-      const data = await getRoles()
+      const data = await getRoles(params)
       if (data && data.length > 0) {
         roles.value = data
         saveStoredData(STORAGE_KEYS.roles, data)
@@ -192,11 +193,12 @@ export const useAuthorityStore = defineStore('authority', () => {
   const usersError = ref(null)
 
   // 加载用户列表（API失败时回退localStorage）
-  const loadUsers = async () => {
+  // params 可选: { orgOid, status } 透传给后端 (与 V1.1 authorityService.getUsers 一致)
+  const loadUsers = async (params) => {
     usersLoading.value = true
     usersError.value = null
     try {
-      const data = await getUsers()
+      const data = await getUsers(params)
       if (data && data.length > 0) {
         users.value = data
         saveStoredData(STORAGE_KEYS.users, data)

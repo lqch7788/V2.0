@@ -36,7 +36,7 @@
           </el-icon>
           <el-input
             v-model="searchTerm"
-            placeholder="搜索..."
+            placeholder="请输入..."
             clearable
             class="w-40"
             size="small"
@@ -72,7 +72,7 @@
             <th class="text-left py-3 px-4 text-sm font-semibold">操作</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="divide-y divide-gray-200">
           <tr v-if="loading && roles.length === 0">
             <td colspan="7" class="px-4 py-8 text-center text-gray-500">
               <el-icon class="is-loading" :size="24"><Loading /></el-icon>
@@ -119,8 +119,9 @@
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
           :total="filteredRoles.length"
-          layout="prev, pager, next"
+          layout="prev, pager, next, sizes"
           background
         />
       </div>
@@ -130,15 +131,16 @@
     <el-dialog
       v-model="dialogVisible"
       :title="editingRole?.oid ? '编辑角色' : '新增角色'"
-      width="500px"
+      width="700px"
       :close-on-click-modal="false"
+      draggable
     >
       <div class="space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
             角色编码 <span class="text-red-500">*</span>
           </label>
-          <el-input v-model="formData.aid" placeholder="如：ROLE001" />
+          <el-input v-model="formData.aid" placeholder="请输入角色编码" />
         </div>
 
         <div>
@@ -212,7 +214,7 @@ const {
 // 搜索和分页
 const searchTerm = ref('')
 const currentPage = ref(1)
-const pageSize = 10
+const pageSize = ref(10)
 
 // 弹窗状态
 const dialogVisible = ref(false)
@@ -240,10 +242,10 @@ const filteredRoles = computed(() => {
 })
 
 // 分页
-const totalPages = computed(() => Math.ceil(filteredRoles.value.length / pageSize))
+const totalPages = computed(() => Math.ceil(filteredRoles.value.length / pageSize.value))
 const paginatedRoles = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  return filteredRoles.value.slice(start, start + pageSize)
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredRoles.value.slice(start, start + pageSize.value)
 })
 
 // 获取组织名称
