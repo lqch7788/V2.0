@@ -203,7 +203,6 @@
           </div>
         </div>
       </div>
-    </div>
     <template #footer>
       <button :class="btnSecondary" @click="emit('close')">取消</button>
       <button :class="btnDefault" @click="emit('save')">保存</button>
