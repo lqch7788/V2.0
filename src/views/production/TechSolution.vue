@@ -719,9 +719,9 @@ const handleCancelExport = () => {
 }
 
 const handleDeleteClick = () => {
+  // 默认全选当前过滤结果（与"列表内所有订单"对齐：不过滤条件、删除所有可见行）
   if (selectedRows.value.length === 0) {
-    showAlert('请先选择要删除的数据')
-    return
+    selectedRows.value = filteredTechSolutions.value.map((t: any) => t.id)
   }
   showDeleteModal.value = true
 }

@@ -219,10 +219,11 @@ const pagination = ref({
 // 选中行
 const selectedRows = ref([])
 
-// 权限控制（与 V1.1 OrderPage.tsx L29-32 一致 - 全部 true）
+// 权限控制（与 V1.1 OrderPage.tsx L29-32 一致）
+// 修复: canDelete 改为 true（启用批量删除功能）
 const canCreate = true
 const canEdit = false
-const canDelete = false
+const canDelete = true
 const canExport = true
 
 // 模式状态
