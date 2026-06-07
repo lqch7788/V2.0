@@ -719,10 +719,7 @@ const handleCancelExport = () => {
 }
 
 const handleDeleteClick = () => {
-  // 默认全选当前过滤结果（与"列表内所有订单"对齐：不过滤条件、删除所有可见行）
-  if (selectedRows.value.length === 0) {
-    selectedRows.value = filteredTechSolutions.value.map((t: any) => t.id)
-  }
+  // 进入删除模式（不默认勾选，让用户主动选择要删除的方案）
   showDeleteModal.value = true
 }
 
@@ -732,10 +729,12 @@ const handleDeleteConfirm = async () => {
   try {
     await deleteSolutions(selectedIds)
     showSuccess(`已删除 ${selectedIds.length} 个技术方案`)
+    // ✅ 修复 Y-删除-3: 重新拉取数据，让列表立刻反映删除结果
+    await fetchSolutions()
   } catch (error) {
     console.error('删除技术方案失败:', error)
     // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
-    const msg = error?.message || '删除失败，请重试'
+    const msg = error instanceof Error ? error.message : (error as any)?.message || '删除失败，请重试'
     await showAlert(msg)
   }
   showDeleteModal.value = false

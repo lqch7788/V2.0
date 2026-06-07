@@ -798,6 +798,8 @@ async function handleDeleteConfirm() {
     const deletedCount = result?.deleted ?? selectedIds.length
     const skipMsg = result && result.skipped && result.skipped.length > 0 ? `，${result.skipped.length} 个被跳过` : ''
     await showAlert(`已删除 ${deletedCount} 个采购计划${skipMsg}`)
+    // ✅ 修复 Y-删除-3: 重新拉取数据，让列表立刻反映删除结果
+    await fetchPlans()
   } catch (error) {
     const msg = error?.message || '删除失败，请重试'
     await showAlert(msg)
@@ -921,6 +923,8 @@ async function handleSingleDelete(plan) {
   try {
     await deletePlan(plan.id)
     await showAlert('删除成功')
+    // ✅ 修复 Y-删除-3: 重新拉取数据，让列表立刻反映删除结果
+    await fetchPlans()
   } catch (error) {
     await showAlert('删除失败: ' + (error instanceof Error ? error.message : ''))
   }

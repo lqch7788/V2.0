@@ -379,10 +379,9 @@ const handleBatchDeleteClick = () => {
   batchEditMode.value = false
   exportMode.value = false
   showExportModal.value = false
-  // 进入删除模式
+  // 进入删除模式（不默认勾选，让用户主动选择要删除的订单）
   deleteMode.value = true
-  // 初始化选中：默认全选当前页（用户可手动取消）
-  selectedRows.value = filteredData.value.map(item => item.id)
+  selectedRows.value = []
 }
 
 // 批量编辑确认已删除（原本是空函数，修复代码问题）
