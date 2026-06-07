@@ -7,7 +7,7 @@
         <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
           <tr>
             <th
-              v-if="exportMode || batchEditMode"
+              v-if="exportMode || batchEditMode || batchDeleteMode"
               class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap"
             >
               <el-checkbox
@@ -34,7 +34,7 @@
         </thead>
         <tbody class="divide-y divide-gray-300">
           <tr v-if="paginatedData.length === 0">
-            <td :colspan="(exportMode || batchEditMode) ? 15 : 14" class="px-4 py-8 text-center text-gray-500">
+            <td :colspan="(exportMode || batchEditMode || batchDeleteMode) ? 15 : 14" class="px-4 py-8 text-center text-gray-500">
               暂无数据
             </td>
           </tr>
@@ -43,7 +43,7 @@
             :key="record.id"
             class="hover:bg-emerald-50 transition-colors"
           >
-            <td v-if="exportMode || batchEditMode" class="px-4 py-3">
+            <td v-if="exportMode || batchEditMode || batchDeleteMode" class="px-4 py-3">
               <el-checkbox
                 :model-value="selectedRows.includes(record.id)"
                 class="rounded"
@@ -214,6 +214,7 @@ interface Props {
   onAdd: () => void
   exportMode: boolean
   batchEditMode: boolean
+  batchDeleteMode: boolean
   onExportSelectAll: () => void
   onExportCancel: () => void
   onConfirmExport: () => void

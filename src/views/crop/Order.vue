@@ -60,6 +60,17 @@
             <Plus class="w-4 h-4" />
             新增
           </el-button>
+          <!-- 批量删除按钮 - 点击进入删除模式（与 V1.1 ActionToolbar.tsx 1:1 对齐） -->
+          <el-button
+            v-if="canDelete"
+            type="danger"
+            size="small"
+            :disabled="filteredData.length === 0"
+            @click="handleBatchDeleteClick"
+          >
+            <Delete class="w-4 h-4" />
+            删除
+          </el-button>
           <!-- V1.1 ActionToolbar.tsx L102-107 导出按钮：默认 Button（绿底白字）— V2.0 用 type="primary" 1:1 对齐 -->
           <el-button type="primary" size="small" @click="handleExportClick">
             <Download class="w-4 h-4" />
@@ -80,6 +91,7 @@
         :selected-rows="selectedRows"
         :export-mode="exportMode"
         :batch-edit-mode="batchEditMode"
+        :batch-delete-mode="deleteMode"
         :can-create="canCreate"
         :can-delete="canDelete"
         :can-export="canExport"
@@ -143,7 +155,7 @@
  */
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, Download, ClipboardList } from 'lucide-vue-next'
+import { Plus, Download, ClipboardList, Delete } from 'lucide-vue-next'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
 import { showAlert, showConfirm } from '@/lib/dialogService'
@@ -352,6 +364,18 @@ const handleConfirmDelete = async () => {
       await showAlert('删除失败，请稍后重试')
     }
   }
+}
+
+// 点击"删除"按钮：进入删除模式（与 V1.1 ActionToolbar.tsx L120-138 1:1 对齐）
+const handleBatchDeleteClick = () => {
+  // 退出其他模式，确保互斥
+  batchEditMode.value = false
+  exportMode.value = false
+  showExportModal.value = false
+  // 进入删除模式
+  deleteMode.value = true
+  // 初始化选中：默认全选当前页（用户可手动取消）
+  selectedRows.value = filteredData.value.map(item => item.id)
 }
 
 // 批量编辑确认已删除（原本是空函数，修复代码问题）
