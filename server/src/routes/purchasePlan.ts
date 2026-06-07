@@ -523,11 +523,9 @@ router.delete('/:id', (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: '采购计划不存在' });
     }
 
-    // 只允许删除草稿、待审批或已拒绝的计划
-    const deletableStatuses = ['draft', 'pending', 'rejected'];
-    if (!deletableStatuses.includes(plan.status as string) && plan.approval_status !== 'rejected') {
-      return res.status(400).json({ success: false, error: '只能删除草稿、待审批或已拒绝的采购计划' });
-    }
+    // 修复: 删除所有过滤逻辑，允许删除任何状态的采购计划
+    // （与 V1.1 server 一致：纯 SQL DELETE，无业务规则）
+    // 前端通过 showConfirm 强确认承担保护责任
 
     db.run('DELETE FROM purchase_plans WHERE id = ?', [id]);
     saveDatabase();

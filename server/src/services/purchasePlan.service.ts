@@ -286,24 +286,19 @@ export class PurchasePlanService {
         return { success: false, error: '请选择要删除的采购计划' }
       }
       const db = getDatabase()
-      const DELETABLE = new Set(['draft', 'pending', 'rejected'])
+      // 修复: 删除所有过滤逻辑，允许删除任何状态的采购计划
+      // （与 V1.1 server 一致：纯 SQL DELETE，无业务规则）
+      // 前端通过 showConfirm 强确认承担保护责任
       const deleted: string[] = []
       const skipped: { id: string; reason: string }[] = []
 
       for (const id of ids) {
-        const stmt = db.prepare('SELECT id, status, approval_status FROM purchase_plans WHERE id = ?')
+        const stmt = db.prepare('SELECT id FROM purchase_plans WHERE id = ?')
         stmt.bind([id])
         const existing = stmt.step() ? stmt.getAsObject() : null
         stmt.free()
         if (!existing) {
           skipped.push({ id, reason: '记录不存在' })
-          continue
-        }
-        const status = String(existing.status || '')
-        const approval = String(existing.approval_status || '')
-        const canDelete = DELETABLE.has(status) || approval === 'rejected'
-        if (!canDelete) {
-          skipped.push({ id, reason: `状态 ${status} 不允许删除` })
           continue
         }
         db.run('DELETE FROM purchase_plans WHERE id = ?', [id])
