@@ -731,9 +731,12 @@ const handleDeleteConfirm = async () => {
   const selectedIds = [...selectedRows.value]
   try {
     await deleteSolutions(selectedIds)
+    ElMessage.success(`已删除 ${selectedIds.length} 个技术方案`)
   } catch (error) {
     console.error('删除技术方案失败:', error)
-    await showAlert('删除失败，请重试')
+    // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
+    const msg = error?.message || '删除失败，请重试'
+    await showAlert(msg)
   }
   showDeleteModal.value = false
   batchDeleteMode.value = false

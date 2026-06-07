@@ -342,9 +342,12 @@ const handleDeleteRow = async (ids) => {
   if (await showConfirm(`确定要删除订单 ${record.orderCode} 吗？`)) {
     try {
       await orderDataStore.deleteOrder(record.id)
+      ElMessage.success('删除成功')
     } catch (error) {
       console.error('删除订单失败:', error)
-      await showAlert('删除失败，请稍后重试')
+      // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
+      const msg = error?.message || '删除失败，请稍后重试'
+      await showAlert(msg)
     }
   }
 }
@@ -360,9 +363,12 @@ const handleConfirmDelete = async () => {
       await orderDataStore.deleteOrders(selectedRows.value)
       selectedRows.value = []
       deleteMode.value = false
+      ElMessage.success('删除成功')
     } catch (error) {
       console.error('批量删除订单失败:', error)
-      await showAlert('删除失败，请稍后重试')
+      // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
+      const msg = error?.message || '删除失败，请稍后重试'
+      await showAlert(msg)
     }
   }
 }
