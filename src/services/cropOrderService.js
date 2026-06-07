@@ -98,12 +98,12 @@ export async function deleteOrder(id) {
 }
 
 /**
- * 批量删除订单
+ * 批量删除订单（对齐 V1.1 apiCropOrderService.ts:119-123）
+ * 改用后端批量接口 /batch/delete，避免 N 次串行单删
  */
 export async function deleteOrders(ids) {
-  for (const id of ids) {
-    await deleteOrder(id)
-  }
+  if (!Array.isArray(ids) || ids.length === 0) return true
+  await enhancedApiClient.post('/crop-orders/batch/delete', { ids })
   return true
 }
 

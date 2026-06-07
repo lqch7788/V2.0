@@ -158,7 +158,7 @@ import { useRouter } from 'vue-router'
 import { Plus, Download, ClipboardList, Delete } from 'lucide-vue-next'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
-import { showAlert, showConfirm } from '@/lib/dialogService'
+import { showAlert, showConfirm, showSuccess } from '@/lib/dialogService'
 // 修复 P0-A/P0-B：提取共享工具函数（与 OrderTable.vue 复用）
 import { getOrderStatusLabel as getStatusLabel, getOrderTypeLabel as getOrderTypeLabelForExport } from '@/utils/orderHelpers'
 import OrderStats from '@/views/crop/components/OrderStats.vue'
@@ -342,7 +342,7 @@ const handleDeleteRow = async (ids) => {
   if (await showConfirm(`确定要删除订单 ${record.orderCode} 吗？`)) {
     try {
       await orderDataStore.deleteOrder(record.id)
-      ElMessage.success('删除成功')
+      showSuccess('删除成功')
       // 修复：删除成功后重新拉取，确保列表与后端一致
       await orderDataStore.fetchOrders()
     } catch (error) {
@@ -366,7 +366,7 @@ const handleConfirmDelete = async () => {
   if (await showConfirm(`确定要删除选中的 ${idsToDelete.length} 条记录吗？`)) {
     try {
       await orderDataStore.deleteOrders(idsToDelete)
-      ElMessage.success(`已删除 ${idsToDelete.length} 条订单`)
+      showSuccess(`已删除 ${idsToDelete.length} 条订单`)
     } catch (error) {
       console.error('批量删除订单失败:', error)
       // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
