@@ -197,7 +197,7 @@ import { useApprovalStore } from '@/stores/modules/approval'
 // 修复 P0-002 衍生：导出"种植模式"使用字典 label
 import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { enhancedApiClient } from '@/lib/apiClient'
-import { showAlert } from '@/lib/dialogService'
+import { showAlert, showSuccess, showError } from '@/lib/dialogService'
 import { FileCode, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
 import { getVarietyByCode } from '@/services/cropVarietyService'
 import { getTechSolutionApprovals } from '@/services/techSolutionService'
@@ -731,7 +731,7 @@ const handleDeleteConfirm = async () => {
   const selectedIds = [...selectedRows.value]
   try {
     await deleteSolutions(selectedIds)
-    ElMessage.success(`已删除 ${selectedIds.length} 个技术方案`)
+    showSuccess(`已删除 ${selectedIds.length} 个技术方案`)
   } catch (error) {
     console.error('删除技术方案失败:', error)
     // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
