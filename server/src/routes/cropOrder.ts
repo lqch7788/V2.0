@@ -384,11 +384,8 @@ router.delete('/:id', (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: '订单不存在' });
     }
 
-    // 只禁止删除已完成的订单
-    if (order.status === 'completed') {
-      return res.status(400).json({ success: false, error: '无法删除已完成的订单' });
-    }
-
+    // 按 V2.0 迁移规范：移除状态过滤（completed 也允许删除）
+    // 与 V1.1 行为对齐：V1.1 也有此拦截，但用户要求"所有过滤都去掉"
     db.run('DELETE FROM crop_orders WHERE id = ?', [id]);
     saveDatabase();
 
@@ -438,17 +435,13 @@ router.post('/batch/delete', (req: Request, res: Response) => {
         continue;
       }
 
-      // 只禁止删除已完成的订单
-      if (order.status === 'completed') {
-        failedIds.push({ id, reason: '无法删除已完成的订单' });
-        continue;
-      }
+      // 按 V2.0 迁移规范：移除状态过滤（completed 也允许删除）
+      // 用户要求"所有过滤都去掉"，对齐 V1.1 不限制状态
     }
 
-    // 批量删除有效的订单（非已完成状态）
+    // 批量删除所有有效订单（不再过滤 completed，按 V2.0 迁移规范"去掉所有过滤"）
     const validIds = ids.filter(id => {
-      const order = ordersMap.get(id);
-      return order && order.status !== 'completed';
+      return ordersMap.has(id);
     });
 
     if (validIds.length > 0) {

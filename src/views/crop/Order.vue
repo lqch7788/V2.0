@@ -343,11 +343,15 @@ const handleDeleteRow = async (ids) => {
     try {
       await orderDataStore.deleteOrder(record.id)
       ElMessage.success('删除成功')
+      // 修复：删除成功后重新拉取，确保列表与后端一致
+      await orderDataStore.fetchOrders()
     } catch (error) {
       console.error('删除订单失败:', error)
       // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
       const msg = error?.message || '删除失败，请稍后重试'
       await showAlert(msg)
+      // 修复：失败时也重拉一次，避免页面数据陈旧
+      await orderDataStore.fetchOrders()
     }
   }
 }
@@ -358,17 +362,22 @@ const handleConfirmDelete = async () => {
     await showAlert('请先选择要删除的数据')
     return
   }
-  if (await showConfirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`)) {
+  const idsToDelete = [...selectedRows.value]
+  if (await showConfirm(`确定要删除选中的 ${idsToDelete.length} 条记录吗？`)) {
     try {
-      await orderDataStore.deleteOrders(selectedRows.value)
-      selectedRows.value = []
-      deleteMode.value = false
-      ElMessage.success('删除成功')
+      await orderDataStore.deleteOrders(idsToDelete)
+      ElMessage.success(`已删除 ${idsToDelete.length} 条订单`)
     } catch (error) {
       console.error('批量删除订单失败:', error)
       // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
       const msg = error?.message || '删除失败，请稍后重试'
       await showAlert(msg)
+    } finally {
+      // 修复：无论成功/失败都退出删除模式、清空选择，让用户能继续操作（解决"页面卡住"）
+      selectedRows.value = []
+      deleteMode.value = false
+      // 修复：删除后重新拉取，确保列表立即反映最新数据
+      await orderDataStore.fetchOrders()
     }
   }
 }
