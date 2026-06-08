@@ -100,3 +100,4 @@ server/data/yuanxingtu_backup_*.db
 
 # Git worktree working directories (not source code)
 .worktrees/
+backup/
