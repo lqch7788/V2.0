@@ -19,12 +19,12 @@
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
             <span class="text-sm text-gray-500">选择日期:</span>
+            <!-- 修复 P0-2: 删除 @change 避免与 watch 双触发 -->
             <el-date-picker
               v-model="selectedDate"
               type="date"
               placeholder="选择日期"
               value-format="YYYY-MM-DD"
-              <!-- 修复 P0-2: 删除 @change 避免与 watch 双触发 -->
             />
           </div>
           <el-button @click="handleRefresh" :loading="loading">
