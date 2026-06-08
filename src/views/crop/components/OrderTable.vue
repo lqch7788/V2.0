@@ -51,9 +51,9 @@
               />
             </td>
             <td class="px-4 py-3 text-sm">
-              <el-button link type="primary" @click="onDetail(record)" title="点击查看详情">
+              <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" title="点击查看详情" @click="onDetail(record)">
                 {{ record.orderCode }}
-              </el-button>
+              </button>
             </td>
             <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
               {{ record.orderName }}
@@ -97,14 +97,14 @@
               {{ record.remarks || '-' }}
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
                 <template v-if="record.status !== CropOrderStatus.COMPLETED">
-                  <el-button link @click="onEdit(record)" title="编辑">
+                  <button :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'" title="编辑" @click="onEdit(record)">
                     <Pencil class="w-4 h-4" />
-                  </el-button>
-                  <el-button link @click="onDeleteRow(record)" title="删除">
+                  </button>
+                  <button :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'" title="删除" @click="onDeleteRow(record)">
                     <Trash2 class="w-4 h-4" />
-                  </el-button>
+                  </button>
                 </template>
                 <template v-else>
                   <span class="text-xs text-gray-400">已归档</span>
@@ -122,7 +122,7 @@
         :current-page="pagination.current"
         :total-pages="totalPages"
         :page-size="pagination.pageSize"
-        :page-size-options="[10, 20, 50]"
+        :page-size-options="[10, 20, 50, 100]"
         :show-page-size="true"
         @page-change="(page: any) => onChange({ ...pagination, current: page })"
         @page-size-change="(size: any) => onChange({ pageSize: size, current: 1 })"
@@ -167,6 +167,8 @@ import {
   getOrderTypeLabel as getOrderTypeLabel,
   getOrderTypeBadgeClass as getOrderTypeBadgeClass
 } from '@/utils/orderHelpers'
+// 与生产模块共享按钮样式常量
+import { btnGhost } from '@/views/production/constants/buttonStyles'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 interface CropOrder {

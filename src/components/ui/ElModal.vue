@@ -406,7 +406,8 @@ onBeforeUnmount(() => {
 .el-modal-wrapper {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  /* 修复 P0: 提升 z-index 到 body 最高层级，避免被 v-loading mask (2000+) / 其他 Element Plus 组件遮挡 */
+  z-index: 9999 !important;
   pointer-events: none;
 }
 

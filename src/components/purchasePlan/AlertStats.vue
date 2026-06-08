@@ -6,17 +6,17 @@
 -->
 <template>
   <div class="bg-white rounded-xl p-6 shadow-none">
-    <div class="flex items-center gap-3">
-      <!-- 绿色渐变图标块 -->
-      <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-        <el-icon :size="24" color="#ffffff">
-          <ShoppingCart />
-        </el-icon>
-      </div>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <!-- 绿色渐变图标块 - 与其他 3 个页面统一使用 lucide-vue-next + Tailwind class -->
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+          <ShoppingCart class="w-6 h-6 text-white" />
+        </div>
       <!-- 标题 + 副标题（V1.1 1:1 还原，V2.0 之前丢失） -->
       <div>
         <h1 class="text-2xl font-bold text-gray-900">采购计划</h1>
         <p class="text-gray-500">物资采购计划的管理与审批</p>
+      </div>
       </div>
       <!-- 条件性预警徽章（V1.1 AlertStats 唯一变化区） -->
       <div class="ml-auto flex items-center gap-4">
@@ -64,7 +64,7 @@
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\AlertStats.tsx
  */
 import { computed } from 'vue'
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { ShoppingCart } from 'lucide-vue-next'
 import { calculateOverdueAlert } from '@/types/purchase'
 
 // ✅ 修复 P0-17: 显式声明 props（之前 defineProps({}) 是空对象，父传 purchasePlansData 被丢弃）

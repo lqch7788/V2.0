@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div v-loading="techSolutionLoading" class="space-y-6">
     <!-- Header -->
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
@@ -238,7 +238,7 @@ const techSolutionStore = useTechSolutionStore()
 const approvalStore = useApprovalStore()
 // 修复 P0-002 衍生：导出时使用字典 label 同步函数（与 V1.1 L483 `getDictItemName` 行为一致）
 const dictionaryStore = useDictionaryStore()
-const { solutions: techSolutions } = storeToRefs(techSolutionStore)
+const { solutions: techSolutions, isLoading: techSolutionLoading } = storeToRefs(techSolutionStore)
 const { fetchSolutions, addSolution, updateSolution, deleteSolutions } = techSolutionStore
 
 // ==================== 过滤器/分页/选中行 ====================

@@ -1,34 +1,36 @@
 <template>
-  <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+  <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm border border-gray-100">
     <div class="flex flex-wrap gap-4 items-end">
       <div class="flex-1 min-w-[180px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">方案编号</label>
-        <input
-          :value="filters.code"
-          @input="(e) => updateFilter('code', (e.target as HTMLInputElement).value)"
-          :class="inputClass"
+        <el-input
+          :model-value="filters.code"
+          @update:model-value="(v: any) => updateFilter('code', v)"
           placeholder="请输入方案编号"
+          clearable
+          class="w-full"
         />
       </div>
       <div class="min-w-[150px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">作物</label>
-        <el-select :value="filters.cropFilter" @update:value="(v: any) => updateFilter('cropFilter', v)" class="w-full">
+        <el-select :value="filters.cropFilter" @update:value="(v: any) => updateFilter('cropFilter', v)" class="w-full" clearable>
           <el-option label="全部" value="全部" />
           <el-option v-for="crop in cropOptions" :key="crop" :label="crop" :value="crop" />
         </el-select>
       </div>
       <div class="flex-1 min-w-[180px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">编制人</label>
-        <input
-          :value="filters.author"
-          @input="(e) => updateFilter('author', (e.target as HTMLInputElement).value)"
-          :class="inputClass"
+        <el-input
+          :model-value="filters.author"
+          @update:model-value="(v: any) => updateFilter('author', v)"
           placeholder="请输入编制人"
+          clearable
+          class="w-full"
         />
       </div>
       <div class="min-w-[150px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-        <el-select :value="filters.status" @update:value="(v: any) => updateFilter('status', v)" class="w-full">
+        <el-select :value="filters.status" @update:value="(v: any) => updateFilter('status', v)" class="w-full" clearable>
           <el-option label="全部" value="全部" />
           <el-option label="已发布" value="已发布" />
           <el-option label="草稿" value="草稿" />
@@ -41,29 +43,34 @@
       </div>
       <div class="flex-1 min-w-[180px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
-        <input
-          :value="filters.startDate"
-          @input="(e) => updateFilter('startDate', (e.target as HTMLInputElement).value)"
+        <el-date-picker
+          :model-value="filters.startDate"
+          @update:model-value="(v: any) => updateFilter('startDate', v)"
           type="date"
-          :class="inputClass"
+          value-format="YYYY-MM-DD"
+          placeholder="选择开始日期"
+          class="w-full"
         />
       </div>
       <div class="flex-1 min-w-[180px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
-        <input
-          :value="filters.endDate"
-          @input="(e) => updateFilter('endDate', (e.target as HTMLInputElement).value)"
+        <el-date-picker
+          :model-value="filters.endDate"
+          @update:model-value="(v: any) => updateFilter('endDate', v)"
           type="date"
-          :class="inputClass"
+          value-format="YYYY-MM-DD"
+          placeholder="选择结束日期"
+          class="w-full"
         />
       </div>
+      <!-- 操作按钮 - 与其他 3 个页面顺序统一：重置在前，搜索在后 -->
       <div class="flex gap-2">
+        <button :class="btnDefault" @click="emit('reset')">
+          重置
+        </button>
         <button :class="btnDefault" @click="emit('search')">
           <Search class="w-4 h-4" />
           搜索
-        </button>
-        <button :class="btnDefault" @click="emit('reset')">
-          重置
         </button>
       </div>
     </div>

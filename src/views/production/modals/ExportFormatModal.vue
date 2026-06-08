@@ -1,13 +1,15 @@
 <template>
-  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
-  <BaseModal
-    :visible="visible"
-    @update:visible="(v) => emit('update:visible', v)"
+  <!-- 技术方案导出弹窗 - 统一使用 ElModal（V1.1 width=500 → 统一800） -->
+  <ElModal
+    :model-value="visible"
     title="选择导出格式"
-    :width="500"
+    :width="1600"
+    :height="900"
+    :show-footer="false"
+    @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
-    <div class="p-6">
+    <div class="p-2">
       <div class="space-y-4">
         <p class="text-sm text-gray-500">已选择 {{ selectedCount }} 条数据</p>
         <div class="space-y-3">
@@ -29,14 +31,16 @@
       </div>
     </div>
     <template #footer>
-      <button :class="btnSecondary" @click="emit('close')">取消</button>
-      <button :class="btnDefault" @click="emit('confirm')">导出</button>
+      <div class="flex justify-end gap-3">
+        <button :class="btnSecondary" @click="emit('close')">取消</button>
+        <button :class="btnDefault" @click="emit('confirm')">导出</button>
+      </div>
     </template>
-  </BaseModal>
+  </ElModal>
 </template>
 
 <script setup lang="ts">
-import BaseModal from '../components/BaseModal.vue'
+import { ElModal } from '@/components/ui'
 // 第二阶段 Y2 重构：按钮样式抽常量
 import { btnDefault, btnSecondary } from '../constants/buttonStyles'
 

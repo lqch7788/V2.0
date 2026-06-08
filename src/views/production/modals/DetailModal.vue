@@ -1,13 +1,15 @@
 <template>
-  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
-  <BaseModal
-    :visible="visible"
-    @update:visible="(v) => emit('update:visible', v)"
+  <!-- 第二阶段 Y3 重构：复用 ElModal 弹窗外壳 -->
+  <ElModal
+    :model-value="visible"
+    @update:model-value="(v) => emit('update:visible', v)"
     title="订单详情"
-    :width="700"
+    :width="1600"
+    :height="900"
+    :show-footer="false"
     @close="handleClose"
   >
-    <div class="p-6">
+    <div class="p-2">
     <div class="space-y-4" v-if="record">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="订单编号">
@@ -61,11 +63,11 @@
     <template #footer>
       <el-button @click="handleClose">关闭</el-button>
     </template>
-  </BaseModal>
+  </ElModal>
 </template>
 
 <script setup>
-import BaseModal from '../components/BaseModal.vue'
+import { ElModal } from '@/components/ui'
 import {  CropOrder  } from '@/types/crop'
 
 defineProps({})

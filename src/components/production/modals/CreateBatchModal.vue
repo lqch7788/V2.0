@@ -2,7 +2,8 @@
   <ElModal
     v-model="visible"
     title="新增生产计划批次"
-    size="xl"
+    :width="1120"
+    :height="900"
     :show-submit="false"
     :show-cancel="false"
     @close="handleClose"
@@ -43,7 +44,7 @@
               :class="errors.batchCode ? 'border-red-500' : ''"
             />
             <button
-              class="h-9 px-4 rounded-lg text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-colors inline-flex items-center justify-center whitespace-nowrap"
+              :class="btnDefault"
               @click="onGenerateCode"
             >
               生成
@@ -321,10 +322,10 @@
         <label class="text-sm font-medium text-gray-700 block mb-1">计划详细说明</label>
         <div class="flex items-center gap-3">
           <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
+            :class="btnBlue"
             @click="handleFileUpload"
           >
-            <Upload class="w-3 h-3" />
+            <Upload class="w-4 h-4" />
             导入文件
           </button>
           <span class="text-xs text-gray-500">支持 .txt, .md, .docx 格式</span>
@@ -337,16 +338,10 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button
-          class="h-8 px-4 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200"
-          @click="onSaveDraft"
-        >
+        <button :class="btnSecondary" @click="onSaveDraft">
           存为草稿
         </button>
-        <button
-          class="h-8 px-4 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700"
-          @click="onSubmitForApproval"
-        >
+        <button :class="btnDefault" @click="onSubmitForApproval">
           提交审批
         </button>
       </div>
@@ -358,6 +353,8 @@
 import { computed, ref, watch } from 'vue'
 import { ChevronUp, ChevronDown, Upload } from 'lucide-vue-next'
 import { ElModal } from '@/components/ui'
+// 与技术方案共享按钮样式常量
+import { btnDefault, btnBlue, btnSecondary } from '@/views/production/constants/buttonStyles'
 import { planTypeOptions, getModesByPlanType, RESPONSIBLE_PERSONS } from '../constants'
 import { getAllVarieties } from '@/services/cropVarietyService'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'

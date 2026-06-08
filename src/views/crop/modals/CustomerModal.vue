@@ -1,87 +1,71 @@
 <template>
-  <!-- 客户档案新增/编辑弹窗 - 与 V1.1 CustomerModal.tsx 1:1 对齐 -->
-  <Teleport to="body">
-    <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="handleClose">
-      <div
-        class="bg-white rounded-xl w-full shadow-xl flex flex-col relative"
-        :style="{ maxWidth: '1000px', maxHeight: '85vh', minWidth: '40rem' }"
-        @click.stop
-      >
-        <!-- 头部 -->
-        <div
-          class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
-          style="background: linear-gradient(to right, #10b981, #059669);"
-        >
-          <h3 class="text-lg font-semibold flex items-center gap-2 select-none text-white">
-            <el-icon style="color: white;"><User /></el-icon>
-            <span style="color: white;">{{ isEdit ? '编辑客户' : '新增客户' }}</span>
-          </h3>
-          <el-button link @click="handleClose" @mousedown.stop style="color: rgba(255,255,255,0.8);">
-            <el-icon style="color: white;"><Close /></el-icon>
-          </el-button>
-        </div>
-
-        <!-- 表单内容 -->
-        <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(85vh - 140px);">
-          <div class="space-y-4">
-            <!-- 第一行：客户编码、客户名称 -->
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">客户编码</label>
-                <div class="flex gap-2">
-                  <el-input v-model="form.customerCode" placeholder="请输入或点击生成" />
-                  <el-button size="small" @click="handleGenerateCode" @mousedown.stop>生成</el-button>
-                </div>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  客户名称 <span class="text-red-500">*</span>
-                </label>
-                <el-input v-model="form.customerName" placeholder="请输入客户名称" />
-              </div>
-            </div>
-
-            <!-- 第二行：联系人、联系电话 -->
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">联系人</label>
-                <el-input v-model="form.contactPerson" placeholder="请输入联系人姓名" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">联系电话</label>
-                <el-input v-model="form.contactPhone" placeholder="请输入联系电话" />
-              </div>
-            </div>
-
-            <!-- 第三行：收货地址 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">收货地址</label>
-              <el-input v-model="form.deliveryAddress" type="textarea" :rows="2" placeholder="请输入收货地址" />
-            </div>
-
-            <!-- 第四行：备注 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
-              <el-input v-model="form.remarks" type="textarea" :rows="3" placeholder="请输入备注信息" />
-            </div>
+  <!-- 客户档案新增/编辑弹窗 - 与 V1.1 CustomerModal.tsx 1:1 对齐 - 第二阶段统一 ElModal 800 -->
+  <ElModal
+    :model-value="isOpen"
+    :title="isEdit ? '编辑客户' : '新增客户'"
+    :width="1600"
+    :height="900"
+    :show-footer="false"
+    @update:model-value="(v) => emit('update:isOpen', v)"
+    @close="handleClose"
+  >
+    <div class="space-y-4">
+      <!-- 第一行：客户编码、客户名称 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">客户编码</label>
+          <div class="flex gap-2">
+            <el-input v-model="form.customerCode" placeholder="请输入或点击生成" class="flex-1" />
+            <el-button size="small" @click="handleGenerateCode">生成</el-button>
           </div>
         </div>
-
-        <!-- 底部按钮 -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-xl">
-          <el-button size="small" @click="handleClose" @mousedown.stop :disabled="loading">取消</el-button>
-          <el-button type="primary" size="small" @click="handleSubmit" @mousedown.stop :disabled="loading">
-            {{ loading ? '保存中...' : '保存' }}
-          </el-button>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            客户名称 <span class="text-red-500">*</span>
+          </label>
+          <el-input v-model="form.customerName" placeholder="请输入客户名称" />
         </div>
       </div>
+
+      <!-- 第二行：联系人、联系电话 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">联系人</label>
+          <el-input v-model="form.contactPerson" placeholder="请输入联系人姓名" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">联系电话</label>
+          <el-input v-model="form.contactPhone" placeholder="请输入联系电话" />
+        </div>
+      </div>
+
+      <!-- 第三行：收货地址 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">收货地址</label>
+        <el-input v-model="form.deliveryAddress" type="textarea" :rows="2" placeholder="请输入收货地址" />
+      </div>
+
+      <!-- 第四行：备注 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+        <el-input v-model="form.remarks" type="textarea" :rows="3" placeholder="请输入备注信息" />
+      </div>
     </div>
-  </Teleport>
+
+    <template #footer>
+      <div class="flex items-center justify-end gap-3">
+        <el-button size="small" @click="handleClose" :disabled="loading">取消</el-button>
+        <el-button type="primary" size="small" @click="handleSubmit" :disabled="loading">
+          {{ loading ? '保存中...' : '保存' }}
+        </el-button>
+      </div>
+    </template>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { User, Close } from '@element-plus/icons-vue'
+import { ElModal } from '@/components/ui'
 import { useCustomerStore } from '@/stores/modules/customer'
 import { showAlert } from '@/lib/dialogService'
 
@@ -90,7 +74,7 @@ const props = defineProps({
   customer: Object
 })
 
-const emit = defineEmits(['close', 'success'])
+const emit = defineEmits(['close', 'success', 'update:isOpen'])
 
 const customerStore = useCustomerStore()
 const loading = ref(false)
@@ -175,6 +159,7 @@ const handleGenerateCode = () => {
 }
 
 const handleClose = () => {
+  emit('update:isOpen', false)
   emit('close')
 }
 

@@ -2,72 +2,20 @@
   @file 采购计划创建弹窗 - 1:1 翻译自 V1.1 CreatePlanModal.tsx
   @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\CreatePlanModal.tsx
   @description 新增采购申请单弹窗：基本信息表单 + 物料明细可编辑表格
+  统一使用 ElModal（V1.1 width=1080 → 统一800）
 -->
 <template>
-  <!-- 新增采购计划弹窗 - 1:1 对齐 V2.0 订单管理 AddModal 风格（Teleport + 可拖动 + 可缩放 + 可最大化 + 绿色渐变头部） -->
-  <Teleport to="body">
-    <div
-      v-if="isOpen"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm"
-      @click="handleClose"
-    >
-      <div
-        id="purchase-plan-add-dialog"
-        class="bg-white rounded-xl w-full shadow-xl flex flex-col relative"
-        :style="{
-          width: '1080px',
-          height: '650px',
-          maxWidth: '90vw',
-          maxHeight: '90vh',
-          minWidth: '40rem',
-        }"
-        @click.stop
-      >
-        <!-- 右下角缩放拖动条 -->
-        <div
-          v-if="!isMaximized"
-          class="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-10"
-          @mousedown="handleResizeStart"
-        >
-          <svg class="w-full h-full text-gray-300 hover:text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22 22H20V20H22V22ZM22 18H20V16H22V18ZM18 22H16V20H18V22ZM22 14H20V12H22V14ZM18 18H16V16H18V18ZM14 22H12V20H14V22Z" />
-          </svg>
-        </div>
-
-        <!-- 头部 — 绿色渐变（与订单管理 AddModal L24 一致） -->
-        <div
-          class="px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex items-center justify-between rounded-t-xl cursor-move flex-shrink-0"
-          @mousedown="handleDragStart"
-        >
-          <h3 class="text-lg font-semibold text-white flex items-center gap-2 select-none">
-            新增采购申请单
-          </h3>
-          <div class="flex items-center gap-1">
-            <!-- 最大化/还原按钮（用 v-if/v-else 避免 <component> 解析问题） -->
-            <el-button
-              link
-              @click="toggleMaximize"
-              class="hover:bg-white/10"
-              style="color: rgba(255,255,255,0.8);"
-            >
-              <el-icon v-if="isMaximized" style="color: white;"><ScaleToOriginal /></el-icon>
-              <el-icon v-else style="color: white;"><FullScreen /></el-icon>
-            </el-button>
-            <!-- 关闭按钮 -->
-            <el-button
-              link
-              class="hover:bg-white/10"
-              style="color: rgba(255,255,255,0.8);"
-              @click="handleClose"
-            >
-              <el-icon style="color: white;"><Close /></el-icon>
-            </el-button>
-          </div>
-        </div>
-
-        <!-- 弹窗内容区（与订单管理 AddModal L50 max-height 计算风格一致） -->
-        <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(85vh - 140px);">
-          <div class="space-y-4">
+  <ElModal
+    :model-value="isOpen"
+    title="新增采购申请单"
+    :width="1120"
+    :height="900"
+    :show-footer="false"
+    @update:model-value="(v) => emit('update:isOpen', v)"
+    @close="handleClose"
+  >
+    <!-- 弹窗内容区 -->
+    <div class="space-y-4 modal-form-inputs">
       <!-- 采购申请批次号 单独一行 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
@@ -411,25 +359,24 @@
       </div>
     </div>
 
-        <!-- 底部按钮（V1.1 Modal 默认 footer：size=default h-10 px-4 py-2，1:1 对齐 V1.1 Modal.tsx L356-375） -->
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
-          <button
-            class="h-10 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center justify-center"
-            @click="handleClose"
-          >
-            取消
-          </button>
-          <button
-            class="h-10 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center justify-center"
-            @click="handleSubmit"
-          >
-            提交
-          </button>
-        </div>
-        </div>
+    <!-- 底部按钮（V1.1 Modal 默认 footer：size=default h-10 px-4 py-2，1:1 对齐 V1.1 Modal.tsx L356-375） -->
+    <template #footer>
+      <div class="flex items-center justify-end gap-3">
+        <button
+          class="h-10 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center justify-center"
+          @click="handleClose"
+        >
+          取消
+        </button>
+        <button
+          class="h-10 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center justify-center"
+          @click="handleSubmit"
+        >
+          提交
+        </button>
       </div>
-    </div>
-  </Teleport>
+    </template>
+  </ElModal>
 </template>
 
 <script setup>
@@ -439,9 +386,10 @@
  *              新增采购申请单：基本信息表单 + 物料明细可编辑表格
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\CreatePlanModal.tsx
  */
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import * as XLSX from 'xlsx'
-import { Refresh, Upload, Plus, Delete, ArrowUp, ArrowDown, Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
+import { Refresh, Upload, Plus, Delete, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
+import { ElModal } from '@/components/ui'
 import { usePlantingStore } from '@/stores/modules/planting'
 import { getNextPurchaseApplicationCode } from '@/services/apiPurchasePlanService'
 import { getDictionaries } from '@/services/dictionaryService'
@@ -823,153 +771,8 @@ async function handleGenerateCode() {
 
 // ==================== 关闭/提交 ====================
 
-// 最大化/拖动/缩放状态（1:1 翻译订单管理 AddModal 风格）
-const isMaximized = ref(false)
-const isDragging = ref(false)
-const dragStart = ref({ x: 0, y: 0, left: 0, top: 0 })
-const isResizing = ref(false)
-const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
-
-// 拖动开始
-function handleDragStart(e) {
-  if (isMaximized.value) return
-  if (e.target.closest('button')) return
-  e.preventDefault()
-  isDragging.value = true
-  const dialog = document.getElementById('purchase-plan-add-dialog')
-  if (dialog) {
-    const rect = dialog.getBoundingClientRect()
-    dragStart.value = { x: e.clientX, y: e.clientY, left: rect.left, top: rect.top }
-  }
-}
-
-// 拖动中
-let moveHandler = null
-let upHandler = null
-watch(isDragging, (val) => {
-  if (val) {
-    moveHandler = (e) => {
-      if (!isDragging.value) return
-      const deltaX = e.clientX - dragStart.value.x
-      const deltaY = e.clientY - dragStart.value.y
-      const dialog = document.getElementById('purchase-plan-add-dialog')
-      if (dialog) {
-        dialog.style.position = 'fixed'
-        dialog.style.left = `${dragStart.value.left + deltaX}px`
-        dialog.style.top = `${dragStart.value.top + deltaY}px`
-        dialog.style.margin = '0'
-      }
-    }
-    upHandler = () => {
-      isDragging.value = false
-    }
-    document.addEventListener('mousemove', moveHandler)
-    document.addEventListener('mouseup', upHandler)
-  } else if (moveHandler) {
-    document.removeEventListener('mousemove', moveHandler)
-    document.removeEventListener('mouseup', upHandler)
-    moveHandler = null
-    upHandler = null
-  }
-})
-
-// 缩放开始
-function handleResizeStart(e) {
-  if (isMaximized.value) return
-  e.preventDefault()
-  e.stopPropagation()
-  isResizing.value = true
-  const dialog = document.getElementById('purchase-plan-add-dialog')
-  resizeStart.value = {
-    x: e.clientX,
-    y: e.clientY,
-    width: dialog?.clientWidth || 0,
-    height: dialog?.clientHeight || 0,
-  }
-}
-
-// 缩放中
-let resizeMoveHandler = null
-let resizeUpHandler = null
-watch(isResizing, (val) => {
-  if (val) {
-    resizeMoveHandler = (e) => {
-      if (!isResizing.value) return
-      const deltaX = e.clientX - resizeStart.value.x
-      const deltaY = e.clientY - resizeStart.value.y
-      const newWidth = Math.max(640, resizeStart.value.width + deltaX)
-      const newHeight = Math.max(400, resizeStart.value.height + deltaY)
-      const dialog = document.getElementById('purchase-plan-add-dialog')
-      if (dialog) {
-        dialog.style.width = `${newWidth}px`
-        dialog.style.maxWidth = 'none'
-        dialog.style.height = `${newHeight}px`
-        dialog.style.maxHeight = 'none'
-      }
-    }
-    resizeUpHandler = () => {
-      isResizing.value = false
-    }
-    document.addEventListener('mousemove', resizeMoveHandler)
-    document.addEventListener('mouseup', resizeUpHandler)
-  } else if (resizeMoveHandler) {
-    document.removeEventListener('mousemove', resizeMoveHandler)
-    document.removeEventListener('mouseup', resizeUpHandler)
-    resizeMoveHandler = null
-    resizeUpHandler = null
-  }
-})
-
-// 最大化/还原
-function toggleMaximize() {
-  const dialog = document.getElementById('purchase-plan-add-dialog')
-  if (!isMaximized.value && dialog) {
-    dialog.style.width = '100vw'
-    dialog.style.height = '100vh'
-    dialog.style.maxWidth = 'none'
-    dialog.style.maxHeight = 'none'
-    dialog.style.borderRadius = '0'
-    dialog.style.left = '0'
-    dialog.style.top = '0'
-    dialog.style.margin = '0'
-  } else if (dialog) {
-    dialog.style.width = ''
-    dialog.style.height = ''
-    dialog.style.maxWidth = ''
-    dialog.style.maxHeight = ''
-    dialog.style.borderRadius = ''
-    dialog.style.left = ''
-    dialog.style.top = ''
-    dialog.style.margin = ''
-  }
-  isMaximized.value = !isMaximized.value
-}
-
-// ESC 键关闭
-function handleEscKey(e) {
-  if (e.key === 'Escape' && props.isOpen) {
-    handleClose()
-  }
-}
-onMounted(() => document.addEventListener('keydown', handleEscKey))
-onUnmounted(() => document.removeEventListener('keydown', handleEscKey))
-
-// 关闭（清理拖动/缩放监听器）
+// 关闭
 function handleClose() {
-  isDragging.value = false
-  isResizing.value = false
-  if (moveHandler) {
-    document.removeEventListener('mousemove', moveHandler)
-    document.removeEventListener('mouseup', upHandler)
-    moveHandler = null
-    upHandler = null
-  }
-  if (resizeMoveHandler) {
-    document.removeEventListener('mousemove', resizeMoveHandler)
-    document.removeEventListener('mouseup', resizeUpHandler)
-    resizeMoveHandler = null
-    resizeUpHandler = null
-  }
   emit('update:isOpen', false)
   emit('close')
 }

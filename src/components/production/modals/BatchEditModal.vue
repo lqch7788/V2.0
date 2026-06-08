@@ -12,7 +12,8 @@
   <ElModal
     v-model="visible"
     title="批量编辑生产计划"
-    size="xl"
+    :width="1120"
+    :height="900"
     :show-submit="false"
     :show-cancel="false"
     @close="handleClose"

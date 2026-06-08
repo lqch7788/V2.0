@@ -5,7 +5,7 @@
   @note V1.1 内联所有状态/逻辑（未抽取 hook），V2.0 保持一致
 -->
 <template>
-  <div class="space-y-6">
+  <div v-loading="isLoading" class="space-y-6">
     <!-- 预警统计头部 -->
     <AlertStats :purchase-plans-data="purchasePlansData" />
 
@@ -66,7 +66,7 @@
       @export-cancel="handleCancelExport"
       @batch-edit-confirm="handleBatchEditConfirm"
       @batch-edit-cancel="handleBatchEditCancel"
-      @batch-delete-confirm="handleDeleteConfirm"
+      @batch-delete-confirm="handleBatchDeleteShowModal"
       @batch-delete-cancel="handleBatchDeleteCancel"
     />
 
@@ -91,11 +91,13 @@
       @execution-status-changed="handleExecutionStatusChanged"
     />
 
-    <!-- 删除确认弹窗 -->
+    <!-- 删除确认弹窗（统一规格 560×450，按钮固定底部；单条/批量共用，根据 singleDeleteMode 区分 title/description） -->
     <DeleteWarningModal
       :is-open="showDeleteModal"
-      :selected-count="selectedRows.length"
-      @close="setShowDeleteModal(false)"
+      :selected-count="singleDeleteMode ? 1 : selectedRows.length"
+      :title="deleteModalTitle"
+      :description="deleteModalDescription"
+      @close="handleDeleteWarningClose"
       @confirm="handleDeleteConfirm"
     />
 
@@ -322,6 +324,20 @@ const showDetailModal = ref(false)
 const showBatchEditModal = ref(false)
 const showEditItemsExpanded = ref(false)
 const batchSelectOpen = ref(false)
+// 修复 P0: 单条/批量删除共用 DeleteWarningModal，用 planToDelete + singleDeleteMode 区分
+const planToDelete = ref(null)
+const singleDeleteMode = ref(false)
+
+// 弹窗 title/description 计算属性（避免 template 字符串转义问题）
+const deleteModalTitle = computed(() =>
+  singleDeleteMode.value ? '删除采购计划警告' : '批量删除采购计划警告'
+)
+const deleteModalDescription = computed(() => {
+  if (singleDeleteMode.value && planToDelete.value) {
+    return `确定要删除采购计划 <strong>${planToDelete.value.purchaseApplicationCode}</strong> 吗？此操作 <span style="color:#dc2626">无法恢复</span>，删除后数据将永久丢失。`
+  }
+  return ''
+})
 
 const setShowDeleteModal = (v) => { showDeleteModal.value = v }
 const setShowExportModal = (v) => { showExportModal.value = v }
@@ -785,19 +801,43 @@ function handleDeleteClick() {
   setShowDeleteModal(true)
 }
 
-// ==================== 删除确认（开发测试阶段：可删除所有状态）====================
-// 修复 Y-删除: 删除所有过滤逻辑，直接传 selectedRows（后端 deleteMany 接受 id 或 code）
+// ==================== 批量删除请求（显示 DeleteWarningModal）====================
+// 修复 P0: 批量删除走 DeleteWarningModal 确认流程
+function handleBatchDeleteShowModal() {
+  if (selectedRows.value.length === 0) {
+    showAlert('请先选择要删除的数据')
+    return
+  }
+  // 切到批量模式（确保 DeleteWarningModal 显示批量文案）
+  singleDeleteMode.value = false
+  planToDelete.value = null
+  setShowDeleteModal(true)
+}
+
+// ==================== 删除确认（单条/批量共用入口）====================
+// 修复 P0: 单条删除走 planToDelete + singleDeleteMode；批量走 selectedRows
 async function handleDeleteConfirm() {
   try {
-    const selectedIds = [...selectedRows.value]
-    const result = await deletePlans(selectedIds)
-    setShowDeleteModal(false)
-    batchDeleteMode.value = false
-    selectedRows.value = []
-    // ✅ 修复 P0-3: 用 result.deleted 而非 selectedIds.length
-    const deletedCount = result?.deleted ?? selectedIds.length
-    const skipMsg = result && result.skipped && result.skipped.length > 0 ? `，${result.skipped.length} 个被跳过` : ''
-    await showAlert(`已删除 ${deletedCount} 个采购计划${skipMsg}`)
+    if (singleDeleteMode.value && planToDelete.value) {
+      // 单条删除
+      const plan = planToDelete.value
+      setShowDeleteModal(false)
+      planToDelete.value = null
+      singleDeleteMode.value = false
+      await deletePlan(plan.id)
+      await showAlert('删除成功')
+    } else {
+      // 批量删除
+      const selectedIds = [...selectedRows.value]
+      const result = await deletePlans(selectedIds)
+      setShowDeleteModal(false)
+      batchDeleteMode.value = false
+      selectedRows.value = []
+      // ✅ 修复 P0-3: 用 result.deleted 而非 selectedIds.length
+      const deletedCount = result?.deleted ?? selectedIds.length
+      const skipMsg = result && result.skipped && result.skipped.length > 0 ? `，${result.skipped.length} 个被跳过` : ''
+      await showAlert(`已删除 ${deletedCount} 个采购计划${skipMsg}`)
+    }
     // ✅ 修复 Y-删除-3: 重新拉取数据，让列表立刻反映删除结果
     await fetchPlans()
   } catch (error) {
@@ -919,15 +959,20 @@ function handleSingleEdit(plan) {
 }
 
 // ==================== 单条删除处理 ====================
-async function handleSingleDelete(plan) {
-  try {
-    await deletePlan(plan.id)
-    await showAlert('删除成功')
-    // ✅ 修复 Y-删除-3: 重新拉取数据，让列表立刻反映删除结果
-    await fetchPlans()
-  } catch (error) {
-    await showAlert('删除失败: ' + (error instanceof Error ? error.message : ''))
-  }
+// 修复 P0: 单条删除改为先弹 DeleteWarningModal，确认后执行
+function handleSingleDelete(plan) {
+  console.log('[PurchasePlan] handleSingleDelete called', plan)
+  planToDelete.value = plan
+  singleDeleteMode.value = true
+  setShowDeleteModal(true)
+  console.log('[PurchasePlan] showDeleteModal=', showDeleteModal.value, 'planToDelete=', planToDelete.value)
+}
+
+// 删除警告弹窗 - 关闭
+function handleDeleteWarningClose() {
+  setShowDeleteModal(false)
+  planToDelete.value = null
+  singleDeleteMode.value = false
 }
 
 // ==================== 批量编辑确认 ====================

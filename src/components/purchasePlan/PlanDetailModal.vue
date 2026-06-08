@@ -4,13 +4,15 @@
   @description 采购申请单详情：字段网格 + 物料明细表格 + 可选审批记录
 -->
 <template>
-  <el-dialog
+  <!-- 第二阶段统一 ElModal 800 -->
+  <ElModal
     :model-value="visible"
     title="采购申请单详情"
-    width="900px"
-    :destroy-on-close="false"
-    @close="handleClose"
+    :width="1600"
+    :height="900"
+    :show-footer="false"
     @update:model-value="(v) => !v && handleClose()"
+    @close="handleClose"
   >
     <div v-if="selectedPlanDetail" class="space-y-4">
       <!-- 字段网格（1:1 V1.1 fields 6 行 2 列 + 物料明细全宽行）-->
@@ -261,7 +263,7 @@
         </button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
@@ -275,6 +277,7 @@
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\PlanDetailModal.tsx
  */
 import { ref, computed } from 'vue'
+import { ElModal } from '@/components/ui'
 import { Clock, EditPen } from '@element-plus/icons-vue'
 import { PURCHASE_EXECUTION_STATUS_OPTIONS, PURCHASE_EXECUTION_STATUS_STYLE, PURCHASE_EXECUTION_STATUS_TEXT } from '@/types/purchase'
 import { updateExecutionStatus as apiUpdateExecutionStatus } from '@/services/apiPurchasePlanService'

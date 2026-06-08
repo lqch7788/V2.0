@@ -35,50 +35,51 @@
       <div class="flex items-center gap-2">
         <!-- 批量编辑模式：仅显示取消按钮（修复 handleBatchEditConfirm 空函数被删除） -->
         <template v-if="batchEditMode">
-          <el-button size="small" @click="batchEditMode = false">取消</el-button>
+          <button :class="btnSecondary" @click="batchEditMode = false">取消</button>
         </template>
         <!-- 删除模式 -->
         <template v-else-if="deleteMode">
-          <el-button type="danger" size="small" @click="handleConfirmDelete">
+          <button :class="btnDestructive" @click="handleConfirmDelete">
+            <Trash2 class="w-4 h-4" />
             确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-          </el-button>
-          <el-button size="small" @click="deleteMode = false">取消</el-button>
+          </button>
+          <button :class="btnSecondary" @click="deleteMode = false">取消</button>
         </template>
         <!-- 导出模式 -->
         <template v-else-if="exportMode">
-          <!-- V1.1 ActionToolbar.tsx L140-143 确认导出：默认 Button（绿底白字）— V2.0 用 type="primary" 1:1 对齐 -->
-          <el-button type="primary" size="small" @click="handleExportConfirm">
+          <!-- V1.1 ActionToolbar.tsx L140-143 确认导出：默认 Button（绿底白字） -->
+          <button :class="btnDefault" @click="handleExportConfirm">
             <Download class="w-4 h-4" />
             确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-          </el-button>
-          <!-- V1.1 ActionToolbar.tsx L144-146 取消选择：variant="secondary"（灰底）— V2.0 默认白底等效 -->
-          <el-button size="small" @click="handleExportCancel">取消选择</el-button>
+          </button>
+          <!-- V1.1 ActionToolbar.tsx L144-146 取消选择：variant="secondary"（灰底） -->
+          <button :class="btnSecondary" @click="handleExportCancel">取消选择</button>
         </template>
         <!-- 正常模式 -->
         <template v-else>
-          <el-button type="primary" size="small" @click="handleAdd">
+          <button :class="btnDefault" @click="handleAdd">
             <Plus class="w-4 h-4" />
             新增
-          </el-button>
+          </button>
           <!-- 批量删除按钮 - 点击进入删除模式（与 V1.1 ActionToolbar.tsx 1:1 对齐） -->
-          <el-button
+          <button
             v-if="canDelete"
-            type="danger"
-            size="small"
+            :class="btnDestructive"
             :disabled="filteredData.length === 0"
             @click="handleBatchDeleteClick"
           >
-            <Delete class="w-4 h-4" />
+            <Trash2 class="w-4 h-4" />
             删除
-          </el-button>
-          <!-- V1.1 ActionToolbar.tsx L102-107 导出按钮：默认 Button（绿底白字）— V2.0 用 type="primary" 1:1 对齐 -->
-          <el-button type="primary" size="small" @click="handleExportClick">
+          </button>
+          <!-- V1.1 ActionToolbar.tsx L102-107 导出按钮：默认 Button（绿底白字） -->
+          <button :class="btnDefault" @click="handleExportClick">
             <Download class="w-4 h-4" />
             导出
-          </el-button>
-          <el-button size="small" class="order-customer-btn" @click="handleCustomer">
+          </button>
+          <!-- V1.1 ActionToolbar.tsx L109 variant="blue" -->
+          <button :class="btnBlue" @click="handleCustomer">
             客户管理
-          </el-button>
+          </button>
         </template>
       </div>
     </div>
@@ -115,15 +116,15 @@
       @success="handleAddSuccess"
     />
 
+    <!-- 修复 P0: 移除 v-if 包裹 -->
     <DetailModal
-      v-if="currentRecord"
       :is-open="detailModalVisible"
       :record="currentRecord"
       @close="detailModalVisible = false"
     />
 
+    <!-- 修复 P0: 移除 v-if 包裹（v-if 切换会让 ElModal teleport 内容被销毁重建，触发 z-index 闪烁）-->
     <EditModal
-      v-if="currentRecord"
       :is-open="editModalVisible"
       :record="currentRecord"
       :order-type-options="orderTypeOptions"
@@ -140,6 +141,16 @@
       @change="(val) => (exportFormat = val)"
       @confirm="handleDoExport"
     />
+
+    <!-- 删除警告弹窗（统一规格 560×450，按钮固定底部） -->
+    <DeleteWarningModal
+      v-model:is-open="deleteWarningOpen"
+      :selected-count="deleteTargetCount"
+      :title="deleteTargetTitle"
+      :description="deleteTargetDescription"
+      @close="handleDeleteWarningClose"
+      @confirm="handleDeleteWarningConfirm"
+    />
   </div>
 </template>
 
@@ -155,12 +166,14 @@
  */
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, Download, ClipboardList, Delete } from 'lucide-vue-next'
+import { Plus, Download, ClipboardList, Trash2 } from 'lucide-vue-next'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
 import { showAlert, showConfirm, showSuccess } from '@/lib/dialogService'
 // 修复 P0-A/P0-B：提取共享工具函数（与 OrderTable.vue 复用）
 import { getOrderStatusLabel as getStatusLabel, getOrderTypeLabel as getOrderTypeLabelForExport } from '@/utils/orderHelpers'
+// 与生产模块共享按钮样式常量
+import { btnDefault, btnSecondary, btnDestructive, btnBlue } from '@/views/production/constants/buttonStyles'
 import OrderStats from '@/views/crop/components/OrderStats.vue'
 import OrderFilter from '@/views/crop/components/OrderFilter.vue'
 import OrderTable from '@/views/crop/components/OrderTable.vue'
@@ -168,6 +181,7 @@ import AddModal from '@/views/crop/modals/AddModal.vue'
 import DetailModal from '@/views/crop/modals/DetailModal.vue'
 import EditModal from '@/views/crop/modals/EditModal.vue'
 import ExportModal from '@/views/crop/modals/ExportModal.vue'
+import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
 
 // Store
 const orderDataStore = useOrderDataStore()
@@ -238,6 +252,13 @@ const addModalVisible = ref(false)
 const detailModalVisible = ref(false)
 const editModalVisible = ref(false)
 const currentRecord = ref(null)
+
+// 统一删除警告弹窗状态（4 模块共享 DeleteWarningModal）
+const deleteWarningOpen = ref(false)
+const deleteTargetIds = ref([])
+const deleteTargetCount = ref(0)
+const deleteTargetTitle = ref('删除订单警告')
+const deleteTargetDescription = ref('')
 
 // 加载状态
 const loading = computed(() => orderDataStore.isLoading)
@@ -334,51 +355,65 @@ const handleEditSuccess = () => {
   // Store 的 updateOrder 已同步更新本地状态，无需重新 fetch
 }
 
-// 单行删除（带确认弹窗）
-const handleDeleteRow = async (ids) => {
+// 单行删除 - 改为显示统一删除警告弹窗
+const handleDeleteRow = (ids) => {
   if (!ids || ids.length === 0) return
   const record = orderDataStore.orders.find(o => o.id === ids[0])
   if (!record) return
-  if (await showConfirm(`确定要删除订单 ${record.orderCode} 吗？`)) {
-    try {
-      await orderDataStore.deleteOrder(record.id)
-      showSuccess('删除成功')
-      // 修复：删除成功后重新拉取，确保列表与后端一致
-      await orderDataStore.fetchOrders()
-    } catch (error) {
-      console.error('删除订单失败:', error)
-      // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
-      const msg = error?.message || '删除失败，请稍后重试'
-      await showAlert(msg)
-      // 修复：失败时也重拉一次，避免页面数据陈旧
-      await orderDataStore.fetchOrders()
-    }
-  }
+  deleteTargetIds.value = [record.id]
+  deleteTargetCount.value = 1
+  deleteTargetTitle.value = '删除订单警告'
+  deleteTargetDescription.value = `确定要删除订单 <strong>${record.orderCode}</strong> 吗？此操作 <span style="color:#dc2626">无法恢复</span>，删除后数据将永久丢失。`
+  deleteWarningOpen.value = true
 }
 
-// 批量删除确认
-const handleConfirmDelete = async () => {
+// 批量删除 - 改为显示统一删除警告弹窗
+const handleConfirmDelete = () => {
   if (selectedRows.value.length === 0) {
-    await showAlert('请先选择要删除的数据')
+    showAlert('请先选择要删除的数据')
     return
   }
-  const idsToDelete = [...selectedRows.value]
-  if (await showConfirm(`确定要删除选中的 ${idsToDelete.length} 条记录吗？`)) {
-    try {
-      await orderDataStore.deleteOrders(idsToDelete)
-      showSuccess(`已删除 ${idsToDelete.length} 条订单`)
-    } catch (error) {
-      console.error('批量删除订单失败:', error)
-      // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
-      const msg = error?.message || '删除失败，请稍后重试'
-      await showAlert(msg)
-    } finally {
-      // 修复：无论成功/失败都退出删除模式、清空选择，让用户能继续操作（解决"页面卡住"）
+  deleteTargetIds.value = [...selectedRows.value]
+  deleteTargetCount.value = selectedRows.value.length
+  deleteTargetTitle.value = '批量删除订单警告'
+  deleteTargetDescription.value = `确定要删除选中的 <strong>${selectedRows.value.length}</strong> 条订单记录吗？此操作 <span style="color:#dc2626">无法恢复</span>，删除后数据将永久丢失。`
+  deleteWarningOpen.value = true
+}
+
+// 删除警告弹窗 - 关闭
+const handleDeleteWarningClose = () => {
+  console.log('[Order] handleDeleteWarningClose called, current=', deleteWarningOpen.value)
+  deleteWarningOpen.value = false
+  deleteTargetIds.value = []
+  console.log('[Order] after close, deleteWarningOpen=', deleteWarningOpen.value)
+}
+
+// 删除警告弹窗 - 确认（执行实际删除）
+const handleDeleteWarningConfirm = async () => {
+  const ids = [...deleteTargetIds.value]
+  const isBatch = ids.length > 1
+  deleteWarningOpen.value = false
+  deleteTargetIds.value = []
+  try {
+    if (isBatch) {
+      await orderDataStore.deleteOrders(ids)
+      showSuccess(`已删除 ${ids.length} 条订单`)
+    } else {
+      await orderDataStore.deleteOrder(ids[0])
+      showSuccess('删除成功')
+    }
+  } catch (error) {
+    console.error('删除订单失败:', error)
+    const msg = error?.message || '删除失败，请稍后重试'
+    await showAlert(msg)
+  } finally {
+    if (isBatch) {
+      // 批量删除：退出删除模式 + 清空选择
       selectedRows.value = []
       deleteMode.value = false
-      // 修复：删除后重新拉取，确保列表立即反映最新数据
-      await orderDataStore.fetchOrders()
     }
+    // 删除后重新拉取，确保列表与后端一致
+    await orderDataStore.fetchOrders()
   }
 }
 
@@ -503,7 +538,7 @@ const handleDoExport = () => {
 // 初始化
 onMounted(async () => {
   try {
-    await orderDataStore.syncPending()
+    // 修复 P0-XXX: 后端没有 /api/crop-orders/sync-pending 端点（404 噪音），移除调用
     await orderDataStore.fetchOrders()
     await orderDataStore.fetchStats()
   } catch (error) {
@@ -514,24 +549,5 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 客户管理按钮 — V1.1 ActionToolbar.tsx L109 variant="blue" = bg-blue-600 #2563eb */
-.order-customer-btn {
-  background-color: #2563eb !important;
-  border-color: #2563eb !important;
-  color: #fff !important;
-}
-.order-customer-btn:hover {
-  background-color: #1d4ed8 !important;
-  border-color: #1d4ed8 !important;
-}
-/* 批量编辑确认按钮 — V1.1 ActionToolbar.tsx L118 variant="blue" = bg-blue-600 #2563eb */
-.order-batch-confirm-btn {
-  background-color: #2563eb !important;
-  border-color: #2563eb !important;
-  color: #fff !important;
-}
-.order-batch-confirm-btn:hover {
-  background-color: #1d4ed8 !important;
-  border-color: #1d4ed8 !important;
-}
+/* 客户管理按钮 / 批量编辑确认按钮样式已统一使用 btnBlue 常量（src/views/production/constants/buttonStyles.js） */
 </style>

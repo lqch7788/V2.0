@@ -1,13 +1,15 @@
 <template>
-  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
-  <BaseModal
-    :visible="visible"
-    @update:visible="(v) => emit('update:visible', v)"
+  <!-- 批量编辑技术方案弹窗 - 统一使用 ElModal（V1.1 width=1080 → 统一800） -->
+  <ElModal
+    :model-value="visible"
     title="批量编辑技术方案"
-    :width="1080"
+    :width="1120"
+    :height="900"
+    :show-footer="false"
+    @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
-    <div class="p-6">
+    <div class="p-2">
       <div class="space-y-4">
           <!-- Info Banner（V1.1 L86-92）-->
           <div class="bg-blue-50 rounded-lg p-3">
@@ -202,17 +204,19 @@
             </div>
           </div>
         </div>
-      </div>
+    </div>
     <template #footer>
-      <button :class="btnSecondary" @click="emit('close')">取消</button>
-      <button :class="btnDefault" @click="emit('save')">保存</button>
+      <div class="flex justify-end gap-3">
+        <button :class="btnSecondary" @click="emit('close')">取消</button>
+        <button :class="btnDefault" @click="emit('save')">保存</button>
+      </div>
     </template>
-  </BaseModal>
+  </ElModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
-import BaseModal from '../components/BaseModal.vue'
+import { ElModal } from '@/components/ui'
 import { Upload } from 'lucide-vue-next'
 import { TECH_SOLUTION_SCOPES } from '../constants/techSolutionScopes'
 // 第二阶段 Y1 重构：种植模式加载抽 composable

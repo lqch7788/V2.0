@@ -8,11 +8,8 @@
   <ElModal
     :model-value="visible"
     title="编辑采购申请单"
-    width="1080px"
-    height="650px"
-    size="xxl"
-    :close-on-click-modal="false"
-    :destroy-on-close="false"
+    :width="1120"
+    :height="900"
     :show-footer="false"
     :show-maximize="true"
     @update:model-value="(v) => !v && handleClose()"
@@ -34,9 +31,7 @@
           <span :class="selectedPlanCode ? 'text-sm text-gray-900' : 'text-sm text-gray-400'">
             {{ selectedPlanCode || '-- 请选择 --' }}
           </span>
-          <el-icon :class="['w-4 h-4 text-gray-400 transition-transform', batchSelectOpen ? 'rotate-180' : '']">
-            <ArrowDown />
-          </el-icon>
+          <ChevronDown :class="['w-4 h-4 text-gray-400 transition-transform', batchSelectOpen ? 'rotate-180' : '']" />
         </div>
         <div
           v-if="batchSelectOpen"
@@ -227,20 +222,18 @@
         <div class="md:col-span-3 border-t border-gray-300 pt-3 mt-2">
           <div class="flex items-center justify-between">
             <button
-              class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 hover:bg-gray-100 text-gray-900"
+              :class="btnSecondary"
               @click="handleToggleItemsExpanded"
             >
-              <el-icon :class="['w-4 h-4 transition-transform', showEditItemsExpanded ? 'rotate-180' : '']">
-                <ArrowDown />
-              </el-icon>
+              <ChevronDown :class="['w-4 h-4 transition-transform', showEditItemsExpanded ? 'rotate-180' : '']" />
               物料明细（{{ batchEditItems.length || 0 }}种物料）
             </button>
             <button
               v-if="showEditItemsExpanded"
-              class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+              :class="btnDefault"
               @click="handleAddBatchItem"
             >
-              <el-icon><Plus /></el-icon>
+              <Plus class="w-4 h-4" />
               新增物料
             </button>
           </div>
@@ -268,11 +261,11 @@
                 >
                   <td class="px-2 py-2 text-center">
                     <button
-                      class="h-7 w-7 inline-flex items-center justify-center rounded text-red-500 hover:bg-red-50 hover:text-red-600"
+                      :class="btnGhost + ' text-red-500 hover:bg-red-50 hover:text-red-600 p-1'"
                       title="删除"
                       @click="handleRemoveBatchItem(item.id)"
                     >
-                      <el-icon><Delete /></el-icon>
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </td>
                   <td
@@ -305,16 +298,10 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-          @click="handleNext"
-        >
+        <button :class="btnDefault" @click="handleNext">
           确认（下一个）
         </button>
-        <button
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-          @click="handleSubmit"
-        >
+        <button :class="btnDefault" @click="handleSubmit">
           保存
         </button>
       </div>
@@ -329,8 +316,10 @@
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\BatchEditModal.tsx
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { ArrowDown, Plus, Delete } from '@element-plus/icons-vue'
+import { ChevronDown, Plus, Trash2 } from 'lucide-vue-next'
 import { ElModal } from '@/components/ui'
+// 与技术方案共享按钮样式常量
+import { btnDefault, btnSecondary, btnGhost } from '@/views/production/constants/buttonStyles'
 import { useUserStore } from '@/stores/modules/user'
 import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { usePlantingStore } from '@/stores/modules/planting'

@@ -11,7 +11,7 @@
           取消
         </button>
         <button v-if="batchDeleteMode" :class="btnDestructive" @click="emit('openDelete')" :disabled="selectedRows.length === 0">
-          <Delete class="w-4 h-4" />
+          <Trash2 class="w-4 h-4" />
           删除
         </button>
         <button v-if="batchDeleteMode" :class="btnSecondary" @click="emit('cancelBatch')">
@@ -35,7 +35,7 @@
           编辑
         </button>
         <button v-if="canDelete" :class="btnDestructive" @click="emit('startBatchDelete')">
-          <Delete class="w-4 h-4" />
+          <Trash2 class="w-4 h-4" />
           删除
         </button>
         <button v-if="canExport" :class="btnDefault" @click="emit('startExport')">
@@ -46,7 +46,7 @@
     </div>
     <div class="overflow-x-auto">
       <table class="w-full">
-        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
           <tr>
             <th v-if="batchMode || exportMode" class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-12">
               <input
@@ -91,11 +91,11 @@
               />
             </td>
             <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 whitespace-nowrap">
-              <button :class="btnGhost + ' text-blue-600 hover:text-blue-800 text-xs'" @click="emit('view', tech)">{{ tech.code }}</button>
+              <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" @click="emit('view', tech)">{{ tech.code }}</button>
             </td>
             <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{{ tech.relatedBatchCode || '-' }}</td>
             <td class="px-4 py-3 text-sm font-medium text-green-700 whitespace-nowrap">
-              <button :class="btnGhost + ' text-green-700 hover:text-green-900 text-xs'" @click="emit('view', tech)">{{ tech.title }}</button>
+              <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" @click="emit('view', tech)">{{ tech.title }}</button>
             </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.crop }}</td>
             <!-- 修复 P0-002：种植模式字典映射（与 V1.1 L181 一致） -->
@@ -123,7 +123,7 @@
               <div class="flex items-center gap-1">
                 <!-- V1.1 L222-242：作废时仅显示"删除"；非作废时显示"编辑"和"删除" -->
                 <button v-if="tech.isValid !== '作废'" :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'" title="编辑" @click="emit('edit', tech)">
-                  <Edit class="w-4 h-4" />
+                  <Pencil class="w-4 h-4" />
                 </button>
                 <button :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'" title="删除" @click="emit('delete', [tech.id])">
                   <Trash2 class="w-4 h-4" />
@@ -131,7 +131,7 @@
               </div>
             </td>
             <td class="px-4 py-3 text-sm whitespace-nowrap">
-              <button v-if="tech.planDetailFileName" :class="btnGhost + ' text-blue-600 hover:text-blue-800 text-sm'" :title="'点击下载方案详情'" @click="emit('download', tech)">
+              <button v-if="tech.planDetailFileName" :class="btnGhost + ' text-blue-600 hover:text-blue-800'" :title="'点击下载方案详情'" @click="emit('download', tech)">
                 {{ tech.planDetailFileName }}
               </button>
               <span v-else class="text-gray-400">-</span>
@@ -141,7 +141,7 @@
       </table>
       <div v-if="exportMode && data.length > 0" class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
         <div class="flex items-center gap-4">
-          <button :class="btnGhost" @click="emit('selectAll')">
+          <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" @click="emit('selectAll')">
             {{ selectedRows.length === data.length ? '全不选' : '全选' }}
           </button>
           <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
@@ -152,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Edit, Trash2, Delete, Download } from 'lucide-vue-next'
+import { Plus, Edit, Trash2, Download, Pencil } from 'lucide-vue-next'
 // 修复 P1-1：从共享工具函数导入字典映射（合并 3 处重复实现）
 // V1.1 中种植模式列显示的是字典 label（如"水培"），而非 raw value
 import { getDictItemNameSync } from '@/utils/dictHelpers'

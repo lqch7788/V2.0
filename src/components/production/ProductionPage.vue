@@ -4,7 +4,7 @@
   @description 复合组件：组装 L3 叶子组件，所有状态/逻辑由 useProductionPage 提供
 -->
 <template>
-  <div class="space-y-6">
+  <div v-loading="hook.isLoading" class="space-y-6">
     <!-- 页面头部 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -49,30 +49,51 @@
         <h3 class="text-lg font-semibold text-gray-900">生产计划列表</h3>
         <!-- 工具栏按钮区：根据模式动态切换 -->
         <div v-if="hook.exportMode" class="flex gap-2">
-          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.handleConfirmExport">确认导出</button>
-          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="hook.handleCancelExport">取消</button>
+          <button :class="btnDefault" @click="hook.handleConfirmExport">
+            <Download class="w-4 h-4" />
+            确认导出
+          </button>
+          <button :class="btnSecondary" @click="hook.handleCancelExport">取消</button>
         </div>
         <div v-else-if="hook.batchEditMode" class="flex gap-2">
           <button
-            class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700"
+            :class="btnBlue"
             :disabled="hook.selectedRows.length === 0"
             @click="hook.setShowBatchEditModal(true)"
-          >批量编辑</button>
-          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelBatchEdit">取消</button>
+          >
+            <Edit class="w-4 h-4" />
+            批量编辑
+          </button>
+          <button :class="btnSecondary" @click="cancelBatchEdit">取消</button>
         </div>
         <div v-else-if="hook.batchDeleteMode" class="flex gap-2">
           <button
-            class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white hover:bg-red-700"
+            :class="btnDestructive"
             :disabled="hook.selectedRows.length === 0"
             @click="hook.setShowDeleteWarning(true)"
-          >确认删除</button>
-          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelBatchDelete">取消</button>
+          >
+            <Trash2 class="w-4 h-4" />
+            确认删除
+          </button>
+          <button :class="btnSecondary" @click="cancelBatchDelete">取消</button>
         </div>
         <div v-else class="flex gap-2">
-          <button v-if="canCreate" class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.setShowCreateModal(true)">新增</button>
-          <button v-if="canEdit" class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700" @click="enterBatchEditMode">编辑</button>
-          <button v-if="canDelete" class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white hover:bg-red-700" @click="enterBatchDeleteMode">删除</button>
-          <button v-if="canExport" class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700" @click="hook.handleExportClick">导出</button>
+          <button v-if="canCreate" :class="btnDefault" @click="hook.setShowCreateModal(true)">
+            <Plus class="w-4 h-4" />
+            新增
+          </button>
+          <button v-if="canEdit" :class="btnBlue" @click="enterBatchEditMode">
+            <Edit class="w-4 h-4" />
+            编辑
+          </button>
+          <button v-if="canDelete" :class="btnDestructive" @click="enterBatchDeleteMode">
+            <Trash2 class="w-4 h-4" />
+            删除
+          </button>
+          <button v-if="canExport" :class="btnDefault" @click="hook.handleExportClick">
+            <Download class="w-4 h-4" />
+            导出
+          </button>
         </div>
       </div>
 
@@ -154,10 +175,12 @@
       @confirm="hook.handleVoidConfirm"
     />
 
-    <!-- 删除警告弹窗 -->
+    <!-- 删除警告弹窗（统一使用 common 版本，与订单/技术/采购 4 模块 100% 一致） -->
     <DeleteWarningModal
-      v-model="hook.showDeleteWarning"
+      :is-open="hook.showDeleteWarning"
       :selected-count="hook.selectedRows.length"
+      title="删除生产计划警告"
+      @close="hook.setShowDeleteWarning(false)"
       @confirm="hook.handleDeleteConfirm"
     />
   </div>
@@ -171,7 +194,9 @@
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\production\ProductionPage.tsx
  */
 import { computed, reactive } from 'vue'
-import { FileText } from 'lucide-vue-next'
+import { FileText, Plus, Edit, Trash2, Download } from 'lucide-vue-next'
+// 与技术方案共享按钮样式常量
+import { btnDefault, btnSecondary, btnDestructive, btnBlue } from '@/views/production/constants/buttonStyles'
 import { useProductionPage } from '@/composables/production/useProductionPage'
 import ProductionStatsCards from './ProductionStatsCards.vue'
 import ProductionFilters from './ProductionFilters.vue'
@@ -180,7 +205,8 @@ import CreateBatchModal from './modals/CreateBatchModal.vue'
 import BatchDetailModal from './modals/BatchDetailModal.vue'
 import BatchEditModal from './modals/BatchEditModal.vue'
 import VoidWarningModal from './modals/VoidWarningModal.vue'
-import DeleteWarningModal from './modals/DeleteWarningModal.vue'
+// 修复 P0: 统一使用 common/DeleteWarningModal（与订单/技术/采购 4 模块 100% 一致）
+import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
 import MaterialExportModal from '@/views/warehouse/components/MaterialExportModal.vue'
 
 // 全部使用 useProductionPage 的状态和方法（1:1 对应 V1.1 hook）

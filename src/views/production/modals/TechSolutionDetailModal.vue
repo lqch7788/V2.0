@@ -1,13 +1,15 @@
 <template>
-  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
-  <BaseModal
-    :visible="visible"
-    @update:visible="(v) => emit('update:visible', v)"
+  <!-- 技术方案详情弹窗 - 统一使用 ElModal（V1.1 width=700 → 统一800） -->
+  <ElModal
+    :model-value="visible"
     title="方案详情"
-    :width="700"
+    :width="1600"
+    :height="900"
+    :show-footer="false"
+    @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
-    <div v-if="tech" class="p-6">
+    <div v-if="tech" class="p-2">
       <div class="space-y-4">
           <!-- 修复 P0-004：按 V1.1 fields 配置 1:1 补回所有缺失/错位字段
                V1.1 L172-214 字段配置：
@@ -139,12 +141,12 @@
             </div>
           </div>
         </div>
-      </div>
-  </BaseModal>
+    </div>
+  </ElModal>
 </template>
 
 <script setup lang="ts">
-import BaseModal from '../components/BaseModal.vue'
+import { ElModal } from '@/components/ui'
 // 修复 P1-1：详情弹窗也使用共享字典映射（与 V1.1 L183 行为一致）
 import { getDictItemNameSync } from '@/utils/dictHelpers'
 

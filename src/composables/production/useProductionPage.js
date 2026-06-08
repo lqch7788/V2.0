@@ -253,6 +253,8 @@ export function useProductionPage() {
   const productionPlanStore = useProductionPlanStore()
   /** @type {import('vue').ComputedRef<CropBatch[]>} */
   const batches = computed(() => productionPlanStore.plans || [])
+  /** 第二阶段统一：暴露 isLoading 给模板 v-loading 使用 */
+  const isLoading = computed(() => productionPlanStore.isLoading)
 
   const orderDataStore = useOrderDataStore()
   /** @type {import('vue').ComputedRef<any[]>} */
@@ -1228,6 +1230,7 @@ export function useProductionPage() {
     greenhouses,
     orders,
     batchesLength,
+    isLoading,
 
     // 搜索状态
     batchCodeSearch,

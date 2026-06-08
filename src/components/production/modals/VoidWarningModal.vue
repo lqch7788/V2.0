@@ -1,13 +1,15 @@
 <template>
-  <el-dialog
-    v-model="visible"
-    width="420px"
-    :show-close="false"
-    align-center
-    append-to-body
-    class="void-warning-dialog"
+  <!-- 作废生产计划警告弹窗 - 统一使用 ElModal（统一800） -->
+  <ElModal
+    :model-value="modelValue"
+    title="作废生产计划警告"
+    :width="1600"
+    :height="900"
+    :show-footer="false"
+    @update:model-value="(v) => emit('update:modelValue', v)"
+    @close="handleClose"
   >
-    <div class="p-6">
+    <div class="p-2">
       <div class="flex items-center gap-4 mb-4">
         <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
           <AlertTriangle class="w-6 h-6 text-amber-600" />
@@ -27,16 +29,17 @@
         <p class="font-medium text-gray-700">请谨慎操作，确认要申请作废吗？</p>
       </div>
       <div class="flex gap-3">
-        <button class="flex-1 h-9 px-4 rounded-md text-sm inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200 transition-colors" @click="handleClose">取消</button>
-        <button class="flex-1 h-9 px-4 rounded-md text-sm inline-flex items-center justify-center gap-2 bg-amber-500 text-white hover:bg-amber-600 transition-colors" @click="handleConfirm">确认作废</button>
+        <button :class="btnSecondary + ' flex-1 h-9'" @click="handleClose">取消</button>
+        <button :class="btnDefault + ' flex-1 h-9 !bg-amber-500 hover:!bg-amber-600'" @click="handleConfirm">确认作废</button>
       </div>
     </div>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { AlertTriangle } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { ElModal } from '@/components/ui'
+import { btnSecondary, btnDefault } from '@/views/production/constants/buttonStyles'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -44,26 +47,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
-const visible = computed({
-  get: () => props.modelValue,
-  set: (v) => emit('update:modelValue', v),
-})
-
 function handleClose() {
-  visible.value = false
+  emit('update:modelValue', false)
 }
 
 function handleConfirm() {
   emit('confirm')
-  visible.value = false
+  emit('update:modelValue', false)
 }
 </script>
-
-<style scoped>
-.void-warning-dialog :deep(.el-dialog__header) {
-  display: none;
-}
-.void-warning-dialog :deep(.el-dialog__body) {
-  padding: 0;
-}
-</style>

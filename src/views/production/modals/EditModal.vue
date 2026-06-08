@@ -1,13 +1,15 @@
 <template>
-  <!-- 第二阶段 Y3 重构：复用 BaseModal 弹窗外壳 -->
-  <BaseModal
-    :visible="visible"
-    @update:visible="(v) => emit('update:visible', v)"
+  <!-- 第二阶段 Y3 重构：复用 ElModal 弹窗外壳 -->
+  <ElModal
+    :model-value="visible"
+    @update:model-value="(v) => emit('update:visible', v)"
     title="编辑订单"
-    :width="800"
+    :width="1120"
+    :height="900"
+    :show-footer="false"
     @close="handleClose"
   >
-    <div class="p-6">
+    <div class="p-2">
     <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
       <el-row :gutter="20">
         <el-col :span="12">
@@ -108,13 +110,13 @@
       <el-button @click="handleClose">取消</el-button>
       <el-button type="primary" @click="handleSubmit" :loading="submitting">保存</el-button>
     </template>
-  </BaseModal>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import BaseModal from '../components/BaseModal.vue'
+import { ElModal } from '@/components/ui'
 import { } from 'element-plus'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import {  CropOrder  } from '@/types/crop'

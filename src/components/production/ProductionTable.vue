@@ -80,7 +80,7 @@
             </td>
             <td class="px-4 py-3 text-sm font-medium whitespace-nowrap">
               <button
-                class="text-blue-600 hover:text-blue-800 hover:underline"
+                :class="btnGhost + ' text-blue-600 hover:text-blue-800'"
                 title="点击查看详情"
                 @click="onBatchCodeClick(batch)"
               >
@@ -131,7 +131,7 @@
             <td class="px-4 py-3 text-sm whitespace-nowrap">
               <template v-if="batch.planDetailFileName">
                 <button
-                  class="text-blue-600 hover:text-blue-800"
+                  :class="btnGhost + ' text-blue-600 hover:text-blue-800'"
                   title="点击下载生产计划文件"
                   @click="downloadPlanFile(batch)"
                 >
@@ -145,7 +145,7 @@
                 <!-- P0-XXX: 单行编辑保留（高频 1 步直达），单行删除已移除（删除走批量入口更安全） -->
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
-                  class="inline-flex h-8 w-8 items-center justify-center rounded text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-600"
+                  :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'"
                   title="编辑"
                   @click="onEdit(batch)"
                 >
@@ -164,7 +164,7 @@
       >
         <div class="flex items-center gap-4">
           <button
-            class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            :class="btnGhost + ' text-blue-600 hover:text-blue-800'"
             @click="onSelectAll"
           >
             {{ allSelectedForExport ? '全不选' : '全选' }}
@@ -178,7 +178,7 @@
       >
         <div class="flex items-center gap-4">
           <button
-            class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            :class="btnGhost + ' text-blue-600 hover:text-blue-800'"
             @click="onBatchSelectAll"
           >
             {{ allSelectedForBatchEdit ? '全不选' : '全选' }}
@@ -192,7 +192,7 @@
       >
         <div class="flex items-center gap-4">
           <button
-            class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            :class="btnGhost + ' text-blue-600 hover:text-blue-800'"
             @click="onBatchDeleteSelectAll"
           >
             {{ allSelectedForBatchDelete ? '全不选' : '全选' }}
@@ -293,6 +293,8 @@
  */
 import { computed, defineComponent } from 'vue'
 import { Pencil, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
+// 与技术方案共享按钮样式常量（行内编辑/详情按钮用 btnGhost）
+import { btnGhost } from '@/views/production/constants/buttonStyles'
 import {
   batchStatusColors,
   batchStatusLabels,
@@ -559,6 +561,7 @@ export default defineComponent({
       ChevronRight,
       ChevronsLeft,
       ChevronsRight,
+      btnGhost,
       batchStatusColors,
       batchStatusLabels,
       executionStatusColors,

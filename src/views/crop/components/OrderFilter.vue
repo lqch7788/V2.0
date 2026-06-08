@@ -1,6 +1,6 @@
 <template>
   <!-- 订单筛选工具栏组件 - V1.1 OrderFilter.tsx 1:1 翻译 -->
-  <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+  <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm border border-gray-100">
     <div class="flex items-end gap-4 flex-wrap">
       <!-- 订单编号 -->
       <div class="flex-1 min-w-[150px]">
@@ -74,16 +74,13 @@
         />
       </div>
 
-      <!-- 按钮 -->
+      <!-- 按钮 - 与技术方案 TechSolutionFilters 1:1 对齐：重置/搜索都用 btnDefault -->
       <div class="flex gap-2">
-        <el-button size="small" class="whitespace-nowrap" @click="onReset">
-          <RotateCcw class="w-4 h-4 mr-1" />
-          重置
-        </el-button>
-        <el-button type="primary" size="small" class="whitespace-nowrap" @click="onSearch">
-          <Search class="w-4 h-4 mr-1" />
+        <button :class="btnDefault" @click="onReset">重置</button>
+        <button :class="btnDefault" @click="onSearch">
+          <Search class="w-4 h-4" />
           搜索
-        </el-button>
+        </button>
       </div>
     </div>
   </div>
@@ -102,7 +99,9 @@
  * - orderStatusOptions: 订单状态下拉选项
  * - cropNames: 作物品种下拉选项
  */
-import { Search, RotateCcw } from 'lucide-vue-next'
+import { Search } from 'lucide-vue-next'
+// 与技术方案共享按钮样式常量
+import { btnDefault } from '@/views/production/constants/buttonStyles'
 
 interface Filters {
   orderCode: string

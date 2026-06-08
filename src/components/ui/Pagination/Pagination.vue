@@ -65,8 +65,8 @@
       </button>
     </div>
 
-    <!-- 每页下拉（V1.1 L157-173） -->
-    <div v-if="showPageSize && onPageSizeChange" class="flex items-center gap-2">
+    <!-- 每页下拉（V1.1 L157-173） - 仅在 showPageSize=true 时显示（每页下拉永远 emit，不需要 props 回调） -->
+    <div v-if="showPageSize" class="flex items-center gap-2">
       <span class="text-sm text-gray-500">每页</span>
       <select
         :value="pageSize"

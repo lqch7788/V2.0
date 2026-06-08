@@ -1,10 +1,10 @@
 <template>
-  <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
+  <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm border border-gray-100">
     <!-- 单行布局：8 字段均布（flex-1），2 按钮固定宽度在右（shrink-0） -->
     <div class="flex flex-nowrap gap-3 items-end">
       <!-- 关联生产批次 -->
       <div class="flex-1 min-w-0">
-        <label class="text-gray-700 text-sm block mb-1">关联生产批次</label>
+        <label class="text-sm font-medium text-gray-700 block mb-1">关联生产批次</label>
         <el-input
           :model-value="relatedBatchCode"
           @update:model-value="(v) => $emit('relatedBatchCodeChange', v)"
@@ -13,7 +13,7 @@
       </div>
       <!-- 申请人 -->
       <div class="flex-1 min-w-0">
-        <label class="text-gray-700 text-sm block mb-1">申请人</label>
+        <label class="text-sm font-medium text-gray-700 block mb-1">申请人</label>
         <el-input
           :model-value="applicant"
           @update:model-value="(v) => $emit('applicantChange', v)"
@@ -22,7 +22,7 @@
       </div>
       <!-- 申请部门 -->
       <div class="flex-1 min-w-0">
-        <label class="text-gray-700 text-sm block mb-1">申请部门</label>
+        <label class="text-sm font-medium text-gray-700 block mb-1">申请部门</label>
         <el-input
           :model-value="applicantDepartment"
           @update:model-value="(v) => $emit('applicantDepartmentChange', v)"
@@ -31,7 +31,7 @@
       </div>
       <!-- 优先级 -->
       <div class="flex-1 min-w-0">
-        <label class="text-gray-700 text-sm block mb-1">优先级</label>
+        <label class="text-sm font-medium text-gray-700 block mb-1">优先级</label>
         <el-select
           :model-value="priority"
           @update:model-value="(v) => $emit('priorityChange', v)"
@@ -47,7 +47,7 @@
       </div>
       <!-- 状态 -->
       <div class="flex-1 min-w-0">
-        <label class="text-gray-700 text-sm block mb-1">状态</label>
+        <label class="text-sm font-medium text-gray-700 block mb-1">状态</label>
         <el-select
           :model-value="status"
           @update:model-value="(v) => $emit('statusChange', v)"
@@ -79,7 +79,7 @@
       </div>
       <!-- 需求开始日期 -->
       <div class="flex-1 min-w-0">
-        <label class="text-gray-700 text-sm block mb-1">需求开始日期</label>
+        <label class="text-sm font-medium text-gray-700 block mb-1">需求开始日期</label>
         <el-date-picker
           :model-value="requiredStartDate"
           @update:model-value="(v) => $emit('requiredStartDateChange', v)"
@@ -90,7 +90,7 @@
       </div>
       <!-- 需求结束日期 -->
       <div class="flex-1 min-w-0">
-        <label class="text-gray-700 text-sm block mb-1">需求结束日期</label>
+        <label class="text-sm font-medium text-gray-700 block mb-1">需求结束日期</label>
         <el-date-picker
           :model-value="requiredEndDate"
           @update:model-value="(v) => $emit('requiredEndDateChange', v)"
@@ -99,19 +99,13 @@
           style="width: 100%"
         />
       </div>
-      <!-- 操作按钮（固定宽度，不参与字段均布，固定在最右） -->
+      <!-- 操作按钮（固定宽度，不参与字段均布，固定在最右） - 与技术方案 TechSolutionFilters 1:1 对齐 -->
       <div class="flex gap-2 items-end shrink-0">
-        <button
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-          @click="$emit('reset')"
-        >
+        <button :class="btnDefault" @click="$emit('reset')">
           重置
         </button>
-        <button
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-          @click="$emit('search')"
-        >
-          <el-icon><Search /></el-icon>
+        <button :class="btnDefault" @click="$emit('search')">
+          <Search class="w-4 h-4" />
           搜索
         </button>
       </div>
@@ -123,8 +117,11 @@
 /**
  * 采购计划筛选表单组件
  * 1:1 翻译自 V1.1 src/components/purchasePlan/PurchasePlanFilters.tsx
+ * 按钮/图标样式与技术方案 TechSolutionFilters 1:1 对齐
  */
-import { Search } from '@element-plus/icons-vue'
+import { Search } from 'lucide-vue-next'
+// 与技术方案共享按钮样式常量
+import { btnDefault } from '@/views/production/constants/buttonStyles'
 
 /**
  * @typedef {Object} PurchasePlanFiltersProps

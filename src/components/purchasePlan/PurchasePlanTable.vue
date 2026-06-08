@@ -5,91 +5,60 @@
 -->
 <template>
   <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-    <!-- 工具栏 - 与 V2.0 生产计划页面按钮风格 1:1 对齐 -->
+    <!-- 工具栏 - 与生产模块按钮风格 1:1 对齐 -->
     <div class="p-4 border-b border-gray-100 flex items-center justify-between">
       <h3 class="text-lg font-semibold text-gray-900">采购计划列表</h3>
       <div v-if="isInMode" class="flex gap-2">
         <!-- 批量编辑模式（按钮 variant=blue 与 V1.1 L180-181 1:1 对齐） -->
         <template v-if="batchEditMode">
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
-            @click="handleBatchEditConfirm"
-          >
-            <el-icon><Edit /></el-icon>
+          <button :class="btnBlue" @click="handleBatchEditConfirm">
+            <Edit class="w-4 h-4" />
             编辑
           </button>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-            @click="$emit('batchEditCancel')"
-          >
+          <button :class="btnSecondary" @click="$emit('batchEditCancel')">
             取消
           </button>
         </template>
         <!-- 批量删除模式 -->
         <template v-if="batchDeleteMode">
           <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="btnDestructive"
             :disabled="selectedRows.length === 0"
             @click="handleBatchDeleteConfirm"
           >
-            <el-icon><Delete /></el-icon>
+            <Trash2 class="w-4 h-4" />
             删除
           </button>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-            @click="$emit('batchDeleteCancel')"
-          >
+          <button :class="btnSecondary" @click="$emit('batchDeleteCancel')">
             取消
           </button>
         </template>
         <!-- 导出模式 -->
         <template v-if="exportMode">
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-            @click="$emit('exportConfirm')"
-          >
-            <el-icon><Download /></el-icon>
+          <button :class="btnDefault" @click="$emit('exportConfirm')">
+            <Download class="w-4 h-4" />
             确认导出
           </button>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-            @click="$emit('exportCancel')"
-          >
+          <button :class="btnSecondary" @click="$emit('exportCancel')">
             取消
           </button>
         </template>
       </div>
       <div v-else class="flex gap-2">
-        <button
-          v-if="canCreate"
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-          @click="$emit('create')"
-        >
-          <el-icon><Plus /></el-icon>
+        <button v-if="canCreate" :class="btnDefault" @click="$emit('create')">
+          <Plus class="w-4 h-4" />
           新增
         </button>
-        <button
-          v-if="canEdit"
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
-          @click="$emit('batchEdit')"
-        >
-          <el-icon><Edit /></el-icon>
+        <button v-if="canEdit" :class="btnBlue" @click="$emit('batchEdit')">
+          <Edit class="w-4 h-4" />
           批量编辑
         </button>
-        <button
-          v-if="canDelete"
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700"
-          @click="$emit('batchDelete')"
-        >
-          <el-icon><Delete /></el-icon>
+        <button v-if="canDelete" :class="btnDestructive" @click="$emit('batchDelete')">
+          <Trash2 class="w-4 h-4" />
           删除
         </button>
-        <button
-          v-if="canExport"
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-          @click="$emit('export')"
-        >
-          <el-icon><Download /></el-icon>
+        <button v-if="canExport" :class="btnDefault" @click="$emit('export')">
+          <Download class="w-4 h-4" />
           导出
         </button>
       </div>
@@ -164,16 +133,13 @@
             <tr :class="rowClass(plan)">
               <!-- 展开/折叠按钮 - 非导出/批量模式时显示 -->
               <td v-if="!isInMode" class="px-2 py-3 w-10">
-                <el-button
-                  link
-                  size="small"
+                <button
+                  :class="btnGhost + ' p-1 text-gray-500 hover:text-gray-700'"
                   :title="expandedRows.has(plan.id) ? '折叠' : '展开'"
                   @click="$emit('toggleExpand', plan.id)"
                 >
-                  <el-icon class="text-gray-500">
-                    <component :is="expandedRows.has(plan.id) ? ArrowDown : ArrowRight" />
-                  </el-icon>
-                </el-button>
+                  <component :is="expandedRows.has(plan.id) ? ArrowDown : ArrowRight" class="w-4 h-4" />
+                </button>
               </td>
               <!-- checkbox - 导出/批量模式时显示 -->
               <td v-if="isInMode" class="px-4 py-3">
@@ -184,15 +150,13 @@
                 />
               </td>
               <td class="px-4 py-3 text-sm whitespace-nowrap">
-                <el-button
-                  link
-                  type="primary"
-                  size="small"
+                <button
+                  :class="btnGhost + ' text-blue-600 hover:text-blue-800'"
                   title="点击查看详情"
                   @click="$emit('viewDetail', plan)"
                 >
                   {{ plan.purchaseApplicationCode }}
-                </el-button>
+                </button>
               </td>
               <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                 {{ plan.relatedBatchCode || '不关联批次' }}
@@ -228,24 +192,20 @@
               <td class="px-4 py-3">
                 <div class="flex items-center gap-1">
                   <!-- ✅ 全部状态可编辑/删除：取消 V1.1 executionStatus 归档过滤，按用户要求所有采购计划统一可操作 -->
-                  <el-button
-                    link
-                    type="primary"
-                    size="small"
+                  <button
+                    :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'"
                     title="编辑"
                     @click="$emit('edit', plan)"
                   >
-                    <el-icon><Edit /></el-icon>
-                  </el-button>
-                  <el-button
-                    link
-                    type="danger"
-                    size="small"
+                    <Pencil class="w-4 h-4" />
+                  </button>
+                  <button
+                    :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'"
                     title="删除"
                     @click="handleDeleteClick(plan)"
                   >
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
+                    <Trash2 class="w-4 h-4" />
+                  </button>
                 </div>
               </td>
             </tr>
@@ -311,14 +271,9 @@
         class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50"
       >
         <div class="flex items-center gap-4">
-          <el-button
-            link
-            type="primary"
-            size="small"
-            @click="$emit('selectAll')"
-          >
+          <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" @click="$emit('selectAll')">
             {{ selectedRows.length === filteredAndSortedData.length ? '全不选' : '全选' }}
-          </el-button>
+          </button>
           <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
         </div>
       </div>
@@ -330,6 +285,7 @@
         :current-page="currentPage"
         :total-pages="totalPages"
         :page-size="pageSize"
+        :page-size-options="[10, 20, 50, 100]"
         :show-page-size="true"
         @page-change="(p) => $emit('pageChange', p)"
         @page-size-change="(s) => $emit('pageSizeChange', s)"
@@ -351,9 +307,11 @@
  *          batchEditCancel, batchDeleteConfirm, batchDeleteCancel）
  */
 import { computed } from 'vue'
-import { Plus, Edit, Delete, Download, ArrowDown, ArrowRight } from '@element-plus/icons-vue'
+import { Plus, Pencil, Trash2, Download, ArrowDown, ArrowRight, Edit } from 'lucide-vue-next'
 import { calculateOverdueAlert } from '@/types/purchase'
 import { showAlert, showConfirm } from '@/lib/dialogService'
+// 与生产模块共享按钮样式常量
+import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnGhost } from '@/views/production/constants/buttonStyles'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 /**
@@ -563,12 +521,10 @@ async function handleBatchDeleteConfirm() {
 }
 
 /**
- * 行内删除按钮：弹确认框后触发
+ * 行内删除按钮：直接 emit，由父组件 PurchasePlanPage 统一弹出 DeleteWarningModal
  * @param {PurchasePlan} plan
  */
-async function handleDeleteClick(plan) {
-  if (await showConfirm(`确定要删除采购计划 ${plan.purchaseApplicationCode} 吗？`)) {
-    emit('delete', plan)
-  }
+function handleDeleteClick(plan) {
+  emit('delete', plan)
 }
 </script>
