@@ -109,7 +109,7 @@
           <span class="text-sm text-gray-500">每页</span>
           <select
             :value="pageSize"
-            @change="(e) => { pageSize = Number((e.target as HTMLSelectElement).value); currentPage = 1 }"
+            @change="(e) => { pageSize = Number(e.target.value); currentPage = 1 }"
             class="h-9 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}条</option>
@@ -326,7 +326,7 @@ const totalPages = computed(() => {
 const visiblePages = computed(() => {
   const current = currentPage.value
   const total = totalPages.value
-  const pages: (number | string)[] = []
+  const pages = []
   const showEllipsis = total > 7
 
   if (!showEllipsis) {
@@ -348,7 +348,7 @@ const visiblePages = computed(() => {
 
 // 修复 P0-008（cycle 2 回归）：pageSizeOptions 与 V1.1 Pagination.tsx L26 默认值 1:1 一致
 // V1.1 默认 pageSizeOptions = [10, 20, 50, 100]
-const pageSizeOptions = ref<number[]>([10, 20, 50, 100])
+const pageSizeOptions = ref([10, 20, 50, 100])
 
 // ==================== 搜索/重置 ====================
 const handleSearch = () => {
@@ -369,7 +369,7 @@ const handleReset = () => {
 
 // ==================== Modal State ====================
 const viewModalOpen = ref(false)
-const viewApprovals = ref<any[]>([])
+const viewApprovals = ref([])
 const viewApprovalsLoading = ref(false)
 const editModalOpen = ref(false)
 const createModalOpen = ref(false)
@@ -381,7 +381,7 @@ const showBatchEditModal = ref(false)
 // 第二阶段 Y7 重构：selectedRows 已从 useTechSolutionState 导入
 const exportFormat = ref('excel')
 const showExportModal = ref(false)
-const selectedTech = ref<any>(null)
+const selectedTech = ref(null)
 
 const batchMode = computed(() => batchEditMode.value || batchDeleteMode.value)
 
@@ -404,8 +404,8 @@ const editForm = ref({
   author: '',
 })
 
-const editedTechCodes = ref<string[]>([])
-const editedTechs = ref<Record<string, any>>({})
+const editedTechCodes = ref([])
+const editedTechs = ref({})
 // 修复 I1 衍生：与 V1.1 L224 一致，保存批量编辑弹窗中当前选中的方案编号
 const selectedTechCode = ref('')
 
@@ -425,12 +425,12 @@ const newPlanForm = ref({
   relatedBatchCode: '',
 })
 
-const selectedCrop = ref<any>(null)
-const selectedCropEdit = ref<any>(null)
+const selectedCrop = ref(null)
+const selectedCropEdit = ref(null)
 
 const generateCode = generateTechSolutionCode
 
-const setSelectedRows = (rows: (string | number)[]) => {
+const setSelectedRows = (rows) => {
   selectedRows.value = rows
 }
 
@@ -522,7 +522,7 @@ const handleEditSubmit = async () => {
   }
 }
 
-const handleCreateSubmit = async (submitMode: 'draft' | 'submit') => {
+const handleCreateSubmit = async (submitMode) => {
   const today = new Date().toISOString().split('T')[0]
   // 修复 P0-BQ/BR：与 V1.1 L373-391 一致，传 code + solutionCode 兼容后端
   const techSolutionData = {
@@ -678,8 +678,8 @@ const handleDoExport = async () => {
   const fileName = `技术方案_${new Date().toISOString().slice(0, 10)}.${extension}`
 
   try {
-    if ((window as any).showSaveFilePicker) {
-      const handle = await (window as any).showSaveFilePicker({
+    if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
         suggestedName: fileName,
         types: [{
           description: exportFormat.value.toUpperCase() + ' Files',
@@ -734,7 +734,7 @@ const handleDeleteConfirm = async () => {
   } catch (error) {
     console.error('删除技术方案失败:', error)
     // enhancedApiClient 直接 throw new Error(message)，message 即后端 error 字段
-    const msg = error instanceof Error ? error.message : (error as any)?.message || '删除失败，请重试'
+    const msg = error instanceof Error ? error.message : (error?.message) || '删除失败，请重试'
     await showAlert(msg)
   }
   showDeleteModal.value = false

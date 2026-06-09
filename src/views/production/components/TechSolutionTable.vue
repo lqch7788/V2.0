@@ -160,17 +160,17 @@ import { getDictItemNameSync } from '@/utils/dictHelpers'
 // 第二阶段 Y2 重构：按钮样式抽常量
 import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnGhost } from '../constants/buttonStyles'
 
-const props = withDefaults(defineProps({}), {
-  data: () => [],
-  selectedRows: () => [],
-  batchMode: false,
-  batchEditMode: false,
-  batchDeleteMode: false,
-  exportMode: false,
-  canCreate: true,
-  canEdit: true,
-  canDelete: true,
-  canExport: true,
+const props = defineProps({
+  data: { type: Array, default: () => [] },
+  selectedRows: { type: Array, default: () => [] },
+  batchMode: { type: Boolean, default: false },
+  batchEditMode: { type: Boolean, default: false },
+  batchDeleteMode: { type: Boolean, default: false },
+  exportMode: { type: Boolean, default: false },
+  canCreate: { type: Boolean, default: true },
+  canEdit: { type: Boolean, default: true },
+  canDelete: { type: Boolean, default: true },
+  canExport: { type: Boolean, default: true },
 })
 
 const emit = defineEmits([
