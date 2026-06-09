@@ -1,0 +1,14 @@
+#!/usr/bin/sh
+
+echo "🔍 Running pre-commit checks..."
+
+# 只对 staged 的 .js / .vue 文件跑 ESLint
+npx lint-staged
+LINT_RESULT=$?
+
+if [ $LINT_RESULT -ne 0 ]; then
+  echo "❌ ESLint failed. Please fix the errors before committing."
+  exit 1
+fi
+
+echo "✅ Pre-commit checks passed!"

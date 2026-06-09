@@ -1,15 +1,19 @@
-import { Page, expect, Browser, BrowserContext } from '@playwright/test'
+/**
+ * E2E 测试辅助函数
+ * 包含 V1.1 vs V2.0 parity 验证所需的通用工具
+ */
+import { expect } from '@playwright/test'
 
 /**
  * 登录（V1.1 + V2.0 共享后端，登录 API 相同）
  * 如未启用鉴权可忽略
  */
-export async function login(page= 'admin', password = 'admin123') {
+export async function login(page, username = 'admin', password = 'admin123') {
   await page.goto('/login')
   await page.fill('input[name="username"]', username)
   await page.fill('input[name="password"]', password)
   await page.click('button[type="submit"]')
-  await page.waitForURL(/\/(home|dashboard)/, { timeout)
+  await page.waitForURL(/\/(home|dashboard)/, { timeout: 5000 })
 }
 
 /**
@@ -33,11 +37,8 @@ export async function captureUISnapshot(page) {
 /**
  * 比对两个快照是否一致（parity 1:1）
  */
-export function assertParity(
-  v11,
-  v20,
-  module) {
-  const diffs= []
+export function assertParity(v11, v20, module) {
+  const diffs = []
   if (v11.title !== v20.title) diffs.push(`title: V1.1="${v11.title}" V2.0="${v20.title}"`)
   const v11Buttons = new Set(v11.buttons)
   const v20Buttons = new Set(v20.buttons)
@@ -99,10 +100,7 @@ export async function captureStatusValues(page) {
 /**
  * 状态机 parity 比对
  */
-export function assertStatusParity(
-  v11,
-  v20,
-  module) {
+export function assertStatusParity(v11, v20, module) {
   const v11Set = new Set(v11.statusBadges)
   const v20Set = new Set(v20.statusBadges)
   const missing = [...v11Set].filter((s) => !v20Set.has(s))
