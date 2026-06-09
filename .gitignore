@@ -66,6 +66,7 @@ test-*.ts
 *.md
 !CLAUDE.md
 "2026-05-21-vue3转换方案.md"
+docs/
 
 # Batch files
 *.bat
@@ -90,7 +91,8 @@ login-flow-test.js
 .mavis/
 .opencode/
 .codegraph/
-audit/planning/
+audit/
+openspec/
 
 # Playwright MCP debug output (browser snapshots, not source code)
 .playwright-mcp/
