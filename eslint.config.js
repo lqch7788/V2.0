@@ -52,7 +52,11 @@ export default [
     },
     rules: {
       // ===== 错误级别（必须修复） =====
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrors: 'none', // tsc 生成的 catch (error) {} 中 error 经常未用
+      }],
       'no-undef': 'warn', // 改为 warn：.vue 文件中常用未显式 import 的全局
       'no-unreachable': 'error',
       'no-fallthrough': 'error',

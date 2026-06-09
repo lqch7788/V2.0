@@ -1,3 +1,7 @@
+import { fileURLToPath } from 'url';
+import { dirname as __pathDirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = __pathDirname(__filename);
 /**
  * 直接修复数据库缺失列
  * 运行: node src/db/fixColumns.js

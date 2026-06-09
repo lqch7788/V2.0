@@ -6,7 +6,7 @@
 // ============================================================
 
 import { ApprovalType } from '../types/approval.js'
-import { getSystemConfigValue, getSystemConfigValueNumber } from './systemConfigReader.ts'
+import { getSystemConfigValue, getSystemConfigValueNumber } from './systemConfigReader.js'
 
 // ============================================================
 // 超时级别

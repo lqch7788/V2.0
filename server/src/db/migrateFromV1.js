@@ -1,3 +1,7 @@
+import { fileURLToPath } from 'url';
+import { dirname as __pathDirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = __pathDirname(__filename);
 /**
  * 数据迁移脚本：从V1.1迁移数据到V2.0
  *
@@ -153,7 +157,7 @@ function migrateTable(v1Db, v2Db, tableName, options = {}) {
   }
 
   // 获取V1.1数据
-  let v1Data = [];
+  let v1Data;
   try {
     v1Data = v1Db.prepare(`SELECT * FROM ${tableName}`).all();
   } catch (error) {

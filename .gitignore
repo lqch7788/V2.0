@@ -24,7 +24,7 @@ npm-debug.log*
 Thumbs.db
 
 # Test files and screenshots
-*.spec.js
+
 *.spec.mjs
 *.mjs
 test-*.js

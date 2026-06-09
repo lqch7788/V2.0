@@ -10,10 +10,10 @@
  * 使用方法：node dist/scripts/migrateLocalStorageData.js
  */
 
-import { getDatabase } from '../db/index';
+import { getDatabase } from '../db/index.js';
 
 // localStorage key → 后端表名 → 唯一标识字段
-const MIGRATION_MAP, { table: string; idField: string; name= {
+export const MIGRATION_MAP = {
   // 作物管理
   'announcement_notices': { table: 'announcements', idField: 'id', name: '公告通知' },
   'indicators_data': { table: 'indicators', idField: 'id', name: '指标数据' },
@@ -72,13 +72,12 @@ const MIGRATION_MAP, { table: string; idField: string; name= {
   'yuanxingtu_operationRecords': { table: 'task_operation_records', idField: 'id', name: '操作记录' },
 };
 
-
 /**
  * 获取后端数据库中已存在的 ID 列表
  */
-function getExistingIds(table, idField){
+function getExistingIds(table, idField) {
   const db = getDatabase();
-  const ids = new Set<string>();
+  const ids = new Set();
 
   try {
     const results = db.exec(`SELECT ${idField} FROM ${table}`);
@@ -99,9 +98,10 @@ function getExistingIds(table, idField){
 /**
  * 插入数据到后端数据库
  */
-function insertToDatabase(table, data){ added: number; errors= getDatabase();
+function insertToDatabase(table, data) {
+  const db = getDatabase();
   let added = 0;
-  const errors= [];
+  const errors = [];
 
   if (!data || data.length === 0) {
     return { added, errors };
@@ -146,7 +146,7 @@ async function migrate() {
   console.log('='.repeat(60));
   console.log('');
 
-  const results= [];
+  const results = [];
 
   // 由于这是 Node.js 脚本，不能直接访问浏览器的 localStorage
   // 这个脚本需要在前端环境运行，或者通过 API 调用
@@ -175,11 +175,7 @@ async function migrate() {
   return results;
 }
 
-// 导出迁移配置供前端使用
-export { MIGRATION_MAP };
-export type { MigrationResult };
-
 // 如果直接运行此脚本
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   migrate().catch(console.error);
 }

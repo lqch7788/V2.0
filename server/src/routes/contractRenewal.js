@@ -1,109 +1,92 @@
 /**
  * 合同续签记录 API 路由
  */
-
-import { Router, Request, Response } from 'express';
-import { getDatabase, saveDatabase } from '../db';
-import { queryToObjects, execCount } from '../utils/queryHelper';
-
+import { Router } from 'express';
+import { getDatabase, saveDatabase } from '../db/index.js';
+import { queryToObjects, execCount } from '../utils/queryHelper.js';
 const router = Router();
-
 // 状态标签映射
-const STATUS_LABEL_MAP= {
-  'pending': '待审批',
-  'approved': '已通过',
-  'rejected': '已拒绝',
-  'cancelled': '已取消',
+const STATUS_LABEL_MAP = {
+    'pending': '待审批',
+    'approved': '已通过',
+    'rejected': '已拒绝',
+    'cancelled': '已取消',
 };
-
 /**
  * 获取合同续签记录列表
  * GET /api/contract-renewal
  */
-router.get('/', (req, res) => { employee_name, department, status, page = 1, limit = 50 } = req.query;
-    const db = getDatabase();
-
-    let sql = 'SELECT * FROM contract_renewal_records WHERE 1=1';
-    const params= [];
-
-    if (employee_name) {
-      sql += ' AND employee_name LIKE ?';
-      params.push(`%${employee_name}%`);
+router.get('/', (req, res) => {
+    try {
+        const { employee_name, department, status, page = 1, limit = 50 } = req.query;
+        const db = getDatabase();
+        let sql = 'SELECT * FROM contract_renewal_records WHERE 1=1';
+        const params = [];
+        if (employee_name) {
+            sql += ' AND employee_name LIKE ?';
+            params.push(`%${employee_name}%`);
+        }
+        if (department) {
+            sql += ' AND department LIKE ?';
+            params.push(`%${department}%`);
+        }
+        if (status) {
+            sql += ' AND status = ?';
+            params.push(status);
+        }
+        const countSql = sql;
+        const total = execCount(db, countSql, params);
+        sql += ' ORDER BY create_time DESC';
+        const offset = (Number(page) - 1) * Number(limit);
+        sql += ` LIMIT ? OFFSET ?`;
+        params.push(Number(limit), offset);
+        const items = queryToObjects(db, sql, params);
+        const itemsWithLabels = items.map((item) => ({
+            ...item,
+            statusLabel: STATUS_LABEL_MAP[item.status] || item.status,
+        }));
+        res.json({ success: true, data: itemsWithLabels, meta: { total, page: Number(page), limit: Number(limit) } });
     }
-
-    if (department) {
-      sql += ' AND department LIKE ?';
-      params.push(`%${department}%`);
+    catch (error) {
+        res.status(500).json({ success: false, error: '获取合同续签记录失败' });
     }
-
-    if (status) {
-      sql += ' AND status = ?';
-      params.push(status);
-    }
-
-    const countSql = sql;
-    const total = execCount(db, countSql, params);
-
-    sql += ' ORDER BY create_time DESC';
-
-    const offset = (Number(page) - 1) * Number(limit);
-    sql += ` LIMIT ? OFFSET ?`;
-    params.push(Number(limit), offset);
-
-    const items = queryToObjects(db, sql, params);
-
-    const itemsWithLabels = items.map((item) => ({
-      ...item,
-      statusLabel,
-    }));
-
-    res.json({ success, data, meta, page: Number(page), limit: Number(limit) } });
-  } catch (error) {
-    res.status(500).json({ success, error: '获取合同续签记录失败' });
-  }
 });
-
 /**
  * 获取单个合同续签记录
  * GET /api/contract-renewal/:id
  */
-router.get('/:id', (req, res) => { id } = req.params;
-    const db = getDatabase();
-    const stmt = db.prepare('SELECT * FROM contract_renewal_records WHERE id = ?');
-    stmt.bind([id]);
-    let item= null;
-    if (stmt.step()) {
-      item = stmt.getAsObject();
+router.get('/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = getDatabase();
+        const stmt = db.prepare('SELECT * FROM contract_renewal_records WHERE id = ?');
+        stmt.bind([id]);
+        let item = null;
+        if (stmt.step()) {
+            item = stmt.getAsObject();
+        }
+        stmt.free();
+        if (!item || Object.keys(item).length === 0) {
+            return res.status(404).json({ success: false, error: '合同续签记录不存在' });
+        }
+        item.statusLabel = STATUS_LABEL_MAP[item.status] || item.status;
+        res.json({ success: true, data: item });
     }
-    stmt.free();
-
-    if (!item || Object.keys(item).length === 0) {
-      return res.status(404).json({ success, error: '合同续签记录不存在' });
+    catch (error) {
+        res.status(500).json({ success: false, error: '获取合同续签记录详情失败' });
     }
-
-    item.statusLabel = STATUS_LABEL_MAP[item.status] || item.status;
-
-    res.json({ success: true, data: itemsWithLabels);
-  } catch (error) {
-    res.status(500).json({ success, error: '获取合同续签记录详情失败' });
-  }
 });
-
 /**
  * 创建合同续签记录
  * POST /api/contract-renewal
  */
 router.post('/', (req, res) => {
-      id, employee_id, employee_name, department, position,
-      current_contract_end, new_contract_start, new_contract_end,
-      renewal_period, new_salary, terms_change, remarks
-    } = req.body;
-
-    const newId = id || `CR${Date.now()}`;
-    const now = new Date().toISOString();
-
-    const db = getDatabase();
-    db.run(`
+    try {
+        const { id, employee_id, employee_name, department, position, current_contract_end, new_contract_start, new_contract_end, renewal_period, new_salary, terms_change, remarks } = req.body;
+        const newId = id || `CR${Date.now()}`;
+        const now = new Date().toISOString();
+        const db = getDatabase();
+        db.run(`
       INSERT INTO contract_renewal_records (
         id, employee_id, employee_name, department, position,
         current_contract_end, new_contract_start, new_contract_end,
@@ -111,75 +94,71 @@ router.post('/', (req, res) => {
         remarks, create_time
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      newId, employee_id, employee_name, department, position,
-      current_contract_end || '', new_contract_start || '', new_contract_end || '',
-      renewal_period || 12, new_salary || 0, terms_change || '',
-      'pending', '待审批', remarks || '', now
-    ]);
-
-    saveDatabase();
-    res.status(201).json({ success, data: { id);
-  } catch (error) {
-    console.error('创建合同续签记录失败:', error);
-    res.status(500).json({ success, error: '创建合同续签记录失败' });
-  }
+            newId, employee_id, employee_name, department, position,
+            current_contract_end || '', new_contract_start || '', new_contract_end || '',
+            renewal_period || 12, new_salary || 0, terms_change || '',
+            'pending', '待审批', remarks || '', now
+        ]);
+        saveDatabase();
+        res.status(201).json({ success: true, data: { id: newId } });
+    }
+    catch (error) {
+        console.error('创建合同续签记录失败:', error);
+        res.status(500).json({ success: false, error: '创建合同续签记录失败' });
+    }
 });
-
 /**
  * 更新合同续签记录
  * PUT /api/contract-renewal/:id
  */
-router.put('/:id', (req, res) => { id } = req.params;
-    const updates = req.body;
-    const now = new Date().toISOString();
-
-    const db = getDatabase();
-
-    const allowedFields = [
-      'new_contract_start', 'new_contract_end', 'renewal_period',
-      'new_salary', 'terms_change', 'status', 'remarks'
-    ];
-
-    const fields= [];
-    const values= [];
-
-    for (const field of allowedFields) {
-      if (updates[field] !== undefined) {
-        if (field === 'status') {
-          fields.push('status_label = ?');
-          values.push(STATUS_LABEL_MAP[updates[field]] || updates[field]);
+router.put('/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+        const now = new Date().toISOString();
+        const db = getDatabase();
+        const allowedFields = [
+            'new_contract_start', 'new_contract_end', 'renewal_period',
+            'new_salary', 'terms_change', 'status', 'remarks'
+        ];
+        const fields = [];
+        const values = [];
+        for (const field of allowedFields) {
+            if (updates[field] !== undefined) {
+                if (field === 'status') {
+                    fields.push('status_label = ?');
+                    values.push(STATUS_LABEL_MAP[updates[field]] || updates[field]);
+                }
+                fields.push(`${field} = ?`);
+                values.push(updates[field]);
+            }
         }
-        fields.push(`${field} = ?`);
-        values.push(updates[field]);
-      }
+        if (fields.length === 0) {
+            return res.status(400).json({ success: false, error: '没有需要更新的字段' });
+        }
+        values.push(id);
+        db.run(`UPDATE contract_renewal_records SET ${fields.join(', ')} WHERE id = ?`, values);
+        saveDatabase();
+        res.json({ success: true, data: { id } });
     }
-
-    if (fields.length === 0) {
-      return res.status(400).json({ success, error: '没有需要更新的字段' });
+    catch (error) {
+        res.status(500).json({ success: false, error: '更新合同续签记录失败' });
     }
-
-    values.push(id);
-
-    db.run(`UPDATE contract_renewal_records SET ${fields.join(', ')} WHERE id = ?`, values);
-    saveDatabase();
-    res.json({ success: true, data: itemsWithLabels);
-  } catch (error) {
-    res.status(500).json({ success, error: '更新合同续签记录失败' });
-  }
 });
-
 /**
  * 删除合同续签记录
  * DELETE /api/contract-renewal/:id
  */
-router.delete('/:id', (req, res) => { id } = req.params;
-    const db = getDatabase();
-    db.run('DELETE FROM contract_renewal_records WHERE id = ?', [id]);
-    saveDatabase();
-    res.json({ success: true, data: itemsWithLabels);
-  } catch (error) {
-    res.status(500).json({ success, error: '删除合同续签记录失败' });
-  }
+router.delete('/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = getDatabase();
+        db.run('DELETE FROM contract_renewal_records WHERE id = ?', [id]);
+        saveDatabase();
+        res.json({ success: true, data: { id } });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: '删除合同续签记录失败' });
+    }
 });
-
 export default router;

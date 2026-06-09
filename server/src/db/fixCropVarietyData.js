@@ -1,3 +1,7 @@
+import { fileURLToPath } from 'url';
+import { dirname as __pathDirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = __pathDirname(__filename);
 /**
  * 修正作物品种数据错误
  * 执行方法: node fixCropVarietyData.js

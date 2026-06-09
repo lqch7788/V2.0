@@ -2,8 +2,6 @@
  * SQL.js 查询辅助函数
  */
 
-import { Database } from 'sql.js';
-
 /**
  * 将下划线命名字段转换为驼峰命名
  */

@@ -1,3 +1,7 @@
+import { fileURLToPath } from 'url';
+import { dirname as __pathDirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = __pathDirname(__filename);
 /**
  * 更新供应商类型字典脚本
  * 执行方式：node server/src/db/updateSupplierType.js
@@ -26,7 +30,7 @@ async function main() {
 
   // 0. 先查看当前数据
   console.log('=== 更新前的供应商类型 ===');
-  let beforeResults = db.exec("SELECT id, dict_code, dict_label, sort_order FROM dictionaries WHERE category_code = 'supplier_type' ORDER BY id");
+  const beforeResults = db.exec("SELECT id, dict_code, dict_label, sort_order FROM dictionaries WHERE category_code = 'supplier_type' ORDER BY id");
   if (beforeResults.length > 0) {
     console.log(`共 ${beforeResults[0].values.length} 条记录:`);
     beforeResults[0].values.forEach(row => {
@@ -46,7 +50,7 @@ async function main() {
 
   // 2. 验证删除结果
   console.log('\n=== 验证删除结果 ===');
-  let afterDeleteResults = db.exec("SELECT COUNT(*) as cnt FROM dictionaries WHERE category_code = 'supplier_type'");
+  const afterDeleteResults = db.exec("SELECT COUNT(*) as cnt FROM dictionaries WHERE category_code = 'supplier_type'");
   if (afterDeleteResults.length > 0) {
     console.log(`剩余 ${afterDeleteResults[0].values[0][0]} 条记录`);
   }

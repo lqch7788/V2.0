@@ -3,7 +3,6 @@
  * 验证请求头中的 Authorization: Bearer <token>
  */
 
-import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 
 // JWT 密钥配置

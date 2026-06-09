@@ -1,3 +1,7 @@
+import { fileURLToPath } from 'url';
+import { dirname as __pathDirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = __pathDirname(__filename);
 /**
  * 清理重复的 source_type 字典数据
  * 执行方式：node server/src/db/cleanupDuplicateSourceType.js

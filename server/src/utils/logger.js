@@ -6,6 +6,10 @@
 import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname as __pathDirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = __pathDirname(__filename);
 
 // 确保 logs 目录存在
 const logsDir = path.join(__dirname, '../../logs');

@@ -3,17 +3,13 @@
  * 对应现有 LocalStorage 的数据存储
  * V5.0重构：新增系统设置相关表
  */
-
-import { getDatabase } from './index';
-import { createIndexes } from './createIndexes';
-
+import { getDatabase } from './index.js';
+import { createIndexes } from './createIndexes.js';
 export function initializeDatabase() {
-  const db = getDatabase();
-
-  // ========== 系统设置表（V5.0新增）==========
-
-  // 部门表
-  db.run(`
+    const db = getDatabase();
+    // ========== 系统设置表（V5.0新增）==========
+    // 部门表
+    db.run(`
     CREATE TABLE IF NOT EXISTS departments (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -28,9 +24,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 职位表
-  db.run(`
+    // 职位表
+    db.run(`
     CREATE TABLE IF NOT EXISTS positions (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -44,9 +39,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 班组表
-  db.run(`
+    // 班组表
+    db.run(`
     CREATE TABLE IF NOT EXISTS teams (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -63,9 +57,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 仓库表
-  db.run(`
+    // 仓库表
+    db.run(`
     CREATE TABLE IF NOT EXISTS warehouses (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -82,9 +75,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 温室/基地表 - 扩展字段支持园区导览
-  db.run(`
+    // 温室/基地表 - 扩展字段支持园区导览
+    db.run(`
     CREATE TABLE IF NOT EXISTS greenhouses (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -113,9 +105,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 区域表
-  db.run(`
+    // 区域表
+    db.run(`
     CREATE TABLE IF NOT EXISTS zones (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -131,9 +122,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 地块表
-  db.run(`
+    // 地块表
+    db.run(`
     CREATE TABLE IF NOT EXISTS blocks (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -149,9 +139,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 编码规则表
-  db.run(`
+    // 编码规则表
+    db.run(`
     CREATE TABLE IF NOT EXISTS code_rules (
       id TEXT PRIMARY KEY,
       entity_type TEXT NOT NULL,
@@ -165,9 +154,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 物料编码分类树表（大类/中类/小类 三级层次）
-  db.run(`
+    // 物料编码分类树表（大类/中类/小类 三级层次）
+    db.run(`
     CREATE TABLE IF NOT EXISTS material_code_categories (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -182,9 +170,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 通知渠道表
-  db.run(`
+    // 通知渠道表
+    db.run(`
     CREATE TABLE IF NOT EXISTS notification_channels (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -197,9 +184,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 通知规则表
-  db.run(`
+    // 通知规则表
+    db.run(`
     CREATE TABLE IF NOT EXISTS notification_rules (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -216,9 +202,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 审批规则表
-  db.run(`
+    // 审批规则表
+    db.run(`
     CREATE TABLE IF NOT EXISTS approval_rules (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -232,9 +217,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 审批工作流表
-  db.run(`
+    // 审批工作流表
+    db.run(`
     CREATE TABLE IF NOT EXISTS approval_workflows (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -250,9 +234,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 审批单表
-  db.run(`
+    // 审批单表
+    db.run(`
     CREATE TABLE IF NOT EXISTS approvals (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -287,11 +270,9 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // ========== 数据字典表（V5.0新增）==========
-
-  // 字典分类表
-  db.run(`
+    // ========== 数据字典表（V5.0新增）==========
+    // 字典分类表
+    db.run(`
     CREATE TABLE IF NOT EXISTS dictionary_categories (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL UNIQUE,
@@ -304,9 +285,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 字典项表
-  db.run(`
+    // 字典项表
+    db.run(`
     CREATE TABLE IF NOT EXISTS dictionaries (
       id TEXT PRIMARY KEY,
       category_code TEXT NOT NULL,
@@ -321,9 +301,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 创建作物品种表
-  db.run(`
+    // 创建作物品种表
+    db.run(`
     CREATE TABLE IF NOT EXISTS crop_varieties (
       id TEXT PRIMARY KEY,
       crop_code TEXT NOT NULL,
@@ -342,9 +321,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建库存表
-  db.run(`
+    // 创建库存表
+    db.run(`
     CREATE TABLE IF NOT EXISTS inventory (
       id TEXT PRIMARY KEY,
       harvest_record_id TEXT,
@@ -373,9 +351,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建作物实例表
-  db.run(`
+    // 创建作物实例表
+    db.run(`
     CREATE TABLE IF NOT EXISTS crop_instances (
       id TEXT PRIMARY KEY,
       instance_code TEXT NOT NULL,
@@ -404,9 +381,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建种源表
-  db.run(`
+    // 创建种源表
+    db.run(`
     CREATE TABLE IF NOT EXISTS seed_sources (
       id TEXT PRIMARY KEY,
       source_code TEXT NOT NULL,
@@ -431,9 +407,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建育苗表
-  db.run(`
+    // 创建育苗表
+    db.run(`
     CREATE TABLE IF NOT EXISTS seedlings (
       id TEXT PRIMARY KEY,
       seedling_code TEXT NOT NULL,
@@ -463,9 +438,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建种植表
-  db.run(`
+    // 创建种植表
+    db.run(`
     CREATE TABLE IF NOT EXISTS plantings (
       id TEXT PRIMARY KEY,
       planting_code TEXT NOT NULL,
@@ -492,9 +466,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建采收记录表
-  db.run(`
+    // 创建采收记录表
+    db.run(`
     CREATE TABLE IF NOT EXISTS harvest_records (
       id TEXT PRIMARY KEY,
       harvest_code TEXT NOT NULL,
@@ -519,9 +492,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建供应商表
-  db.run(`
+    // 创建供应商表
+    db.run(`
     CREATE TABLE IF NOT EXISTS suppliers (
       id TEXT PRIMARY KEY,
       supplier_code TEXT NOT NULL,
@@ -537,9 +509,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建农事任务表
-  db.run(`
+    // 创建农事任务表
+    db.run(`
     CREATE TABLE IF NOT EXISTS farm_tasks (
       id TEXT PRIMARY KEY,
       task_code TEXT NOT NULL,
@@ -568,9 +539,8 @@ export function initializeDatabase() {
       tools_remarks TEXT DEFAULT ''
     )
   `);
-
-  // 创建巡查记录表
-  db.run(`
+    // 创建巡查记录表
+    db.run(`
     CREATE TABLE IF NOT EXISTS inspections (
       id TEXT PRIMARY KEY,
       record_code TEXT NOT NULL,
@@ -589,9 +559,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建问题记录表
-  db.run(`
+    // 创建问题记录表
+    db.run(`
     CREATE TABLE IF NOT EXISTS problems (
       id TEXT PRIMARY KEY,
       problem_code TEXT NOT NULL,
@@ -609,9 +578,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建人工记录表
-  db.run(`
+    // 创建人工记录表
+    db.run(`
     CREATE TABLE IF NOT EXISTS labor_records (
       id TEXT PRIMARY KEY,
       worker_id TEXT,
@@ -633,9 +601,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建考勤记录表
-  db.run(`
+    // 创建考勤记录表
+    db.run(`
     CREATE TABLE IF NOT EXISTS attendance_records (
       id TEXT PRIMARY KEY,
       worker_id TEXT NOT NULL,
@@ -655,9 +622,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 创建临时任务表
-  db.run(`
+    // 创建临时任务表
+    db.run(`
     CREATE TABLE IF NOT EXISTS temp_tasks (
       id TEXT PRIMARY KEY,
       task_code TEXT NOT NULL,
@@ -684,24 +650,61 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 临时任务表新列（向后兼容）
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN estimated_hours REAL DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN worker_count INTEGER DEFAULT 1`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN actual_hours REAL DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN progress INTEGER DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN reject_count INTEGER DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN urgency TEXT DEFAULT 'normal'`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN estimated_days INTEGER DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN reject_reason TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN acceptance_remarks TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN operation_records TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN greenhouse_name TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN title TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE temp_tasks ADD COLUMN location TEXT`); } catch (e) {}
-
-  // 创建采购计划表
-  db.run(`
+    // 临时任务表新列（向后兼容）
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN estimated_hours REAL DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN worker_count INTEGER DEFAULT 1`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN actual_hours REAL DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN progress INTEGER DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN reject_count INTEGER DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN urgency TEXT DEFAULT 'normal'`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN estimated_days INTEGER DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN reject_reason TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN acceptance_remarks TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN operation_records TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN greenhouse_name TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN title TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE temp_tasks ADD COLUMN location TEXT`);
+    }
+    catch (e) { }
+    // 创建采购计划表
+    db.run(`
     CREATE TABLE IF NOT EXISTS purchase_plans (
       id TEXT PRIMARY KEY,
       plan_code TEXT NOT NULL,
@@ -729,30 +732,29 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 为采购计划表添加items列（如果不存在）
-  try {
-    db.run(`ALTER TABLE purchase_plans ADD COLUMN items TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为采购计划表添加related_batch_code列（如果不存在）
-  try {
-    db.run(`ALTER TABLE purchase_plans ADD COLUMN related_batch_code TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为采购计划表添加approval_person列（如果不存在）
-  try {
-    db.run(`ALTER TABLE purchase_plans ADD COLUMN approval_person TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 创建物料申请表
-  db.run(`
+    // 为采购计划表添加items列（如果不存在）
+    try {
+        db.run(`ALTER TABLE purchase_plans ADD COLUMN items TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为采购计划表添加related_batch_code列（如果不存在）
+    try {
+        db.run(`ALTER TABLE purchase_plans ADD COLUMN related_batch_code TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为采购计划表添加approval_person列（如果不存在）
+    try {
+        db.run(`ALTER TABLE purchase_plans ADD COLUMN approval_person TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 创建物料申请表
+    db.run(`
     CREATE TABLE IF NOT EXISTS material_requests (
       id TEXT PRIMARY KEY,
       request_code TEXT NOT NULL,
@@ -780,28 +782,27 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 为领料申请添加缺失的列
-  try {
-    db.run(`ALTER TABLE material_requests ADD COLUMN plant_area TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  try {
-    db.run(`ALTER TABLE material_requests ADD COLUMN production_batch_code TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  try {
-    db.run(`ALTER TABLE material_requests ADD COLUMN materials TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ==================== 生产退料表 ====================
-  db.run(`
+    // 为领料申请添加缺失的列
+    try {
+        db.run(`ALTER TABLE material_requests ADD COLUMN plant_area TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE material_requests ADD COLUMN production_batch_code TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE material_requests ADD COLUMN materials TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ==================== 生产退料表 ====================
+    db.run(`
     CREATE TABLE IF NOT EXISTS material_returns (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -823,9 +824,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ==================== 领料出库表 ====================
-  db.run(`
+    // ==================== 领料出库表 ====================
+    db.run(`
     CREATE TABLE IF NOT EXISTS material_executes (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -844,249 +844,396 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 为已有表添加新列（如果列不存在则添加）
-  try {
-    db.run(`ALTER TABLE seed_sources ADD COLUMN production_plan_code TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  try {
-    db.run(`ALTER TABLE seedlings ADD COLUMN production_plan_code TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为种源表添加来源途径字段（如果不存在则添加）
-  try {
-    db.run(`ALTER TABLE seed_sources ADD COLUMN source_origin TEXT DEFAULT 'external_purchase'`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为种源表添加作物类别字段
-  try {
-    db.run(`ALTER TABLE seed_sources ADD COLUMN crop_category TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为种源表添加类型名称字段
-  try {
-    db.run(`ALTER TABLE seed_sources ADD COLUMN type_name TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为种源表添加品种名称字段
-  try {
-    db.run(`ALTER TABLE seed_sources ADD COLUMN variety_name TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为种源表添加作物编码字段
-  try {
-    db.run(`ALTER TABLE seed_sources ADD COLUMN crop_code TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ========== V5.0 Phase 2: 关联字段迁移 ==========
-  // 为种源表添加创建者ID关联
-  try {
-    db.run(`ALTER TABLE seed_sources ADD COLUMN create_by_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为育苗表添加创建者ID关联
-  try {
-    db.run(`ALTER TABLE seedlings ADD COLUMN create_by_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为种植表添加创建者ID关联
-  try {
-    db.run(`ALTER TABLE plantings ADD COLUMN create_by_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  // ========== V10.0: 种植模块补充字段 ==========
-  try { db.run(`ALTER TABLE plantings ADD COLUMN soil_ph REAL DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE plantings ADD COLUMN soil_ec REAL DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE plantings ADD COLUMN attrition_rate REAL DEFAULT 0`); } catch (e) {}
-  // ========== V12.0: 种源繁殖途径字段 ==========
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN propagation_type TEXT DEFAULT 'external'`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN propagation_status TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN propagation_method TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN parent_male_id TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN parent_male_code TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN parent_female_id TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN parent_female_code TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN mother_plant_id TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN mother_plant_code TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN linked_planting_id TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN linked_planting_code TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN propagation_start_date TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN expected_harvest_date TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN actual_harvest_date TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN breeding_location TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN target_traits TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE seed_sources ADD COLUMN generation TEXT`); } catch (e) {}
-
-  // 为采收记录表添加关联字段
-  try {
-    db.run(`ALTER TABLE harvest_records ADD COLUMN create_by_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE harvest_records ADD COLUMN warehouse_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE harvest_records ADD COLUMN harvester_ids TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE harvest_records ADD COLUMN auditor_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE harvest_records ADD COLUMN inbound_type TEXT DEFAULT 'planting_harvest'`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为供应商表添加创建者ID关联
-  try {
-    db.run(`ALTER TABLE suppliers ADD COLUMN create_by_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 供应商管理扩展字段（前端完整字段）
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN mobile_phone TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN work_phone TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN fax TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN country TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN province TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN city TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN bank_name TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN bank_card_number TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN organization TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN supplier_attribute TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN create_date TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE suppliers ADD COLUMN area TEXT DEFAULT ''`); } catch (e) {}
-
-  // 为农事任务表添加创建者ID关联（如果还没有的话）
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN create_by_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN batch_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN batch_code TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  // 为农事任务表添加更多字段（支持完整任务流程）
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN title TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN source_type TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN source_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN progress INTEGER DEFAULT 0`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN assigner_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN assigner_name TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN due_date TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN accepted_at TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN completed_at TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN rework_count INTEGER DEFAULT 0`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN version INTEGER DEFAULT 1`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN dispatch_mode TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN feedback_requirements TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE farm_tasks ADD COLUMN remarks TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  // 数据改造：补齐前端通过API传递但后端未落库的关键字段
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN crop TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN estimated_hours INTEGER DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN estimated_days INTEGER DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN type_name TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN materials TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN tools TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN rework_history TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN deadline_extensions TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN type_config TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN sop_content TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE farm_tasks ADD COLUMN description TEXT`); } catch (e) {}
-
-  // 创建任务操作记录表
-  db.run(`
+    // 为已有表添加新列（如果列不存在则添加）
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN production_plan_code TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE seedlings ADD COLUMN production_plan_code TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为种源表添加来源途径字段（如果不存在则添加）
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN source_origin TEXT DEFAULT 'external_purchase'`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为种源表添加作物类别字段
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN crop_category TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为种源表添加类型名称字段
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN type_name TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为种源表添加品种名称字段
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN variety_name TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为种源表添加作物编码字段
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN crop_code TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== V5.0 Phase 2: 关联字段迁移 ==========
+    // 为种源表添加创建者ID关联
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN create_by_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为育苗表添加创建者ID关联
+    try {
+        db.run(`ALTER TABLE seedlings ADD COLUMN create_by_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为种植表添加创建者ID关联
+    try {
+        db.run(`ALTER TABLE plantings ADD COLUMN create_by_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== V10.0: 种植模块补充字段 ==========
+    try {
+        db.run(`ALTER TABLE plantings ADD COLUMN soil_ph REAL DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE plantings ADD COLUMN soil_ec REAL DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE plantings ADD COLUMN attrition_rate REAL DEFAULT 0`);
+    }
+    catch (e) { }
+    // ========== V12.0: 种源繁殖途径字段 ==========
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN propagation_type TEXT DEFAULT 'external'`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN propagation_status TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN propagation_method TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN parent_male_id TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN parent_male_code TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN parent_female_id TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN parent_female_code TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN mother_plant_id TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN mother_plant_code TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN linked_planting_id TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN linked_planting_code TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN propagation_start_date TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN expected_harvest_date TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN actual_harvest_date TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN breeding_location TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN target_traits TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE seed_sources ADD COLUMN generation TEXT`);
+    }
+    catch (e) { }
+    // 为采收记录表添加关联字段
+    try {
+        db.run(`ALTER TABLE harvest_records ADD COLUMN create_by_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE harvest_records ADD COLUMN warehouse_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE harvest_records ADD COLUMN harvester_ids TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE harvest_records ADD COLUMN auditor_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE harvest_records ADD COLUMN inbound_type TEXT DEFAULT 'planting_harvest'`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为供应商表添加创建者ID关联
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN create_by_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 供应商管理扩展字段（前端完整字段）
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN mobile_phone TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN work_phone TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN fax TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN country TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN province TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN city TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN bank_name TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN bank_card_number TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN organization TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN supplier_attribute TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN create_date TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE suppliers ADD COLUMN area TEXT DEFAULT ''`);
+    }
+    catch (e) { }
+    // 为农事任务表添加创建者ID关联（如果还没有的话）
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN create_by_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN batch_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN batch_code TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为农事任务表添加更多字段（支持完整任务流程）
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN title TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN source_type TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN source_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN progress INTEGER DEFAULT 0`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN assigner_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN assigner_name TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN due_date TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN accepted_at TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN completed_at TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN rework_count INTEGER DEFAULT 0`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN version INTEGER DEFAULT 1`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN dispatch_mode TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN feedback_requirements TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN remarks TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 数据改造：补齐前端通过API传递但后端未落库的关键字段
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN crop TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN estimated_hours INTEGER DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN estimated_days INTEGER DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN type_name TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN materials TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN tools TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN rework_history TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN deadline_extensions TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN type_config TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN sop_content TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE farm_tasks ADD COLUMN description TEXT`);
+    }
+    catch (e) { }
+    // 创建任务操作记录表
+    db.run(`
     CREATE TABLE IF NOT EXISTS task_operation_records (
       id TEXT PRIMARY KEY,
       task_id TEXT NOT NULL,
@@ -1107,58 +1254,152 @@ export function initializeDatabase() {
       create_time TEXT NOT NULL
     )
   `);
-
-  // 为巡查记录表添加关联字段
-  try {
-    db.run(`ALTER TABLE inspections ADD COLUMN greenhouse_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 添加反馈人员字段
-  try {
-    db.run(`ALTER TABLE inspections ADD COLUMN feedback_users TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为问题记录表添加关联字段
-  try { db.run(`ALTER TABLE problems ADD COLUMN greenhouse_id TEXT`); } catch (e) {}
-  // 巡查问题流转闭环字段（V2.0 数据层迁移）
-  try { db.run(`ALTER TABLE problems ADD COLUMN crop_name TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN inspector_id TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN inspector_name TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN check_date TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN check_time TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN weather TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN temperature REAL DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN humidity REAL DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN crop_status TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN plant_height REAL DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN leaf_count INTEGER DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN issue_text TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN issue_severity TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN handler TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN handle_date TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN handle_result TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN source_task_id TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN flow_records TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN rework_count INTEGER DEFAULT 0`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN accepted_by TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN accepted_time TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN rejected_by TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN rejected_reason TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN rejected_time TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN completion_time TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN expected_completion TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN remarks TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN images TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN source_module TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN source_id TEXT`); } catch (e) {}
-  try { db.run(`ALTER TABLE problems ADD COLUMN source_detail TEXT`); } catch (e) {}
-
-  // 创建问题流转记录表
-  db.run(`
+    // 为巡查记录表添加关联字段
+    try {
+        db.run(`ALTER TABLE inspections ADD COLUMN greenhouse_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 添加反馈人员字段
+    try {
+        db.run(`ALTER TABLE inspections ADD COLUMN feedback_users TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为问题记录表添加关联字段
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN greenhouse_id TEXT`);
+    }
+    catch (e) { }
+    // 巡查问题流转闭环字段（V2.0 数据层迁移）
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN crop_name TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN inspector_id TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN inspector_name TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN check_date TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN check_time TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN weather TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN temperature REAL DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN humidity REAL DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN crop_status TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN plant_height REAL DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN leaf_count INTEGER DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN issue_text TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN issue_severity TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN handler TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN handle_date TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN handle_result TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN source_task_id TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN flow_records TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN rework_count INTEGER DEFAULT 0`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN accepted_by TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN accepted_time TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN rejected_by TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN rejected_reason TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN rejected_time TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN completion_time TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN expected_completion TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN remarks TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN images TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN source_module TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN source_id TEXT`);
+    }
+    catch (e) { }
+    try {
+        db.run(`ALTER TABLE problems ADD COLUMN source_detail TEXT`);
+    }
+    catch (e) { }
+    // 创建问题流转记录表
+    db.run(`
     CREATE TABLE IF NOT EXISTS problem_flow_records (
       id TEXT PRIMARY KEY,
       problem_id TEXT NOT NULL,
@@ -1173,113 +1414,116 @@ export function initializeDatabase() {
       create_time TEXT NOT NULL
     )
   `);
-
-  // 为人工记录表添加工人ID关联
-  try {
-    db.run(`ALTER TABLE labor_records ADD COLUMN worker_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE labor_records ADD COLUMN department_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE labor_records ADD COLUMN area_name TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE labor_records ADD COLUMN batch_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE labor_records ADD COLUMN batch_code TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为库存表添加入库记录ID关联
-  try {
-    db.run(`ALTER TABLE inventory ADD COLUMN create_by_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为作物实例表添加创建者ID关联
-  try {
-    db.run(`ALTER TABLE crop_instances ADD COLUMN create_by_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ========== V6.0 Phase 2: 审批流程增强字段 ==========
-
-  // 为审批工作流表添加业务类型和版本字段
-  try {
-    db.run(`ALTER TABLE approval_workflows ADD COLUMN business_type TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE approval_workflows ADD COLUMN version INTEGER DEFAULT 1`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为审批单表添加工 workflow_id 和 workflow_name 字段
-  try {
-    db.run(`ALTER TABLE approvals ADD COLUMN workflow_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE approvals ADD COLUMN workflow_name TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ========== V6.1: 为作物品种表添加详细品种名称字段 ==========
-  try {
-    db.run(`ALTER TABLE crop_varieties ADD COLUMN detail_variety_name TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ========== V6.2: 作物品种表扩展字段（环境参数、生长周期、别名、描述等） ==========
-  const cropVarietyExtendedColumns = [
-    { name: 'alias', type: 'TEXT' },
-    { name: 'image', type: 'TEXT' },
-    { name: 'description', type: 'TEXT' },
-    { name: 'germination_period', type: 'REAL' },
-    { name: 'seedling_period', type: 'REAL' },
-    { name: 'flowering_period', type: 'REAL' },
-    { name: 'fruiting_period', type: 'REAL' },
-    { name: 'harvest_period', type: 'REAL' },
-    { name: 'air_temperature', type: 'REAL' },
-    { name: 'air_humidity', type: 'REAL' },
-    { name: 'co2_content', type: 'REAL' },
-    { name: 'light_intensity', type: 'REAL' },
-    { name: 'soil_temperature', type: 'REAL' },
-    { name: 'soil_humidity', type: 'REAL' },
-    { name: 'soil_ph', type: 'REAL' },
-    { name: 'soil_ec', type: 'REAL' },
-    { name: 'remarks', type: 'TEXT' },
-  ];
-  for (const col of cropVarietyExtendedColumns) {
+    // 为人工记录表添加工人ID关联
     try {
-      db.run(`ALTER TABLE crop_varieties ADD COLUMN ${col.name} ${col.type}`);
-    } catch (e) {
-      // 列可能已存在，忽略错误
+        db.run(`ALTER TABLE labor_records ADD COLUMN worker_id TEXT`);
     }
-  }
-
-  // ========== V6.0 Phase 1: 新增系统配置和操作日志表 ==========
-
-  // 系统配置表 - 存储系统参数配置
-  db.run(`
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE labor_records ADD COLUMN department_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE labor_records ADD COLUMN area_name TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE labor_records ADD COLUMN batch_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE labor_records ADD COLUMN batch_code TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为库存表添加入库记录ID关联
+    try {
+        db.run(`ALTER TABLE inventory ADD COLUMN create_by_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为作物实例表添加创建者ID关联
+    try {
+        db.run(`ALTER TABLE crop_instances ADD COLUMN create_by_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== V6.0 Phase 2: 审批流程增强字段 ==========
+    // 为审批工作流表添加业务类型和版本字段
+    try {
+        db.run(`ALTER TABLE approval_workflows ADD COLUMN business_type TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE approval_workflows ADD COLUMN version INTEGER DEFAULT 1`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为审批单表添加工 workflow_id 和 workflow_name 字段
+    try {
+        db.run(`ALTER TABLE approvals ADD COLUMN workflow_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE approvals ADD COLUMN workflow_name TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== V6.1: 为作物品种表添加详细品种名称字段 ==========
+    try {
+        db.run(`ALTER TABLE crop_varieties ADD COLUMN detail_variety_name TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== V6.2: 作物品种表扩展字段（环境参数、生长周期、别名、描述等） ==========
+    const cropVarietyExtendedColumns = [
+        { name: 'alias', type: 'TEXT' },
+        { name: 'image', type: 'TEXT' },
+        { name: 'description', type: 'TEXT' },
+        { name: 'germination_period', type: 'REAL' },
+        { name: 'seedling_period', type: 'REAL' },
+        { name: 'flowering_period', type: 'REAL' },
+        { name: 'fruiting_period', type: 'REAL' },
+        { name: 'harvest_period', type: 'REAL' },
+        { name: 'air_temperature', type: 'REAL' },
+        { name: 'air_humidity', type: 'REAL' },
+        { name: 'co2_content', type: 'REAL' },
+        { name: 'light_intensity', type: 'REAL' },
+        { name: 'soil_temperature', type: 'REAL' },
+        { name: 'soil_humidity', type: 'REAL' },
+        { name: 'soil_ph', type: 'REAL' },
+        { name: 'soil_ec', type: 'REAL' },
+        { name: 'remarks', type: 'TEXT' },
+    ];
+    for (const col of cropVarietyExtendedColumns) {
+        try {
+            db.run(`ALTER TABLE crop_varieties ADD COLUMN ${col.name} ${col.type}`);
+        }
+        catch (e) {
+            // 列可能已存在，忽略错误
+        }
+    }
+    // ========== V6.0 Phase 1: 新增系统配置和操作日志表 ==========
+    // 系统配置表 - 存储系统参数配置
+    db.run(`
     CREATE TABLE IF NOT EXISTS system_configs (
       id TEXT PRIMARY KEY,
       config_key TEXT NOT NULL UNIQUE,
@@ -1292,9 +1536,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 操作日志表 - 存储用户操作审计日志
-  db.run(`
+    // 操作日志表 - 存储用户操作审计日志
+    db.run(`
     CREATE TABLE IF NOT EXISTS operation_logs (
       id TEXT PRIMARY KEY,
       user_id TEXT,
@@ -1313,11 +1556,9 @@ export function initializeDatabase() {
       created_at TEXT
     )
   `);
-
-  // ========== V6.0 Phase 4: 用户与权限表（完整 RBAC 体系）==========
-
-  // 组织表（树形组织架构，root 为根节点）
-  db.run(`
+    // ========== V6.0 Phase 4: 用户与权限表（完整 RBAC 体系）==========
+    // 组织表（树形组织架构，root 为根节点）
+    db.run(`
     CREATE TABLE IF NOT EXISTS organizations (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1338,9 +1579,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 角色表（关联组织 org_oid，is_system=1 为系统保护角色不可删除）
-  db.run(`
+    // 角色表（关联组织 org_oid，is_system=1 为系统保护角色不可删除）
+    db.run(`
     CREATE TABLE IF NOT EXISTS roles (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1355,9 +1595,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 权限表（权限项定义）
-  db.run(`
+    // 权限表（权限项定义）
+    db.run(`
     CREATE TABLE IF NOT EXISTS permissions (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1370,9 +1609,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 用户表
-  db.run(`
+    // 用户表
+    db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1393,9 +1631,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 用户-角色关联表
-  db.run(`
+    // 用户-角色关联表
+    db.run(`
     CREATE TABLE IF NOT EXISTS user_roles (
       id TEXT PRIMARY KEY,
       user_oid TEXT NOT NULL,
@@ -1404,9 +1641,8 @@ export function initializeDatabase() {
       UNIQUE(user_oid, role_oid)
     )
   `);
-
-  // 角色-权限关联表（旧版）
-  db.run(`
+    // 角色-权限关联表（旧版）
+    db.run(`
     CREATE TABLE IF NOT EXISTS role_permissions (
       id TEXT PRIMARY KEY,
       role_oid TEXT NOT NULL,
@@ -1415,9 +1651,8 @@ export function initializeDatabase() {
       UNIQUE(role_oid, permission_oid)
     )
   `);
-
-  // 工序/菜单表（树形结构，route 绑定前端路由，is_hidden 控制菜单显隐）
-  db.run(`
+    // 工序/菜单表（树形结构，route 绑定前端路由，is_hidden 控制菜单显隐）
+    db.run(`
     CREATE TABLE IF NOT EXISTS processes (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1436,9 +1671,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 动作表（权限动作定义：view/create/edit/delete/export/approve 等）
-  db.run(`
+    // 动作表（权限动作定义：view/create/edit/delete/export/approve 等）
+    db.run(`
     CREATE TABLE IF NOT EXISTS actions (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1452,9 +1686,8 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // 角色-工序-动作 权限矩阵表（value=无权限, 1=有权限）
-  db.run(`
+    // 角色-工序-动作 权限矩阵表（value: 0=无权限, 1=有权限）
+    db.run(`
     CREATE TABLE IF NOT EXISTS roles_authority (
       id TEXT PRIMARY KEY,
       role_oid TEXT NOT NULL,
@@ -1466,9 +1699,8 @@ export function initializeDatabase() {
       UNIQUE(role_oid, process_oid, action_oid)
     )
   `);
-
-  // 角色-组织 数据权限表（控制角色可访问哪些组织的数据）
-  db.run(`
+    // 角色-组织 数据权限表（控制角色可访问哪些组织的数据）
+    db.run(`
     CREATE TABLE IF NOT EXISTS roles_data_authority (
       id TEXT PRIMARY KEY,
       role_oid TEXT NOT NULL,
@@ -1477,9 +1709,8 @@ export function initializeDatabase() {
       UNIQUE(role_oid, org_oid)
     )
   `);
-
-  // 用户特殊权限覆盖表（在角色权限基础上对单用户做增强/限制）
-  db.run(`
+    // 用户特殊权限覆盖表（在角色权限基础上对单用户做增强/限制）
+    db.run(`
     CREATE TABLE IF NOT EXISTS users_authority (
       id TEXT PRIMARY KEY,
       user_oid TEXT NOT NULL,
@@ -1491,9 +1722,8 @@ export function initializeDatabase() {
       UNIQUE(user_oid, process_oid, action_oid)
     )
   `);
-
-  // 项目/APP 配置表（多应用隔离，定义各应用使用的表名）
-  db.run(`
+    // 项目/APP 配置表（多应用隔离，定义各应用使用的表名）
+    db.run(`
     CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY,
       project_name TEXT UNIQUE NOT NULL,
@@ -1508,11 +1738,9 @@ export function initializeDatabase() {
       updated_at TEXT
     )
   `);
-
-  // ========== V6.0 Phase 5: 订单与生产计划表 ==========
-
-  // 订单表
-  db.run(`
+    // ========== V6.0 Phase 5: 订单与生产计划表 ==========
+    // 订单表
+    db.run(`
     CREATE TABLE IF NOT EXISTS crop_orders (
       id TEXT PRIMARY KEY,
       order_code TEXT NOT NULL,
@@ -1536,35 +1764,34 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 迁移：给 crop_orders 表添加缺失的字段（幂等操作，忽略已存在列）
-  const cropOrdersMigrations = [
-    `ALTER TABLE crop_orders ADD COLUMN order_name TEXT`,
-    `ALTER TABLE crop_orders ADD COLUMN crop_category TEXT`,
-    `ALTER TABLE crop_orders ADD COLUMN planned_quantity INTEGER DEFAULT 0`,
-    `ALTER TABLE crop_orders ADD COLUMN actual_quantity INTEGER DEFAULT 0`,
-    `ALTER TABLE crop_orders ADD COLUMN expected_harvest_date TEXT`,
-    `ALTER TABLE crop_orders ADD COLUMN supplier_name TEXT`,
-    // V2.0 三轮审核补齐：与 V1.1 schema 保持一致
-    `ALTER TABLE crop_orders ADD COLUMN completed_quantity INTEGER DEFAULT 0`,
-    `ALTER TABLE crop_orders ADD COLUMN customer_id TEXT`,
-    `ALTER TABLE crop_orders ADD COLUMN customer_phone TEXT`,
-    `ALTER TABLE crop_orders ADD COLUMN expected_completion_date TEXT`,
-    `ALTER TABLE crop_orders ADD COLUMN instance_ids TEXT`,
-  ];
-  for (const sql of cropOrdersMigrations) {
-    try {
-      db.run(sql);
-    } catch (e) {
-      // 忽略 "duplicate column" 错误，确保幂等性
-      if (!e.message.includes('duplicate column')) {
-        console.log(`• crop_orders 迁移: ${e.message}`);
-      }
+    // 迁移：给 crop_orders 表添加缺失的字段（幂等操作，忽略已存在列）
+    const cropOrdersMigrations = [
+        `ALTER TABLE crop_orders ADD COLUMN order_name TEXT`,
+        `ALTER TABLE crop_orders ADD COLUMN crop_category TEXT`,
+        `ALTER TABLE crop_orders ADD COLUMN planned_quantity INTEGER DEFAULT 0`,
+        `ALTER TABLE crop_orders ADD COLUMN actual_quantity INTEGER DEFAULT 0`,
+        `ALTER TABLE crop_orders ADD COLUMN expected_harvest_date TEXT`,
+        `ALTER TABLE crop_orders ADD COLUMN supplier_name TEXT`,
+        // V2.0 三轮审核补齐：与 V1.1 schema 保持一致
+        `ALTER TABLE crop_orders ADD COLUMN completed_quantity INTEGER DEFAULT 0`,
+        `ALTER TABLE crop_orders ADD COLUMN customer_id TEXT`,
+        `ALTER TABLE crop_orders ADD COLUMN customer_phone TEXT`,
+        `ALTER TABLE crop_orders ADD COLUMN expected_completion_date TEXT`,
+        `ALTER TABLE crop_orders ADD COLUMN instance_ids TEXT`,
+    ];
+    for (const sql of cropOrdersMigrations) {
+        try {
+            db.run(sql);
+        }
+        catch (e) {
+            // 忽略 "duplicate column" 错误，确保幂等性
+            if (!e.message.includes('duplicate column')) {
+                console.log(`• crop_orders 迁移: ${e.message}`);
+            }
+        }
     }
-  }
-
-  // 生产计划表
-  db.run(`
+    // 生产计划表
+    db.run(`
     CREATE TABLE IF NOT EXISTS production_plans (
       id TEXT PRIMARY KEY,
       plan_code TEXT NOT NULL,
@@ -1599,9 +1826,8 @@ export function initializeDatabase() {
       target_seedling_count INTEGER DEFAULT 0
     )
   `);
-
-  // ========== V8.0: 技术方案表 ==========
-  db.run(`
+    // ========== V8.0: 技术方案表 ==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS tech_solutions (
       id TEXT PRIMARY KEY,
       solution_code TEXT NOT NULL,
@@ -1627,38 +1853,36 @@ export function initializeDatabase() {
       remarks TEXT
     )
   `);
-
-  // 为技术方案表添加作物编码字段（如果不存在）
-  try {
-    db.run(`ALTER TABLE tech_solutions ADD COLUMN crop_code TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为技术方案表添加最后提交时间字段（如果不存在）
-  try {
-    db.run(`ALTER TABLE tech_solutions ADD COLUMN last_submit_time TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // 为技术方案表添加方案是否有效字段（如果不存在）
-  try {
-    db.run(`ALTER TABLE tech_solutions ADD COLUMN is_valid TEXT DEFAULT '有效'`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // V9.0: 为技术方案表添加适用范围字段（如果不存在）
-  try {
-    db.run(`ALTER TABLE tech_solutions ADD COLUMN scope_names TEXT DEFAULT ''`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ========== 作物品种库扩展表（用户新增的类别/类型/品种/子品种）==========
-
-  db.run(`
+    // 为技术方案表添加作物编码字段（如果不存在）
+    try {
+        db.run(`ALTER TABLE tech_solutions ADD COLUMN crop_code TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为技术方案表添加最后提交时间字段（如果不存在）
+    try {
+        db.run(`ALTER TABLE tech_solutions ADD COLUMN last_submit_time TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为技术方案表添加方案是否有效字段（如果不存在）
+    try {
+        db.run(`ALTER TABLE tech_solutions ADD COLUMN is_valid TEXT DEFAULT '有效'`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // V9.0: 为技术方案表添加适用范围字段（如果不存在）
+    try {
+        db.run(`ALTER TABLE tech_solutions ADD COLUMN scope_names TEXT DEFAULT ''`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== 作物品种库扩展表（用户新增的类别/类型/品种/子品种）==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS crop_variety_category_extensions (
       id TEXT PRIMARY KEY,
       category_code TEXT NOT NULL,
@@ -1670,7 +1894,7 @@ export function initializeDatabase() {
       UNIQUE(category_code)
     )
   `);
-  db.run(`
+    db.run(`
     CREATE TABLE IF NOT EXISTS crop_variety_type_extensions (
       id TEXT PRIMARY KEY,
       category_code TEXT NOT NULL,
@@ -1684,8 +1908,7 @@ export function initializeDatabase() {
       UNIQUE(category_code, type_code)
     )
   `);
-
-  db.run(`
+    db.run(`
     CREATE TABLE IF NOT EXISTS crop_variety_variety_extensions (
       id TEXT PRIMARY KEY,
       category_code TEXT NOT NULL,
@@ -1699,8 +1922,7 @@ export function initializeDatabase() {
       UNIQUE(category_code, type_code, variety_code)
     )
   `);
-
-  db.run(`
+    db.run(`
     CREATE TABLE IF NOT EXISTS crop_variety_sub1_extensions (
       id TEXT PRIMARY KEY,
       category_code TEXT NOT NULL,
@@ -1715,10 +1937,9 @@ export function initializeDatabase() {
       UNIQUE(category_code, type_code, variety_code, sub_variety1_code)
     )
   `);
-
-  // ========== V8.0: 物料成本表 ==========
-  // 物料成本表 - 用于统计生产过程中的物料消耗成本
-  db.run(`
+    // ========== V8.0: 物料成本表 ==========
+    // 物料成本表 - 用于统计生产过程中的物料消耗成本
+    db.run(`
     CREATE TABLE IF NOT EXISTS material_costs (
       id TEXT PRIMARY KEY,
       cost_code TEXT NOT NULL,
@@ -1745,10 +1966,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V8.0: 能源成本表 ==========
-  // 能源成本表 - 用于统计生产过程中的能源消耗（电、水、燃气等）
-  db.run(`
+    // ========== V8.0: 能源成本表 ==========
+    // 能源成本表 - 用于统计生产过程中的能源消耗（电、水、燃气等）
+    db.run(`
     CREATE TABLE IF NOT EXISTS energy_costs (
       id TEXT PRIMARY KEY,
       cost_code TEXT NOT NULL,
@@ -1770,27 +1990,28 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 为能源成本表添加ALTER TABLE（向后兼容）
-  try {
-    db.run(`ALTER TABLE energy_costs ADD COLUMN crop_name TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE energy_costs ADD COLUMN supplier_id TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-  try {
-    db.run(`ALTER TABLE energy_costs ADD COLUMN supplier_name TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ========== V8.0: 加班记录表 ==========
-  // 加班记录表 - 用于存储员工加班申请记录
-  db.run(`
+    // 为能源成本表添加ALTER TABLE（向后兼容）
+    try {
+        db.run(`ALTER TABLE energy_costs ADD COLUMN crop_name TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE energy_costs ADD COLUMN supplier_id TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    try {
+        db.run(`ALTER TABLE energy_costs ADD COLUMN supplier_name TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== V8.0: 加班记录表 ==========
+    // 加班记录表 - 用于存储员工加班申请记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS overtime_records (
       id TEXT PRIMARY KEY,
       worker_id TEXT,
@@ -1817,10 +2038,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V8.0: 请假记录表 ==========
-  // 请假记录表 - 用于存储员工请假申请记录
-  db.run(`
+    // ========== V8.0: 请假记录表 ==========
+    // 请假记录表 - 用于存储员工请假申请记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS leave_records (
       id TEXT PRIMARY KEY,
       worker_id TEXT,
@@ -1841,10 +2061,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V8.0: 请假额度表 ==========
-  // 请假额度表 - 用于存储员工每年的请假额度
-  db.run(`
+    // ========== V8.0: 请假额度表 ==========
+    // 请假额度表 - 用于存储员工每年的请假额度
+    db.run(`
     CREATE TABLE IF NOT EXISTS leave_quotas (
       id TEXT PRIMARY KEY,
       worker_id TEXT NOT NULL,
@@ -1863,10 +2082,9 @@ export function initializeDatabase() {
       UNIQUE(worker_id, year, leave_category)
     )
   `);
-
-  // ========== V9.0: 入职记录表 ==========
-  // 入职记录表 - 用于存储员工入职办理记录
-  db.run(`
+    // ========== V9.0: 入职记录表 ==========
+    // 入职记录表 - 用于存储员工入职办理记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS onboarding_records (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1892,10 +2110,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V8.0: 每日记录表 ==========
-  // 每日记录表 - 用于存储各类业务的每日汇总或明细记录
-  db.run(`
+    // ========== V8.0: 每日记录表 ==========
+    // 每日记录表 - 用于存储各类业务的每日汇总或明细记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS daily_records (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1917,10 +2134,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V8.0: 打印记录表 ==========
-  // 打印记录表 - 用于存储打印操作的历史记录
-  db.run(`
+    // ========== V8.0: 打印记录表 ==========
+    // 打印记录表 - 用于存储打印操作的历史记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS print_records (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1940,10 +2156,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V8.0: 定植记录表 ==========
-  // 定植记录表 - 用于存储定植操作的相关记录
-  db.run(`
+    // ========== V8.0: 定植记录表 ==========
+    // 定植记录表 - 用于存储定植操作的相关记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS transplant_records (
       id TEXT PRIMARY KEY,
       oid TEXT UNIQUE NOT NULL,
@@ -1971,9 +2186,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-  // ========== V12.0: 繁殖过程记录表 ==========
-  // 存储育种/留种/无性繁殖各阶段的过程记录
-  db.run(`
+    // ========== V12.0: 繁殖过程记录表 ==========
+    // 存储育种/留种/无性繁殖各阶段的过程记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS propagation_records (
       id TEXT PRIMARY KEY,
       seed_source_id TEXT NOT NULL,
@@ -2002,42 +2217,40 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 为生产计划表添加新字段（向后兼容）
-  const productionPlanColumns = [
-    'responsible_person',
-    'unit',
-    'publish_date',
-    'batch_status',
-    'plan_detail',
-    'plan_detail_file_name',
-    'planting_area',
-    'planting_mode',
-    'supplier_name',
-    'seedling_site_name',
-    'seed_quantity',
-    'target_seedling_count',
-    'execution_status'
-  ];
-
-  for (const col of productionPlanColumns) {
-    try {
-      db.run(`ALTER TABLE production_plans ADD COLUMN ${col} TEXT`);
-    } catch (e) {
-      // 列可能已存在，忽略错误
+    // 为生产计划表添加新字段（向后兼容）
+    const productionPlanColumns = [
+        'responsible_person',
+        'unit',
+        'publish_date',
+        'batch_status',
+        'plan_detail',
+        'plan_detail_file_name',
+        'planting_area',
+        'planting_mode',
+        'supplier_name',
+        'seedling_site_name',
+        'seed_quantity',
+        'target_seedling_count',
+        'execution_status'
+    ];
+    for (const col of productionPlanColumns) {
+        try {
+            db.run(`ALTER TABLE production_plans ADD COLUMN ${col} TEXT`);
+        }
+        catch (e) {
+            // 列可能已存在，忽略错误
+        }
     }
-  }
-
-  // 确保 batch_status 有默认值
-  try {
-    db.run(`ALTER TABLE production_plans ADD COLUMN batch_status TEXT DEFAULT 'draft'`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ========== V8.0: 公告模板表 ==========
-  // 公告模板表 - 用于存储公告模板，支持快速创建公告
-  db.run(`
+    // 确保 batch_status 有默认值
+    try {
+        db.run(`ALTER TABLE production_plans ADD COLUMN batch_status TEXT DEFAULT 'draft'`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== V8.0: 公告模板表 ==========
+    // 公告模板表 - 用于存储公告模板，支持快速创建公告
+    db.run(`
     CREATE TABLE IF NOT EXISTS announcement_templates (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -2053,10 +2266,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V8.0: 公告表 ==========
-  // 公告表 - 用于存储系统公告
-  db.run(`
+    // ========== V8.0: 公告表 ==========
+    // 公告表 - 用于存储系统公告
+    db.run(`
     CREATE TABLE IF NOT EXISTS announcements (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -2075,10 +2287,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V8.0: 指标表 ==========
-  // 指标表 - 用于存储生产管理指标
-  db.run(`
+    // ========== V8.0: 指标表 ==========
+    // 指标表 - 用于存储生产管理指标
+    db.run(`
     CREATE TABLE IF NOT EXISTS indicators (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -2096,9 +2307,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== 指标评估表（基地综合评分）==========
-  db.run(`
+    // ========== 指标评估表（基地综合评分）==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS indicator_evaluations (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -2112,9 +2322,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== 员工表（人工管理模块核心表）==========
-  db.run(`
+    // ========== 员工表（人工管理模块核心表）==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS employees (
       id TEXT PRIMARY KEY,
       employee_code TEXT NOT NULL,
@@ -2141,10 +2350,9 @@ export function initializeDatabase() {
       approval_code TEXT
     )
   `);
-
-  // ========== V9.0: 排班管理表 ==========
-  // 排班表 - 用于存储员工排班信息
-  db.run(`
+    // ========== V9.0: 排班管理表 ==========
+    // 排班表 - 用于存储员工排班信息
+    db.run(`
     CREATE TABLE IF NOT EXISTS schedules (
       id TEXT PRIMARY KEY,
       staff_id TEXT NOT NULL,
@@ -2161,9 +2369,8 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 调班申请表
-  db.run(`
+    // 调班申请表
+    db.run(`
     CREATE TABLE IF NOT EXISTS swap_requests (
       id TEXT PRIMARY KEY,
       requester_id TEXT NOT NULL,
@@ -2178,20 +2385,18 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // 为 schedules 表添加索引
-  try {
-    db.run(`CREATE INDEX IF NOT EXISTS idx_schedules_date ON schedules(date)`);
-    db.run(`CREATE INDEX IF NOT EXISTS idx_schedules_staff_id ON schedules(staff_id)`);
-    db.run(`CREATE INDEX IF NOT EXISTS idx_schedules_date_staff ON schedules(date, staff_id)`);
-  } catch (e) {
-    // 索引可能已存在
-  }
-
-  // ========== 仓库物料管理表 ==========
-
-  // 物料表
-  db.run(`
+    // 为 schedules 表添加索引
+    try {
+        db.run(`CREATE INDEX IF NOT EXISTS idx_schedules_date ON schedules(date)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_schedules_staff_id ON schedules(staff_id)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_schedules_date_staff ON schedules(date, staff_id)`);
+    }
+    catch (e) {
+        // 索引可能已存在
+    }
+    // ========== 仓库物料管理表 ==========
+    // 物料表
+    db.run(`
     CREATE TABLE IF NOT EXISTS materials (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       code TEXT NOT NULL,
@@ -2213,16 +2418,15 @@ export function initializeDatabase() {
       dataStatus TEXT DEFAULT '启用'
     )
   `);
-
-  // 物料批次索引（code + batchNo 联合查询加速）
-  try {
-    db.run('CREATE INDEX IF NOT EXISTS idx_materials_code_batch ON materials(code, batchNo)');
-  } catch (e) {
-    // 索引可能已存在
-  }
-
-  // 入库记录表
-  db.run(`
+    // 物料批次索引（code + batchNo 联合查询加速）
+    try {
+        db.run('CREATE INDEX IF NOT EXISTS idx_materials_code_batch ON materials(code, batchNo)');
+    }
+    catch (e) {
+        // 索引可能已存在
+    }
+    // 入库记录表
+    db.run(`
     CREATE TABLE IF NOT EXISTS inbound_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       code TEXT NOT NULL,
@@ -2234,10 +2438,9 @@ export function initializeDatabase() {
       voidedDate TEXT
     )
   `);
-
-  // ========== V9.0: 离职记录表 ==========
-  // 离职记录表 - 用于存储员工离职申请记录
-  db.run(`
+    // ========== V9.0: 离职记录表 ==========
+    // 离职记录表 - 用于存储员工离职申请记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS resignation_records (
       id TEXT PRIMARY KEY,
       resignation_code TEXT NOT NULL,
@@ -2261,10 +2464,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V9.0: 招聘记录表 ==========
-  // 招聘记录表 - 用于存储招聘申请记录
-  db.run(`
+    // ========== V9.0: 招聘记录表 ==========
+    // 招聘记录表 - 用于存储招聘申请记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS recruitment_records (
       id TEXT PRIMARY KEY,
       recruitment_code TEXT NOT NULL,
@@ -2291,10 +2493,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V9.0: 合同续签记录表 ==========
-  // 合同续签记录表 - 用于存储合同续签记录
-  db.run(`
+    // ========== V9.0: 合同续签记录表 ==========
+    // 合同续签记录表 - 用于存储合同续签记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS contract_renewal_records (
       id TEXT PRIMARY KEY,
       employee_id TEXT,
@@ -2315,10 +2516,9 @@ export function initializeDatabase() {
       create_time TEXT
     )
   `);
-
-  // ========== V9.0: 工资预算记录表 ==========
-  // 工资预算记录表 - 用于存储工资预算记录
-  db.run(`
+    // ========== V9.0: 工资预算记录表 ==========
+    // 工资预算记录表 - 用于存储工资预算记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS salary_budget_records (
       id TEXT PRIMARY KEY,
       budget_code TEXT NOT NULL,
@@ -2339,10 +2539,9 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
-
-  // ========== V10.0: 施肥管理模块 ==========
-  // 施肥记录表 — 手动记录 + IoT自动记录
-  db.run(`
+    // ========== V10.0: 施肥管理模块 ==========
+    // 施肥记录表 — 手动记录 + IoT自动记录
+    db.run(`
     CREATE TABLE IF NOT EXISTS fertilizer_records (
       id TEXT PRIMARY KEY,
       fertilizer_code TEXT NOT NULL UNIQUE,
@@ -2375,9 +2574,8 @@ export function initializeDatabase() {
       update_time TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // ========== V10.0: 行政区划字典表 ==========
-  db.run(`
+    // ========== V10.0: 行政区划字典表 ==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS region_data (
       id INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
@@ -2385,9 +2583,8 @@ export function initializeDatabase() {
       level TEXT NOT NULL CHECK(level IN ('country', 'province', 'city', 'area'))
     )
   `);
-
-  // ========== V10.0: 种植标签管理 ==========
-  db.run(`
+    // ========== V10.0: 种植标签管理 ==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS plant_labels (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       label_number TEXT NOT NULL,
@@ -2402,8 +2599,7 @@ export function initializeDatabase() {
       create_time TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  db.run(`
+    db.run(`
     CREATE TABLE IF NOT EXISTS plant_label_resume (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       label_id INTEGER NOT NULL,
@@ -2418,8 +2614,7 @@ export function initializeDatabase() {
       create_time TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  db.run(`
+    db.run(`
     CREATE TABLE IF NOT EXISTS plant_marks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -2431,9 +2626,8 @@ export function initializeDatabase() {
       sort_order INTEGER DEFAULT 0
     )
   `);
-
-  // ========== V10.0: IoT设备白名单 ==========
-  db.run(`
+    // ========== V10.0: IoT设备白名单 ==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS iot_devices (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       device_id TEXT NOT NULL UNIQUE,
@@ -2443,16 +2637,15 @@ export function initializeDatabase() {
       create_time TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // 为 departments 表添加缺失的描述列
-  try {
-    db.run(`ALTER TABLE departments ADD COLUMN description TEXT`);
-  } catch (e) {
-    // 列可能已存在，忽略错误
-  }
-
-  // ========== V11.0: 工序定义表（系统设置 - 工序管理）==========
-  db.run(`
+    // 为 departments 表添加缺失的描述列
+    try {
+        db.run(`ALTER TABLE departments ADD COLUMN description TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // ========== V11.0: 工序定义表（系统设置 - 工序管理）==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS process_definitions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2468,11 +2661,9 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // ========== V11.0: 分级审批配置表 ==========
-
-  // 审批级别配置表 — 4个审批级别的详细配置
-  db.run(`
+    // ========== V11.0: 分级审批配置表 ==========
+    // 审批级别配置表 — 4个审批级别的详细配置
+    db.run(`
     CREATE TABLE IF NOT EXISTS approval_level_configs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2488,9 +2679,8 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // 审批金额阈值表 — 金额区间对应的审批级别
-  db.run(`
+    // 审批金额阈值表 — 金额区间对应的审批级别
+    db.run(`
     CREATE TABLE IF NOT EXISTS approval_amount_thresholds (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2502,9 +2692,8 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // ========== V11.0: 通知偏好设置表 ==========
-  db.run(`
+    // ========== V11.0: 通知偏好设置表 ==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS notification_preferences (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_oid TEXT NOT NULL UNIQUE,
@@ -2520,9 +2709,8 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // 审批类型规则表 — 37种审批类型的特殊规则
-  db.run(`
+    // 审批类型规则表 — 37种审批类型的特殊规则
+    db.run(`
     CREATE TABLE IF NOT EXISTS approval_type_rules (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2538,10 +2726,8 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // ========== V11.0: 成本核算管理表 ==========
-
-  db.run(`
+    // ========== V11.0: 成本核算管理表 ==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS cost_categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2555,8 +2741,7 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  db.run(`
+    db.run(`
     CREATE TABLE IF NOT EXISTS cost_budgets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2571,9 +2756,8 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // ========== V11.0: 班次管理表 ==========
-  db.run(`
+    // ========== V11.0: 班次管理表 ==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS shifts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2588,9 +2772,8 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // ========== V11.0: 农事活动定义表（系统设置 - 农事活动管理）==========
-  db.run(`
+    // ========== V11.0: 农事活动定义表（系统设置 - 农事活动管理）==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS farm_activities (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2609,9 +2792,8 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // ========== V11.0: 物料类型定义表（系统设置 - 物料管理）==========
-  db.run(`
+    // ========== V11.0: 物料类型定义表（系统设置 - 物料管理）==========
+    db.run(`
     CREATE TABLE IF NOT EXISTS material_types (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oid TEXT UNIQUE NOT NULL,
@@ -2627,10 +2809,9 @@ export function initializeDatabase() {
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // ========== V2.0: 病虫害字典表 ==========
-  // 病虫害字典主表（虫害和病害）
-  db.run(`
+    // ========== V2.0: 病虫害字典表 ==========
+    // 病虫害字典主表（虫害和病害）
+    db.run(`
     CREATE TABLE IF NOT EXISTS pest_disease_dict (
       id TEXT PRIMARY KEY,
       dict_code TEXT NOT NULL UNIQUE,
@@ -2643,9 +2824,8 @@ export function initializeDatabase() {
       update_time TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // 药剂知识库主表
-  db.run(`
+    // 药剂知识库主表
+    db.run(`
     CREATE TABLE IF NOT EXISTS pesticide_library (
       id TEXT PRIMARY KEY,
       pesticide_code TEXT NOT NULL UNIQUE,
@@ -2661,9 +2841,8 @@ export function initializeDatabase() {
       update_time TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // 药剂规格明细表
-  db.run(`
+    // 药剂规格明细表
+    db.run(`
     CREATE TABLE IF NOT EXISTS pesticide_specs (
       id TEXT PRIMARY KEY,
       pesticide_id TEXT NOT NULL,
@@ -2681,9 +2860,8 @@ export function initializeDatabase() {
       FOREIGN KEY (pesticide_id) REFERENCES pesticide_library(id) ON DELETE CASCADE
     )
   `);
-
-  // 药剂-病虫害关联表
-  db.run(`
+    // 药剂-病虫害关联表
+    db.run(`
     CREATE TABLE IF NOT EXISTS pesticide_pest_relation (
       id TEXT PRIMARY KEY,
       pesticide_id TEXT NOT NULL,
@@ -2692,10 +2870,9 @@ export function initializeDatabase() {
       UNIQUE(pesticide_id, pest_id)
     )
   `);
-
-  // ========== V12.0: 肥料知识库表 ==========
-  // 肥料知识库主表
-  db.run(`
+    // ========== V12.0: 肥料知识库表 ==========
+    // 肥料知识库主表
+    db.run(`
     CREATE TABLE IF NOT EXISTS fertilizer_library (
       id TEXT PRIMARY KEY,
       fertilizer_code TEXT NOT NULL UNIQUE,
@@ -2712,9 +2889,8 @@ export function initializeDatabase() {
       update_time TEXT DEFAULT (datetime('now','localtime'))
     )
   `);
-
-  // 肥料规格明细表
-  db.run(`
+    // 肥料规格明细表
+    db.run(`
     CREATE TABLE IF NOT EXISTS fertilizer_specs (
       id TEXT PRIMARY KEY,
       fertilizer_id TEXT NOT NULL,
@@ -2730,13 +2906,12 @@ export function initializeDatabase() {
       FOREIGN KEY (fertilizer_id) REFERENCES fertilizer_library(id) ON DELETE CASCADE
     )
   `);
-
-  console.log('数据库表初始化完成');
-
-  // 创建索引
-  try {
-    createIndexes();
-  } catch (e) {
-    console.error('索引创建失败:', e);
-  }
+    console.log('数据库表初始化完成');
+    // 创建索引
+    try {
+        createIndexes();
+    }
+    catch (e) {
+        console.error('索引创建失败:', e);
+    }
 }

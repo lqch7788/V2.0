@@ -4,7 +4,7 @@
   "description": "原形图后端API服务 - Node.js + SQLite",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "node --watch src/index.js",
     "build": "tsc",
     "start": "node dist/index.js",
     "seed": "tsx src/db/seedData.ts",
