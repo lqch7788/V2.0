@@ -3,7 +3,7 @@
  * 验证请求头中的 Authorization: Bearer <token>
  */
 
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 // JWT 密钥配置
 // 演示模式（默认）：如果未设置 DEMO_MODE 或 DEMO_MODE != 'false'，则启用演示模式
