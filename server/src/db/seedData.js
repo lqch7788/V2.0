@@ -4773,6 +4773,7 @@ export function exportDatabase() {
     seedUsersAndRoles();
     seedAuthorityData();
     seedAllBusinessData();
+    seedTechSolutions();
     seedMaterialCosts();
     seedEnergyCosts();
     seedFertilizerAndMarks();
@@ -4903,4 +4904,137 @@ function seedAnnouncementTemplates() {
     }
     saveDatabase();
     console.log(`已导入公告模板种子数据: ${defaultData.length}条`);
+}
+
+/**
+ * 导入技术方案种子数据
+ * V9.0 阶段：用户要求"陆启闯"为默认管理员，此处为陆启闯创建 5 个示例技术方案
+ */
+function seedTechSolutions() {
+    const db = getDatabase();
+    const now = new Date().toISOString();
+    const techSolutions = [
+        {
+            id: 'TS001',
+            solution_code: 'T202601001',
+            solution_title: '春季水稻育秧技术方案',
+            crop_name: '水稻',
+            crop_code: 'CROP_RICE',
+            planting_mode: '直播',
+            stage: '育秧期',
+            version: 'V1.0',
+            content: '本方案针对长江中下游地区春季水稻育秧，涵盖晒种、浸种、催芽、播种、温湿度管理等关键环节。播种量 2-2.5kg/亩，催芽温度 30-32℃。',
+            author: '陆启闯',
+            author_id: 'USER_ADMIN_001',
+            status: 'draft',
+            batch_status: 'published',
+            related_batch_code: 'JZB2026-001',
+            plan_detail_file_name: '春季水稻育秧技术方案.pdf',
+            priority: 'high',
+            remarks: '适用于长江中下游地区',
+            is_valid: '有效',
+            scope_names: '水稻,育秧,春季'
+        },
+        {
+            id: 'TS002',
+            solution_code: 'T202601002',
+            solution_title: '设施蔬菜越冬栽培管理方案',
+            crop_name: '番茄',
+            crop_code: 'CROP_TOMATO',
+            planting_mode: '温室栽培',
+            stage: '开花结果期',
+            version: 'V1.0',
+            content: '针对设施番茄越冬栽培管理，涵盖温湿度调控、CO2施肥、熊蜂授粉、疏花疏果、病虫害综合防治等技术措施。夜间温度不低于 13℃，白天 25-28℃。',
+            author: '陆启闯',
+            author_id: 'USER_ADMIN_001',
+            status: 'draft',
+            batch_status: 'published',
+            related_batch_code: 'JZB2026-002',
+            plan_detail_file_name: '设施番茄越冬栽培方案.pdf',
+            priority: 'high',
+            remarks: '北方设施蔬菜主推方案',
+            is_valid: '有效',
+            scope_names: '番茄,设施,越冬'
+        },
+        {
+            id: 'TS003',
+            solution_code: 'T202601003',
+            solution_title: '夏季叶菜速生栽培技术方案',
+            crop_name: '小白菜',
+            crop_code: 'CROP_CABBAGE',
+            planting_mode: '露地',
+            stage: '全生育期',
+            version: 'V1.0',
+            content: '夏季高温期速生叶菜栽培方案，遮阳网 + 微喷灌降温，从播种到采收 25-30 天。注意防雨和猝倒病，采收前 7 天停止用药。',
+            author: '陆启闯',
+            author_id: 'USER_ADMIN_001',
+            status: 'draft',
+            batch_status: 'approved',
+            related_batch_code: '',
+            plan_detail_file_name: '',
+            priority: 'normal',
+            remarks: '夏季补淡栽培',
+            is_valid: '有效',
+            scope_names: '小白菜,速生,夏季'
+        },
+        {
+            id: 'TS004',
+            solution_code: 'T202602004',
+            solution_title: '柑橘溃疡病综合防治方案',
+            crop_name: '柑橘',
+            crop_code: 'CROP_CITRUS',
+            planting_mode: '露地',
+            stage: '新梢期',
+            version: 'V1.0',
+            content: '柑橘溃疡病综合防治，重点是新梢期的预防。选用抗病砧木，配方施肥，化学防治采用波尔多液 + 春雷霉素，轮换用药防抗性。',
+            author: '陆启闯',
+            author_id: 'USER_ADMIN_001',
+            status: 'draft',
+            batch_status: 'pending',
+            related_batch_code: '',
+            plan_detail_file_name: '',
+            priority: 'high',
+            remarks: '待审批',
+            is_valid: '有效',
+            scope_names: '柑橘,溃疡病,防治'
+        },
+        {
+            id: 'TS005',
+            solution_code: 'T202602005',
+            solution_title: '茶园绿色防控技术方案',
+            crop_name: '茶树',
+            crop_code: 'CROP_TEA',
+            planting_mode: '露地',
+            stage: '采摘期',
+            version: 'V1.0',
+            content: '茶园病虫害绿色防控：性诱剂诱捕、灯光诱杀、生物源农药（苦参碱、印楝素）、人工释放天敌。采摘前 15 天停止化学用药。',
+            author: '陆启闯',
+            author_id: 'USER_ADMIN_001',
+            status: 'draft',
+            batch_status: 'approved',
+            related_batch_code: '',
+            plan_detail_file_name: '',
+            priority: 'normal',
+            remarks: '绿色食品茶园认证必备',
+            is_valid: '有效',
+            scope_names: '茶树,绿色防控,采摘期'
+        }
+    ];
+    for (const sol of techSolutions) {
+        db.run(`
+      INSERT OR IGNORE INTO tech_solutions (
+        id, solution_code, solution_title, crop_name, crop_code, planting_mode, stage,
+        version, content, author, author_id, create_time, update_time,
+        status, batch_status, related_batch_code, plan_detail_file_name,
+        priority, remarks, last_submit_time, is_valid, scope_names
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+            sol.id, sol.solution_code, sol.solution_title, sol.crop_name, sol.crop_code,
+            sol.planting_mode, sol.stage, sol.version, sol.content, sol.author, sol.author_id,
+            now, now, sol.status, sol.batch_status, sol.related_batch_code,
+            sol.plan_detail_file_name, sol.priority, sol.remarks, now, sol.is_valid, sol.scope_names
+        ]);
+    }
+    saveDatabase();
+    console.log(`已导入技术方案种子数据: ${techSolutions.length}条`);
 }
