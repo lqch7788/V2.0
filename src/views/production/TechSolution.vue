@@ -7,7 +7,7 @@
           <FileCode class="w-6 h-6 text-white" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">技术方案列表</h1>
+          <h1 class="text-2xl font-bold text-gray-900">技术方案</h1>
           <p class="text-gray-500">种植技术方案的管理与发布</p>
         </div>
       </div>
@@ -189,7 +189,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTechSolutionStore } from '@/stores/modules/techSolution'
@@ -223,7 +223,7 @@ import { useCropOptions } from '@/composables/production/useCropOptions'
 import { btnSecondary, btnDestructive, btnGhost } from './constants/buttonStyles'
 
 // 修复 Y6: HTML 转义工具函数（导出时防止 XSS 和表格结构破坏）
-const escapeHtml = (s: any) => String(s ?? '')
+const escapeHtml = (s) => String(s ?? '')
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;')
@@ -302,7 +302,7 @@ const handleFocus = () => {
 const { cropOptions } = useCropOptions(() => techSolutions.value)
 
 const filteredTechSolutions = computed(() => {
-  return techSolutions.value.filter((tech: any) => {
+  return techSolutions.value.filter((tech) => {
     if (filters.value.code && !tech.code.toLowerCase().includes(filters.value.code.toLowerCase())) return false
     if (filters.value.cropFilter && filters.value.cropFilter !== '全部' && tech.crop !== filters.value.cropFilter) return false
     if (filters.value.author && !tech.author.toLowerCase().includes(filters.value.author.toLowerCase())) return false
@@ -391,7 +391,7 @@ const editForm = ref({
   cropCode: '',
   plantingMode: '',
   stage: '',
-  scopes: [] as string[],
+  scopes: [],
   version: '',
   content: '',
   remarks: '',
@@ -416,7 +416,7 @@ const newPlanForm = ref({
   cropCode: '',
   plantingMode: '水培',
   stage: '',
-  scopes: [] as string[],
+  scopes: [],
   author: localStorage.getItem('username') || '',
   version: 'V1.0',
   content: '',
@@ -434,7 +434,7 @@ const setSelectedRows = (rows: (string | number)[]) => {
   selectedRows.value = rows
 }
 
-const handleViewClick = async (tech: any) => {
+const handleViewClick = async (tech) => {
   selectedTech.value = tech
   viewModalOpen.value = true
   viewApprovalsLoading.value = true
@@ -451,7 +451,7 @@ const handleViewClick = async (tech: any) => {
   }
 }
 
-const handleEditClick = (tech: any) => {
+const handleEditClick = (tech) => {
   if (tech.isValid === '作废') {
     showAlert('该方案已作废，无法编辑')
     return
@@ -610,13 +610,13 @@ const handleSelectAll = () => {
   if (selectedRows.value.length === techSolutions.value.length) {
     selectedRows.value = []
   } else {
-    selectedRows.value = techSolutions.value.map((t: any) => t.id)
+    selectedRows.value = techSolutions.value.map((t) => t.id)
   }
 }
 
-const handleSelectRow = (id: string | number) => {
+const handleSelectRow = (id) => {
   if (selectedRows.value.includes(id)) {
-    selectedRows.value = selectedRows.value.filter((rowId: string | number) => rowId !== id)
+    selectedRows.value = selectedRows.value.filter((rowId) => rowId !== id)
   } else {
     selectedRows.value = [...selectedRows.value, id]
   }
@@ -631,10 +631,10 @@ const handleConfirmExport = () => {
 }
 
 const handleDoExport = async () => {
-  const selectedData = techSolutions.value.filter((t: any) => selectedRows.value.includes(t.id))
+  const selectedData = techSolutions.value.filter((t) => selectedRows.value.includes(t.id))
   // 修复 P0-001/P0-011 衍生：导出列与 V1.1 L477 一致（11 列，无自创的最后提交时间/审核人/审批状态）
   const headers = ['方案编号', '关联生产计划批次', '方案标题', '作物品种', '种植模式', '适用范围', '版本', '编制人', '创建日期', '状态', '方案是否有效']
-  const exportData = selectedData.map((row: any) => ({
+  const exportData = selectedData.map((row) => ({
     '方案编号': row.code,
     '关联生产计划批次': row.relatedBatchCode || '-',
     '方案标题': row.title,
@@ -656,9 +656,9 @@ const handleDoExport = async () => {
 
   if (exportFormat.value === 'csv') {
     // 修复 Y6: CSV 字段值中的逗号/引号需转义（避免破坏列结构）
-    content = headers.join(',') + '\n' + exportData.map((row: any) =>
-      headers.map((h: string) => {
-        const cell = String(row[h as keyof typeof row] ?? '').replace(/"/g, '""')
+    content = headers.join(',') + '\n' + exportData.map((row) =>
+      headers.map((h) => {
+        const cell = String(row[h] ?? '').replace(/"/g, '""')
         return `"${cell}"`
       }).join(',')
     ).join('\n')
@@ -666,11 +666,11 @@ const handleDoExport = async () => {
     extension = 'csv'
   } else if (exportFormat.value === 'excel') {
     // 修复 Y6: Excel 单元格值需 HTML 转义（防 < > & " ' 破坏表格结构）
-    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map((h: string) => `<th>${escapeHtml(h)}</th>`).join('')}</tr>${exportData.map((row: any) => `<tr>${headers.map((h: string) => `<td>${escapeHtml(row[h as keyof typeof row])}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map((h) => `<th>${escapeHtml(h)}</th>`).join('')}</tr>${exportData.map((row) => `<tr>${headers.map((h) => `<td>${escapeHtml(row[h])}</td>`).join('')}</tr>`).join('')}</table></body></html>`
     mimeType = 'application/vnd.ms-excel;charset=utf-8'
     extension = 'xls'
   } else if (exportFormat.value === 'word') {
-    content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1">${headers.map((h: string) => `<th>${h}</th>`).join('')}${exportData.map((row: any) => `<tr>${headers.map((h: string) => `<td>${row[h as keyof typeof row] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1">${headers.map((h) => `<th>${h}</th>`).join('')}${exportData.map((row) => `<tr>${headers.map((h) => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
     mimeType = 'application/vnd.ms-word;charset=utf-8'
     extension = 'doc'
   }
@@ -768,7 +768,7 @@ const openBatchEdit = () => {
     return
   }
   // 修复 I1 衍生：与 V1.1 L670-674 一致，打开批量编辑弹窗时设置默认选中的方案编号
-  const selectedTechsData = techSolutions.value.filter((t: any) =>
+  const selectedTechsData = techSolutions.value.filter((t) =>
     selectedRows.value.includes(t.id)
   )
   if (selectedTechsData.length > 0) {
@@ -825,7 +825,7 @@ const cancelBatchEdit = () => {
   editedTechs.value = {}
 }
 
-const downloadPlanDetail = (tech: any) => {
+const downloadPlanDetail = (tech) => {
   const fileName = tech.planDetailFileName
   const isDocx = fileName.endsWith('.docx')
   // 修复 P0-002 衍生：下载文件内容中"种植模式"使用字典 label（与 V1.1 L696 一致）

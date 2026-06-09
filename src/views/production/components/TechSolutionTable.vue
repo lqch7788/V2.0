@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white rounded-xl shadow-sm overflow-hidden">
     <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-900">技术方案列表</h3>
+      <h3 class="text-lg font-semibold text-gray-900">技术方案</h3>
       <div v-if="batchMode || exportMode" class="flex gap-2">
         <button v-if="batchEditMode" :class="btnBlue" @click="emit('openBatchEdit')">
           <Edit class="w-4 h-4" />
@@ -151,7 +151,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Plus, Edit, Trash2, Download, Pencil } from 'lucide-vue-next'
 // 修复 P1-1：从共享工具函数导入字典映射（合并 3 处重复实现）
 // V1.1 中种植模式列显示的是字典 label（如"水培"），而非 raw value
@@ -160,20 +160,9 @@ import { getDictItemNameSync } from '@/utils/dictHelpers'
 // 第二阶段 Y2 重构：按钮样式抽常量
 import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnGhost } from '../constants/buttonStyles'
 
-interface Props {
-  data: any[]
-  selectedRows: (string | number)[]
-  batchMode?: boolean
-  batchEditMode?: boolean
-  batchDeleteMode?: boolean
-  exportMode?: boolean
-  canCreate?: boolean
-  canEdit?: boolean
-  canDelete?: boolean
-  canExport?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps({}), {
+  data: () => [],
+  selectedRows: () => [],
   batchMode: false,
   batchEditMode: false,
   batchDeleteMode: false,
@@ -184,21 +173,21 @@ const props = withDefaults(defineProps<Props>(), {
   canExport: true,
 })
 
-const emit = defineEmits<{
-  'view': [tech: any]
-  'edit': [tech: any]
-  'delete': [ids: (string | number)[]]
-  'download': [tech: any]
-  'selectRow': [id: string | number]
-  'selectAll': []
-  'create': []
-  'startBatchEdit': []
-  'startBatchDelete': []
-  'startExport': []
-  'openBatchEdit': []
-  'openDelete': []
-  'openExport': []
-  'cancelBatch': []
-  'cancelExport': []
-}>()
+const emit = defineEmits([
+  'view',
+  'edit',
+  'delete',
+  'download',
+  'selectRow',
+  'selectAll',
+  'create',
+  'startBatchEdit',
+  'startBatchDelete',
+  'startExport',
+  'openBatchEdit',
+  'openDelete',
+  'openExport',
+  'cancelBatch',
+  'cancelExport',
+])
 </script>

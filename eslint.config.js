@@ -5,6 +5,7 @@ import js from '@eslint/js'
 import globals from 'globals'
 import vuePlugin from 'eslint-plugin-vue'
 import vueParser from 'vue-eslint-parser'
+import tsParser from '@typescript-eslint/parser'
 import prettier from 'eslint-config-prettier'
 
 export default [
@@ -79,7 +80,8 @@ export default [
     languageOptions: {
       parser: vueParser,
       parserOptions: {
-        // 不指定 sub-parser，让 vue-eslint-parser 用默认 espree
+        // 用 @typescript-eslint/parser 解析 <script lang="ts"> 块
+        parser: tsParser,
         ecmaVersion: 2022,
         sourceType: 'module',
         extraFileExtensions: ['.vue'],
