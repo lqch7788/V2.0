@@ -14,15 +14,15 @@ const DB_PATH = path.join(__dirname, '../../data/yuanxingtu.db');
 // （tsx/esbuild 解析 './db' vs './db/index' 可能产生不同模块实例，
 //   导致不同文件 import 的 `db` 不是同一个变量）
 const DB_KEY = Symbol.for('yuanxingtu.db.instance');
-if (!(globalThis as any)[DB_KEY]) {
-  (globalThis as any)[DB_KEY] = { db: null as Database | null };
+if (!globalThis[DB_KEY]) {
+  globalThis[DB_KEY] = { db: null };
 }
-const dbState: { db: Database | null } = (globalThis as any)[DB_KEY];
+const dbState = globalThis[DB_KEY];
 
 /**
  * 初始化数据库
  */
-export async function initDatabase(): Promise<Database> {
+export async function initDatabase(){
   if (dbState.db) return dbState.db;
 
   const SQL = await initSqlJs();
@@ -43,18 +43,18 @@ export async function initDatabase(): Promise<Database> {
 
   // 修补 db.run() 和 stmt.bind() 自动将 undefined 绑定值转为 null（sql.js 不接受 undefined）
   const originalRun = dbState.db.run.bind(dbState.db);
-  dbState.db.run = function(sql: string, params?: any[]): Database {
+  dbState.db.run = function(sql, params){
     if (params && params.length > 0) {
       params = params.map(v => v === undefined ? null : v);
     }
     return originalRun(sql, params);
-  } as any;
+  };
 
   const originalPrepare = dbState.db.prepare.bind(dbState.db);
-  dbState.db.prepare = function(sql: string): any {
+  dbState.db.prepare = function(sql){
     const stmt = originalPrepare(sql);
     const originalBind = stmt.bind.bind(stmt);
-    stmt.bind = function(params?: any[]): any {
+    stmt.bind = function(params){
       if (params && params.length > 0) {
         params = params.map(v => v === undefined ? null : v);
       }
@@ -68,8 +68,9 @@ export async function initDatabase(): Promise<Database> {
 
 /**
  * 获取数据库实例
+ * 防御性：如果未初始化，抛带诊断的错误
  */
-export function getDatabase(): Database {
+export function getDatabase(){
   if (!dbState.db) {
     throw new Error('数据库未初始化，请先调用 initDatabase() [dbState.db is null]');
   }
@@ -79,7 +80,7 @@ export function getDatabase(): Database {
 /**
  * 保存数据库到文件
  */
-export function saveDatabase(): void {
+export function saveDatabase(){
   if (dbState.db) {
     const data = dbState.db.export();
     const buffer = Buffer.from(data);
@@ -90,7 +91,7 @@ export function saveDatabase(): void {
 /**
  * 关闭数据库连接
  */
-export function closeDatabase(): void {
+export function closeDatabase(){
   if (dbState.db) {
     saveDatabase();
     dbState.db.close();

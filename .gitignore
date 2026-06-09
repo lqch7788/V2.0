@@ -101,3 +101,10 @@ server/data/yuanxingtu_backup_*.db
 # Git worktree working directories (not source code)
 .worktrees/
 backup/
+
+# .ts files kept for observation period (not committed)
+# We have .js alternatives that take precedence in Vite/tsx
+
+# SQLite database (开发用，不入 git)
+server/data/*.db
+server/data/*.db-*

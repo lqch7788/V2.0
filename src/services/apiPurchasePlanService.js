@@ -10,7 +10,10 @@
  */
 
 import { enhancedApiClient } from '../lib/apiClient';
-import { PurchasePlan, PurchasePlanItem } from './purchasePlanService';
+
+// 注：PurchasePlan / PurchasePlanItem 类型在 ./purchasePlanService.js 中以 @typedef 形式定义。
+// JSDoc 类型不需要真实 import，IDE 能识别，但运行时浏览器会因找不到 export 而报 SyntaxError。
+// 这里不导入该模块，依赖 JSDoc 注释的类型提示。
 
 // 后端返回的数据字段类型
 /**
