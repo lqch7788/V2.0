@@ -1764,6 +1764,23 @@ export function initializeDatabase() {
       update_time TEXT
     )
   `);
+    // ========== ✅ 修复 P0-创建客户失败: 客户档案表（V2.0 漏写 CREATE TABLE）==========
+    // 字段对齐 V1.1 Customer（customerCode/Name/ContactPerson/Phone/Address/Remarks）
+    // 1:1 翻译自 V1.1 src/types/customer.types.ts Customer interface
+    db.run(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id TEXT PRIMARY KEY,
+      customer_code TEXT NOT NULL,
+      customer_name TEXT NOT NULL,
+      contact_person TEXT,
+      contact_phone TEXT,
+      delivery_address TEXT,
+      remarks TEXT,
+      create_by TEXT,
+      create_time TEXT,
+      update_time TEXT
+    )
+  `);
     // 迁移：给 crop_orders 表添加缺失的字段（幂等操作，忽略已存在列）
     const cropOrdersMigrations = [
         `ALTER TABLE crop_orders ADD COLUMN order_name TEXT`,
