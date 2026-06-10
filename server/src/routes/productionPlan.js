@@ -32,6 +32,8 @@ function mapFieldsToFrontend(item) {
         planName: 'batchName',
         planType: 'planType',
         cropName: 'cropName',
+        // 修复 P0-B6：cropCode 1:1 透传（V1.1 L114 handleRelatedBatchChange 读 batch.cropCode）
+        cropCode: 'cropCode',
         // cropVariety -> variety (前端期望)
         cropVariety: 'variety',
         greenhouseName: 'greenhouseName',

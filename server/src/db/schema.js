@@ -1808,6 +1808,9 @@ export function initializeDatabase() {
         }
     }
     // 生产计划表
+    // 修复 P0-B5：与 V1.1 schema.ts L1754-1788 1:1 对齐
+    // 补 crop_code 列（V1.1 L1761）— 用于技术方案关联生产批次号时回填 cropCode（V1.1 CreateModal L114）
+    // 补 greenhouse_id/area_id/planting_area_unit/order_id/order_code/execution_status — 1:1 对齐 V1.1
     db.run(`
     CREATE TABLE IF NOT EXISTS production_plans (
       id TEXT PRIMARY KEY,
@@ -1816,8 +1819,11 @@ export function initializeDatabase() {
       plan_type TEXT,
       crop_name TEXT,
       crop_variety TEXT,
+      crop_code TEXT,
       greenhouse_name TEXT,
+      greenhouse_id TEXT,
       area_name TEXT,
+      area_id TEXT,
       planned_quantity INTEGER DEFAULT 0,
       actual_quantity INTEGER DEFAULT 0,
       planting_date TEXT,
@@ -1836,13 +1842,36 @@ export function initializeDatabase() {
       plan_detail TEXT,
       plan_detail_file_name TEXT,
       planting_area REAL DEFAULT 0,
+      planting_area_unit TEXT DEFAULT 'm²',
       planting_mode TEXT,
       supplier_name TEXT,
       seedling_site_name TEXT,
       seed_quantity INTEGER DEFAULT 0,
-      target_seedling_count INTEGER DEFAULT 0
+      target_seedling_count INTEGER DEFAULT 0,
+      order_id TEXT,
+      order_code TEXT,
+      execution_status TEXT DEFAULT 'pending_execution'
     )
   `);
+    // 修复 P0-B5：已存在的 production_plans 表需要 ALTER TABLE 补列
+    // 老库没 crop_code/greenhouse_id/area_id/planting_area_unit/order_id/order_code/execution_status 列
+    // CREATE TABLE IF NOT EXISTS 不会更新已存在表，必须 ALTER 才能让已部署库也补上
+    const productionPlanAlters = [
+        ['crop_code', 'TEXT'],
+        ['greenhouse_id', 'TEXT'],
+        ['area_id', 'TEXT'],
+        ['planting_area_unit', "TEXT DEFAULT 'm²'"],
+        ['order_id', 'TEXT'],
+        ['order_code', 'TEXT'],
+        ['execution_status', "TEXT DEFAULT 'pending_execution'"],
+    ];
+    for (const [col, type] of productionPlanAlters) {
+        try {
+            db.run(`ALTER TABLE production_plans ADD COLUMN ${col} ${type}`);
+        } catch (e) {
+            // 列可能已存在，忽略错误（V1.1 L1796-1923 同模式）
+        }
+    }
     // ========== V8.0: 技术方案表 ==========
     db.run(`
     CREATE TABLE IF NOT EXISTS tech_solutions (

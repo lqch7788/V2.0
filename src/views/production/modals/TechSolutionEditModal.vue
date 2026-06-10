@@ -329,21 +329,25 @@ function handleFieldChange(field, value) {
 
 // ✅ 修复 P0: V1.1 L93-116 handleRelatedBatchChange 1:1
 // 选"不关联"（空 value）→ 清空自动填的字段
-// 选具体批次 → 自动填 crop + plantingMode（V2.0 plan 没存 cropCode，所以仅填可用的字段）
+// 选具体批次 → 自动填 cropCode + crop + plantingMode（V1.1 L111-117 行为 1:1）
 function handleRelatedBatchChange(value) {
   if (!value) {
     emit('field-change', { field: 'relatedBatchCode', value: '' })
+    emit('field-change', { field: 'cropCode', value: '' })
     emit('field-change', { field: 'crop', value: '' })
     emit('field-change', { field: 'plantingMode', value: '' })
     return
   }
   const batch = (props.batches || []).find((b) => (b.batchCode || b.id) === value)
   if (!batch) {
+    // 找不到对应批次时只设 relatedBatchCode，作物字段留空让用户手动选
     emit('field-change', { field: 'relatedBatchCode', value })
     return
   }
+  // V1.1 L111-117：4 个字段同步回填
   emit('field-change', { field: 'relatedBatchCode', value })
-  emit('field-change', { field: 'crop', value: batch.cropName || batch.variety || '' })
+  emit('field-change', { field: 'cropCode', value: batch.cropCode || '' })
+  emit('field-change', { field: 'crop', value: batch.cropName || '' })
   emit('field-change', { field: 'plantingMode', value: batch.plantingMode || '' })
 }
 
