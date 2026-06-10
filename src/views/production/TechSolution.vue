@@ -130,28 +130,40 @@
     />
 
     <!-- Edit Modal -->
+    <!-- ✅ 修复 P0: 完全照搬 V1.1 EditModal 协议
+         1. :batches="productionPlans" 关联生产批次号下拉从生产计划列表动态生成
+         2. :scope-expanded="editScopeExpanded" + @scope-toggle 适用范围折叠状态
+         3. @field-change="..." 字段级更新（与 CreateModal 1:1 协议） -->
     <TechSolutionEditModal
       :visible="editModalOpen"
       :tech="selectedTech"
       :form="editForm"
       :selected-crop="selectedCropEdit"
       :operator-options="operatorOptions"
+      :batches="productionPlans"
+      :scope-expanded="editScopeExpanded"
       @close="editModalOpen = false"
       @submit="handleEditSubmit"
-      @update:form="(v) => editForm = v"
-      @update:selected-crop="(v) => selectedCropEdit = v"
+      @field-change="handleEditFieldChange"
+      @update:selected-crop="(v) => { selectedCropEdit = v }"
+      @scope-toggle="editScopeExpanded = !editScopeExpanded"
     />
 
     <!-- Create Modal -->
+    <!-- ✅ 修复 P0: 完全照搬 V1.1 父组件拥有 form 状态的模式
+         1. :form="newPlanForm" 传整个 form 对象（Vue 3 模板自动 unwrap 顶层 ref）
+         2. @field-change="..." 字段级 emit，父组件逐字段更新（防御 spread 失败）
+         3. @update:selected-crop="..." selectedCrop 单独同步 -->
     <TechSolutionCreateModal
       :visible="createModalOpen"
       :form="newPlanForm"
       :selected-crop="selectedCrop"
       :operator-options="operatorOptions"
+      :batches="productionPlans"
       @close="createModalOpen = false"
       @submit="handleCreateSubmit"
-      @update:form="(v) => newPlanForm = v"
-      @update:selected-crop="(v) => selectedCrop = v"
+      @field-change="handleFormFieldChange"
+      @update:selected-crop="(v) => { selectedCrop = v }"
     />
 
     <!-- Delete Warning Modal -->
@@ -190,7 +202,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTechSolutionStore } from '@/stores/modules/techSolution'
 import { useApprovalStore } from '@/stores/modules/approval'
@@ -204,6 +216,8 @@ import { getTechSolutionApprovals } from '@/services/techSolutionService'
 // 修复 P1-1/P1-3：去重字典映射与方案编号生成（3 文件共用同一工具）
 import { getDictItemNameSync } from '@/utils/dictHelpers'
 import { generateTechSolutionCode } from '@/utils/techSolutionHelpers'
+// ✅ 修复 P0: 加载生产计划列表（V1.1 CreateModal L94-118 关联生产批次号联动自动填作物信息）
+import { useProductionPlanStore } from '@/stores/modules/productionPlan'
 import TechSolutionFilters from './components/TechSolutionFilters.vue'
 import TechSolutionTable from './components/TechSolutionTable.vue'
 import TechSolutionDetailModal from './modals/TechSolutionDetailModal.vue'
@@ -227,8 +241,15 @@ const escapeHtml = (s) => String(s ?? '')
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#39;')
+
+// ✅ 修复 P0: 编辑弹窗字段级更新（V1.1 setEditForm 1:1 翻译）
+// 子组件 emit 字段级变化 {field, value}，父组件做 { ...editForm, [field]: value } 合并
+function handleEditFieldChange(payload) {
+  if (!payload || typeof payload !== 'object') return
+  const { field, value } = payload
+  if (!field) return
+  editForm.value = { ...editForm.value, [field]: value }
+}
 
 // ==================== 常量 ====================
 const { exportFormats } = useExportFormats()
@@ -240,6 +261,9 @@ const approvalStore = useApprovalStore()
 const dictionaryStore = useDictionaryStore()
 const { solutions: techSolutions, isLoading: techSolutionLoading } = storeToRefs(techSolutionStore)
 const { fetchSolutions, addSolution, updateSolution, deleteSolutions } = techSolutionStore
+// ✅ 修复 P0: 加载生产计划列表（V1.1 CreateModal L94-118 关联生产批次号联动自动填作物信息）
+const productionPlanStore = useProductionPlanStore()
+const { plans: productionPlans } = storeToRefs(productionPlanStore)
 
 // ==================== 过滤器/分页/选中行 ====================
 // 第二阶段 Y7 重构：filters/pagination/selectedRows 状态抽 composable
@@ -264,6 +288,10 @@ const { operatorOptions, loadOperators } = useOperatorOptions()
 onMounted(() => {
   loadOperators()
   fetchSolutions()
+  // ✅ 修复 P0: 加载生产计划列表（V1.1 CreateModal 联动需要）
+  if (typeof productionPlanStore.fetchPlans === 'function' && productionPlans.value.length === 0) {
+    productionPlanStore.fetchPlans().catch(() => { /* 静默失败不影响弹窗打开 */ })
+  }
   // 修复 P0-006 衍生：确保字典数据加载（与 V1.1 L117-124 setDictReady 门控对齐）
   if (dictionaryStore.dictionaries.length === 0) {
     dictionaryStore.loadDictionaries()
@@ -383,6 +411,9 @@ const exportFormat = ref('excel')
 const showExportModal = ref(false)
 const selectedTech = ref(null)
 
+// ✅ 修复 P0: 适用范围折叠状态（V1.1 L284 1:1，由父组件拥有）
+const editScopeExpanded = ref(true)
+
 const batchMode = computed(() => batchEditMode.value || batchDeleteMode.value)
 
 const editForm = ref({
@@ -410,7 +441,8 @@ const editedTechs = ref({})
 const selectedTechCode = ref('')
 
 const newPlanForm = ref({
-  code: '',
+  // ✅ 修复: 弹窗打开时即预填生成的方案编号（避免用户点击"生成"无感知）
+  code: generateTechSolutionCode(),
   title: '',
   crop: '',
   cropCode: '',
@@ -427,6 +459,10 @@ const newPlanForm = ref({
 
 const selectedCrop = ref(null)
 const selectedCropEdit = ref(null)
+
+// ✅ 修复 P0: 显式 unwrap ref 为普通对象（避免子组件 props 拿到 ref 对象）
+const newPlanFormValue = computed(() => newPlanForm.value)
+const selectedCropValue = computed(() => selectedCrop.value)
 
 const generateCode = generateTechSolutionCode
 
@@ -581,7 +617,8 @@ const handleCreateSubmit = async (submitMode) => {
     createModalOpen.value = false
     // 修复 P0-AU/AV：与 V1.1 L435-449 一致，完整重置表单
     newPlanForm.value = {
-      code: '',
+      // ✅ 修复: 提交后重置时也立即预填新编号（避免下次打开弹窗是空的）
+      code: generateTechSolutionCode(),
       title: '',
       crop: '',
       cropCode: '',
@@ -743,6 +780,8 @@ const handleDeleteConfirm = async () => {
 }
 
 const handleOpenCreateModal = () => {
+  // ✅ 修复 P0: 完全照搬 V1.1 handleOpenCreateModal 行为
+  // 1. 先重置 form 状态（弹窗打开前已完成）
   newPlanForm.value = {
     code: generateCode(),
     title: '',
@@ -759,7 +798,19 @@ const handleOpenCreateModal = () => {
     relatedBatchCode: '',
   }
   selectedCrop.value = null
-  createModalOpen.value = true
+  // 2. nextTick 后再打开弹窗（确保子组件挂载时 props.form 已就位）
+  nextTick(() => {
+    createModalOpen.value = true
+  })
+}
+
+// ✅ 修复 P0: 字段级 update 接收（V1.1 onFormChange 1:1）
+// 子组件 emit 字段级变化 {field, value}，父组件用 { ...form, [field]: value } 合并
+function handleFormFieldChange(payload) {
+  if (!payload || typeof payload !== 'object') return
+  const { field, value } = payload
+  if (!field) return
+  newPlanForm.value = { ...newPlanForm.value, [field]: value }
 }
 
 const openBatchEdit = () => {

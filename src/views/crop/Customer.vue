@@ -78,14 +78,14 @@
           />
         </div>
         <div class="flex items-center gap-2">
-          <el-button size="small" @click="handleSearch">
+          <button :class="btnDefault" @click="handleSearch">
             <Search class="w-4 h-4" />
             搜索
-          </el-button>
-          <el-button size="small" @click="handleReset">
+          </button>
+          <button :class="btnSecondary" @click="handleReset">
             <RotateCcw class="w-4 h-4" />
             重置
-          </el-button>
+          </button>
         </div>
       </div>
     </div>
@@ -98,31 +98,36 @@
           <span class="text-xs text-gray-500">（共 {{ filteredData.length }} 条）</span>
         </div>
         <div class="flex items-center gap-2">
+          <!-- 删除模式（与订单管理 Order.vue L41-47 1:1 对齐） -->
           <template v-if="deleteMode">
-            <el-button type="primary" size="small" @click="handleConfirmDelete">
+            <button :class="btnDestructive" @click="handleConfirmDelete">
+              <Delete class="w-4 h-4" />
               确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-            </el-button>
-            <el-button size="small" @click="deleteMode = false">取消</el-button>
+            </button>
+            <button :class="btnSecondary" @click="deleteMode = false">取消</button>
           </template>
+          <!-- 导出模式（与订单管理 Order.vue L49-57 1:1 对齐） -->
           <template v-else-if="exportMode">
-            <el-button type="primary" size="small" @click="handleExportConfirm">
+            <button :class="btnDefault" @click="handleExportConfirm">
+              <Download class="w-4 h-4" />
               确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-            </el-button>
-            <el-button size="small" @click="handleExportCancel">取消</el-button>
+            </button>
+            <button :class="btnSecondary" @click="handleExportCancel">取消</button>
           </template>
+          <!-- 正常模式（与订单管理 Order.vue L59-83 1:1 对齐） -->
           <template v-else>
-            <el-button type="primary" size="small" @click="handleAdd">
+            <button :class="btnDefault" @click="handleAdd">
               <Plus class="w-4 h-4" />
               新增
-            </el-button>
-            <el-button size="small" @click="handleExportClick">
+            </button>
+            <button :class="btnDefault" @click="handleExportClick">
               <Download class="w-4 h-4" />
               导出
-            </el-button>
-            <el-button type="danger" size="small" @click="deleteMode = true">
+            </button>
+            <button :class="btnDestructive" @click="deleteMode = true">
               <Delete class="w-4 h-4" />
               删除
-            </el-button>
+            </button>
           </template>
         </div>
       </div>
@@ -174,12 +179,21 @@
               <td class="px-4 py-3 text-sm max-w-xs truncate">{{ customer.remarks || '-' }}</td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <el-button link @click="handleEdit(customer)">
+                  <!-- 表格操作列：与订单管理 OrderTable.vue 1:1 对齐（btnGhost + 文字色 + hover 态） -->
+                  <button
+                    :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'"
+                    title="编辑"
+                    @click="handleEdit(customer)"
+                  >
                     <Edit class="w-4 h-4" />
-                  </el-button>
-                  <el-button link type="danger" @click="handleDeleteOne(customer)">
+                  </button>
+                  <button
+                    :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'"
+                    title="删除"
+                    @click="handleDeleteOne(customer)"
+                  >
                     <Delete class="w-4 h-4" />
-                  </el-button>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -205,12 +219,32 @@
       </div>
     </div>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑弹窗（与订单管理 AddModal 风格一致：1080×650） -->
     <CustomerModal
       :is-open="modalVisible"
       :customer="editCustomer"
       @close="handleCloseModal"
       @success="handleModalSuccess"
+    />
+
+    <!-- 删除警告弹窗（与订单管理一致：DeleteWarningModal 560×450，单条/批量共用） -->
+    <DeleteWarningModal
+      v-model:is-open="deleteWarningOpen"
+      :selected-count="deleteTargetCount"
+      :title="deleteTargetTitle"
+      :description="deleteTargetDescription"
+      @close="handleDeleteWarningClose"
+      @confirm="handleDeleteWarningConfirm"
+    />
+
+    <!-- 导出格式选择弹窗（与订单管理一致：500×400） -->
+    <ExportFormatModal
+      :visible="showExportModal"
+      :export-file-type="exportFormat"
+      :selected-count="selectedRows.length"
+      @close="showExportModal = false"
+      @confirm="handleDoExport"
+      @update:export-file-type="(v) => (exportFormat = v)"
     />
   </div>
 </template>
@@ -222,9 +256,15 @@ import {
   User, Plus, Edit, Delete, Download, Search, RotateCcw,
   ArrowLeft, CirclePlus, Building2, Phone
 } from 'lucide-vue-next'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { showSuccess } from '@/lib/dialogService'
 import { useCustomerStore } from '@/stores/modules/customer'
+// ✅ 修复: 与订单管理 Order.vue 1:1 对齐，按键样式统一使用生产模块共享常量
+import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnGhost } from '@/views/production/constants/buttonStyles'
 import CustomerModal from '@/views/crop/modals/CustomerModal.vue'
+// ✅ 修复: 与订单管理一致，统一弹窗组件
+import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
+import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 
 const router = useRouter()
 const customerStore = useCustomerStore()
@@ -248,6 +288,18 @@ const selectedRows = ref([])
 // 模式状态
 const exportMode = ref(false)
 const deleteMode = ref(false)
+
+// 导出格式（与订单管理一致：excel / csv / word）
+const exportFormat = ref('excel')
+const showExportModal = ref(false)
+
+// 删除警告弹窗状态（与订单管理 DeleteWarningModal 4 字段一致）
+const deleteWarningOpen = ref(false)
+const deleteTargetCount = ref(0)
+const deleteTargetTitle = ref('删除客户警告')
+const deleteTargetDescription = ref('')
+const deleteTargetIds = ref([])  // 单条/批量共用，存储待删的 id 列表
+const singleDeleteMode = ref(false)  // 区分单条/批量（影响 title/description 文案）
 
 // 加载状态
 const loading = computed(() => customerStore.isLoading)
@@ -323,41 +375,65 @@ const handleModalSuccess = () => {
   handleCloseModal()
 }
 
-// 单条删除
-const handleDeleteOne = async (customer) => {
-  try {
-    await ElMessageBox.confirm(`确定要删除客户 ${customer.customerName} 吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await customerStore.deleteCustomer(customer.id)
-    ElMessage.success('删除成功')
-  } catch {
-    // 用户取消
-  }
+// ========== 删除（统一用 DeleteWarningModal，与订单管理一致）==========
+
+// 单条删除 - 改为先弹 DeleteWarningModal
+const handleDeleteOne = (customer) => {
+  deleteTargetIds.value = [customer.id]
+  deleteTargetCount.value = 1
+  singleDeleteMode.value = true
+  deleteTargetTitle.value = '删除客户警告'
+  deleteTargetDescription.value = `确定要删除客户 <strong>${customer.customerName}</strong> 吗？此操作 <span style="color:#dc2626">无法恢复</span>，删除后数据将永久丢失。`
+  deleteWarningOpen.value = true
 }
 
-// 批量删除确认
-const handleConfirmDelete = async () => {
+// 批量删除 - 显示 DeleteWarningModal
+const handleConfirmDelete = () => {
   if (selectedRows.value.length === 0) {
     ElMessage.warning('请先选择要删除的数据')
     return
   }
+  deleteTargetIds.value = [...selectedRows.value]
+  deleteTargetCount.value = selectedRows.value.length
+  singleDeleteMode.value = false
+  deleteTargetTitle.value = '批量删除客户警告'
+  deleteTargetDescription.value = `确定要删除选中的 <strong>${selectedRows.value.length}</strong> 条客户记录吗？此操作 <span style="color:#dc2626">无法恢复</span>，删除后数据将永久丢失。`
+  deleteWarningOpen.value = true
+}
+
+// 删除警告弹窗关闭
+const handleDeleteWarningClose = () => {
+  deleteWarningOpen.value = false
+  deleteTargetIds.value = []
+  singleDeleteMode.value = false
+}
+
+// 删除警告弹窗确认执行
+const handleDeleteWarningConfirm = async () => {
+  const ids = [...deleteTargetIds.value]
+  const isBatch = ids.length > 1
+  deleteWarningOpen.value = false
+  deleteTargetIds.value = []
+  singleDeleteMode.value = false
   try {
-    await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条记录吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    for (const id of selectedRows.value) {
-      await customerStore.deleteCustomer(id)
+    if (isBatch) {
+      // 批量删除：逐条调用
+      for (const id of ids) {
+        await customerStore.deleteCustomer(id)
+      }
+      selectedRows.value = []
+      deleteMode.value = false
+      showSuccess(`已删除 ${ids.length} 个客户`)
+    } else {
+      await customerStore.deleteCustomer(ids[0])
+      showSuccess('删除成功')
     }
-    selectedRows.value = []
-    deleteMode.value = false
-    ElMessage.success('删除成功')
-  } catch {
-    // 用户取消
+  } catch (error) {
+    console.error('删除客户失败:', error)
+    ElMessage.error(error?.message || '删除失败，请重试')
+  } finally {
+    // 删除后重新拉取，确保列表与后端一致
+    await customerStore.fetchCustomers()
   }
 }
 
@@ -380,22 +456,31 @@ const handleToggleSelect = (id) => {
   }
 }
 
-// 导出
+// ========== 导出（统一用 ExportFormatModal 弹窗，与订单管理一致）==========
+
+// 点击"导出"按钮：进入导出模式（不默认勾选）
 const handleExportClick = () => {
   exportMode.value = true
   selectedRows.value = []
 }
 
-const handleExportCancel = () => {
-  exportMode.value = false
-  selectedRows.value = []
-}
-
+// 点击"确认导出"：弹出 ExportFormatModal 选格式
 const handleExportConfirm = () => {
   if (selectedRows.value.length === 0) {
     ElMessage.warning('请先选择要导出的数据')
     return
   }
+  showExportModal.value = true
+}
+
+// 取消导出（清选择 + 退模式）
+const handleExportCancel = () => {
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+// 实际执行导出（3 格式：Excel/CSV/Word，与订单管理 handleDoExport 1:1 对齐）
+const handleDoExport = () => {
   const selectedData = filteredData.value.filter(c => selectedRows.value.includes(c.id))
   const headers = ['客户编码', '客户名称', '联系人', '联系电话', '收货地址', '备注', '创建时间']
   const exportData = selectedData.map(c => ({
@@ -408,21 +493,78 @@ const handleExportConfirm = () => {
     '创建时间': c.createTime || ''
   }))
 
-  let content = headers.join(',') + '\n' + exportData.map(row =>
-    headers.map(h => `"${row[h] || ''}"`).join(',')
-  ).join('\n')
+  const fileNameBase = `客户管理_${new Date().toISOString().slice(0, 10)}`
+  const content = ''
+  const mimeType = ''
+  const extension = ''
 
-  const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `客户管理_${new Date().toISOString().slice(0, 10)}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+  // RFC4180 CSV 转义
+  const csvEscape = (v) => {
+    const s = v === null || v === undefined ? '' : String(v)
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
 
+  if (exportFormat.value === 'csv') {
+    const lines = [
+      headers.join(','),
+      ...exportData.map(row => headers.map(h => csvEscape(row[h])).join(',')),
+    ]
+    const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+    downloadBlob(blob, `${fileNameBase}.csv`)
+  } else if (exportFormat.value === 'excel') {
+    // 用 xlsx 库生成 .xlsx（与订单管理 1:1 对齐）
+    import('xlsx').then((XLSX) => {
+      const wsData = [
+        headers,
+        ...exportData.map(row => headers.map(h => row[h] ?? '')),
+      ]
+      const ws = XLSX.utils.aoa_to_sheet(wsData)
+      ws['!cols'] = headers.map(h => ({ wch: Math.max(12, h.length * 2) }))
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '客户管理')
+      XLSX.writeFile(wb, `${fileNameBase}.xlsx`)
+    })
+  } else if (exportFormat.value === 'word') {
+    const escapeHtml = (s) => String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${escapeHtml(row[h])}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    const blob = new Blob([html], { type: 'application/vnd.ms-word;charset=utf-8' })
+    downloadBlob(blob, `${fileNameBase}.doc`)
+  }
+
+  // 关闭弹窗 + 清状态（与订单管理一致）
+  showExportModal.value = false
   exportMode.value = false
   selectedRows.value = []
-  ElMessage.success('导出成功')
+  showSuccess('导出成功')
+}
+
+// 通用下载（与订单管理 1:1 对齐）
+const downloadBlob = (blob, fileName) => {
+  if (window.showSaveFilePicker) {
+    window.showSaveFilePicker({
+      suggestedName: fileName,
+      types: [{ description: fileName.split('.').pop()?.toUpperCase() || 'File', accept: { [blob.type]: [`.${fileName.split('.').pop()}`] } }],
+    }).then(handle => handle.createWritable()).then(writable => {
+      writable.write(blob)
+      writable.close()
+    }).catch(() => {
+      // 用户取消或不支持，回退
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+  } else {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 }
 
 // 初始化

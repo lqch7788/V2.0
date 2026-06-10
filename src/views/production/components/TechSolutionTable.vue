@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white rounded-xl shadow-sm overflow-hidden">
     <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-900">技术方案</h3>
+      <h3 class="text-lg font-semibold text-gray-900">技术方案列表</h3>
       <div v-if="batchMode || exportMode" class="flex gap-2">
         <button v-if="batchEditMode" :class="btnBlue" @click="emit('openBatchEdit')">
           <Edit class="w-4 h-4" />
@@ -90,19 +90,21 @@
                 class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
             </td>
-            <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 whitespace-nowrap">
+            <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 whitespace-nowrap" :title="tech.code">
               <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" @click="emit('view', tech)">{{ tech.code }}</button>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{{ tech.relatedBatchCode || '-' }}</td>
-            <td class="px-4 py-3 text-sm font-medium text-green-700 whitespace-nowrap">
-              <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" @click="emit('view', tech)">{{ tech.title }}</button>
+            <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap" :title="tech.relatedBatchCode || ''">{{ tech.relatedBatchCode || '-' }}</td>
+            <td class="px-4 py-3 text-sm font-medium text-green-700 whitespace-nowrap" :title="tech.title || ''">
+              <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" @click="emit('view', tech)">{{ truncateForTable(tech.title) }}</button>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.crop }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap" :title="tech.crop || ''">{{ truncateForTable(tech.crop) }}</td>
             <!-- 修复 P0-002：种植模式字典映射（与 V1.1 L181 一致） -->
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-              {{ getDictItemNameSync('planting_mode', tech.plantingMode) }}
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap" :title="getDictItemNameSync('planting_mode', tech.plantingMode) || ''">
+              {{ truncateForTable(getDictItemNameSync('planting_mode', tech.plantingMode)) }}
             </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ (tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : (tech.stage || '-') }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap" :title="(tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : (tech.stage || '')">
+              {{ truncateForTable((tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : tech.stage) }}
+            </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.version }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.author }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.createDate }}</td>
@@ -116,8 +118,7 @@
                 {{ tech.isValid || '有效' }}
               </span>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap max-w-xs truncate" :title="tech.remarks">
-              {{ tech.remarks || '-' }}
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap" :title="tech.remarks || ''">{{ truncateForTable(tech.remarks) }}
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
               <div class="flex items-center gap-1">
@@ -159,6 +160,17 @@ import { getDictItemNameSync } from '@/utils/dictHelpers'
 
 // 第二阶段 Y2 重构：按钮样式抽常量
 import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnGhost } from '../constants/buttonStyles'
+
+// ✅ 修复 P0: 长字段 8 字符截断（V1.1 TechSolutionTable.tsx L86-91 truncateForTable 1:1 翻译）
+// null/undefined → '-'；长度 ≤ 8 → 原样；> 8 → 截断 + …
+// 注意：按字符数截断（maxChars=8），不是按宽度截断（V1.1 1:1）
+// 详情弹窗/编辑弹窗 仍保持完整显示（V1.1 1:1）
+const truncateForTable = (text, maxChars = 8) => {
+  if (text === null || text === undefined) return '-'
+  const s = String(text)
+  if (s.length <= maxChars) return s
+  return s.slice(0, maxChars) + '…'
+}
 
 const props = defineProps({
   data: { type: Array, default: () => [] },

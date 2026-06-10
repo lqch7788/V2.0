@@ -44,46 +44,20 @@
           />
         </div>
 
-        <!-- 行 3: 作物品种 | 品种路径 -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">作物品种 <span class="text-red-500">*</span></label>
-          <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
-            <el-input
-              v-model="searchKeyword"
-              placeholder="搜索作物品种..."
-              :class="errors.cropVariety ? 'border-red-500' : ''"
-              class="pl-10"
-              @focus="showDropdown = true"
-            />
-            <button
-              v-if="searchKeyword"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              @click.stop="clearSearch"
-            >
-              <X class="w-4 h-4" />
-            </button>
-            <!-- 下拉选择列表 -->
-            <div
-              v-if="showDropdown && filteredVarieties.length > 0"
-              class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
-            >
-              <div
-                v-for="(variety, index) in filteredVarieties"
-                :key="`${variety.value}-${index}`"
-                class="px-3 py-2 hover:bg-emerald-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                @click="handleSelectVariety(variety)"
-              >
-                <div class="text-sm font-medium text-gray-900">{{ variety.label }}</div>
-                <div class="text-xs text-gray-500 truncate">{{ variety.fullPath }}</div>
-              </div>
-            </div>
-          </div>
+        <!-- 行 3: 作物信息（与订单列表字段名一致，1:1 对齐 AddModal 风格）
+             ✅ 修复: 用 CropCodeSelector 替换自制搜索下拉（原搜索下拉因 z-index 100 被遮挡且无完整品种库）
+             displayLabel 兜底显示已选品种名（兼容 record 中无 cropCode 的情况） -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">作物信息 <span class="text-red-500">*</span></label>
+          <CropCodeSelector
+            v-model="form.cropCode"
+            :display-label="form.cropVariety"
+            placeholder="搜索或选择作物品种..."
+            size="md"
+            show-full-path
+            @change="handleCropChange"
+          />
           <p v-if="errors.cropVariety" class="text-xs text-red-500 mt-1">{{ errors.cropVariety }}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">品种路径</label>
-          <el-input v-model="form.cropCategory" placeholder="选择作物品种后自动填充" readonly class="bg-gray-50 text-gray-600 border-gray-300" />
         </div>
 
         <!-- 行 4: 单位 | 计划数量 -->
@@ -180,12 +154,13 @@
 <script setup>
 import { ref, watch, computed, onUnmounted } from 'vue'
 import { ElModal } from '@/components/ui'
-import { Search, X } from 'lucide-vue-next'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { useCustomerStore } from '@/stores/modules/customer'
 import { CropOrderStatus } from '@/types/crop'
 import { showAlert, showConfirm } from '@/lib/dialogService'
-import { initVarieties, getVarietyOptions } from '@/services/cropVarietyService'
+// ✅ 修复: 改用与 AddModal 1:1 一致的 CropCodeSelector 组件
+// 删除原 initVarieties/getVarietyOptions 自制搜索下拉的依赖
+import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -215,10 +190,12 @@ const handleCustomerChange = (customerId) => {
 }
 
 // 表单数据（与V1.1 EditModal.tsx L40-59 一致 - 无 customerName/customerPhone 显式字段）
+// ✅ 修复: 加 cropCode 字段用于 CropCodeSelector v-model
 const form = ref({
   orderCode: '',
   orderName: '',
   orderType: 'production',
+  cropCode: '',         // 新增：作物编码（CropCodeSelector 选中后写入）
   cropCategory: '',
   cropVariety: '',
   plannedQuantity: 0,
@@ -236,54 +213,25 @@ const form = ref({
 // 错误信息
 const errors = ref({})
 
-// 搜索相关状态（与V1.1一致）
-const searchKeyword = ref('')
-const showDropdown = ref(false)
-
-// 初始化品种数据
-initVarieties()
-const varietyOptions = computed(() => getVarietyOptions())
-
-// 过滤品种选项
-const filteredVarieties = computed(() => {
-  if (!searchKeyword.value.trim()) {
-    return varietyOptions.value.slice(0, 20)
-  }
-  const keyword = searchKeyword.value.toLowerCase()
-  return varietyOptions.value.filter(opt =>
-    opt.label.toLowerCase().includes(keyword) ||
-    opt.fullPath.toLowerCase().includes(keyword) ||
-    opt.varietyCode.toLowerCase().includes(keyword)
-  ).slice(0, 20)
-})
-
-// 选择品种
-const handleSelectVariety = (variety) => {
-  form.value.cropVariety = variety.label
-  form.value.cropCategory = variety.fullPath
-  searchKeyword.value = variety.label
-  showDropdown.value = false
-  errors.value = { ...errors.value, cropVariety: '' }
-}
-
-// 清除搜索
-const clearSearch = () => {
-  searchKeyword.value = ''
-  form.value.cropVariety = ''
-  form.value.cropCategory = ''
-}
-
-// 监听下拉框显示状态
-watch(showDropdown, (val) => {
-  if (val) {
-    document.addEventListener('click', handleClickOutside)
+// ✅ 修复: 1:1 对齐 AddModal handleCropChange（作物选择后自动填充 cropVariety + cropCategory）
+function handleCropChange(code, varietyInfo) {
+  form.value.cropCode = code || ''
+  if (varietyInfo) {
+    const fullPath = [
+      varietyInfo.categoryName,
+      varietyInfo.typeName,
+      varietyInfo.varietyName,
+      varietyInfo.subVariety1Name,
+    ].filter(Boolean).join(' > ')
+    const cropName = varietyInfo.subVariety1Name || varietyInfo.varietyName
+    form.value.cropVariety = cropName || ''
+    form.value.cropCategory = fullPath || ''
+    errors.value = { ...errors.value, cropVariety: '' }
   } else {
-    document.removeEventListener('click', handleClickOutside)
+    // 用户清空选择时
+    form.value.cropVariety = ''
+    form.value.cropCategory = ''
   }
-})
-
-function handleClickOutside() {
-  showDropdown.value = false
 }
 
 // 监听打开和记录变化（V2.0 第6轮 P0 修复：添加 immediate: true + 修复轮 8 P0-I1-3：弹窗打开时刷新客户列表）
@@ -303,6 +251,7 @@ watch([() => props.isOpen, () => props.record], ([isOpenVal, recordVal]) => {
       orderCode: recordVal.orderCode || '',
       orderName: recordVal.orderName || '',
       orderType: recordVal.orderType || 'production',
+      cropCode: recordVal.cropCode || '',  // 新增：尝试回显（后端若返回 cropCode 则显示）
       cropCategory: recordVal.cropCategory || '',
       cropVariety: recordVal.cropVariety || '',
       plannedQuantity: recordVal.plannedQuantity || 0,
@@ -321,7 +270,6 @@ watch([() => props.isOpen, () => props.record], ([isOpenVal, recordVal]) => {
         ? 'cancelled'
         : 'in_progress'
     }
-    searchKeyword.value = recordVal.cropVariety || ''
     errors.value = {}
   }
 }, { immediate: true })
@@ -329,14 +277,13 @@ watch([() => props.isOpen, () => props.record], ([isOpenVal, recordVal]) => {
 // 关闭（V2.0 第6轮 P0 修复：清理拖动/缩放监听器防内存泄漏）
 const handleClose = () => {
   errors.value = {}
-  showDropdown.value = false
   emit('update:isOpen', false)
   emit('close')
 }
 
-// click-outside 监听器卸载清理（V2.0 第6轮 P0 修复 - 防内存泄漏）
+// 监听器卸载清理（V2.0 第6轮 P0 修复 - 防内存泄漏）
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
+  // CropCodeSelector 自带点击外部关闭，无需手动清理
 })
 
 // 提交（修复轮 8 P0-I1-1：加 isSubmitting 状态，提交期间按钮 disabled + 文案变化）
