@@ -70,6 +70,8 @@ docs/
 
 # Batch files
 *.bat
+# 例外：启动服务.bat 是 Windows 用户的项目启动脚本，必须追踪
+!启动服务.bat
 
 # Local omc directory
 .omc/
