@@ -102,20 +102,37 @@
           <label class="text-sm font-medium text-gray-700 block mb-1">
             作物品种 <span class="text-red-500">*</span>
           </label>
-          <CropCodeSelector
-            :model-value="formData.cropCode || ''"
-            placeholder="搜索或选择作物品种..."
-            size="sm"
-            show-full-path
-            @change="handleCropChange"
-          />
-          <p v-if="errors.variety" class="text-red-500 text-xs mt-1">{{ errors.variety }}</p>
-          <div v-if="selectedCrop" class="mt-1.5 p-2 bg-emerald-50 border border-emerald-200 rounded text-xs">
-            <span class="text-emerald-700">
-              {{ selectedCrop.categoryName }} &gt; {{ selectedCrop.typeName }} &gt; {{ selectedCrop.varietyName }}
-              {{ selectedCrop.subVariety1Name && ` > ${selectedCrop.subVariety1Name}` }}
+          <!-- 修复 P0：与 V1.1 CreateBatchModal.tsx L286-318 1:1 对齐
+               选了关联订单 → 渲染只读展示框（Leaf 图标 + 品种名 + cropCode 灰字）
+               未选 → 渲染可手动选的 CropCodeSelector -->
+          <div
+            v-if="formData.orderId.length > 0"
+            class="w-full h-8 px-3 border border-gray-400 rounded-lg shadow-inner bg-gray-100 cursor-not-allowed flex items-center text-sm gap-2"
+          >
+            <Leaf class="w-4 h-4 text-emerald-500 flex-shrink-0" />
+            <span class="truncate text-gray-900">
+              {{ formData.variety || '(订单未填作物品种)' }}
+            </span>
+            <span v-if="formData.cropCode" class="text-xs text-gray-400 font-mono flex-shrink-0">
+              {{ formData.cropCode }}
             </span>
           </div>
+          <template v-else>
+            <CropCodeSelector
+              :model-value="formData.cropCode || ''"
+              placeholder="搜索或选择作物品种..."
+              size="sm"
+              show-full-path
+              @change="handleCropChange"
+            />
+            <p v-if="errors.variety" class="text-red-500 text-xs mt-1">{{ errors.variety }}</p>
+            <div v-if="selectedCrop" class="mt-1.5 p-2 bg-emerald-50 border border-emerald-200 rounded text-xs">
+              <span class="text-emerald-700">
+                {{ selectedCrop.categoryName }} &gt; {{ selectedCrop.typeName }} &gt; {{ selectedCrop.varietyName }}
+                {{ selectedCrop.subVariety1Name && ` > ${selectedCrop.subVariety1Name}` }}
+              </span>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -350,8 +367,8 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { ChevronUp, ChevronDown, Upload } from 'lucide-vue-next'
+import { computed, ref, watch, onUnmounted } from 'vue'
+import { ChevronUp, ChevronDown, Upload, Leaf } from 'lucide-vue-next'
 import { ElModal } from '@/components/ui'
 // 与技术方案共享按钮样式常量
 import { btnDefault, btnBlue, btnSecondary } from '@/views/production/constants/buttonStyles'
@@ -420,6 +437,15 @@ const selectedOrderLabels = computed(() => {
 
 const selectedCrop = ref(null)
 
+// 修复 P0：跟踪最近选中的订单 ID（V1.1 L71 1:1）
+// 多订单 cropCode 不一致时，以用户最后勾选/取消的订单为准
+const lastSelectedOrderId = ref(null)
+
+// 修复 P0：弹窗关闭时重置最近选中订单 ref（V1.1 L85-89 1:1）
+watch(() => props.modelValue, (val) => {
+  if (!val) lastSelectedOrderId.value = null
+})
+
 watch(() => props.formData.cropCode, (code) => {
   if (code) {
     const varieties = getAllVarieties()
@@ -450,6 +476,24 @@ function handleCropChange(code, varietyInfo) {
   }
 }
 
+// 修复 P0：从订单自动填充作物品种（V1.1 L108-114 autoFillCropFromOrder 1:1 翻译）
+// 注意：订单 AddModal 已废弃 cropName 字段（始终为空），真正的品种名是 cropVariety
+// V1.1 L105-114 注释明确：不依赖前端品种库，直接用订单自身字段
+function autoFillCropFromOrder(order) {
+  selectedCrop.value = null
+  emit('formChange', 'cropCode', order.cropCode || '')
+  emit('formChange', 'variety', order.cropVariety || '')
+  // 兼容下游 batch.cropName 写入：把 cropVariety 同步给 cropName
+  emit('formChange', 'cropName', order.cropVariety || '')
+}
+
+function clearCropFields() {
+  selectedCrop.value = null
+  emit('formChange', 'cropCode', '')
+  emit('formChange', 'variety', '')
+  emit('formChange', 'cropName', '')
+}
+
 function toggleGreenhouse(greenhouse) {
   const current = [...props.formData.greenhouseId]
   const index = current.indexOf(greenhouse.id)
@@ -473,18 +517,37 @@ function togglePlantingMode(mode) {
 }
 
 function toggleOrder(order) {
+  // 修复 P0：与 V1.1 CreateBatchModal.tsx L123-152 handleOrderToggle 1:1 对齐
+  // 勾选 → 自动关联品种；取消最后一个 → 清空品种；取消非最后一个 → 切到剩余最后一个并刷新品种
   const currentId = [...props.formData.orderId]
   const currentCode = [...props.formData.orderCode]
   const index = currentId.indexOf(order.id)
   if (index === -1) {
+    // 勾选
     currentId.push(order.id)
     currentCode.push(order.orderCode)
+    emit('formChange', 'orderId', currentId)
+    emit('formChange', 'orderCode', currentCode)
+    lastSelectedOrderId.value = order.id
+    autoFillCropFromOrder(order)
   } else {
+    // 取消
     currentId.splice(index, 1)
     currentCode.splice(index, 1)
+    emit('formChange', 'orderId', currentId)
+    emit('formChange', 'orderCode', currentCode)
+    if (currentId.length === 0) {
+      // 全部取消 → 清空品种
+      lastSelectedOrderId.value = null
+      clearCropFields()
+    } else if (lastSelectedOrderId.value === order.id) {
+      // 取消的是当前"最近"订单 → 切到剩余的最后一个，并刷新品种
+      const newLastId = currentId[currentId.length - 1]
+      lastSelectedOrderId.value = newLastId
+      const newLastOrder = filteredOrders.value.find(o => o.id === newLastId)
+      if (newLastOrder) autoFillCropFromOrder(newLastOrder)
+    }
   }
-  emit('formChange', 'orderId', currentId)
-  emit('formChange', 'orderCode', currentCode)
 }
 
 function handlePlantingAreaInput(event) {
