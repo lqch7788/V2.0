@@ -84,7 +84,7 @@
               <div v-if="selectedBatch.plantingMode" class="text-emerald-600 mt-0.5">
                 种植模式：{{ plantingModeDisplay || selectedBatch.plantingMode }}
               </div>
-              <div v-if="selectedBatch.cropCode" class="text-emerald-600 mt-0.5">编码：{{ selectedBatch.cropCode }}</div>
+              <div v-if="selectedBatchDisplayCode" class="text-emerald-600 mt-0.5">编码：{{ selectedBatchDisplayCode }}</div>
             </div>
           </div>
           <div class="space-y-1.5">
@@ -241,6 +241,9 @@ import { computed, onMounted, watch } from 'vue'
 import { ElModal } from '@/components/ui'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf, Upload, ChevronDown, ChevronUp } from 'lucide-vue-next'
+// 修复 P0-B7-FALLBACK：V1.1 老 production_plans 数据 cropCode 为 null，
+// 通过 cropName 反查作物品种库拿 cropCode
+import { findOrCreateVarietyByName } from '@/services/cropVarietyService'
 import { TECH_SOLUTION_SCOPES } from '../constants/techSolutionScopes'
 import { usePlantingModes } from '@/composables/production/usePlantingModes'
 import { pickAndReadFile } from '@/utils/fileUpload'
@@ -321,6 +324,21 @@ const plantingModeDisplay = computed(() => {
     .join('、')
 })
 
+// 修复 P0-B7-CARD：老数据 batch.cropCode 为 null 时 fallback 显示
+const selectedBatchDisplayCode = computed(() => {
+  if (!props.selectedBatch) return ''
+  if (props.selectedBatch.cropCode) return props.selectedBatch.cropCode
+  if (props.selectedBatch.cropName) {
+    const v = findOrCreateVarietyByName(props.selectedBatch.cropName)
+    if (v) return v.cropCode || ''
+  }
+  if (props.selectedBatch.variety) {
+    const v = findOrCreateVarietyByName(props.selectedBatch.variety)
+    if (v) return v.cropCode || ''
+  }
+  return ''
+})
+
 // ==================== 字段级更新（V1.1 1:1） ====================
 
 function handleFieldChange(field, value) {
@@ -346,9 +364,19 @@ function handleRelatedBatchChange(value) {
   }
   // V1.1 L111-117：4 个字段同步回填
   emit('field-change', { field: 'relatedBatchCode', value })
-  emit('field-change', { field: 'cropCode', value: batch.cropCode || '' })
   emit('field-change', { field: 'crop', value: batch.cropName || '' })
   emit('field-change', { field: 'plantingMode', value: batch.plantingMode || '' })
+  // 修复 P0-B7-FALLBACK：老数据 cropCode=null 时通过 cropName 反查作物品种库
+  let resolvedCropCode = batch.cropCode || ''
+  if (!resolvedCropCode && batch.cropName) {
+    const variety = findOrCreateVarietyByName(batch.cropName)
+    if (variety) resolvedCropCode = variety.cropCode || ''
+  }
+  if (!resolvedCropCode && batch.variety) {
+    const variety = findOrCreateVarietyByName(batch.variety)
+    if (variety) resolvedCropCode = variety.cropCode || ''
+  }
+  emit('field-change', { field: 'cropCode', value: resolvedCropCode })
 }
 
 // V1.1 L277-288 适用范围 toggle

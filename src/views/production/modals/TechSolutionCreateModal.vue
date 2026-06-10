@@ -95,7 +95,7 @@
               <div v-if="selectedBatch.plantingMode" class="text-emerald-600 mt-0.5">
                 种植模式：{{ plantingModeDisplay || selectedBatch.plantingMode }}
               </div>
-              <div v-if="selectedBatch.cropCode" class="text-emerald-600 mt-0.5">编码：{{ selectedBatch.cropCode }}</div>
+              <div v-if="selectedBatchDisplayCode" class="text-emerald-600 mt-0.5">编码：{{ selectedBatchDisplayCode }}</div>
             </div>
           </div>
           <div class="space-y-1.5">
@@ -232,6 +232,9 @@ import { ref, computed, onMounted } from 'vue'
 import { ElModal } from '@/components/ui'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf, Upload, ChevronDown, ChevronUp } from 'lucide-vue-next'
+// 修复 P0-B7-FALLBACK：V1.1 老 production_plans 数据 cropCode 为 null，
+// 通过 cropName 反查作物品种库拿 cropCode（与 V1.1 L114 行为 1:1）
+import { findOrCreateVarietyByName, getVarietyByCode } from '@/services/cropVarietyService'
 // 修复 P0-005：从共享常量文件导入 28 个适用范围枚举
 import { TECH_SOLUTION_SCOPES } from '../constants/techSolutionScopes'
 // 第二阶段 Y1 重构：种植模式加载抽 composable
@@ -317,9 +320,20 @@ function handleRelatedBatchChange(value) {
   }
   // V1.1 L111-117：4 个字段同步回填（relatedBatchCode + cropCode + crop + plantingMode）
   emit('field-change', { field: 'relatedBatchCode', value })
-  emit('field-change', { field: 'cropCode', value: batch.cropCode || '' })
   emit('field-change', { field: 'crop', value: batch.cropName || '' })
   emit('field-change', { field: 'plantingMode', value: batch.plantingMode || '' })
+  // 修复 P0-B7-FALLBACK：V1.1 老 production_plans 数据 cropCode 为 null，
+  // 通过 cropName 反查作物品种库（V1.1 L114 batch.cropCode 1:1 翻译）
+  let resolvedCropCode = batch.cropCode || ''
+  if (!resolvedCropCode && batch.cropName) {
+    const variety = findOrCreateVarietyByName(batch.cropName)
+    if (variety) resolvedCropCode = variety.cropCode || ''
+  }
+  if (!resolvedCropCode && batch.variety) {
+    const variety = findOrCreateVarietyByName(batch.variety)
+    if (variety) resolvedCropCode = variety.cropCode || ''
+  }
+  emit('field-change', { field: 'cropCode', value: resolvedCropCode })
 }
 
 // 种植模式值→label 翻译（V1.1 L132-141 1:1）
@@ -335,6 +349,22 @@ const plantingModeDisplay = computed(() => {
     })
     .filter(Boolean)
     .join('、')
+})
+
+// 修复 P0-B7-CARD：selectedBatch.cropCode 为 null 时通过 cropName 反查作物品种库
+// 用于详情卡片显示"编码：xxx"行
+const selectedBatchDisplayCode = computed(() => {
+  if (!props.selectedBatch) return ''
+  if (props.selectedBatch.cropCode) return props.selectedBatch.cropCode
+  if (props.selectedBatch.cropName) {
+    const v = findOrCreateVarietyByName(props.selectedBatch.cropName)
+    if (v) return v.cropCode || ''
+  }
+  if (props.selectedBatch.variety) {
+    const v = findOrCreateVarietyByName(props.selectedBatch.variety)
+    if (v) return v.cropCode || ''
+  }
+  return ''
 })
 
 /** 本地时区日期（V1.1 L340 1:1） */
