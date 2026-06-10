@@ -155,7 +155,7 @@ const position = ref({ x: 0, y: 0 })
 const modalSize = ref({ width: 0, height: 0 })
 
 let resizeDir = ''
-let dragOffset = { x: 0, y: 0 }
+const dragOffset = { x: 0, y: 0 }
 let initialSize = { width: 0, height: 0 }
 let initialMouse = { x: 0, y: 0 }
 let initialPosition = { x: 0, y: 0 }
@@ -406,8 +406,13 @@ onBeforeUnmount(() => {
 .el-modal-wrapper {
   position: fixed;
   inset: 0;
-  /* 修复 P0: 提升 z-index 到 body 最高层级，避免被 v-loading mask (2000+) / 其他 Element Plus 组件遮挡 */
-  z-index: 9999 !important;
+  /* 修复 P0-1: z-index 改为 2000（与 Element Plus 原生 el-modal 一致）。
+   * 原因：原 9999 会强制覆盖 modal 内部 el-select/date-picker/cascader/autocomplete 等
+   * popper 浮层（默认 z-index 2000+），导致下拉/日期面板被弹窗容器遮挡无法交互。
+   * 改 2000 后，popper 在 DOM 树 body 末尾（晚于 modal wrapper），
+   * 同 z-index 层级下后渲染者覆盖前渲染者，popper 自然浮在 modal 之上。
+   * v-loading mask 也是 2000+ → modal 与 mask 在同一 stacking context，由 DOM 顺序决定 */
+  z-index: 2000 !important;
   pointer-events: none;
 }
 
