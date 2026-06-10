@@ -2248,7 +2248,15 @@ export function initializeDatabase() {
         'seedling_site_name',
         'seed_quantity',
         'target_seedling_count',
-        'execution_status'
+        'execution_status',
+        // ✅ 修复 P0: V2.0 POST /api/production-plans 路由写入 35 列，
+        // 但 CREATE TABLE 只有 30 列，ALTER 漏了 5 列导致 INSERT 抛错被 catch → "创建生产计划失败"
+        // 补全缺失列：greenhouse_id, area_id, order_id, order_code, planting_area_unit
+        'greenhouse_id',
+        'area_id',
+        'order_id',
+        'order_code',
+        'planting_area_unit',
     ];
     for (const col of productionPlanColumns) {
         try {

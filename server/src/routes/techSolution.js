@@ -171,9 +171,15 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
     try {
         const db = getDatabase();
+        // ✅ 修复 P0: 字段名双兼容（同时接受 solutionTitle/title、remarks 等）
+        // V2.0 前端部分路径用 `title`/`remarks` 字段名提交；V1.1 与 V2.0 后端一直用 `solutionTitle` 字段名存储。
+        // 兼容两种字段名后，无论前端用哪种都不会丢字段。
         const { code, // 前端传入的方案编号
         solutionTitle, cropName, cropCode, plantingMode, stage, version, content, author, authorId, relatedBatchCode, planDetailFileName, priority, remarks, scopeNames, // V9.0: 适用范围数组
          } = req.body;
+        // 字段名双兼容：title (V2.0 直接命名) / solutionTitle (V1.1/V2.0 后端命名)
+        const finalSolutionTitle = solutionTitle ?? req.body.title ?? '';
+        const finalRemarks = remarks ?? req.body.remarks ?? '';
         // 默认草稿状态
         const batchStatus = req.body.batchStatus || 'draft';
         const id = generateId('TS');
@@ -192,7 +198,7 @@ router.post('/', (req, res) => {
     `, [
             id,
             solutionCode,
-            solutionTitle,
+            finalSolutionTitle,
             cropName,
             cropCode || '',
             plantingMode,
@@ -208,7 +214,7 @@ router.post('/', (req, res) => {
             relatedBatchCode || '',
             planDetailFileName || '',
             priority || 'normal',
-            remarks || '',
+            finalRemarks || '',
             now, // last_submit_time
             req.body.isValid || '有效', // is_valid
             scopeNamesStr,
@@ -235,10 +241,14 @@ router.put('/:id', (req, res) => {
     try {
         const { id } = req.params;
         const db = getDatabase();
+        // ✅ 修复 P0: 字段名双兼容（同时接受 title/solutionTitle、remarks 等）
         const { solutionTitle = '', cropName = '', cropCode = '', // 修复 P0-CV：补 cropCode，编辑保存后 crop_code 列才更新
         plantingMode = '', stage = '', author = '', // 修复 P0-CU：补 author，编制人编辑才落地
         version = 'V1.0', content = '', relatedBatchCode = '', planDetailFileName = '', priority = 'normal', remarks = '', isValid = '有效', lastSubmitTime = '', scopeNames, // V9.0
          } = req.body;
+        // 字段名双兼容：title / solutionTitle 都接受
+        const finalSolutionTitle = solutionTitle || req.body.title || '';
+        const finalRemarks = remarks || req.body.remarks || '';
         const now = new Date().toISOString();
         // 修复 P0-CW：与 V1.1 L362-366 一致，保持原状态不变，只有显式设置时（isValid==='作废'）才改变
         // V2.0 原版强制覆盖为 'pending' 会丢失 approved/published 等状态
@@ -253,9 +263,9 @@ router.put('/:id', (req, res) => {
             'scope_names = ?'
         ];
         const values = [
-            solutionTitle, cropName, cropCode, plantingMode, stage,
+            finalSolutionTitle, cropName, cropCode, plantingMode, stage,
             author, version, content, relatedBatchCode, planDetailFileName,
-            priority, remarks, now, isValid, lastSubmitTime || now,
+            priority, finalRemarks, now, isValid, lastSubmitTime || now,
             scopeNamesStr
         ];
         // 只有显式设置状态时才更新 batch_status
