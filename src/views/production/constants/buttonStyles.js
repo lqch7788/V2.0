@@ -15,6 +15,8 @@ export const btnSecondary = `${btnBase} bg-gray-100 text-gray-900 hover:bg-gray-
 export const btnDestructive = `${btnBase} bg-red-600 text-white hover:bg-red-700 h-8 rounded-md px-3 text-xs`
 export const btnBlue = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 h-8 rounded-md px-3 text-xs`
 export const btnGhost = `${btnBase} hover:bg-gray-100 hover:text-gray-900`
+// 警示版（用于"重置"等带提醒色的按钮，与 V1.1 OrderFilter Button variant="warning" 1:1）
+export const btnWarning = `${btnBase} bg-amber-500 text-white hover:bg-amber-600 h-8 rounded-md px-3 text-xs`
 
 // 紧凑版（Filters/Table/BatchEdit/ExportFormatModal 使用）
 export const inputClass = 'flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50'

@@ -1,10 +1,10 @@
 <template>
-  <!-- 订单详情弹窗 - 统一使用 ElModal（V1.1宽度700 → 统一800） -->
+  <!-- 订单详情弹窗 - 与 V1.1 通用 DetailModal 一致（700×600 标准详情尺寸） -->
   <ElModal
     :model-value="isOpen"
     title="订单详情"
-    :width="1600"
-    :height="900"
+    :width="700"
+    :height="600"
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
   >

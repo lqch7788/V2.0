@@ -1,14 +1,14 @@
 <template>
-  <!-- 编辑订单弹窗 - 统一使用 ElModal（V1.1宽度700 → 统一800） -->
+  <!-- 编辑订单弹窗 - 与 V1.1 EditModal.tsx 1:1 翻译（900×650，与 4 模块新增/编辑统一） -->
   <ElModal
     :model-value="isOpen"
     title="编辑订单"
-    :width="784"
-    :height="630"
+    :width="900"
+    :height="650"
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
   >
-    <!-- 表单内容 - 所有字段 2 个一排（grid-cols-2），备注单独一行（col-span-2） -->
+    <!-- 表单内容 - 所有字段 2 个一排（grid-cols-2），作物信息/收货地址/备注 单独一行 -->
     <div class="space-y-4 modal-form-inputs">
       <div class="grid grid-cols-2 gap-4">
         <!-- 行 1: 订单编号 | 订单名称 -->
@@ -44,11 +44,11 @@
           />
         </div>
 
-        <!-- 行 3: 作物信息（与订单列表字段名一致，1:1 对齐 AddModal 风格）
-             ✅ 修复: 用 CropCodeSelector 替换自制搜索下拉（原搜索下拉因 z-index 100 被遮挡且无完整品种库）
-             displayLabel 兜底显示已选品种名（兼容 record 中无 cropCode 的情况） -->
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">作物信息 <span class="text-red-500">*</span></label>
+        <!-- 行 3: 作物信息（fullWidth，与 V1.1 EditModal.tsx L358-383 1:1 对齐） -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <span class="text-red-500">*</span> 作物信息
+          </label>
           <CropCodeSelector
             v-model="form.cropCode"
             :display-label="form.cropVariety"
@@ -57,6 +57,19 @@
             show-full-path
             @change="handleCropChange"
           />
+          <!-- selectedCrop 绿色信息卡（与 V1.1 EditModal.tsx L370-381 1:1） -->
+          <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
+            <div class="text-emerald-700 flex items-center gap-1">
+              <Leaf class="w-3 h-3 flex-shrink-0" />
+              <span>
+                {{ selectedCrop.categoryName }} > {{ selectedCrop.typeName }} > {{ selectedCrop.varietyName }}
+                <template v-if="selectedCrop.subVariety1Name"> > {{ selectedCrop.subVariety1Name }}</template>
+              </span>
+            </div>
+            <div class="text-emerald-600 mt-0.5">
+              编码：{{ selectedCrop.cropCode }}
+            </div>
+          </div>
           <p v-if="errors.cropVariety" class="text-xs text-red-500 mt-1">{{ errors.cropVariety }}</p>
         </div>
 
@@ -140,7 +153,6 @@
     </div>
 
     <template #footer>
-      <!-- 修复轮 8 P0-I1-1：提交期按钮 disabled + 文案变化 -->
       <div class="flex justify-end gap-3">
         <el-button size="small" @click="handleClose" :disabled="isSubmitting">取消</el-button>
         <el-button type="primary" size="small" @click="handleSubmit" :disabled="isSubmitting">
@@ -152,15 +164,19 @@
 </template>
 
 <script setup>
+/**
+ * 编辑订单弹窗 - 1:1 翻译 V1.1 EditModal.tsx
+ * @see D:/TMcrop/yuanxingtu/V1.1/src/components/farm/order/modals/EditModal.tsx
+ */
 import { ref, watch, computed, onUnmounted } from 'vue'
 import { ElModal } from '@/components/ui'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { useCustomerStore } from '@/stores/modules/customer'
 import { CropOrderStatus } from '@/types/crop'
 import { showAlert, showConfirm } from '@/lib/dialogService'
-// ✅ 修复: 改用与 AddModal 1:1 一致的 CropCodeSelector 组件
-// 删除原 initVarieties/getVarietyOptions 自制搜索下拉的依赖
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
+import { Leaf } from 'lucide-vue-next'
+import { getVarietyByCode, searchVarieties } from '@/services/cropVarietyService'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -176,10 +192,10 @@ const emit = defineEmits(['close', 'success', 'update:isOpen'])
 const orderDataStore = useOrderDataStore()
 const customerStore = useCustomerStore()
 
-// 客户下拉选项（与 V1.1 EditModal.tsx L461 一致）
+// 客户下拉选项
 const customerOptions = computed(() => customerStore.customers || [])
 
-// 客户选择变更时自动填充（与 V1.1 EditModal.tsx L444-455 一致）
+// 客户选择变更时自动填充（与 V1.1 EditModal.tsx L444-455 1:1）
 const handleCustomerChange = (customerId) => {
   const customer = customerOptions.value.find(c => c.id === customerId)
   if (customer) {
@@ -189,19 +205,19 @@ const handleCustomerChange = (customerId) => {
   }
 }
 
-// 表单数据（与V1.1 EditModal.tsx L40-59 一致 - 无 customerName/customerPhone 显式字段）
-// ✅ 修复: 加 cropCode 字段用于 CropCodeSelector v-model
+// 表单数据（与 V1.1 EditModal.tsx L40-61 1:1 - 含 customerName 字段）
 const form = ref({
   orderCode: '',
   orderName: '',
   orderType: 'production',
-  cropCode: '',         // 新增：作物编码（CropCodeSelector 选中后写入）
+  cropCode: '',
   cropCategory: '',
   cropVariety: '',
   plannedQuantity: 0,
   completedQuantity: 0,
   unit: '株',
   customerId: '',
+  customerName: '',         // 修复 P0-7：补全 customerName 字段（V1.1 EditModal.tsx 用 record.customerName 兜底）
   customerPhone: '',
   deliveryAddress: '',
   orderDate: '',
@@ -210,12 +226,14 @@ const form = ref({
   orderStatus: 'in_progress'
 })
 
-// 错误信息
+const selectedCrop = ref(null)
 const errors = ref({})
+const isSubmitting = ref(false)
 
-// ✅ 修复: 1:1 对齐 AddModal handleCropChange（作物选择后自动填充 cropVariety + cropCategory）
+// 作物选择回调（与 V1.1 EditModal.tsx L160-184 1:1）
 function handleCropChange(code, varietyInfo) {
   form.value.cropCode = code || ''
+  selectedCrop.value = varietyInfo
   if (varietyInfo) {
     const fullPath = [
       varietyInfo.categoryName,
@@ -228,30 +246,82 @@ function handleCropChange(code, varietyInfo) {
     form.value.cropCategory = fullPath || ''
     errors.value = { ...errors.value, cropVariety: '' }
   } else {
-    // 用户清空选择时
     form.value.cropVariety = ''
     form.value.cropCategory = ''
   }
 }
 
-// 监听打开和记录变化（V2.0 第6轮 P0 修复：添加 immediate: true + 修复轮 8 P0-I1-3：弹窗打开时刷新客户列表）
+// 反查初始化 selectedCrop（与 V1.1 EditModal.tsx L115-157 3 重兜底 1:1）
+const initSelectedCrop = (record) => {
+  if (!record) {
+    selectedCrop.value = null
+    return
+  }
+  const cropName = record.cropVariety || ''
+  const cropCodeValue = record.cropCode || ''
+
+  // 兜底 1：按 cropCode 精准匹配
+  if (cropCodeValue) {
+    try {
+      const byCode = getVarietyByCode(cropCodeValue)
+      if (byCode) {
+        selectedCrop.value = byCode
+        return
+      }
+    } catch { /* 静默 */ }
+  }
+  // 兜底 2：用 cropVariety 模糊搜索
+  if (cropName) {
+    try {
+      const results = searchVarieties(cropName)
+      if (results && results.length > 0) {
+        const hit = results[0]
+        selectedCrop.value = {
+          id: '',
+          cropCode: hit.value || cropCodeValue,
+          categoryName: '',
+          typeName: '',
+          varietyName: hit.label || cropName,
+          subVariety1Name: '',
+          fullPath: hit.fullPath || record.cropCategory || cropName
+        }
+        return
+      }
+    } catch { /* 静默 */ }
+  }
+  // 兜底 3：用 record 自身字段拼路径
+  if (cropName) {
+    selectedCrop.value = {
+      id: '',
+      cropCode: cropCodeValue,
+      categoryName: '',
+      typeName: '',
+      varietyName: cropName,
+      subVariety1Name: '',
+      fullPath: record.cropCategory || cropName
+    }
+    return
+  }
+  selectedCrop.value = null
+}
+
+// 监听打开和记录变化
 watch([() => props.isOpen, () => props.record], ([isOpenVal, recordVal]) => {
   if (isOpenVal && recordVal) {
-    // 如果订单已完成或已取消，禁止编辑
+    // 已完成/已取消禁止编辑
     if (recordVal.status === CropOrderStatus.COMPLETED || recordVal.status === CropOrderStatus.CANCELLED) {
       const msg = recordVal.status === CropOrderStatus.COMPLETED ? '已完成' : '已取消'
       showAlert(`该订单已${msg}，无法编辑`)
       emit('update:isOpen', false)
       return
     }
-    // 修复轮 8 P0-I1-3：弹窗打开时刷新客户列表，确保客户下拉有数据
     if (customerStore.fetchCustomers) customerStore.fetchCustomers()
-    // 初始化表单
+    // 初始化表单（含 customerName 字段）
     form.value = {
       orderCode: recordVal.orderCode || '',
       orderName: recordVal.orderName || '',
       orderType: recordVal.orderType || 'production',
-      cropCode: recordVal.cropCode || '',  // 新增：尝试回显（后端若返回 cropCode 则显示）
+      cropCode: recordVal.cropCode || '',
       cropCategory: recordVal.cropCategory || '',
       cropVariety: recordVal.cropVariety || '',
       plannedQuantity: recordVal.plannedQuantity || 0,
@@ -270,83 +340,63 @@ watch([() => props.isOpen, () => props.record], ([isOpenVal, recordVal]) => {
         ? 'cancelled'
         : 'in_progress'
     }
+    initSelectedCrop(recordVal)
     errors.value = {}
+  } else if (!isOpenVal) {
+    // 关闭时清理 selectedCrop
+    selectedCrop.value = null
   }
 }, { immediate: true })
 
-// 关闭（V2.0 第6轮 P0 修复：清理拖动/缩放监听器防内存泄漏）
 const handleClose = () => {
   errors.value = {}
   emit('update:isOpen', false)
   emit('close')
 }
 
-// 监听器卸载清理（V2.0 第6轮 P0 修复 - 防内存泄漏）
 onUnmounted(() => {
   // CropCodeSelector 自带点击外部关闭，无需手动清理
 })
 
-// 提交（修复轮 8 P0-I1-1：加 isSubmitting 状态，提交期间按钮 disabled + 文案变化）
-const isSubmitting = ref(false)
 const handleSubmit = async () => {
-  // 如果订单已完成或已取消，禁止编辑
   if (props.record && (props.record.status === CropOrderStatus.COMPLETED || props.record.status === CropOrderStatus.CANCELLED)) {
     const msg = props.record.status === CropOrderStatus.COMPLETED ? '已完成' : '已取消'
     await showAlert(`该订单已${msg}，无法编辑`)
     return
   }
 
-  // 如果选择"已完成"或"已取消"，弹出确认警告
   if (form.value.orderStatus === 'completed') {
     const confirmed = await showConfirm(
-      '⚠️ 重要提示：\n\n' +
-      '确认将订单标记为完成吗？\n\n' +
-      '完成后该订单将进入保存档案状态：\n' +
-      '• 无法进行任何编辑操作\n' +
-      '• 无法删除订单\n' +
-      '• 无法关联新的作物实例\n\n' +
-      '此操作不可逆，请确认！'
+      '⚠️ 重要提示：\n\n确认将订单标记为完成吗？\n\n完成后该订单将进入保存档案状态：\n• 无法进行任何编辑操作\n• 无法删除订单\n• 无法关联新的作物实例\n\n此操作不可逆，请确认！'
     )
-    if (!confirmed) {
-      return
-    }
+    if (!confirmed) return
   }
   if (form.value.orderStatus === 'cancelled') {
     const confirmed = await showConfirm(
-      '⚠️ 重要提示：\n\n' +
-      '确认取消该订单吗？\n\n' +
-      '取消后该订单将无法操作：\n' +
-      '• 无法进行任何编辑操作\n' +
-      '• 无法删除订单\n' +
-      '• 无法关联新的作物实例\n\n' +
-      '此操作不可逆，请确认！'
+      '⚠️ 重要提示：\n\n确认取消该订单吗？\n\n取消后该订单将无法操作：\n• 无法进行任何编辑操作\n• 无法删除订单\n• 无法关联新的作物实例\n\n此操作不可逆，请确认！'
     )
-    if (!confirmed) {
-      return
-    }
+    if (!confirmed) return
   }
 
-  // 验证（与 V1.1 EditModal.tsx L198-205 一致 - 4 项校验）
   errors.value = {}
   if (!form.value.orderCode) errors.value.orderCode = '请输入订单编号'
   if (!form.value.orderName) errors.value.orderName = '请输入订单名称'
   if (!form.value.cropVariety) errors.value.cropVariety = '请选择作物品种'
   if (form.value.plannedQuantity <= 0) errors.value.plannedQuantity = '请输入计划数量'
-
   if (Object.keys(errors.value).length > 0) return
 
   if (!props.record) return
 
-  // 计算最终状态
+  // 修复 P0-5: 与 V1.1 EditModal.tsx L247-251 1:1 — 用户选啥就是啥，禁止用 completedQuantity 反推降级
   const finalStatus = form.value.orderStatus === 'completed'
     ? CropOrderStatus.COMPLETED
     : form.value.orderStatus === 'cancelled'
     ? CropOrderStatus.CANCELLED
-    : form.value.completedQuantity > 0
-      ? CropOrderStatus.IN_PROGRESS
-      : CropOrderStatus.PLANNED
+    : CropOrderStatus.IN_PROGRESS
 
+  isSubmitting.value = true
   try {
+    // 修复 P0-6: updates 补全 4 个客户字段（V1.1 EditModal.tsx L254-274 1:1）
     const updates = {
       orderCode: form.value.orderCode,
       orderName: form.value.orderName,
@@ -356,12 +406,16 @@ const handleSubmit = async () => {
       cropCategory: form.value.cropCategory,
       cropName: '',
       cropVariety: form.value.cropVariety,
+      cropCode: form.value.cropCode || '',
       plannedQuantity: form.value.plannedQuantity,
       completedQuantity: form.value.completedQuantity,
       unit: form.value.unit,
       remarks: form.value.remarks,
       status: finalStatus,
-      customerId: form.value.customerId || undefined
+      customerId: form.value.customerId || undefined,
+      customerName: form.value.customerName || props.record.customerName || '',
+      customerPhone: form.value.customerPhone || '',
+      deliveryAddress: form.value.deliveryAddress || ''
     }
 
     await orderDataStore.updateOrder(props.record.id, updates)
@@ -377,8 +431,6 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* V1.1 inputDeepClass 全局样式（修复轮 6 P0-008~016 inputDeepClass 缺失）
-   V1.1 EditModal L66 deepInputClass 定义，与 AddModal 同一套样式 */
 :deep(.el-input__wrapper),
 :deep(.el-textarea__inner) {
   padding: 0 11px !important;
@@ -417,7 +469,6 @@ const handleSubmit = async () => {
   font-size: 14px;
   color: #9ca3af;
 }
-/* 错误状态（V1.1 errors 触发 border-red-500） */
 :deep(.el-input__wrapper.is-error) {
   box-shadow: 0 0 0 1px #ef4444 inset !important;
 }

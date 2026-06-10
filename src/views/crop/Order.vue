@@ -164,12 +164,13 @@
  * - OrderTable（数据表格 + 分页）
  * - AddModal / DetailModal / EditModal / ExportModal（4 个弹窗）
  */
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { Plus, Download, ClipboardList, Trash2 } from 'lucide-vue-next'
 import { useOrderDataStore } from '@/stores/modules/orderData'
 import { CropOrderStatus } from '@/types/crop'
-import { showAlert, showConfirm, showSuccess } from '@/lib/dialogService'
+import { showAlert, showSuccess } from '@/lib/dialogService'
 // 修复 P0-A/P0-B：提取共享工具函数（与 OrderTable.vue 复用）
 import { getOrderStatusLabel as getStatusLabel, getOrderTypeLabel as getOrderTypeLabelForExport } from '@/utils/orderHelpers'
 // 与生产模块共享按钮样式常量
@@ -212,7 +213,7 @@ const cropNameOptions = computed(() => {
     .map(name => ({ value: name, label: name }))
 })
 
-// 筛选条件（与 V1.1 OrderPage.tsx L48-56 一致 - 7 字段 + 1 orderDate）
+// 筛选条件（与 V1.1 OrderPage.tsx L48-56 一致 - 7 字段：orderCode/orderName/cropName/status/startDate/endDate/createBy）
 const filters = ref({
   orderCode: '',
   orderName: '',
@@ -220,8 +221,7 @@ const filters = ref({
   status: '',
   startDate: '',
   endDate: '',
-  createBy: '',
-  orderDate: ''
+  createBy: ''
 })
 
 // 分页
@@ -263,20 +263,21 @@ const deleteTargetDescription = ref('')
 // 加载状态
 const loading = computed(() => orderDataStore.isLoading)
 
-// 统计数据（优先使用后端 API，否则本地计算）
+// 统计数据（优先使用后端 API，否则本地计算 - 与 V1.1 OrderPage.tsx L131-150 一致 - 6 字段）
 const statsData = computed(() => {
   if (orderDataStore.stats) return orderDataStore.stats
   const orders = orderDataStore.orders
-  return {
-    total: orders.length,
-    inProgress: orders.filter(o => o.status === CropOrderStatus.IN_PROGRESS).length,
-    completed: orders.filter(o => o.status === CropOrderStatus.COMPLETED).length,
-    thisMonth: orders.filter(o => {
-      const date = new Date(o.createTime || '')
-      const now = new Date()
-      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
-    }).length
-  }
+  const total = orders.length
+  const planned = orders.filter(o => o.status === CropOrderStatus.PLANNED).length
+  const inProgress = orders.filter(o => o.status === CropOrderStatus.IN_PROGRESS).length
+  const completed = orders.filter(o => o.status === CropOrderStatus.COMPLETED).length
+  const cancelled = orders.filter(o => o.status === CropOrderStatus.CANCELLED).length
+  const thisMonth = orders.filter(o => {
+    const date = new Date(o.createTime || '')
+    const now = new Date()
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+  }).length
+  return { total, planned, inProgress, completed, cancelled, thisMonth }
 })
 
 // 筛选后的数据（与 V1.1 OrderPage.tsx L99-116 一致 - 7 字段过滤 + 倒序）
@@ -313,8 +314,7 @@ const handleReset = () => {
     status: '',
     startDate: '',
     endDate: '',
-    createBy: '',
-    orderDate: ''
+    createBy: ''
   }
   pagination.value.current = 1
 }
@@ -382,10 +382,8 @@ const handleConfirmDelete = () => {
 
 // 删除警告弹窗 - 关闭
 const handleDeleteWarningClose = () => {
-  console.log('[Order] handleDeleteWarningClose called, current=', deleteWarningOpen.value)
   deleteWarningOpen.value = false
   deleteTargetIds.value = []
-  console.log('[Order] after close, deleteWarningOpen=', deleteWarningOpen.value)
 }
 
 // 删除警告弹窗 - 确认（执行实际删除）
@@ -412,8 +410,9 @@ const handleDeleteWarningConfirm = async () => {
       selectedRows.value = []
       deleteMode.value = false
     }
-    // 删除后重新拉取，确保列表与后端一致
+    // 删除后重新拉取列表 + 统计，确保与后端一致（V1.1 OrderPage.tsx L184 同步调用 fetchStats）
     await orderDataStore.fetchOrders()
+    await orderDataStore.fetchStats()
   }
 }
 
@@ -546,6 +545,22 @@ onMounted(async () => {
     await showAlert('数据加载失败，请刷新重试')
   }
 })
+
+// 监听 store.error 自动弹 toast（与 V1.1 OrderPage.tsx L88-94 useEffect 1:1）
+const lastShownError = ref(null)
+watch(
+  () => orderDataStore.error,
+  (newError) => {
+    if (newError && newError !== lastShownError.value) {
+      lastShownError.value = newError
+      ElMessage.error(`加载订单数据失败：${newError}`)
+      // 清掉 store 错误，避免重复弹
+      if (typeof orderDataStore.$patch === 'function') {
+        orderDataStore.$patch({ error: null })
+      }
+    }
+  }
+)
 </script>
 
 <style scoped>

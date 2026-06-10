@@ -1,6 +1,6 @@
 <template>
-  <!-- 订单统计卡片组件 - V1.1 OrderStats.tsx 1:1 翻译 -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <!-- 订单统计卡片组件 - V1.1 OrderStats.tsx 1:1 翻译（6 卡片版） -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
     <div
       v-for="(stat, index) in stats"
       :key="index"
@@ -25,15 +25,15 @@
  * 对应 V1.1 src/components/farm/order/components/OrderStats.tsx 1:1 翻译
  *
  * Props：
- * - data: { total, inProgress, completed, thisMonth } 4 项统计数据
+ * - data: { total, inProgress, completed, thisMonth, planned, cancelled } 6 项统计数据
  *
- * 卡片样式与 V1.1 OrderStats.tsx L47-65 一致：
- * - 4 列 grid 布局
- * - 颜色：订单总数(blue)/进行中(amber)/已完成(emerald)/本月新增(purple)
- * - 图标：Package/TrendingUp/CheckCircle/Calendar
+ * 卡片样式与 V1.1 OrderStats.tsx L22-58 1:1 一致：
+ * - 6 列 grid 布局（xl:grid-cols-6）
+ * - 颜色：总数(blue)/已计划(indigo)/进行中(amber)/已完成(emerald)/已取消(rose)/本月(purple)
+ * - 图标：Package/FileCheck/TrendingUp/CheckCircle/XCircle/Calendar
  */
 import { computed } from 'vue'
-import { Package, TrendingUp, CheckCircle, Calendar } from 'lucide-vue-next'
+import { Package, TrendingUp, CheckCircle, Calendar, FileCheck, XCircle } from 'lucide-vue-next'
 
 const props = defineProps({
   data: {
@@ -42,28 +42,41 @@ const props = defineProps({
   }
 })
 
+// 与 V1.1 OrderStats.tsx L22-58 完全一致的 6 卡片配置
 const stats = computed(() => [
   {
     label: '订单总数',
-    value: props.data.total,
+    value: props.data.total ?? 0,
     color: 'bg-blue-500',
     icon: Package
   },
   {
+    label: '已计划',
+    value: props.data.planned ?? 0,
+    color: 'bg-indigo-500',
+    icon: FileCheck
+  },
+  {
     label: '进行中',
-    value: props.data.inProgress,
+    value: props.data.inProgress ?? 0,
     color: 'bg-amber-500',
     icon: TrendingUp
   },
   {
     label: '已完成',
-    value: props.data.completed,
+    value: props.data.completed ?? 0,
     color: 'bg-emerald-500',
     icon: CheckCircle
   },
   {
+    label: '已取消',
+    value: props.data.cancelled ?? 0,
+    color: 'bg-rose-500',
+    icon: XCircle
+  },
+  {
     label: '本月新增',
-    value: props.data.thisMonth,
+    value: props.data.thisMonth ?? 0,
     color: 'bg-purple-500',
     icon: Calendar
   }

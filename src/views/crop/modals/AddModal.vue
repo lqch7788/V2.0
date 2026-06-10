@@ -1,10 +1,10 @@
 <template>
-  <!-- 新增订单弹窗 - 统一使用 ElModal（统一800） -->
+  <!-- 新增订单弹窗 - 与 V1.1 AddModal.tsx 1:1 翻译（900×650 与 4 模块新增/编辑统一） -->
   <ElModal
     :model-value="isOpen"
     title="新增订单"
-    :width="784"
-    :height="630"
+    :width="900"
+    :height="650"
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
   >
@@ -16,7 +16,10 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">订单编号</label>
           <div class="flex gap-2">
             <el-input v-model="form.orderCode" placeholder="点击生成获取编号" class="flex-1" />
-            <el-button type="primary" size="small" @click="generateOrderCode">生成</el-button>
+            <el-button type="primary" size="small" @click="generateOrderCode">
+              <RefreshCw class="w-4 h-4 mr-1" />
+              生成
+            </el-button>
           </div>
           <p v-if="errors.orderCode" class="text-xs text-red-500 mt-1">{{ errors.orderCode }}</p>
         </div>
@@ -162,7 +165,7 @@ import { useCustomerStore } from '@/stores/modules/customer'
 import { useUserStore } from '@/stores/modules/user'
 import { showAlert } from '@/lib/dialogService'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
-import { Leaf } from 'lucide-vue-next'
+import { Leaf, RefreshCw } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: Boolean,

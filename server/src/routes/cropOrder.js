@@ -294,8 +294,7 @@ router.delete('/:id', (req, res) => {
         if (!order) {
             return res.status(404).json({ success: false, error: '订单不存在' });
         }
-        // 按 V2.0 迁移规范：移除状态过滤（completed 也允许删除）
-        // 与 V1.1 行为对齐：V1.1 也有此拦截，但用户要求"所有过滤都去掉"
+        // 与 V1.1 行为一致：后端不拦截 completed 删除（V1.1 OrderTable.tsx 仅前端 UI 不显示删除按钮）
         db.run('DELETE FROM crop_orders WHERE id = ?', [id]);
         saveDatabase();
         res.json({ success: true, message: '订单删除成功' });
@@ -337,10 +336,9 @@ router.post('/batch/delete', (req, res) => {
                 failedIds.push({ id, reason: '订单不存在' });
                 continue;
             }
-            // 按 V2.0 迁移规范：移除状态过滤（completed 也允许删除）
-            // 用户要求"所有过滤都去掉"，对齐 V1.1 不限制状态
+            // 与 V1.1 行为一致：后端不拦截任何状态的批量删除
         }
-        // 批量删除所有有效订单（不再过滤 completed，按 V2.0 迁移规范"去掉所有过滤"）
+        // 批量删除所有有效订单（与 V1.1 行为一致，不限制状态）
         const validIds = ids.filter(id => {
             return ordersMap.has(id);
         });

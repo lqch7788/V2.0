@@ -1,5 +1,5 @@
 <template>
-  <!-- 订单导出弹窗 - 统一使用 ElModal（统一800） -->
+  <!-- 订单导出弹窗 - 与 V1.1 通用 ExportFormatModal 1:1 翻译（500×400） -->
   <ElModal
     :model-value="isOpen"
     title="选择导出格式"
@@ -13,28 +13,25 @@
       <p class="text-sm text-gray-500 mb-4">
         已选择 {{ exportCount }} 条数据
       </p>
-      <div
-        v-for="format in formats"
-        :key="format.value"
-        :class="[
-          'flex items-center p-4 border rounded-lg cursor-pointer transition-all',
-          selectedFormat === format.value
-            ? 'border-emerald-500 bg-emerald-50'
-            : 'border-gray-400 hover:border-gray-400'
-        ]"
-        @click="handleFormatChange(format.value)"
-      >
-        <el-radio
-          :model-value="selectedFormat === format.value"
-          :label="format.value"
-          @change="handleFormatChange(format.value)"
+      <el-radio-group v-model="selectedFormat" class="w-full !flex !flex-col gap-3">
+        <label
+          v-for="format in formats"
+          :key="format.value"
+          :class="[
+            'flex items-center p-4 border rounded-lg cursor-pointer transition-all w-full',
+            selectedFormat === format.value
+              ? 'border-emerald-500 bg-emerald-50'
+              : 'border-gray-400 hover:border-gray-500'
+          ]"
         >
-          <div class="ml-3">
-            <span class="block text-sm font-medium text-gray-900">{{ format.label }}</span>
-            <span class="block text-xs text-gray-500">{{ format.desc }}</span>
-          </div>
-        </el-radio>
-      </div>
+          <el-radio :value="format.value" class="!flex !items-center !m-0">
+            <div class="ml-2">
+              <span class="block text-sm font-medium text-gray-900">{{ format.label }}</span>
+              <span class="block text-xs text-gray-500">{{ format.desc }}</span>
+            </div>
+          </el-radio>
+        </label>
+      </el-radio-group>
     </div>
 
     <template #footer>
@@ -47,10 +44,10 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { ElModal } from '@/components/ui'
 
-// 修复轮 10 P0-001：prop 名 exportFileType（与 Order.vue L354 `:export-file-type="exportFormat"` 一致）
+// prop 名 exportFileType（与 Order.vue `:export-file-type="exportFormat"` 一致）
 const props = defineProps({
   isOpen: Boolean,
   exportFileType: String,
@@ -60,35 +57,27 @@ const props = defineProps({
 const emit = defineEmits(['close', 'change', 'confirm', 'update:isOpen'])
 
 // 导出数量
-const exportCount = computed(() => {
-  return props.selectedCount || 0
-})
+const exportCount = computed(() => props.selectedCount || 0)
 
-// 选中格式（修复轮 10 P0-001：引用正确的 prop 名 exportFileType；与 V1.1 ExportFormatModal.tsx L32 default 'excel' 一致）
-const selectedFormat = computed({
-  get: () => props.exportFileType || 'excel',
-  set: (v) => {
-    /* 内部用 prop 默认值即可 */
-  }
-})
+// 选中格式 - 用 ref 真正支持内部修改 + emit('change') 通知父组件（修复 P0-9）
+const selectedFormat = ref(props.exportFileType || 'excel')
 
-// 监听 prop 变化
+// 父 prop 变化时同步内部 ref（修复 P0-9 真双向）
 watch(() => props.exportFileType, (val) => {
-  if (val) selectedFormat.value = val
+  if (val && val !== selectedFormat.value) selectedFormat.value = val
 })
 
-// 修复轮 10 P0-002：value 改为 'excel'/'csv'/'word' 与 V1.1 ExportFormatModal.tsx L15-19 exportFormats 1:1 对齐
+// 内部 ref 变化时 emit 给父组件
+watch(selectedFormat, (val) => {
+  emit('change', val)
+})
+
+// 与 V1.1 通用 ExportFormatModal.tsx L15-19 exportFormats 1:1
 const formats = [
   { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
-
-// 格式变化
-const handleFormatChange = (val) => {
-  selectedFormat.value = val
-  emit('change', val)
-}
 
 // 关闭
 const handleClose = () => {

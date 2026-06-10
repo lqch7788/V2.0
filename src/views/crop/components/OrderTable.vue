@@ -100,7 +100,7 @@
               <div class="flex items-center gap-1">
                 <template v-if="record.status !== CropOrderStatus.COMPLETED">
                   <button :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'" title="编辑" @click="onEdit(record)">
-                    <Pencil class="w-4 h-4" />
+                    <Edit2 class="w-4 h-4" />
                   </button>
                   <button :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'" title="删除" @click="onDeleteRow(record)">
                     <Trash2 class="w-4 h-4" />
@@ -122,7 +122,7 @@
         :current-page="pagination.current"
         :total-pages="totalPages"
         :page-size="pagination.pageSize"
-        :page-size-options="[10, 20, 50, 100]"
+        :page-size-options="[10, 20, 50]"
         :show-page-size="true"
         @page-change="(page) => onChange({ ...pagination, current: page })"
         @page-size-change="(size) => onChange({ pageSize: size, current: 1 })"
@@ -156,7 +156,7 @@
  * - canExport: boolean 权限控制
  */
 import { computed } from 'vue'
-import { Pencil, Trash2 } from 'lucide-vue-next'
+import { Edit2, Trash2 } from 'lucide-vue-next'
 import { CropOrderStatus } from '@/types/crop'
 // 修复 P0-A/P0-B：使用共享工具函数（与 Order.vue 复用，避免重复定义）
 // 注意：必须保留旧名（getStatusBadgeClass/getOrderTypeLabel/getOrderTypeBadgeClass）
@@ -265,10 +265,8 @@ const handleSelectRow = (id) => {
   }
 }
 
-// 行内删除（带确认弹窗，与 V1.1 OrderTable.tsx L213-216 行为一致）
+// 行内删除 - 与 V1.1 OrderTable.tsx L213-216 1:1：仅回调，弹 DeleteWarningModal 由父组件统一处理
 const onDeleteRow = (record) => {
-  // V1.1 在 OrderTable 内自带 showConfirm 确认；V2.0 抽到 Order.vue 处理
-  // 这里直接回调，由父组件负责确认弹窗
   props.onDelete([record.id])
 }
 
