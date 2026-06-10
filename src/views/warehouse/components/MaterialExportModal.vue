@@ -1,12 +1,17 @@
 <template>
-  <!-- 导出格式选择弹窗 - 对应V1.1 MaterialExportModal.tsx -->
-  <el-dialog
-    v-model="dialogVisible"
+  <!-- ✅ 修复: 统一改为 ElModal 风格（V1.1 size="md" 500×400 1:1 对齐）
+       原 el-dialog 是 Element Plus 原生，缺"已选择 X 条数据"提示，与项目规范不一致 -->
+  <ElModal
+    :model-value="isOpen"
     title="选择导出格式"
-    width="500px"
-    :close-on-click-modal="true"
+    :width="500"
+    :height="400"
+
+    @update:model-value="(v) => !v && handleClose()"
+    @close="handleClose"
   >
     <div class="space-y-3">
+      <p class="text-sm text-gray-500 mb-4">已选择 {{ selectedCount }} 条数据</p>
       <div
         v-for="format in formats"
         :key="format.value"
@@ -23,27 +28,32 @@
           :value="format.value"
           @change="handleFormatChange(format.value)"
         >
-          <div class="ml-3">
-            <span class="block text-sm font-medium text-gray-900">{{ format.label }}</span>
-            <span class="block text-xs text-gray-500">{{ format.desc }}</span>
-          </div>
+          &nbsp;
         </el-radio>
+        <div class="ml-3">
+          <span class="block text-sm font-medium text-gray-900">{{ format.label }}</span>
+          <span class="block text-xs text-gray-500">{{ format.desc }}</span>
+        </div>
       </div>
     </div>
 
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleExport">导出</el-button>
+      <div class="flex justify-end gap-3">
+        <el-button size="small" @click="handleClose">取消</el-button>
+        <el-button type="primary" size="small" @click="handleExport">导出</el-button>
+      </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
+import { ElModal } from '@/components/ui'
 
 /**
  * 导出格式选择弹窗组件
  * 提供Excel、CSV、Word等导出格式选择
+ * 1:1 对齐 V1.1 ExportFormatModal.tsx 风格
  */
 
 const props = defineProps({
@@ -60,7 +70,7 @@ const props = defineProps({
   // 当前选中的格式
   exportFormat: {
     type: String,
-    default: 'xlsx'
+    default: 'excel'
   }
 })
 
@@ -76,13 +86,6 @@ const localExportFormat = ref(props.exportFormat)
 
 watch(() => props.exportFormat, (val) => {
   localExportFormat.value = val
-})
-
-const dialogVisible = computed({
-  get: () => props.isOpen,
-  set: (val) => {
-    if (!val) emit('close')
-  }
 })
 
 const handleFormatChange = (format) => {

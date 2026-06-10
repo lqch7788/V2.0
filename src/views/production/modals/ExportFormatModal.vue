@@ -3,8 +3,8 @@
   <ElModal
     :model-value="visible"
     title="选择导出格式"
-    :width="1600"
-    :height="900"
+    :width="500"
+    :height="400"
     @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
