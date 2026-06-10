@@ -106,14 +106,13 @@
                   class="w-full"
                   placeholder="请选择"
                 >
-                  <el-option label="不关联" value="" />
-                  <el-option label="ZZB2026-001 - 番茄种植批次" value="ZZB2026-001" />
-                  <el-option label="ZZB2026-002 - 黄瓜种植批次" value="ZZB2026-002" />
-                  <el-option label="ZZB2026-003 - 生菜种植批次" value="ZZB2026-003" />
-                  <el-option label="ZZB2026-004 - 辣椒种植批次" value="ZZB2026-004" />
-                  <el-option label="ZZB2026-005 - 茄子种植批次" value="ZZB2026-005" />
-                  <el-option label="ZZB2026-006 - 番茄种植批次" value="ZZB2026-006" />
-                  <el-option label="ZZB2026-007 - 百合种植批次" value="ZZB2026-007" />
+                  <!-- 修复 P0-B4：动态从 batches prop 生成下拉项（V1.1 L231-243 RELATED_BATCH_OPTIONS 静态常量升级） -->
+                  <el-option
+                    v-for="opt in relatedBatchOptions"
+                    :key="opt.value"
+                    :label="opt.label"
+                    :value="opt.value"
+                  />
                 </el-select>
               </div>
               <div class="bg-gray-50 rounded-lg p-2">
@@ -192,7 +191,7 @@
                       <Upload class="w-3 h-3" />
                       重新上传
                     </button>
-                    <span class="text-xs text-gray-500">支持 .md, .docx, .txt 格式</span>
+                    <span class="text-xs text-gray-500">支持 .md, .txt 格式</span>
                   </div>
                 </template>
                 <button v-else :class="btnDefault" @click="handleFileUpload(selectedTechCode)">
@@ -243,6 +242,9 @@ const props = defineProps({
   editedTechs: { type: Object, default: () => ({}) },
   editedTechCodes: { type: Array, default: () => [] },
   cropOptions: { type: Array, default: () => [] },
+  // 修复 P0-B4：接收父组件传入的 batches 列表（与 CreateModal/EditModal 协议一致）
+  // 关联生产批次号下拉从生产计划列表动态生成
+  batches: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['close', 'save', 'update:visible', 'update:editedTechs', 'update:editedTechCodes'])
@@ -281,6 +283,20 @@ watch(() => props.editedTechCodes, (val) => {
 
 const techs = computed(() => props.allTechs.filter(t => props.selectedRows.includes(t.id)))
 
+// 修复 P0-B4：关联生产批次号下拉项（与 CreateModal/EditModal 一致）
+// 优先用 batches prop 动态生成；为空时 fallback 到相关批次选项
+const relatedBatchOptions = computed(() => {
+  const opts = [{ value: '', label: '不关联' }]
+  for (const b of props.batches || []) {
+    const code = b.batchCode || b.id
+    if (code) {
+      const labelCrop = b.cropName || b.variety || ''
+      opts.push({ value: code, label: `${code} - ${labelCrop}` })
+    }
+  }
+  return opts
+})
+
 const currentTech = computed(() => {
   if (!selectedTechCode.value) return null
   return props.allTechs.find(t => t.code === selectedTechCode.value)
@@ -311,7 +327,8 @@ const updateField = (code, field, value) => {
 
 const handleFileUpload = (code) => {
   pickAndReadFile({
-    accept: '.md,.docx,.txt',
+    // 修复 P0-B3：V1.1 L110 严格限制 .md/.txt（docx readAsText 乱码）
+    accept: '.md,.txt',
     onLoad: ({ fileName, content }) => {
       // 1:1 保留 V2.0 原行为：先写 planDetailFileName，再异步写 content
       updateField(code, 'planDetailFileName', fileName)

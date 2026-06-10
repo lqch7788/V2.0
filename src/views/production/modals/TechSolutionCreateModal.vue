@@ -62,18 +62,20 @@
           </el-select>
         </div>
 
-        <!-- 第三行：作物品种 + 种植模式（V1.1 L228-284） -->
+        <!-- 第三行：作物品种 + 种植模式（V1.1 L228-284，修复 P0-B1 行为） -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">作物品种 <span class="text-red-500">*</span></label>
             <CropCodeSelector
               :model-value="form?.cropCode ?? ''"
-              :placeholder="'搜索或选择作物品种...'"
+              :placeholder="isLockedByBatch ? '已从关联批次自动填充' : '搜索或选择作物品种...'"
               size="md"
               show-full-path
+              :disabled="isLockedByBatch"
               @update:model-value="(v) => handleFieldChange('cropCode', v)"
               @change="handleCropChange"
             />
+            <!-- 修复 P0-B1：V1.1 L249-275 1:1 还原 selectedCrop/selectedBatch 详情卡片 -->
             <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
               <div class="text-emerald-700 flex items-center gap-1">
                 <Leaf class="w-3 h-3 flex-shrink-0" />
@@ -83,6 +85,17 @@
               <div class="text-emerald-600 mt-0.5">
                 编码：{{ selectedCrop.cropCode }}
               </div>
+            </div>
+            <div v-else-if="selectedBatch" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
+              <div class="text-emerald-700 flex items-center gap-1">
+                <Leaf class="w-3 h-3 flex-shrink-0" />
+                作物：{{ selectedBatch.cropName || '-' }}
+                <span v-if="selectedBatch.variety"> · {{ selectedBatch.variety }}</span>
+              </div>
+              <div v-if="selectedBatch.plantingMode" class="text-emerald-600 mt-0.5">
+                种植模式：{{ plantingModeDisplay || selectedBatch.plantingMode }}
+              </div>
+              <div v-if="selectedBatch.cropCode" class="text-emerald-600 mt-0.5">编码：{{ selectedBatch.cropCode }}</div>
             </div>
           </div>
           <div class="space-y-1.5">
@@ -227,6 +240,8 @@ import { usePlantingModes } from '@/composables/production/usePlantingModes'
 import { pickAndReadFile } from '@/utils/fileUpload'
 // 编号生成：与 V1.1 一致使用全局函数
 import { generateTechSolutionCode } from '@/utils/techSolutionHelpers'
+// 修复 P0-B2：生成方案编号失败提示
+import { showAlert } from '@/lib/dialogService'
 
 // 样式常量
 import { btnDefault, btnSecondary, btnBlue, btnGhost, inputClassStrong as inputClass } from '../constants/buttonStyles'
@@ -302,6 +317,10 @@ function handleRelatedBatchChange(value) {
   emit('field-change', { field: 'relatedBatchCode', value })
   emit('field-change', { field: 'crop', value: batch.cropName || batch.variety || '' })
   emit('field-change', { field: 'plantingMode', value: batch.plantingMode || '' })
+  // 修复 P0-B1：如果 batch 带 cropCode 也回填（V1.1 L114 行为 1:1）
+  if (batch.cropCode) {
+    emit('field-change', { field: 'cropCode', value: batch.cropCode })
+  }
 }
 
 // 种植模式值→label 翻译（V1.1 L132-141 1:1）
@@ -338,9 +357,18 @@ function handleFieldChange(field, value) {
   emit('field-change', { field, value })
 }
 
-// 生成按钮（V1.1 onClick 1:1）
+// 生成按钮（V1.1 onClick 1:1，修复 P0-B2 错误处理）
+// V1.1 L202-211 用 try/catch + alert 错误提示，V2.0 之前直接 emit 没有错误处理
 function handleGenerateCode() {
-  emit('field-change', { field: 'code', value: generateTechSolutionCode() })
+  try {
+    const code = generateTechSolutionCode()
+    emit('field-change', { field: 'code', value: code })
+  } catch (e) {
+    // V1.1 L208-210 行为：alert(`生成方案编号失败：${msg}`)
+    // V2.0 用 showAlert（与系统其他弹窗一致）
+    const msg = e instanceof Error ? e.message : String(e)
+    showAlert(`生成方案编号失败：${msg}`)
+  }
 }
 
 // 适用范围 toggle（V1.1 L302-312 1:1）
@@ -365,10 +393,12 @@ function handleCropChange(code, varietyInfo) {
   }
 }
 
-// 文件上传（V1.1 L143-163 1:1）
+// 文件上传（V1.1 L143-163 1:1，修复 P0-B3 严格限制纯文本格式）
+// V1.1 L147 注释明确：.docx 是二进制 zip 文件，readAsText 会读出乱码，仅允许纯文本格式
+// 修复：去掉 .docx accept（V2.0 之前错误允许 docx）
 function handleFileUpload() {
   pickAndReadFile({
-    accept: '.txt,.md,.docx',
+    accept: '.txt,.md',
     onLoad: ({ fileName, content }) => {
       emit('field-change', { field: 'content', value: content })
       emit('field-change', { field: 'planDetailFileName', value: fileName })

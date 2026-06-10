@@ -208,7 +208,7 @@
               <Upload class="w-3 h-3" />
               导入文件
             </button>
-            <span class="text-xs text-gray-500">支持 .txt, .md, .docx 格式</span>
+            <span class="text-xs text-gray-500">支持 .txt, .md 格式</span>
             <span v-if="form?.planDetailFileName" class="text-xs text-emerald-600">{{ form.planDetailFileName }}</span>
             <button
               v-if="form?.planDetailFileName"
@@ -369,10 +369,11 @@ function handleCropChange(code, varietyInfo) {
   }
 }
 
-// V1.1 L141-161 文件上传
+// V1.1 L141-161 文件上传（修复 P0-B3 严格限制纯文本格式）
+// V1.1 L143 注释明确：.docx 是二进制 zip 文件，readAsText 会读出乱码
 function handleFileUpload() {
   pickAndReadFile({
-    accept: '.txt,.md,.docx',
+    accept: '.txt,.md',
     onLoad: ({ fileName, content }) => {
       emit('field-change', { field: 'content', value: content })
       emit('field-change', { field: 'planDetailFileName', value: fileName })

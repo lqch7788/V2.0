@@ -183,6 +183,7 @@
       :edited-techs="editedTechs"
       :edited-tech-codes="editedTechCodes"
       :crop-options="cropOptions"
+      :batches="productionPlans"
       @close="cancelBatchEdit"
       @save="saveBatchEdit"
       @update:edited-techs="(v) => editedTechs = v"
