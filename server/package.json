@@ -2,12 +2,12 @@
   "name": "yuanxingtu-server",
   "version": "1.0.0",
   "description": "原形图后端API服务 - Node.js + SQLite",
-  "main": "dist/index.js",
+  "main": "src/index.js",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "seed": "tsx src/db/seedData.ts",
+    "build": "echo \"[server] 无需构建：源码已为 ES2022 JS\" && exit 0",
+    "start": "node src/index.js",
+    "seed": "node src/db/seedData.js",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
