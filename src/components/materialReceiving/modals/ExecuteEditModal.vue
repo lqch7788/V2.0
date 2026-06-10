@@ -2,7 +2,7 @@
   <el-dialog
     v-model="visible"
     title="编辑领料出库单"
-    width="1100px"
+    width="770px"
     @close="handleClose"
   >
     <!-- 基本信息 -->

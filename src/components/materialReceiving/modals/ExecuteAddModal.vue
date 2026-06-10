@@ -2,7 +2,7 @@
   <el-dialog
     v-model="visible"
     title="新增领料出库单"
-    width="1100px"
+    width="770px"
     @close="handleClose"
   >
     <div class="grid grid-cols-2 gap-4">

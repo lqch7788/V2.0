@@ -1,6 +1,6 @@
 <template>
   <!-- 新增巡查记录弹窗 - 从V1.1 CreateInspectionModal.tsx 1:1迁移 -->
-  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="新增记录" width="900px" top="3vh">
+  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="新增记录" width="630px" top="3vh">
     <div class="space-y-4">
       <!-- 巡查编号和扫码定位 -->
       <div class="flex items-center gap-4">

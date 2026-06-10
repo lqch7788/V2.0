@@ -10,7 +10,7 @@
     title="采购申请单详情"
     :width="1600"
     :height="900"
-    :show-footer="false"
+    
     @update:model-value="(v) => !v && handleClose()"
     @close="handleClose"
   >

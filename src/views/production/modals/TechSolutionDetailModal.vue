@@ -5,7 +5,6 @@
     title="方案详情"
     :width="1600"
     :height="900"
-    :show-footer="false"
     @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
@@ -142,29 +141,29 @@
           </div>
         </div>
     </div>
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" @click="emit('close')">关闭</button>
+      </div>
+    </template>
   </ElModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ElModal } from '@/components/ui'
 // 修复 P1-1：详情弹窗也使用共享字典映射（与 V1.1 L183 行为一致）
 import { getDictItemNameSync } from '@/utils/dictHelpers'
 
-interface Props {
-  visible: boolean
-  tech: any
-  approvals: any[]
-  approvalsLoading: boolean
-}
-
-defineProps<Props>()
-const emit = defineEmits<{
-  'close': []
-  'update:visible': [val: boolean]
-}>()
+defineProps({
+  visible: Boolean,
+  tech: Object,
+  approvals: { type: Array, default: () => [] },
+  approvalsLoading: Boolean,
+})
+const emit = defineEmits(['close', 'update:visible'])
 
 // 修复 P1-007：与 V1.1 L75 一致，格式化为 YYYY-MM-DD HH:mm（不含秒）
-const formatDateTime = (dateStr: string) => {
+const formatDateTime = (dateStr) => {
   if (!dateStr) return '-'
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
@@ -172,7 +171,7 @@ const formatDateTime = (dateStr: string) => {
 }
 
 // 审批操作类型中文映射
-const actionLabels: Record<string, string> = {
+const actionLabels = {
   approve: '通过',
   reject: '拒绝',
   partially_approve: '部分通过',
@@ -180,7 +179,7 @@ const actionLabels: Record<string, string> = {
 }
 
 // 审批状态中文映射
-const approvalStatusLabels: Record<string, string> = {
+const approvalStatusLabels = {
   pending: '审批中',
   approved: '已通过',
   rejected: '已拒绝',

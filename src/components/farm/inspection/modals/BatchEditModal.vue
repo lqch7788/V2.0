@@ -1,6 +1,6 @@
 <template>
   <!-- 批量编辑巡查记录弹窗 - 从V1.1 BatchEditModal.tsx 1:1迁移 -->
-  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="批量编辑巡查记录" width="800px" top="5vh">
+  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="批量编辑巡查记录" width="560px" top="5vh">
     <div class="space-y-4">
       <div class="bg-blue-50 rounded-lg p-3">
         <p class="text-sm text-blue-800">已选择 <strong>{{ selectedRows.length }}</strong> 条记录进行批量编辑</p>

@@ -18,7 +18,7 @@
 **第二优先：架构合理性**
 - 正确的Vue3 + Pinia状态管理模式
 - 清晰的组件拆分和复用
-- 良好的TypeScript类型定义
+- 良好的JavaScript类型定义
 
 **第三优先：UI适配（可后续统一调整）**
 - 允许使用Element Plus封装UI组件
@@ -45,7 +45,7 @@ D:\TMcrop\yuanxingtu\V2.0\docs\superpowers\specs\V2-MIGRATION-CHECKLIST.md
 
 ## 技术栈
 
-- 前端：Vue3 + TypeScript + Vite + Element Plus + Tailwind CSS
+- 前端：Vue3 + javaScript + Vite + Element Plus + Tailwind CSS
 - 后端：Express + SQLite (与V1.1共用)
 - 状态管理：Pinia
 - 端口：前端5000/5001，后端3002

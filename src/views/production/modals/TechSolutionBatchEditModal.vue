@@ -3,9 +3,8 @@
   <ElModal
     :model-value="visible"
     title="批量编辑技术方案"
-    :width="1120"
-    :height="900"
-    :show-footer="false"
+    :width="784"
+    :height="630"
     @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
@@ -51,7 +50,7 @@
                 <div class="text-xs text-gray-500 mb-1">版本</div>
                 <input
                   :value="editedTechs[selectedTechCode]?.version ?? currentTech.version"
-                  @input="(e) => updateField(selectedTechCode, 'version', (e.target as HTMLInputElement).value)"
+                  @input="(e) => updateField(selectedTechCode, 'version', e.target.value)"
                   :class="inputClass + ' h-7 py-0 text-xs'"
                 />
               </div>
@@ -70,7 +69,7 @@
               <div class="text-xs text-gray-500 mb-1">方案标题 <span class="text-red-500">*</span></div>
               <input
                 :value="editedTechs[selectedTechCode]?.title ?? currentTech.title"
-                @input="(e) => updateField(selectedTechCode, 'title', (e.target as HTMLInputElement).value)"
+                @input="(e) => updateField(selectedTechCode, 'title', e.target.value)"
                 :class="inputClass + ' h-7 py-0 text-xs'"
               />
             </div>
@@ -147,7 +146,7 @@
                   <input
                     type="checkbox"
                     :checked="currentScopes.includes(scope)"
-                    @change="(e) => toggleScope(scope, (e.target as HTMLInputElement).checked)"
+                    @change="(e) => toggleScope(scope, e.target.checked)"
                     class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                   />
                   <span class="text-xs">{{ scope }}</span>
@@ -164,7 +163,7 @@
                 <div class="text-xs text-gray-500 mb-1">备注</div>
                 <textarea
                   :value="editedTechs[selectedTechCode]?.remarks ?? currentTech.remarks ?? ''"
-                  @input="(e) => updateField(selectedTechCode, 'remarks', (e.target as HTMLTextAreaElement).value)"
+                  @input="(e) => updateField(selectedTechCode, 'remarks', e.target.value)"
                   placeholder="请输入备注信息"
                   rows="2"
                   class="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-y"
@@ -174,7 +173,7 @@
                 <div class="text-xs text-gray-500 mb-1">方案内容</div>
                 <textarea
                   :value="editedTechs[selectedTechCode]?.content ?? currentTech.content ?? ''"
-                  @input="(e) => updateField(selectedTechCode, 'content', (e.target as HTMLTextAreaElement).value)"
+                  @input="(e) => updateField(selectedTechCode, 'content', e.target.value)"
                   placeholder="请输入方案内容"
                   rows="4"
                   class="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-y"
@@ -214,7 +213,7 @@
   </ElModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref, onMounted, watch } from 'vue'
 import { ElModal } from '@/components/ui'
 import { Upload } from 'lucide-vue-next'
@@ -237,27 +236,20 @@ onMounted(() => {
   loadPlantingModes()
 })
 
-interface Props {
-  visible: boolean
-  selectedRows: (string | number)[]
-  allTechs: any[]
-  editedTechs: Record<string, any>
-  editedTechCodes: string[]
-  cropOptions: string[]
-}
+const props = defineProps({
+  visible: Boolean,
+  selectedRows: { type: Array, default: () => [] },
+  allTechs: { type: Array, default: () => [] },
+  editedTechs: { type: Object, default: () => ({}) },
+  editedTechCodes: { type: Array, default: () => [] },
+  cropOptions: { type: Array, default: () => [] },
+})
 
-const props = defineProps<Props>()
-const emit = defineEmits<{
-  'close': []
-  'save': []
-  'update:visible': [val: boolean]
-  'update:editedTechs': [val: Record<string, any>]
-  'update:editedTechCodes': [val: string[]]
-}>()
+const emit = defineEmits(['close', 'save', 'update:visible', 'update:editedTechs', 'update:editedTechCodes'])
 
 const selectedTechCode = ref('')
-const localEditedTechs = ref<Record<string, any>>({})
-const localEditedTechCodes = ref<string[]>([])
+const localEditedTechs = ref({})
+const localEditedTechCodes = ref([])
 // 修复 P0-CZ：scopes 折叠状态
 const scopeExpanded = ref(false)
 // 修复 P0-CZ：当前方案的 scopes
@@ -268,13 +260,13 @@ const currentScopes = computed(() => {
 })
 
 // 修复 P0-CZ：scopes 切换
-const toggleScope = (scope: string, checked: boolean) => {
+const toggleScope = (scope, checked) => {
   const code = selectedTechCode.value
   if (!code) return
   const current = currentScopes.value
   const next = checked
     ? [...current, scope]
-    : current.filter((s: string) => s !== scope)
+    : current.filter((s) => s !== scope)
   updateField(code, 'scopes', next)
 }
 
@@ -305,7 +297,7 @@ watch(() => props.visible, (val) => {
   }
 })
 
-const updateField = (code: string, field: string, value: any) => {
+const updateField = (code, field, value) => {
   localEditedTechs.value = {
     ...localEditedTechs.value,
     [code]: { ...localEditedTechs.value[code], [field]: value },
@@ -317,7 +309,7 @@ const updateField = (code: string, field: string, value: any) => {
   emit('update:editedTechCodes', localEditedTechCodes.value)
 }
 
-const handleFileUpload = (code: string) => {
+const handleFileUpload = (code) => {
   pickAndReadFile({
     accept: '.md,.docx,.txt',
     onLoad: ({ fileName, content }) => {

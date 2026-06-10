@@ -1,6 +1,6 @@
 <template>
   <!-- 新增农事操作记录弹窗 -->
-  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="新增农事操作记录" width="700px" top="5vh">
+  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="新增农事操作记录" width="490px" top="5vh">
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="text-gray-700 text-sm block mb-1">操作类型 <span class="text-red-500">*</span></label>

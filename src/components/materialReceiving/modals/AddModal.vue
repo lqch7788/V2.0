@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="新增领料单" width="1200px" :close-on-click-modal="false" @close="handleClose">
+  <el-dialog v-model="visible" title="新增领料单" width="840px" :close-on-click-modal="false" @close="handleClose">
     <el-form :model="localForm" label-width="100px">
       <div class="grid grid-cols-3 gap-4">
         <!-- 领料单号 -->
@@ -71,43 +71,43 @@
         <el-table :data="localForm.materials" style="width: 100%" stripe border>
           <el-table-column type="index" width="60" />
           <el-table-column label="物料编码" min-width="120">
-            <template #default="{ row, $index }">
+            <template #default="{ row }">
               <el-input v-model="row.materialCode" placeholder="编码" size="small" @change="(val) => handleMaterialCodeChange($index, val)" />
             </template>
           </el-table-column>
           <el-table-column label="物料名称" min-width="120">
-            <template #default="{ row, $index }">
+            <template #default="{ row }">
               <el-input v-model="row.materialName" placeholder="名称" size="small" @change="(val) => handleMaterialNameChange($index, val)" />
             </template>
           </el-table-column>
           <el-table-column prop="spec" label="规格" min-width="100">
-            <template #default="{ row, $index }">
+            <template #default="{ row }">
               <el-input v-model="row.spec" size="small" />
             </template>
           </el-table-column>
           <el-table-column prop="unit" label="单位" width="80">
-            <template #default="{ row, $index }">
+            <template #default="{ row }">
               <el-input v-model="row.unit" size="small" />
             </template>
           </el-table-column>
           <el-table-column label="申领数量" width="100">
-            <template #default="{ row, $index }">
+            <template #default="{ row }">
               <el-input-number v-model="row.requestedQuantity" :min="0" size="small" controls-position="right" />
             </template>
           </el-table-column>
           <el-table-column prop="stockQuantity" label="库存" width="80" />
           <el-table-column label="单价" width="100">
-            <template #default="{ row, $index }">
+            <template #default="{ row }">
               <el-input-number v-model="row.unitPrice" :min="0" :precision="2" size="small" controls-position="right" />
             </template>
           </el-table-column>
           <el-table-column prop="warehousePosition" label="货位" min-width="100">
-            <template #default="{ row, $index }">
+            <template #default="{ row }">
               <el-input v-model="row.warehousePosition" size="small" />
             </template>
           </el-table-column>
           <el-table-column prop="remark" label="备注" min-width="100">
-            <template #default="{ row, $index }">
+            <template #default="{ row }">
               <el-input v-model="row.remark" size="small" />
             </template>
           </el-table-column>

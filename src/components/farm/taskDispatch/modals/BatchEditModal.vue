@@ -1,7 +1,7 @@
 <template>
   <!-- 批量编辑农事任务弹窗 - 从V1.1 BatchEditModal.tsx 1:1迁移 -->
   <el-dialog :model-value="isOpen" @update:model-value="$emit('close')"
-    title="批量编辑农事任务" width="1000px" top="5vh"
+    title="批量编辑农事任务" width="700px" top="5vh"
     @confirm="$emit('confirm')">
     <div class="space-y-4">
       <!-- 信息提示 -->

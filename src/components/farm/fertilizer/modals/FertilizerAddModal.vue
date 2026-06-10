@@ -1,6 +1,6 @@
 <template>
   <!-- 新增施肥记录弹窗 - 从V1.1 FertilizerAddModal.tsx 1:1迁移 -->
-  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="新增施肥记录" width="700px" top="5vh">
+  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="新增施肥记录" width="490px" top="5vh">
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="text-gray-700 text-sm block mb-1">施肥编号 <span class="text-red-500">*</span></label>

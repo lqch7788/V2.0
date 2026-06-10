@@ -5,7 +5,6 @@
     title="订单详情"
     :width="1600"
     :height="900"
-    :show-footer="false"
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
   >

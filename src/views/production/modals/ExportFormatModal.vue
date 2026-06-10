@@ -5,7 +5,6 @@
     title="选择导出格式"
     :width="1600"
     :height="900"
-    :show-footer="false"
     @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
@@ -39,24 +38,18 @@
   </ElModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ElModal } from '@/components/ui'
 // 第二阶段 Y2 重构：按钮样式抽常量
 import { btnDefault, btnSecondary } from '../constants/buttonStyles'
 
-interface Props {
-  visible: boolean
+defineProps({
+  visible: Boolean,
   // 第二阶段 Y4 修复：与父组件 v-model:format 契约对齐，prop 名必须叫 format
-  format: string
-  selectedCount: number
-  formats: { value: string; label: string; desc: string }[]
-}
+  format: { type: String, default: '' },
+  selectedCount: { type: Number, default: 0 },
+  formats: { type: Array, default: () => [] },
+})
 
-defineProps<Props>()
-const emit = defineEmits<{
-  'close': []
-  'confirm': []
-  'update:format': [val: string]
-  'update:visible': [val: boolean]
-}>()
+const emit = defineEmits(['close', 'confirm', 'update:format', 'update:visible'])
 </script>

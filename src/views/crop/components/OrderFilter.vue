@@ -9,7 +9,7 @@
           :model-value="filters.orderCode"
           placeholder="请输入订单编号"
           clearable
-          @update:model-value="(val: any) => onChange({ ...filters, orderCode: val })"
+          @update:model-value="(val) => onChange({ ...filters, orderCode: val })"
         />
       </div>
 
@@ -20,7 +20,7 @@
           :model-value="filters.orderName"
           placeholder="请输入订单名称"
           clearable
-          @update:model-value="(val: any) => onChange({ ...filters, orderName: val })"
+          @update:model-value="(val) => onChange({ ...filters, orderName: val })"
         />
       </div>
 
@@ -32,7 +32,7 @@
           placeholder="请选择"
           clearable
           class="w-full"
-          @change="(val: any) => onChange({ ...filters, cropName: val })"
+          @change="(val) => onChange({ ...filters, cropName: val })"
         >
           <el-option
             v-for="item in cropNames"
@@ -51,7 +51,7 @@
           placeholder="请选择"
           clearable
           class="w-full"
-          @change="(val: any) => onChange({ ...filters, status: val })"
+          @change="(val) => onChange({ ...filters, status: val })"
         >
           <el-option
             v-for="opt in orderStatusOptions"
@@ -70,7 +70,7 @@
           type="date"
           value-format="YYYY-MM-DD"
           class="w-full"
-          @update:model-value="(val: any) => onChange({ ...filters, orderDate: val })"
+          @update:model-value="(val) => onChange({ ...filters, orderDate: val })"
         />
       </div>
 
@@ -86,7 +86,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 /**
  * OrderFilter 订单筛选工具栏组件
  * 对应 V1.1 src/components/farm/order/components/OrderFilter.tsx 1:1 翻译
@@ -103,30 +103,30 @@ import { Search } from 'lucide-vue-next'
 // 与技术方案共享按钮样式常量
 import { btnDefault } from '@/views/production/constants/buttonStyles'
 
-interface Filters {
-  orderCode: string
-  orderName: string
-  cropName: string
-  status: string
-  startDate: string
-  endDate: string
-  createBy: string
-  orderDate: string
-}
-
-interface OptionItem {
-  value: string
-  label: string
-}
-
-interface Props {
-  filters: Filters
-  onChange: (val: Filters) => void
-  onSearch: () => void
-  onReset: () => void
-  orderStatusOptions: OptionItem[]
-  cropNames: OptionItem[]
-}
-
-defineProps<Props>()
+defineProps({
+  filters: {
+    type: Object,
+    required: true
+  },
+  onChange: {
+    type: Function,
+    required: true
+  },
+  onSearch: {
+    type: Function,
+    required: true
+  },
+  onReset: {
+    type: Function,
+    required: true
+  },
+  orderStatusOptions: {
+    type: Array,
+    default: () => []
+  },
+  cropNames: {
+    type: Array,
+    default: () => []
+  }
+})
 </script>

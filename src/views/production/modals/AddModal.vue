@@ -4,9 +4,8 @@
     :model-value="visible"
     @update:model-value="(v) => emit('update:visible', v)"
     title="新增订单"
-    :width="1120"
-    :height="900"
-    :show-footer="false"
+    :width="784"
+    :height="630"
     @close="handleClose"
   >
     <div class="p-2">

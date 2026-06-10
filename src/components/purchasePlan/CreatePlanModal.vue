@@ -8,9 +8,9 @@
   <ElModal
     :model-value="isOpen"
     title="新增采购申请单"
-    :width="1120"
-    :height="900"
-    :show-footer="false"
+    :width="784"
+    :height="630"
+    
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
   >

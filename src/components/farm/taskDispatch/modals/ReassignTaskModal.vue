@@ -1,8 +1,7 @@
 <template>
   <!-- 重新派发任务弹窗 - 从V1.1 ReassignTaskModal.tsx 1:1迁移 -->
   <el-dialog :model-value="isOpen" @update:model-value="$emit('close')"
-    title="重新派发任务" width="520px" top="5vh"
-    :show-footer="false">
+    title="重新派发任务" width="520px" top="5vh">
     <div v-if="task" class="space-y-5">
       <!-- 警示信息 -->
       <div class="flex items-start gap-3 p-4 rounded-lg border"

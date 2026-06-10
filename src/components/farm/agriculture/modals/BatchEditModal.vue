@@ -1,6 +1,6 @@
 <template>
   <!-- 批量编辑农事记录弹窗 -->
-  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="批量编辑农事记录" width="600px" top="5vh">
+  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="批量编辑农事记录" width="420px" top="5vh">
     <div class="space-y-4">
       <div class="bg-blue-50 rounded-lg p-3">
         <p class="text-sm text-blue-800">已选择 <strong>{{ selectedCount }}</strong> 条记录进行批量编辑</p>

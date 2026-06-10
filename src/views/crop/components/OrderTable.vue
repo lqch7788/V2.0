@@ -124,14 +124,14 @@
         :page-size="pagination.pageSize"
         :page-size-options="[10, 20, 50, 100]"
         :show-page-size="true"
-        @page-change="(page: any) => onChange({ ...pagination, current: page })"
-        @page-size-change="(size: any) => onChange({ pageSize: size, current: 1 })"
+        @page-change="(page) => onChange({ ...pagination, current: page })"
+        @page-size-change="(size) => onChange({ pageSize: size, current: 1 })"
       />
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 /**
  * OrderTable 订单数据表格组件
  * 对应 V1.1 src/components/farm/order/components/OrderTable.tsx 1:1 翻译
@@ -171,64 +171,79 @@ import {
 import { btnGhost } from '@/views/production/constants/buttonStyles'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
-interface CropOrder {
-  id: string
-  orderCode: string
-  orderName: string
-  orderType: string
-  instanceIds?: string[]
-  cropCategory?: string
-  cropName?: string
-  cropVariety?: string
-  plannedQuantity?: number
-  completedQuantity?: number
-  unit?: string
-  supplierId?: string
-  supplierName?: string
-  customerId?: string
-  customerName?: string
-  customerPhone?: string
-  deliveryAddress?: string
-  orderDate?: string
-  expectedCompletionDate?: string
-  actualHarvestDate?: string
-  status: string
-  remarks?: string
-  createBy?: string
-  createTime?: string
-  updateTime?: string
-}
-
-interface Pagination {
-  current: number
-  pageSize: number
-}
-
-interface Props {
-  data: CropOrder[]
-  pagination: Pagination
-  onChange: (val: Pagination) => void
-  selectedRows: string[]
-  onSelectionChange: (val: string[]) => void
-  onDetail: (record: CropOrder) => void
-  onEdit: (record: CropOrder) => void
-  onDelete: (ids: string[]) => void
-  onAdd: () => void
-  exportMode: boolean
-  batchEditMode: boolean
-  batchDeleteMode: boolean
-  onExportSelectAll: () => void
-  onExportCancel: () => void
-  onConfirmExport: () => void
-  canCreate?: boolean
-  canDelete?: boolean
-  canExport?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  canCreate: true,
-  canDelete: true,
-  canExport: true
+const props = defineProps({
+  data: {
+    type: Array,
+    required: true
+  },
+  pagination: {
+    type: Object,
+    required: true
+  },
+  onChange: {
+    type: Function,
+    required: true
+  },
+  selectedRows: {
+    type: Array,
+    default: () => []
+  },
+  onSelectionChange: {
+    type: Function,
+    required: true
+  },
+  onDetail: {
+    type: Function,
+    required: true
+  },
+  onEdit: {
+    type: Function,
+    required: true
+  },
+  onDelete: {
+    type: Function,
+    required: true
+  },
+  onAdd: {
+    type: Function,
+    default: () => {}
+  },
+  exportMode: {
+    type: Boolean,
+    default: false
+  },
+  batchEditMode: {
+    type: Boolean,
+    default: false
+  },
+  batchDeleteMode: {
+    type: Boolean,
+    default: false
+  },
+  onExportSelectAll: {
+    type: Function,
+    default: () => {}
+  },
+  onExportCancel: {
+    type: Function,
+    default: () => {}
+  },
+  onConfirmExport: {
+    type: Function,
+    default: () => {}
+  },
+  canCreate: {
+    type: Boolean,
+    default: true
+  },
+  canDelete: {
+    type: Boolean,
+    default: true
+  },
+  canExport: {
+    type: Boolean,
+    default: true
+  }
 })
 
 // 总页数
@@ -242,16 +257,16 @@ const paginatedData = computed(() => {
 })
 
 // 单行选中切换
-const handleSelectRow = (id: any) => {
+const handleSelectRow = (id) => {
   if (props.selectedRows.includes(id)) {
-    props.onSelectionChange(props.selectedRows.filter((row: any) => row !== id))
+    props.onSelectionChange(props.selectedRows.filter((row) => row !== id))
   } else {
     props.onSelectionChange([...props.selectedRows, id])
   }
 }
 
 // 行内删除（带确认弹窗，与 V1.1 OrderTable.tsx L213-216 行为一致）
-const onDeleteRow = (record: any) => {
+const onDeleteRow = (record) => {
   // V1.1 在 OrderTable 内自带 showConfirm 确认；V2.0 抽到 Order.vue 处理
   // 这里直接回调，由父组件负责确认弹窗
   props.onDelete([record.id])

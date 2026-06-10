@@ -1,6 +1,6 @@
 <template>
   <!-- 编辑施肥记录弹窗 -->
-  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="编辑施肥记录" width="700px" top="5vh">
+  <el-dialog :model-value="isOpen" @update:model-value="$emit('close')" title="编辑施肥记录" width="490px" top="5vh">
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="text-gray-700 text-sm block mb-1">施肥编号</label>

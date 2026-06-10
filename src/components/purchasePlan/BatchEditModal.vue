@@ -8,9 +8,9 @@
   <ElModal
     :model-value="visible"
     title="编辑采购申请单"
-    :width="1120"
-    :height="900"
-    :show-footer="false"
+    :width="784"
+    :height="630"
+    
     :show-maximize="true"
     @update:model-value="(v) => !v && handleClose()"
     @close="handleClose"
@@ -68,7 +68,13 @@
         </div>
         <div>
           <label class="text-xs text-gray-700">采购类型</label>
-          <el-select v-model="batchEditData.purchaseType" placeholder="请选择" style="width: 100%" size="small">
+          <el-select
+            :model-value="batchEditData.purchaseType"
+            placeholder="请选择"
+            style="width: 100%"
+            size="small"
+            @update:model-value="(v) => handleBatchEditDataFieldChange('purchaseType', v)"
+          >
             <el-option label="生产物资采购" value="production" />
             <el-option label="紧急采购" value="urgent" />
             <el-option label="常规采购" value="routine" />
@@ -152,11 +158,12 @@
         <div>
           <label class="text-xs text-gray-700">申请日期</label>
           <el-date-picker
-            v-model="batchEditData.applyDate"
+            :model-value="batchEditData.applyDate"
             type="date"
             value-format="YYYY-MM-DD"
             style="width: 100%"
             size="small"
+            @update:model-value="(v) => handleBatchEditDataFieldChange('applyDate', v)"
           />
         </div>
 
@@ -164,18 +171,25 @@
         <div>
           <label class="text-xs text-gray-700">需求日期</label>
           <el-date-picker
-            v-model="batchEditData.requiredDate"
+            :model-value="batchEditData.requiredDate"
             type="date"
             value-format="YYYY-MM-DD"
             style="width: 100%"
             size="small"
+            @update:model-value="(v) => handleBatchEditDataFieldChange('requiredDate', v)"
           />
         </div>
 
         <!-- 第3行：优先级 + 状态（只读不可编辑）+ 备注 -->
         <div>
           <label class="text-xs text-gray-700">优先级</label>
-          <el-select v-model="batchEditData.priority" placeholder="请选择" style="width: 100%" size="small">
+          <el-select
+            :model-value="batchEditData.priority"
+            placeholder="请选择"
+            style="width: 100%"
+            size="small"
+            @update:model-value="(v) => handleBatchEditDataFieldChange('priority', v)"
+          >
             <el-option label="紧急" value="urgent" />
             <el-option label="高" value="high" />
             <el-option label="中" value="normal" />
@@ -185,7 +199,13 @@
         <!-- ✅ 修复 P0-14: 执行状态字段（V1.1 L404-416 1:1 翻译） -->
         <div>
           <label class="text-xs text-gray-700">执行状态</label>
-          <el-select v-model="batchEditData.executionStatus" placeholder="请选择" style="width: 100%" size="small">
+          <el-select
+            :model-value="batchEditData.executionStatus"
+            placeholder="请选择"
+            style="width: 100%"
+            size="small"
+            @update:model-value="(v) => handleBatchEditDataFieldChange('executionStatus', v)"
+          >
             <el-option
               v-for="o in PURCHASE_EXECUTION_STATUS_OPTIONS"
               :key="o.value"
@@ -211,10 +231,11 @@
         <div>
           <label class="text-xs text-gray-700">备注</label>
           <el-input
-            v-model="batchEditData.remark"
+            :model-value="batchEditData.remark"
             placeholder="输入备注"
             style="width: 100%"
             size="small"
+            @update:model-value="(v) => handleBatchEditDataFieldChange('remark', v)"
           />
         </div>
 
@@ -491,6 +512,14 @@ function handlePlanSelect(plan) {
 }
 
 // ==================== 表单字段更新 ====================
+
+/** 修复 vue/no-mutating-props: 模板里不允许直接 v-model="batchEditData.xxx"
+ *  改为显式 emit 字段变更事件，由父组件的 handleBatchEditDataChange 更新
+ *  1:1 翻译 V1.1 onBatchEditDataChange={(field, value) => setBatchEditData(prev => ({ ...prev, [field]: value }))}
+ */
+function handleBatchEditDataFieldChange(field, value) {
+  emit('batchEditDataChange', field, value)
+}
 
 /** 申请人变更：根据用户 id 反查姓名 */
 function handleApplicantChange(value) {

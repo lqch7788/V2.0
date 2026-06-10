@@ -1,7 +1,7 @@
 <template>
   <!-- 新增问题记录弹窗 - 从V1.1 CreateProblemModal.tsx 1:1迁移 -->
   <el-dialog :model-value="isOpen" @update:model-value="$emit('close')"
-    title="新增问题记录" width="800px" top="5vh"
+    title="新增问题记录" width="560px" top="5vh"
     @confirm="$emit('submit')">
     <div class="space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

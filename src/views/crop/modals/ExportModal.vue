@@ -5,7 +5,6 @@
     title="选择导出格式"
     :width="1600"
     :height="900"
-    :show-footer="false"
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
   >

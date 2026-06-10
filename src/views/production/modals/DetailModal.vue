@@ -6,7 +6,6 @@
     title="订单详情"
     :width="1600"
     :height="900"
-    :show-footer="false"
     @close="handleClose"
   >
     <div class="p-2">

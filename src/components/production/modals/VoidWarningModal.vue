@@ -5,7 +5,7 @@
     title="作废生产计划警告"
     :width="1600"
     :height="900"
-    :show-footer="false"
+    
     @update:model-value="(v) => emit('update:modelValue', v)"
     @close="handleClose"
   >

@@ -1,8 +1,7 @@
 <template>
   <!-- 任务验收弹窗(验收人视角) - 从V1.1 VerifyTaskModal.tsx 1:1迁移 -->
   <el-dialog :model-value="isOpen" @update:model-value="$emit('close')"
-    title="任务验收" width="720px" top="5vh"
-    :show-footer="false">
+    title="任务验收" width="720px" top="5vh">
     <div v-if="task" class="space-y-5">
       <!-- 任务基本信息 -->
       <div class="bg-gray-50 rounded-lg p-4">

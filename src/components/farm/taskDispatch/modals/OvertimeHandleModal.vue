@@ -1,8 +1,7 @@
 <template>
   <!-- 超时处理弹窗 - 从V1.1 OvertimeHandleModal.tsx 1:1迁移 -->
   <el-dialog :model-value="isOpen" @update:model-value="$emit('close')"
-    title="超时处理" width="540px" top="5vh"
-    :show-footer="false">
+    title="超时处理" width="540px" top="5vh">
     <div v-if="task && timeout" class="space-y-5">
       <!-- 超时警示 -->
       <div class="flex items-start gap-3 p-4 rounded-lg border"

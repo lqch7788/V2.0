@@ -2,8 +2,8 @@
   <ElModal
     v-model="visible"
     title="新增生产计划批次"
-    :width="1120"
-    :height="900"
+    :width="784"
+    :height="630"
     :show-submit="false"
     :show-cancel="false"
     @close="handleClose"

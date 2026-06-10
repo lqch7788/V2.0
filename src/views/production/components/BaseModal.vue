@@ -73,51 +73,36 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
+<script setup>
 // 第二阶段 Y3 重构：抽取 BaseModal 统一弹窗外壳
 // 1:1 保留 V1.1 CreatePlanModal.tsx 行为（拖拽/最大化/缩放/关闭/ESC/蒙层点击）
 // 1:1 保留 V1.1 Modal.tsx 视觉（emerald 渐变 header）
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Close, FullScreen, ScaleToOriginal } from '@element-plus/icons-vue'
 
-interface Props {
+const props = defineProps({
   // 双向绑定显示状态
-  visible: boolean
+  visible: { type: Boolean, required: true },
   // 标题（不传 header slot 时生效）
-  title?: string
+  title: { type: String, default: '' },
   // 尺寸
-  width?: number | string
-  height?: number | string
+  width: { type: [Number, String], default: 800 },
+  height: { type: [Number, String], default: 'auto' },
   // 是否点击蒙层关闭
-  maskClosable?: boolean
+  maskClosable: { type: Boolean, default: true },
   // 是否按 ESC 关闭
-  escClosable?: boolean
+  escClosable: { type: Boolean, default: true },
   // 是否显示右上角关闭按钮
-  showCloseButton?: boolean
+  showCloseButton: { type: Boolean, default: true },
   // 是否显示最大化按钮
-  showMaximize?: boolean
+  showMaximize: { type: Boolean, default: false },
   // 是否启用拖拽（拖动 header 移动弹窗）
-  enableDrag?: boolean
+  enableDrag: { type: Boolean, default: false },
   // 是否启用缩放（右下角拖动改尺寸）
-  enableResize?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  title: '',
-  width: 800,
-  height: 'auto',
-  maskClosable: true,
-  escClosable: true,
-  showCloseButton: true,
-  showMaximize: false,
-  enableDrag: false,
-  enableResize: false,
+  enableResize: { type: Boolean, default: false },
 })
 
-const emit = defineEmits<{
-  'update:visible': [val: boolean]
-  'close': []
-}>()
+const emit = defineEmits(['update:visible', 'close'])
 
 // ========== 弹窗状态 ==========
 const isMaximized = ref(false)
@@ -142,7 +127,7 @@ watch(
 const dialogStyle = computed(() => {
   if (isMaximized.value) {
     return {
-      position: 'fixed' as const,
+      position: 'fixed',
       top: '0',
       left: '0',
       width: '100vw',
@@ -155,7 +140,7 @@ const dialogStyle = computed(() => {
   }
   const hasPosition = dialogPosition.value.x || dialogPosition.value.y
   return {
-    position: 'fixed' as const,
+    position: 'fixed',
     top: hasPosition ? `${dialogPosition.value.y}px` : '50%',
     left: hasPosition ? `${dialogPosition.value.x}px` : '50%',
     transform: hasPosition ? 'none' : 'translate(-50%, -50%)',
@@ -179,10 +164,10 @@ const bodyStyle = computed(() => {
 let isDragging = false
 let dragOffset = { x: 0, y: 0 }
 
-const handleDragStart = (e: MouseEvent) => {
+const handleDragStart = (e) => {
   if (!props.enableDrag || isMaximized.value) return
   isDragging = true
-  const rect = (e.currentTarget as HTMLElement).parentElement?.getBoundingClientRect()
+  const rect = e.currentTarget.parentElement?.getBoundingClientRect()
   if (rect) {
     dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top }
   } else {
@@ -191,7 +176,7 @@ const handleDragStart = (e: MouseEvent) => {
   e.preventDefault()
 }
 
-const onDragMove = (e: MouseEvent) => {
+const onDragMove = (e) => {
   if (!isDragging || isMaximized.value) return
   const newX = e.clientX - dragOffset.x
   const newY = e.clientY - dragOffset.y
@@ -211,7 +196,7 @@ const onDragEnd = () => {
 let isResizing = false
 let resizeStart = { x: 0, y: 0, width: 0, height: 0 }
 
-const handleResizeStart = (e: MouseEvent) => {
+const handleResizeStart = (e) => {
   if (!props.enableResize || isMaximized.value) return
   e.preventDefault()
   isResizing = true
@@ -223,7 +208,7 @@ const handleResizeStart = (e: MouseEvent) => {
   }
 }
 
-const onResizeMove = (e: MouseEvent) => {
+const onResizeMove = (e) => {
   if (!isResizing) return
   const dx = e.clientX - resizeStart.x
   const dy = e.clientY - resizeStart.y
@@ -252,7 +237,7 @@ const handleMaskClick = () => {
   if (props.maskClosable) handleClose()
 }
 
-const handleEsc = (e: KeyboardEvent) => {
+const handleEsc = (e) => {
   if (e.key === 'Escape' && props.visible && props.escClosable) {
     handleClose()
   }

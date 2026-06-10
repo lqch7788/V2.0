@@ -3,9 +3,8 @@
   <ElModal
     :model-value="visible"
     title="编辑方案"
-    :width="1120"
-    :height="900"
-    :show-footer="false"
+    :width="784"
+    :height="630"
     @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
@@ -19,24 +18,33 @@
           </div>
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">版本</label>
-            <input v-model="form.version" :class="inputClass" />
+            <input
+              :model-value="form.version"
+              :class="inputClass"
+              @update:model-value="(v) => emit('update:form', { ...form, version: v })"
+            />
           </div>
         </div>
         <!-- 方案标题（V1.1 L107-112）-->
         <div class="space-y-1.5">
           <label class="block text-sm font-medium text-gray-700">方案标题</label>
-          <input v-model="form.title" :class="inputClass" />
+          <input
+            :model-value="form.title"
+            :class="inputClass"
+            @update:model-value="(v) => emit('update:form', { ...form, title: v })"
+          />
         </div>
         <!-- 作物品种 + 种植模式（V1.1 L115-143）-->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">作物品种</label>
             <CropCodeSelector
-              v-model="form.cropCode"
-              @change="handleCropChange"
+              :model-value="form.cropCode"
               placeholder="搜索或选择作物品种..."
               size="md"
               show-full-path
+              @update:model-value="(v) => emit('update:form', { ...form, cropCode: v })"
+              @change="handleCropChange"
             />
             <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
               <div class="text-emerald-700 flex items-center gap-1">
@@ -52,7 +60,12 @@
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">种植模式</label>
             <!-- 修复 P0-006：种植模式从字典动态加载（V1.1 用 DictSelect category=planting_mode） -->
-            <el-select v-model="form.plantingMode" class="w-full" placeholder="选择种植模式">
+            <el-select
+              :model-value="form.plantingMode"
+              class="w-full"
+              placeholder="选择种植模式"
+              @update:model-value="(v) => emit('update:form', { ...form, plantingMode: v })"
+            >
               <el-option v-for="mode in plantingModes" :key="mode" :label="mode" :value="mode" />
             </el-select>
           </div>
@@ -66,7 +79,7 @@
               <input
                 type="checkbox"
                 :checked="form.scopes.includes(scope)"
-                @change="(e) => toggleScope(scope, (e.target as HTMLInputElement).checked)"
+                @change="(e) => toggleScope(scope, e.target.checked)"
                 class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
               <span class="text-sm">{{ scope }}</span>
@@ -76,7 +89,12 @@
         <!-- 修复 P0-003：补回"关联生产批次号"字段（V1.1 L184-199 缺失） -->
         <div class="space-y-1.5">
           <label class="block text-sm font-medium text-gray-700">关联生产批次号</label>
-          <el-select v-model="form.relatedBatchCode" class="w-full" placeholder="请选择">
+          <el-select
+            :model-value="form.relatedBatchCode"
+            class="w-full"
+            placeholder="请选择"
+            @update:model-value="(v) => emit('update:form', { ...form, relatedBatchCode: v })"
+          >
             <el-option label="不关联生产批次" value="" />
             <el-option label="ZZB2026-001" value="ZZB2026-001" />
             <el-option label="ZZB2026-002" value="ZZB2026-002" />
@@ -91,7 +109,11 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-gray-700">编制人</label>
-            <el-select v-model="form.author" class="w-full">
+            <el-select
+              :model-value="form.author"
+              class="w-full"
+              @update:model-value="(v) => emit('update:form', { ...form, author: v })"
+            >
               <el-option v-for="op in operatorOptions" :key="op.value" :label="op.label" :value="op.value" />
             </el-select>
           </div>
@@ -103,13 +125,23 @@
         <!-- 备注（V1.1 L212-218）-->
         <div class="space-y-1.5">
           <label class="block text-sm font-medium text-gray-700">备注</label>
-          <textarea v-model="form.remarks" rows="2" :class="inputClass + ' resize-y'" placeholder="请输入备注信息"></textarea>
+          <textarea
+            :model-value="form.remarks"
+            rows="2"
+            :class="inputClass + ' resize-y'"
+            placeholder="请输入备注信息"
+            @update:model-value="(v) => emit('update:form', { ...form, remarks: v })"
+          ></textarea>
         </div>
         <!-- 方案是否有效（V1.1 L221-235）-->
         <!-- 修复 P0-015：删除 V2.0 自创的"最后提交时间"UI 字段（V1.1 表单 state 含 lastSubmitTime 但 UI 不渲染） -->
         <div class="space-y-1.5">
           <label class="block text-sm font-medium text-gray-700">方案是否有效</label>
-          <el-select v-model="form.isValid" class="w-full">
+          <el-select
+            :model-value="form.isValid"
+            class="w-full"
+            @update:model-value="(v) => emit('update:form', { ...form, isValid: v })"
+          >
             <el-option label="有效" value="有效" />
             <el-option label="作废" value="作废" />
           </el-select>
@@ -120,7 +152,12 @@
         <!-- 方案内容（V1.1 L238-244）-->
         <div class="space-y-1.5">
           <label class="block text-sm font-medium text-gray-700">方案内容</label>
-          <textarea v-model="form.content" rows="6" :class="inputClass + ' resize-y'"></textarea>
+          <textarea
+            :model-value="form.content"
+            rows="6"
+            :class="inputClass + ' resize-y'"
+            @update:model-value="(v) => emit('update:form', { ...form, content: v })"
+          ></textarea>
         </div>
         <!-- 方案详情文件（V1.1 L247-269）-->
         <div class="space-y-1.5">
@@ -135,7 +172,7 @@
             <button
               v-if="form.planDetailFileName"
               :class="btnGhost + ' text-red-500 hover:text-red-700 text-xs'"
-              @click="form.planDetailFileName = ''; form.content = ''"
+              @click="emit('update:form', { ...form, planDetailFileName: '', content: '' })"
             >
               删除
             </button>
@@ -152,8 +189,8 @@
   </ElModal>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+<script setup>
+import { onMounted, watch } from 'vue'
 import { ElModal } from '@/components/ui'
 import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
 import { Leaf, Upload } from 'lucide-vue-next'
@@ -175,26 +212,16 @@ onMounted(() => {
   loadPlantingModes()
 })
 
-interface Props {
-  visible: boolean
-  tech: any
-  form: any
-  selectedCrop: any
+const props = defineProps({
+  visible: Boolean,
+  tech: Object,
+  form: Object,
+  selectedCrop: Object,
   // 修复 P0-CY：与 V1.1 EditModal L41 一致，接收 operatorOptions 用于编制人 Select
-  operatorOptions?: { value: string; label: string }[]
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  operatorOptions: () => [],
+  operatorOptions: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits<{
-  'close': []
-  'submit': []
-  'update:visible': [val: boolean]
-  'update:form': [form: any]
-  'update:selectedCrop': [crop: any]
-}>()
+const emit = defineEmits(['close', 'submit', 'update:visible', 'update:form', 'update:selectedCrop'])
 
 // 修复 P0-003：监听 form 变化，如果外部未设置 relatedBatchCode 则用 tech 的值兜底
 watch(
@@ -209,7 +236,7 @@ watch(
   }
 )
 
-const handleCropChange = (code: string, varietyInfo: any) => {
+const handleCropChange = (code, varietyInfo) => {
   if (varietyInfo) {
     emit('update:selectedCrop', varietyInfo)
     emit('update:form', {
@@ -223,10 +250,10 @@ const handleCropChange = (code: string, varietyInfo: any) => {
   }
 }
 
-const toggleScope = (scope: string, checked: boolean) => {
+const toggleScope = (scope, checked) => {
   const scopes = checked
     ? [...props.form.scopes, scope]
-    : props.form.scopes.filter((s: string) => s !== scope)
+    : props.form.scopes.filter((s) => s !== scope)
   emit('update:form', { ...props.form, scopes })
 }
 

@@ -5,7 +5,6 @@
     :title="isEdit ? '编辑客户' : '新增客户'"
     :width="1600"
     :height="900"
-    :show-footer="false"
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
   >
