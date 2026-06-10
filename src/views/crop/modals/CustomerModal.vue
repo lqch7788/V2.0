@@ -1,10 +1,12 @@
 <template>
-  <!-- 客户档案新增/编辑弹窗 - 与 V1.1 CustomerModal.tsx 1:1 对齐 - 第二阶段统一 ElModal 800 -->
+  <!-- 客户档案新增/编辑弹窗 - 与 V1.1 CustomerModal.tsx 1:1 对齐
+       ✅ 修复：与采购计划 CreatePlanModal 弹窗尺寸统一 1080×650
+       原 V2.0 误用 1600×900（占满视口，严重影响使用） -->
   <ElModal
     :model-value="isOpen"
     :title="isEdit ? '编辑客户' : '新增客户'"
-    :width="1600"
-    :height="900"
+    :width="1080"
+    :height="650"
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
   >

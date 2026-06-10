@@ -180,9 +180,13 @@ const userStore = useUserStore()
 
 // 当前登录用户名
 const currentUsername = computed(() => {
+  // V1.1 → V2.0 兼容：Login.vue 模拟登录只写 localStorage.username + token，
+  // 未触发 userStore.login() 流程，所以 userInfo/currentUser 可能为空。
+  // 兜底顺序：userStore → currentUser JSON → localStorage.username（与 CreatePlanModal 一致）
   return userStore.userInfo?.username
     || userStore.userInfo?.name
     || JSON.parse(localStorage.getItem('currentUser') || '{}').username
+    || localStorage.getItem('username')
     || '未知用户'
 })
 

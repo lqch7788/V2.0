@@ -41,7 +41,7 @@
           <tr
             v-for="record in paginatedData"
             :key="record.id"
-            class="hover:bg-emerald-50 transition-colors"
+            class="hover:bg-blue-100 transition-colors"
           >
             <td v-if="exportMode || batchEditMode || batchDeleteMode" class="px-4 py-3">
               <el-checkbox
@@ -50,7 +50,7 @@
                 @change="() => handleSelectRow(record.id)"
               />
             </td>
-            <td class="px-4 py-3 text-sm">
+            <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 whitespace-nowrap">
               <button :class="btnGhost + ' text-blue-600 hover:text-blue-800'" title="点击查看详情" @click="onDetail(record)">
                 {{ record.orderCode }}
               </button>
