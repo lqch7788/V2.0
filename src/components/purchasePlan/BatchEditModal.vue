@@ -8,8 +8,8 @@
   <ElModal
     :model-value="visible"
     title="编辑采购申请单"
-    :width="784"
-    :height="630"
+    :width="1080"
+    :height="650"
     
     :show-maximize="true"
     @update:model-value="(v) => !v && handleClose()"
@@ -337,6 +337,7 @@
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\BatchEditModal.tsx
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { ChevronDown, Plus, Trash2 } from 'lucide-vue-next'
 import { ElModal } from '@/components/ui'
 // 与技术方案共享按钮样式常量
@@ -407,10 +408,14 @@ const plantingStore = usePlantingStore()
 const users = computed(() => (Array.isArray(userStore.users) ? userStore.users : []))
 /** 1:1 翻译 V1.1 useDictionaryStore.dictionaries */
 const dictionaries = computed(() => (Array.isArray(dictionaryStore.dictionaries) ? dictionaryStore.dictionaries : []))
-/** 1:1 翻译 V1.1 usePlantingStore.items */
+/**
+ * 修复 P0: 关联生产批次下拉只有"其他"选项
+ * 原因：直接访问 `plantingStore.plantings` 在 setup store 中未建立 computed 响应式依赖，
+ * fetchPlantings 更新后下拉不会重算。改用 storeToRefs 解构为真正的 ref。
+ */
+const { plantings: plantingsRef } = storeToRefs(plantingStore)
 const plantingItems = computed(() => {
-  const list = plantingStore.plantings
-  return Array.isArray(list) ? list : []
+  return Array.isArray(plantingsRef.value) ? plantingsRef.value : []
 })
 
 onMounted(() => {

@@ -86,7 +86,7 @@
     <PlanDetailModal
       :visible="showDetailModal"
       :selected-plan-detail="selectedPlanDetail"
-      :approval-records="selectedPlanApprovals"
+      :approval-records="extractAllRecords(selectedPlanApprovals)"
       @close="handleCloseDetail"
       @execution-status-changed="handleExecutionStatusChanged"
     />

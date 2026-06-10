@@ -140,7 +140,7 @@ defineProps({
   /** @type {import('vue').PropType<string>} */
   relatedBatchCode: { type: String, default: '' },
   /** @type {import('vue').PropType<string>} */
-  purchaseType: { type: String, default: '' },
+  purchaseType: { type: String, default: 'all' },
   /** @type {import('vue').PropType<string>} */
   status: { type: String, default: 'all' },
   /** @type {import('vue').PropType<string>} */

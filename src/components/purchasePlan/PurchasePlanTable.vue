@@ -51,7 +51,7 @@
         </button>
         <button v-if="canEdit" :class="btnBlue" @click="$emit('batchEdit')">
           <Edit class="w-4 h-4" />
-          批量编辑
+          编辑
         </button>
         <button v-if="canDelete" :class="btnDestructive" @click="$emit('batchDelete')">
           <Trash2 class="w-4 h-4" />
@@ -191,21 +191,27 @@
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-1">
-                  <!-- ✅ 全部状态可编辑/删除：取消 V1.1 executionStatus 归档过滤，按用户要求所有采购计划统一可操作 -->
-                  <button
-                    :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'"
-                    title="编辑"
-                    @click="$emit('edit', plan)"
-                  >
-                    <Pencil class="w-4 h-4" />
-                  </button>
-                  <button
-                    :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'"
-                    title="删除"
-                    @click="handleDeleteClick(plan)"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
+                  <!-- V1.1 L372-394 1:1 翻译：归档状态(completed/cancelled)禁用编辑/删除，显示"已归档" -->
+                  <template v-if="plan.executionStatus !== 'completed' && plan.executionStatus !== 'cancelled'">
+                    <button
+                      :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'"
+                      title="编辑"
+                      @click="$emit('edit', plan)"
+                    >
+                      <Pencil class="w-4 h-4" />
+                    </button>
+                    <button
+                      :class="btnGhost + ' text-red-600 hover:text-red-800 p-1'"
+                      title="删除"
+                      @click="handleDeleteClick(plan)"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </template>
+                  <span
+                    v-else
+                    class="text-xs text-gray-400"
+                  >已归档</span>
                 </div>
               </td>
             </tr>
@@ -217,48 +223,14 @@
                   物料明细（共 {{ plan.items?.length || 0 }} 项）
                 </div>
                 <!--
-                  内联渲染物料明细（view 模式，emerald 主题）
-                  注：原 V1.1 调用 <MaterialItemsTable> 组件，但 V2.0 L3 翻译
-                  中尚未生成该文件；保持 1:1 视觉一致，inline 实现 view 模式
+                  ✅ 修复 P1-2: 用共享 MaterialItemsTable 组件替换 V2.0 内联实现
+                  1:1 对齐 V1.1 L403 <MaterialItemsTable items={plan.items || []} headerTheme="emerald" />
                 -->
-                <div class="overflow-x-auto">
-                  <table class="w-full bg-white rounded-lg overflow-hidden text-xs">
-                    <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
-                      <tr>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">分类</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">规格型号</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold whitespace-nowrap">单位</th>
-                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">数量</th>
-                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">预估单价</th>
-                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">预估总价</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">供应商</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">用途说明</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">备注</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                      <tr
-                        v-for="item in (plan.items || [])"
-                        :key="item.id"
-                        class="hover:bg-gray-50"
-                      >
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.materialCode }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-900 font-medium whitespace-nowrap">{{ item.materialName }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.category }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.specification }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-center whitespace-nowrap">{{ item.unit }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">{{ item.quantity }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">¥{{ (item.estimatedPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">¥{{ (item.estimatedTotalPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.supplier }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.purpose }}</td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">{{ item.remark }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <MaterialItemsTable
+                  :items="plan.items || []"
+                  mode="view"
+                  header-theme="emerald"
+                />
               </td>
             </tr>
           </template>
@@ -313,6 +285,8 @@ import { showAlert, showConfirm } from '@/lib/dialogService'
 // 与生产模块共享按钮样式常量
 import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnGhost } from '@/views/production/constants/buttonStyles'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
+// ✅ 修复 P1-2: 引入共享的物料明细表格组件（V1.1 1:1 翻译）
+import MaterialItemsTable from './MaterialItemsTable.vue'
 
 /**
  * @typedef {Object} PurchasePlan
@@ -415,8 +389,10 @@ function rowClass(plan) {
  * @returns {boolean}
  */
 function isRowDisabled(plan) {
-  // ✅ 全部状态可勾选：取消 V1.1 executionStatus 归档过滤（与单条操作按钮一致）
-  return false
+  // V1.1 1:1 翻译：批量编辑/删除模式下，已归档行 checkbox 禁用
+  // executionStatus='completed'/'cancelled' 视为归档
+  if (!(props.batchEditMode || props.batchDeleteMode)) return false
+  return plan.executionStatus === 'completed' || plan.executionStatus === 'cancelled'
 }
 
 /**

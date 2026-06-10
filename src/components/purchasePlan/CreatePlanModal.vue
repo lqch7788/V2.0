@@ -8,8 +8,8 @@
   <ElModal
     :model-value="isOpen"
     title="新增采购申请单"
-    :width="784"
-    :height="630"
+    :width="1080"
+    :height="650"
     
     @update:model-value="(v) => emit('update:isOpen', v)"
     @close="handleClose"
@@ -387,6 +387,7 @@
  * @see V1.1: D:\TMcrop\yuanxingtu\V1.1\src\components\purchasePlan\CreatePlanModal.tsx
  */
 import { ref, computed, onMounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import * as XLSX from 'xlsx'
 import { Refresh, Upload, Plus, Delete, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
 import { ElModal } from '@/components/ui'
@@ -500,10 +501,15 @@ const emit = defineEmits([
 
 const plantingStore = usePlantingStore()
 
-/** 1:1 翻译 V1.1 safeArray + usePlantingStore.items */
+/**
+ * 修复 P0: 关联生产批次下拉只有"其他"选项
+ * 原因：直接访问 `plantingStore.plantings` 在 setup store 中虽然能读到值，
+ * 但 computed 内未通过响应式 proxy 建立依赖，fetchPlantings 更新后下拉不会重算。
+ * 解决：用 storeToRefs 把 store 的响应式状态解构为真正的 ref，computed 依赖追踪正常。
+ */
+const { plantings: plantingsRef } = storeToRefs(plantingStore)
 const plantingItems = computed(() => {
-  const list = plantingStore.plantings
-  return Array.isArray(list) ? list : []
+  return Array.isArray(plantingsRef.value) ? plantingsRef.value : []
 })
 
 // V1.1: useEffect 加载种植列表
