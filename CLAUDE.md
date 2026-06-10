@@ -45,7 +45,7 @@ D:\TMcrop\yuanxingtu\V2.0\docs\superpowers\specs\V2-MIGRATION-CHECKLIST.md
 
 ## 技术栈
 
-- 前端：Vue3 + javaScript + Vite + Element Plus + Tailwind CSS
+- 前端：Vue3 + JavaScript + Vite + Element Plus + Tailwind CSS
 - 后端：Express + SQLite (与V1.1共用)
 - 状态管理：Pinia
 - 端口：前端5000/5001，后端3002
