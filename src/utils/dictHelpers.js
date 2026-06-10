@@ -29,3 +29,34 @@ export function getDictItemNameSync(category, code, fallback = '') {
     return code
   }
 }
+
+/**
+ * 修复 P0-T03：从技术方案记录解析适用范围 scopes 数组
+ *
+ * 背景：V2.0 后端 techSolution.js mapFieldsToFrontend L72 返回的是字符串
+ *       `scopeNames`（逗号分隔），而前端 6 处代码还在按 V1.1 的数组 `scopes` 字段读取，
+ *       导致"适用范围"显示永远为空（fallback 到 stage 字段）。
+ *
+ * 行为 1:1 兼容 V1.1：
+ * - 优先用 V1.1 数组字段 `tech.scopes`（未来若后端改回关联表，前端不用再改）
+ * - fallback 到 V2.0 字符串字段 `tech.scopeNames`（逗号分隔 → 数组）
+ * - 全部为空时返回空数组
+ *
+ * @param {object} tech 技术方案记录
+ * @returns {string[]} scopes 数组
+ */
+export function getScopesFromTech(tech) {
+  if (!tech) return []
+  // 优先 V1.1 字段（数组）
+  if (Array.isArray(tech.scopes) && tech.scopes.length > 0) {
+    return tech.scopes
+  }
+  // fallback V2.0 字符串字段
+  if (tech.scopeNames && typeof tech.scopeNames === 'string') {
+    return tech.scopeNames
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }
+  return []
+}

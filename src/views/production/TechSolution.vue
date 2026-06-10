@@ -504,7 +504,7 @@ const handleEditClick = (tech) => {
     cropCode: tech.cropCode || '',
     plantingMode: tech.plantingMode,
     stage: tech.stage,
-    scopes: tech.scopes || [],
+    scopes: tech.scopes || (tech.scopeNames ? tech.scopeNames.split(',').filter(Boolean) : []),
     version: tech.version,
     content: tech.content,
     remarks: tech.remarks || '',
@@ -679,7 +679,7 @@ const handleDoExport = async () => {
     // 修复 P0-002 衍生：种植模式做字典映射（与 V1.1 L483 一致）
     '种植模式': getDictItemNameSync('planting_mode', row.plantingMode),
     // 修复 R4：导出 scopes 字段（V1.1 后端已迁到 scopes 数组模式）
-    '适用范围': (row.scopes && row.scopes.length > 0) ? row.scopes.join('、') : (row.stage || '-'),
+    '适用范围': (row.scopes && row.scopes.length > 0) ? row.scopes.join('、') : (row.scopeNames ? row.scopeNames.split(',').filter(Boolean).join('、') : (row.stage || '-')),
     '版本': row.version,
     '编制人': row.author,
     '创建日期': row.createDate,
@@ -842,7 +842,7 @@ const saveBatchEdit = async () => {
           cropCode: edited.cropCode ?? tech.cropCode ?? '',
           plantingMode: edited.plantingMode ?? tech.plantingMode,
           stage: edited.stage ?? tech.stage,
-          scopeNames: edited.scopes ?? tech.scopes ?? [],
+          scopeNames: edited.scopes ?? tech.scopes ?? (tech.scopeNames ? tech.scopeNames.split(',').filter(Boolean) : []),
           version: edited.version ?? tech.version,
           content: edited.content ?? tech.content,
           author: edited.author ?? tech.author ?? '',

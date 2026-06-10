@@ -1,10 +1,10 @@
 <template>
-  <!-- 技术方案详情弹窗 - 统一使用 ElModal（V1.1 width=700 → 统一800） -->
+  <!-- 技术方案详情弹窗 - 统一使用 ElModal（V1.1 DetailModal.tsx L222 width=700 → 统一 800） -->
   <ElModal
     :model-value="visible"
     title="方案详情"
-    :width="1600"
-    :height="900"
+    :width="800"
+    :height="600"
     @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >
@@ -50,7 +50,7 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="text-sm font-medium text-gray-500">适用范围</label>
-              <p class="text-gray-900">{{ (tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : (tech.stage || '-') }}</p>
+              <p class="text-gray-900">{{ getScopesFromTech(tech).length ? getScopesFromTech(tech).join('、') : (tech.stage || '-') }}</p>
             </div>
             <div>
               <label class="text-sm font-medium text-gray-500">关联批次</label>
@@ -150,9 +150,11 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { ElModal } from '@/components/ui'
 // 修复 P1-1：详情弹窗也使用共享字典映射（与 V1.1 L183 行为一致）
-import { getDictItemNameSync } from '@/utils/dictHelpers'
+// 修复 P0-T03：getScopesFromTech 统一处理 V1.1 scopes / V2.0 scopeNames 双兼容
+import { getDictItemNameSync, getScopesFromTech } from '@/utils/dictHelpers'
 
 defineProps({
   visible: Boolean,

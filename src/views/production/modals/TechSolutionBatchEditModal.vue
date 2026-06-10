@@ -1,10 +1,10 @@
 <template>
-  <!-- 批量编辑技术方案弹窗 - 统一使用 ElModal（V1.1 width=1080 → 统一800） -->
+  <!-- 批量编辑技术方案弹窗 - 统一使用 ElModal（V1.1 BatchEditModal.tsx Modal size="xxl" → 1080） -->
   <ElModal
     :model-value="visible"
     title="批量编辑技术方案"
-    :width="784"
-    :height="630"
+    :width="1080"
+    :height="650"
     @update:model-value="(v) => emit('update:visible', v)"
     @close="emit('close')"
   >

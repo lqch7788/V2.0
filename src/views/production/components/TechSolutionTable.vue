@@ -102,8 +102,8 @@
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap" :title="getDictItemNameSync('planting_mode', tech.plantingMode) || ''">
               {{ truncateForTable(getDictItemNameSync('planting_mode', tech.plantingMode)) }}
             </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap" :title="(tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : (tech.stage || '')">
-              {{ truncateForTable((tech.scopes && tech.scopes.length > 0) ? tech.scopes.join('、') : tech.stage) }}
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap" :title="getScopesFromTech(tech).length ? getScopesFromTech(tech).join('、') : (tech.stage || '')">
+              {{ truncateForTable(getScopesFromTech(tech).length ? getScopesFromTech(tech).join('、') : tech.stage) }}
             </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.version }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ tech.author }}</td>
@@ -156,7 +156,8 @@
 import { Plus, Edit, Trash2, Download, Pencil } from 'lucide-vue-next'
 // 修复 P1-1：从共享工具函数导入字典映射（合并 3 处重复实现）
 // V1.1 中种植模式列显示的是字典 label（如"水培"），而非 raw value
-import { getDictItemNameSync } from '@/utils/dictHelpers'
+// 修复 P0-T03：getScopesFromTech 统一处理 V1.1 scopes 数组 / V2.0 scopeNames 字符串双兼容
+import { getDictItemNameSync, getScopesFromTech } from '@/utils/dictHelpers'
 
 // 第二阶段 Y2 重构：按钮样式抽常量
 import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnGhost } from '../constants/buttonStyles'
