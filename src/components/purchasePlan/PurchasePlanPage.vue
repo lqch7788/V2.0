@@ -426,7 +426,16 @@ const setEditedPlans = (v) => { editedPlans.value = v }
 const setSelectedPlanCode = (v) => { selectedPlanCode.value = v }
 const setCurrentEditingPlan = (v) => { currentEditingPlan.value = v }
 const setBatchEditData = (v) => { batchEditData.value = v }
-const setBatchEditItems = (v) => { batchEditItems.value = v }
+/** ✅ 修复：setBatchEditItems 支持值或 updater 函数（V1.1 L47-48 1:1 翻译）
+ *  之前 v 写死赋值，MaterialItemsTable.updateItem 传的函数式 updater 直接被存进 ref，
+ *  导致 batchEditItems 变函数，v-for 渲染时整行被吞掉（看起来"被删"）*/
+const setBatchEditItems = (v) => {
+  if (typeof v === 'function') {
+    batchEditItems.value = v(batchEditItems.value)
+  } else {
+    batchEditItems.value = v
+  }
+}
 
 // ==================== 展开行状态 ====================
 /** @type {import('vue').Ref<Set<string>>} */

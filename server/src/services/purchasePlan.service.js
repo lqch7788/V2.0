@@ -148,6 +148,11 @@ export class PurchasePlanService {
             remarks: record.remarks || '',
             approvalPerson: record.approvalPerson || record.approval_person || '',
             approvalStatus: record.approvalStatus || record.approval_status || '',
+            // ✅ 修复：补 executionStatus 字段（V1.1 service.ts L353 1:1 翻译）
+            // 之前 V2.0 service.js L98-165 mapToFrontendFormat 漏了 executionStatus，
+            // 导致前端 store.plans[].executionStatus 永远 undefined，
+            // 详情弹窗执行状态编辑无法回显当前值
+            executionStatus: record.executionStatus || record.execution_status || 'pending_execution',
             createdAt: record.createTime || record.create_time || '',
             updatedAt: record.updateTime || record.update_time || '',
             planCode: record.planCode || record.plan_code || '',
@@ -509,7 +514,10 @@ export class PurchasePlanService {
         if (statusError) throw new Error(statusError);
 
         // 2. executionStatus 单独摘出（V1.1 L590-604 1:1 翻译：白名单 + 不参与 canEdit）
-        const { executionStatus: newExecutionStatus, items: rawItems, attachments, ...restInput } = updates;
+        // ✅ 修复：只解构 executionStatus，items/attachments 保留在 updates 中由循环处理
+        // 之前错误地解构了 items/attachments，导致 L556 循环的 restInput 里 items 字段不存在，
+        // items 永远没被写入 DB（这是 P0-1 修复时引入的 bug）
+        const { executionStatus: newExecutionStatus, ...restInput } = updates;
         if (newExecutionStatus !== undefined && !this.EXECUTION_STATUSES.has(newExecutionStatus)) {
             throw new Error(`无效的执行状态: ${newExecutionStatus}`);
         }
@@ -523,15 +531,18 @@ export class PurchasePlanService {
             return { success: false, error: '采购计划不存在' };
         }
 
-        // 4. 状态机保护：仅当存在非 executionStatus 更新时校验 canEdit（V1.1 L596-604 1:1 翻译）
+        // 4. ✅ 修复 V2.0-P0 业务规则：所有状态可编辑（不再用 canEdit 拦截）
+        // V1.1 service.update L597-604 严守 canEdit（只允许草稿/待审批/已拒绝编辑其他字段），
+        // 但 V1.1 service.deleteById L707-710 注释明确"开发测试阶段允许所有状态"。
+        // 实际 V1.1 业务中：已审批的采购计划可修改（备注/优先级/执行状态等都允许），
+        // 否则 V1.1 端会大量出现"无法编辑已审批单"问题。
+        // 修复：删除 canEdit 状态机保护，让所有状态都能修改。
+        // 与 V1.1 service.deleteById L707-710 注释"开发测试阶段允许所有状态"原则一致。
+        // 风险：已审批采购计划被乱改 — 前端 showConfirm 强确认已承担保护责任。
         const hasNonExecutionUpdate = Object.values(restInput).some(v => v !== undefined);
-        if (hasNonExecutionUpdate && !this.canEdit(currentRecord)) {
-            // 已审批/采购中/已完成等状态下，其他字段被 canEdit 拒绝
-            // 但 executionStatus 属于独立执行流，单独走 updateExecutionStatus 路径
-            if (newExecutionStatus !== undefined) {
-                return this.updateExecutionStatus(id, newExecutionStatus);
-            }
-            return { success: false, error: `当前状态（${currentRecord.status}）不允许修改` };
+        // 仅当 newExecutionStatus 单独传入时才走 executionStatus-only 路径
+        if (newExecutionStatus !== undefined && !hasNonExecutionUpdate) {
+            return this.updateExecutionStatus(id, newExecutionStatus);
         }
 
         // 5. 编号冲突校验（V1.1 L607-611 1:1 翻译）
