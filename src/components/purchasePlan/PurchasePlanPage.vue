@@ -387,7 +387,15 @@ const createForm = ref({
 })
 /** @type {import('vue').Ref<PurchasePlanItem[]>} */
 const createItems = ref([])
-const setCreateItems = (v) => { createItems.value = v }
+/** ✅ 修复 P1-C: setCreateItems 支持值或 updater 函数（V1.1 L47-48 1:1 翻译）
+ *  避免连续 setItems 调用（如 onSelect 一次性写多字段）互相覆盖 */
+const setCreateItems = (v) => {
+  if (typeof v === 'function') {
+    createItems.value = v(createItems.value)
+  } else {
+    createItems.value = v
+  }
+}
 
 // ==================== 批量编辑状态 ====================
 /** @type {import('vue').Ref<string[]>} */

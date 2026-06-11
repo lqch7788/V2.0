@@ -345,11 +345,13 @@
                   />
                 </td>
                 <td class="px-1 py-1.5 whitespace-nowrap">
-                  <!-- V1.1 L640: 备注列特殊样式 h-6 w-14 p-1 text-xs rounded border-gray-300 -->
+                  <!-- ✅ 修复 P1-B: 备注列特殊样式 1:1 对齐 V1.1 L648 h-6 w-14 p-1 text-xs rounded border-gray-300 -->
                   <el-input
                     :model-value="item.remark"
                     placeholder="备注"
-                    style="width: 56px"
+                    size="small"
+                    :style="{ width: '56px', minHeight: '24px' }"
+                    :input-style="{ padding: '4px', fontSize: '12px' }"
                     @update:model-value="(v) => handleUpdateItem(item.id, 'remark', v)"
                   />
                 </td>
@@ -392,12 +394,15 @@ import { storeToRefs } from 'pinia'
 import * as XLSX from 'xlsx'
 import { Refresh, Upload, Plus, Delete, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
 import { ElModal } from '@/components/ui'
-import { usePlantingStore } from '@/stores/modules/planting'
 import { getNextPurchaseApplicationCode } from '@/services/apiPurchasePlanService'
 import { getDictionaries } from '@/services/dictionaryService'
 import { showAlert } from '@/lib/dialogService'
 // ✅ 修复 P0-7: 引入物料自动补全组件
 import MaterialAutocomplete from '@/components/common/MaterialAutocomplete.vue'
+
+// ✅ 修复 P0-A: 关联批次号改用生产计划批次（V1.1 L91-106 1:1 翻译）
+// 之前 V2.0 错误使用 usePlantingStore.items.plantCode（种植记录编码），应是用 productionPlanStore.batches.batchCode
+import { useProductionPlanStore } from '@/stores/modules/productionPlan'
 
 // ✅ 修复 P0-18: 审批规则折叠状态（V1.1 L450-479 1:1 翻译）
 const showApprovalRules = ref(false)
@@ -500,23 +505,23 @@ const emit = defineEmits([
 
 // ==================== Store（用于关联批次选项） ====================
 
-const plantingStore = usePlantingStore()
-
 /**
- * 修复 P0: 关联生产批次下拉只有"其他"选项
- * 原因：直接访问 `plantingStore.plantings` 在 setup store 中虽然能读到值，
- * 但 computed 内未通过响应式 proxy 建立依赖，fetchPlantings 更新后下拉不会重算。
- * 解决：用 storeToRefs 把 store 的响应式状态解构为真正的 ref，computed 依赖追踪正常。
+ * ✅ 修复 P0-A: 关联生产批次下拉改用 useProductionPlanStore（V1.1 L91-106 1:1 翻译）
+ * 之前 V2.0 错误使用 usePlantingStore.items.plantCode（种植记录编码 plantCode），
+ * 正确数据源是 useProductionPlanStore.batches.batchCode（生产计划批次号）
  */
-const { plantings: plantingsRef } = storeToRefs(plantingStore)
-const plantingItems = computed(() => {
-  return Array.isArray(plantingsRef.value) ? plantingsRef.value : []
+const productionPlanStore = useProductionPlanStore()
+
+/** V1.1 L98 batchOptions 数据源（camelCase 优先） */
+const { batches: batchesRef } = storeToRefs(productionPlanStore)
+const productionBatches = computed(() => {
+  return Array.isArray(batchesRef.value) ? batchesRef.value : []
 })
 
-// V1.1: useEffect 加载种植列表
+// V1.1 L94-96: useEffect 加载生产计划
 onMounted(() => {
-  if (plantingItems.value.length === 0 && typeof plantingStore.fetchPlantings === 'function') {
-    plantingStore.fetchPlantings()
+  if (productionBatches.value.length === 0 && typeof productionPlanStore.fetchPlans === 'function') {
+    productionPlanStore.fetchPlans()
   }
   // 1:1 翻译 V1.1：弹窗打开时动态读取金额阈值字典
   loadAmountThresholds()
@@ -588,11 +593,12 @@ watch(() => props.isOpen, (open) => {
   }
 })
 
-/** 关联批次选项（1:1 翻译 V1.1 batchOptions） */
+/** ✅ 修复 P0-A: 关联批次选项（1:1 翻译 V1.1 L99-106 batchOptions）
+ *  用 productionPlanStore.batches.batchCode 替代 plantingStore.plantings.plantCode */
 const batchOptions = computed(() => {
-  const opts = plantingItems.value.map((b) => ({
-    value: String(b.plantCode || b.id),
-    label: `${b.plantCode || b.id} - ${b.cropName || ''}`,
+  const opts = productionBatches.value.map((b) => ({
+    value: String(b.batchCode || b.id),
+    label: `${b.batchCode || b.id} - ${b.cropName || ''}`,
   }))
   opts.push({ value: 'other', label: '其他' })
   return opts
@@ -700,12 +706,24 @@ function handleDeleteItem(id) {
   emit('items-change', props.createItems.filter((item) => item.id !== id))
 }
 
+/** ✅ 修复 P1-D: 限制为正数 + 保留 2 位小数（V1.1 L202-206 sanitizePositive 1:1 翻译） */
+const sanitizePositive = (raw, maxDecimals = 2) => {
+  const n = Number(raw)
+  if (isNaN(n) || n < 0) return 0
+  return Math.round(n * Math.pow(10, maxDecimals)) / Math.pow(10, maxDecimals)
+}
+
 /** 1:1 翻译 V1.1 handleUpdateItem (含自动计算预估总价) */
 function handleUpdateItem(id, field, value) {
   const next = props.createItems.map((item) => {
     if (item.id !== id) return item
-    const updated = { ...item, [field]: value }
-    // 1:1 翻译 V1.1 L212-213: 数量/单价变化时自动计算总价，保留 2 位小数（避免浮点精度问题）
+    let v = value
+    // ✅ 修复 P1-D: 数量/单价变化时 sanitizePositive（V1.1 L212-213 1:1 翻译）
+    if (field === 'quantity' || field === 'estimatedPrice') {
+      v = sanitizePositive(value)
+    }
+    const updated = { ...item, [field]: v }
+    // 自动计算预估总价，保留 2 位小数
     if (field === 'quantity' || field === 'estimatedPrice') {
       updated.estimatedTotalPrice = Math.round(Number(updated.quantity) * Number(updated.estimatedPrice) * 100) / 100
     }
