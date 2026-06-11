@@ -250,7 +250,8 @@ import { showAlert } from '@/lib/dialogService'
 import { btnDefault, btnSecondary, btnBlue, btnGhost, inputClassStrong as inputClass } from '../constants/buttonStyles'
 
 // 种植模式字典
-const { plantingModes, loadPlantingModes } = usePlantingModes()
+// 修复 P0-T4：使用 translatePlantingMode 工具把英文 value 翻译为中文 label
+const { plantingModes, loadPlantingModes, translatePlantingMode } = usePlantingModes()
 
 onMounted(() => {
   loadPlantingModes()
@@ -337,18 +338,12 @@ function handleRelatedBatchChange(value) {
 }
 
 // 种植模式值→label 翻译（V1.1 L132-141 1:1）
+// 修复 P0-T4：原 list.find((m) => m === v) 字典只有中文 label，无法翻译英文 value
+// 现用 usePlantingModes 的 translatePlantingMode 工具（V1.1 静态映射 + 字典 fallback）
 const plantingModeDisplay = computed(() => {
   const raw = props.form?.plantingMode
   if (!raw) return ''
-  return raw.split(',')
-    .map((v) => v.trim())
-    .filter(Boolean)
-    .map((v) => {
-      const list = plantingModes.value || []
-      return list.find((m) => m === v) || v
-    })
-    .filter(Boolean)
-    .join('、')
+  return translatePlantingMode(raw)
 })
 
 // 修复 P0-B7-CARD：selectedBatch.cropCode 为 null 时通过 cropName 反查作物品种库

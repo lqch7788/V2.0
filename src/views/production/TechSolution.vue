@@ -232,6 +232,8 @@ import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
 import { useExportFormats } from '@/composables/production/useExportFormats'
 import { useOperatorOptions } from '@/composables/production/useOperatorOptions'
 import { useCropOptions } from '@/composables/production/useCropOptions'
+// 修复 P0-T4：种植模式英文 value→中文 label 翻译
+import { usePlantingModes } from '@/composables/production/usePlantingModes'
 
 // ==================== 样式常量 ====================
 // 第二阶段 Y2 重构：按钮样式抽常量（共享 src/views/production/constants/buttonStyles.js）
@@ -288,6 +290,8 @@ const { operatorOptions, loadOperators } = useOperatorOptions()
 // ==================== 生命周期 ====================
 onMounted(() => {
   loadOperators()
+  // 修复 P0-T4：加载种植模式字典让 translatePlantingMode 能用
+  loadPlantingModes()
   fetchSolutions()
   // ✅ 修复 P0: 加载生产计划列表（V1.1 CreateModal 联动需要）
   if (typeof productionPlanStore.fetchPlans === 'function' && productionPlans.value.length === 0) {
@@ -329,6 +333,8 @@ const handleFocus = () => {
 // ==================== 计算属性 ====================
 // 第二阶段 Y4 重构：作物下拉从 composable 派生
 const { cropOptions } = useCropOptions(() => techSolutions.value)
+// 修复 P0-T4：种植模式翻译工具
+const { translatePlantingMode, loadPlantingModes } = usePlantingModes()
 
 const filteredTechSolutions = computed(() => {
   return techSolutions.value.filter((tech) => {
@@ -604,7 +610,7 @@ const handleCreateSubmit = async (submitMode) => {
         typeName: '技术方案',
         title: `技术方案审批：${newPlanForm.value.title}`,
         // 修复 P0-BU：与 V1.1 L405 一致，description 用 stage 字段（不 scopes.join）
-        description: `作物：${newPlanForm.value.crop}\n种植模式：${newPlanForm.value.plantingMode}\n适用范围：${newPlanForm.value.stage}`,
+        description: `作物：${newPlanForm.value.crop}\n种植模式：${translatePlantingMode(newPlanForm.value.plantingMode || '')}\n适用范围：${newPlanForm.value.stage}`,
         applicantId: localStorage.getItem('userId') || '',
         applicantName: localStorage.getItem('username') || '',
         applicantDepartment: localStorage.getItem('department') || '',

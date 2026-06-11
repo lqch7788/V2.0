@@ -252,7 +252,8 @@ import { pickAndReadFile } from '@/utils/fileUpload'
 import { btnDefault, btnSecondary, btnBlue, btnGhost, inputClass } from '../constants/buttonStyles'
 
 // 种植模式字典
-const { plantingModes, loadPlantingModes } = usePlantingModes()
+// 修复 P0-T4：使用 translatePlantingMode 工具把英文 value 翻译为中文 label
+const { plantingModes, loadPlantingModes, translatePlantingMode } = usePlantingModes()
 
 onMounted(() => {
   loadPlantingModes()
@@ -310,18 +311,11 @@ const selectedBatch = computed(() => {
 const isLockedByBatch = computed(() => !!props.form?.relatedBatchCode)
 
 // ✅ 修复 P0: V1.1 L129-138 种植模式 value→label 翻译
+// 修复 P0-T4：用 translatePlantingMode 工具支持英文 value→中文 label 翻译
 const plantingModeDisplay = computed(() => {
   const raw = props.form?.plantingMode
   if (!raw) return ''
-  return raw.split(',')
-    .map((v) => v.trim())
-    .filter(Boolean)
-    .map((v) => {
-      const list = plantingModes.value || []
-      return list.find((m) => m === v) || v
-    })
-    .filter(Boolean)
-    .join('、')
+  return translatePlantingMode(raw)
 })
 
 // 修复 P0-B7-CARD：老数据 batch.cropCode 为 null 时 fallback 显示
