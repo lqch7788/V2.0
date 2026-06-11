@@ -260,52 +260,19 @@
             </button>
           </div>
 
+          <!-- ✅ 修复 P-F: 复用 MaterialItemsTable 共享组件（V1.1 BatchEditModal.tsx L490-497 1:1 翻译）
+               之前 V2.0 内联实现缺 MaterialAutocomplete + 选中后 7 字段自动回填 + 数量/单价自动算总价
+               修复后与 V1.1 行为完全一致：物料名称可搜索物料库、选中后回填 materialId/code/category 等 -->
           <div
             v-if="showEditItemsExpanded && batchEditItems.length > 0"
             class="mt-3 overflow-auto rounded-lg border border-gray-300 bg-white"
           >
-            <table class="w-full text-xs">
-              <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                <tr>
-                  <th class="px-2 py-2 text-center font-semibold w-10">操作</th>
-                  <th
-                    v-for="col in editColumns"
-                    :key="col.key"
-                    class="px-2 py-2 text-left font-semibold whitespace-nowrap"
-                  >{{ col.label }}</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <tr
-                  v-for="item in batchEditItems"
-                  :key="item.id"
-                  class="hover:bg-gray-50"
-                >
-                  <td class="px-2 py-2 text-center">
-                    <button
-                      :class="btnGhost + ' text-red-500 hover:bg-red-50 hover:text-red-600 p-1'"
-                      title="删除"
-                      @click="handleRemoveBatchItem(item.id)"
-                    >
-                      <Trash2 class="w-4 h-4" />
-                    </button>
-                  </td>
-                  <td
-                    v-for="col in editColumns"
-                    :key="col.key"
-                    class="px-2 py-2 whitespace-nowrap"
-                  >
-                    <el-input
-                      :model-value="String(getItemField(item, col.key) ?? '')"
-                      :type="col.isNumeric ? 'number' : 'text'"
-                      :placeholder="col.label"
-                      size="small"
-                      @update:model-value="(v) => handleUpdateBatchItem(item.id, col.key, v, col.isNumeric)"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <MaterialItemsTable
+              :items="batchEditItems"
+              mode="edit"
+              header-theme="blue"
+              @items-change="(v) => emit('batchEditItemsChange', v)"
+            />
           </div>
 
           <div
@@ -339,7 +306,7 @@
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ChevronDown, Plus, Trash2 } from 'lucide-vue-next'
+import { ChevronDown, Plus } from 'lucide-vue-next'
 import { ElModal } from '@/components/ui'
 // 与技术方案共享按钮样式常量
 import { btnDefault, btnSecondary, btnGhost } from '@/views/production/constants/buttonStyles'
@@ -348,6 +315,8 @@ import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { usePlantingStore } from '@/stores/modules/planting'
 // ✅ 修复 P0-14: 引入执行状态下拉选项
 import { PURCHASE_EXECUTION_STATUS_OPTIONS } from '@/types/purchase'
+// ✅ 修复 P-F: 复用物料明细共享组件（V1.1 BatchEditModal.tsx L490-497 1:1 翻译）
+import MaterialItemsTable from './MaterialItemsTable.vue'
 
 // ==================== JSDoc 类型 ====================
 
@@ -455,18 +424,9 @@ const selectablePlans = computed(() => {
   return props.purchasePlansData.filter((p) => props.selectedRows.includes(p.purchaseApplicationCode))
 })
 
-/** 1:1 翻译 V1.1 MaterialItemsTable edit mode EDIT_COLUMNS */
-const editColumns = [
-  { key: 'materialCode', label: '物料编码', isNumeric: false },
-  { key: 'materialName', label: '物料名称', isNumeric: false },
-  { key: 'category', label: '分类', isNumeric: false },
-  { key: 'specification', label: '规格型号', isNumeric: false },
-  { key: 'unit', label: '单位', isNumeric: false },
-  { key: 'quantity', label: '数量', isNumeric: true },
-  { key: 'estimatedPrice', label: '预估单价', isNumeric: true },
-  { key: 'supplier', label: '供应商', isNumeric: false },
-  { key: 'purpose', label: '用途说明', isNumeric: false },
-]
+/** ✅ 修复 P-F: editColumns 已废弃（改用 MaterialItemsTable 共享组件的 EDIT_COLUMNS）
+ *  之前 V2.0 内联实现 9 列 + 删除/更新函数，现已全部下放到 MaterialItemsTable
+ *  V1.1 MaterialItemsTable.tsx L36-46 1:1 翻译保留在 MaterialItemsTable.vue */
 
 // ==================== 批次号下拉（V1.1 BatchSelectDropdown） ====================
 
@@ -564,15 +524,19 @@ function handleCurrentEditingChange(field, value) {
 
 // ==================== 物料明细操作 ====================
 
-function getItemField(item, key) {
-  return item?.[key]
-}
+/** ✅ 修复 P-F: getItemField / handleRemoveBatchItem / handleUpdateBatchItem 已废弃
+ *  删除/更新/字段取值逻辑全部下放到 MaterialItemsTable 共享组件（V1.1 MaterialItemsTable.tsx 1:1 翻译）
+ *  - 选中物料后 7 字段自动回填（materialId/materialCode/materialName/category/specification/unit/barcode/supplier）
+ *  - 数量/单价自动算总价 + 2 位小数
+ *  - 删除按钮在共享组件内部
+ *  - 函数式 updater 避免连续 setItems 互相覆盖（V1.1 L60-61 1:1 翻译）
+ */
 
 function handleToggleItemsExpanded() {
   emit('showEditItemsExpandedChange', !props.showEditItemsExpanded)
 }
 
-/** 1:1 翻译 V1.1 新增物料逻辑 */
+/** 1:1 翻译 V1.1 新增物料逻辑（V1.1 BatchEditModal.tsx L462-481） */
 function handleAddBatchItem() {
   const newItem = {
     id: `new_${Date.now()}`,
@@ -594,24 +558,6 @@ function handleAddBatchItem() {
     remark: '',
   }
   emit('batchEditItemsChange', [...props.batchEditItems, newItem])
-}
-
-function handleRemoveBatchItem(id) {
-  emit('batchEditItemsChange', props.batchEditItems.filter((it) => it.id !== id))
-}
-
-/** 1:1 翻译 V1.1 MaterialItemsTable updateItem（数量/单价自动算总价） */
-function handleUpdateBatchItem(id, field, value, isNumeric) {
-  const next = props.batchEditItems.map((item) => {
-    if (item.id !== id) return item
-    const updated = { ...item, [field]: isNumeric ? Number(value) || 0 : value }
-    if (field === 'quantity' || field === 'estimatedPrice') {
-      // 1:1 翻译 V1.1: 保留 2 位小数（避免浮点精度问题）
-      updated.estimatedTotalPrice = Math.round(Number(updated.quantity) * Number(updated.estimatedPrice) * 100) / 100
-    }
-    return updated
-  })
-  emit('batchEditItemsChange', next)
 }
 
 // ==================== 弹窗控制 ====================

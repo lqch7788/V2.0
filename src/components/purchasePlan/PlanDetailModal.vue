@@ -128,6 +128,9 @@
         </div>
 
         <!-- 行 6: 物料明细 (全宽) -->
+        <!-- ✅ 修复 P-H + P-J: 1:1 翻译 V1.1 PlanDetailModal.tsx L177-183
+             之前 V2.0 内联实现缺 blue 主题表头 + 重复 11 列定义
+             修复后用 MaterialItemsTable 共享组件，蓝色渐变表头（与 V1.1 一致）-->
         <div class="col-span-2">
           <div class="flex items-start">
             <span class="text-sm text-gray-500 w-32 flex-shrink-0 pt-1">物料明细：</span>
@@ -137,64 +140,11 @@
                 class="mt-1 overflow-auto max-h-80 rounded-lg border border-gray-300 bg-white"
               >
                 <div style="min-width: 1600px">
-                  <table class="w-full bg-white rounded-lg overflow-hidden text-xs">
-                    <thead class="bg-gray-50">
-                      <tr>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">分类</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">规格型号</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold whitespace-nowrap">单位</th>
-                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">数量</th>
-                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">预估单价</th>
-                        <th class="px-2 py-2 text-right text-xs font-semibold whitespace-nowrap">预估总价</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">供应商</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">用途说明</th>
-                        <th class="px-2 py-2 text-left text-xs font-semibold whitespace-nowrap">备注</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                      <tr
-                        v-for="item in selectedPlanDetail.items"
-                        :key="item.id"
-                        class="hover:bg-gray-50"
-                      >
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">
-                          {{ item.materialCode || '-' }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-900 font-medium whitespace-nowrap">
-                          {{ item.materialName || '-' }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">
-                          {{ item.category || '-' }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">
-                          {{ item.specification || '-' }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-center whitespace-nowrap">
-                          {{ item.unit || '-' }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">
-                          {{ item.quantity }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">
-                          ¥{{ (item.estimatedPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 text-right whitespace-nowrap">
-                          ¥{{ (item.estimatedTotalPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">
-                          {{ item.supplier || '-' }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">
-                          {{ item.purpose || '-' }}
-                        </td>
-                        <td class="px-2 py-2 text-xs text-gray-600 whitespace-nowrap">
-                          {{ item.remark || '-' }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <MaterialItemsTable
+                    :items="selectedPlanDetail.items"
+                    mode="view"
+                    header-theme="blue"
+                  />
                 </div>
               </div>
               <span v-else class="text-gray-400">暂无物料明细</span>
@@ -282,6 +232,8 @@ import { Clock, EditPen } from '@element-plus/icons-vue'
 import { PURCHASE_EXECUTION_STATUS_OPTIONS, PURCHASE_EXECUTION_STATUS_STYLE, PURCHASE_EXECUTION_STATUS_TEXT } from '@/types/purchase'
 import { updateExecutionStatus as apiUpdateExecutionStatus } from '@/services/apiPurchasePlanService'
 import { showAlert } from '@/lib/dialogService'
+// ✅ 修复 P-H: 复用物料明细共享组件（V1.1 PlanDetailModal.tsx L177-183 1:1 翻译）
+import MaterialItemsTable from './MaterialItemsTable.vue'
 
 // ==================== JSDoc 类型定义 ====================
 
