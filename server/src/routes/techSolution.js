@@ -18,13 +18,39 @@ function generateId(prefix) {
 /**
  * 生成技术方案编码
  * 格式：T + 年月 + 3位流水号
+ * 修复 P0-T1：V1.1 server/src/routes/techSolution.ts L28-53 1:1 翻译
+ * 格式：TS + YYYYMMDD + - + 3位当日 MAX+1 流水号（14字符）
+ * 流水号按当日自增（查询当日 MAX+1，禁止随机数）
  */
 function generateSolutionCode() {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    const seq = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-    return `T${year}${month}${seq}`;
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${year}${month}${day}`;
+
+    // 查询当日最大序号（V1.1 L36-49 1:1）
+    const db = getDatabase();
+    const pattern = `TS${dateStr}-___`;
+    let maxSerial = 0;
+    try {
+        const stmt = db.prepare(`
+            SELECT solution_code FROM tech_solutions
+            WHERE solution_code LIKE ? AND LENGTH(solution_code) = 14
+            ORDER BY solution_code DESC LIMIT 1
+        `);
+        stmt.bind([pattern]);
+        if (stmt.step()) {
+            const row = stmt.getAsObject();
+            maxSerial = parseInt(row.solution_code.slice(-3), 10) || 0;
+        }
+        stmt.free();
+    } catch {
+        // 表可能为空或字段不存在，maxSerial 保持 0
+    }
+
+    const seq = String(maxSerial + 1).padStart(3, '0');
+    return `TS${dateStr}-${seq}`;
 }
 /**
  * 字段映射：将数据库字段映射到前端期望的字段名
@@ -138,6 +164,23 @@ router.get('/', (req, res) => {
     catch (error) {
         console.error('获取技术方案列表失败:', error);
         res.status(500).json({ success: false, error: '获取技术方案列表失败' });
+    }
+});
+/**
+ * 生成技术方案编码（必须在 /:id 路由前注册，否则会被 :id 匹配走 404）
+ * GET /api/tech-solutions/generate-code
+ * 修复 P0-T3：V1.1 server L518-526 1:1 翻译
+ * 格式：TS + YYYYMMDD + - + 3位当日 MAX+1 流水号（14字符）
+ * 流水号按当日自增（查询当日 MAX+1，禁止随机数）
+ */
+router.get('/generate-code', (_req, res) => {
+    try {
+        const code = generateSolutionCode();
+        res.json({ success: true, code });
+    }
+    catch (error) {
+        console.error('生成技术方案编码失败:', error);
+        res.status(500).json({ success: false, error: '生成技术方案编码失败' });
     }
 });
 /**

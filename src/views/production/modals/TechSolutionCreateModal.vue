@@ -386,18 +386,18 @@ function handleFieldChange(field, value) {
   emit('field-change', { field, value })
 }
 
-// 生成按钮（V1.1 onClick 1:1，修复 P0-B2 错误处理）
-// V1.1 L202-211 用 try/catch + alert 错误提示，V2.0 之前直接 emit 没有错误处理
+// 生成按钮（V1.1 onClick 1:1，修复 P0-B2 错误处理 + P0-T1 后端生成）
+// V1.1 L202-211 用 try/catch + alert 错误提示
+// P0-T1 修复：V1.1 调用后端 GET /api/tech-solutions/generate-code，V2.0 改用 async 调
 function handleGenerateCode() {
-  try {
-    const code = generateTechSolutionCode()
-    emit('field-change', { field: 'code', value: code })
-  } catch (e) {
-    // V1.1 L208-210 行为：alert(`生成方案编号失败：${msg}`)
-    // V2.0 用 showAlert（与系统其他弹窗一致）
-    const msg = e instanceof Error ? e.message : String(e)
-    showAlert(`生成方案编号失败：${msg}`)
-  }
+  generateTechSolutionCode()
+    .then((code) => {
+      emit('field-change', { field: 'code', value: code })
+    })
+    .catch((e) => {
+      const msg = e instanceof Error ? e.message : String(e)
+      showAlert(`生成方案编号失败：${msg}`)
+    })
 }
 
 // 适用范围 toggle（V1.1 L302-312 1:1）

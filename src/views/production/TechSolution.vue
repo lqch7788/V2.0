@@ -443,7 +443,10 @@ const selectedTechCode = ref('')
 
 const newPlanForm = ref({
   // ✅ 修复: 弹窗打开时即预填生成的方案编号（避免用户点击"生成"无感知）
-  code: generateTechSolutionCode(),
+  // P0-T1 修复：generateTechSolutionCode() 改为 async（调后端），
+  // ref 初始化时同步调用会拿到 Promise，初始值给空字符串，
+  // 实际在 onMounted/handleOpenCreateModal 中异步赋值
+  code: '',
   title: '',
   crop: '',
   cropCode: '',
@@ -458,6 +461,15 @@ const newPlanForm = ref({
   relatedBatchCode: '',
 })
 
+// 修复 P0-T1：弹窗挂载时异步预填方案编号
+onMounted(() => {
+  generateTechSolutionCode()
+    .then((code) => {
+      newPlanForm.value.code = code
+    })
+    .catch(() => { /* 静默失败，用户点击"生成"会重试 */ })
+})
+
 const selectedCrop = ref(null)
 const selectedCropEdit = ref(null)
 
@@ -466,6 +478,8 @@ const newPlanFormValue = computed(() => newPlanForm.value)
 const selectedCropValue = computed(() => selectedCrop.value)
 
 const generateCode = generateTechSolutionCode
+// 同步 fallback 包装（用于不能 await 的同步上下文）
+const generateCodeSync = () => ''  // 同步返回空，异步在 onMounted/onOpen 已赋值
 
 const setSelectedRows = (rows) => {
   selectedRows.value = rows
@@ -619,7 +633,8 @@ const handleCreateSubmit = async (submitMode) => {
     // 修复 P0-AU/AV：与 V1.1 L435-449 一致，完整重置表单
     newPlanForm.value = {
       // ✅ 修复: 提交后重置时也立即预填新编号（避免下次打开弹窗是空的）
-      code: generateTechSolutionCode(),
+      // P0-T1 修复：异步 generateTechSolutionCode() 通过 .then 赋值
+      code: '',
       title: '',
       crop: '',
       cropCode: '',
@@ -783,8 +798,9 @@ const handleDeleteConfirm = async () => {
 const handleOpenCreateModal = () => {
   // ✅ 修复 P0: 完全照搬 V1.1 handleOpenCreateModal 行为
   // 1. 先重置 form 状态（弹窗打开前已完成）
+  // P0-T1 修复：generateCode 改为 async，初始空值，异步赋值
   newPlanForm.value = {
-    code: generateCode(),
+    code: '',
     title: '',
     crop: '',
     cropCode: '',
@@ -799,6 +815,10 @@ const handleOpenCreateModal = () => {
     relatedBatchCode: '',
   }
   selectedCrop.value = null
+  // 1.5 异步预填方案编号（P0-T1 修复）
+  generateCode().then((code) => {
+    newPlanForm.value = { ...newPlanForm.value, code }
+  }).catch(() => { /* 用户点"生成"会重试 */ })
   // 2. nextTick 后再打开弹窗（确保子组件挂载时 props.form 已就位）
   nextTick(() => {
     createModalOpen.value = true
