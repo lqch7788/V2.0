@@ -5,10 +5,11 @@
   统一使用 ElModal（V1.1 width=1080 → 统一800）
 -->
 <template>
+  <!-- ✅ 修复 P1-3: 1:1 对齐 V1.1 CreatePlanModal.tsx L312-314 size="xl" width=900 height=650 -->
   <ElModal
     :model-value="isOpen"
     title="新增采购申请单"
-    :width="1080"
+    :width="900"
     :height="650"
     
     @update:model-value="(v) => emit('update:isOpen', v)"
@@ -630,23 +631,27 @@ function handleFileChange(e) {
       const worksheet = workbook.Sheets[sheetName]
       const jsonData = XLSX.utils.sheet_to_json(worksheet)
 
-      // 1:1 V1.1 数据解析
-      const importedItems = jsonData.map((row, index) => ({
-        id: `IMPORT-${Date.now()}-${index}`,
-        materialCode: row['物料编码'] || row['materialCode'] || '',
-        materialName: row['物料名称'] || row['materialName'] || '',
-        category: row['分类'] || row['category'] || '',
-        specification: row['规格型号'] || row['specification'] || '',
-        unit: row['单位'] || row['unit'] || '袋',
-        quantity: Number(row['数量'] || row['quantity'] || 0),
-        estimatedPrice: Number(row['预估单价'] || row['estimatedPrice'] || 0),
-        estimatedTotalPrice:
-          Number(row['数量'] || row['quantity'] || 0) *
-          Number(row['预估单价'] || row['estimatedPrice'] || 0),
-        supplier: row['供应商'] || row['supplier'] || '',
-        purpose: row['用途说明'] || row['purpose'] || '',
-        remark: row['备注'] || row['remark'] || '',
-      })).filter((item) => item.materialCode || item.materialName)
+      // 1:1 V1.1 数据解析（V1.1 CreatePlanModal.tsx L135-150）
+      // ✅ 修复 P1-5: 数量/单价加 2 位小数保留（避免浮点精度问题，V1.1 L142-143 1:1 翻译）
+      const round2 = (v) => Math.max(0, Math.round(Number(v || 0) * 100) / 100)
+      const importedItems = jsonData.map((row, index) => {
+        const qty = round2(row['数量'] || row['quantity'] || 0)
+        const price = round2(row['预估单价'] || row['estimatedPrice'] || 0)
+        return {
+          id: `IMPORT-${Date.now()}-${index}`,
+          materialCode: row['物料编码'] || row['materialCode'] || '',
+          materialName: row['物料名称'] || row['materialName'] || '',
+          category: row['分类'] || row['category'] || '',
+          specification: row['规格型号'] || row['specification'] || '',
+          unit: row['单位'] || row['unit'] || '袋',
+          quantity: qty,
+          estimatedPrice: price,
+          estimatedTotalPrice: Math.round(qty * price * 100) / 100,
+          supplier: row['供应商'] || row['supplier'] || '',
+          purpose: row['用途说明'] || row['purpose'] || '',
+          remark: row['备注'] || row['remark'] || '',
+        }
+      }).filter((item) => item.materialCode || item.materialName)
 
       if (importedItems.length > 0) {
         emit('items-change', [...props.createItems, ...importedItems])

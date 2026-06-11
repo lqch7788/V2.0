@@ -5,10 +5,11 @@
   @description 9 字段编辑表单 + 物料明细展开（MaterialItemsTable edit 模式）
 -->
 <template>
+  <!-- ✅ 修复 P1-2: 1:1 对齐 V1.1 BatchEditModal.tsx L242-244 size="xl" width=900 height=650 -->
   <ElModal
     :model-value="visible"
     title="编辑采购申请单"
-    :width="1080"
+    :width="900"
     :height="650"
     
     :show-maximize="true"
@@ -536,6 +537,9 @@ function handleApplicantChange(value) {
     applicantId: value,
     applicant: applicantName,
   })
+  // ✅ 修复 P1-4: 1:1 翻译 V1.1 BatchEditModal.tsx L352 - 同步写回 batchEditData.applicant
+  // 否则保存时 updatePlan() 用 batchEditData.value.applicant 取值会拿到旧值，申请人姓名丢失
+  emit('batchEditDataChange', 'applicant', applicantName)
 }
 
 /** 关联生产批次号变更：1:1 对齐 V1.1 L301-305

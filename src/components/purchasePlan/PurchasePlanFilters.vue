@@ -102,6 +102,7 @@
       <!-- 操作按钮（固定宽度，不参与字段均布，固定在最右） - 与技术方案 TechSolutionFilters 1:1 对齐 -->
       <div class="flex gap-2 items-end shrink-0">
         <button :class="btnDefault" @click="$emit('reset')">
+          <RotateCcw class="w-4 h-4" />
           重置
         </button>
         <button :class="btnDefault" @click="$emit('search')">
@@ -119,7 +120,7 @@
  * 1:1 翻译自 V1.1 src/components/purchasePlan/PurchasePlanFilters.tsx
  * 按钮/图标样式与技术方案 TechSolutionFilters 1:1 对齐
  */
-import { Search } from 'lucide-vue-next'
+import { Search, RotateCcw } from 'lucide-vue-next'
 // 与技术方案共享按钮样式常量
 import { btnDefault } from '@/views/production/constants/buttonStyles'
 

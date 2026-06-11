@@ -4,12 +4,12 @@
   @description 采购申请单详情：字段网格 + 物料明细表格 + 可选审批记录
 -->
 <template>
-  <!-- 第二阶段统一 ElModal 800 -->
+  <!-- ✅ 修复 P1-1: 1:1 对齐 V1.1 PlanDetailModal.tsx L243-244 width=900 height=600 -->
   <ElModal
     :model-value="visible"
     title="采购申请单详情"
-    :width="1600"
-    :height="900"
+    :width="900"
+    :height="600"
     
     @update:model-value="(v) => !v && handleClose()"
     @close="handleClose"

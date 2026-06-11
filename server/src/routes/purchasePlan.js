@@ -294,182 +294,73 @@ router.post('/', (req, res) => {
     }
 });
 /**
- * 采购计划更新字段映射（camelCase -> snake_case）
+ * 字段映射已下沉到 purchasePlanService.FIELD_MAP（V1.1 service.ts L156-185 1:1 翻译）
+ * 路由层不再重复定义
  */
-const PURCHASE_PLAN_FIELD_MAP = {
-    // 基本字段映射
-    planCode: 'plan_code',
-    planTitle: 'plan_title',
-    planType: 'plan_type',
-    purchaseType: 'plan_type', // 前端purchaseType对应后端plan_type
-    departmentId: 'department_id',
-    departmentName: 'department_name',
-    applicantId: 'applicant_id',
-    applicantDepartment: 'department_name', // 前端applicantDepartment对应后端department_name
-    applicantName: 'applicant_name',
-    applyDate: 'apply_date',
-    expectedDate: 'expected_date',
-    requiredDate: 'expected_date', // 前端requiredDate对应后端expected_date
-    supplierId: 'supplier_id',
-    supplierName: 'supplier_name',
-    totalAmount: 'total_amount',
-    priority: 'priority',
-    status: 'status',
-    approvalStatus: 'approval_status',
-    remarks: 'remarks',
-    remark: 'remarks', // 前端remark对应后端remarks
-    relatedBatchCode: 'related_batch_code',
-    approvalPerson: 'approval_person',
-    createBy: 'create_by',
-    createTime: 'create_time',
-    updateTime: 'update_time',
-};
+
 /**
  * 更新采购计划
  * PUT /api/purchase-plans/:id
+ * ✅ 修复 P0-2: 删除 6 处 console.log 噪音 + 删除重复的 PURCHASE_PLAN_FIELD_MAP
+ *               改调 purchasePlanService.update()，字段映射与 V1.1 service.ts FIELD_MAP 统一
  */
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
-        const now = new Date().toISOString();
-        const db = getDatabase();
-        console.log('[更新采购计划] 接收到的数据:', JSON.stringify(updates, null, 2));
-        // 检查采购计划是否存在
-        const stmt = db.prepare('SELECT status FROM purchase_plans WHERE id = ?');
-        stmt.bind([id]);
-        let plan = null;
-        if (stmt.step()) {
-            plan = stmt.getAsObject();
+        const result = await purchasePlanService.update(id, req.body || {});
+        if (!result.success) {
+            // V1.1 routes L110-114: 业务校验失败 → 400；不存在 → 404
+            let status = 500;
+            if (result.error === '采购计划不存在') status = 404;
+            else if (result.error?.includes('不允许') || result.error?.includes('没有需要')) status = 400;
+            return res.status(status).json({ success: false, error: result.error });
         }
-        stmt.free();
-        if (!plan) {
-            return res.status(404).json({ success: false, error: '采购计划不存在' });
-        }
-        console.log('[更新采购计划] 当前计划状态:', plan.status, plan.approval_status);
-        // 不允许更新已审批通过的计划
-        if (plan.status === 'approved' || plan.approval_status === 'approved') {
-            return res.status(400).json({ success: false, error: '已审批通过的采购计划不允许修改' });
-        }
-        // 过滤掉 id 和自动生成的字段，构建字段映射
-        const excludeFields = ['id', 'plan_code', 'create_time'];
-        const updateFields = [];
-        const values = [];
-        // 单独处理 items 字段
-        let itemsValue = null;
-        let totalAmount = 0;
-        if (Array.isArray(updates.items)) {
-            itemsValue = JSON.stringify(updates.items);
-            // 计算总金额
-            for (const item of updates.items) {
-                totalAmount += (item.estimatedTotalPrice || 0);
-            }
-        }
-        for (const [camelKey, value] of Object.entries(updates)) {
-            if (excludeFields.includes(camelKey) || excludeFields.includes(PURCHASE_PLAN_FIELD_MAP[camelKey])) {
-                continue;
-            }
-            // 跳过 items，单独处理
-            if (camelKey === 'items') {
-                continue;
-            }
-            // 处理特殊字段
-            if (camelKey === 'attachments') {
-                updateFields.push(`${PURCHASE_PLAN_FIELD_MAP[camelKey] || camelKey} = ?`);
-                values.push(JSON.stringify(value || []));
-            }
-            else {
-                // 转换为 snake_case 字段名
-                const dbField = PURCHASE_PLAN_FIELD_MAP[camelKey] || camelKey;
-                updateFields.push(`${dbField} = ?`);
-                values.push(value);
-            }
-        }
-        // 添加 items 字段更新
-        if (itemsValue !== null) {
-            updateFields.push('items = ?');
-            values.push(itemsValue);
-            // 同时更新总金额
-            updateFields.push('total_amount = ?');
-            values.push(totalAmount);
-        }
-        if (updateFields.length === 0) {
-            console.log('[更新采购计划] 没有需要更新的字段');
-            return res.status(400).json({ success: false, error: '没有需要更新的字段' });
-        }
-        console.log('[更新采购计划] 生成的更新字段:', updateFields);
-        console.log('[更新采购计划] 更新的值:', values);
-        values.push(now, id);
-        console.log('[更新采购计划] 执行的SQL:', `UPDATE purchase_plans SET ${updateFields.join(', ')}, update_time = ? WHERE id = ?`);
-        console.log('[更新采购计划] SQL参数:', values);
-        try {
-            db.run(`UPDATE purchase_plans SET ${updateFields.join(', ')}, update_time = ? WHERE id = ?`, values);
-            saveDatabase();
-            console.log('[更新采购计划] 更新成功');
-        }
-        catch (dbError) {
-            console.error('[更新采购计划] 数据库执行错误:', dbError);
-            return res.status(500).json({ success: false, error: `数据库错误: ${dbError.message}` });
-        }
-        // 返回更新后的完整数据
-        const updatedItems = queryToObjects(db, 'SELECT * FROM purchase_plans WHERE id = ?', [id]);
-        const fullData = updatedItems.length > 0 ? mapToFrontendFormat({
-            ...updatedItems[0],
-            attachments: updatedItems[0].attachments ? JSON.parse(updatedItems[0].attachments) : [],
-            items: updatedItems[0].items ? JSON.parse(updatedItems[0].items) : [],
-        }) : { id };
-        res.json({ success: true, data: fullData });
+        res.json({ success: true, data: result.data });
     }
     catch (error) {
-        console.error('更新采购计划失败, 错误详情:', error);
-        console.error('  错误消息:', error.message);
-        console.error('  错误堆栈:', error.stack);
+        console.error('更新采购计划失败:', error);
         res.status(500).json({ success: false, error: `更新采购计划失败: ${error.message}` });
     }
 });
 /**
  * 删除采购计划
  * DELETE /api/purchase-plans/:id
+ * ✅ 修复 P0-2: 改调 service.delete()，状态校验由 service.delete() 内部处理（V1.1 service.ts L711-724 业务规则）
  */
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const db = getDatabase();
-        // 检查采购计划是否存在
-        const stmt = db.prepare('SELECT status, approval_status FROM purchase_plans WHERE id = ?');
-        stmt.bind([id]);
-        let plan = null;
-        if (stmt.step()) {
-            plan = stmt.getAsObject();
+        const result = await purchasePlanService.delete(id);
+        if (!result.success) {
+            const status = result.error === '采购计划不存在' ? 404 : 500;
+            return res.status(status).json({ success: false, error: result.error });
         }
-        stmt.free();
-        if (!plan) {
-            return res.status(404).json({ success: false, error: '采购计划不存在' });
-        }
-        // 修复: 删除所有过滤逻辑，允许删除任何状态的采购计划
-        // （与 V1.1 server 一致：纯 SQL DELETE，无业务规则）
-        // 前端通过 showConfirm 强确认承担保护责任
-        db.run('DELETE FROM purchase_plans WHERE id = ?', [id]);
-        saveDatabase();
-        res.json({ success: true, data: { id } });
+        res.json({ success: true, data: result.data });
     }
     catch (error) {
         console.error('删除采购计划失败:', error);
-        res.status(500).json({ success: false, error: '删除采购计划失败' });
+        res.status(500).json({ success: false, error: `删除采购计划失败: ${error.message}` });
     }
 });
 /**
  * 批量删除采购计划
  * POST /api/purchase-plans/batch-delete
- * 1:1 翻译 V1.1 service.deleteMany：返回 { deleted, skipped[] }
+ * ✅ 修复 P0-4: 顶层暴露 deleted/skipped（V1.1 前端 store 适配过的格式，V2.0 前端 L837-839 读 result.deleted）
+ * 1:1 翻译 V1.1 service.deleteMany
  */
 router.post('/batch-delete', async (req, res) => {
     const { ids } = req.body || {};
     const result = await purchasePlanService.deleteMany(ids);
     if (!result.success) {
-        return res.status(400).json(result);
+        return res.status(400).json({ success: false, error: result.error });
     }
-    res.json(result);
+    // 顶层放 deleted/skipped + message 兼容 V1.1 格式
+    res.json({
+        success: true,
+        deleted: result.data?.deleted || 0,
+        skipped: result.data?.skipped || [],
+        message: result.message,
+    });
 });
 /**
  * 更新采购执行状态（4 档：pending_execution / purchasing / completed / cancelled）
