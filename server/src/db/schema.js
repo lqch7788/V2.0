@@ -729,7 +729,9 @@ export function initializeDatabase() {
       approval_person TEXT,
       create_by TEXT,
       create_time TEXT,
-      update_time TEXT
+      update_time TEXT,
+      execution_status TEXT DEFAULT 'pending_execution',
+      other_batch_reason TEXT
     )
   `);
     // 为采购计划表添加items列（如果不存在）
@@ -749,6 +751,22 @@ export function initializeDatabase() {
     // 为采购计划表添加approval_person列（如果不存在）
     try {
         db.run(`ALTER TABLE purchase_plans ADD COLUMN approval_person TEXT`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为采购计划表添加execution_status列（如果不存在）— 1:1 对齐 V1.1 service.ts FIELD_MAP
+    // 不补会导致 service.updateExecutionStatus() 报 no such column
+    try {
+        db.run(`ALTER TABLE purchase_plans ADD COLUMN execution_status TEXT DEFAULT 'pending_execution'`);
+    }
+    catch (e) {
+        // 列可能已存在，忽略错误
+    }
+    // 为采购计划表添加other_batch_reason列（如果不存在）— V1.1 FIELD_MAP
+    // 不补会导致 batch=other 时的采购原因无法保存
+    try {
+        db.run(`ALTER TABLE purchase_plans ADD COLUMN other_batch_reason TEXT`);
     }
     catch (e) {
         // 列可能已存在，忽略错误
