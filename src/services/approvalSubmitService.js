@@ -9,6 +9,7 @@
 import { ApprovalType } from '../types/approval.js'
 import { resolveApprovalLevel, approverConfigsToApprovers } from '../utils/approvalLevelResolver.js'
 import { enhancedApiClient } from '../lib/apiClient'
+import { useApprovalLevelStore } from '../stores/modules/approvalLevel'
 
 // ============================================================
 // 审批提交核心函数
@@ -31,6 +32,18 @@ import { enhancedApiClient } from '../lib/apiClient'
  */
 async function submitApproval(businessData) {
   try {
+    // ✅ 修复：先确保审批级别 + 金额阈值已从后端字典加载到 _storeAmountThresholds
+    // 否则 getLevelByAmount 走本地默认（V2.0 = 1000 元），用户配置的 500 元阈值不生效
+    // 1:1 对齐 V1.1 — V1.1 在 submitPurchaseApproval 前同步加载审批级别数据
+    try {
+      const approvalLevelStore = useApprovalLevelStore()
+      if (approvalLevelStore && typeof approvalLevelStore.loadAll === 'function') {
+        await approvalLevelStore.loadAll()
+      }
+    } catch (e) {
+      console.warn('[审批提交] 加载审批级别配置失败，使用默认阈值:', e)
+    }
+
     // 1. 解析审批级别
     const levelResult = resolveApprovalLevel(
       businessData.type,

@@ -489,19 +489,24 @@ export function updateBusinessTable(db, businessType, requestId, action, approva
     let status = 'pending';
     let finalStatus = 'pending';
     switch (action) {
+        // ✅ 修复：同时兼容动词原形（前端 approvalSubmitService L88-94 传 'approve'）和过去式（V1.1）
         case 'approved':
+        case 'approve':
             status = 'approved';
             finalStatus = 'approved';
             break;
         case 'rejected':
+        case 'reject':
             status = 'rejected';
             finalStatus = 'rejected';
             break;
         case 'cancelled':
+        case 'cancel':
             status = 'cancelled';
             finalStatus = 'cancelled';
             break;
         case 'partially_approved':
+        case 'partially_approve':
             status = 'partially_approved';
             finalStatus = 'partially_approved';
             break;

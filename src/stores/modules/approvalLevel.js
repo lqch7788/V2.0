@@ -15,6 +15,7 @@ import {
   updateApprovalTypeRule as apiUpdateTypeRule
 } from '@/api/system/approvalLevel'
 import { syncApprovalStoreData } from '@/config/approvalHierarchy'
+import { getDictionaries } from '@/services/dictionaryService'
 
 export const useApprovalLevelStore = defineStore('approvalLevel', () => {
   // 状态
@@ -35,13 +36,32 @@ export const useApprovalLevelStore = defineStore('approvalLevel', () => {
     loading.value = true
     error.value = null
     try {
-      const [configs, thresholds, rules] = await Promise.all([
+      // ✅ 修复：amount_threshold 字典同时尝试从 V1.1 字典表（category='amount_threshold'）
+      // 和 V2.0 独立表（/basic-data/approval-amount-thresholds）读
+      // V1.1 字典条目格式：{ name: "500", displayName: "免审批", sortNumber: 1 }
+      // V2.0 表条目格式：{ maxAmount: 500, levelCode: "exempt", sortOrder: 1 }
+      const [configs, thresholdsV2, rules, dictThresholds] = await Promise.all([
         getApprovalLevelConfigs(),
-        getApprovalAmountThresholds(),
-        getApprovalTypeRules()
+        getApprovalAmountThresholds().catch(() => []),
+        getApprovalTypeRules(),
+        getDictionaries('amount_threshold').catch(() => [])
       ])
+      // 优先用 V2.0 表；表为空时回退用 V1.1 字典
+      let mergedThresholds = thresholdsV2 || []
+      if ((!mergedThresholds || mergedThresholds.length === 0) && dictThresholds && dictThresholds.length > 0) {
+        mergedThresholds = dictThresholds
+          .filter(d => d.status === 'active' || !d.status)
+          .sort((a, b) => (a.sortNumber || 0) - (b.sortNumber || 0))
+          .map((d, idx) => ({
+            maxAmount: Number(d.name) || 0,
+            levelCode: 'exempt',  // V1.1 字典 amount_threshold 默认都是免审批
+            sortOrder: idx,
+            status: 'active',
+            displayName: d.displayName,
+          }))
+      }
       levelConfigs.value = configs || []
-      amountThresholds.value = thresholds || []
+      amountThresholds.value = mergedThresholds
       typeRules.value = rules || []
       lastFetch.value = now
       // 同步数据到运行时配置（与 V1.1 useApprovalLevelStore 一致）
