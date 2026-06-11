@@ -508,14 +508,17 @@ const emit = defineEmits([
 /**
  * ✅ 修复 P0-A: 关联生产批次下拉改用 useProductionPlanStore（V1.1 L91-106 1:1 翻译）
  * 之前 V2.0 错误使用 usePlantingStore.items.plantCode（种植记录编码 plantCode），
- * 正确数据源是 useProductionPlanStore.batches.batchCode（生产计划批次号）
+ * 正确数据源是 useProductionPlanStore.plans（V2.0 Pinia store 字段名 plans，
+ * 每条记录的 batchCode 字段对应生产计划批次号）
  */
 const productionPlanStore = useProductionPlanStore()
 
-/** V1.1 L98 batchOptions 数据源（camelCase 优先） */
-const { batches: batchesRef } = storeToRefs(productionPlanStore)
+/** V1.1 L98 batchOptions 数据源
+ *  V2.0 productionPlan store 实际暴露的字段是 plans（不是 batches），V1.1 Zustand store 用 batches 别名
+ *  此处直接读 plans（与 ProductionPlanPage.vue L207-208 1:1 一致） */
+const { plans: plansRef } = storeToRefs(productionPlanStore)
 const productionBatches = computed(() => {
-  return Array.isArray(batchesRef.value) ? batchesRef.value : []
+  return Array.isArray(plansRef.value) ? plansRef.value : []
 })
 
 // V1.1 L94-96: useEffect 加载生产计划
