@@ -13,7 +13,7 @@
             <el-icon :size="20"><ArrowLeft /></el-icon>
           </a>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Sugar /></el-icon>
+            <el-icon :size="24" color="white"><Basketball /></el-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">作物品种库管理</h1>

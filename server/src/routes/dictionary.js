@@ -76,13 +76,14 @@ router.post('/dictionaries', (req, res) => {
         if (inserted && inserted.length > 0) {
             for (const dict of inserted) {
                 const id = dict.id || `DICT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                db.run(`INSERT INTO dictionaries (id, category_code, dict_code, dict_label, dict_value, sort_order, status, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+                db.run(`INSERT INTO dictionaries (id, category_code, dict_code, dict_label, dict_value, display_name, sort_order, status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
                     id,
                     dict.category_code,
                     dict.dict_code,
                     dict.dict_label,
                     dict.dict_value || dict.dict_label,
+                    dict.display_name || dict.dict_label,
                     dict.sort_order || 0,
                     'active',
                     now,
@@ -96,12 +97,13 @@ router.post('/dictionaries', (req, res) => {
             for (const dict of updated) {
                 console.log('[Dictionary] Updating dict:', JSON.stringify(dict));
                 try {
-                    db.run(`UPDATE dictionaries SET category_code = ?, dict_code = ?, dict_label = ?, dict_value = ?, sort_order = ?, updated_at = ?
+                    db.run(`UPDATE dictionaries SET category_code = ?, dict_code = ?, dict_label = ?, dict_value = ?, display_name = ?, sort_order = ?, updated_at = ?
              WHERE id = ?`, [
                         dict.category_code,
                         dict.dict_code,
                         dict.dict_label,
                         dict.dict_value || dict.dict_label,
+                        dict.display_name || dict.dict_label,
                         dict.sort_order || 0,
                         now,
                         dict.id

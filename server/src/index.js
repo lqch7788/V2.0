@@ -74,6 +74,14 @@ async function start() {
             console.log('正在导入物料编码分类数据...');
             const { seedMaterialCodeCategories } = await import('./db/seedMaterialCodeCategories.js');
             seedMaterialCodeCategories();
+            // P0 修复：与 V1.1 seedBasicData + seedData + seedMaterialCodeCategories + seedPesticideLibrary 4个seed对齐
+            // V2.0 之前缺失 seedPesticideLibrary 和 seedPestDiseaseDict，导致药剂库/病虫害字典页面空数据
+            console.log('正在导入病虫害字典数据...');
+            const { seedPestDiseaseDict } = await import('./db/seedPestDiseaseDict.js');
+            seedPestDiseaseDict();
+            console.log('正在导入药剂知识库数据...');
+            const { seedPesticideLibrary } = await import('./db/seedPesticideLibrary.js');
+            seedPesticideLibrary();
             console.log('正在保存数据库...');
             saveDatabase();
             console.log('数据库保存完成');

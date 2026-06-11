@@ -294,6 +294,7 @@ export function initializeDatabase() {
       dict_label TEXT NOT NULL,
       dict_value TEXT NOT NULL,
       color TEXT,
+      display_name TEXT,
       sort_order INTEGER DEFAULT 0,
       is_default INTEGER DEFAULT 0,
       status TEXT DEFAULT 'active',

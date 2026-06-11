@@ -132,7 +132,7 @@
                     'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
                     row.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                   ]">
-                    {{ row.status === 'active' ? '活跃' : '停用' }}
+                    {{ row.status === 'active' ? '启用' : '停用' }}
                   </span>
                 </template>
                 <template v-else-if="col.key === 'action'">
@@ -269,7 +269,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
             <el-select v-model="formData.status" class="w-full">
-              <el-option value="active" label="活跃" />
+              <el-option value="active" label="启用" />
               <el-option value="inactive" label="停用" />
             </el-select>
           </div>
@@ -300,7 +300,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
             <el-select v-model="formData.status" class="w-full">
-              <el-option value="active" label="活跃" />
+              <el-option value="active" label="启用" />
               <el-option value="inactive" label="停用" />
             </el-select>
           </div>
@@ -331,7 +331,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
             <el-select v-model="formData.status" class="w-full">
-              <el-option value="active" label="活跃" />
+              <el-option value="active" label="启用" />
               <el-option value="inactive" label="停用" />
             </el-select>
           </div>

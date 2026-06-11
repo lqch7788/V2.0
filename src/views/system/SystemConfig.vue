@@ -22,36 +22,11 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow-none">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center">
-            <el-icon :size="20" color="#64748b"><Setting /></el-icon>
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-gray-900">{{ configs.length }}</p>
-            <p class="text-xs text-gray-500">配置项总数</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- 统计卡片 (P0修复: V1.1 SystemConfig.tsx 中无统计卡片，按"禁止添加V1.1中没有的统计卡片"规则移除) -->
 
-    <!-- 操作栏 -->
+    <!-- 操作栏 (P0修复: V1.1 SystemConfig.tsx 中无搜索框，仅有"导出"+"新增配置"两个按钮) -->
     <div class="bg-white rounded-xl p-4 shadow-none flex items-center justify-between gap-4">
       <div class="flex items-center gap-2">
-        <!-- 搜索框 -->
-        <el-input
-          v-model="searchTerm"
-          placeholder="搜索配置键或描述..."
-          clearable
-          size="small"
-          class="w-48"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
         <!-- 刷新按钮 -->
         <el-button size="small" @click="loadConfigs" :loading="loading">
           <el-icon><Refresh /></el-icon>
@@ -374,7 +349,6 @@ import {
   WarningFilled,
   FullScreen,
   SemiSelect,
-  Search,
   Refresh
 } from '@element-plus/icons-vue'
 import { useSystemConfigStore, CATEGORY_TABS } from '@/stores/modules/systemConfig'
@@ -393,7 +367,6 @@ const MODAL_MIN_HEIGHT = 360
 
 // ==================== 状态 ====================
 const activeCategory = ref('system')
-const searchTerm = ref('')
 const editingId = ref(null)
 const editValue = ref('')
 const showAddModal = ref(false)
@@ -430,19 +403,9 @@ const resizeDir = ref('')
 const resizeStart = ref({ x: 0, y: 0, w: 0, h: 0, left: 0, top: 0 })
 
 // ==================== 计算属性 ====================
-/** 根据分类筛选配置 */
+/** 根据分类筛选配置 (P0修复: V1.1 仅按 category 筛选，不含搜索过滤) */
 const filteredConfigs = computed(() => {
-  let result = configs.value.filter(c => c.category === activeCategory.value)
-  // 搜索过滤
-  if (searchTerm.value) {
-    const term = searchTerm.value.toLowerCase()
-    result = result.filter(c =>
-      c.configKey.toLowerCase().includes(term) ||
-      (c.description || '').toLowerCase().includes(term) ||
-      (c.configValue || '').toLowerCase().includes(term)
-    )
-  }
-  return result
+  return configs.value.filter(c => c.category === activeCategory.value)
 })
 
 // ==================== 方法 ====================

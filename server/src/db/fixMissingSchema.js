@@ -10,6 +10,21 @@ import { getDatabase, saveDatabase } from './index.js';
 export async function fixMissingSchema() {
     const db = getDatabase();
     console.log('开始修复数据库结构...\n');
+    // 0. 修复 dictionaries 表 - 添加 display_name 列 (P0: V1.1 V2.0 数据不一致，amount_threshold 等需要 displayName 含义说明)
+    try {
+        db.run(`ALTER TABLE dictionaries ADD COLUMN display_name TEXT`);
+        console.log('✓ dictionaries 表添加 display_name 列');
+        // 同步已有数据：display_name 初始值 = dict_label
+        db.run(`UPDATE dictionaries SET display_name = dict_label WHERE display_name IS NULL OR display_name = ''`);
+    }
+    catch (e) {
+        if (e.message.includes('duplicate column')) {
+            console.log('• dictionaries.display_name 列已存在');
+        }
+        else {
+            console.log('• dictionaries.display_name:', e.message);
+        }
+    }
     // 1. 修复 positions 表 - 添加 description 和 sort_order 列
     try {
         db.run(`ALTER TABLE positions ADD COLUMN description TEXT`);
