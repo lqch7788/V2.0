@@ -9,7 +9,7 @@
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">作物库存</h1>
-            <p class="text-gray-500">管理采收入库产品的库存状态和预警设置</p>
+            <p class="text-gray-500">管理采收入库产品的库存状态、出入库与全链路追溯</p>
           </div>
         </div>
       </div>
@@ -215,7 +215,7 @@
       <!-- 表格容器 -->
       <div style="overflow-x: auto; overflow-y: auto; flex: 1;">
         <table class="w-full" style="min-width: 1400px; table-layout: fixed;">
-          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
             <tr>
               <th v-if="exportMode || batchEditMode || deleteMode" class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-12">
                 <el-checkbox v-model="isAllSelected" @change="handleSelectAll" />

@@ -126,13 +126,37 @@ export class InventoryService {
                     error: `仓库类型不匹配：期望 ${expectedStockType}，实际 ${warehouse.warehouseType}`
                 };
             }
-            // 3. 生成 instanceId
+            // 3. 生成 instanceId（P0修复: V1.1 generateInstanceId - DB自增+重试, 本地时区日期）
             const now = new Date();
-            const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+            const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
             const prefix = request.stockType === 'seed' ? 'INS'
                 : request.stockType === 'seedling' ? 'ISE'
                     : 'IPR';
-            const instanceId = `${prefix}-${dateStr}-${String(Math.random().toString(36).slice(2, 6)).toUpperCase()}`;
+            // DB 自增序号 + 重试机制（最多5次，避免并发冲突）
+            let instanceId;
+            const db = getDatabase();
+            for (let attempt = 0; attempt < 5; attempt++) {
+                const rows = queryToObjects(db,
+                    `SELECT instance_id FROM inventory_stock WHERE instance_id LIKE ? ORDER BY instance_id DESC LIMIT 1`,
+                    [`${prefix}-${dateStr}-%`]
+                );
+                let seq = 1;
+                if (rows.length > 0) {
+                    const lastId = rows[0].instance_id || '';
+                    const parts = lastId.split('-');
+                    const lastSeq = parseInt(parts[parts.length - 1] || '0', 10);
+                    if (!isNaN(lastSeq)) seq = lastSeq + 1;
+                }
+                instanceId = `${prefix}-${dateStr}-${String(seq).padStart(4, '0')}`;
+                // 冲突检测：检查是否已存在
+                const existing = queryToObjects(db,
+                    `SELECT instance_id FROM inventory_stock WHERE instance_id = ?`, [instanceId]
+                );
+                if (existing.length === 0) break;
+                if (attempt === 4) {
+                    return { success: false, error: '生成库存实例ID失败：已达最大重试次数' };
+                }
+            }
             // 4. 创建库存记录
             const stock = await inventoryStockRepository.create({
                 instance_id: instanceId,
@@ -150,14 +174,25 @@ export class InventoryService {
                 unit: request.unit,
                 warehouse_id: request.warehouseId,
                 warehouse_name: request.warehouseName,
-                inbound_date: request.inboundDate || now.toISOString().slice(0, 10),
+                inbound_date: request.inboundDate || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
                 source_type: request.sourceType || 'self_produced',
                 production_plan_code: request.productionPlanCode,
                 source_instance_id: request.sourceInstanceId,
                 status: 'in_stock',
             });
-            // 5. 创建入库流水
-            const transactionId = `TRX-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+            // 5. 创建入库流水（P0修复: V1.1 generateTransactionId - 格式 TRX-YYYYMMDD-NNNN, 非 Math.random()）
+            const trxRows = queryToObjects(getDatabase(),
+                `SELECT transaction_id FROM inventory_transactions WHERE transaction_id LIKE ? ORDER BY transaction_id DESC LIMIT 1`,
+                [`TRX-${dateStr}-%`]
+            );
+            let trxSeq = 1;
+            if (trxRows.length > 0) {
+                const lastTrx = trxRows[0].transaction_id || '';
+                const trxParts = lastTrx.split('-');
+                const lastTrxSeq = parseInt(trxParts[trxParts.length - 1] || '0', 10);
+                if (!isNaN(lastTrxSeq)) trxSeq = lastTrxSeq + 1;
+            }
+            const transactionId = `TRX-${dateStr}-${String(trxSeq).padStart(4, '0')}`;
             await inventoryTransactionRepository.create({
                 transaction_id: transactionId,
                 instance_id: instanceId,
@@ -171,7 +206,7 @@ export class InventoryService {
                 business_code: request.businessCode,
                 operator_id: request.operatorId,
                 operator_name: request.operatorName || '系统管理员',
-                operate_date: now.toISOString().slice(0, 10),
+                operate_date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
                 remarks: request.remarks || '采收入库',
             });
             console.log('[InventoryService] 入库成功:', { instanceId, transactionId, quantity: request.quantity });

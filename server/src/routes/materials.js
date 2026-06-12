@@ -43,7 +43,9 @@ router.post('/', (req, res) => {
             lastUpdateTime: new Date().toISOString(),
             dataStatus: material.dataStatus || '启用'
         });
-        res.status(201).json({ id });
+        // P0修复: 返回完整记录（V1.1 materials.ts POST / 返回 getMaterialById(id)）
+        const fullRecord = materialsDb.getMaterialById(id);
+        res.status(201).json(fullRecord || { id });
     }
     catch (error) {
         console.error('创建物料失败:', error);

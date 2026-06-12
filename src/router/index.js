@@ -267,16 +267,6 @@ const routes = [
     component: () => import('@/views/material/MaterialReceiving.vue'),
     meta: { title: '生产领料' }
   },
-  // TODO [P0-EX-001 fix 2026-06-03]: ApprovalIndex.vue 是 V2.0 自我创造（V1.1 不存在）
-  // 该路由指向的 src/views/approval/ApprovalIndex.vue 已备份为 .disabled，原文件已移到回收站
-  // 暂时注释路由，4 个核心入口（/my-applications、/pending-approval、/approved、/my-approval）已覆盖 V1.1 行为
-  // 待产品确认：是否完全删除（推荐 A） / 保留为扩展 / 折叠到其他页面
-  // {
-  //   path: '/approval',
-  //   name: 'Approval',
-  //   component: () => import('@/views/approval/ApprovalIndex.vue'),
-  //   meta: { title: '审批管理' }
-  // },
   {
     path: '/announcement',
     name: 'Announcement',
@@ -685,18 +675,6 @@ const routes = [
     component: () => import('@/views/approval/HrApproval.vue'),
     meta: { title: '人事审批' }
   },
-  // P0-EX: HrApprovalDocuments.vue 已被备份为 .disabled（V1.1 端无对应页面，V2.0 端是新增扩展）
-  // TODO: 等用户决策（删除/保留为 V2.0 扩展）后再恢复路由
-  // {
-  //   path: '/settings/personnel/hr-documents',
-  //   name: 'HrApprovalDocuments',
-  //   component: () => import('@/views/approval/HrApprovalDocuments.vue'),
-  //   meta: { title: '考勤数据' }
-  // },
-  // P0-EX: WorkOrderApproval.vue 已被备份为 .disabled（V1.1 端无独立工单审批页面，V2.0 端是新增）
-  // TODO: 等用户决策（删除/保留为 V2.0 扩展）后再添加路由 /work-order-approval
-  // P0-EX: WorkLogApproval.vue 已被备份为 .disabled（V1.1 端无独立工时审批页面，V2.0 端是新增）
-  // TODO: 等用户决策（删除/保留为 V2.0 扩展）后再添加路由 /work-log-approval
   {
     path: '/messages',
     name: 'Messages',

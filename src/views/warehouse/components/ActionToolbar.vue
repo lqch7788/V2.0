@@ -5,73 +5,74 @@
     <div class="flex gap-2">
       <!-- 默认模式：新增、库存不足、编辑、删除、导出 -->
       <template v-if="!batchEditMode && !deleteMode && !exportMode">
-        <el-button v-if="canCreate && onAdd" size="default" type="primary" @click="onAdd">
-          <el-icon><Plus /></el-icon>
-          新增
-        </el-button>
+        <button
+          v-if="canCreate && onAdd"
+          class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1"
+          @click="onAdd"
+        >
+          <Plus class="w-4 h-4" />新增
+        </button>
 
-        <el-button
+        <button
           v-if="showLowStockButton"
-          size="default"
-          :type="filters.showLowStock ? 'danger' : 'warning'"
+          class="h-8 px-3 rounded-md text-sm font-medium"
+          :class="filters.showLowStock ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'"
           @click="onLowStockToggle"
         >
           <span v-if="lowStockCount > 0" class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-1">
             {{ lowStockCount }}
           </span>
           库存不足
-        </el-button>
+        </button>
 
-        <el-button v-if="canEdit" size="default" type="primary" @click="onBatchEdit">
+        <button v-if="canEdit" class="h-8 px-3 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200" @click="onBatchEdit">
           编辑
-        </el-button>
+        </button>
 
-        <el-button v-if="canDelete" size="default" type="danger" @click="onDelete">
+        <button v-if="canDelete" class="h-8 px-3 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200" @click="onDelete">
           删除
-        </el-button>
+        </button>
 
-        <el-button v-if="canExport" size="default" type="primary" @click="onExport">
-          <el-icon><Download /></el-icon>
-          导出
-        </el-button>
+        <button v-if="canExport" class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="onExport">
+          <Download class="w-4 h-4" />导出
+        </button>
       </template>
 
       <!-- 编辑模式 -->
       <template v-if="batchEditMode">
-        <el-button size="default" type="primary" @click="onConfirmBatchEdit">
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="onConfirmBatchEdit">
           确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-        </el-button>
-        <el-button size="default" @click="onCancelBatchEdit">
+        </button>
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="onCancelBatchEdit">
           取消
-        </el-button>
+        </button>
       </template>
 
       <!-- 删除模式（已知晓后） -->
       <template v-if="deleteMode && !batchEditMode">
-        <el-button size="default" type="danger" @click="onConfirmDelete">
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="onConfirmDelete">
           确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-        </el-button>
-        <el-button size="default" @click="onCancelDelete">
+        </button>
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="onCancelDelete">
           取消
-        </el-button>
+        </button>
       </template>
 
       <!-- 导出模式 -->
       <template v-if="exportMode && !batchEditMode && !deleteMode">
-        <el-button size="default" type="primary" @click="onConfirmExport">
-          <el-icon><Download /></el-icon>
-          确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-        </el-button>
-        <el-button size="default" @click="onCancelExport">
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="onConfirmExport">
+          <Download class="w-4 h-4" />确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+        </button>
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="onCancelExport">
           取消选择
-        </el-button>
+        </button>
       </template>
     </div>
   </div>
 </template>
 
 <script setup>
-import { Plus, Download } from '@element-plus/icons-vue'
+import { Plus, Download } from 'lucide-vue-next'
 
 /**
  * 操作工具栏组件

@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Sort /></el-icon>
+            <ArrowUpDown class="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">生产退料</h1>
@@ -20,36 +20,36 @@
       <div class="grid grid-cols-6 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">退料单号</label>
-          <el-input v-model="searchForm.code" placeholder="请输入" clearable @clear="updateSearchField('code', '')" @input="updateSearchField('code', $event)" />
+          <input v-model="searchForm.code" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" @input="updateSearchField('code', $event.target.value)" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">物资名称</label>
-          <el-input v-model="searchForm.material" placeholder="请输入" clearable @clear="updateSearchField('material', '')" @input="updateSearchField('material', $event)" />
+          <input v-model="searchForm.material" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" @input="updateSearchField('material', $event.target.value)" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">仓库位置</label>
-          <el-input v-model="searchForm.warehouse" placeholder="请输入" clearable @clear="updateSearchField('warehouse', '')" @input="updateSearchField('warehouse', $event)" />
+          <input v-model="searchForm.warehouse" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" @input="updateSearchField('warehouse', $event.target.value)" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">申请人</label>
-          <el-input v-model="searchForm.applicant" placeholder="请输入" clearable @clear="updateSearchField('applicant', '')" @input="updateSearchField('applicant', $event)" />
+          <input v-model="searchForm.applicant" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" @input="updateSearchField('applicant', $event.target.value)" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
-          <el-select v-model="searchForm.status" placeholder="全部状态" @change="updateSearchField('status', $event)">
-            <el-option v-for="opt in STATUS_OPTIONS" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+          <select v-model="searchForm.status" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="updateSearchField('status', $event.target.value)">
+            <option v-for="opt in STATUS_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">退料部门</label>
-          <el-select v-model="searchForm.department" placeholder="全部部门" @change="updateSearchField('department', $event)">
-            <el-option label="全部部门" value="all" />
-            <el-option v-for="dept in departmentOptions" :key="dept" :label="dept" :value="dept" />
-          </el-select>
+          <select v-model="searchForm.department" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="updateSearchField('department', $event.target.value)">
+            <option value="all">全部部门</option>
+            <option v-for="dept in departmentOptions" :key="dept" :value="dept">{{ dept }}</option>
+          </select>
         </div>
       </div>
       <div class="mt-4 flex justify-end">
-        <el-button @click="handleReset">重置</el-button>
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleReset">重置</button>
       </div>
     </div>
 
@@ -60,798 +60,868 @@
         <div class="flex gap-2">
           <!-- 导出模式 -->
           <template v-if="exportMode">
-            <el-button type="primary" size="small" @click="handleExportClick">
-              <el-icon><Download /></el-icon>确认导出
-            </el-button>
-            <el-button size="small" @click="handleCancelExport">取消</el-button>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleExportClick">
+              <Download class="w-4 h-4 inline mr-1" />确认导出
+            </button>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleCancelExport">取消</button>
           </template>
           <!-- 默认模式 -->
           <template v-else>
             <template v-if="!batchEditMode && !deleteMode">
-              <el-button type="primary" size="small" @click="showAddModal = true">
-                <el-icon><Plus /></el-icon>新增
-              </el-button>
-              <el-button size="small" @click="enterBatchEditMode">
-                <el-icon><Edit /></el-icon>编辑
-              </el-button>
-              <el-button size="small" type="danger" @click="enterDeleteMode">
-                <el-icon><Delete /></el-icon>删除
-              </el-button>
-              <el-button size="small" @click="exportMode = true">
-                <el-icon><Download /></el-icon>导出
-              </el-button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="showAddModal = true">
+                <Plus class="w-4 h-4 inline mr-1" />新增
+              </button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="enterBatchEditMode">
+                <Pencil class="w-4 h-4 inline mr-1" />编辑
+              </button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200" @click="enterDeleteMode">
+                <Trash2 class="w-4 h-4 inline mr-1" />删除
+              </button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="exportMode = true">
+                <Download class="w-4 h-4 inline mr-1" />导出
+              </button>
             </template>
             <!-- 删除模式 -->
             <template v-if="deleteMode">
-              <el-button type="danger" size="small" @click="showBatchDeleteConfirm = true">确认删除</el-button>
-              <el-button size="small" @click="cancelDeleteMode">取消</el-button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="showBatchDeleteConfirm = true">确认删除</button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="cancelDeleteMode">取消</button>
             </template>
             <!-- 编辑模式 -->
             <template v-if="batchEditMode">
-              <el-button type="primary" size="small" @click="openBatchEditOrWarn">确认编辑</el-button>
-              <el-button size="small" @click="cancelBatchEditMode">取消</el-button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="openBatchEditOrWarn">确认编辑</button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="cancelBatchEditMode">取消</button>
             </template>
           </template>
         </div>
       </div>
 
       <!-- 表格 -->
-      <el-table
-        :data="paginatedReturns"
-        stripe
-        row-key="id"
-        @selection-change="onSelectionChange"
-      >
-        <!-- 选择列（有激活模式时显示） -->
-        <el-table-column v-if="exportMode || batchEditMode || deleteMode" type="selection" width="55" :selectable="checkSelectable" />
-        <!-- 展开列 -->
-        <el-table-column width="50">
-          <template #default="{ row }">
-            <el-button link @click="toggleExpandRow(row.id)">
-              <el-icon><component :is="expandedRows.has(row.id) ? 'ArrowDown' : 'ArrowRight'" /></el-icon>
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column prop="code" label="退料单号" width="160">
-          <template #default="{ row }">
-            <span class="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline" @click="handleView(row)">{{ row.code }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="date" label="退料日期" width="110" />
-        <el-table-column prop="type" label="退料类型" width="100" />
-        <el-table-column prop="applicant" label="申请人" width="90" />
-        <el-table-column prop="operator" label="操作人" width="90">
-          <template #default="{ row }">{{ row.operator || '-' }}</template>
-        </el-table-column>
-        <el-table-column prop="department" label="退料部门" width="100" />
-        <el-table-column prop="warehouseLocation" label="仓库位置" width="100" />
-        <el-table-column label="审批状态" width="100">
-          <template #default="{ row }">
-            <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(row)">
-              {{ row.status }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="reviewer" label="审核人" width="90">
-          <template #default="{ row }">{{ row.reviewer || '-' }}</template>
-        </el-table-column>
-        <el-table-column label="备注" width="120">
-          <template #default="{ row }">{{ row.remark || '-' }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="170" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" size="small" @click="handleVoidApply(row)">作废</el-button>
-          </template>
-        </el-table-column>
-
-        <!-- 展开行：物料明细 -->
-        <template #expand="{ row }">
-          <div class="p-4 bg-gray-50">
-            <h4 class="font-medium mb-2 text-gray-700">退料物料明细</h4>
-            <el-table :data="row.materials" size="small" border>
-              <el-table-column prop="sourceApplicationCode" label="来源领料单号" width="140" />
-              <el-table-column prop="materialCode" label="物料编码" width="110" />
-              <el-table-column prop="category" label="物料分类" width="120" />
-              <el-table-column prop="materialName" label="物料名称" width="120" />
-              <el-table-column prop="spec" label="规格" width="100" />
-              <el-table-column prop="unit" label="单位" width="60" />
-              <el-table-column prop="returnQuantity" label="本次退料数量" width="100" />
-              <el-table-column prop="unitPrice" label="单价(元)" width="90" />
-              <el-table-column label="小计(元)" width="100">
-                <template #default="{ row: mr }">{{ ((mr.returnQuantity || 0) * (mr.unitPrice || 0)).toFixed(2) }}</template>
-              </el-table-column>
-              <el-table-column prop="warehousePosition" label="仓库货位" width="100" />
-              <el-table-column prop="reason" label="退料原因" width="100" />
-            </el-table>
-          </div>
-        </template>
-      </el-table>
+      <div class="overflow-auto max-h-[calc(100vh-400px)]">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+            <tr>
+              <th v-if="exportMode || batchEditMode || deleteMode" class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap">
+                <input type="checkbox" :checked="paginatedReturns.length > 0 && selectedRows.length === paginatedReturns.length" @change="toggleSelectAllReturn" class="w-4 h-4 rounded border-white" />
+              </th>
+              <th class="px-4 py-3 text-left text-sm font-semibold w-12 whitespace-nowrap"></th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料单号</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料日期</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料类型</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">申请人</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作人</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料部门</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">仓库位置</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审批状态</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审核人</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-300">
+            <tr v-if="paginatedReturns.length === 0">
+              <td :colspan="(exportMode || batchEditMode || deleteMode) ? 13 : 12" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+            </tr>
+            <template v-for="row in paginatedReturns" :key="row.id">
+              <tr class="hover:bg-blue-100 transition-colors">
+                <td v-if="exportMode || batchEditMode || deleteMode" class="px-4 py-3">
+                  <input type="checkbox" :checked="selectedRows.includes(row.id)" :disabled="!checkSelectable(row)" @change="toggleReturnRow(row.id)" class="w-4 h-4 rounded border-gray-400" />
+                </td>
+                <td class="px-4 py-3">
+                  <button class="text-gray-500 hover:text-blue-600 p-1" @click="toggleExpandRow(row.id)">
+                    <ChevronDown v-if="expandedRows.has(row.id)" class="w-4 h-4" />
+                    <ChevronRight v-else class="w-4 h-4" />
+                  </button>
+                </td>
+                <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline whitespace-nowrap" @click="handleView(row)">{{ row.code }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.date }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.type }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.applicant }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.operator || '-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.department }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.warehouseLocation }}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(row)">{{ row.status }}</span>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.reviewer || '-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.remark || '-' }}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="flex items-center gap-1">
+                    <button class="text-blue-600 hover:text-blue-800 p-1" title="查看" @click="handleView(row)">查看</button>
+                    <button class="text-blue-600 hover:text-blue-800 p-1" title="编辑" @click="handleEdit(row)">编辑</button>
+                    <button class="text-red-600 hover:text-red-800 p-1" title="作废" @click="handleVoidApply(row)">作废</button>
+                  </div>
+                </td>
+              </tr>
+              <!-- 展开行：物料明细 -->
+              <tr v-if="expandedRows.has(row.id)" :key="'exp-' + row.id" class="bg-gray-50">
+                <td :colspan="(exportMode || batchEditMode || deleteMode) ? 13 : 12" class="p-4">
+                  <h4 class="font-medium mb-2 text-gray-700">退料物料明细</h4>
+                  <div class="overflow-x-auto">
+                    <table class="w-full border border-gray-200">
+                      <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                        <tr>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">来源领料单号</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料分类</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">规格</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">单位</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">本次退料数量</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">单价(元)</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">小计(元)</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">仓库货位</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">退料原因</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-200">
+                        <tr v-if="!row.materials || row.materials.length === 0">
+                          <td colspan="11" class="px-3 py-4 text-center text-sm text-gray-500">暂无物料</td>
+                        </tr>
+                        <tr v-for="mr in row.materials" :key="mr.id || mr.materialCode" class="hover:bg-white">
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.sourceApplicationCode }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.materialCode }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.category }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.materialName }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.spec }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.unit }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.returnQuantity }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.unitPrice }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ ((mr.returnQuantity || 0) * (mr.unitPrice || 0)).toFixed(2) }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.warehousePosition }}</td>
+                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.reason }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
       <!-- 分页 -->
-      <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">每页</span>
-          <el-select v-model="pageSize" style="width: 80px" @change="currentPage = 1">
-            <el-option :value="10" label="10" />
-            <el-option :value="20" label="20" />
-            <el-option :value="50" label="50" />
-          </el-select>
-          <span class="text-sm text-gray-500">条</span>
+      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <Pagination
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          :page-size="pageSize"
+          :page-size-options="[10, 20, 50]"
+          :show-page-size="true"
+          @page-change="(page) => { currentPage = page }"
+          @page-size-change="(size) => { pageSize = size; currentPage = 1 }"
+        />
+      </div>
+    </div>
+
+    <!-- ========== 查看详情弹窗 ========== -->
+    <div v-if="showDetailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showDetailModal = false">
+      <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">退料单详情</h3>
+          <button @click="showDetailModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">共 {{ filteredReturns.length }} 条，第 {{ currentPage }} / {{ totalPages }} 页</span>
-          <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="filteredReturns.length"
-            layout="prev, pager, next"
-          />
+
+        <div v-if="selectedRecord" class="p-6 overflow-y-auto max-h-[70vh]">
+          <div class="grid grid-cols-3 gap-0 border border-gray-200 rounded-lg overflow-hidden mb-4">
+            <template v-for="(item, idx) in [
+              { label: '退料单号', value: selectedRecord.code },
+              { label: '退料日期', value: selectedRecord.date },
+              { label: '退料类型', value: selectedRecord.type },
+              { label: '申请人', value: selectedRecord.applicant },
+              { label: '退料部门', value: selectedRecord.department },
+              { label: '仓库位置', value: selectedRecord.warehouseLocation },
+              { label: '操作人', value: selectedRecord.operator || '-' },
+              { label: '审核人', value: selectedRecord.reviewer || '-' },
+              { label: '审核日期', value: selectedRecord.reviewDate || '-' }
+            ]" :key="idx" class="flex border-b border-gray-200">
+              <span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">{{ item.label }}</span>
+              <span class="px-3 py-2 text-sm text-gray-900 flex-1" :class="item.label === '退料单号' ? 'font-medium text-blue-600' : ''">{{ item.value }}</span>
+            </template>
+            <!-- 状态 -->
+            <div class="flex border-b border-gray-200">
+              <span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">状态</span>
+              <span class="px-3 py-2 text-sm flex-1">
+                <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(selectedRecord)">{{ selectedRecord.status }}</span>
+              </span>
+            </div>
+            <!-- 驳回原因 -->
+            <div v-if="selectedRecord.rejectReason" class="flex col-span-3 border-b border-gray-200">
+              <span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">驳回原因</span>
+              <span class="px-3 py-2 text-sm text-red-600 font-medium flex-1">{{ selectedRecord.rejectReason }}</span>
+            </div>
+            <!-- 备注 -->
+            <div v-if="selectedRecord.remark" class="flex col-span-3 border-b border-gray-200">
+              <span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">备注</span>
+              <span class="px-3 py-2 text-sm text-gray-900 flex-1">{{ selectedRecord.remark }}</span>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h4 class="font-medium mb-2">退料物料明细</h4>
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">来源领料单号</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料分类</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">规格</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">单位</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">退料数量</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">单价(元)</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">小计(元)</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">仓库货位</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">退料原因</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr v-for="mr in selectedRecord.materials" :key="mr.id || mr.materialCode" class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.sourceApplicationCode }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.materialCode }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.category }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.materialName }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.spec }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.unit }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.returnQuantity }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.unitPrice }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ ((mr.returnQuantity || 0) * (mr.unitPrice || 0)).toFixed(2) }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.warehousePosition }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ mr.reason }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showDetailModal = false">关闭</button>
         </div>
       </div>
     </div>
 
-    <!-- ========== 模态弹窗 ========== -->
-
-    <!-- 查看详情弹窗 -->
-    <el-dialog v-model="showDetailModal" title="退料单详情" width="900px">
-      <template v-if="selectedRecord">
-        <el-descriptions :column="3" border size="small">
-          <el-descriptions-item label="退料单号">{{ selectedRecord.code }}</el-descriptions-item>
-          <el-descriptions-item label="退料日期">{{ selectedRecord.date }}</el-descriptions-item>
-          <el-descriptions-item label="退料类型">{{ selectedRecord.type }}</el-descriptions-item>
-          <el-descriptions-item label="申请人">{{ selectedRecord.applicant }}</el-descriptions-item>
-          <el-descriptions-item label="退料部门">{{ selectedRecord.department }}</el-descriptions-item>
-          <el-descriptions-item label="仓库位置">{{ selectedRecord.warehouseLocation }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(selectedRecord)">{{ selectedRecord.status }}</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="操作人">{{ selectedRecord.operator || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="审核人">{{ selectedRecord.reviewer || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="审核日期">{{ selectedRecord.reviewDate || '-' }}</el-descriptions-item>
-          <el-descriptions-item v-if="selectedRecord.rejectReason" label="驳回原因" :span="3">
-            <span class="text-red-600 font-medium">{{ selectedRecord.rejectReason }}</span>
-          </el-descriptions-item>
-          <el-descriptions-item v-if="selectedRecord.remark" label="备注" :span="3">{{ selectedRecord.remark }}</el-descriptions-item>
-        </el-descriptions>
-
-        <div class="mt-4">
-          <h4 class="font-medium mb-2">退料物料明细</h4>
-          <el-table :data="selectedRecord.materials" size="small" border>
-            <el-table-column prop="sourceApplicationCode" label="来源领料单号" width="140" />
-            <el-table-column prop="materialCode" label="物料编码" width="110" />
-            <el-table-column prop="category" label="物料分类" width="120" />
-            <el-table-column prop="materialName" label="物料名称" width="120" />
-            <el-table-column prop="spec" label="规格" width="100" />
-            <el-table-column prop="unit" label="单位" width="60" />
-            <el-table-column prop="returnQuantity" label="退料数量" width="90" />
-            <el-table-column prop="unitPrice" label="单价(元)" width="90" />
-            <el-table-column label="小计(元)" width="100">
-              <template #default="{ row: mr }">{{ (mr.returnQuantity * mr.unitPrice).toFixed(2) }}</template>
-            </el-table-column>
-            <el-table-column prop="warehousePosition" label="仓库货位" width="100" />
-            <el-table-column prop="reason" label="退料原因" width="100" />
-          </el-table>
+    <!-- ========== 新增弹窗 ========== -->
+    <div v-if="showAddModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="handleCancelAdd">
+      <div class="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between flex-shrink-0">
+          <h3 class="text-lg font-semibold">新增退料单</h3>
+          <button @click="handleCancelAdd" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
         </div>
-      </template>
-      <template #footer><el-button @click="showDetailModal = false">关闭</el-button></template>
-    </el-dialog>
 
-    <!-- 新增弹窗 -->
-    <el-dialog v-model="showAddModal" title="新增退料单" width="1000px" :close-on-click-modal="false" @close="handleCancelAdd">
-      <el-form :model="addForm" label-width="100px">
-        <div class="flex items-center gap-2 mb-4">
-          <el-button size="small" @click="handleGenerateCode" :icon="Refresh"><el-icon><Refresh /></el-icon>生成单号</el-button>
-          <span v-if="addForm.code" class="text-sm font-mono text-gray-700">{{ addForm.code }}</span>
-        </div>
-        <el-row :gutter="16">
-          <el-col :span="8">
-            <el-form-item label="退料日期">
-              <el-date-picker v-model="addForm.date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="申请人">
-              <el-select v-model="addForm.applicant" filterable>
-                <el-option v-for="a in APPLICANTS" :key="a" :label="a" :value="a" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="8">
-            <el-form-item label="退料部门">
-              <el-select v-model="addForm.department" filterable>
-                <el-option v-for="d in departmentOptions" :key="d" :label="d" :value="d" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="仓库位置">
-              <el-select v-model="addForm.warehouseLocation" filterable>
-                <el-option v-for="w in WAREHOUSE_LOCATIONS" :key="w" :label="w" :value="w" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="操作人">
-              <el-input v-model="addForm.operator" placeholder="默认为当前用户" readonly />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="8">
-            <el-form-item label="审核人">
-              <el-select v-model="addForm.reviewer" filterable>
-                <el-option v-for="r in REVIEWERS" :key="r" :label="r" :value="r" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="16">
-            <el-form-item label="备注">
-              <el-input v-model="addForm.remark" placeholder="请输入备注" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <div class="p-6 overflow-y-auto flex-1">
+          <!-- 单号生成 -->
+          <div class="flex items-center gap-2 mb-4">
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleGenerateCode">
+              <RefreshCw class="w-4 h-4 inline mr-1" />生成单号
+            </button>
+            <span v-if="addForm.code" class="text-sm font-mono text-gray-700">{{ addForm.code }}</span>
+          </div>
 
-        <!-- 物料明细 -->
-        <el-form-item label="退料物料">
+          <!-- 表单字段 -->
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">退料日期</label>
+              <input v-model="addForm.date" type="date" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">申请人</label>
+              <select v-model="addForm.applicant" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option value="">请选择</option>
+                <option v-for="a in APPLICANTS" :key="a" :value="a">{{ a }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">退料部门</label>
+              <select v-model="addForm.department" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option value="">请选择</option>
+                <option v-for="d in departmentOptions" :key="d" :value="d">{{ d }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">仓库位置</label>
+              <select v-model="addForm.warehouseLocation" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option value="">请选择</option>
+                <option v-for="w in WAREHOUSE_LOCATIONS" :key="w" :value="w">{{ w }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">操作人</label>
+              <input v-model="addForm.operator" placeholder="默认为当前用户" readonly class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">审核人</label>
+              <select v-model="addForm.reviewer" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option value="">请选择</option>
+                <option v-for="r in REVIEWERS" :key="r" :value="r">{{ r }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">备注</label>
+              <input v-model="addForm.remark" placeholder="请输入备注" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+          </div>
+
+          <!-- 物料明细 -->
           <div class="mb-2 flex gap-2">
-            <el-button size="small" @click="handleAddMaterial"><el-icon><Plus /></el-icon>添加物料</el-button>
-            <el-button size="small" @click="handleOpenMaterialSelect">从仓库选择物料</el-button>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleAddMaterial">
+              <Plus class="w-4 h-4 inline mr-1" />添加物料
+            </button>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleOpenMaterialSelect">从仓库选择物料</button>
           </div>
-          <el-table :data="addForm.materials" size="small" border>
-            <el-table-column label="来源单号" width="130">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.sourceApplicationCode" size="small" placeholder="领料单号" @input="v => handleMaterialChange($index, 'sourceApplicationCode', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="物料编码" width="110">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.materialCode" size="small" @input="v => handleMaterialChange($index, 'materialCode', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="分类" width="120">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.category" size="small" @input="v => handleMaterialChange($index, 'category', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="物料名称" width="110">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.materialName" size="small" @input="v => handleMaterialChange($index, 'materialName', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="规格" width="90">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.spec" size="small" @input="v => handleMaterialChange($index, 'spec', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="单位" width="70">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.unit" size="small" @input="v => handleMaterialChange($index, 'unit', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="退料数量" width="100">
-              <template #default="{ row: mr, $index }">
-                <el-input-number v-model="mr.returnQuantity" :min="0" size="small" style="width: 100%" @change="v => handleMaterialChange($index, 'returnQuantity', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="单价(元)" width="90">
-              <template #default="{ row: mr }">
-                <span class="text-sm text-right block">{{ mr.unitPrice ? '¥' + mr.unitPrice.toFixed(2) : '-' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="货位" width="90">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.warehousePosition" size="small" @input="v => handleMaterialChange($index, 'warehousePosition', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="退料原因" width="120">
-              <template #default="{ row: mr, $index }">
-                <el-select v-model="mr.reason" size="small" @change="v => handleMaterialChange($index, 'reason', v)">
-                  <el-option value="" label="请选择" />
-                  <el-option v-for="r in RETURN_REASONS" :key="r" :label="r" :value="r" />
-                </el-select>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="60">
-              <template #default="{ $index }">
-                <el-button link type="danger" size="small" @click="handleRemoveMaterial($index)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="handleCancelAdd">取消</el-button>
-        <el-button type="primary" @click="handleSaveAdd">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 物料选择弹窗 -->
-    <el-dialog v-model="showMaterialSelectModal" title="选择物料" width="900px" :close-on-click-modal="false">
-      <!-- 搜索栏 -->
-      <div class="mb-4">
-        <el-input v-model="materialSelectSearch" placeholder="搜索物料编码或名称..." clearable>
-          <template #prefix><el-icon><Search /></el-icon></template>
-        </el-input>
-      </div>
-
-      <!-- 物料列表 -->
-      <div v-if="filteredWarehouseMaterials.length > 0" class="border border-gray-200 rounded-lg overflow-hidden">
-        <el-table :data="filteredWarehouseMaterials" size="small" max-height="400" @selection-change="(val) => { selectedMaterialCodes = new Set(val.map(m => m.code || m.name)) }">
-          <el-table-column type="selection" width="45" />
-          <el-table-column prop="code" label="物料编码" width="120">
-            <template #default="{ row }"><span class="font-mono text-sm">{{ row.code || row.name }}</span></template>
-          </el-table-column>
-          <el-table-column prop="name" label="物料名称" width="140" />
-          <el-table-column prop="specification" label="规格" width="100">
-            <template #default="{ row }">{{ row.specification || '-' }}</template>
-          </el-table-column>
-          <el-table-column prop="unit" label="单位" width="60" />
-          <el-table-column prop="stockQuantity" label="库存数量" width="100" />
-          <el-table-column prop="location" label="仓库货位" width="100">
-            <template #default="{ row }">{{ row.location || '-' }}</template>
-          </el-table-column>
-        </el-table>
-      </div>
-      <div v-else class="text-center text-gray-500 py-8">暂无物料数据</div>
-
-      <div class="mt-4 text-sm text-gray-500">
-        已选择 <strong>{{ selectedMaterialCodes.size }}</strong> 项
-      </div>
-
-      <template #footer>
-        <el-button @click="showMaterialSelectModal = false">取消</el-button>
-        <el-button type="primary" @click="confirmMaterialSelect">确认添加</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 编辑弹窗 -->
-    <el-dialog v-model="showEditModal" title="编辑退料单" width="1000px" :close-on-click-modal="false">
-      <el-form :model="editForm" label-width="100px">
-        <el-alert v-if="selectedRecord" title="退料单号" :description="selectedRecord.code" type="info" show-icon :closable="false" class="mb-4" />
-        <el-row :gutter="16">
-          <el-col :span="8">
-            <el-form-item label="退料日期">
-              <el-date-picker v-model="editForm.date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="退料类型">
-              <el-select v-model="editForm.type">
-                <el-option v-for="t in RETURN_TYPES" :key="t" :label="t" :value="t" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="申请人">
-              <el-select v-model="editForm.applicant" filterable>
-                <el-option v-for="a in APPLICANTS" :key="a" :label="a" :value="a" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="8">
-            <el-form-item label="退料部门">
-              <el-select v-model="editForm.department" filterable>
-                <el-option v-for="d in departmentOptions" :key="d" :label="d" :value="d" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="仓库位置">
-              <el-select v-model="editForm.warehouseLocation" filterable>
-                <el-option v-for="w in WAREHOUSE_LOCATIONS" :key="w" :label="w" :value="w" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="操作人">
-              <el-input v-model="editForm.operator" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="8">
-            <el-form-item label="审核人">
-              <el-select v-model="editForm.reviewer" filterable>
-                <el-option v-for="r in REVIEWERS" :key="r" :label="r" :value="r" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="状态">
-              <el-select v-model="editForm.status">
-                <el-option v-for="s in EDITABLE_STATUSES" :key="s" :label="s" :value="s" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="备注">
-              <el-input v-model="editForm.remark" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <!-- 物料明细 -->
-        <el-form-item label="退料物料">
-          <div class="mb-2">
-            <el-button size="small" @click="handleEditAddMaterial"><el-icon><Plus /></el-icon>添加物料</el-button>
+          <div v-if="addForm.materials.length > 0" class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="text-xs" style="min-width: 1400px">
+              <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                <tr>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">来源单号</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">分类</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">规格</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">单位</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">退料数量</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">单价(元)</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">货位</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">退料原因</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">操作</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="(mr, $index) in addForm.materials" :key="$index">
+                  <td class="px-1 py-1"><input v-model="mr.sourceApplicationCode" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleMaterialChange($index, 'sourceApplicationCode', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.materialCode" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleMaterialChange($index, 'materialCode', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.category" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleMaterialChange($index, 'category', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.materialName" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleMaterialChange($index, 'materialName', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.spec" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleMaterialChange($index, 'spec', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.unit" class="w-14 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleMaterialChange($index, 'unit', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model.number="mr.returnQuantity" type="number" min="0" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @change="v => handleMaterialChange($index, 'returnQuantity', v.target.value)" /></td>
+                  <td class="px-1 py-1"><span class="text-xs text-right block">{{ mr.unitPrice ? '¥' + Number(mr.unitPrice).toFixed(2) : '-' }}</span></td>
+                  <td class="px-1 py-1"><input v-model="mr.warehousePosition" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleMaterialChange($index, 'warehousePosition', v.target.value)" /></td>
+                  <td class="px-1 py-1">
+                    <select v-model="mr.reason" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs bg-white" @change="v => handleMaterialChange($index, 'reason', v.target.value)">
+                      <option value="">请选择</option>
+                      <option v-for="r in RETURN_REASONS" :key="r" :value="r">{{ r }}</option>
+                    </select>
+                  </td>
+                  <td class="px-1 py-1"><button class="text-red-600 hover:text-red-800 text-xs" @click="handleRemoveMaterial($index)">删除</button></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <el-table :data="editForm.materials" size="small" border>
-            <el-table-column label="来源单号" width="130">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.sourceApplicationCode" size="small" @input="v => handleEditMaterialChange($index, 'sourceApplicationCode', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="物料编码" width="110">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.materialCode" size="small" @input="v => handleEditMaterialChange($index, 'materialCode', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="分类" width="120">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.category" size="small" @input="v => handleEditMaterialChange($index, 'category', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="物料名称" width="110">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.materialName" size="small" @input="v => handleEditMaterialChange($index, 'materialName', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="规格" width="90">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.spec" size="small" @input="v => handleEditMaterialChange($index, 'spec', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="单位" width="70">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.unit" size="small" @input="v => handleEditMaterialChange($index, 'unit', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="退料数量" width="100">
-              <template #default="{ row: mr, $index }">
-                <el-input-number v-model="mr.returnQuantity" :min="0" size="small" style="width: 100%" @change="v => handleEditMaterialChange($index, 'returnQuantity', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="单价" width="90">
-              <template #default="{ row: mr, $index }">
-                <el-input-number v-model="mr.unitPrice" :min="0" :precision="2" size="small" style="width: 100%" @change="v => handleEditMaterialChange($index, 'unitPrice', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="货位" width="90">
-              <template #default="{ row: mr, $index }">
-                <el-input v-model="mr.warehousePosition" size="small" @input="v => handleEditMaterialChange($index, 'warehousePosition', v)" />
-              </template>
-            </el-table-column>
-            <el-table-column label="退料原因" width="120">
-              <template #default="{ row: mr, $index }">
-                <el-select v-model="mr.reason" size="small" @change="v => handleEditMaterialChange($index, 'reason', v)">
-                  <el-option v-for="r in RETURN_REASONS" :key="r" :label="r" :value="r" />
-                </el-select>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="60">
-              <template #default="{ $index }">
-                <el-button link type="danger" size="small" @click="handleEditRemoveMaterial($index)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showEditModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveEdit">保存</el-button>
-      </template>
-    </el-dialog>
+          <div v-else class="text-center py-4 text-sm text-gray-500">暂未添加物料</div>
+        </div>
 
-    <!-- 作废申请弹窗 -->
-    <el-dialog v-model="showVoidModal" title="作废申请" width="500px">
-      <template v-if="selectedRecord">
-        <el-descriptions :column="1" border size="small" class="mb-4">
-          <el-descriptions-item label="退料单号">{{ selectedRecord.code }}</el-descriptions-item>
-          <el-descriptions-item label="申请人">{{ selectedRecord.applicant }}</el-descriptions-item>
-          <el-descriptions-item label="退料部门">{{ selectedRecord.department }}</el-descriptions-item>
-          <el-descriptions-item label="物料数量">{{ selectedRecord.materials?.length || 0 }} 种</el-descriptions-item>
-          <el-descriptions-item label="物料预览">{{ selectedRecord.materials?.slice(0, 3).map(m => m.materialName).join('、') }}{{ selectedRecord.materials?.length > 3 ? '...' : '' }}</el-descriptions-item>
-        </el-descriptions>
-      </template>
-      <el-form-item label="作废原因" required>
-        <el-input v-model="voidReason" type="textarea" :rows="4" placeholder="请输入作废原因" />
-      </el-form-item>
-      <template #footer>
-        <el-button @click="showVoidModal = false">取消</el-button>
-        <el-button type="warning" @click="submitVoidApply">提交作废申请</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 批量删除确认弹窗 -->
-    <el-dialog v-model="showBatchDeleteConfirm" title="确认删除" width="450px">
-      <div class="flex items-center gap-3 mb-4">
-        <el-icon :size="40" color="#f56c6c"><WarningFilled /></el-icon>
-        <div>
-          <p class="text-lg font-medium">确认批量删除</p>
-          <p class="text-sm text-gray-500">此操作不可恢复</p>
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 flex-shrink-0">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleCancelAdd">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSaveAdd">保存</button>
         </div>
       </div>
-      <p class="text-sm text-gray-600 mb-4">确定要删除选中的 {{ selectedRows.length }} 条退料记录吗？</p>
-      <template #footer>
-        <el-button @click="showBatchDeleteConfirm = false">取消</el-button>
-        <el-button type="danger" @click="confirmBatchDelete">确认删除</el-button>
-      </template>
-    </el-dialog>
+    </div>
 
-    <!-- 导出类型选择弹窗 -->
-    <el-dialog v-model="showExportTypeModal" title="选择导出格式" width="500px">
-      <div class="space-y-3">
-        <el-radio-group v-model="exportFileType" class="w-full">
-          <div v-for="fmt in EXPORT_FORMATS" :key="fmt.value"
-            :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all mb-2', exportFileType === fmt.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300']"
-            @click="exportFileType = fmt.value">
-            <el-radio :value="fmt.value">
+    <!-- ========== 物料选择弹窗 ========== -->
+    <div v-if="showMaterialSelectModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showMaterialSelectModal = false">
+      <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">选择物料</h3>
+          <button @click="showMaterialSelectModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6">
+          <!-- 搜索栏 -->
+          <div class="mb-4">
+            <input v-model="materialSelectSearch" placeholder="搜索物料编码或名称..." class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+          </div>
+
+          <!-- 物料列表 -->
+          <div v-if="filteredWarehouseMaterials.length > 0" class="border border-gray-200 rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+            <table class="w-full text-xs">
+              <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white sticky top-0 z-10">
+                <tr>
+                  <th class="px-3 py-2 text-left font-semibold w-12">
+                    <input type="checkbox" :checked="filteredWarehouseMaterials.length > 0 && filteredWarehouseMaterials.every(m => selectedMaterialCodes.has(m.code || m.name))" @change="toggleAllMaterialSelect" class="w-4 h-4 rounded border-white" />
+                  </th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">规格</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">单位</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">库存数量</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">仓库货位</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="row in filteredWarehouseMaterials" :key="row.code || row.name" class="hover:bg-gray-50 cursor-pointer" @click="toggleMaterialSelect(row.code || row.name)">
+                  <td class="px-3 py-2">
+                    <input type="checkbox" :checked="selectedMaterialCodes.has(row.code || row.name)" class="w-4 h-4 rounded border-gray-400" />
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs text-blue-600 whitespace-nowrap">{{ row.code || row.name }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-800 whitespace-nowrap">{{ row.name }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ row.specification || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ row.unit }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-800 whitespace-nowrap">{{ row.stockQuantity }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ row.location || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else class="text-center text-gray-500 py-8">暂无物料数据</div>
+
+          <div class="mt-4 text-sm text-gray-500">
+            已选择 <strong>{{ selectedMaterialCodes.size }}</strong> 项
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showMaterialSelectModal = false">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="confirmMaterialSelect">确认添加</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 编辑弹窗 ========== -->
+    <div v-if="showEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showEditModal = false">
+      <div class="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between flex-shrink-0">
+          <h3 class="text-lg font-semibold">编辑退料单</h3>
+          <button @click="showEditModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1">
+          <!-- 退料单号提示 -->
+          <div v-if="selectedRecord" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+            <Info class="w-4 h-4 text-blue-500 flex-shrink-0" />
+            <span class="text-sm text-blue-700">退料单号：<strong>{{ selectedRecord.code }}</strong></span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">退料日期</label>
+              <input v-model="editForm.date" type="date" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">退料类型</label>
+              <select v-model="editForm.type" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option v-for="t in RETURN_TYPES" :key="t" :value="t">{{ t }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">申请人</label>
+              <select v-model="editForm.applicant" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option v-for="a in APPLICANTS" :key="a" :value="a">{{ a }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">退料部门</label>
+              <select v-model="editForm.department" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option v-for="d in departmentOptions" :key="d" :value="d">{{ d }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">仓库位置</label>
+              <select v-model="editForm.warehouseLocation" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option v-for="w in WAREHOUSE_LOCATIONS" :key="w" :value="w">{{ w }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">操作人</label>
+              <input v-model="editForm.operator" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">审核人</label>
+              <select v-model="editForm.reviewer" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option v-for="r in REVIEWERS" :key="r" :value="r">{{ r }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">状态</label>
+              <select v-model="editForm.status" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option v-for="s in EDITABLE_STATUSES" :key="s" :value="s">{{ s }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">备注</label>
+              <input v-model="editForm.remark" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+          </div>
+
+          <!-- 物料明细 -->
+          <div class="mb-2">
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleEditAddMaterial">
+              <Plus class="w-4 h-4 inline mr-1" />添加物料
+            </button>
+          </div>
+          <div v-if="editForm.materials.length > 0" class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="text-xs" style="min-width: 1400px">
+              <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                <tr>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">来源单号</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">分类</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">规格</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">单位</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">退料数量</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">单价</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">货位</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">退料原因</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">操作</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="(mr, $index) in editForm.materials" :key="$index">
+                  <td class="px-1 py-1"><input v-model="mr.sourceApplicationCode" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleEditMaterialChange($index, 'sourceApplicationCode', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.materialCode" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleEditMaterialChange($index, 'materialCode', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.category" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleEditMaterialChange($index, 'category', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.materialName" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleEditMaterialChange($index, 'materialName', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.spec" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleEditMaterialChange($index, 'spec', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.unit" class="w-14 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleEditMaterialChange($index, 'unit', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model.number="mr.returnQuantity" type="number" min="0" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @change="v => handleEditMaterialChange($index, 'returnQuantity', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model.number="mr.unitPrice" type="number" min="0" step="0.01" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @change="v => handleEditMaterialChange($index, 'unitPrice', v.target.value)" /></td>
+                  <td class="px-1 py-1"><input v-model="mr.warehousePosition" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @input="v => handleEditMaterialChange($index, 'warehousePosition', v.target.value)" /></td>
+                  <td class="px-1 py-1">
+                    <select v-model="mr.reason" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs bg-white" @change="v => handleEditMaterialChange($index, 'reason', v.target.value)">
+                      <option v-for="r in RETURN_REASONS" :key="r" :value="r">{{ r }}</option>
+                    </select>
+                  </td>
+                  <td class="px-1 py-1"><button class="text-red-600 hover:text-red-800 text-xs" @click="handleEditRemoveMaterial($index)">删除</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else class="text-center py-4 text-sm text-gray-500">暂未添加物料</div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 flex-shrink-0">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showEditModal = false">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSaveEdit">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 作废申请弹窗 ========== -->
+    <div v-if="showVoidModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showVoidModal = false">
+      <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">作废申请</h3>
+          <button @click="showVoidModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div v-if="selectedRecord" class="p-6">
+          <div class="grid grid-cols-1 border border-gray-200 rounded-lg overflow-hidden mb-4">
+            <template v-for="(item, idx) in [
+              { label: '退料单号', value: selectedRecord.code },
+              { label: '申请人', value: selectedRecord.applicant },
+              { label: '退料部门', value: selectedRecord.department },
+              { label: '物料数量', value: (selectedRecord.materials?.length || 0) + ' 种' },
+              { label: '物料预览', value: selectedRecord.materials?.slice(0, 3).map(m => m.materialName).join('、') + (selectedRecord.materials?.length > 3 ? '...' : '') }
+            ]" :key="idx" class="flex border-b border-gray-200 last:border-b-0">
+              <span class="w-24 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">{{ item.label }}</span>
+              <span class="px-3 py-2 text-sm text-gray-900 flex-1">{{ item.value }}</span>
+            </template>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">作废原因 <span class="text-red-500">*</span></label>
+            <textarea v-model="voidReason" :rows="4" placeholder="请输入作废原因" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm resize-none"></textarea>
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showVoidModal = false">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600" @click="submitVoidApply">提交作废申请</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 批量删除确认弹窗 ========== -->
+    <div v-if="showBatchDeleteConfirm" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showBatchDeleteConfirm = false">
+      <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">确认删除</h3>
+          <button @click="showBatchDeleteConfirm = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <AlertTriangle class="w-10 h-10 text-red-500" />
+            <div>
+              <p class="text-lg font-medium">确认批量删除</p>
+              <p class="text-sm text-gray-500">此操作不可恢复</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-600 mb-4">确定要删除选中的 {{ selectedRows.length }} 条退料记录吗？</p>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showBatchDeleteConfirm = false">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="confirmBatchDelete">确认删除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 导出类型选择弹窗 ========== -->
+    <div v-if="showExportTypeModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showExportTypeModal = false">
+      <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">选择导出格式</h3>
+          <button @click="showExportTypeModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6">
+          <div class="space-y-3">
+            <div v-for="fmt in EXPORT_FORMATS" :key="fmt.value"
+              :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all mb-2', exportFileType === fmt.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300']"
+              @click="exportFileType = fmt.value">
+              <input type="radio" :value="fmt.value" v-model="exportFileType" class="w-4 h-4 text-emerald-600 border-gray-400" />
               <span class="ml-2 font-medium">{{ fmt.label }}</span>
               <span class="ml-2 text-xs text-gray-500">{{ fmt.desc }}</span>
-            </el-radio>
-          </div>
-        </el-radio-group>
-      </div>
-      <template #footer>
-        <el-button @click="showExportTypeModal = false">取消</el-button>
-        <el-button type="primary" @click="confirmExport">确认导出</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 批量编辑弹窗 -->
-    <el-dialog v-model="showBatchEditModal" title="批量编辑退料记录" width="1100px" :close-on-click-modal="false" @close="closeBatchEditModal">
-      <!-- 进度提示 -->
-      <div class="bg-blue-50 rounded-lg p-3 mb-3">
-        <p class="text-sm text-blue-800">已选择 <strong>{{ selectedRows.length }}</strong> 条退料记录进行批量编辑，已编辑 <strong>{{ Object.keys(batchEditedRecords).length }}</strong> 条</p>
-      </div>
-
-      <!-- 退料单选择下拉 -->
-      <div class="mb-3">
-        <el-select
-          :model-value="selectedRows[currentBatchEditIndex]"
-          @change="(val) => { const idx = selectedRows.indexOf(val); if (idx >= 0) currentBatchEditIndex = idx }"
-          class="w-full"
-        >
-          <el-option
-            v-for="id in selectedRows"
-            :key="id"
-            :label="`${getRecordById(id)?.code || '-'} (${getRecordById(id)?.applicant || '-'})${batchEditedRecords[id] ? ' ✅ 已编辑' : ''}`"
-            :value="id"
-          />
-        </el-select>
-      </div>
-
-      <template v-if="currentBatchRecord">
-        <!-- 基本信息 -->
-        <div class="bg-gray-100 rounded-lg p-3 mb-3">
-          <div class="grid grid-cols-3 gap-y-2 text-sm">
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">退料单号：</span>
-              <span class="font-mono font-medium text-gray-900">{{ currentBatchRecord.code || '-' }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">日期：</span>
-              <el-date-picker
-                :model-value="currentBatchRecord.date"
-                @update:model-value="batchHandleFieldChange(currentBatchId, 'date', $event)"
-                type="date" value-format="YYYY-MM-DD" size="small" class="flex-1"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">退料类型：</span>
-              <el-select
-                :model-value="currentBatchRecord.type"
-                @change="batchHandleFieldChange(currentBatchId, 'type', $event)"
-                size="small" class="flex-1"
-              >
-                <el-option v-for="t in RETURN_TYPES" :key="t" :label="t" :value="t" />
-              </el-select>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">申请人：</span>
-              <el-input
-                :model-value="currentBatchRecord.applicant"
-                @input="batchHandleFieldChange(currentBatchId, 'applicant', $event)"
-                size="small" class="flex-1"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">部门：</span>
-              <el-select
-                :model-value="currentBatchRecord.department"
-                @change="batchHandleFieldChange(currentBatchId, 'department', $event)"
-                size="small" class="flex-1"
-              >
-                <el-option v-for="d in departmentOptions" :key="d" :label="d" :value="d" />
-              </el-select>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">仓库位置：</span>
-              <el-input
-                :model-value="currentBatchRecord.warehouseLocation"
-                @input="batchHandleFieldChange(currentBatchId, 'warehouseLocation', $event)"
-                size="small" class="flex-1" placeholder="请输入"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">操作人：</span>
-              <el-input
-                :model-value="currentBatchRecord.operator"
-                @input="batchHandleFieldChange(currentBatchId, 'operator', $event)"
-                size="small" class="flex-1" placeholder="请输入"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">审核人：</span>
-              <el-input
-                :model-value="currentBatchRecord.reviewer"
-                @input="batchHandleFieldChange(currentBatchId, 'reviewer', $event)"
-                size="small" class="flex-1" placeholder="请输入"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-gray-500 w-20 shrink-0">状态：</span>
-              <span class="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-sm text-gray-600">
-                {{ currentBatchRecord.status || '-' }}
-              </span>
-              <span class="text-xs text-gray-400">（审批状态由系统自动生成）</span>
-            </div>
-            <div class="flex items-center gap-2 col-span-3">
-              <span class="text-gray-500 w-20 shrink-0">备注：</span>
-              <el-input
-                :model-value="currentBatchRecord.remark"
-                @input="batchHandleFieldChange(currentBatchId, 'remark', $event)"
-                size="small" class="flex-1" placeholder="请输入"
-              />
             </div>
           </div>
         </div>
 
-        <!-- 物料明细 -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-sm font-medium text-gray-700">物料明细</label>
-            <span class="text-xs text-gray-500">共 {{ currentBatchRecord.materials?.length || 0 }} 条</span>
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showExportTypeModal = false">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="confirmExport">确认导出</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 批量编辑弹窗 ========== -->
+    <div v-if="showBatchEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="closeBatchEditModal">
+      <div class="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between flex-shrink-0">
+          <h3 class="text-lg font-semibold">批量编辑退料记录</h3>
+          <button @click="closeBatchEditModal" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1">
+          <!-- 进度提示 -->
+          <div class="bg-blue-50 rounded-lg p-3 mb-3">
+            <p class="text-sm text-blue-800">已选择 <strong>{{ selectedRows.length }}</strong> 条退料记录进行批量编辑，已编辑 <strong>{{ Object.keys(batchEditedRecords).length }}</strong> 条</p>
           </div>
-          <div v-if="currentBatchRecord.materials?.length" class="border border-gray-200 rounded-lg overflow-hidden">
-            <div class="overflow-auto max-h-[320px]">
-              <el-table :data="currentBatchRecord.materials" size="small">
-                <el-table-column label="来源领料单号" width="140">
-                  <template #default="{ row: mr, $index }">
-                    <el-input v-model="mr.sourceApplicationCode" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'sourceApplicationCode', $event)" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="物料编码" width="110">
-                  <template #default="{ row: mr, $index }">
-                    <el-input v-model="mr.materialCode" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'materialCode', $event)" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="物料分类" width="120">
-                  <template #default="{ row: mr, $index }">
-                    <el-input v-model="mr.category" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'category', $event)" placeholder="中类-小类" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="物料名称" width="120">
-                  <template #default="{ row: mr, $index }">
-                    <el-input v-model="mr.materialName" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'materialName', $event)" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="规格" width="100">
-                  <template #default="{ row: mr, $index }">
-                    <el-input v-model="mr.spec" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'spec', $event)" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="单位" width="70">
-                  <template #default="{ row: mr, $index }">
-                    <el-input v-model="mr.unit" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'unit', $event)" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="退料数量" width="100">
-                  <template #default="{ row: mr, $index }">
-                    <el-input-number v-model="mr.returnQuantity" :min="0" size="small" style="width: 100%" @change="batchHandleMaterialChange(currentBatchId, $index, 'returnQuantity', $event)" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="单价" width="90">
-                  <template #default="{ row: mr, $index }">
-                    <el-input-number v-model="mr.unitPrice" :min="0" size="small" style="width: 100%" @change="batchHandleMaterialChange(currentBatchId, $index, 'unitPrice', $event)" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="仓库货位" width="100">
-                  <template #default="{ row: mr, $index }">
-                    <el-input v-model="mr.warehousePosition" size="small" @input="batchHandleMaterialChange(currentBatchId, $index, 'warehousePosition', $event)" placeholder="仓库-区-位" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="退料原因" width="120">
-                  <template #default="{ row: mr, $index }">
-                    <el-select v-model="mr.reason" size="small" @change="batchHandleMaterialChange(currentBatchId, $index, 'reason', $event)">
-                      <el-option value="" label="请选择" />
-                      <el-option v-for="r in RETURN_REASONS" :key="r" :label="r" :value="r" />
-                    </el-select>
-                  </template>
-                </el-table-column>
-              </el-table>
+
+          <!-- 退料单选择下拉 -->
+          <div class="mb-3">
+            <select
+              :value="selectedRows[currentBatchEditIndex]"
+              @change="(e) => { const idx = selectedRows.indexOf(Number(e.target.value)); if (idx >= 0) currentBatchEditIndex = idx }"
+              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+            >
+              <option v-for="id in selectedRows" :key="id" :value="id">
+                {{ getRecordById(id)?.code || '-' }} ({{ getRecordById(id)?.applicant || '-' }}){{ batchEditedRecords[id] ? ' [已编辑]' : '' }}
+              </option>
+            </select>
+          </div>
+
+          <template v-if="currentBatchRecord">
+            <!-- 基本信息 -->
+            <div class="bg-gray-100 rounded-lg p-3 mb-3">
+              <div class="grid grid-cols-3 gap-y-2 text-sm">
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">退料单号：</span>
+                  <span class="font-mono font-medium text-gray-900">{{ currentBatchRecord.code || '-' }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">日期：</span>
+                  <input :value="currentBatchRecord.date" @input="batchHandleFieldChange(currentBatchId, 'date', $event.target.value)" type="date" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm" />
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">退料类型：</span>
+                  <select :value="currentBatchRecord.type" @change="batchHandleFieldChange(currentBatchId, 'type', $event.target.value)" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm bg-white">
+                    <option v-for="t in RETURN_TYPES" :key="t" :value="t">{{ t }}</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">申请人：</span>
+                  <input :value="currentBatchRecord.applicant" @input="batchHandleFieldChange(currentBatchId, 'applicant', $event.target.value)" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm" />
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">部门：</span>
+                  <select :value="currentBatchRecord.department" @change="batchHandleFieldChange(currentBatchId, 'department', $event.target.value)" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm bg-white">
+                    <option v-for="d in departmentOptions" :key="d" :value="d">{{ d }}</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">仓库位置：</span>
+                  <input :value="currentBatchRecord.warehouseLocation" @input="batchHandleFieldChange(currentBatchId, 'warehouseLocation', $event.target.value)" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm" placeholder="请输入" />
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">操作人：</span>
+                  <input :value="currentBatchRecord.operator" @input="batchHandleFieldChange(currentBatchId, 'operator', $event.target.value)" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm" placeholder="请输入" />
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">审核人：</span>
+                  <input :value="currentBatchRecord.reviewer" @input="batchHandleFieldChange(currentBatchId, 'reviewer', $event.target.value)" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm" placeholder="请输入" />
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 w-20 shrink-0">状态：</span>
+                  <span class="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-sm text-gray-600">{{ currentBatchRecord.status || '-' }}</span>
+                  <span class="text-xs text-gray-400">（审批状态由系统自动生成）</span>
+                </div>
+                <div class="flex items-center gap-2 col-span-3">
+                  <span class="text-gray-500 w-20 shrink-0">备注：</span>
+                  <input :value="currentBatchRecord.remark" @input="batchHandleFieldChange(currentBatchId, 'remark', $event.target.value)" class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm" placeholder="请输入" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 物料明细 -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-sm font-medium text-gray-700">物料明细</label>
+                <span class="text-xs text-gray-500">共 {{ currentBatchRecord.materials?.length || 0 }} 条</span>
+              </div>
+              <div v-if="currentBatchRecord.materials?.length" class="border border-gray-200 rounded-lg overflow-hidden">
+                <div class="overflow-auto max-h-[320px]">
+                  <table class="text-xs w-full" style="min-width: 1200px">
+                    <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                      <tr>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">来源领料单号</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料分类</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">规格</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">单位</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">退料数量</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">单价</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">仓库货位</th>
+                        <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">退料原因</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                      <tr v-for="(mr, $index) in currentBatchRecord.materials" :key="$index">
+                        <td class="px-1 py-1"><input v-model="mr.sourceApplicationCode" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @input="batchHandleMaterialChange(currentBatchId, $index, 'sourceApplicationCode', $event.target.value)" /></td>
+                        <td class="px-1 py-1"><input v-model="mr.materialCode" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @input="batchHandleMaterialChange(currentBatchId, $index, 'materialCode', $event.target.value)" /></td>
+                        <td class="px-1 py-1"><input v-model="mr.category" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @input="batchHandleMaterialChange(currentBatchId, $index, 'category', $event.target.value)" placeholder="中类-小类" /></td>
+                        <td class="px-1 py-1"><input v-model="mr.materialName" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" @input="batchHandleMaterialChange(currentBatchId, $index, 'materialName', $event.target.value)" /></td>
+                        <td class="px-1 py-1"><input v-model="mr.spec" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" @input="batchHandleMaterialChange(currentBatchId, $index, 'spec', $event.target.value)" /></td>
+                        <td class="px-1 py-1"><input v-model="mr.unit" class="w-12 h-6 px-1 border border-gray-200 rounded text-xs" @input="batchHandleMaterialChange(currentBatchId, $index, 'unit', $event.target.value)" /></td>
+                        <td class="px-1 py-1"><input v-model.number="mr.returnQuantity" type="number" min="0" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" @change="batchHandleMaterialChange(currentBatchId, $index, 'returnQuantity', $event.target.value)" /></td>
+                        <td class="px-1 py-1"><input v-model.number="mr.unitPrice" type="number" min="0" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" @change="batchHandleMaterialChange(currentBatchId, $index, 'unitPrice', $event.target.value)" /></td>
+                        <td class="px-1 py-1"><input v-model="mr.warehousePosition" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" @input="batchHandleMaterialChange(currentBatchId, $index, 'warehousePosition', $event.target.value)" placeholder="仓库-区-位" /></td>
+                        <td class="px-1 py-1">
+                          <select v-model="mr.reason" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs bg-white" @change="batchHandleMaterialChange(currentBatchId, $index, 'reason', $event.target.value)">
+                            <option value="">请选择</option>
+                            <option v-for="r in RETURN_REASONS" :key="r" :value="r">{{ r }}</option>
+                          </select>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div v-else class="text-sm text-gray-500 italic border border-gray-200 rounded-lg p-4 text-center">暂无物料明细</div>
+            </div>
+          </template>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 flex-shrink-0">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="closeBatchEditModal">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="batchGoToNext">下一条</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleBatchSaveAll">保存全部 ({{ Object.keys(batchEditedRecords).length }} 个)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 编辑警告弹窗 ========== -->
+    <div v-if="showEditWarning" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="closeEditWarning">
+      <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">批量编辑提醒</h3>
+          <button @click="closeEditWarning" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6">
+          <div class="flex items-start gap-3 mb-4">
+            <Info class="w-10 h-10 text-blue-500 flex-shrink-0" />
+            <div>
+              <p class="text-base font-medium mb-2">批量编辑退料单注意事项</p>
+              <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
+                <li>该退料单的历史记录可能无法追溯</li>
+                <li>已生成的入库单据数据可能不一致</li>
+                <li>相关的统计报表数据可能需要重新核算</li>
+              </ul>
             </div>
           </div>
-          <div v-else class="text-sm text-gray-500 italic border border-gray-200 rounded-lg p-4 text-center">
-            暂无物料明细
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="closeEditWarning">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="confirmEditWarning">继续编辑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 删除警告弹窗 ========== -->
+    <div v-if="showDeleteWarning" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showDeleteWarning = false">
+      <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">批量删除提醒</h3>
+          <button @click="showDeleteWarning = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6">
+          <div class="flex items-start gap-3 mb-4">
+            <AlertTriangle class="w-10 h-10 text-red-500 flex-shrink-0" />
+            <div>
+              <p class="text-base font-medium mb-2">确认进入批量删除模式</p>
+              <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
+                <li>所有选中的退料单将被永久删除</li>
+                <li>相关的物料明细也将被删除</li>
+                <li>历史数据将无法恢复</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </template>
 
-      <template #footer>
-        <el-button @click="closeBatchEditModal">取消</el-button>
-        <el-button @click="batchGoToNext">下一条</el-button>
-        <el-button type="primary" @click="handleBatchSaveAll">保存全部 ({{ Object.keys(batchEditedRecords).length }} 个)</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 编辑警告弹窗 -->
-    <el-dialog v-model="showEditWarning" title="批量编辑提醒" width="550px">
-      <div class="flex items-start gap-3 mb-4">
-        <el-icon :size="40" color="#409eff"><InfoFilled /></el-icon>
-        <div>
-          <p class="text-base font-medium mb-2">批量编辑退料单注意事项</p>
-          <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
-            <li>该退料单的历史记录可能无法追溯</li>
-            <li>已生成的入库单据数据可能不一致</li>
-            <li>相关的统计报表数据可能需要重新核算</li>
-          </ul>
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showDeleteWarning = false">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="confirmDeleteWarning">进入删除模式</button>
         </div>
       </div>
-      <template #footer>
-        <el-button @click="closeEditWarning">取消</el-button>
-        <el-button type="primary" @click="confirmEditWarning">继续编辑</el-button>
-      </template>
-    </el-dialog>
+    </div>
 
-    <!-- 删除警告弹窗 -->
-    <el-dialog v-model="showDeleteWarning" title="批量删除提醒" width="500px">
-      <div class="flex items-start gap-3 mb-4">
-        <el-icon :size="40" color="#f56c6c"><WarningFilled /></el-icon>
-        <div>
-          <p class="text-base font-medium mb-2">确认进入批量删除模式</p>
-          <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
-            <li>所有选中的退料单将被永久删除</li>
-            <li>相关的物料明细也将被删除</li>
-            <li>历史数据将无法恢复</li>
-          </ul>
+    <!-- ========== 编辑提示弹窗（非待审批状态不允许编辑） ========== -->
+    <div v-if="showEditAlert" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showEditAlert = false">
+      <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">编辑提示</h3>
+          <button @click="showEditAlert = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6">
+          <div class="flex items-start gap-3 mb-4">
+            <AlertTriangle class="w-10 h-10 text-amber-500 flex-shrink-0" />
+            <div>
+              <p class="text-base font-medium text-gray-900 mb-1">无法编辑此退料单</p>
+              <p class="text-sm text-gray-600">{{ editAlertMessage }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showEditAlert = false">确定</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600" @click="goToVoidFromAlert">去作废申请</button>
         </div>
       </div>
-      <template #footer>
-        <el-button @click="showDeleteWarning = false">取消</el-button>
-        <el-button type="danger" @click="confirmDeleteWarning">进入删除模式</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 编辑提示弹窗（非待审批状态不允许编辑） -->
-    <el-dialog v-model="showEditAlert" title="编辑提示" width="480px">
-      <div class="flex items-start gap-3 mb-4">
-        <el-icon :size="40" color="#e6a23c"><WarningFilled /></el-icon>
-        <div>
-          <p class="text-base font-medium text-gray-900 mb-1">无法编辑此退料单</p>
-          <p class="text-sm text-gray-600">{{ editAlertMessage }}</p>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="showEditAlert = false">确定</el-button>
-        <el-button type="warning" @click="goToVoidFromAlert">去作废申请</el-button>
-      </template>
-    </el-dialog>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { Sort, Plus, Edit, Delete, Download, ArrowDown, ArrowRight, Refresh, WarningFilled, InfoFilled, Search } from '@element-plus/icons-vue'
+import { ArrowUpDown, Plus, Pencil, Trash2, Download, ChevronDown, ChevronRight, RefreshCw, AlertTriangle, Info, Search } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useMaterialReturnStore } from '@/stores/modules/inventory/useMaterialReturnStore'
 import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
+import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 // ============ 常量配置（与V1.1 config.ts一致） ============
 
@@ -1072,6 +1142,27 @@ const onSelectionChange = (selection) => {
   selectedRows.value = selection.map(s => s.id)
 }
 
+/** 全选/取消全选当前页 */
+const toggleSelectAllReturn = () => {
+  const allSelected = paginatedReturns.value.length > 0 && selectedRows.value.length === paginatedReturns.value.length
+  if (allSelected) {
+    const currentIds = new Set(paginatedReturns.value.map(r => r.id))
+    selectedRows.value = selectedRows.value.filter(id => !currentIds.has(id))
+  } else {
+    const existingIds = new Set(selectedRows.value)
+    selectedRows.value = [...selectedRows.value, ...paginatedReturns.value.filter(r => !existingIds.has(r.id)).map(r => r.id)]
+  }
+}
+
+/** 单行选中切换 */
+const toggleReturnRow = (id) => {
+  if (selectedRows.value.includes(id)) {
+    selectedRows.value = selectedRows.value.filter(rid => rid !== id)
+  } else {
+    selectedRows.value = [...selectedRows.value, id]
+  }
+}
+
 const toggleExpandRow = (id) => {
   const newSet = new Set(expandedRows.value)
   if (newSet.has(id)) newSet.delete(id)
@@ -1210,7 +1301,6 @@ const handleGenerateCode = () => {
 const handleOpenMaterialSelect = async () => {
   selectedMaterialCodes.value = new Set()
   materialSelectSearch.value = ''
-  // 确保仓库物料已加载
   if (warehouseStore.materials.length === 0) {
     await warehouseStore.loadMaterials()
   }
@@ -1420,7 +1510,6 @@ const openBatchEditOrWarn = () => {
     return
   }
   showEditWarning.value = false
-  // 初始化批量编辑数据
   const records = {}
   selectedRows.value.forEach(id => {
     const record = allReturns.value.find(r => r.id === id)
@@ -1523,20 +1612,3 @@ onMounted(async () => {
   await store.loadReturnRecords()
 })
 </script>
-
-<style scoped>
-/* 表格表头蓝色渐变（与V1.1一致） */
-:deep(.el-table__header-wrapper .el-table__header th) {
-  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-:deep(.el-table__header-wrapper .el-table__header th .el-table__cell) {
-  background: transparent !important;
-  color: #ffffff !important;
-}
-/* 行hover效果 */
-:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
-  background-color: #dbeafe !important;
-}
-</style>

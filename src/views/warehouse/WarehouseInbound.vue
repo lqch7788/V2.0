@@ -1,181 +1,181 @@
 <template>
   <div class="space-y-6">
-    <!-- 页面头部 -->
+    <!-- ========== 1. 页面头部 ========== -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white"><Goods /></el-icon>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">物料入库</h1>
-            <p class="text-gray-500">物料入库记录管理</p>
-          </div>
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+          <Package class="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">物料入库</h1>
+          <p class="text-gray-500">物料入库记录管理</p>
         </div>
       </div>
     </div>
 
-    <!-- 编码规则生成器（可折叠） -->
+    <!-- ========== 2. 编码规则生成器（可折叠） ========== -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- 折叠头部 -->
       <div class="px-6 py-3 flex items-center gap-3 border-b border-gray-100">
-        <el-button size="small" @click="$router.push('/code-rule')">编码规则 &gt;&gt;</el-button>
+        <button class="text-sm text-blue-600 hover:text-blue-800" @click="$router.push('/code-rule')">编码规则 &gt;&gt;</button>
         <div class="h-6 w-px bg-gray-300"></div>
         <span class="text-base font-bold text-blue-600">物料编码生成</span>
-        <el-button
-          text
-          size="small"
-          @click="codeGenExpanded = !codeGenExpanded"
-        >
-          <el-icon>
-            <ArrowDown v-if="!codeGenExpanded" />
-            <ArrowUp v-if="codeGenExpanded" />
-          </el-icon>
-          {{ codeGenExpanded ? '收起' : '展开' }}
-        </el-button>
+        <button class="p-1 hover:bg-gray-100 rounded" @click="codeGenExpanded = !codeGenExpanded">
+          <ChevronDown v-if="codeGenExpanded" class="w-5 h-5 text-gray-600" />
+          <ChevronRight v-else class="w-5 h-5 text-gray-600" />
+        </button>
         <span class="text-xs text-gray-400 ml-auto">编码规则：大类(2位)+中类(2位)+小类(2位)+序号(3位)</span>
       </div>
 
+      <!-- 展开的生成面板 -->
       <div v-if="codeGenExpanded" class="p-6">
         <div class="grid grid-cols-4 gap-4 mb-4">
+          <!-- 大类 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">大类</label>
-            <el-select
+            <select
               v-model="codeGen.bigCategory"
-              placeholder="请选择大类"
-              class="w-full"
+              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
               @change="handleCodeGenBigCategoryChange"
             >
-              <el-option
-                v-for="cat in bigCategoriesList"
-                :key="cat.code"
-                :label="`${cat.code} - ${cat.name}`"
-                :value="cat.code"
-              />
-            </el-select>
+              <option value="">请选择大类</option>
+              <option v-for="cat in bigCategoriesList" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+            </select>
           </div>
+          <!-- 中类 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">中类</label>
-            <el-select
+            <select
               v-model="codeGen.midCategory"
-              placeholder="请选择中类"
-              class="w-full"
+              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
               :disabled="!codeGen.bigCategory"
               @change="handleCodeGenMidCategoryChange"
             >
-              <el-option
-                v-for="cat in midCategories"
-                :key="cat.code"
-                :label="`${cat.code} - ${cat.name}`"
-                :value="cat.code"
-              />
-            </el-select>
+              <option value="">请选择中类</option>
+              <option v-for="cat in midCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+            </select>
           </div>
+          <!-- 小类 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">小类</label>
-            <el-select
+            <select
               v-model="codeGen.subCategory"
-              placeholder="请选择小类"
-              class="w-full"
+              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
               :disabled="!codeGen.midCategory"
               @change="handleCodeGenSubCategoryChange"
             >
-              <el-option
-                v-for="cat in subCategories"
-                :key="cat.code"
-                :label="`${cat.code} - ${cat.name}`"
-                :value="cat.code"
-              />
-            </el-select>
+              <option value="">请选择小类</option>
+              <option v-for="cat in subCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+            </select>
           </div>
+          <!-- 生成编码 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">生成编码</label>
             <div class="flex gap-2">
-              <el-input
+              <input
                 v-model="codeGen.generatedCode"
-                placeholder="点击生成"
                 readonly
+                placeholder="点击生成"
+                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50"
               />
-              <el-button
-                type="primary"
+              <button
                 :disabled="!codeGen.subCategory"
+                class="h-10 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="handleGenerateCode"
-              >生成</el-button>
+              >生成</button>
             </div>
           </div>
         </div>
 
         <div class="flex items-center gap-3">
-          <el-button :disabled="!codeGen.generatedCode" @click="handleCopyCode">
-            <el-icon><Download /></el-icon>
-            {{ copySuccess ? '已复制!' : '复制编码' }}
-          </el-button>
+          <button
+            :disabled="!codeGen.generatedCode"
+            class="h-8 px-3 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="handleCopyCode"
+          >
+            <Download class="w-4 h-4 inline mr-1" />{{ copySuccess ? '已复制!' : '复制编码' }}
+          </button>
           <span class="text-xs text-gray-400">生成的编码可复制后用于新增物料的物料编码字段</span>
         </div>
 
+        <!-- 错误/成功提示 -->
         <div v-if="codeGenError" class="mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">{{ codeGenError }}</div>
         <div v-if="codeGenSuccess && !codeGenError" class="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-600">{{ codeGenSuccess }}</div>
+
+        <!-- I/O 风险提示（与V1.1一致） -->
+        <div class="mt-2 text-xs text-amber-600 flex items-start gap-1">
+          <span class="font-bold">⚠️</span>
+          <span>部分大类（如 OP/IT/OT）编码含字母 I/O，与数字 1/0 形近。生成后请人工核对，避免抄录/扫描时误读。</span>
+        </div>
       </div>
     </div>
 
-    <!-- 入库记录搜索栏 -->
+    <!-- ========== 3. 筛选栏 ========== -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="flex flex-wrap items-center gap-3">
-        <el-input
-          v-model="searchCode"
-          placeholder="搜索入库单号"
-          clearable
-          style="width: 200px"
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        />
-        <el-input
-          v-model="searchSupplier"
-          placeholder="搜索供应商"
-          clearable
-          style="width: 200px"
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        />
-        <el-select
-          v-model="searchStatus"
-          placeholder="全部状态"
-          clearable
-          style="width: 140px"
-          @change="handleSearch"
-        >
-          <el-option label="已完成" value="completed" />
-          <el-option label="待审核" value="pending" />
-          <el-option label="已作废" value="voided" />
-        </el-select>
-        <el-input
-          v-model="searchMaterialName"
-          placeholder="搜索物料名称"
-          clearable
-          style="width: 200px"
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        />
-        <el-input
-          v-model="searchMaterialCode"
-          placeholder="搜索物料编码"
-          clearable
-          style="width: 200px"
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        />
-        <el-button @click="resetSearchFilters">重置</el-button>
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 whitespace-nowrap">入库单号:</label>
+          <input
+            v-model="searchCode"
+            placeholder="输入单号"
+            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
+            @keyup.enter="handleSearch"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 whitespace-nowrap">供应商:</label>
+          <input
+            v-model="searchSupplier"
+            placeholder="搜索供应商"
+            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
+            @keyup.enter="handleSearch"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 whitespace-nowrap">状态:</label>
+          <select
+            v-model="searchStatus"
+            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-28 bg-white"
+            @change="handleSearch"
+          >
+            <option value="">全部状态</option>
+            <option value="completed">已完成</option>
+            <option value="pending">待审核</option>
+            <option value="voided">已作废</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 whitespace-nowrap">物料名称:</label>
+          <input
+            v-model="searchMaterialName"
+            placeholder="搜索物料名称"
+            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
+            @keyup.enter="handleSearch"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 whitespace-nowrap">物料编码:</label>
+          <input
+            v-model="searchMaterialCode"
+            placeholder="搜索物料编码"
+            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
+            @keyup.enter="handleSearch"
+          />
+        </div>
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200" @click="resetSearchFilters">重置</button>
       </div>
     </div>
 
-    <!-- 入库记录表格区域 -->
+    <!-- ========== 4. 表格区域 ========== -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- 表格顶部工具栏 -->
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <h3 class="text-lg font-semibold text-gray-900">物料入库记录</h3>
           <template v-if="hasActiveMode">
-            <el-button link size="small" @click="handleSelectAll">
+            <button class="text-sm text-blue-600 hover:text-blue-800" @click="handleSelectAll">
               {{ isAllSelected ? '全不选' : '全选' }}
-            </el-button>
+            </button>
             <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
           </template>
         </div>
@@ -183,581 +183,797 @@
         <div class="flex items-center gap-2">
           <!-- 正常模式 -->
           <template v-if="!hasActiveMode">
-            <el-button size="small" type="primary" @click="handleAddRecord">
-              <el-icon><Plus /></el-icon>新增
-            </el-button>
-            <el-button size="small" type="warning" @click="enterEditMode">
-              <el-icon><Edit /></el-icon>编辑
-            </el-button>
-            <el-button size="small" type="danger" @click="enterDeleteMode">
-              <el-icon><Delete /></el-icon>删除
-            </el-button>
-            <el-button size="small" @click="enterExportMode">
-              <el-icon><Download /></el-icon>导出
-            </el-button>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleAddRecord">
+              <Plus class="w-4 h-4 inline mr-1" />新增
+            </button>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200" @click="enterEditMode">
+              <Pencil class="w-4 h-4 inline mr-1" />编辑
+            </button>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200" @click="enterDeleteMode">
+              <Trash2 class="w-4 h-4 inline mr-1" />删除
+            </button>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="enterExportMode">
+              <Download class="w-4 h-4 inline mr-1" />导出
+            </button>
           </template>
           <!-- 模式按钮 -->
           <template v-else>
             <template v-if="editMode">
-              <el-button size="small" type="warning" @click="handleConfirmEdit">
-                确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-              </el-button>
-              <el-button size="small" @click="cancelSelection">取消</el-button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600" @click="handleConfirmEdit">
+                <Pencil class="w-4 h-4 inline mr-1" />确认编辑{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
+              </button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="cancelSelection">
+                <X class="w-4 h-4 inline mr-1" />取消
+              </button>
             </template>
             <template v-if="deleteMode">
-              <el-button size="small" type="danger" @click="handleConfirmDelete">
-                确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-              </el-button>
-              <el-button size="small" @click="cancelSelection">取消</el-button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="handleConfirmDelete">
+                <Trash2 class="w-4 h-4 inline mr-1" />确认删除{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
+              </button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="cancelSelection">
+                <X class="w-4 h-4 inline mr-1" />取消
+              </button>
             </template>
             <template v-if="exportMode">
-              <el-button size="small" type="primary" @click="handleConfirmExport">
-                <el-icon><Download /></el-icon>
-                确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
-              </el-button>
-              <el-button size="small" @click="cancelSelection">取消选择</el-button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleConfirmExport">
+                <Download class="w-4 h-4 inline mr-1" />确认导出{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
+              </button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="cancelSelection">
+                <X class="w-4 h-4 inline mr-1" />取消选择
+              </button>
             </template>
           </template>
         </div>
       </div>
 
-      <!-- 表格 -->
-      <el-table
-        :data="displayedRecords"
-        stripe
-        style="width: 100%; table-layout: fixed;"
-        @selection-change="handleSelectionChange"
-        ref="tableRef"
-      >
-        <el-table-column type="selection" width="48" v-if="hasActiveMode" />
-        <el-table-column type="expand" width="40">
-          <template #default="{ row }">
-            <div class="p-4 bg-gray-50">
-              <h4 class="text-sm font-semibold text-gray-700 mb-3">物料明细（共 {{ row.materials?.length || 0 }} 项）</h4>
-              <div class="overflow-x-auto">
-                <el-table :data="row.materials || []" size="small" border style="width: 100%; table-layout: fixed;">
-                  <el-table-column prop="code" label="物料编码" />
-                  <el-table-column prop="name" label="物料名称" />
-                  <el-table-column prop="category" label="分类" />
-                  <el-table-column prop="specification" label="规格" />
-                  <el-table-column label="数量" align="right">
-                    <template #default="{ row: m }">{{ m.quantity }} {{ m.unit }}</template>
-                  </el-table-column>
-                  <el-table-column prop="price" label="单价" align="right" />
-                  <el-table-column prop="batchNo" label="批次号" />
-                  <el-table-column prop="expiryDate" label="有效期至" />
-                </el-table>
-              </div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="入库单号">
-          <template #default="{ row }">
-            <span class="text-blue-600 cursor-pointer hover:text-blue-800 underline" @click="handleViewRecord(row)">{{ row.code }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="inboundDate" label="入库日期" />
-        <el-table-column prop="supplier" label="供应商" />
-        <el-table-column prop="operator" label="操作员" />
-        <el-table-column label="物料数量" align="center">
-          <template #default="{ row }">{{ row.materials?.length || 0 }} 种物料</template>
-        </el-table-column>
-        <el-table-column label="状态" align="center">
-          <template #default="{ row }">
-            <el-tag :type="getStatusTagType(row.status)" size="small">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="80" fixed="right" v-if="!hasActiveMode">
-          <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleViewRecord(row)">查看</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <!-- 表格主体 -->
+      <div class="overflow-auto max-h-[calc(100vh-400px)]">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+            <tr>
+              <th v-if="hasActiveMode" class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap">
+                <input type="checkbox" :checked="isAllSelected" @change="handleSelectAll" class="w-4 h-4 rounded border-white" />
+              </th>
+              <th class="px-4 py-3 text-left text-sm font-semibold w-12 whitespace-nowrap"></th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">入库单号</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">入库日期</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">供应商</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作员</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">物料数量</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
+              <th v-if="!hasActiveMode" class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-300">
+            <tr v-if="displayedRecords.length === 0">
+              <td :colspan="hasActiveMode ? 8 : 9" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+            </tr>
+            <template v-for="row in displayedRecords" :key="row.id">
+              <!-- 主数据行 -->
+              <tr class="hover:bg-blue-100 transition-colors">
+                <td v-if="hasActiveMode" class="px-4 py-3">
+                  <template v-if="deleteMode && row.status !== 'pending'">
+                    <span class="text-gray-300 text-xs">—</span>
+                  </template>
+                  <template v-else>
+                    <input type="checkbox" :checked="selectedRows.includes(row.id)" @change="toggleInboundRow(row.id)" class="w-4 h-4 rounded border-gray-400" />
+                  </template>
+                </td>
+                <td class="px-4 py-3">
+                  <button class="p-1 hover:bg-gray-100 rounded" @click="toggleExpandRow(row.id)">
+                    <ChevronDown v-if="expandedRows.has(row.id)" class="w-4 h-4 text-gray-500" />
+                    <ChevronRight v-else class="w-4 h-4 text-gray-500" />
+                  </button>
+                </td>
+                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                  <button class="text-blue-600 hover:text-blue-800 underline" @click="handleViewRecord(row)">{{ row.code }}</button>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.inboundDate }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.supplier }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.operator }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.materials?.length || 0 }} 种物料</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="{
+                    'bg-green-100 text-green-700': row.status === 'completed',
+                    'bg-gray-100 text-gray-700': row.status === 'voided',
+                    'bg-amber-100 text-amber-700': row.status === 'pending'
+                  }">
+                    {{ getStatusText(row.status) }}
+                  </span>
+                </td>
+                <td v-if="!hasActiveMode" class="px-4 py-3 whitespace-nowrap">
+                  <button class="text-blue-600 hover:text-blue-800" @click="handleViewRecord(row)">查看</button>
+                </td>
+              </tr>
+              <!-- 展开行：物料明细 -->
+              <tr v-if="expandedRows.has(row.id)" :key="'exp-' + row.id" class="bg-gray-50">
+                <td :colspan="hasActiveMode ? 8 : 9" class="p-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">物料明细（共 {{ row.materials?.length || 0 }} 项）</h4>
+                  <div class="overflow-x-auto">
+                    <table class="w-full border border-gray-200">
+                      <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                        <tr>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">分类</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">规格</th>
+                          <th class="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap">数量</th>
+                          <th class="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap">单价</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">批次号</th>
+                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">有效期至</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-200">
+                        <tr v-if="!row.materials || row.materials.length === 0">
+                          <td colspan="8" class="px-3 py-4 text-center text-sm text-gray-500">暂无物料明细</td>
+                        </tr>
+                        <tr v-for="m in (row.materials || [])" :key="m.id || m.code" class="hover:bg-white">
+                          <td class="px-3 py-2 text-xs text-gray-800 font-mono whitespace-nowrap">{{ m.code }}</td>
+                          <td class="px-3 py-2 text-xs text-gray-800 font-medium whitespace-nowrap">{{ m.name }}</td>
+                          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.category }}</td>
+                          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.specification }}</td>
+                          <td class="px-3 py-2 text-xs text-gray-800 text-right whitespace-nowrap">{{ m.quantity }} {{ m.unit }}</td>
+                          <td class="px-3 py-2 text-xs text-gray-800 text-right whitespace-nowrap">{{ m.price }}</td>
+                          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.batchNo || '-' }}</td>
+                          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.expiryDate || '-' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
       <!-- 分页 -->
-      <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">每页</span>
-          <el-select v-model="pageSize" style="width: 80px" @change="handlePageSizeChange">
-            <el-option :value="10" label="10" />
-            <el-option :value="20" label="20" />
-            <el-option :value="50" label="50" />
-          </el-select>
-          <span class="text-sm text-gray-500">条</span>
+      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <Pagination
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          :page-size="pageSize"
+          :page-size-options="[10, 20, 50]"
+          :show-page-size="true"
+          @page-change="(page) => { currentPage = page }"
+          @page-size-change="(size) => { pageSize = size; currentPage = 1 }"
+        />
+      </div>
+    </div>
+
+    <!-- ========== 5. 查看详情弹窗 ========== -->
+    <div v-if="showDetailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showDetailModal = false">
+      <div class="bg-white rounded-xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">入库记录详情</h3>
+          <button @click="showDetailModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-gray-500">
-            共 {{ paginationTotal }} 条，第 {{ currentPage }} / {{ totalPages }} 页
-          </span>
-          <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="paginationTotal"
-            layout="prev, pager, next"
-            small
-          />
+
+        <div v-if="detailRecord" class="p-6 overflow-y-auto max-h-[70vh]">
+          <!-- 入库单信息卡片 -->
+          <div class="bg-emerald-50 rounded-lg p-4 mb-6 border border-emerald-200">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <span class="text-xs text-emerald-600 block font-medium">入库单号</span>
+                <span class="text-lg font-mono font-bold text-emerald-700">{{ detailRecord.code }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-emerald-600 block font-medium">入库日期</span>
+                <span class="text-sm font-medium text-gray-900">{{ detailRecord.inboundDate || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-emerald-600 block font-medium">供应商</span>
+                <span class="text-sm font-medium text-gray-900">{{ detailRecord.supplier || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-emerald-600 block font-medium">操作员</span>
+                <span class="text-sm font-medium text-gray-900">{{ detailRecord.operator || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-emerald-600 block font-medium">状态</span>
+                <span class="text-sm font-medium" :class="{
+                  'text-green-600': detailRecord.status === 'completed',
+                  'text-gray-500': detailRecord.status === 'voided',
+                  'text-amber-600': detailRecord.status === 'pending'
+                }">
+                  {{ getStatusText(detailRecord.status) }}
+                </span>
+              </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-emerald-200">
+              <span class="text-xs text-emerald-600">物料统计：</span>
+              <span class="text-sm font-medium text-gray-900 ml-2">
+                共 {{ detailRecord.materials?.length || 0 }} 种物料，合计 {{ detailRecord.materials?.reduce((sum, m) => sum + Number(m.quantity), 0) || 0 }} 件
+              </span>
+            </div>
+          </div>
+
+          <!-- 物料明细表 -->
+          <h4 class="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Package class="w-5 h-5 text-emerald-600" />
+            物料明细
+          </h4>
+          <div class="overflow-auto rounded-lg border border-gray-200 max-h-80">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white sticky top-0 z-10">
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">分类</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">规格</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">条形码</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">单位</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">数量</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">单价</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">供应商</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">批次号</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">存放位置</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">备注</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="m in (detailRecord.materials || [])" :key="m.id || m.code" class="hover:bg-gray-50">
+                  <td class="px-3 py-2 text-xs text-blue-600 font-medium whitespace-nowrap">{{ m.code }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.name }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.category || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.specification || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.barcode || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.unit }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.quantity }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.price }}元</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.supplier || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.batchNo || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.location || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.remarks || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showDetailModal = false">
+            <X class="w-4 h-4 inline mr-1" />关闭
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- ========== 弹窗 ========== -->
-
-    <!-- 查看详情弹窗 -->
-    <el-dialog v-model="showDetailModal" title="入库详情" width="900px" :close-on-click-modal="false">
-      <template v-if="detailRecord">
-        <div class="bg-emerald-50 rounded-lg p-4 mb-6 border border-emerald-200">
-          <div class="grid grid-cols-5 gap-4">
-            <div>
-              <span class="text-xs text-emerald-600 block font-medium">入库单号</span>
-              <span class="text-lg font-mono font-bold text-emerald-700">{{ detailRecord.code }}</span>
-            </div>
-            <div>
-              <span class="text-xs text-emerald-600 block font-medium">入库日期</span>
-              <span class="text-sm font-medium text-gray-900">{{ detailRecord.inboundDate || '-' }}</span>
-            </div>
-            <div>
-              <span class="text-xs text-emerald-600 block font-medium">供应商</span>
-              <span class="text-sm font-medium text-gray-900">{{ detailRecord.supplier || '-' }}</span>
-            </div>
-            <div>
-              <span class="text-xs text-emerald-600 block font-medium">操作员</span>
-              <span class="text-sm font-medium text-gray-900">{{ detailRecord.operator || '-' }}</span>
-            </div>
-            <div>
-              <span class="text-xs text-emerald-600 block font-medium">状态</span>
-              <span class="text-sm font-medium" :class="{
-                'text-green-600': detailRecord.status === 'completed',
-                'text-gray-500': detailRecord.status === 'voided',
-                'text-amber-600': detailRecord.status === 'pending'
-              }">
-                {{ getStatusText(detailRecord.status) }}
-              </span>
-            </div>
-          </div>
-          <div class="mt-3 pt-3 border-t border-emerald-200">
-            <span class="text-xs text-emerald-600">物料统计：</span>
-            <span class="text-sm font-medium text-gray-900 ml-2">
-              共 {{ detailRecord.materials?.length || 0 }} 种物料，合计 {{ detailRecord.materials?.reduce((sum, m) => sum + Number(m.quantity), 0) || 0 }} 件
-            </span>
-          </div>
+    <!-- ========== 6. 新增入库弹窗 ========== -->
+    <div v-if="showAddModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showAddModal = false">
+      <div class="bg-white rounded-xl w-full max-w-7xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between flex-shrink-0">
+          <h3 class="text-lg font-semibold">新增入库记录</h3>
+          <button @click="showAddModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
         </div>
-        <h4 class="text-sm font-semibold text-gray-700 mb-2">物料明细</h4>
-        <el-table :data="detailRecord.materials || []" size="small" border max-height="300">
-          <el-table-column prop="code" label="物料编码" width="140" />
-          <el-table-column prop="name" label="物料名称" width="140" />
-          <el-table-column prop="category" label="分类" width="120" />
-          <el-table-column prop="specification" label="规格" width="100" />
-          <el-table-column prop="barcode" label="条形码" width="120" />
-          <el-table-column prop="unit" label="单位" width="70" />
-          <el-table-column prop="quantity" label="数量" width="80" />
-          <el-table-column prop="price" label="单价" width="80" />
-          <el-table-column prop="supplier" label="供应商" width="120" />
-          <el-table-column prop="batchNo" label="批次号" width="100" />
-          <el-table-column prop="location" label="存放位置" width="100" />
-          <el-table-column prop="remarks" label="备注" width="100" />
-        </el-table>
-      </template>
-      <template #footer>
-        <el-button @click="showDetailModal = false">关闭</el-button>
-      </template>
-    </el-dialog>
 
-    <!-- 新增入库弹窗 -->
-    <el-dialog v-model="showAddModal" title="新增入库" width="900px" :close-on-click-modal="false" @close="resetAddForm">
-      <el-form :model="addForm" label-width="100px" ref="addFormRef">
-        <el-form-item label="入库单号">
-          <div class="flex gap-2 w-full">
-            <el-input v-model="addForm.code" placeholder="点击自动生成" readonly class="flex-1" />
-            <el-button type="primary" @click="generateOrderCode">
-              <el-icon><Refresh /></el-icon>自动生成
-            </el-button>
-          </div>
-        </el-form-item>
-        <el-form-item label="入库日期">
-          <el-date-picker v-model="addForm.inboundDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="供应商">
-          <el-input v-model="addForm.supplier" placeholder="请输入供应商" />
-        </el-form-item>
-        <el-form-item label="操作员">
-          <el-input v-model="addForm.operator" placeholder="请输入操作员" />
-        </el-form-item>
-
-        <!-- 物料明细编辑区域 -->
-        <el-divider content-position="left">物料明细</el-divider>
-        <div class="mb-3 flex justify-end">
-          <el-button size="small" type="primary" @click="addMaterialRow">
-            <el-icon><Plus /></el-icon>添加物料
-          </el-button>
-        </div>
-        <div class="border rounded overflow-hidden">
-          <el-table :data="addForm.materials" size="small" border>
-            <el-table-column label="物料编码" width="150">
-              <template #default="{ row, $index }">
+        <!-- 弹窗内容 -->
+        <div class="p-6 overflow-y-auto flex-1">
+          <!-- 入库单信息 -->
+          <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-emerald-700 mb-1">入库单号</label>
                 <div class="flex gap-1">
-                  <el-input v-model="row.code" size="small" placeholder="编码" style="width: 110px" />
-                  <el-button size="small" text @click="openAddMaterialCodeGen($index)">
-                    <el-icon><Setting /></el-icon>
-                  </el-button>
+                  <input
+                    v-model="addForm.code"
+                    readonly
+                    placeholder="点击自动生成"
+                    class="flex-1 h-8 px-2 border border-gray-200 rounded text-sm font-mono bg-gray-50"
+                  />
+                  <button class="h-8 px-2 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="generateOrderCode">
+                    <RefreshCw class="w-4 h-4" />
+                  </button>
                 </div>
-              </template>
-            </el-table-column>
-            <el-table-column label="物料名称" width="130">
-              <template #default="{ row }">
-                <el-input v-model="row.name" size="small" placeholder="名称" />
-              </template>
-            </el-table-column>
-            <el-table-column label="分类" width="120">
-              <template #default="{ row }">
-                <el-input v-model="row.category" size="small" placeholder="分类" />
-              </template>
-            </el-table-column>
-            <el-table-column label="规格" width="100">
-              <template #default="{ row }">
-                <el-input v-model="row.specification" size="small" placeholder="规格" />
-              </template>
-            </el-table-column>
-            <el-table-column label="条形码" width="110">
-              <template #default="{ row }">
-                <el-input v-model="row.barcode" size="small" placeholder="条形码" />
-              </template>
-            </el-table-column>
-            <el-table-column label="单位" width="80">
-              <template #default="{ row }">
-                <el-select v-model="row.unit" size="small" placeholder="单位">
-                  <el-option v-for="u in unitOptions" :key="u" :label="u" :value="u" />
-                </el-select>
-              </template>
-            </el-table-column>
-            <el-table-column label="数量" width="80">
-              <template #default="{ row }">
-                <el-input v-model.number="row.quantity" size="small" type="number" placeholder="数量" />
-              </template>
-            </el-table-column>
-            <el-table-column label="单价" width="80">
-              <template #default="{ row }">
-                <el-input v-model="row.price" size="small" placeholder="单价" />
-              </template>
-            </el-table-column>
-            <el-table-column label="供应商" width="120">
-              <template #default="{ row }">
-                <el-input v-model="row.supplier" size="small" placeholder="供应商" />
-              </template>
-            </el-table-column>
-            <el-table-column label="存放位置" width="100">
-              <template #default="{ row }">
-                <el-input v-model="row.location" size="small" placeholder="位置" />
-              </template>
-            </el-table-column>
-            <el-table-column label="批号" width="100">
-              <template #default="{ row }">
-                <el-input v-model="row.batchNo" size="small" placeholder="批号" />
-              </template>
-            </el-table-column>
-            <el-table-column label="生产日期" width="120">
-              <template #default="{ row }">
-                <el-date-picker v-model="row.productionDate" type="date" size="small" value-format="YYYY-MM-DD" placeholder="生产日期" style="width: 100%" />
-              </template>
-            </el-table-column>
-            <el-table-column label="过期日期" width="120">
-              <template #default="{ row }">
-                <el-date-picker v-model="row.expiryDate" type="date" size="small" value-format="YYYY-MM-DD" placeholder="过期日期" style="width: 100%" />
-              </template>
-            </el-table-column>
-            <el-table-column label="备注" width="100">
-              <template #default="{ row }">
-                <el-input v-model="row.remarks" size="small" placeholder="备注" />
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="60" fixed="right">
-              <template #default="{ $index }">
-                <el-button link type="danger" size="small" @click="removeMaterialRow($index)">
-                  <el-icon><Delete /></el-icon>
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-
-        <!-- 弹窗内编码生成器 -->
-        <div v-if="showModalCodeGen" class="mt-3 p-3 bg-gray-50 rounded border">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-sm font-semibold text-gray-700">编码生成（第{{ modalCodeGenIndex + 1 }}行物料）</span>
-            <el-button link size="small" @click="showModalCodeGen = false">关闭</el-button>
-          </div>
-          <div class="grid grid-cols-4 gap-3">
-            <el-select v-model="modalCodeGen.bigCategory" placeholder="大类" size="small" @change="handleModalCodeGenBigChange">
-              <el-option v-for="cat in bigCategoriesList" :key="cat.code" :label="`${cat.code} - ${cat.name}`" :value="cat.code" />
-            </el-select>
-            <el-select v-model="modalCodeGen.midCategory" placeholder="中类" size="small" :disabled="!modalCodeGen.bigCategory" @change="handleModalCodeGenMidChange">
-              <el-option v-for="cat in modalMidCategories" :key="cat.code" :label="`${cat.code} - ${cat.name}`" :value="cat.code" />
-            </el-select>
-            <el-select v-model="modalCodeGen.subCategory" placeholder="小类" size="small" :disabled="!modalCodeGen.midCategory">
-              <el-option v-for="cat in modalSubCategories" :key="cat.code" :label="`${cat.code} - ${cat.name}`" :value="cat.code" />
-            </el-select>
-            <div class="flex gap-1">
-              <el-button size="small" type="primary" :disabled="!modalCodeGen.subCategory" @click="generateModalCode">生成</el-button>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-emerald-700 mb-1">入库日期</label>
+                <input
+                  v-model="addForm.inboundDate"
+                  type="date"
+                  class="w-full h-8 px-2 border border-gray-200 rounded text-sm bg-gray-100 cursor-not-allowed"
+                  readonly
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-emerald-700 mb-1">供应商</label>
+                <input
+                  v-model="addForm.supplier"
+                  placeholder="请输入供应商"
+                  class="w-full h-8 px-2 border border-gray-200 rounded text-sm"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-emerald-700 mb-1">操作员</label>
+                <input
+                  v-model="addForm.operator"
+                  placeholder="请输入操作员"
+                  class="w-full h-8 px-2 border border-gray-200 rounded text-sm"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAddModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveNewInbound">保存</el-button>
-      </template>
-    </el-dialog>
 
-    <!-- 编辑入库弹窗（状态感知） -->
-    <el-dialog v-model="showEditModal" title="编辑入库记录" width="900px" :close-on-click-modal="false">
-      <template v-if="editRecord">
-        <!-- 已完成状态警告 -->
-        <div v-if="editRecord.status === 'completed'" class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
-          <el-icon color="#f59e0b"><WarningFilled /></el-icon>
-          <span class="text-sm text-amber-700">此记录已完成，物料明细不可编辑。如需修改请申请作废后重新录入。</span>
-        </div>
-        <!-- 已作废状态提示 -->
-        <div v-if="editRecord.status === 'voided'" class="mb-4 p-3 bg-gray-100 border border-gray-400 rounded-lg flex items-center gap-2">
-          <el-icon color="#6b7280"><WarningFilled /></el-icon>
-          <span class="text-sm text-gray-600">此记录已作废，仅供查看，无法编辑。</span>
-        </div>
+          <!-- 物料明细 -->
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-semibold text-gray-800">物料明细（{{ addForm.materials.length }}种物料）</h4>
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="addMaterialRow">
+              <Plus class="w-3 h-3 inline mr-1" />添加物料
+            </button>
+          </div>
 
-        <div class="bg-gray-50 rounded-lg p-4 mb-4">
-          <div class="grid grid-cols-5 gap-4">
-            <div>
-              <span class="text-xs text-gray-500 block">入库单号</span>
-              <span class="text-sm font-medium text-gray-900">{{ editRecord.code }}</span>
+          <div v-if="addForm.materials.length === 0" class="text-center py-8 text-gray-500 text-sm">
+            暂无物料，请点击"添加物料"按钮添加
+          </div>
+
+          <div v-else class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="text-xs" style="min-width: 2000px">
+              <thead>
+                <tr>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">操作</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">物料编码</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">物料名称</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">分类</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">规格</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">条形码</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">单位</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">数量</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">单价</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">供应商</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">存放位置</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">批号</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">生产日期</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">有效期至</th>
+                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">备注</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="(m, idx) in addForm.materials" :key="m.id">
+                  <td class="px-2 py-1.5 whitespace-nowrap">
+                    <button class="text-red-500 hover:bg-red-50 p-1 rounded" @click="removeMaterialRow(idx)">
+                      <Trash2 class="w-3.5 h-3.5" />
+                    </button>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <div class="flex gap-1">
+                      <input v-model="m.code" placeholder="编码" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                      <button class="text-gray-500 hover:text-blue-600 p-0.5" @click="openAddMaterialCodeGen(idx)">
+                        <Settings class="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.name" placeholder="名称" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.category" placeholder="分类" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.specification" placeholder="规格" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.barcode" placeholder="条形码" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <select v-model="m.unit" class="w-14 h-6 px-1 border border-gray-200 rounded text-xs bg-white">
+                      <option v-for="u in unitOptions" :key="u" :value="u">{{ u }}</option>
+                    </select>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model.number="m.quantity" type="number" placeholder="数量" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.price" placeholder="单价" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.supplier" placeholder="供应商" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.location" placeholder="位置" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.batchNo" placeholder="批号" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.productionDate" type="date" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.expiryDate" type="date" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <input v-model="m.remarks" placeholder="备注" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 弹窗内编码生成器（与V1.1一致） -->
+          <div v-if="showModalCodeGen" class="mt-3 p-3 bg-gray-50 rounded border">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-sm font-semibold text-gray-700">编码生成（第{{ modalCodeGenIndex + 1 }}行物料）</span>
+              <button class="text-sm text-blue-600 hover:text-blue-800" @click="showModalCodeGen = false">关闭</button>
             </div>
-            <div>
-              <span class="text-xs text-gray-500 block">入库日期</span>
-              <span class="text-sm font-medium text-gray-900">{{ editRecord.inboundDate }}</span>
-            </div>
-            <div>
-              <span class="text-xs text-gray-500 block">供应商</span>
-              <span class="text-sm font-medium text-gray-900">{{ editRecord.supplier }}</span>
-            </div>
-            <div>
-              <span class="text-xs text-gray-500 block">操作员</span>
-              <span class="text-sm font-medium text-gray-900">{{ editRecord.operator }}</span>
-            </div>
-            <div>
-              <span class="text-xs text-gray-500 block">状态</span>
-              <span class="text-sm font-medium" :class="{
-                'text-amber-600': editRecord.status === 'pending',
-                'text-green-600': editRecord.status === 'completed',
-                'text-gray-500': editRecord.status === 'voided'
-              }">{{ getStatusText(editRecord.status) }}</span>
+            <div class="grid grid-cols-4 gap-3">
+              <select v-model="modalCodeGen.bigCategory" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="handleModalCodeGenBigChange">
+                <option value="">大类</option>
+                <option v-for="cat in bigCategoriesList" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+              </select>
+              <select v-model="modalCodeGen.midCategory" :disabled="!modalCodeGen.bigCategory" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="handleModalCodeGenMidChange">
+                <option value="">中类</option>
+                <option v-for="cat in modalMidCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+              </select>
+              <select v-model="modalCodeGen.subCategory" :disabled="!modalCodeGen.midCategory" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option value="">小类</option>
+                <option v-for="cat in modalSubCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+              </select>
+              <div class="flex gap-1">
+                <button
+                  :disabled="!modalCodeGen.subCategory"
+                  class="h-10 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="generateModalCode"
+                >生成</button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="flex items-center justify-between mb-3">
-          <h4 class="text-sm font-semibold text-gray-800">物料明细（{{ editForm.materials.length }}种物料）</h4>
-          <el-button v-if="editRecord.status === 'pending'" size="small" type="primary" @click="addEditMaterialRow">
-            <el-icon><Plus /></el-icon>添加物料
-          </el-button>
-        </div>
-        <div class="border rounded overflow-hidden">
-          <el-table :data="editForm.materials" size="small" border>
-            <el-table-column label="操作" width="60" fixed="right">
-              <template #default="{ $index }">
-                <el-button v-if="editRecord.status === 'pending'" link type="danger" size="small" @click="removeEditMaterialRow($index)">
-                  <el-icon><Delete /></el-icon>
-                </el-button>
-                <span v-else class="text-gray-400">-</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="物料编码" width="140">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.code" size="small" placeholder="编码" />
-                </template>
-                <span v-else class="text-xs text-blue-600 font-medium">{{ row.code }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="物料名称" min-width="130">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.name" size="small" placeholder="名称" />
-                </template>
-                <span v-else class="text-xs text-gray-900">{{ row.name }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="分类" width="120">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.category" size="small" placeholder="分类" />
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.category || '-' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="规格" width="100">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.specification" size="small" placeholder="规格" />
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.specification || '-' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="条形码" width="110">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.barcode" size="small" placeholder="条形码" />
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.barcode || '-' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="单位" width="80">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-select v-model="row.unit" size="small">
-                    <el-option v-for="u in unitOptions" :key="u" :label="u" :value="u" />
-                  </el-select>
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.unit }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="数量" width="80">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model.number="row.quantity" size="small" type="number" />
-                </template>
-                <span v-else class="text-xs text-gray-900">{{ row.quantity }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="单价" width="80">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.price" size="small" placeholder="单价" />
-                </template>
-                <span v-else class="text-xs text-gray-900">{{ row.price }}元</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="批次号" width="100">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.batchNo" size="small" placeholder="批次号" />
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.batchNo || '-' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="存放位置" width="100">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.location" size="small" placeholder="位置" />
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.location || '-' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="生产日期" width="120">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-date-picker v-model="row.productionDate" type="date" size="small" value-format="YYYY-MM-DD" style="width: 100%" />
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.productionDate || '-' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="过期日期" width="120">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-date-picker v-model="row.expiryDate" type="date" size="small" value-format="YYYY-MM-DD" style="width: 100%" />
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.expiryDate || '-' }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="备注" width="100">
-              <template #default="{ row }">
-                <template v-if="editRecord.status === 'pending'">
-                  <el-input v-model="row.remarks" size="small" placeholder="备注" />
-                </template>
-                <span v-else class="text-xs text-gray-600">{{ row.remarks || '-' }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-      </template>
-      <template #footer>
-        <el-button v-if="editRecord?.status === 'completed'" type="warning" @click="handleApplyVoid">申请作废</el-button>
-        <el-button @click="showEditModal = false">关闭</el-button>
-        <el-button v-if="editRecord?.status === 'pending'" type="primary" @click="handleSaveEdit">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 批量编辑弹窗 -->
-    <el-dialog v-model="showBatchEditModal" title="批量编辑入库记录" width="700px" :close-on-click-modal="false">
-      <p class="text-sm text-gray-500 mb-4">正在编辑 {{ batchEditRecords.length }} 条入库记录</p>
-      <el-form label-width="100px">
-        <el-form-item label="入库日期">
-          <el-date-picker v-model="batchEditFields.inboundDate" type="date" placeholder="留空则不修改" value-format="YYYY-MM-DD" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="供应商">
-          <el-input v-model="batchEditFields.supplier" placeholder="留空则不修改" />
-        </el-form-item>
-        <el-form-item label="操作员">
-          <el-input v-model="batchEditFields.operator" placeholder="留空则不修改" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="batchEditFields.status" placeholder="留空则不修改" style="width: 100%">
-            <el-option label="已完成" value="completed" />
-            <el-option label="待审核" value="pending" />
-            <el-option label="已作废" value="voided" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showBatchEditModal = false">取消</el-button>
-        <el-button type="primary" @click="handleBatchSave">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 删除确认弹窗 -->
-    <el-dialog v-model="showDeleteModal" title="确认删除" width="500px" :close-on-click-modal="false">
-      <div class="text-center py-4">
-        <el-icon :size="48" color="#f56c6c"><WarningFilled /></el-icon>
-        <p class="mt-4 text-gray-700">确定要删除以下 {{ deleteRecords.length }} 条入库记录吗？此操作不可恢复。</p>
-        <div class="mt-3 max-h-40 overflow-y-auto">
-          <p v-for="r in deleteRecords" :key="r.id" class="text-sm text-gray-500 py-1">{{ r.code }} - {{ r.supplier }}</p>
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2 flex-shrink-0">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showAddModal = false">
+            <X class="w-4 h-4 inline mr-1" />取消
+          </button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSaveNewInbound">保存</button>
         </div>
       </div>
-      <template #footer>
-        <el-button @click="showDeleteModal = false">取消</el-button>
-        <el-button type="danger" @click="handleConfirmDeleteExecute">确认删除</el-button>
-      </template>
-    </el-dialog>
+    </div>
 
-    <!-- 导出弹窗 -->
-    <el-dialog v-model="showExportModal" title="选择导出格式" width="500px" :close-on-click-modal="false">
-      <p class="text-sm text-gray-500 mb-4">已选择 {{ exportRecords.length }} 条数据</p>
-      <div class="space-y-3">
-        <el-radio-group v-model="exportFormat">
-          <div
-            v-for="fmt in exportFormats"
-            :key="fmt.value"
-            :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all mb-2',
-              exportFormat === fmt.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300']"
-            @click="exportFormat = fmt.value"
-          >
-            <el-radio :value="fmt.value">
-              <span class="ml-2 block text-sm font-medium text-gray-900">{{ fmt.label }}</span>
-              <span class="ml-2 block text-xs text-gray-500">{{ fmt.desc }}</span>
-            </el-radio>
+    <!-- ========== 7. 编辑入库弹窗（状态感知） ========== -->
+    <div v-if="showEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showEditModal = false">
+      <div class="bg-white rounded-xl w-full max-w-7xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between flex-shrink-0">
+          <h3 class="text-lg font-semibold">编辑入库记录</h3>
+          <button @click="showEditModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div v-if="editRecord" class="p-6 overflow-y-auto flex-1">
+          <!-- 已完成状态警告 -->
+          <div v-if="editRecord.status === 'completed'" class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+            <AlertTriangle class="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <span class="text-sm text-amber-700">此记录已完成，物料明细不可编辑。如需修改请申请作废后重新录入。</span>
           </div>
-        </el-radio-group>
+          <!-- 已作废状态提示 -->
+          <div v-if="editRecord.status === 'voided'" class="mb-4 p-3 bg-gray-100 border border-gray-400 rounded-lg flex items-center gap-2">
+            <AlertTriangle class="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <span class="text-sm text-gray-600">此记录已作废，仅供查看，无法编辑。</span>
+          </div>
+
+          <!-- 入库单信息 -->
+          <div class="bg-gray-50 rounded-lg p-4 mb-4">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <span class="text-xs text-gray-500 block">入库单号</span>
+                <span class="text-sm font-medium text-gray-900">{{ editRecord.code }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">入库日期</span>
+                <span class="text-sm font-medium text-gray-900">{{ editRecord.inboundDate }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">供应商</span>
+                <span class="text-sm font-medium text-gray-900">{{ editRecord.supplier }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">操作员</span>
+                <span class="text-sm font-medium text-gray-900">{{ editRecord.operator }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">状态</span>
+                <span class="text-sm font-medium" :class="{
+                  'text-amber-600': editRecord.status === 'pending',
+                  'text-green-600': editRecord.status === 'completed',
+                  'text-gray-500': editRecord.status === 'voided'
+                }">{{ getStatusText(editRecord.status) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 物料明细 -->
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-semibold text-gray-800">物料明细（{{ editForm.materials.length }}种物料）</h4>
+            <button v-if="editRecord.status === 'pending'" class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="addEditMaterialRow">
+              <Plus class="w-3 h-3 inline mr-1" />添加物料
+            </button>
+          </div>
+
+          <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white max-h-80">
+            <table class="text-xs" style="min-width: 1600px">
+              <thead>
+                <tr>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">操作</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">物料编码</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">物料名称</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">分类</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">规格</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">条形码</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">单位</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">数量</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">单价</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">批次号</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">存放位置</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">生产日期</th>
+                  <th class="px-2 py-2 font-semibold text-blue-800 whitespace-nowrap">过期日期</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="(m, idx) in editForm.materials" :key="m.id">
+                  <td class="px-2 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <button class="text-red-500 hover:bg-red-50 p-1 rounded" @click="removeEditMaterialRow(idx)">
+                        <Trash2 class="w-3.5 h-3.5" />
+                      </button>
+                    </template>
+                    <span v-else class="text-gray-400">-</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.code" placeholder="编码" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-blue-600 font-medium">{{ m.code }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.name" placeholder="名称" class="w-32 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-900">{{ m.name }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.category" placeholder="分类" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-600">{{ m.category || '-' }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.specification" placeholder="规格" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-600">{{ m.specification || '-' }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.barcode" placeholder="条形码" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-600">{{ m.barcode || '-' }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <select v-model="m.unit" class="w-14 h-6 px-1 border border-gray-200 rounded text-xs bg-white">
+                        <option v-for="u in unitOptions" :key="u" :value="u">{{ u }}</option>
+                      </select>
+                    </template>
+                    <span v-else class="text-xs text-gray-600">{{ m.unit }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model.number="m.quantity" type="number" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-900">{{ m.quantity }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.price" placeholder="单价" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-900">{{ m.price }}元</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.batchNo" placeholder="批次号" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-600">{{ m.batchNo || '-' }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.location" placeholder="位置" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-600">{{ m.location || '-' }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.productionDate" type="date" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-600">{{ m.productionDate || '-' }}</span>
+                  </td>
+                  <td class="px-1 py-1.5 whitespace-nowrap">
+                    <template v-if="editRecord.status === 'pending'">
+                      <input v-model="m.expiryDate" type="date" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" />
+                    </template>
+                    <span v-else class="text-xs text-gray-600">{{ m.expiryDate || '-' }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2 flex-shrink-0">
+          <button v-if="editRecord?.status === 'completed'" class="h-8 px-4 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600" @click="handleApplyVoid">
+            <X class="w-4 h-4 inline mr-1" />申请作废
+          </button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showEditModal = false">
+            <X class="w-4 h-4 inline mr-1" />关闭
+          </button>
+          <button v-if="editRecord?.status === 'pending'" class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSaveEdit">保存</button>
+        </div>
       </div>
-      <template #footer>
-        <el-button @click="showExportModal = false; exitExportMode()">取消</el-button>
-        <el-button type="primary" @click="handleDoExport">导出</el-button>
-      </template>
-    </el-dialog>
+    </div>
+
+    <!-- ========== 8. 批量编辑弹窗 ========== -->
+    <div v-if="showBatchEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showBatchEditModal = false">
+      <div class="bg-white rounded-xl w-full max-w-xl max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">批量编辑入库记录</h3>
+          <div class="flex items-center gap-3">
+            <span class="px-2 py-0.5 bg-emerald-500 text-white text-xs rounded">已选择 {{ batchEditRecords.length }} 条</span>
+            <button @click="showBatchEditModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+          </div>
+        </div>
+
+        <div class="p-6 overflow-y-auto max-h-[70vh]">
+          <p class="text-sm text-gray-500 mb-4">正在编辑 {{ batchEditRecords.length }} 条入库记录</p>
+
+          <div class="grid gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">入库日期</label>
+              <input
+                v-model="batchEditFields.inboundDate"
+                type="date"
+                placeholder="留空则不修改"
+                class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">供应商</label>
+              <input
+                v-model="batchEditFields.supplier"
+                placeholder="留空则不修改"
+                class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">操作员</label>
+              <input
+                v-model="batchEditFields.operator"
+                placeholder="留空则不修改"
+                class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">状态</label>
+              <select
+                v-model="batchEditFields.status"
+                class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm bg-white"
+              >
+                <option value="">留空则不修改</option>
+                <option value="completed">已完成</option>
+                <option value="pending">待审核</option>
+                <option value="voided">已作废</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showBatchEditModal = false">
+            <X class="w-4 h-4 inline mr-1" />取消
+          </button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleBatchSave">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 9. 删除确认弹窗 ========== -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showDeleteModal = false">
+      <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">确认删除</h3>
+          <button @click="showDeleteModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+              <AlertTriangle class="w-6 h-6 text-red-600" />
+            </div>
+            <span class="text-sm text-gray-700 font-medium">确定要删除选中的入库记录吗？</span>
+          </div>
+
+          <div class="text-sm text-gray-600 mb-4">
+            <div class="p-2 bg-gray-50 rounded text-xs">
+              <p><strong>选中数量：</strong>{{ deleteRecords.length }} 条入库记录</p>
+              <p><strong>物料总数：</strong>{{ deleteRecords.reduce((sum, r) => sum + (r.materials?.length || 0), 0) }} 种物料</p>
+            </div>
+            <p class="mt-2 text-red-500 text-xs">此操作不可撤销</p>
+          </div>
+
+          <div class="mt-3 max-h-40 overflow-y-auto">
+            <p v-for="r in deleteRecords" :key="r.id" class="text-sm text-gray-500 py-1">{{ r.code }} - {{ r.supplier }}</p>
+          </div>
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showDeleteModal = false">
+            <X class="w-4 h-4 inline mr-1" />取消
+          </button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="handleConfirmDeleteExecute">
+            <Trash2 class="w-4 h-4 inline mr-1" />确认删除
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 10. 导出弹窗 ========== -->
+    <div v-if="showExportModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showExportModal = false">
+      <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">选择导出格式</h3>
+          <button @click="showExportModal = false; exitExportMode()" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="p-6">
+          <p class="text-sm text-gray-500 mb-4">已选择 {{ exportRecords.length }} 条入库记录</p>
+
+          <div class="space-y-3">
+            <label
+              v-for="fmt in exportFormats"
+              :key="fmt.value"
+              :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all',
+                exportFormat === fmt.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-400']"
+              @click="exportFormat = fmt.value"
+            >
+              <input
+                type="radio"
+                :value="fmt.value"
+                v-model="exportFormat"
+                class="w-4 h-4 text-emerald-600 border-gray-400"
+              />
+              <div class="ml-3">
+                <span class="block text-sm font-medium text-gray-900">{{ fmt.label }}</span>
+                <span class="block text-xs text-gray-500">{{ fmt.desc }}</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showExportModal = false; exitExportMode()">
+            <X class="w-4 h-4 inline mr-1" />取消
+          </button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleDoExport">
+            <Download class="w-4 h-4 inline mr-1" />导出
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { Goods, ArrowDown, ArrowUp, Download, Plus, Edit, Delete, Refresh, Setting, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { Package, ChevronDown, ChevronRight, Plus, Pencil, Trash2, Download, RefreshCw, Settings, AlertTriangle, X } from 'lucide-vue-next'
 import { useInboundStore } from '@/stores/modules/inventory/useInboundStore'
+import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 // ==================== 常量配置（与V1.1一致） ====================
 
@@ -1051,7 +1267,17 @@ const handleGenerateCode = () => {
     return
   }
   const baseCode = `${codeGen.bigCategory}${codeGen.midCategory}${codeGen.subCategory}`
-  const seq = Math.floor(Math.random() * 999) + 1
+  // P0修复: V1.1 max+1 自增编码（避免 Math.random() 重复）
+  const existingCodes = (inboundStore.inboundRecords || []).flatMap(r =>
+    (r.materials || []).map(m => m.code || m.materialCode || '')
+  ).filter(c => c.startsWith(baseCode))
+  let maxSeq = 0
+  existingCodes.forEach(c => {
+    const suffix = c.slice(baseCode.length)
+    const num = parseInt(suffix, 10)
+    if (!isNaN(num) && num > maxSeq) maxSeq = num
+  })
+  const seq = maxSeq + 1
   codeGen.generatedCode = `${baseCode}${String(seq).padStart(3, '0')}`
   codeGenSuccess.value = `生成成功: ${codeGen.generatedCode}`
 }
@@ -1088,6 +1314,26 @@ const handlePageSizeChange = () => {
 
 const handleSelectionChange = (selection) => {
   selectedRows.value = selection.map(row => row.id)
+}
+
+// 展开行状态
+const expandedRows = ref(new Set())
+
+/** 展开/折叠行 */
+const toggleExpandRow = (id) => {
+  const newSet = new Set(expandedRows.value)
+  if (newSet.has(id)) newSet.delete(id)
+  else newSet.add(id)
+  expandedRows.value = newSet
+}
+
+/** 单行选中切换 */
+const toggleInboundRow = (id) => {
+  if (selectedRows.value.includes(id)) {
+    selectedRows.value = selectedRows.value.filter(rid => rid !== id)
+  } else {
+    selectedRows.value = [...selectedRows.value, id]
+  }
 }
 
 const handleSelectAll = () => {
@@ -1237,7 +1483,17 @@ const handleModalCodeGenMidChange = () => {
 const generateModalCode = () => {
   if (!modalCodeGen.bigCategory || !modalCodeGen.midCategory || !modalCodeGen.subCategory) return
   const baseCode = `${modalCodeGen.bigCategory}${modalCodeGen.midCategory}${modalCodeGen.subCategory}`
-  const seq = Math.floor(Math.random() * 999) + 1
+  // P0修复: V1.1 max+1 自增编码（避免 Math.random() 重复）
+  const existingCodes = (inboundStore.inboundRecords || []).flatMap(r =>
+    (r.materials || []).map(m => m.code || m.materialCode || '')
+  ).filter(c => c.startsWith(baseCode))
+  let maxSeq = 0
+  existingCodes.forEach(c => {
+    const suffix = c.slice(baseCode.length)
+    const num = parseInt(suffix, 10)
+    if (!isNaN(num) && num > maxSeq) maxSeq = num
+  })
+  const seq = maxSeq + 1
   const code = `${baseCode}${String(seq).padStart(3, '0')}`
   if (modalCodeGenIndex.value >= 0 && modalCodeGenIndex.value < addForm.materials.length) {
     addForm.materials[modalCodeGenIndex.value].code = code
@@ -1468,29 +1724,3 @@ onMounted(async () => {
   await inboundStore.loadInboundRecords()
 })
 </script>
-
-<style scoped>
-/* 主表格：蓝色渐变原生表头 */
-:deep(.el-table__header-wrapper .el-table__header th) {
-  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-:deep(.el-table__header-wrapper .el-table__header th .cell) {
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-
-/* 展开行子表格：绿色渐变原生表头 */
-:deep(.el-table__expanded-cell .el-table__header-wrapper .el-table__header th) {
-  background: linear-gradient(to right, #10b981, #059669) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-:deep(.el-table__expanded-cell .el-table__header-wrapper .el-table__header th .cell) {
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-</style>
-
-

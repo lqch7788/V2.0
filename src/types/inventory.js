@@ -42,6 +42,14 @@ export const SourceType = {
   SELF_PRODUCED: 'self_produced',
   /** 外购 */
   EXTERNAL_PURCHASED: 'external_purchased',
+  /** 赠送 (V1.1 1:1 对齐) */
+  GIFT: 'gift',
+  /** 委托 (V1.1 1:1 对齐) */
+  COMMISSIONED: 'commissioned',
+  /** 调拨 (V1.1 1:1 对齐) */
+  TRANSFER: 'transfer',
+  /** 手动入库 (V1.1 1:1 对齐) */
+  MANUAL: 'manual',
 }
 
 /**
@@ -78,6 +86,8 @@ export const BusinessType = {
   HARVEST: 'harvest',
   /** 采购入库 */
   PURCHASE: 'purchase',
+  /** 手动操作 (V1.1 1:1 对齐) */
+  MANUAL: 'manual',
   /** 其他 */
   OTHER: 'other',
 }

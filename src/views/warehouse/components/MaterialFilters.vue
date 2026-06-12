@@ -5,12 +5,11 @@
       <!-- 物料编号 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">物料编号</label>
-        <el-input
+        <input
           v-model="localFilters.code"
           type="text"
           placeholder="搜索编号"
-          clearable
-          @clear="handleChange('code', '')"
+          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
           @input="handleInputChange('code', localFilters.code)"
         />
       </div>
@@ -18,12 +17,11 @@
       <!-- 物料名称 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">物料名称</label>
-        <el-input
+        <input
           v-model="localFilters.name"
           type="text"
           placeholder="搜索名称"
-          clearable
-          @clear="handleChange('name', '')"
+          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
           @input="handleInputChange('name', localFilters.name)"
         />
       </div>
@@ -31,12 +29,11 @@
       <!-- 供应商 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
-        <el-input
+        <input
           v-model="localFilters.supplier"
           type="text"
           placeholder="搜索供应商"
-          clearable
-          @clear="handleChange('supplier', '')"
+          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
           @input="handleInputChange('supplier', localFilters.supplier)"
         />
       </div>
@@ -44,12 +41,11 @@
       <!-- 存放位置 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">存放位置</label>
-        <el-input
+        <input
           v-model="localFilters.location"
           type="text"
           placeholder="搜索位置"
-          clearable
-          @clear="handleChange('location', '')"
+          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
           @input="handleInputChange('location', localFilters.location)"
         />
       </div>
@@ -57,64 +53,61 @@
       <!-- 大类 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">大类</label>
-        <el-select
+        <select
           v-model="localFilters.searchBigCategory"
-          placeholder="全部"
-          clearable
+          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
           @change="handleChange('searchBigCategory', localFilters.searchBigCategory)"
         >
-          <el-option
+          <option value="">全部</option>
+          <option
             v-for="cat in getSearchBigCategories()"
             :key="cat.code"
-            :label="`${cat.code} - ${cat.name}`"
             :value="cat.code"
-          />
-        </el-select>
+          >{{ cat.code }} - {{ cat.name }}</option>
+        </select>
       </div>
 
       <!-- 中类 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">中类</label>
-        <el-select
+        <select
           v-model="localFilters.searchMidCategory"
-          placeholder="全部"
-          clearable
+          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
           :disabled="!localFilters.searchBigCategory"
           @change="handleChange('searchMidCategory', localFilters.searchMidCategory)"
         >
-          <el-option
+          <option value="">全部</option>
+          <option
             v-for="cat in getSearchMidCategories()"
             :key="cat.code"
-            :label="`${cat.code} - ${cat.name}`"
             :value="cat.code"
-          />
-        </el-select>
+          >{{ cat.code }} - {{ cat.name }}</option>
+        </select>
       </div>
 
       <!-- 小类 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">小类</label>
-        <el-select
+        <select
           v-model="localFilters.searchSubCategory"
-          placeholder="全部"
-          clearable
+          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
           :disabled="!localFilters.searchMidCategory"
           @change="handleChange('searchSubCategory', localFilters.searchSubCategory)"
         >
-          <el-option
+          <option value="">全部</option>
+          <option
             v-for="cat in getSearchSubCategories()"
             :key="cat.code"
-            :label="`${cat.code} - ${cat.name}`"
             :value="cat.code"
-          />
-        </el-select>
+          >{{ cat.code }} - {{ cat.name }}</option>
+        </select>
       </div>
 
       <!-- 重置按钮 -->
       <div class="flex items-end gap-2">
-        <el-button size="default" type="primary" @click="handleReset">
+        <button class="h-10 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleReset">
           重置
-        </el-button>
+        </button>
       </div>
     </div>
   </div>

@@ -7,15 +7,22 @@ import { getDatabase, saveDatabase } from '../db/index.js';
 import { queryToObjects, execCount } from '../utils/queryHelper.js';
 const router = Router();
 /**
- * 生成物料申请编码
+ * 生成物料申请编码（V1.1 generateMaterialRequestCode 1:1 对齐）
+ * 格式: MRYYYYMMDD-NNN（DB自增序号 +1，非随机数）
  */
 function generateMaterialRequestCode() {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const seq = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-    return `MR${year}${month}${day}${seq}`;
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const db = getDatabase();
+    // 查询当日最大序号，DB 自增 +1（V1.1 逻辑：避免 Math.random() 重复）
+    const rows = queryToObjects(db, `SELECT request_code FROM material_requests WHERE request_code LIKE ? ORDER BY request_code DESC LIMIT 1`, [`MR${dateStr}-%`]);
+    let seq = 1;
+    if (rows.length > 0) {
+        const lastCode = rows[0].request_code || '';
+        const lastSeq = parseInt(lastCode.split('-')[1] || '0', 10);
+        if (!isNaN(lastSeq)) seq = lastSeq + 1;
+    }
+    return `MR${dateStr}-${String(seq).padStart(3, '0')}`;
 }
 /**
  * 获取物料申请列表

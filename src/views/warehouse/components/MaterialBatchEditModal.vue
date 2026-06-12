@@ -1,171 +1,202 @@
 <template>
   <!-- 批量编辑物料弹窗 - 对应V1.1 MaterialBatchEditModal.tsx -->
-  <el-dialog
-    v-model="dialogVisible"
-    title="批量编辑物料"
-    width="1000px"
-    :close-on-click-modal="false"
-  >
-    <!-- 提示信息 -->
-    <div class="bg-blue-50 rounded-lg p-4 mb-4">
-      <p class="text-sm text-blue-800">
-        已选择 <strong>{{ selectedRows.length }}</strong> 个物料进行批量编辑，已编辑 <strong>{{ editedCount }}</strong> 个
-      </p>
-    </div>
+  <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="$emit('close')">
+    <div class="bg-white rounded-xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+      <!-- 弹窗头部 -->
+      <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between">
+        <h3 class="text-lg font-semibold">批量编辑物料</h3>
+        <button @click="$emit('close')" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
 
-    <!-- 选择物料 -->
-    <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 mb-1">选择物料</label>
-      <el-select
-        v-model="localSelectedMaterialId"
-        placeholder="请选择物料"
-        class="w-full"
-        @change="handleMaterialSelect"
-      >
-        <el-option
-          v-for="material in selectedMaterialsList"
-          :key="material.id"
-          :label="`${material.name} (${material.code})${batchEditedMaterials[material.id] ? ' ✅ 已编辑' : ''}`"
-          :value="material.id"
-        />
-      </el-select>
-    </div>
+      <!-- 弹窗内容 -->
+      <div class="p-6 overflow-y-auto max-h-[70vh]">
+        <!-- 提示信息 -->
+        <div class="bg-blue-50 rounded-lg p-4 mb-4">
+          <p class="text-sm text-blue-800">
+            已选择 <strong>{{ selectedRows.length }}</strong> 个物料进行批量编辑，已编辑 <strong>{{ editedCount }}</strong> 个
+          </p>
+        </div>
 
-    <!-- 编辑表单 -->
-    <div v-if="currentMaterial" class="space-y-3">
-      <!-- 物料信息展示 -->
-      <div class="grid grid-cols-3 gap-3">
-        <div class="bg-gray-50 rounded-lg p-2">
-          <div class="text-xs text-gray-500 mb-1">物料编号</div>
-          <div class="text-sm font-medium text-gray-900">{{ currentEditedData.code || currentMaterial.code }}</div>
+        <!-- 选择物料 -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">选择物料</label>
+          <select
+            v-model="localSelectedMaterialId"
+            class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+            @change="handleMaterialSelect(localSelectedMaterialId)"
+          >
+            <option value="">请选择物料</option>
+            <option
+              v-for="material in selectedMaterialsList"
+              :key="material.id"
+              :value="material.id"
+            >{{ material.name }} ({{ material.code }}){{ batchEditedMaterials[material.id] ? ' ✅ 已编辑' : '' }}</option>
+          </select>
         </div>
-        <div class="bg-gray-50 rounded-lg p-2">
-          <div class="text-xs text-gray-500 mb-1">分类</div>
-          <div class="text-sm font-medium text-gray-900 truncate">{{ currentEditedData.category || currentMaterial.category }}</div>
-        </div>
-        <div class="bg-gray-50 rounded-lg p-2">
-          <div class="text-xs text-gray-500 mb-1">数据状态</div>
-          <el-select v-model="currentEditedData.dataStatus" placeholder="启用" @change="handleFieldChange('dataStatus', currentEditedData.dataStatus)">
-            <el-option value="启用" label="启用" />
-            <el-option value="停用" label="停用" />
-          </el-select>
+
+        <!-- 编辑表单 -->
+        <div v-if="currentMaterial" class="space-y-3">
+          <!-- 物料信息展示 -->
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-gray-50 rounded-lg p-2">
+              <div class="text-xs text-gray-500 mb-1">物料编号</div>
+              <div class="text-sm font-medium text-gray-900">{{ currentEditedData.code || currentMaterial.code }}</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-2">
+              <div class="text-xs text-gray-500 mb-1">分类</div>
+              <div class="text-sm font-medium text-gray-900 truncate">{{ currentEditedData.category || currentMaterial.category }}</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-2">
+              <div class="text-xs text-gray-500 mb-1">数据状态</div>
+              <select
+                v-model="currentEditedData.dataStatus"
+                class="w-full px-2 py-1.5 border border-gray-400 rounded text-sm bg-white"
+                @change="handleFieldChange('dataStatus', currentEditedData.dataStatus)"
+              >
+                <option value="启用">启用</option>
+                <option value="停用">停用</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 库存相关 -->
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">库存数量</label>
+              <input
+                v-model.number="currentEditedData.quantity"
+                type="number"
+                step="0.01"
+                min="0"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @change="handleFieldChange('quantity', currentEditedData.quantity)"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">最低库存</label>
+              <input
+                v-model.number="currentEditedData.minStock"
+                type="number"
+                step="0.01"
+                min="0"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @change="handleFieldChange('minStock', currentEditedData.minStock)"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">最高库存</label>
+              <input
+                v-model.number="currentEditedData.maxStock"
+                type="number"
+                step="0.01"
+                min="0"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @change="handleFieldChange('maxStock', currentEditedData.maxStock)"
+              />
+            </div>
+          </div>
+
+          <!-- 价格和位置 -->
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">单价（元）</label>
+              <input
+                v-model="currentEditedData.price"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @input="handleFieldChange('price', currentEditedData.price)"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">单位</label>
+              <input
+                v-model="currentEditedData.unit"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @input="handleFieldChange('unit', currentEditedData.unit)"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">存放位置</label>
+              <input
+                v-model="currentEditedData.location"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @input="handleFieldChange('location', currentEditedData.location)"
+              />
+            </div>
+          </div>
+
+          <!-- 供应商 -->
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">供应商</label>
+            <input
+              v-model="currentEditedData.supplier"
+              class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+              @input="handleFieldChange('supplier', currentEditedData.supplier)"
+            />
+          </div>
+
+          <!-- 规格和条码 -->
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">规格型号</label>
+              <input
+                v-model="currentEditedData.specification"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @input="handleFieldChange('specification', currentEditedData.specification)"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">条形码</label>
+              <input
+                v-model="currentEditedData.barcode"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @input="handleFieldChange('barcode', currentEditedData.barcode)"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">批次号</label>
+              <input
+                v-model="currentEditedData.batchNo"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @input="handleFieldChange('batchNo', currentEditedData.batchNo)"
+              />
+            </div>
+          </div>
+
+          <!-- 日期 -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">生产日期</label>
+              <input
+                v-model="currentEditedData.productionDate"
+                type="date"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @change="handleFieldChange('productionDate', currentEditedData.productionDate)"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">有效期至</label>
+              <input
+                v-model="currentEditedData.expiryDate"
+                type="date"
+                class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm"
+                @change="handleFieldChange('expiryDate', currentEditedData.expiryDate)"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 库存相关 -->
-      <div class="grid grid-cols-3 gap-3">
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">库存数量</label>
-          <el-input-number
-            v-model="currentEditedData.quantity"
-            :precision="2"
-            :step="1"
-            :min="0"
-            controls-position="right"
-            @change="(val) => handleFieldChange('quantity', val)"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">最低库存</label>
-          <el-input-number
-            v-model="currentEditedData.minStock"
-            :precision="2"
-            :step="1"
-            :min="0"
-            controls-position="right"
-            @change="(val) => handleFieldChange('minStock', val)"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">最高库存</label>
-          <el-input-number
-            v-model="currentEditedData.maxStock"
-            :precision="2"
-            :step="1"
-            :min="0"
-            controls-position="right"
-            @change="(val) => handleFieldChange('maxStock', val)"
-          />
-        </div>
-      </div>
-
-      <!-- 价格和位置 -->
-      <div class="grid grid-cols-3 gap-3">
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">单价（元）</label>
-          <el-input v-model="currentEditedData.price" @input="(val) => handleFieldChange('price', val)" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">单位</label>
-          <el-input v-model="currentEditedData.unit" @input="(val) => handleFieldChange('unit', val)" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">存放位置</label>
-          <el-input v-model="currentEditedData.location" @input="(val) => handleFieldChange('location', val)" />
-        </div>
-      </div>
-
-      <!-- 供应商 -->
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">供应商</label>
-        <el-input v-model="currentEditedData.supplier" @input="(val) => handleFieldChange('supplier', val)" />
-      </div>
-
-      <!-- 规格和条码 -->
-      <div class="grid grid-cols-3 gap-3">
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">规格型号</label>
-          <el-input v-model="currentEditedData.specification" @input="(val) => handleFieldChange('specification', val)" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">条形码</label>
-          <el-input v-model="currentEditedData.barcode" @input="(val) => handleFieldChange('barcode', val)" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">批次号</label>
-          <el-input v-model="currentEditedData.batchNo" @input="(val) => handleFieldChange('batchNo', val)" />
-        </div>
-      </div>
-
-      <!-- 日期 -->
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">生产日期</label>
-          <el-date-picker
-            v-model="currentEditedData.productionDate"
-            type="date"
-            placeholder="选择生产日期"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-            @change="(val) => handleFieldChange('productionDate', val)"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">有效期至</label>
-          <el-date-picker
-            v-model="currentEditedData.expiryDate"
-            type="date"
-            placeholder="选择有效期"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-            @change="(val) => handleFieldChange('expiryDate', val)"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- 底部按钮 -->
-    <template #footer>
-      <div class="flex gap-3">
-        <el-button class="flex-1" variant="outline" @click="handleNext">
+      <!-- 弹窗底部 -->
+      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2">
+        <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleNext">
           确认 {{ currentBatchEditIndex + 1 < selectedRows.length ? '(下一个)' : '(已最后一个)' }}
-        </el-button>
-        <el-button class="flex-1" type="primary" @click="handleSaveAll">
+        </button>
+        <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSaveAll">
           保存全部 ({{ editedCount }} 个)
-        </el-button>
+        </button>
       </div>
-    </template>
-  </el-dialog>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -229,13 +260,6 @@ watch(() => props.currentBatchEditIndex, (val) => {
 })
 
 // 计算属性
-const dialogVisible = computed({
-  get: () => props.isOpen,
-  set: (val) => {
-    if (!val) emit('close')
-  }
-})
-
 const selectedMaterialsList = computed(() => {
   return props.filteredMaterials.filter(m => props.selectedRows.includes(m.id))
 })

@@ -1,55 +1,53 @@
 <template>
-  <!-- ✅ 修复: 统一改为 ElModal 风格（V1.1 size="md" 500×400 1:1 对齐）
-       原 el-dialog 是 Element Plus 原生，缺"已选择 X 条数据"提示，与项目规范不一致 -->
-  <ElModal
-    :model-value="isOpen"
-    title="选择导出格式"
-    :width="500"
-    :height="400"
+  <!-- 导出格式选择弹窗 - 1:1 对齐 V1.1 ExportFormatModal.tsx 风格 -->
+  <div v-if="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="handleClose">
+    <div class="bg-white rounded-xl w-full max-w-lg shadow-2xl" @click.stop>
+      <!-- 弹窗头部 -->
+      <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between rounded-t-xl">
+        <h3 class="text-lg font-semibold">选择导出格式</h3>
+        <button @click="handleClose" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
 
-    @update:model-value="(v) => !v && handleClose()"
-    @close="handleClose"
-  >
-    <div class="space-y-3">
-      <p class="text-sm text-gray-500 mb-4">已选择 {{ selectedCount }} 条数据</p>
-      <div
-        v-for="format in formats"
-        :key="format.value"
-        :class="[
-          'flex items-center p-4 border rounded-lg cursor-pointer transition-all',
-          exportFormat === format.value
-            ? 'border-emerald-500 bg-emerald-50'
-            : 'border-gray-400 hover:border-gray-400'
-        ]"
-        @click="handleFormatChange(format.value)"
-      >
-        <el-radio
-          v-model="localExportFormat"
-          :value="format.value"
-          @change="handleFormatChange(format.value)"
-        >
-          &nbsp;
-        </el-radio>
-        <div class="ml-3">
-          <span class="block text-sm font-medium text-gray-900">{{ format.label }}</span>
-          <span class="block text-xs text-gray-500">{{ format.desc }}</span>
+      <!-- 弹窗内容 -->
+      <div class="p-6">
+        <p class="text-sm text-gray-500 mb-4">已选择 {{ selectedCount }} 条数据</p>
+        <div class="space-y-3">
+          <label
+            v-for="format in formats"
+            :key="format.value"
+            :class="[
+              'flex items-center p-4 border rounded-lg cursor-pointer transition-all',
+              exportFormat === format.value
+                ? 'border-emerald-500 bg-emerald-50'
+                : 'border-gray-200 hover:border-gray-400'
+            ]"
+            @click="handleFormatChange(format.value)"
+          >
+            <input
+              type="radio"
+              :value="format.value"
+              :checked="exportFormat === format.value"
+              @change="handleFormatChange(format.value)"
+              class="w-4 h-4 text-emerald-600 border-gray-400"
+            />
+            <div class="ml-3">
+              <span class="block text-sm font-medium text-gray-900">{{ format.label }}</span>
+              <span class="block text-xs text-gray-500">{{ format.desc }}</span>
+            </div>
+          </label>
         </div>
       </div>
-    </div>
 
-    <template #footer>
-      <div class="flex justify-end gap-3">
-        <el-button size="small" @click="handleClose">取消</el-button>
-        <el-button type="primary" size="small" @click="handleExport">导出</el-button>
+      <!-- 弹窗底部 -->
+      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2 rounded-b-xl">
+        <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleClose">取消</button>
+        <button class="h-8 px-4 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleExport">导出</button>
       </div>
-    </template>
-  </ElModal>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { ElModal } from '@/components/ui'
-
 /**
  * 导出格式选择弹窗组件
  * 提供Excel、CSV、Word等导出格式选择
@@ -82,14 +80,7 @@ const formats = [
   { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
 ]
 
-const localExportFormat = ref(props.exportFormat)
-
-watch(() => props.exportFormat, (val) => {
-  localExportFormat.value = val
-})
-
 const handleFormatChange = (format) => {
-  localExportFormat.value = format
   emit('formatChange', format)
 }
 

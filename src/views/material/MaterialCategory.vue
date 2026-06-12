@@ -4,20 +4,17 @@
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-            <el-icon :size="24" color="white">
-              <Collection />
-            </el-icon>
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+            <Package class="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">物料类别</h1>
-            <p class="text-gray-500">物料分类管理体系</p>
+            <h1 class="text-2xl font-bold text-gray-900">物资分类管理</h1>
+            <p class="text-gray-500">物资分类体系与编码规则</p>
           </div>
         </div>
-        <el-button type="primary" @click="handleAddCategory">
-          <el-icon><Plus /></el-icon>
-          新增类别
-        </el-button>
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleAddCategory">
+          <Plus class="w-4 h-4 inline mr-1" />新增类别
+        </button>
       </div>
     </div>
 
@@ -26,37 +23,37 @@
       <div class="grid grid-cols-4 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">类别编码</label>
-          <el-input
+          <input
             v-model="searchForm.code"
             placeholder="请输入"
-            clearable
-            @clear="updateSearchField('code', '')"
+            class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
+            @input="updateSearchField('code', searchForm.code)"
           />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">类别名称</label>
-          <el-input
+          <input
             v-model="searchForm.name"
             placeholder="请输入"
-            clearable
-            @clear="updateSearchField('name', '')"
+            class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
+            @input="updateSearchField('name', searchForm.name)"
           />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">上级类别</label>
-          <el-select
+          <select
             v-model="searchForm.parentCode"
-            placeholder="全部"
-            clearable
-            @clear="updateSearchField('parentCode', '')"
+            class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+            @change="updateSearchField('parentCode', searchForm.parentCode)"
           >
-            <el-option label="原料" value="01" />
-            <el-option label="资材" value="02" />
-          </el-select>
+            <option value="">全部</option>
+            <option value="01">原料</option>
+            <option value="02">资材</option>
+          </select>
         </div>
-        <div class="flex items-end">
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
+        <div class="flex items-end gap-2">
+          <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSearch">搜索</button>
+          <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleReset">重置</button>
         </div>
       </div>
     </div>
@@ -64,240 +61,369 @@
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900">物料类别列表</h3>
+        <h3 class="text-lg font-semibold text-gray-900">物资分类列表</h3>
         <div class="flex gap-2">
-          <el-button @click="handleBatchEdit">
-            <el-icon><Edit /></el-icon>
-            编辑
-          </el-button>
-          <el-button type="danger" @click="handleBatchDelete">
-            <el-icon><Delete /></el-icon>
-            删除
-          </el-button>
-          <el-button @click="handleExport">
-            <el-icon><Download /></el-icon>
-            导出
-          </el-button>
+          <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleBatchEdit">
+            <Pencil class="w-4 h-4 inline mr-1" />编辑
+          </button>
+          <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200" @click="handleBatchDelete">
+            <Trash2 class="w-4 h-4 inline mr-1" />删除
+          </button>
+          <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleExport">
+            <Download class="w-4 h-4 inline mr-1" />导出
+          </button>
         </div>
       </div>
 
-      <el-table
-        :data="paginatedCategories"
-        stripe
-        row-key="id"
-        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" />
-        <el-table-column prop="code" label="类别编码" width="120" />
-        <el-table-column prop="name" label="类别名称" width="150" />
-        <el-table-column prop="level" label="层级" width="80">
-          <template #default="{ row }">
-            <el-tag :type="row.level === 1 ? 'success' : row.level === 2 ? 'warning' : 'info'" size="small">
-              {{ row.level === 1 ? '大类' : row.level === 2 ? '中类' : '小类' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="parentCode" label="上级类别" width="120">
-          <template #default="{ row }">
-            {{ getParentName(row.parentCode) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="prefix" label="编码前缀" width="100" />
-        <el-table-column prop="description" label="描述" width="150" />
-        <el-table-column prop="sortOrder" label="排序" width="80" />
-        <el-table-column label="状态" width="80">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'info'" size="small">
-              {{ row.status === 'active' ? '启用' : '停用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="overflow-auto">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+            <tr>
+              <th class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap">
+                <input type="checkbox" :checked="paginatedCategories.length > 0 && selectedRows.length === paginatedCategories.length" @change="toggleSelectAll" class="w-4 h-4 rounded border-white" />
+              </th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">类别编码</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">类别名称</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">层级</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">上级类别</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">编码前缀</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">描述</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">排序</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-300">
+            <tr v-if="paginatedCategories.length === 0">
+              <td colspan="10" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+            </tr>
+            <tr
+              v-for="row in paginatedCategories"
+              :key="row.id"
+              class="hover:bg-blue-100 transition-colors"
+            >
+              <td class="px-4 py-3">
+                <input type="checkbox" :checked="selectedRows.some(r => r.id === row.id)" @change="toggleCategorySelect(row)" class="w-4 h-4 rounded border-gray-400" />
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.code }}</td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.name }}</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="{
+                  'bg-green-100 text-green-700': row.level === 1,
+                  'bg-amber-100 text-amber-700': row.level === 2,
+                  'bg-blue-100 text-blue-700': row.level === 3
+                }">
+                  {{ row.level === 1 ? '大类' : row.level === 2 ? '中类' : '小类' }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ getParentName(row.parentCode) }}</td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.prefix }}</td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.description }}</td>
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.sortOrder }}</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="{
+                  'bg-green-100 text-green-700': row.status === 'active',
+                  'bg-gray-100 text-gray-700': row.status !== 'active'
+                }">
+                  {{ row.status === 'active' ? '启用' : '停用' }}
+                </span>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <div class="flex items-center gap-1">
+                  <button class="text-blue-600 hover:text-blue-800 p-1" title="查看" @click="handleView(row)">查看</button>
+                  <button class="text-blue-600 hover:text-blue-800 p-1" title="编辑" @click="handleEdit(row)">编辑</button>
+                  <button class="text-red-600 hover:text-red-800 p-1" title="删除" @click="handleDelete(row)">删除</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- 分页 -->
-      <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">每页</span>
-          <el-select
-            v-model="pageSize"
-            style="width: 80px"
-            @change="handlePageSizeChange"
-          >
-            <el-option :value="10" label="10" />
-            <el-option :value="20" label="20" />
-            <el-option :value="50" label="50" />
-          </el-select>
-          <span class="text-sm text-gray-500">条</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">
-            共 {{ filteredCategories.length }} 条，第 {{ currentPage }} / {{ totalPages }} 页
-          </span>
-          <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="filteredCategories.length"
-            layout="prev, pager, next"
-            @current-change="handlePageChange"
-          />
-        </div>
+      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <Pagination
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          :page-size="pageSize"
+          :page-size-options="[10, 20, 50]"
+          :show-page-size="true"
+          @page-change="handlePageChange"
+          @page-size-change="handlePageSizeChange"
+        />
       </div>
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog
-      v-model="showFormModal"
-      :title="isEdit ? '编辑类别' : '新增类别'"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="form" label-width="100px" :rules="rules" ref="formRef">
-        <el-form-item label="类别编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入类别编码" />
-        </el-form-item>
-        <el-form-item label="类别名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入类别名称" />
-        </el-form-item>
-        <el-form-item label="层级" prop="level">
-          <el-select v-model="form.level" placeholder="请选择层级" @change="handleLevelChange">
-            <el-option label="大类" :value="1" />
-            <el-option label="中类" :value="2" />
-            <el-option label="小类" :value="3" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="上级类别" prop="parentCode">
-          <el-select v-model="form.parentCode" placeholder="请选择上级类别" :disabled="form.level === 1">
-            <el-option
-              v-for="cat in parentCategoryOptions"
-              :key="cat.code"
-              :label="`${cat.code} - ${cat.name}`"
-              :value="cat.code"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="编码前缀" prop="prefix">
-          <el-input v-model="form.prefix" placeholder="请输入编码前缀" />
-        </el-form-item>
-        <el-form-item label="排序" prop="sortOrder">
-          <el-input-number v-model="form.sortOrder" :min="0" :max="999" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio label="active">启用</el-radio>
-            <el-radio label="inactive">停用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入描述" />
-        </el-form-item>
-      </el-form>
+    <div v-if="showFormModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showFormModal = false">
+      <div class="bg-white rounded-xl w-full max-w-[600px] max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">{{ isEdit ? '编辑类别' : '新增类别' }}</h3>
+          <button @click="showFormModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
 
-      <template #footer>
-        <el-button @click="showFormModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">保存</el-button>
-      </template>
-    </el-dialog>
+        <!-- 弹窗内容 -->
+        <div class="p-6 overflow-y-auto max-h-[60vh]">
+          <div class="grid gap-4">
+            <!-- 类别编码 -->
+            <div class="flex items-start gap-3">
+              <label class="w-[100px] pt-2 text-sm font-medium text-gray-700 text-right flex-shrink-0">类别编码<span class="text-red-500 ml-0.5">*</span></label>
+              <input
+                v-model="form.code"
+                placeholder="请输入类别编码"
+                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm"
+              />
+            </div>
+            <!-- 类别名称 -->
+            <div class="flex items-start gap-3">
+              <label class="w-[100px] pt-2 text-sm font-medium text-gray-700 text-right flex-shrink-0">类别名称<span class="text-red-500 ml-0.5">*</span></label>
+              <input
+                v-model="form.name"
+                placeholder="请输入类别名称"
+                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm"
+              />
+            </div>
+            <!-- 层级 -->
+            <div class="flex items-start gap-3">
+              <label class="w-[100px] pt-2 text-sm font-medium text-gray-700 text-right flex-shrink-0">层级<span class="text-red-500 ml-0.5">*</span></label>
+              <select
+                v-model="form.level"
+                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+                @change="handleLevelChange"
+              >
+                <option :value="1">大类</option>
+                <option :value="2">中类</option>
+                <option :value="3">小类</option>
+              </select>
+            </div>
+            <!-- 上级类别 -->
+            <div class="flex items-start gap-3">
+              <label class="w-[100px] pt-2 text-sm font-medium text-gray-700 text-right flex-shrink-0">上级类别</label>
+              <select
+                v-model="form.parentCode"
+                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+                :disabled="form.level === 1"
+              >
+                <option value="">请选择上级类别</option>
+                <option
+                  v-for="cat in parentCategoryOptions"
+                  :key="cat.code"
+                  :value="cat.code"
+                >{{ cat.code }} - {{ cat.name }}</option>
+              </select>
+            </div>
+            <!-- 编码前缀 -->
+            <div class="flex items-start gap-3">
+              <label class="w-[100px] pt-2 text-sm font-medium text-gray-700 text-right flex-shrink-0">编码前缀</label>
+              <input
+                v-model="form.prefix"
+                placeholder="请输入编码前缀"
+                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm"
+              />
+            </div>
+            <!-- 排序 -->
+            <div class="flex items-start gap-3">
+              <label class="w-[100px] pt-2 text-sm font-medium text-gray-700 text-right flex-shrink-0">排序</label>
+              <input
+                v-model.number="form.sortOrder"
+                type="number"
+                min="0"
+                max="999"
+                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm w-32"
+              />
+            </div>
+            <!-- 状态 -->
+            <div class="flex items-start gap-3">
+              <label class="w-[100px] pt-2 text-sm font-medium text-gray-700 text-right flex-shrink-0">状态</label>
+              <div class="flex items-center gap-4 py-2">
+                <label class="flex items-center gap-2">
+                  <input type="radio" v-model="form.status" value="active" class="w-4 h-4 text-blue-600 border-gray-400" />
+                  <span class="text-sm text-gray-700">启用</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="radio" v-model="form.status" value="inactive" class="w-4 h-4 text-blue-600 border-gray-400" />
+                  <span class="text-sm text-gray-700">停用</span>
+                </label>
+              </div>
+            </div>
+            <!-- 描述 -->
+            <div class="flex items-start gap-3">
+              <label class="w-[100px] pt-2 text-sm font-medium text-gray-700 text-right flex-shrink-0">描述</label>
+              <textarea
+                v-model="form.description"
+                placeholder="请输入描述"
+                rows="3"
+                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm resize-none"
+              ></textarea>
+            </div>
+          </div>
+        </div>
 
-    <!-- 查看详情弹窗 -->
-    <el-dialog
-      v-model="showDetailModal"
-      title="类别详情"
-      width="500px"
-    >
-      <el-descriptions :column="1" border>
-        <el-descriptions-item label="类别编码">{{ selectedCategory?.code }}</el-descriptions-item>
-        <el-descriptions-item label="类别名称">{{ selectedCategory?.name }}</el-descriptions-item>
-        <el-descriptions-item label="层级">
-          <el-tag :type="selectedCategory?.level === 1 ? 'success' : selectedCategory?.level === 2 ? 'warning' : 'info'" size="small">
-            {{ selectedCategory?.level === 1 ? '大类' : selectedCategory?.level === 2 ? '中类' : '小类' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="上级类别">{{ getParentName(selectedCategory?.parentCode) }}</el-descriptions-item>
-        <el-descriptions-item label="编码前缀">{{ selectedCategory?.prefix }}</el-descriptions-item>
-        <el-descriptions-item label="排序">{{ selectedCategory?.sortOrder }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="selectedCategory?.status === 'active' ? 'success' : 'info'" size="small">
-            {{ selectedCategory?.status === 'active' ? '启用' : '停用' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="描述">{{ selectedCategory?.description || '-' }}</el-descriptions-item>
-      </el-descriptions>
-
-      <template #footer>
-        <el-button @click="showDetailModal = false">关闭</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 删除确认弹窗 -->
-    <el-dialog
-      v-model="showDeleteConfirm"
-      title="确认删除"
-      width="400px"
-    >
-      <div class="flex items-center gap-3">
-        <el-icon :size="40" color="#f56c6c"><WarningFilled /></el-icon>
-        <div>
-          <p class="text-lg font-medium">确定要删除选中的 {{ selectedRows.length }} 个类别吗？</p>
-          <p class="text-sm text-gray-500">删除后将无法恢复</p>
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showFormModal = false">
+            <X class="w-4 h-4 inline mr-1" />取消
+          </button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSave">保存</button>
         </div>
       </div>
-      <template #footer>
-        <el-button @click="showDeleteConfirm = false">取消</el-button>
-        <el-button type="danger" @click="handleDoDelete">确认删除</el-button>
-      </template>
-    </el-dialog>
+    </div>
+
+    <!-- 查看详情弹窗 -->
+    <div v-if="showDetailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showDetailModal = false">
+      <div class="bg-white rounded-xl w-full max-w-[500px] max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">类别详情</h3>
+          <button @click="showDetailModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <!-- 弹窗内容 -->
+        <div class="p-6 overflow-y-auto max-h-[60vh]">
+          <div class="grid grid-cols-1 divide-y border rounded-lg">
+            <div class="flex px-4 py-3 bg-gray-50">
+              <span class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">类别编码</span>
+              <span class="text-sm text-gray-900">{{ selectedCategory?.code }}</span>
+            </div>
+            <div class="flex px-4 py-3">
+              <span class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">类别名称</span>
+              <span class="text-sm text-gray-900">{{ selectedCategory?.name }}</span>
+            </div>
+            <div class="flex px-4 py-3 bg-gray-50">
+              <span class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">层级</span>
+              <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="{
+                'bg-green-100 text-green-700': selectedCategory?.level === 1,
+                'bg-amber-100 text-amber-700': selectedCategory?.level === 2,
+                'bg-blue-100 text-blue-700': selectedCategory?.level === 3
+              }">
+                {{ selectedCategory?.level === 1 ? '大类' : selectedCategory?.level === 2 ? '中类' : '小类' }}
+              </span>
+            </div>
+            <div class="flex px-4 py-3">
+              <span class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">上级类别</span>
+              <span class="text-sm text-gray-900">{{ getParentName(selectedCategory?.parentCode) }}</span>
+            </div>
+            <div class="flex px-4 py-3 bg-gray-50">
+              <span class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">编码前缀</span>
+              <span class="text-sm text-gray-900">{{ selectedCategory?.prefix }}</span>
+            </div>
+            <div class="flex px-4 py-3">
+              <span class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">排序</span>
+              <span class="text-sm text-gray-900">{{ selectedCategory?.sortOrder }}</span>
+            </div>
+            <div class="flex px-4 py-3 bg-gray-50">
+              <span class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">状态</span>
+              <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="{
+                'bg-green-100 text-green-700': selectedCategory?.status === 'active',
+                'bg-gray-100 text-gray-700': selectedCategory?.status !== 'active'
+              }">
+                {{ selectedCategory?.status === 'active' ? '启用' : '停用' }}
+              </span>
+            </div>
+            <div class="flex px-4 py-3">
+              <span class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">描述</span>
+              <span class="text-sm text-gray-900">{{ selectedCategory?.description || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showDetailModal = false">
+            <X class="w-4 h-4 inline mr-1" />关闭
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showDeleteConfirm = false">
+      <div class="bg-white rounded-xl w-full max-w-[400px] max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">确认删除</h3>
+          <button @click="showDeleteConfirm = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <!-- 弹窗内容 -->
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+              <AlertTriangle class="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <p class="text-lg font-medium">确定要删除选中的 {{ selectedRows.length }} 个类别吗？</p>
+              <p class="text-sm text-gray-500">删除后将无法恢复</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showDeleteConfirm = false">
+            <X class="w-4 h-4 inline mr-1" />取消
+          </button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="handleDoDelete">
+            <Trash2 class="w-4 h-4 inline mr-1" />确认删除
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- 导出格式选择弹窗 -->
-    <el-dialog
-      v-model="showExportModal"
-      title="选择导出格式"
-      width="500px"
-    >
-      <p class="text-sm text-gray-500 mb-4">
-        {{ selectedRows.length > 0 ? `已选择 ${selectedRows.length} 个类别` : `共 ${filteredCategories.length} 个类别` }}
-      </p>
-      <div class="space-y-3">
-        <el-radio-group v-model="exportFormat" class="w-full">
-          <div
-            v-for="format in exportFormats"
-            :key="format.value"
-            :class="[
-              'flex items-center p-4 border rounded-lg cursor-pointer transition-all',
-              exportFormat === format.value
-                ? 'border-orange-500 bg-orange-50'
-                : 'border-gray-200 hover:border-gray-300'
-            ]"
-            @click="exportFormat = format.value"
-          >
-            <el-radio :value="format.value">
+    <div v-if="showExportModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showExportModal = false">
+      <div class="bg-white rounded-xl w-full max-w-[500px] max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <!-- 弹窗头部 -->
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
+          <h3 class="text-lg font-semibold">选择导出格式</h3>
+          <button @click="showExportModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <!-- 弹窗内容 -->
+        <div class="p-6">
+          <p class="text-sm text-gray-500 mb-4">
+            {{ selectedRows.length > 0 ? `已选择 ${selectedRows.length} 个类别` : `共 ${filteredCategories.length} 个类别` }}
+          </p>
+          <div class="space-y-3">
+            <label
+              v-for="format in exportFormats"
+              :key="format.value"
+              :class="['flex items-center p-4 border rounded-lg cursor-pointer transition-all',
+                exportFormat === format.value ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300']"
+              @click="exportFormat = format.value"
+            >
+              <input
+                type="radio"
+                :value="format.value"
+                v-model="exportFormat"
+                class="w-4 h-4 text-emerald-600 border-gray-400"
+              />
               <div class="ml-3">
                 <span class="block text-sm font-medium text-gray-900">{{ format.label }}</span>
                 <span class="block text-xs text-gray-500">{{ format.desc }}</span>
               </div>
-            </el-radio>
+            </label>
           </div>
-        </el-radio-group>
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showExportModal = false">
+            <X class="w-4 h-4 inline mr-1" />取消
+          </button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleDoExport">导出</button>
+        </div>
       </div>
-      <template #footer>
-        <el-button @click="showExportModal = false">取消</el-button>
-        <el-button type="primary" @click="handleDoExport">导出</el-button>
-      </template>
-    </el-dialog>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, reactive } from 'vue'
-import { Collection, Plus, Edit, Delete, Download, WarningFilled } from '@element-plus/icons-vue'
+import { Package, Plus, Pencil, Trash2, Download, AlertTriangle, X } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
+import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 // 导出格式选项
 const exportFormats = [
@@ -546,6 +672,31 @@ const handleSelectionChange = (selection) => {
   selectedRows.value = selection
 }
 
+/** 全选/取消全选当前页 */
+const toggleSelectAll = () => {
+  const allSelected = paginatedCategories.value.length > 0 && selectedRows.value.length === paginatedCategories.value.length
+  if (allSelected) {
+    // 移除当前页所有项
+    const currentIds = new Set(paginatedCategories.value.map(r => r.id))
+    selectedRows.value = selectedRows.value.filter(r => !currentIds.has(r.id))
+  } else {
+    // 添加当前页所有项（去重）
+    const existingIds = new Set(selectedRows.value.map(r => r.id))
+    const newItems = paginatedCategories.value.filter(r => !existingIds.has(r.id))
+    selectedRows.value = [...selectedRows.value, ...newItems]
+  }
+}
+
+/** 单行选中切换 */
+const toggleCategorySelect = (row) => {
+  const idx = selectedRows.value.findIndex(r => r.id === row.id)
+  if (idx >= 0) {
+    selectedRows.value.splice(idx, 1)
+  } else {
+    selectedRows.value.push(row)
+  }
+}
+
 const handleLevelChange = () => {
   form.parentCode = ''
   if (form.level === 1) {
@@ -646,7 +797,7 @@ const handleDoExport = () => {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `物料类别_${new Date().toISOString().slice(0, 10)}.${extension}`
+  link.download = `物资分类_${new Date().toISOString().slice(0, 10)}.${extension}`
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
@@ -657,19 +808,21 @@ const handleDoExport = () => {
 }
 
 const handleSave = async () => {
-  if (!formRef.value) return
-  await formRef.value.validate((valid) => {
-    if (valid) {
-      if (isEdit.value) {
-        // 编辑模式
-        ElMessage.success('编辑成功')
-      } else {
-        // 新增模式
-        ElMessage.success('新增成功')
-      }
-      showFormModal.value = false
-    }
-  })
+  // 手动验证必填字段
+  if (!form.code || !form.name) {
+    ElMessage.warning('请填写必填字段（类别编码、类别名称）')
+    return
+  }
+  if (!form.level) {
+    ElMessage.warning('请选择层级')
+    return
+  }
+  if (isEdit.value) {
+    ElMessage.success('编辑成功')
+  } else {
+    ElMessage.success('新增成功')
+  }
+  showFormModal.value = false
 }
 
 const resetForm = () => {
@@ -684,19 +837,3 @@ const resetForm = () => {
   form.description = ''
 }
 </script>
-
-<style scoped>
-/* 蓝色渐变表头 - 与V1.1保持一致 */
-:deep(.el-table__header-wrapper .el-table__header th) {
-  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
-  color: #fff !important;
-  font-weight: 600 !important;
-}
-:deep(.el-table__header-wrapper .el-table__header th .cell) {
-  color: #fff !important;
-}
-/* 蓝色悬停行 */
-:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
-  background-color: #dbeafe !important;
-}
-</style>

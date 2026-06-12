@@ -5,9 +5,7 @@
       <div class="flex items-center gap-3">
         <!-- 左侧图标区域 - 渐变背景 -->
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" color="white">
-            <Goods />
-          </el-icon>
+          <Package :size="24" class="text-white" />
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
@@ -19,7 +17,7 @@
 </template>
 
 <script setup>
-import { Goods } from '@element-plus/icons-vue'
+import { Package } from 'lucide-vue-next'
 
 /**
  * 页面头部组件

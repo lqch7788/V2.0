@@ -6,13 +6,11 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" color="white">
-              <Box />
-            </el-icon>
+            <Package :size="24" class="text-white" />
           </div>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">仓库物料</h1>
-            <p class="text-gray-500">仓库物料库存管理</p>
+            <h1 class="text-2xl font-bold text-gray-900">物料库存</h1>
+            <p class="text-gray-500">仓库物料库存一览</p>
           </div>
         </div>
       </div>
@@ -20,14 +18,16 @@
 
     <!-- 加载状态 -->
     <div v-if="loading" class="flex items-center justify-center py-12">
-      <el-icon class="animate-spin text-3xl text-emerald-500"><Loading /></el-icon>
+      <Loader2 :size="28" class="animate-spin text-emerald-500" />
       <span class="ml-3 text-gray-500">加载中...</span>
     </div>
 
     <!-- 错误状态 -->
     <div v-if="error && !loading" class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
       <p class="text-red-600">加载失败：{{ error }}</p>
-      <el-button type="primary" size="small" class="mt-2" @click="warehouseMaterialStore.loadMaterials()">重试</el-button>
+      <button class="h-8 px-3 mt-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="warehouseMaterialStore.loadMaterials()">
+        <RefreshCw :size="14" class="inline mr-1" />重试
+      </button>
     </div>
 
     <!-- 主内容区（加载中或出错时隐藏） -->
@@ -157,7 +157,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { Box, Loading } from '@element-plus/icons-vue'
+import { Package, Loader2, RefreshCw } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { storeToRefs } from 'pinia'
 import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
@@ -550,20 +550,3 @@ const handleBatchNext = () => {
 }
 
 </script>
-
-<style scoped>
-/* 表格表头蓝色渐变（与V1.1一致） */
-:deep(.el-table__header-wrapper .el-table__header th) {
-  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-:deep(.el-table__header-wrapper .el-table__header th .el-table__cell) {
-  background: transparent !important;
-  color: #ffffff !important;
-}
-/* 蓝色悬停行 - 与V1.1 hover:bg-blue-100 一致 */
-:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
-  background-color: #dbeafe !important;
-}
-</style>

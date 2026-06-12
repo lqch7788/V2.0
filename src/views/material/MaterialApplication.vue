@@ -4,9 +4,7 @@
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-          <el-icon :size="24" color="white">
-            <Upload />
-          </el-icon>
+          <Upload :size="24" class="text-white" />
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">物料领用申请</h1>
@@ -134,7 +132,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Upload } from '@element-plus/icons-vue'
+import { Upload } from 'lucide-vue-next'
 import { useMaterialRequestStore } from '@/stores/modules/inventory/useMaterialRequestStore'
 import { getMaterialRequests, createMaterialRequest, updateMaterialRequest, deleteMaterialRequest } from '@/services/apiMaterialRequestService'
 import ApplicationFilters from '@/components/materialReceiving/ApplicationFilters.vue'
@@ -632,19 +630,3 @@ onMounted(() => {
   loadMaterialData()
 })
 </script>
-
-<style scoped>
-/* 蓝色渐变表头 - 与V1.1保持一致 */
-:deep(.el-table__header-wrapper .el-table__header th) {
-  background: linear-gradient(to right, #3b82f6, #2563eb) !important;
-  color: #fff !important;
-  font-weight: 600 !important;
-}
-:deep(.el-table__header-wrapper .el-table__header th .cell) {
-  color: #fff !important;
-}
-/* 蓝色悬停行 */
-:deep(.el-table__body-wrapper .el-table__body tr:hover > td) {
-  background-color: #dbeafe !important;
-}
-</style>

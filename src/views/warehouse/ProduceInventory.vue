@@ -4,7 +4,7 @@
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <el-icon :size="24" color="white"><Package /></el-icon>
+          <Package class="w-6 h-6 text-white" />
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">作物库存</h1>
@@ -18,7 +18,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-            <el-icon :size="16" class="text-red-600"><Warning /></el-icon>
+            <AlertTriangle class="w-4 h-4 text-red-600" />
           </div>
           <div>
             <div class="text-lg font-bold text-gray-900">{{ alertCounts.total }}</div>
@@ -29,7 +29,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-            <el-icon :size="16" class="text-amber-600"><Clock /></el-icon>
+            <Clock class="w-4 h-4 text-amber-600" />
           </div>
           <div>
             <div class="text-lg font-bold text-gray-900">{{ alertCounts.storageTime }}</div>
@@ -40,7 +40,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-            <el-icon :size="16" class="text-blue-600"><TrendRight /></el-icon>
+            <TrendingUp class="w-4 h-4 text-blue-600" />
           </div>
           <div>
             <div class="text-lg font-bold text-gray-900">{{ alertCounts.lowStock }}</div>
@@ -51,7 +51,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-            <el-icon :size="16" class="text-purple-600"><TrendRight /></el-icon>
+            <TrendingUp class="w-4 h-4 text-purple-600" />
           </div>
           <div>
             <div class="text-lg font-bold text-gray-900">{{ alertCounts.highStock }}</div>
@@ -62,7 +62,7 @@
       <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
-            <el-icon :size="16" class="text-orange-600"><WarningFilled /></el-icon>
+            <AlertTriangle class="w-4 h-4 text-orange-600" />
           </div>
           <div>
             <div class="text-lg font-bold text-gray-900">{{ alertCounts.expiration }}</div>
@@ -77,57 +77,47 @@
       <div class="flex flex-wrap gap-4 items-center">
         <!-- 搜索框 -->
         <div class="flex-1 min-w-[200px]">
-          <el-input
+          <input
             v-model="searchText"
             placeholder="搜索产品编码、作物名称、批次号..."
-            clearable
+            class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
             @input="handleSearch"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
+          />
         </div>
 
         <!-- 仓库筛选 -->
-        <el-select v-model="filters.warehouseId" placeholder="全部仓库" clearable @change="handleFilterChange">
-          <el-option
-            v-for="w in warehouseStore.warehouses"
-            :key="w.id"
-            :label="w.name"
-            :value="w.id"
-          />
-        </el-select>
+        <select v-model="filters.warehouseId" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="handleFilterChange">
+          <option value="">全部仓库</option>
+          <option v-for="w in warehouseStore.warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
+        </select>
 
         <!-- 作物类型筛选 -->
-        <el-select v-model="filters.cropName" placeholder="全部作物" clearable @change="handleFilterChange">
-          <el-option
-            v-for="name in cropNames"
-            :key="name"
-            :label="name"
-            :value="name"
-          />
-        </el-select>
+        <select v-model="filters.cropName" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="handleFilterChange">
+          <option value="">全部作物</option>
+          <option v-for="name in cropNames" :key="name" :value="name">{{ name }}</option>
+        </select>
 
         <!-- 品质等级筛选 -->
-        <el-select v-model="filters.grade" placeholder="全部等级" clearable @change="handleFilterChange">
-          <el-option label="A级" value="A" />
-          <el-option label="B级" value="B" />
-          <el-option label="C级" value="C" />
-        </el-select>
+        <select v-model="filters.grade" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="handleFilterChange">
+          <option value="">全部等级</option>
+          <option value="A">A级</option>
+          <option value="B">B级</option>
+          <option value="C">C级</option>
+        </select>
 
         <!-- 状态筛选 -->
-        <el-select v-model="filters.status" placeholder="全部状态" clearable @change="handleFilterChange">
-          <el-option label="正常" value="in_stock" />
-          <el-option label="库存不足" value="low_stock" />
-          <el-option label="已过期" value="expired" />
-          <el-option label="缺货" value="out_of_stock" />
-        </el-select>
+        <select v-model="filters.status" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="handleFilterChange">
+          <option value="">全部状态</option>
+          <option value="in_stock">正常</option>
+          <option value="low_stock">库存不足</option>
+          <option value="expired">已过期</option>
+          <option value="out_of_stock">缺货</option>
+        </select>
 
         <!-- 重置和搜索按钮 -->
         <div class="flex gap-2">
-          <el-button @click="handleReset">重置</el-button>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleReset">重置</button>
+          <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSearch">搜索</button>
         </div>
       </div>
     </div>
@@ -155,92 +145,138 @@
     />
 
     <!-- 数据表格 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden" :style="{ maxHeight: 'calc(100vh - 420px)' }">
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <!-- 选择操作栏 -->
       <div v-if="exportMode || batchEditMode || deleteMode" class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
         <div class="flex items-center gap-4">
-          <el-button link type="primary" @click="handleSelectAll">
+          <button class="text-sm text-blue-600 hover:text-blue-800" @click="handleSelectAll">
             {{ isAllSelected ? '全不选' : '全选' }}
-          </el-button>
+          </button>
           <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
         </div>
       </div>
 
       <!-- 表格 -->
-      <el-table
-        :data="displayedData"
-        style="width: 100%"
-        stripe
-        :max-height="600"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" v-if="exportMode || batchEditMode || deleteMode" />
-        <el-table-column prop="productCode" label="作物编码" width="140">
-          <template #default="{ row }">
-            <span class="text-blue-600 cursor-pointer hover:text-blue-800 underline" @click="handleViewDetail(row)">
-              {{ generateCropCode(row.cropName, row.variety) || row.productCode }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="variety" label="作物品种" width="100" />
-        <el-table-column prop="cropName" label="品种路径" width="100" />
-        <el-table-column prop="grade" label="等级" width="80">
-          <template #default="{ row }">
-            <el-tag :type="gradeTagType(row.grade)" size="small">{{ row.grade }}级</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="quantity" label="库存数量" width="100">
-          <template #default="{ row }">
-            <span :class="row.status === 'low_stock' || row.status === 'out_of_stock' ? 'text-red-600 font-medium' : 'text-gray-900'">
-              {{ row.quantity }} {{ row.unit }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="库存限值" width="120">
-          <template #default="{ row }">
-            {{ row.alertSettings?.minStock || 0 }} ~ {{ row.alertSettings?.maxStock || 0 }} {{ row.unit }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="warehouseName" label="仓库" width="100" />
-        <el-table-column prop="storageLocation" label="存放位置" width="100" />
-        <el-table-column prop="storageDate" label="入库时间" width="100" />
-        <el-table-column label="保质期(天)" width="100">
-          <template #default="{ row }">
-            {{ row.alertSettings?.expirationDays || 0 }} 天
-          </template>
-        </el-table-column>
-        <el-table-column prop="expirationDate" label="过期时间" width="100" />
-        <el-table-column label="存储时间" width="80">
-          <template #default="{ row }">
-            {{ getStorageDays(row.storageDate) }} 天
-          </template>
-        </el-table-column>
-        <el-table-column label="预警状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="statusTagType(row.status)" size="small">
-              {{ statusLabel(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作人" width="100">
-          <template #default="{ row }">
-            {{ row.inboundRecords?.length > 0 ? row.inboundRecords[row.inboundRecords.length - 1].operator : '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="备注" width="100" />
-      </el-table>
+      <div class="overflow-auto" style="max-height: 600px">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+            <tr>
+              <th v-if="exportMode || batchEditMode || deleteMode" class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap">
+                <input type="checkbox" :checked="isAllSelected" @change="handleSelectAll" class="w-4 h-4 rounded border-white" />
+              </th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 140px">作物编码</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">作物品种</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">品种路径</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 80px">等级</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">库存数量</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 120px">库存限值</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">仓库</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">存放位置</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">入库时间</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">保质期(天)</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">过期时间</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 80px">存储时间</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">预警状态</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">操作人</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap" style="width: 100px">备注</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr v-if="displayedData.length === 0">
+              <td :colspan="exportMode || batchEditMode || deleteMode ? 16 : 15" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+            </tr>
+            <tr v-for="row in displayedData" :key="row.id" class="hover:bg-blue-50 transition-colors even:bg-gray-50">
+              <!-- 选择列 -->
+              <td v-if="exportMode || batchEditMode || deleteMode" class="px-4 py-3">
+                <input type="checkbox" :checked="selectedRows.includes(row.id)" @change="toggleRowSelection(row.id)" class="w-4 h-4 rounded border-gray-400" />
+              </td>
+              <!-- 作物编码 -->
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <button class="text-blue-600 cursor-pointer hover:text-blue-800 underline" @click="handleViewDetail(row)">
+                  {{ generateCropCode(row.cropName, row.variety) || row.productCode }}
+                </button>
+              </td>
+              <!-- 作物品种 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.variety }}</td>
+              <!-- 品种路径 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.cropName }}</td>
+              <!-- 等级 -->
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="gradeTagClass(row.grade)">{{ row.grade }}级</span>
+              </td>
+              <!-- 库存数量 -->
+              <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <span :class="row.status === 'low_stock' || row.status === 'out_of_stock' ? 'text-red-600 font-medium' : 'text-gray-900'">
+                  {{ row.quantity }} {{ row.unit }}
+                </span>
+              </td>
+              <!-- 库存限值 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                {{ row.alertSettings?.minStock || 0 }} ~ {{ row.alertSettings?.maxStock || 0 }} {{ row.unit }}
+              </td>
+              <!-- 仓库 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.warehouseName }}</td>
+              <!-- 存放位置 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.storageLocation }}</td>
+              <!-- 入库时间 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.storageDate }}</td>
+              <!-- 保质期(天) -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.alertSettings?.expirationDays || 0 }} 天</td>
+              <!-- 过期时间 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.expirationDate }}</td>
+              <!-- 存储时间 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ getStorageDays(row.storageDate) }} 天</td>
+              <!-- 预警状态 -->
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="statusTagClass(row.status)">
+                  {{ statusLabel(row.status) }}
+                </span>
+              </td>
+              <!-- 操作人 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                {{ row.inboundRecords?.length > 0 ? row.inboundRecords[row.inboundRecords.length - 1].operator : '-' }}
+              </td>
+              <!-- 备注 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50]"
-          :total="filteredData.length"
-          layout="total, sizes, prev, pager, next"
-          @size-change="handlePageSizeChange"
-          @current-change="handlePageChange"
-        />
+        <span class="text-sm text-gray-500">共 {{ filteredData.length }} 条</span>
+        <div class="flex items-center gap-2">
+          <button
+            :disabled="currentPage <= 1"
+            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="currentPage = 1"
+          >首页</button>
+          <button
+            :disabled="currentPage <= 1"
+            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="currentPage--"
+          >上一页</button>
+          <span class="text-sm text-gray-700 px-2">{{ currentPage }} / {{ totalPages }}</span>
+          <button
+            :disabled="currentPage >= totalPages"
+            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="currentPage++"
+          >下一页</button>
+          <button
+            :disabled="currentPage >= totalPages"
+            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="currentPage = totalPages"
+          >末页</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">每页</span>
+          <select v-model="pageSize" class="h-8 px-2 border border-gray-300 rounded text-sm bg-white" @change="currentPage = 1">
+            <option :value="10">10条</option>
+            <option :value="20">20条</option>
+            <option :value="50">50条</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -293,8 +329,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { Package, Warning, Clock, TrendRight, WarningFilled, Search } from '@element-plus/icons-vue'
+import { ref, computed, onMounted } from 'vue'
+import { Package, AlertTriangle, Clock, TrendingUp } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useWarehouseStore } from '@/stores/modules/inventory/useWarehouseStore'
 import { getInventoryList, deleteInventoryBatch } from '@/services/apiInventoryService'
@@ -513,6 +549,9 @@ const filteredData = computed(() => {
   })
 })
 
+// 总页数
+const totalPages = computed(() => Math.ceil(filteredData.value.length / pageSize.value) || 1)
+
 // 分页数据
 const displayedData = computed(() => {
   const startIdx = (currentPage.value - 1) * pageSize.value
@@ -526,7 +565,7 @@ const cropNames = computed(() => {
   return names
 })
 
-// 全选状态
+// 全选状态（基于筛选后的全部数据，不是当前页）
 const isAllSelected = computed(() => {
   return filteredData.value.length > 0 && selectedRows.value.length === filteredData.value.length
 })
@@ -573,21 +612,21 @@ const getStorageDays = (storageDate) => {
   return Math.floor((new Date().getTime() - new Date(storageDate).getTime()) / (1000 * 60 * 60 * 24))
 }
 
-// 品质等级标签类型
-const gradeTagType = (grade) => {
-  const types = { 'A': 'success', 'B': 'primary', 'C': 'warning' }
-  return types[grade] || 'info'
+// 品质等级标签样式
+const gradeTagClass = (grade) => {
+  const classes = { 'A': 'bg-green-100 text-green-700', 'B': 'bg-blue-100 text-blue-700', 'C': 'bg-amber-100 text-amber-700' }
+  return classes[grade] || 'bg-gray-100 text-gray-700'
 }
 
-// 状态标签类型
-const statusTagType = (status) => {
-  const types = {
-    'in_stock': 'success',
-    'low_stock': 'warning',
-    'expired': 'danger',
-    'out_of_stock': 'info'
+// 状态标签样式
+const statusTagClass = (status) => {
+  const classes = {
+    'in_stock': 'bg-green-100 text-green-700',
+    'low_stock': 'bg-amber-100 text-amber-700',
+    'expired': 'bg-red-100 text-red-700',
+    'out_of_stock': 'bg-gray-100 text-gray-700'
   }
-  return types[status] || 'info'
+  return classes[status] || 'bg-gray-100 text-gray-700'
 }
 
 // 状态标签文本
@@ -599,6 +638,16 @@ const statusLabel = (status) => {
     'out_of_stock': '缺货'
   }
   return labels[status] || '正常'
+}
+
+// 单行选中切换
+const toggleRowSelection = (id) => {
+  const idx = selectedRows.value.indexOf(id)
+  if (idx >= 0) {
+    selectedRows.value = selectedRows.value.filter(rid => rid !== id)
+  } else {
+    selectedRows.value = [...selectedRows.value, id]
+  }
 }
 
 // 事件处理
@@ -620,19 +669,6 @@ const handleReset = () => {
     showLowStock: false
   }
   currentPage.value = 1
-}
-
-const handlePageChange = (page) => {
-  currentPage.value = page
-}
-
-const handlePageSizeChange = (size) => {
-  pageSize.value = size
-  currentPage.value = 1
-}
-
-const handleSelectionChange = (selection) => {
-  selectedRows.value = selection.map(item => item.id)
 }
 
 const handleViewDetail = (inventory) => {
