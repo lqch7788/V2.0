@@ -742,30 +742,70 @@
           <button @click="handleCancelAddMaterial" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
         </div>
         <div class="p-6 overflow-y-auto flex-1">
-          <div class="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
-            <div class="flex items-center justify-between">
+          <!-- 编码生成器 - V1.1 MaterialCreateModal + WarehouseInboundCodeGen 对齐 -->
+          <div class="bg-emerald-50 rounded-lg p-4 mb-4 border border-emerald-200">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-semibold text-emerald-800 flex items-center gap-2">
+                <Wand2 class="w-4 h-4" />物料编码生成器
+              </h4>
+              <button class="text-xs text-emerald-600 hover:text-emerald-800 flex items-center gap-1" @click="handleResetMaterialCodeGen">
+                <RotateCcw class="w-3 h-3" />重置
+              </button>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mb-3">
               <div>
-                <span class="text-xs text-blue-600 block font-medium">提示</span>
-                <span class="text-sm text-blue-700">请先在"物料编码生成"区域生成编码后填写</span>
+                <label class="block text-xs font-medium text-gray-700 mb-1">大类 <span class="text-red-500">*</span></label>
+                <select v-model="materialCodeGen.bigCategory" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white">
+                  <option value="">请选择大类</option>
+                  <option v-for="b in bigCategoriesList" :key="b.code" :value="b.code">{{ b.code }}-{{ b.name }}</option>
+                </select>
               </div>
-              <Package class="w-12 h-12 text-blue-600" />
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">中类 <span class="text-red-500">*</span></label>
+                <select v-model="materialCodeGen.midCategory" :disabled="!materialCodeGen.bigCategory" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white disabled:bg-gray-100 disabled:text-gray-400">
+                  <option value="">请选择中类</option>
+                  <option v-for="m in materialMidOptions" :key="m.code" :value="m.code">{{ m.code }}-{{ m.name }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">小类 <span class="text-red-500">*</span></label>
+                <select v-model="materialCodeGen.subCategory" :disabled="!materialCodeGen.midCategory" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white disabled:bg-gray-100 disabled:text-gray-400">
+                  <option value="">请选择小类</option>
+                  <option v-for="s in materialSubOptions" :key="s.code" :value="s.code">{{ s.code }}-{{ s.name }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input :value="materialCodeGen.generatedCode" readonly placeholder="点击生成" class="w-40 h-8 px-2 border border-gray-400 rounded-lg text-sm font-mono bg-gray-50" />
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-1" :disabled="!materialCodeGen.subCategory" @click="handleGenerateMaterialCode">
+                <Wand2 class="w-4 h-4" />生成
+              </button>
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1" :disabled="!materialCodeGen.generatedCode" @click="handleCopyMaterialCode">
+                <Copy class="w-4 h-4" />{{ materialCopySuccess ? '已复制!' : '复制' }}
+              </button>
+              <span v-if="materialCodeGenError" class="text-xs text-red-600 font-medium">{{ materialCodeGenError }}</span>
+              <span v-else-if="materialCodeGenSuccess" class="text-xs text-green-600 font-medium">{{ materialCodeGenSuccess }}</span>
             </div>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">物料编码 <span class="text-red-500">*</span></label>
               <input v-model="newMaterial.code" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm font-mono" placeholder="如：SP0201001" />
+              <div v-if="hasIOChar(newMaterial.code)" class="mt-1 text-xs text-amber-600 flex items-start gap-1">
+                <span class="font-bold">⚠️</span>
+                <span>编码含字母 I/O，与数字 1/0 形近，建议核对或替换</span>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">物料名称 <span class="text-red-500">*</span></label>
               <input v-model="newMaterial.name" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="请输入物料名称" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">分类</label>
-              <input v-model="newMaterial.category" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：肥料与土壤改良剂" />
+              <label class="block text-sm font-medium text-gray-700 mb-1">分类 <span class="text-red-500">*</span></label>
+              <input v-model="newMaterial.category" readonly class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-gray-50" placeholder="选择上方分类后自动填充" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">规格型号</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">规格型号 <span class="text-red-500">*</span></label>
               <input v-model="newMaterial.specification" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：50kg/袋" />
             </div>
             <div>
@@ -775,6 +815,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">单位</label>
               <select v-model="newMaterial.unit" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option value="">请选择单位</option>
                 <option v-for="u in unitOptions" :key="u" :value="u">{{ u }}</option>
               </select>
             </div>
@@ -784,11 +825,15 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">最低库存限值</label>
-              <input v-model.number="newMaterial.minStock" type="number" min="0" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+              <input v-model="minStockInput" type="number" min="0" step="0.01" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">最高库存限值</label>
-              <input v-model.number="newMaterial.maxStock" type="number" min="0" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+              <input v-model="maxStockInput" type="number" min="0" step="0.01" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+              <div v-if="minStockInput && maxStockInput && parseFloat(minStockInput) > parseFloat(maxStockInput) && parseFloat(maxStockInput) > 0" class="mt-1 text-xs text-red-600 flex items-start gap-1">
+                <span class="font-bold">⚠️</span>
+                <span>最低库存不能高于最高库存</span>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">单价</label>
@@ -970,12 +1015,13 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
-import { Package, AlertTriangle, Download, Search, Plus, RefreshCw } from 'lucide-vue-next'
+import { ref, computed, reactive, onMounted, watch } from 'vue'
+import { Package, AlertTriangle, Download, Search, Plus, RefreshCw, Wand2, Copy, RotateCcw } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { getMaterials, getInboundRecords } from '@/api/material/apiWarehouseMaterialService'
 import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
 import { useInboundStore } from '@/stores/modules/inventory/useInboundStore'
+import { bigCategoriesList, categoryConfig } from '@/types/warehouseInbound.js'
 import ActionToolbar from './components/ActionToolbar.vue'
 import MaterialEditModal from './components/MaterialEditModal.vue'
 import MaterialDeleteConfirmModal from './components/MaterialDeleteConfirmModal.vue'
@@ -983,47 +1029,10 @@ import DeleteWarningDialog from './components/DeleteWarningDialog.vue'
 import BatchDeleteConfirmDialog from './components/BatchDeleteConfirmDialog.vue'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
-// 分类配置（与V1.1 categoryConfig一致 — 7大分类体系）
-const categoryConfig = {
-  'SP': { name: '生产投入类', categories: {
-    '01': { name: '种质资源', subCategories: { '01': { name: '种子', prefix: 'SP0101' }, '02': { name: '种苗', prefix: 'SP0102' }, '03': { name: '种球', prefix: 'SP0103' } } },
-    '02': { name: '肥料与土壤改良剂', subCategories: { '01': { name: '有机肥', prefix: 'SP0201' }, '02': { name: '化肥', prefix: 'SP0202' }, '03': { name: '土壤改良剂', prefix: 'SP0203' } } },
-    '03': { name: '农药与植保产品', subCategories: { '01': { name: '杀虫剂', prefix: 'SP0301' }, '02': { name: '杀菌剂', prefix: 'SP0302' }, '03': { name: '除草剂', prefix: 'SP0303' } } },
-    '04': { name: '灌溉与水管材料', subCategories: { '01': { name: '滴灌材料', prefix: 'SP0401' }, '02': { name: '喷灌材料', prefix: 'SP0402' } } },
-    '05': { name: '农膜与覆盖材料', subCategories: { '01': { name: '地膜', prefix: 'SP0501' }, '02': { name: '棚膜', prefix: 'SP0502' } } }
-  } },
-  'EQ': { name: '设施与装备类', categories: {
-    '01': { name: '农业机械', subCategories: { '01': { name: '耕作机械', prefix: 'EQ0101' }, '02': { name: '种植机械', prefix: 'EQ0102' }, '03': { name: '植保机械', prefix: 'EQ0103' } } },
-    '02': { name: '温室设施', subCategories: { '01': { name: '骨架材料', prefix: 'EQ0201' }, '02': { name: '覆盖材料', prefix: 'EQ0202' } } },
-    '03': { name: '仓储设备', subCategories: { '01': { name: '货架', prefix: 'EQ0301' }, '02': { name: '冷藏设备', prefix: 'EQ0302' } } },
-    '04': { name: '运输设备', subCategories: { '01': { name: '搬运车', prefix: 'EQ0401' }, '02': { name: '运输车', prefix: 'EQ0402' } } }
-  } },
-  'OP': { name: '作业支持类', categories: {
-    '01': { name: '劳保与防护用品', subCategories: { '01': { name: '防护服', prefix: 'OP0101' }, '02': { name: '手套口罩', prefix: 'OP0102' } } },
-    '02': { name: '工具与器械', subCategories: { '01': { name: '手动工具', prefix: 'OP0201' }, '02': { name: '电动工具', prefix: 'OP0202' } } }
-  } },
-  'PH': { name: '采后处理与流通类', categories: {
-    '01': { name: '采收容器', subCategories: { '01': { name: '周转筐', prefix: 'PH0101' }, '02': { name: '包装箱', prefix: 'PH0102' } } },
-    '02': { name: '包装材料', subCategories: { '01': { name: '纸箱', prefix: 'PH0201' }, '02': { name: '塑料袋', prefix: 'PH0202' } } },
-    '03': { name: '保鲜材料', subCategories: { '01': { name: '保鲜膜', prefix: 'PH0301' }, '02': { name: '保鲜剂', prefix: 'PH0302' } } }
-  } },
-  'IT': { name: '数字化与管理类', categories: {
-    '01': { name: '监测设备', subCategories: { '01': { name: '传感器', prefix: 'IT0101' }, '02': { name: '摄像头', prefix: 'IT0102' } } },
-    '02': { name: '控制设备', subCategories: { '01': { name: '控制器', prefix: 'IT0201' }, '02': { name: '执行器', prefix: 'IT0202' } } }
-  } },
-  'EC': { name: '能源与通用耗材', categories: {
-    '01': { name: '能源', subCategories: { '01': { name: '电力', prefix: 'EC0101' }, '02': { name: '燃油', prefix: 'EC0102' } } },
-    '02': { name: '通用耗材', subCategories: { '01': { name: '办公用品', prefix: 'EC0201' }, '02': { name: '清洁用品', prefix: 'EC0202' } } }
-  } },
-  'OT': { name: '其他类', categories: {
-    '01': { name: '其他物料', subCategories: { '01': { name: '其他', prefix: 'OT0101' } } }
-  } }
-}
-
-// 大类选项
+// 大类选项（复用 @/types/warehouseInbound.js 中的 V1.1 完整配置）
 const bigCategories = Object.entries(categoryConfig).map(([code, data]) => ({
   code,
-  name: (data).name
+  name: data.name
 }))
 
 // 简单分类选项（对应V1.1 SIMPLE_CATEGORIES）
@@ -1684,14 +1693,162 @@ function createEmptyMaterial() {
 
 const newMaterial = reactive(createEmptyMaterial())
 
+// 编码生成器状态 - V1.1 MaterialCreateModal 对齐
+const materialCodeGen = reactive({
+  bigCategory: '',
+  midCategory: '',
+  subCategory: '',
+  generatedCode: ''
+})
+const materialCodeGenError = ref('')
+const materialCodeGenSuccess = ref('')
+const materialCopySuccess = ref(false)
+const minStockInput = ref('0')
+const maxStockInput = ref('0')
+
+// 中类/小类级联选项
+const materialMidOptions = computed(() => {
+  if (!materialCodeGen.bigCategory) return []
+  const bigCat = categoryConfig[materialCodeGen.bigCategory]
+  if (!bigCat) return []
+  return Object.entries(bigCat.categories).map(([code, data]) => ({ code, name: data.name }))
+})
+const materialSubOptions = computed(() => {
+  if (!materialCodeGen.bigCategory || !materialCodeGen.midCategory) return []
+  const bigCat = categoryConfig[materialCodeGen.bigCategory]
+  if (!bigCat) return []
+  const midCat = bigCat.categories[materialCodeGen.midCategory]
+  if (!midCat) return []
+  return Object.entries(midCat.subCategories).map(([code, data]) => ({ code, name: data.name }))
+})
+
+// 检测编码含 I/O 字符
+const hasIOChar = (code) => /[IO]/.test(code || '')
+
+// 监听分类级联变化 → 自动同步到 newMaterial.category
+watch(() => [materialCodeGen.bigCategory, materialCodeGen.midCategory, materialCodeGen.subCategory], () => {
+  const bigName = materialCodeGen.bigCategory
+    ? (bigCategoriesList.find(b => b.code === materialCodeGen.bigCategory)?.name || '')
+    : ''
+  const midName = materialCodeGen.bigCategory && materialCodeGen.midCategory
+    ? (categoryConfig[materialCodeGen.bigCategory]?.categories?.[materialCodeGen.midCategory]?.name || '')
+    : ''
+  const subName = materialCodeGen.bigCategory && materialCodeGen.midCategory && materialCodeGen.subCategory
+    ? (categoryConfig[materialCodeGen.bigCategory]?.categories?.[materialCodeGen.midCategory]?.subCategories?.[materialCodeGen.subCategory]?.name || '')
+    : ''
+  newMaterial.category = [bigName, midName, subName].filter(Boolean).join('-')
+})
+
+// 监听生成的编码 → 同步到表单（用户可手动覆盖）
+watch(() => materialCodeGen.generatedCode, (val) => {
+  if (val) newMaterial.code = val
+})
+
+// 监听阈值输入 → 同步到 newMaterial
+watch(minStockInput, (val) => {
+  const num = parseFloat(val)
+  newMaterial.minStock = isNaN(num) ? 0 : Math.max(0, Math.round(num * 100) / 100)
+})
+watch(maxStockInput, (val) => {
+  const num = parseFloat(val)
+  newMaterial.maxStock = isNaN(num) ? 0 : Math.max(0, Math.round(num * 100) / 100)
+})
+
+// 编码生成（按 max+1 算法，对齐 V1.1 warehouseInbound.utils.generateNextMaterialCode）
+const handleGenerateMaterialCode = () => {
+  if (!materialCodeGen.bigCategory || !materialCodeGen.midCategory || !materialCodeGen.subCategory) {
+    materialCodeGenError.value = '请选择完整的分类'
+    materialCodeGenSuccess.value = ''
+    return
+  }
+  const baseCode = `${materialCodeGen.bigCategory}${materialCodeGen.midCategory}${materialCodeGen.subCategory}`
+  const existingCodes = warehouseMaterials.value
+    .map(m => m.code)
+    .filter(c => typeof c === 'string' && c.startsWith(baseCode))
+  let maxSeq = 0
+  for (const code of existingCodes) {
+    const seq = parseInt(code.slice(baseCode.length), 10)
+    if (!isNaN(seq) && seq > maxSeq && seq < 1000) maxSeq = seq
+  }
+  const nextSeq = maxSeq + 1
+  if (nextSeq > 999) {
+    materialCodeGenError.value = '该分类编码已达上限 999'
+    materialCodeGenSuccess.value = ''
+    return
+  }
+  const newCode = `${baseCode}${String(nextSeq).padStart(3, '0')}`
+  materialCodeGen.generatedCode = newCode
+  materialCodeGenSuccess.value = `生成成功: ${newCode}`
+  materialCodeGenError.value = ''
+}
+
+const handleCopyMaterialCode = async () => {
+  if (!materialCodeGen.generatedCode) return
+  try {
+    await navigator.clipboard.writeText(materialCodeGen.generatedCode)
+    materialCopySuccess.value = true
+    setTimeout(() => { materialCopySuccess.value = false }, 2000)
+  } catch {
+    // 旧浏览器 fallback
+    const ta = document.createElement('textarea')
+    ta.value = materialCodeGen.generatedCode
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+    materialCopySuccess.value = true
+    setTimeout(() => { materialCopySuccess.value = false }, 2000)
+  }
+}
+
+const handleResetMaterialCodeGen = () => {
+  materialCodeGen.bigCategory = ''
+  materialCodeGen.midCategory = ''
+  materialCodeGen.subCategory = ''
+  materialCodeGen.generatedCode = ''
+  materialCodeGenError.value = ''
+  materialCodeGenSuccess.value = ''
+  materialCopySuccess.value = false
+}
+
 const handleToolbarAdd = () => {
   Object.assign(newMaterial, createEmptyMaterial())
+  // 重置编码生成器
+  handleResetMaterialCodeGen()
+  // 重置阈值输入
+  minStockInput.value = '0'
+  maxStockInput.value = '0'
   showAddMaterialModal.value = true
 }
 
 const handleSaveAddMaterial = async () => {
-  if (!newMaterial.code || !newMaterial.name) {
-    ElMessage.warning('请填写物料编码和物料名称')
+  // 必填校验 - V1.1 validate() 对齐
+  if (!newMaterial.code.trim()) {
+    ElMessage.warning('请填写物料编码（可用上方编码生成器自动生成）')
+    return
+  }
+  if (!newMaterial.name.trim()) {
+    ElMessage.warning('请填写物料名称')
+    return
+  }
+  if (!newMaterial.category) {
+    ElMessage.warning('请选择完整分类（大类/中类/小类）')
+    return
+  }
+  if (!newMaterial.specification.trim()) {
+    ElMessage.warning('请填写规格型号')
+    return
+  }
+  if (!newMaterial.unit.trim()) {
+    ElMessage.warning('请填写单位')
+    return
+  }
+  if (newMaterial.minStock < 0 || newMaterial.maxStock < 0) {
+    ElMessage.warning('库存阈值不能为负')
+    return
+  }
+  if (newMaterial.maxStock > 0 && newMaterial.minStock > newMaterial.maxStock) {
+    ElMessage.warning('最低库存不能高于最高库存')
     return
   }
   try {
@@ -1700,7 +1857,7 @@ const handleSaveAddMaterial = async () => {
     const newId = Math.max(0, ...list.map(m => m.id)) + 1
     warehouseMaterials.value = [...warehouseMaterials.value, { ...newMaterial, id: newId }]
     showAddMaterialModal.value = false
-    ElMessage.success('新增物料成功')
+    ElMessage.success(`物料 ${newMaterial.code} 创建成功`)
   } catch (error) {
     ElMessage.error('新增失败: ' + (error.message || '未知错误'))
   }
