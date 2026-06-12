@@ -656,7 +656,7 @@
             <h4 class="font-medium mb-2 text-sm">入库物料明细</h4>
             <div class="overflow-auto rounded-lg border border-gray-200">
               <table class="w-full">
-                <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white sticky top-0 z-10">
+                <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
                   <tr>
                     <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
                     <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
@@ -865,39 +865,84 @@
 
     <!-- ========== 入库记录编辑弹窗 ========== -->
     <div v-if="showInboundEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="showInboundEditModal = false">
-      <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
-        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between">
+      <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between flex-shrink-0">
           <h3 class="text-lg font-semibold">编辑入库记录</h3>
           <button @click="showInboundEditModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
         </div>
 
-        <div v-if="selectedInboundRecord" class="p-6 overflow-y-auto max-h-[70vh]">
+        <div v-if="selectedInboundRecord" class="p-6 overflow-y-auto flex-1">
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">入库单号</label>
             <input :value="inboundEditForm.code" readonly class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50" />
           </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">入库日期</label>
-            <input v-model="inboundEditForm.inboundDate" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">入库日期</label>
+              <input v-model="inboundEditForm.inboundDate" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+              <select v-model="inboundEditForm.status" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option value="pending">待审核</option>
+                <option value="completed">已完成</option>
+              </select>
+            </div>
           </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
-            <input v-model="inboundEditForm.supplier" placeholder="请输入供应商" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
+              <input v-model="inboundEditForm.supplier" placeholder="请输入供应商" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">操作员</label>
+              <input v-model="inboundEditForm.operator" placeholder="请输入操作员" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
           </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">操作员</label>
-            <input v-model="inboundEditForm.operator" placeholder="请输入操作员" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+
+          <!-- 入库物料明细子表 -->
+          <div class="mb-2 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-gray-700">入库物料明细</h4>
+            <span class="text-xs text-gray-500">共 {{ inboundEditForm.materials?.length || 0 }} 条</span>
           </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
-            <select v-model="inboundEditForm.status" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
-              <option value="pending">待审核</option>
-              <option value="completed">已完成</option>
-            </select>
+          <div v-if="(inboundEditForm.materials?.length || 0) > 0" class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="text-xs w-full">
+              <thead class="bg-blue-600 text-white">
+                <tr>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">规格</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">单位</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">数量</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">单价</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">批次号</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">生产日期</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">货位</th>
+                  <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">备注</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="(m, idx) in inboundEditForm.materials" :key="idx" class="hover:bg-blue-50">
+                  <td class="px-1 py-1"><input v-model="m.materialCode" class="w-20 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model="m.materialName" class="w-20 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model="m.spec" class="w-16 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model="m.unit" class="w-12 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model.number="m.quantity" type="number" min="0" class="w-16 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model.number="m.unitPrice" type="number" min="0" step="0.01" class="w-16 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model="m.batchNo" class="w-16 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model="m.productionDate" type="date" class="w-24 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model="m.location" class="w-16 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                  <td class="px-1 py-1"><input v-model="m.remark" class="w-20 h-6 px-1 border border-gray-300 rounded text-xs" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else class="text-center py-4 text-sm text-gray-500 border border-gray-200 rounded-lg">
+            暂无物料明细
           </div>
         </div>
 
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 flex-shrink-0">
           <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="showInboundEditModal = false">取消</button>
           <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSaveInboundEdit">保存</button>
         </div>
@@ -1775,7 +1820,8 @@ const inboundEditForm = reactive({
   inboundDate: '',
   supplier: '',
   operator: '',
-  status: ''
+  status: '',
+  materials: []
 })
 
 const handleEditInbound = (row) => {
@@ -1786,6 +1832,8 @@ const handleEditInbound = (row) => {
   inboundEditForm.supplier = row.supplier
   inboundEditForm.operator = row.operator
   inboundEditForm.status = row.status
+  // 深拷贝 materials 数组避免直接修改原数据
+  inboundEditForm.materials = (row.materials || []).map(m => ({ ...m }))
   showInboundEditModal.value = true
 }
 
@@ -1798,7 +1846,8 @@ const handleSaveInboundEdit = () => {
         inboundDate: inboundEditForm.inboundDate,
         supplier: inboundEditForm.supplier,
         operator: inboundEditForm.operator,
-        status: inboundEditForm.status
+        status: inboundEditForm.status,
+        materials: inboundEditForm.materials.map(m => ({ ...m }))
       }
     }
     ElMessage.success('入库记录已更新')
