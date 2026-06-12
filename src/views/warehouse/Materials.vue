@@ -430,7 +430,7 @@
                 <td colspan="9" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
               </tr>
               <tr v-for="row in inboundRecords" :key="row.id" class="hover:bg-blue-100 transition-colors">
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.code }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline whitespace-nowrap" @click="handleViewInbound(row)">{{ row.code }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.materialCode }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.materialName }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.quantity }}{{ row.unit }}</td>
