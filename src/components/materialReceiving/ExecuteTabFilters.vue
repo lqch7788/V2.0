@@ -1,6 +1,6 @@
 <template>
   <!-- 搜索区域 -->
-  <div class="bg-[#F2F6FA] rounded-xl p-4">
+  <div class="bg-gray-50 rounded-lg p-4">
     <div class="flex items-end gap-4">
       <!-- 出库单号 -->
       <div class="flex-1">

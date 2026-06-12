@@ -3,12 +3,12 @@
     <!-- 页面头部 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-          <Upload :size="24" class="text-white" />
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+          <ClipboardList :size="24" class="text-white" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">领料出库</h1>
-          <p class="text-gray-500">领料出库记录管理</p>
+          <h1 class="text-2xl font-bold text-gray-900">生产领料</h1>
+          <p class="text-gray-500">领料记录管理</p>
         </div>
       </div>
     </div>
@@ -131,7 +131,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Upload } from 'lucide-vue-next'
+import { ClipboardList } from 'lucide-vue-next'
 import { useExecuteStore } from '@/stores/modules/inventory/useExecuteStore'
 import ExecuteTabFilters from '@/components/materialReceiving/ExecuteTabFilters.vue'
 import ExecuteTabTable from '@/components/materialReceiving/ExecuteTabTable.vue'

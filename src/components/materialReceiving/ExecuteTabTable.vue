@@ -121,19 +121,17 @@
       </el-table-column>
       <el-table-column label="执行状态" width="100">
         <template #default="{ row }">
-          <el-tag
-            :type="getStatusTagType(row.executeStatusClass)"
-            size="small"
+          <span
+            class="inline-flex px-2 py-1 rounded-full text-xs font-medium"
+            :class="getExecuteStatusBadgeClass(row.executeStatusClass)"
           >
             {{ row.executeStatus }}
-          </el-tag>
+          </span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="操作" width="80" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" size="small" @click="$emit('view', row)">查看</el-button>
-          <el-button link type="primary" size="small" @click="$emit('edit', row)">编辑</el-button>
-          <el-button link type="danger" size="small" @click="$emit('delete', row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -257,5 +255,16 @@ const getStatusTagType = (statusClass) => {
     'cancelled': 'info'
   }
   return typeMap[statusClass] || 'info'
+}
+
+// 执行状态徽章颜色对齐 V1.1（精确 Tailwind class）
+const getExecuteStatusBadgeClass = (statusClass) => {
+  const classMap = {
+    'completed': 'bg-green-100 text-green-700',
+    'pending_out': 'bg-amber-100 text-amber-700',
+    'partial': 'bg-blue-100 text-blue-700',
+    'cancelled': 'bg-gray-100 text-gray-700'
+  }
+  return classMap[statusClass] || 'bg-gray-100 text-gray-700'
 }
 </script>

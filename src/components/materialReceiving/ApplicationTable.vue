@@ -133,13 +133,13 @@
       <el-table-column prop="productionBatchCode" label="生产计划批次号" min-width="140" />
       <el-table-column label="状态" min-width="120">
         <template #default="{ row }">
-          <el-tag
-            :type="getStatusTagType(row.statusClass)"
-            size="small"
+          <span
+            class="inline-flex px-2 py-1 rounded-full text-xs font-medium"
+            :class="getStatusBadgeClass(row.statusClass)"
           >
             {{ row.status }}
-          </el-tag>
-          <div v-if="row.statusClass === 'rejected' && row.rejectReason" class="text-xs text-red-600 mt-1 max-w-[150px] truncate">
+          </span>
+          <div v-if="row.statusClass === 'rejected' && row.rejectReason" class="text-xs text-red-600 mt-1 max-w-[150px] truncate" :title="row.rejectReason">
             原因：{{ row.rejectReason }}
           </div>
         </template>
@@ -147,12 +147,6 @@
       <el-table-column label="备注" min-width="100">
         <template #default="{ row }">
           {{ row.materials?.length > 0 ? row.materials[0].remark : '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right">
-        <template #default="{ row }">
-          <el-button link type="primary" size="small" @click="$emit('view', row)">查看</el-button>
-          <el-button link type="primary" size="small" @click="$emit('edit', row)">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -279,5 +273,18 @@ const getStatusTagType = (statusClass) => {
     'partial': 'primary'
   }
   return typeMap[statusClass] || 'info'
+}
+
+// 状态徽章颜色对齐 V1.1（精确 Tailwind class）
+const getStatusBadgeClass = (statusClass) => {
+  const classMap = {
+    'approved': 'bg-green-100 text-green-700',
+    'pending': 'bg-amber-100 text-amber-700',
+    'rejected': 'bg-red-100 text-red-700',
+    'cancelled': 'bg-gray-100 text-blue-700',
+    'voided': 'bg-gray-200 text-gray-600',
+    'partial': 'bg-blue-100 text-blue-700'
+  }
+  return classMap[statusClass] || 'bg-gray-100 text-blue-700'
 }
 </script>

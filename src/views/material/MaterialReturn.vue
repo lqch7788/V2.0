@@ -16,40 +16,40 @@
     </div>
 
     <!-- 搜索区域 -->
-    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-      <div class="grid grid-cols-6 gap-4">
+    <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-100">
+      <div class="grid grid-cols-6 gap-4 items-end">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">退料单号</label>
-          <input v-model="searchForm.code" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" @input="updateSearchField('code', $event.target.value)" />
+          <input v-model="searchForm.code" placeholder="请输入" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('code', $event.target.value)" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">物资名称</label>
-          <input v-model="searchForm.material" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" @input="updateSearchField('material', $event.target.value)" />
+          <input v-model="searchForm.material" placeholder="请输入" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('material', $event.target.value)" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">仓库位置</label>
-          <input v-model="searchForm.warehouse" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" @input="updateSearchField('warehouse', $event.target.value)" />
+          <input v-model="searchForm.warehouse" placeholder="请输入" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('warehouse', $event.target.value)" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">申请人</label>
-          <input v-model="searchForm.applicant" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" @input="updateSearchField('applicant', $event.target.value)" />
+          <input v-model="searchForm.applicant" placeholder="请输入" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('applicant', $event.target.value)" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
-          <select v-model="searchForm.status" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="updateSearchField('status', $event.target.value)">
+          <select v-model="searchForm.status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white" @change="updateSearchField('status', $event.target.value)">
             <option v-for="opt in STATUS_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
           </select>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">退料部门</label>
-          <select v-model="searchForm.department" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="updateSearchField('department', $event.target.value)">
-            <option value="all">全部部门</option>
-            <option v-for="dept in departmentOptions" :key="dept" :value="dept">{{ dept }}</option>
-          </select>
+        <div class="flex items-end gap-2">
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">退料部门</label>
+            <select v-model="searchForm.department" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white" @change="updateSearchField('department', $event.target.value)">
+              <option value="all">全部部门</option>
+              <option v-for="dept in departmentOptions" :key="dept" :value="dept">{{ dept }}</option>
+            </select>
+          </div>
+          <button class="h-[38px] px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 shrink-0" @click="handleReset">重置</button>
         </div>
-      </div>
-      <div class="mt-4 flex justify-end">
-        <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleReset">重置</button>
       </div>
     </div>
 
