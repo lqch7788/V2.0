@@ -229,25 +229,48 @@ const exportFileType = ref('excel')
 // 物料申请数据（从 API 加载）
 const materialData = ref([])
 
+// 字段映射：后端 snake_case → 前端 camelCase
+const FIELD_MAP_APPLICATION = {
+  id: 'id',
+  request_code: 'code',
+  apply_date: 'date',
+  applicant_name: 'applicant',
+  department_name: 'department',
+  warehouse_name: 'warehouseLocation',
+  plant_area: 'plantArea',
+  reviewer: 'reviewer',
+  production_batch_code: 'productionBatchCode',
+  approval_status: 'approvalStatus',
+  remarks: 'remarks',
+  reject_reason: 'rejectReason',
+  materials: 'materials'
+}
+
+function normalizeApplicationRecord(item) {
+  const result = { ...item }
+  for (const [snake, camel] of Object.entries(FIELD_MAP_APPLICATION)) {
+    if (snake in result && result[snake] !== undefined && result[snake] !== null) {
+      result[camel] = result[snake]
+    }
+  }
+  // 解析 materials JSON
+  if (typeof result.materials === 'string') {
+    try { result.materials = JSON.parse(result.materials) } catch { result.materials = [] }
+  }
+  if (!Array.isArray(result.materials)) result.materials = []
+  // 状态文本/样式
+  result.status = getStatusText(result.approvalStatus)
+  result.statusClass = getStatusClass(result.approvalStatus)
+  return result
+}
+
 // 加载物料申请数据
 const loadMaterialData = async () => {
   try {
     const result = await getMaterialRequests()
-    // 转换后端数据格式为前端所需格式
-    materialData.value = result.data.map(item => ({
-      id: item.id,
-      code: item.requestCode,
-      date: item.applyDate,
-      applicant: item.applicantName,
-      department: item.departmentName,
-      warehouseLocation: item.warehouseName,
-      plantArea: item.plantArea,
-      reviewer: item.reviewer,
-      productionBatchCode: item.productionBatchCode,
-      status: getStatusText(item.approvalStatus),
-      statusClass: getStatusClass(item.approvalStatus),
-      materials: item.materials || []
-    }))
+    // 后端返回 { data: [...], meta: {...} }，统一通过 normalize 转换
+    const list = Array.isArray(result) ? result : (result.data || [])
+    materialData.value = list.map(normalizeApplicationRecord)
   } catch (error) {
     console.error('加载物料申请数据失败:', error)
     ElMessage.error('加载数据失败，请刷新重试')
