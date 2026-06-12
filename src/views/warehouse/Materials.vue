@@ -167,7 +167,7 @@
         :low-stock-count="lowStockCount"
         :filters="toolbarFilters"
         :show-low-stock-button="true"
-        :can-create="false"
+        :can-create="true"
         @low-stock-toggle="handleToolbarLowStockToggle"
         @batch-edit="handleToolbarBatchEdit"
         @delete="handleToolbarDelete"
@@ -178,6 +178,7 @@
         @cancel-delete="handleToolbarCancelDelete"
         @confirm-export="handleToolbarConfirmExport"
         @cancel-export="handleToolbarCancelExport"
+        @add="handleToolbarAdd"
       />
 
       <!-- 表格容器 -->
@@ -211,12 +212,19 @@
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">物料编号</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">物料名称</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">分类</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">规格型号</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">条形码</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">单位</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">库存数量</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">最低库存</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">单价</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">最高库存</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">单价(元)</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">供应商</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">存放位置</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">批次号</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">生产日期</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">有效期至</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">数据状态</th>
                 <th
                   v-if="!exportMode && !batchEditMode && !deleteMode"
                   class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap"
@@ -225,7 +233,7 @@
             </thead>
             <tbody class="divide-y divide-gray-300">
               <tr v-if="paginatedMaterials.length === 0">
-                <td :colspan="10" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+                <td :colspan="(exportMode || batchEditMode || deleteMode) ? 18 : 17" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
               </tr>
               <tr
                 v-for="row in paginatedMaterials"
@@ -240,9 +248,11 @@
                     @change="toggleSelectRow(row)"
                   />
                 </td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.code }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline whitespace-nowrap" @click="handleView(row)">{{ row.code }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.name }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.category }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.specification || '-' }}</td>
+                <td class="px-4 py-3 text-sm font-mono text-gray-600 whitespace-nowrap">{{ row.barcode || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.unit }}</td>
                 <td class="px-4 py-3 text-sm whitespace-nowrap">
                   <div class="flex items-center gap-2">
@@ -253,9 +263,24 @@
                   </div>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.minStock }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.maxStock }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.price }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.supplier }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.location }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.batchNo || '-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.productionDate || '-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.expiryDate || '-' }}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <span
+                    class="inline-flex px-2 py-1 rounded-full text-xs font-medium"
+                    :class="{
+                      'bg-green-100 text-green-700': row.dataStatus === '启用',
+                      'bg-red-100 text-red-700': row.dataStatus !== '启用'
+                    }"
+                  >
+                    {{ row.dataStatus || '启用' }}
+                  </span>
+                </td>
                 <td v-if="!exportMode && !batchEditMode && !deleteMode" class="px-4 py-3 whitespace-nowrap">
                   <div class="flex items-center gap-1">
                     <button class="text-blue-600 hover:text-blue-800 p-1" @click="handleView(row)">查看</button>
@@ -712,6 +737,108 @@
       @close="showEditModal = false"
       @save="handleSaveEdit"
     />
+
+    <!-- 物料新增弹窗 -->
+    <div v-if="showAddMaterialModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="handleCancelAddMaterial">
+      <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" @click.stop>
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between flex-shrink-0">
+          <h3 class="text-lg font-semibold">新增物料库存</h3>
+          <button @click="handleCancelAddMaterial" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1">
+          <div class="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs text-blue-600 block font-medium">提示</span>
+                <span class="text-sm text-blue-700">请先在"物料编码生成"区域生成编码后填写</span>
+              </div>
+              <Package class="w-12 h-12 text-blue-600" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">物料编码 <span class="text-red-500">*</span></label>
+              <input v-model="newMaterial.code" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm font-mono" placeholder="如：SP0201001" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">物料名称 <span class="text-red-500">*</span></label>
+              <input v-model="newMaterial.name" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="请输入物料名称" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+              <input v-model="newMaterial.category" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：肥料与土壤改良剂" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">规格型号</label>
+              <input v-model="newMaterial.specification" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：50kg/袋" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">条形码</label>
+              <input v-model="newMaterial.barcode" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm font-mono" placeholder="13位数字" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">单位</label>
+              <select v-model="newMaterial.unit" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option v-for="u in unitOptions" :key="u" :value="u">{{ u }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">当前库存</label>
+              <input v-model.number="newMaterial.quantity" type="number" min="0" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">最低库存限值</label>
+              <input v-model.number="newMaterial.minStock" type="number" min="0" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">最高库存限值</label>
+              <input v-model.number="newMaterial.maxStock" type="number" min="0" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">单价</label>
+              <input v-model="newMaterial.price" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：45.00" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
+              <input v-model="newMaterial.supplier" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="供应商名称" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">存放位置</label>
+              <input v-model="newMaterial.location" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：A-01-01" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">批次号</label>
+              <input v-model="newMaterial.batchNo" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">生产日期</label>
+              <input v-model="newMaterial.productionDate" type="date" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">过期日期</label>
+              <input v-model="newMaterial.expiryDate" type="date" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">数据状态</label>
+              <div class="flex items-center gap-4 py-1">
+                <label class="flex items-center gap-2">
+                  <input type="radio" v-model="newMaterial.dataStatus" value="启用" class="w-4 h-4 text-blue-600 border-gray-400" />
+                  <span class="text-sm text-gray-700">启用</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="radio" v-model="newMaterial.dataStatus" value="停用" class="w-4 h-4 text-blue-600 border-gray-400" />
+                  <span class="text-sm text-gray-700">停用</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2 flex-shrink-0">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleCancelAddMaterial">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSaveAddMaterial">保存</button>
+        </div>
+      </div>
+    </div>
 
     <!-- 物料删除确认弹窗 - 子组件 -->
     <MaterialDeleteConfirmModal
@@ -1475,6 +1602,7 @@ const resetNewInbound = () => {
 
 const showDetailModal = ref(false)
 const showInboundDetailModal = ref(false)
+const showAddMaterialModal = ref(false)
 const selectedMaterial = ref(null)
 const selectedInboundRecord = ref(null)
 
@@ -1486,6 +1614,59 @@ const handleView = (row) => {
 const handleViewInbound = (row) => {
   selectedInboundRecord.value = row
   showInboundDetailModal.value = true
+}
+
+// ========== 新增物料 ==========
+
+function createEmptyMaterial() {
+  return {
+    id: null,
+    code: '',
+    name: '',
+    category: '',
+    specification: '',
+    barcode: '',
+    unit: '袋',
+    quantity: 0,
+    minStock: 0,
+    maxStock: 0,
+    price: '',
+    supplier: '',
+    location: '',
+    batchNo: '',
+    productionDate: '',
+    expiryDate: '',
+    lastUpdateTime: new Date().toISOString().slice(0, 10),
+    dataStatus: '启用'
+  }
+}
+
+const newMaterial = reactive(createEmptyMaterial())
+
+const handleToolbarAdd = () => {
+  Object.assign(newMaterial, createEmptyMaterial())
+  showAddMaterialModal.value = true
+}
+
+const handleSaveAddMaterial = async () => {
+  if (!newMaterial.code || !newMaterial.name) {
+    ElMessage.warning('请填写物料编码和物料名称')
+    return
+  }
+  try {
+    const data = await getMaterials()
+    const list = Array.isArray(data) ? data : (data.data || [])
+    const newId = Math.max(0, ...list.map(m => m.id)) + 1
+    warehouseMaterials.value = [...warehouseMaterials.value, { ...newMaterial, id: newId }]
+    showAddMaterialModal.value = false
+    ElMessage.success('新增物料成功')
+  } catch (error) {
+    ElMessage.error('新增失败: ' + (error.message || '未知错误'))
+  }
+}
+
+const handleCancelAddMaterial = () => {
+  showAddMaterialModal.value = false
 }
 
 // ========== 批量操作工具栏回调 ==========
