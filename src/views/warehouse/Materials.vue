@@ -109,10 +109,6 @@
           <button class="h-8 px-3 rounded-md text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200" @click="handleReset">
             <RefreshCw class="w-4 h-4 inline mr-1" />重置
           </button>
-          <!-- 导出按钮 -->
-          <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleExportClick">
-            <Download class="w-4 h-4 inline mr-1" />导出
-          </button>
         </div>
 
         <!-- 第二行：三级分类筛选 -->
@@ -1837,7 +1833,7 @@ const handleEditInbound = (row) => {
   showInboundEditModal.value = true
 }
 
-const handleSaveInboundEdit = () => {
+const handleSaveInboundEdit = async () => {
   if (selectedInboundRecord.value) {
     const idx = inboundRecordsData.value.findIndex(r => r.id === selectedInboundRecord.value.id)
     if (idx !== -1) {
@@ -1851,6 +1847,8 @@ const handleSaveInboundEdit = () => {
       }
     }
     ElMessage.success('入库记录已更新')
+    // 重新从后端加载以保证数据一致
+    await loadInboundRecords()
   }
   showInboundEditModal.value = false
   selectedInboundRecord.value = null
