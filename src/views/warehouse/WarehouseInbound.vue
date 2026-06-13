@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- ========== 1. 页面头部 ========== -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <Package class="w-6 h-6 text-white" />
@@ -24,12 +24,11 @@
           <ChevronDown v-if="codeGenExpanded" class="w-5 h-5 text-gray-600" />
           <ChevronRight v-else class="w-5 h-5 text-gray-600" />
         </button>
-        <span class="text-xs text-gray-400 ml-auto">编码规则：大类(2位)+中类(2位)+小类(2位)+序号(3位)</span>
       </div>
 
       <!-- 展开的生成面板 -->
       <div v-if="codeGenExpanded" class="p-6">
-        <div class="grid grid-cols-4 gap-4 mb-4">
+        <div class="grid grid-cols-6 gap-4 mb-4">
           <!-- 大类 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">大类</label>
@@ -38,7 +37,7 @@
               class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
               @change="handleCodeGenBigCategoryChange"
             >
-              <option value="">请选择大类</option>
+              <option value="">请选择</option>
               <option v-for="cat in bigCategoriesList" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
             </select>
           </div>
@@ -51,7 +50,7 @@
               :disabled="!codeGen.bigCategory"
               @change="handleCodeGenMidCategoryChange"
             >
-              <option value="">请选择中类</option>
+              <option value="">请选择</option>
               <option v-for="cat in midCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
             </select>
           </div>
@@ -64,7 +63,7 @@
               :disabled="!codeGen.midCategory"
               @change="handleCodeGenSubCategoryChange"
             >
-              <option value="">请选择小类</option>
+              <option value="">请选择</option>
               <option v-for="cat in subCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
             </select>
           </div>
@@ -82,7 +81,7 @@
                 :disabled="!codeGen.subCategory"
                 class="h-10 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="handleGenerateCode"
-              >生成</button>
+              ><Wand2 class="w-4 h-4 inline mr-1" />生成</button>
             </div>
           </div>
         </div>
@@ -93,9 +92,14 @@
             class="h-8 px-3 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
             @click="handleCopyCode"
           >
-            <Download class="w-4 h-4 inline mr-1" />{{ copySuccess ? '已复制!' : '复制编码' }}
+            <Copy class="w-4 h-4 inline mr-1" />{{ copySuccess ? '已复制!' : '复制' }}
           </button>
-          <span class="text-xs text-gray-400">生成的编码可复制后用于新增物料的物料编码字段</span>
+          <button
+            class="h-8 px-3 rounded-md text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200"
+            @click="handleResetCodeGen"
+          >
+            <RotateCcw class="w-4 h-4 inline mr-1" />重置
+          </button>
         </div>
 
         <!-- 错误/成功提示 -->
@@ -117,7 +121,7 @@
           <label class="text-sm text-gray-600 whitespace-nowrap">入库单号:</label>
           <input
             v-model="searchCode"
-            placeholder="输入单号"
+            placeholder="搜索单号"
             class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
             @keyup.enter="handleSearch"
           />
@@ -138,9 +142,9 @@
             class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-28 bg-white"
             @change="handleSearch"
           >
-            <option value="">全部状态</option>
-            <option value="completed">已完成</option>
+            <option value="">全部</option>
             <option value="pending">待审核</option>
+            <option value="completed">已完成</option>
             <option value="voided">已作废</option>
           </select>
         </div>
@@ -162,7 +166,9 @@
             @keyup.enter="handleSearch"
           />
         </div>
-        <button class="h-8 px-3 rounded-md text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200" @click="resetSearchFilters">重置</button>
+        <button class="h-8 px-3 rounded-md text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200" @click="resetSearchFilters">
+          <RotateCcw class="w-4 h-4 inline mr-1" />重置
+        </button>
       </div>
     </div>
 
@@ -187,7 +193,7 @@
               <Plus class="w-4 h-4 inline mr-1" />新增
             </button>
             <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200" @click="enterEditMode">
-              <Pencil class="w-4 h-4 inline mr-1" />编辑
+              <Edit class="w-4 h-4 inline mr-1" /><Edit2 class="w-4 h-4 inline mr-1" />编辑
             </button>
             <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200" @click="enterDeleteMode">
               <Trash2 class="w-4 h-4 inline mr-1" />删除
@@ -241,12 +247,11 @@
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作员</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">物料数量</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
-              <th v-if="!hasActiveMode" class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-300">
             <tr v-if="displayedRecords.length === 0">
-              <td :colspan="hasActiveMode ? 8 : 9" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+              <td :colspan="hasActiveMode ? 8 : 7" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
             </tr>
             <template v-for="row in displayedRecords" :key="row.id">
               <!-- 主数据行 -->
@@ -281,17 +286,10 @@
                     {{ getStatusText(row.status) }}
                   </span>
                 </td>
-                <td v-if="!hasActiveMode" class="px-4 py-3 whitespace-nowrap">
-                  <div class="flex items-center gap-2">
-                    <button class="text-blue-600 hover:text-blue-800" @click="handleViewRecord(row)">查看</button>
-                    <button class="text-blue-600 hover:text-blue-800" @click="handleEditRecord(row)">编辑</button>
-                    <button v-if="row.status === 'pending'" class="text-red-600 hover:text-red-800" @click="handleDeleteRecordClick(row)">删除</button>
-                  </div>
-                </td>
               </tr>
               <!-- 展开行：物料明细 -->
               <tr v-if="expandedRows.has(row.id)" :key="'exp-' + row.id" class="bg-gray-50">
-                <td :colspan="hasActiveMode ? 8 : 9" class="p-4">
+                <td :colspan="hasActiveMode ? 8 : 7" class="p-4">
                   <h4 class="text-sm font-semibold text-gray-700 mb-3">物料明细（共 {{ row.materials?.length || 0 }} 项）</h4>
                   <div class="overflow-x-auto">
                     <table class="w-full border border-gray-200">
@@ -401,7 +399,7 @@
           <div class="overflow-auto rounded-lg border border-gray-200 max-h-80">
             <table class="w-full text-xs">
               <thead>
-                <tr class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white sticky top-0 z-10">
+                <tr class="bg-gray-50 text-gray-700 sticky top-0 z-10">
                   <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
                   <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
                   <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">分类</th>
@@ -411,8 +409,10 @@
                   <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">数量</th>
                   <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">单价</th>
                   <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">供应商</th>
-                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">批次号</th>
                   <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">存放位置</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">批号</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">生产日期</th>
+                  <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">有效期至</th>
                   <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">备注</th>
                 </tr>
               </thead>
@@ -427,8 +427,10 @@
                   <td class="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.quantity }}</td>
                   <td class="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.price }}元</td>
                   <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.supplier || '-' }}</td>
-                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.batchNo || '-' }}</td>
                   <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.location || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.batchNo || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.productionDate || '-' }}</td>
+                  <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.expiryDate || '-' }}</td>
                   <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.remarks || '-' }}</td>
                 </tr>
               </tbody>
@@ -837,7 +839,7 @@
               <input
                 v-model="batchEditFields.inboundDate"
                 type="date"
-                placeholder="留空则不修改"
+                placeholder="如不修改请留空"
                 class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm"
               />
             </div>
@@ -845,7 +847,7 @@
               <label class="block text-xs font-medium text-gray-600 mb-1">供应商</label>
               <input
                 v-model="batchEditFields.supplier"
-                placeholder="留空则不修改"
+                placeholder="如不修改请留空"
                 class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm"
               />
             </div>
@@ -853,7 +855,7 @@
               <label class="block text-xs font-medium text-gray-600 mb-1">操作员</label>
               <input
                 v-model="batchEditFields.operator"
-                placeholder="留空则不修改"
+                placeholder="如不修改请留空"
                 class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm"
               />
             </div>
@@ -863,7 +865,7 @@
                 v-model="batchEditFields.status"
                 class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm bg-white"
               >
-                <option value="">留空则不修改</option>
+                <option value="">如不修改请留空</option>
                 <option value="completed">已完成</option>
                 <option value="pending">待审核</option>
                 <option value="voided">已作废</option>
@@ -964,7 +966,7 @@
             <X class="w-4 h-4 inline mr-1" />取消
           </button>
           <button class="h-8 px-4 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleDoExport">
-            <Download class="w-4 h-4 inline mr-1" />导出
+            <Download class="w-4 h-4 inline mr-1" />确认导出
           </button>
         </div>
       </div>
@@ -975,7 +977,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Package, ChevronDown, ChevronRight, Plus, Pencil, Trash2, Download, RefreshCw, Settings, AlertTriangle, X } from 'lucide-vue-next'
+import { Package, ChevronDown, ChevronRight, Plus, Pencil, Trash2, Download, RefreshCw, Settings, AlertTriangle, X, Wand2, Copy, RotateCcw, Edit, Edit2 } from 'lucide-vue-next'
 import { useInboundStore } from '@/stores/modules/inventory/useInboundStore'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
@@ -985,8 +987,7 @@ const unitOptions = ['袋', '箱', '个', '公斤', '升', '平方米', '吨', '
 
 const exportFormats = [
   { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
-  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
+  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' }
 ]
 
 // 与V1.1完全一致的7大类分类配置
@@ -1291,6 +1292,15 @@ const handleCopyCode = () => {
   navigator.clipboard.writeText(codeGen.generatedCode)
   copySuccess.value = true
   setTimeout(() => { copySuccess.value = false }, 2000)
+}
+
+const handleResetCodeGen = () => {
+  codeGen.bigCategory = ''
+  codeGen.midCategory = ''
+  codeGen.subCategory = ''
+  codeGen.generatedCode = ''
+  codeGenError.value = ''
+  codeGenSuccess.value = ''
 }
 
 // ==================== 筛选 ====================
