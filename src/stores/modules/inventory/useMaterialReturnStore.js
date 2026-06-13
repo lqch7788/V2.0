@@ -173,6 +173,60 @@ export const useMaterialReturnStore = defineStore('materialReturn', () => {
   }
 
   /**
+   * 更新退库记录（V1.1 updateItem 乐观更新模式，不重载列表）
+   * @param {string|number} id - 退库记录ID
+   * @param {Object} updates - 更新数据
+   */
+  const updateItem = async (id, updates) => {
+    try {
+      const result = await updateReturnRecord(id, updates)
+      if (result) {
+        returnRecords.value = returnRecords.value.map(i =>
+          i.id === id ? { ...i, ...updates } : i
+        )
+      }
+      return result
+    } catch (err) {
+      console.error('updateItem error:', err)
+      return false
+    }
+  }
+
+  /**
+   * 单条删除退库记录（V1.1 deleteItem 乐观更新模式，不重载列表）
+   * @param {string|number} id - 退库记录ID
+   */
+  const deleteItem = async (id) => {
+    try {
+      const result = await deleteReturnRecord(id)
+      if (result) {
+        returnRecords.value = returnRecords.value.filter(i => i.id !== id)
+      }
+      return result
+    } catch (err) {
+      console.error('deleteItem error:', err)
+      return false
+    }
+  }
+
+  /**
+   * 批量删除退库记录（V1.1 deleteItems 乐观更新模式）
+   * @param {(string|number)[]} ids - ID列表
+   */
+  const deleteItems = async (ids) => {
+    try {
+      const result = await deleteReturnRecordsBatch(ids)
+      if (result) {
+        returnRecords.value = returnRecords.value.filter(i => !ids.includes(i.id))
+      }
+      return result
+    } catch (err) {
+      console.error('deleteItems error:', err)
+      return false
+    }
+  }
+
+  /**
    * 批量删除退库记录
    * @param {number[]} ids - ID列表
    */
@@ -215,15 +269,20 @@ export const useMaterialReturnStore = defineStore('materialReturn', () => {
     error,
     total,
     pagination,
-    // 方法
+    // 方法（V1.1 对齐）
+    loadItems: loadReturnRecords,
     loadReturnRecords,
     loadReturnDetail,
+    addItem: addReturn,
     addReturn,
+    updateItem,
     editReturn,
+    deleteItem,
     removeReturn,
+    deleteItems,
+    removeReturnsBatch,
     approveReturn,
     voidReturn,
-    removeReturnsBatch,
     resetPagination,
     clearCurrentReturn
   }

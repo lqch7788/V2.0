@@ -16,16 +16,25 @@ export const useWarehouseStore = defineStore('warehouse', () => {
   const loading = ref(false)
   const error = ref(null)
   const total = ref(0)
+  const lastFetch = ref(null)  // V1.1 缓存时间戳
   const pagination = ref({
     page: 1,
     limit: 20
   })
+
+  /** 5分钟内不重复请求（V1.1 STALE_MS 对齐） */
+  const STALE_MS = 5 * 60 * 1000
 
   /**
    * 加载仓库列表
    * @param {Object} filters - 筛选条件
    */
   const loadWarehouses = async (filters = {}) => {
+    // 5分钟内不重复请求（V1.1 缓存对齐）
+    const now = Date.now()
+    if (!filters.force && lastFetch.value && now - lastFetch.value < STALE_MS && warehouses.value.length > 0) {
+      return
+    }
     loading.value = true
     error.value = null
     try {
@@ -35,8 +44,10 @@ export const useWarehouseStore = defineStore('warehouse', () => {
         ...filters
       }
       const res = await getWarehouses(params)
-      warehouses.value = res.data || []
-      total.value = res.total || 0
+      const safeData = Array.isArray(res) ? res : (res?.data || [])
+      warehouses.value = safeData
+      total.value = res?.total || safeData.length
+      lastFetch.value = now
       if (filters.page) pagination.value.page = filters.page
       if (filters.limit) pagination.value.limit = filters.limit
     } catch (err) {
@@ -210,6 +221,14 @@ export const useWarehouseStore = defineStore('warehouse', () => {
   }
 
   /**
+   * 强制刷新仓库列表（V1.1 refreshWarehouses 对齐）
+   */
+  const refreshWarehouses = async () => {
+    lastFetch.value = null
+    await loadWarehouses({ force: true })
+  }
+
+  /**
    * 重置分页
    */
   const resetPagination = () => {
@@ -235,6 +254,7 @@ export const useWarehouseStore = defineStore('warehouse', () => {
     loading,
     error,
     total,
+    lastFetch,
     pagination,
     // 方法
     loadWarehouses,
@@ -243,6 +263,7 @@ export const useWarehouseStore = defineStore('warehouse', () => {
     addWarehouse,
     editWarehouse,
     removeWarehouse,
+    refreshWarehouses,
     loadWarehouseStats,
     loadWarehouseInventory,
     checkWarehouse,
@@ -250,3 +271,22 @@ export const useWarehouseStore = defineStore('warehouse', () => {
     clearCurrentWarehouse
   }
 })
+
+/**
+ * 按 oid 查找仓库（V1.1 getWarehouseByOid 对齐）
+ * @param {string} oid - 仓库 oid
+ * @returns {Object|undefined}
+ */
+export function getWarehouseByOid(oid) {
+  const store = useWarehouseStore()
+  return store.warehouses.find(w => w.oid === oid)
+}
+
+/**
+ * 获取活跃仓库列表（V1.1 getActiveWarehouses 对齐）
+ * @returns {Array}
+ */
+export function getActiveWarehouses() {
+  const store = useWarehouseStore()
+  return store.warehouses.filter(w => w.status === 'active')
+}

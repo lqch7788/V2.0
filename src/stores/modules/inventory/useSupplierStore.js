@@ -16,16 +16,27 @@ export const useSupplierStore = defineStore('supplier', () => {
   const loading = ref(false)
   const error = ref(null)
   const total = ref(0)
+  const lastFetch = ref(null)  // V1.1 缓存时间戳
   const pagination = ref({
     page: 1,
     limit: 20
   })
+
+  /** 5分钟内不重复请求（V1.1 STALE_MS 对齐） */
+  const STALE_MS = 5 * 60 * 1000
 
   /**
    * 加载供应商列表
    * @param {Object} filters - 筛选条件
    */
   const loadSuppliers = async (filters = {}) => {
+    // 防止并发
+    if (loading.value) return
+    // 5分钟内不重复拉取（V1.1 缓存对齐）
+    if (!filters.force && suppliers.value.length > 0 && lastFetch.value
+        && Date.now() - lastFetch.value < STALE_MS) {
+      return
+    }
     loading.value = true
     error.value = null
     try {
@@ -37,8 +48,8 @@ export const useSupplierStore = defineStore('supplier', () => {
       const res = await getSuppliers(params)
       const data = res || []
       suppliers.value = data
-      // API响应已通过拦截器返回纯数组，total直接用数组长度
       total.value = data.length || suppliers.value.length
+      lastFetch.value = Date.now()
       if (filters.page) pagination.value.page = filters.page
       if (filters.limit) pagination.value.limit = filters.limit
     } catch (err) {
@@ -151,6 +162,33 @@ export const useSupplierStore = defineStore('supplier', () => {
   }
 
   /**
+   * 前端内存关键字搜索（V1.1 search 对齐）
+   * @param {string} keyword - 搜索关键词
+   * @returns {Array} 匹配的供应商列表
+   */
+  const search = (keyword) => {
+    const items = suppliers.value
+    if (!keyword || !keyword.trim()) return items
+    const lower = keyword.toLowerCase().trim()
+    return items.filter(s =>
+      s.name?.toLowerCase().includes(lower) ||
+      s.code?.toLowerCase().includes(lower) ||
+      s.contact?.toLowerCase().includes(lower) ||
+      (s.mobilePhone || '').includes(keyword)
+    )
+  }
+
+  /**
+   * 获取合作中的供应商下拉选项（V1.1 getActiveOptions 对齐）
+   * @returns {Array<{value: string, label: string, code: string}>}
+   */
+  const getActiveOptions = () => {
+    return suppliers.value
+      .filter(s => s.status === '合作中' || s.status === 'active')
+      .map(s => ({ value: String(s.id), label: s.name, code: s.code }))
+  }
+
+  /**
    * 重置分页
    */
   const resetPagination = () => {
@@ -171,6 +209,7 @@ export const useSupplierStore = defineStore('supplier', () => {
     loading,
     error,
     total,
+    lastFetch,
     pagination,
     // 方法
     loadSuppliers,
@@ -179,6 +218,8 @@ export const useSupplierStore = defineStore('supplier', () => {
     editSupplier,
     removeSupplier,
     removeSuppliersBatch,
+    search,
+    getActiveOptions,
     resetPagination,
     clearCurrentSupplier
   }

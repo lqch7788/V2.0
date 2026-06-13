@@ -10,6 +10,8 @@ import {
   getInventoryList,
   getInventoryById,
   getInventoryDetail,
+  getInventoryStats,
+  getInventoryByCropName,
   createInventory as apiCreate,
   updateInventory as apiUpdate,
   deleteInventory as apiDelete,
@@ -41,6 +43,12 @@ export const useCropInventoryStore = defineStore('cropInventory', () => {
 
   // 选中的行
   const selectedRows = ref([])
+
+  // 库存统计数据（V1.1 InventoryStats 对齐）
+  const stats = ref(null)
+
+  // 变更版本号（跨页刷新机制，V1.1 notifyChange 对齐）
+  const version = ref(0)
 
   // 弹窗状态
   const showAddModal = ref(false)
@@ -172,16 +180,18 @@ export const useCropInventoryStore = defineStore('cropInventory', () => {
   }
 
   /**
-   * 加载库存数据
+   * 加载库存数据（V1.1 loadItems 对齐）
+   * @param {Object} [filters_] - 可选筛选条件，不传则使用当前 filters
    */
-  async function loadInventoryData() {
+  async function loadInventoryData(filters_) {
     isLoading.value = true
     error.value = null
     try {
+      const activeFilter = filters_ || filters.value
       const response = await getInventoryList({
-        stock_type: 'product',
-        crop_name: filters.value.cropName || undefined,
-        status: filters.value.status || undefined,
+        stock_type: activeFilter.stockType || undefined,
+        status: activeFilter.status || undefined,
+        crop_name: activeFilter.cropName || undefined,
       })
       if (response && response.data) {
         inventoryData.value = response.data.map(mapApiToLocal)
@@ -194,6 +204,110 @@ export const useCropInventoryStore = defineStore('cropInventory', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  /**
+   * 加载库存统计（V1.1 loadStats 对齐）
+   */
+  async function loadStats() {
+    try {
+      const data = await getInventoryStats()
+      stats.value = data
+    } catch (err) {
+      console.error('[useCropInventoryStore] 加载统计失败:', err)
+    }
+  }
+
+  /**
+   * 并行加载列表+统计（V1.1 loadAll 对齐）
+   * @param {Object} [filters_] - 可选筛选条件
+   */
+  async function loadAll(filters_) {
+    isLoading.value = true
+    error.value = null
+    try {
+      const activeFilter = filters_ || filters.value
+      const [response, statsData] = await Promise.all([
+        getInventoryList({
+          stock_type: activeFilter.stockType || undefined,
+          status: activeFilter.status || undefined,
+          crop_name: activeFilter.cropName || undefined,
+        }),
+        getInventoryStats(),
+      ])
+      if (response && response.data) {
+        inventoryData.value = response.data.map(mapApiToLocal)
+      } else if (Array.isArray(response)) {
+        inventoryData.value = response.map(mapApiToLocal)
+      }
+      stats.value = statsData
+    } catch (err) {
+      error.value = err.message || '加载库存失败'
+      console.error('加载库存失败:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 按作物名称搜索库存（V1.1 searchByCrop 对齐）
+   * @param {string} cropName - 作物名称
+   */
+  async function searchByCrop(cropName) {
+    isLoading.value = true
+    error.value = null
+    try {
+      const data = await getInventoryByCropName(cropName)
+      // 合并 product/seed/seedling 三种类型的库存
+      const items = [
+        ...(Array.isArray(data?.product) ? data.product : []),
+        ...(Array.isArray(data?.seed) ? data.seed : []),
+        ...(Array.isArray(data?.seedling) ? data.seedling : []),
+      ]
+      inventoryData.value = items.map(mapApiToLocal)
+    } catch (err) {
+      error.value = err.message || '按作物查询失败'
+      console.error('按作物查询失败:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 独立的筛选器设置方法（V1.1 setFilters 对齐）
+   * @param {Object} newFilters - 新的筛选条件
+   */
+  function setFilters(newFilters) {
+    filters.value = { ...filters.value, ...newFilters }
+  }
+
+  /**
+   * 通知变更（V1.1 notifyChange 对齐）
+   * 写操作成功后调用，用于触发跨页刷新
+   */
+  function notifyChange() {
+    version.value++
+  }
+
+  /**
+   * 重置 store 到初始状态（V1.1 reset 对齐）
+   */
+  function reset() {
+    inventoryData.value = []
+    stats.value = null
+    isLoading.value = false
+    error.value = null
+    filters.value = {
+      searchText: '',
+      warehouseId: '',
+      cropName: '',
+      grade: '',
+      status: '',
+      showLowStock: false,
+    }
+    version.value = 0
+    currentPage.value = 1
+    selectedRows.value = []
   }
 
   /**
@@ -362,6 +476,8 @@ export const useCropInventoryStore = defineStore('cropInventory', () => {
     isLoading,
     error,
     filters,
+    stats,
+    version,
     currentPage,
     pageSize,
     selectedRows,
@@ -382,8 +498,14 @@ export const useCropInventoryStore = defineStore('cropInventory', () => {
     paginatedData,
     totalCount,
 
-    // 方法
+    // 方法（V1.1 对齐）
     loadInventoryData,
+    loadStats,
+    loadAll,
+    searchByCrop,
+    setFilters,
+    notifyChange,
+    reset,
     createInventory,
     updateInventory,
     deleteInventoryById,

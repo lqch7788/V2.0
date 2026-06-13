@@ -4,7 +4,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getInboundRecords, getInboundRecordById, createInboundRecord, updateInboundRecord, voidInboundRecord, deleteMaterialsBatch } from '@/api/material/apiWarehouseMaterialService'
+import { getInboundRecords, getInboundRecordById, createInboundRecord, updateInboundRecord, deleteMaterial, voidInboundRecord, deleteMaterialsBatch } from '@/api/material/apiWarehouseMaterialService'
 
 export const useInboundStore = defineStore('inbound', () => {
   // 状态
@@ -129,6 +129,53 @@ export const useInboundStore = defineStore('inbound', () => {
   }
 
   /**
+   * 单条删除入库记录（V1.1 deleteItem 对齐）
+   * @param {number} id - 入库记录ID
+   */
+  const deleteInbound = async (id) => {
+    loading.value = true
+    error.value = null
+    try {
+      const result = await deleteMaterial(id)
+      if (result) {
+        inboundRecords.value = inboundRecords.value.filter(i => i.id !== id)
+      }
+      return result
+    } catch (err) {
+      error.value = err.message || '删除入库记录失败'
+      console.error('deleteInbound error:', err)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * 批量删除入库记录（V1.1 deleteItems 对齐）
+   * @param {number[]} ids - ID列表
+   */
+  const deleteInboundsBatch = async (ids) => {
+    loading.value = true
+    error.value = null
+    try {
+      const results = await Promise.all(
+        ids.map(id => deleteMaterial(id).then(() => true).catch(() => false))
+      )
+      const allSuccess = results.every(Boolean)
+      if (allSuccess) {
+        inboundRecords.value = inboundRecords.value.filter(i => !ids.includes(i.id))
+      }
+      return allSuccess
+    } catch (err) {
+      error.value = err.message || '批量删除入库记录失败'
+      console.error('deleteInboundsBatch error:', err)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
    * 批量删除物料
    * @param {number[]} ids - ID列表
    */
@@ -176,6 +223,8 @@ export const useInboundStore = defineStore('inbound', () => {
     loadInboundDetail,
     addInbound,
     editInbound,
+    deleteInbound,
+    deleteInboundsBatch,
     voidInbound,
     removeMaterials,
     resetPagination,
