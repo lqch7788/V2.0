@@ -7,18 +7,20 @@ import { enhancedApiClient } from '../lib/apiClient'
 /**
  * 获取物料申请列表
  * @param {Object} [params] - 查询参数
- * @returns {Promise<{data: any[], total: number}>}
+ * @returns {Promise<any[]>} 物料申请记录数组
  */
 export async function getMaterialRequests(params) {
   try {
     const response = await enhancedApiClient.get('/material-requests', params)
-    return {
-      data: response?.data || [],
-      total: response?.meta?.total || response?.data?.length || 0
-    }
+    // apiClient 已拆包 {success, data}，response 通常是数组；
+    // 兼容两种形态：直接数组 或 { data, meta } 包装
+    if (Array.isArray(response)) return response
+    if (response?.data && Array.isArray(response.data)) return response.data
+    if (response?.success && response?.data) return response.data
+    return []
   } catch (err) {
     console.warn('[物料申请] 获取列表失败:', err)
-    return { data: [], total: 0 }
+    return []
   }
 }
 
