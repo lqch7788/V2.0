@@ -1409,6 +1409,30 @@ function getAlertStatusText(status) {
   return config[status] || '正常'
 }
 
+// 获取库存状态徽章样式（V1.1 InventoryTable getStockStatusBadgeClass 对齐）
+function getStockStatusBadgeClass(status) {
+  const config = {
+    in_stock: 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700',
+    low_stock: 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700',
+    expired: 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700',
+    out_of_stock: 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700',
+    reserved: 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700',
+  }
+  return config[status] || config.in_stock
+}
+
+// 获取库存状态文本
+function getStockStatusLabel(status) {
+  const config = {
+    in_stock: '在库',
+    low_stock: '低库存',
+    expired: '已过期',
+    out_of_stock: '缺货',
+    reserved: '预占用',
+  }
+  return config[status] || '在库'
+}
+
 // 搜索输入处理
 function handleSearchInput() {
   currentPage.value = 1
