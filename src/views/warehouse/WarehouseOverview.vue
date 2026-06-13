@@ -49,6 +49,8 @@
       :selected-rows="selectedRows"
       :low-stock-count="lowStockCount"
       :filters="filters"
+      :can-create="true"
+      @add="handleAdd"
       @low-stock-toggle="handleLowStockToggle"
       @batch-edit="handleBatchEditClick"
       @delete="handleDeleteWarning"
@@ -152,6 +154,13 @@
       @export="handleDoExport"
     />
 
+    <!-- 新建物料弹窗 - V1.1 MaterialCreateModal 对齐 -->
+    <MaterialCreateModal
+      :is-open="showCreateModal"
+      @close="showCreateModal = false"
+      @success="handleCreateSuccess"
+    />
+
   </div>
 </template>
 
@@ -174,6 +183,7 @@ import BatchEditWarningModal from './components/BatchEditWarningModal.vue'
 import DeleteWarningDialog from './components/DeleteWarningDialog.vue'
 import BatchDeleteConfirmDialog from './components/BatchDeleteConfirmDialog.vue'
 import MaterialExportModal from './components/MaterialExportModal.vue'
+import MaterialCreateModal from './components/MaterialCreateModal.vue'
 
 // 使用Store
 const warehouseMaterialStore = useWarehouseMaterialStore()
@@ -225,6 +235,37 @@ const batchEditedMaterials = ref({})
 const currentBatchEditIndex = ref(0)
 const selectedMaterial = ref(null)
 
+// 新建物料弹窗状态 - V1.1 setShowCreateModal 对齐
+const showCreateModal = ref(false)
+const createPrefillName = ref('')
+const createExpandCodeGen = ref(false)
+
+// URL deep link: ?new=1&prefillName=xxx
+onMounted(async () => {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('new') === '1') {
+      createPrefillName.value = params.get('prefillName') || ''
+      createExpandCodeGen.value = true
+      showCreateModal.value = true
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  } catch {}
+})
+
+// 新增按钮回调 - V1.1 handleAdd 对齐
+const handleAdd = () => {
+  createPrefillName.value = ''
+  createExpandCodeGen.value = false
+  showCreateModal.value = true
+}
+
+// 新建成功回调
+const handleCreateSuccess = async (_material) => {
+  // store 内部已 loadMaterials，无需重复
+}
+
 // 筛选数据 - 过滤函数
 const filterMaterials = (materials, filters) => {
   if (!Array.isArray(materials)) return []
@@ -249,7 +290,8 @@ const filteredMaterials = computed(() => {
 
 // 低库存数量
 const lowStockCount = computed(() => {
-  return warehouseMaterialStore.materials.filter(m => m.quantity < m.minStock).length
+  const list = warehouseMaterialStore.materials || []
+  return list.filter(m => m.quantity < m.minStock).length
 })
 
 // 用于批量删除的物料列表
