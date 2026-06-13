@@ -282,7 +282,11 @@
                   </span>
                 </td>
                 <td v-if="!hasActiveMode" class="px-4 py-3 whitespace-nowrap">
-                  <button class="text-blue-600 hover:text-blue-800" @click="handleViewRecord(row)">查看</button>
+                  <div class="flex items-center gap-2">
+                    <button class="text-blue-600 hover:text-blue-800" @click="handleViewRecord(row)">查看</button>
+                    <button class="text-blue-600 hover:text-blue-800" @click="handleEditRecord(row)">编辑</button>
+                    <button v-if="row.status === 'pending'" class="text-red-600 hover:text-red-800" @click="handleDeleteRecordClick(row)">删除</button>
+                  </div>
                 </td>
               </tr>
               <!-- 展开行：物料明细 -->
@@ -1606,6 +1610,16 @@ const handleBatchSave = async () => {
 }
 
 // ==================== 删除 ====================
+
+// 行内"删除"按钮 → 设置待删记录并打开确认弹窗（V1.1 handleDeleteRecord 对齐）
+const handleDeleteRecordClick = (record) => {
+  if (record.status !== 'pending') {
+    ElMessage.warning('仅"待审核"状态的入库记录可删除')
+    return
+  }
+  deleteRecords.value = [record]
+  showDeleteModal.value = true
+}
 
 // 点击"确认删除"按钮 → 设置待删记录并打开确认弹窗
 const handleConfirmDelete = () => {
