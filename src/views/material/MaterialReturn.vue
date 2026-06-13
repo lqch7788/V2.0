@@ -1,11 +1,11 @@
 <template>
   <div class="space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
+    <div class="bg-white rounded-xl p-6 shadow-lg">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-            <ArrowUpDown class="w-6 h-6 text-white" />
+            <ArrowLeftRight class="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">生产退料</h1>
@@ -16,23 +16,35 @@
     </div>
 
     <!-- 搜索区域 -->
-    <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-100">
+    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm border border-gray-100">
       <div class="grid grid-cols-6 gap-4 items-end">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">退料单号</label>
-          <input v-model="searchForm.code" placeholder="请输入" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('code', $event.target.value)" />
+          <div class="relative">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input v-model="searchForm.code" placeholder="搜索退料单号..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('code', $event.target.value)" />
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">物资名称</label>
-          <input v-model="searchForm.material" placeholder="请输入" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('material', $event.target.value)" />
+          <div class="relative">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input v-model="searchForm.material" placeholder="搜索物资名称..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('material', $event.target.value)" />
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">仓库位置</label>
-          <input v-model="searchForm.warehouse" placeholder="请输入" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('warehouse', $event.target.value)" />
+          <div class="relative">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input v-model="searchForm.warehouse" placeholder="搜索仓库位置..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('warehouse', $event.target.value)" />
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">申请人</label>
-          <input v-model="searchForm.applicant" placeholder="请输入" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('applicant', $event.target.value)" />
+          <div class="relative">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input v-model="searchForm.applicant" placeholder="搜索申请人..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('applicant', $event.target.value)" />
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
@@ -48,7 +60,7 @@
               <option v-for="dept in departmentOptions" :key="dept" :value="dept">{{ dept }}</option>
             </select>
           </div>
-          <button class="h-[38px] px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 shrink-0" @click="handleReset">重置</button>
+          <button class="h-[38px] px-3 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md shrink-0" @click="handleReset">重置</button>
         </div>
       </div>
     </div>
@@ -71,13 +83,13 @@
               <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="showAddModal = true">
                 <Plus class="w-4 h-4 inline mr-1" />新增
               </button>
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="enterBatchEditMode">
-                <Pencil class="w-4 h-4 inline mr-1" />编辑
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="enterBatchEditMode">
+                <Edit class="w-4 h-4 inline mr-1" /><Edit2 class="w-4 h-4 inline mr-1" />编辑
               </button>
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200" @click="enterDeleteMode">
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="enterDeleteMode">
                 <Trash2 class="w-4 h-4 inline mr-1" />删除
               </button>
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="exportMode = true">
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="exportMode = true">
                 <Download class="w-4 h-4 inline mr-1" />导出
               </button>
             </template>
@@ -114,12 +126,11 @@
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审批状态</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审核人</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-300">
             <tr v-if="paginatedReturns.length === 0">
-              <td :colspan="(exportMode || batchEditMode || deleteMode) ? 13 : 12" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
+              <td :colspan="(exportMode || batchEditMode || deleteMode) ? 12 : 11" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
             </tr>
             <template v-for="row in paginatedReturns" :key="row.id">
               <tr class="hover:bg-blue-100 transition-colors">
@@ -132,7 +143,7 @@
                     <ChevronRight v-else class="w-4 h-4" />
                   </button>
                 </td>
-                <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline whitespace-nowrap" @click="handleView(row)">{{ row.code }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer whitespace-nowrap" @click="handleView(row)">{{ row.code }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.date }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.type }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.applicant }}</td>
@@ -144,21 +155,14 @@
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.reviewer || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.remark || '-' }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    <button class="text-blue-600 hover:text-blue-800 p-1" title="查看" @click="handleView(row)">查看</button>
-                    <button class="text-blue-600 hover:text-blue-800 p-1" title="编辑" @click="handleEdit(row)">编辑</button>
-                    <button class="text-red-600 hover:text-red-800 p-1" title="作废" @click="handleVoidApply(row)">作废</button>
-                  </div>
-                </td>
               </tr>
               <!-- 展开行：物料明细 -->
               <tr v-if="expandedRows.has(row.id)" :key="'exp-' + row.id" class="bg-gray-50">
-                <td :colspan="(exportMode || batchEditMode || deleteMode) ? 13 : 12" class="p-4">
+                <td :colspan="(exportMode || batchEditMode || deleteMode) ? 12 : 11" class="p-4">
                   <h4 class="font-medium mb-2 text-gray-700">退料物料明细</h4>
                   <div class="overflow-x-auto">
                     <table class="w-full border border-gray-200">
-                      <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                      <thead class="bg-[#F2F6FA] text-gray-700">
                         <tr>
                           <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">来源领料单号</th>
                           <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
@@ -223,37 +227,57 @@
         </div>
 
         <div v-if="selectedRecord" class="p-6 overflow-y-auto max-h-[70vh]">
-          <div class="grid grid-cols-3 gap-0 border border-gray-200 rounded-lg overflow-hidden mb-4">
-            <template v-for="(item, idx) in [
-              { label: '退料单号', value: selectedRecord.code },
-              { label: '退料日期', value: selectedRecord.date },
-              { label: '退料类型', value: selectedRecord.type },
-              { label: '申请人', value: selectedRecord.applicant },
-              { label: '退料部门', value: selectedRecord.department },
-              { label: '仓库位置', value: selectedRecord.warehouseLocation },
-              { label: '操作人', value: selectedRecord.operator || '-' },
-              { label: '审核人', value: selectedRecord.reviewer || '-' },
-              { label: '审核日期', value: selectedRecord.reviewDate || '-' }
-            ]" :key="idx" class="flex border-b border-gray-200">
-              <span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">{{ item.label }}</span>
-              <span class="px-3 py-2 text-sm text-gray-900 flex-1" :class="item.label === '退料单号' ? 'font-medium text-blue-600' : ''">{{ item.value }}</span>
-            </template>
-            <!-- 状态 -->
-            <div class="flex border-b border-gray-200">
-              <span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">状态</span>
-              <span class="px-3 py-2 text-sm flex-1">
-                <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(selectedRecord)">{{ selectedRecord.status }}</span>
-              </span>
-            </div>
-            <!-- 驳回原因 -->
-            <div v-if="selectedRecord.rejectReason" class="flex col-span-3 border-b border-gray-200">
-              <span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">驳回原因</span>
-              <span class="px-3 py-2 text-sm text-red-600 font-medium flex-1">{{ selectedRecord.rejectReason }}</span>
-            </div>
-            <!-- 备注 -->
-            <div v-if="selectedRecord.remark" class="flex col-span-3 border-b border-gray-200">
-              <span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">备注</span>
-              <span class="px-3 py-2 text-sm text-gray-900 flex-1">{{ selectedRecord.remark }}</span>
+          <!-- 基本信息 - 紧凑排布，每行3个 -->
+          <div class="bg-gray-100 rounded-lg p-3 mb-4">
+            <div class="grid grid-cols-3 gap-y-2 text-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">退料单号：</span>
+                <span class="font-mono font-medium text-gray-900">{{ selectedRecord.code }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">退料日期：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.date }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">退料类型：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.type }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">申请人：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.applicant }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">退料部门：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.department }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">仓库位置：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.warehouseLocation }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">审批状态：</span>
+                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" :class="getStatusClass(selectedRecord)">{{ selectedRecord.status }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">操作人：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.operator || '-' }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 w-20 shrink-0">审核人：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.reviewer || '-' }}</span>
+              </div>
+              <div class="flex items-center gap-2 col-span-3">
+                <span class="text-gray-500 w-20 shrink-0">审核日期：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.reviewDate || '-' }}</span>
+              </div>
+              <div v-if="selectedRecord.rejectReason" class="flex items-center gap-2 col-span-3">
+                <span class="text-gray-500 w-20 shrink-0">驳回原因：</span>
+                <span class="font-medium text-red-600">{{ selectedRecord.rejectReason }}</span>
+              </div>
+              <div v-if="selectedRecord.remark" class="flex items-center gap-2 col-span-3">
+                <span class="text-gray-500 w-20 shrink-0">备注：</span>
+                <span class="font-medium text-gray-900">{{ selectedRecord.remark }}</span>
+              </div>
             </div>
           </div>
 
@@ -262,7 +286,7 @@
             <div class="overflow-x-auto rounded-lg border border-gray-200">
               <table class="w-full text-xs">
                 <thead>
-                  <tr class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                  <tr class="bg-emerald-100 text-gray-700">
                     <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">来源领料单号</th>
                     <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
                     <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料分类</th>
@@ -326,6 +350,12 @@
               <input v-model="addForm.date" type="date" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm" />
             </div>
             <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600 w-20 shrink-0">退料类型</label>
+              <select v-model="addForm.type" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
+                <option v-for="t in RETURN_TYPES" :key="t" :value="t">{{ t }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
               <label class="text-sm text-gray-600 w-20 shrink-0">申请人</label>
               <select v-model="addForm.applicant" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
                 <option value="">请选择</option>
@@ -376,7 +406,7 @@
           </div>
           <div v-if="addForm.materials.length > 0" class="overflow-x-auto rounded-lg border border-gray-200">
             <table class="text-xs" style="min-width: 1400px">
-              <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+              <thead class="bg-emerald-100 text-gray-700">
                 <tr>
                   <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">来源单号</th>
                   <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
@@ -440,7 +470,7 @@
           <!-- 物料列表 -->
           <div v-if="filteredWarehouseMaterials.length > 0" class="border border-gray-200 rounded-lg overflow-hidden max-h-96 overflow-y-auto">
             <table class="w-full text-xs">
-              <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white sticky top-0 z-10">
+              <thead class="bg-emerald-100 text-gray-700 sticky top-0 z-10">
                 <tr>
                   <th class="px-3 py-2 text-left font-semibold w-12">
                     <input type="checkbox" :checked="filteredWarehouseMaterials.length > 0 && filteredWarehouseMaterials.every(m => selectedMaterialCodes.has(m.code || m.name))" @change="toggleAllMaterialSelect" class="w-4 h-4 rounded border-white" />
@@ -560,7 +590,7 @@
           </div>
           <div v-if="editForm.materials.length > 0" class="overflow-x-auto rounded-lg border border-gray-200">
             <table class="text-xs" style="min-width: 1400px">
-              <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+              <thead class="bg-emerald-100 text-gray-700">
                 <tr>
                   <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">来源单号</th>
                   <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
@@ -622,7 +652,7 @@
               { label: '退料部门', value: selectedRecord.department },
               { label: '物料数量', value: (selectedRecord.materials?.length || 0) + ' 种' },
               { label: '物料预览', value: selectedRecord.materials?.slice(0, 3).map(m => m.materialName).join('、') + (selectedRecord.materials?.length > 3 ? '...' : '') }
-            ]" :key="idx" class="flex border-b border-gray-200 last:border-b-0">
+            ]" :key="idx">
               <span class="w-24 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">{{ item.label }}</span>
               <span class="px-3 py-2 text-sm text-gray-900 flex-1">{{ item.value }}</span>
             </template>
@@ -781,7 +811,7 @@
               <div v-if="currentBatchRecord.materials?.length" class="border border-gray-200 rounded-lg overflow-hidden">
                 <div class="overflow-auto max-h-[320px]">
                   <table class="text-xs w-full" style="min-width: 1200px">
-                    <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                    <thead class="bg-emerald-100 text-gray-700">
                       <tr>
                         <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">来源领料单号</th>
                         <th class="px-2 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
@@ -917,7 +947,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import { ArrowUpDown, Plus, Pencil, Trash2, Download, ChevronDown, ChevronRight, RefreshCw, AlertTriangle, Info, Search } from 'lucide-vue-next'
+import { ArrowLeftRight, Plus, Edit, Edit2, Trash2, Download, ChevronDown, ChevronRight, RefreshCw, AlertTriangle, Info, Search } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { useMaterialReturnStore } from '@/stores/modules/inventory/useMaterialReturnStore'
 import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
@@ -1425,9 +1455,7 @@ const confirmExport = () => {
   const materialHeaders = ['物料编码', '物料名称', '规格', '单位', '领料数量', '退料原因']
   const materialFields = ['materialCode', 'materialName', 'spec', 'unit', 'quantity', 'reason']
 
-  let content = ''
-  let mimeType = ''
-  let extension = ''
+  let content; let mimeType; let extension;
 
   if (exportFileType.value === 'csv') {
     let csvContent = '﻿' + headers.join(',') + ',' + materialHeaders.join(',') + '\n'

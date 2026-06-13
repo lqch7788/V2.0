@@ -229,47 +229,39 @@ const exportFileType = ref('excel')
 // 物料申请数据（从 API 加载）
 const materialData = ref([])
 
-// 字段映射：后端 snake_case → 前端 camelCase
-const FIELD_MAP_APPLICATION = {
-  id: 'id',
-  request_code: 'code',
-  apply_date: 'date',
-  applicant_name: 'applicant',
-  department_name: 'department',
-  warehouse_name: 'warehouseLocation',
-  plant_area: 'plantArea',
-  reviewer: 'reviewer',
-  production_batch_code: 'productionBatchCode',
-  approval_status: 'approvalStatus',
-  remarks: 'remarks',
-  reject_reason: 'rejectReason',
-  materials: 'materials'
-}
-
+// V1.1 后端 /api/material-requests 实际返回 camelCase 字段
+// （确认：apiClient 拆包后顶层 key 是 requestCode/applicantName/applyDate/...）
 function normalizeApplicationRecord(item) {
-  const result = { ...item }
-  for (const [snake, camel] of Object.entries(FIELD_MAP_APPLICATION)) {
-    if (snake in result && result[snake] !== undefined && result[snake] !== null) {
-      result[camel] = result[snake]
-    }
-  }
-  // 解析 materials JSON
-  if (typeof result.materials === 'string') {
-    try { result.materials = JSON.parse(result.materials) } catch { result.materials = [] }
-  }
-  if (!Array.isArray(result.materials)) result.materials = []
+  // 解析 materials（已是数组，因为 SQLite select * 后 queryToObjects 已是对象）
+  const materials = Array.isArray(item.materials) ? item.materials : []
   // 状态文本/样式
-  result.status = getStatusText(result.approvalStatus)
-  result.statusClass = getStatusClass(result.approvalStatus)
-  return result
+  const approvalStatus = item.approvalStatus || item.status || 'pending'
+  return {
+    id: item.id,
+    code: item.requestCode || item.request_code || '',
+    date: item.applyDate || item.apply_date || '',
+    applicant: item.applicantName || item.applicant_name || '',
+    department: item.departmentName || item.department_name || '',
+    warehouseLocation: item.warehouseName || item.warehouse_name || '',
+    plantArea: item.plantArea || item.plant_area || '',
+    reviewer: item.reviewer || '',
+    productionBatchCode: item.productionBatchCode || item.production_batch_code || '',
+    approvalStatus,
+    remarks: item.remarks || '',
+    rejectReason: item.rejectReason || item.reject_reason || '',
+    materials,
+    status: getStatusText(approvalStatus),
+    statusClass: getStatusClass(approvalStatus),
+  }
 }
 
 // 加载物料申请数据
 const loadMaterialData = async () => {
   try {
     const result = await getMaterialRequests()
-    // 后端返回 { data: [...], meta: {...} }，统一通过 normalize 转换
-    const list = Array.isArray(result) ? result : (result.data || [])
+    // service 已修复：返回纯数组
+    const list = Array.isArray(result) ? result : []
+    console.log('[领料申请] 加载条数:', list.length, '首条 keys:', list[0] ? Object.keys(list[0]).join(',') : '空')
     materialData.value = list.map(normalizeApplicationRecord)
   } catch (error) {
     console.error('加载物料申请数据失败:', error)
