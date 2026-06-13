@@ -116,8 +116,8 @@
 
         <!-- 重置和搜索按钮 -->
         <div class="flex gap-2">
-          <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleReset">重置</button>
-          <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleSearch">搜索</button>
+          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-amber-500 text-white hover:bg-amber-600" @click="handleReset">重置</button>
+          <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-emerald-600 text-white hover:bg-emerald-700" @click="handleSearch">搜索</button>
         </div>
       </div>
     </div>
@@ -249,23 +249,23 @@
         <div class="flex items-center gap-2">
           <button
             :disabled="currentPage <= 1"
-            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             @click="currentPage = 1"
           >首页</button>
           <button
             :disabled="currentPage <= 1"
-            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             @click="currentPage--"
           >上一页</button>
           <span class="text-sm text-gray-700 px-2">{{ currentPage }} / {{ totalPages }}</span>
           <button
             :disabled="currentPage >= totalPages"
-            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             @click="currentPage++"
           >下一页</button>
           <button
             :disabled="currentPage >= totalPages"
-            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="h-8 px-3 rounded-md text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             @click="currentPage = totalPages"
           >末页</button>
         </div>

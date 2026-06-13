@@ -40,7 +40,7 @@
 
       <!-- 弹窗底部 -->
       <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2 rounded-b-xl">
-        <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="handleClose">取消</button>
+        <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200" @click="handleClose">取消</button>
         <button class="h-8 px-4 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleExport">导出</button>
       </div>
     </div>

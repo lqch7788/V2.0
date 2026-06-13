@@ -49,18 +49,18 @@
         </div>
         <!-- 操作按钮组（V1.1 L70-80） -->
         <div class="flex gap-2">
-          <Button variant="warning" @click="handleReset">
+          <button class="h-8 px-3 rounded-md text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-1" @click="handleReset">
             <RotateCcw class="w-4 h-4" />
             <span>重置</span>
-          </Button>
-          <Button @click="handleSearch">
+          </button>
+          <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="handleSearch">
             <Search class="w-4 h-4" />
             <span>搜索</span>
-          </Button>
-          <Button>
+          </button>
+          <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1">
             <Plus class="w-4 h-4" />
             <span>新增分类</span>
-          </Button>
+          </button>
         </div>
       </div>
     </div>
@@ -106,12 +106,12 @@
               <td class="px-4 py-3 text-sm text-gray-600">{{ category.description }}</td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" title="查看">
+                  <button class="inline-flex items-center justify-center hover:bg-gray-100 hover:text-gray-900 rounded-md w-8 h-8" title="查看">
                     <Eye class="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" title="编辑">
+                  </button>
+                  <button class="inline-flex items-center justify-center hover:bg-gray-100 hover:text-gray-900 rounded-md w-8 h-8" title="编辑">
                     <Edit class="w-4 h-4" />
-                  </Button>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -142,7 +142,6 @@
  */
 import { ref, computed } from 'vue'
 import { Edit, Eye, Plus, RotateCcw, Search, Tags } from 'lucide-vue-next'
-import Button from '@/components/ui/Button/Button.vue'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 // Mock 数据（V1.1 L17-23，5 条平铺）

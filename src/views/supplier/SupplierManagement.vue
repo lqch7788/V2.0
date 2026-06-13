@@ -17,7 +17,7 @@
     <!-- 编码规则按钮 + 编码生成器 -->
     <div class="flex items-center gap-4">
       <div class="h-6 w-px bg-gray-500"></div>
-      <button @click="handleShowCodeRule" class="h-8 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100">编码规则 &gt;&gt;</button>
+      <button @click="handleShowCodeRule" :class="btnSecondary">编码规则 &gt;&gt;</button>
       <span class="text-base font-bold text-blue-600">供应商编码生成</span>
       <button @click="codeGenExpanded = !codeGenExpanded" class="p-1 hover:bg-gray-100 rounded" :title="codeGenExpanded ? '收起' : '展开'">
         <ChevronDown v-if="!codeGenExpanded" :size="20" class="text-gray-600" />
@@ -50,13 +50,13 @@
           </label>
           <div class="flex gap-2">
             <input v-model="codeGen.generatedCode" placeholder="点击生成" readonly class="w-40 h-10 px-3 border border-gray-200 rounded-lg text-sm bg-gray-50" />
-            <button :disabled="!codeGen.midCategory" @click="handleGenerateCode" class="h-10 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed inline-flex items-center gap-1">
+            <button :disabled="!codeGen.midCategory" @click="handleGenerateCode" :class="[btnDefault, 'disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed']">
               <Wand2 :size="14" /> 生成
             </button>
-            <button :disabled="!codeGen.generatedCode" @click="handleCopyCode" class="h-10 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed inline-flex items-center gap-1">
+            <button :disabled="!codeGen.generatedCode" @click="handleCopyCode" :class="[btnBlue, 'disabled:bg-gray-300 disabled:cursor-not-allowed']">
               <ClipboardCopy :size="14" />{{ copySuccess ? '已复制!' : '复制' }}
             </button>
-            <button @click="handleResetCodeGen" class="h-10 px-3 rounded-md text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 inline-flex items-center gap-1">
+            <button @click="handleResetCodeGen" :class="btnWarning">
               <RotateCcw :size="14" /> 重置
             </button>
           </div>
@@ -104,12 +104,12 @@
           </div>
         </div>
         <div class="flex items-end gap-2">
-          <button @click="showMore = !showMore" class="h-8 px-3 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 inline-flex items-center gap-1">
+          <button @click="showMore = !showMore" :class="btnSecondary">
             {{ showMore ? '收起' : '更多' }}
             <ChevronUp v-if="showMore" :size="14" />
             <ChevronDown v-else :size="14" />
           </button>
-          <button @click="handleResetFilters" class="h-8 px-3 rounded-md text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 inline-flex items-center gap-1">
+          <button @click="handleResetFilters" :class="btnWarning">
             <RotateCcw :size="14" /> 重置
           </button>
         </div>
@@ -156,37 +156,37 @@
 
         <div class="flex items-center gap-2">
           <template v-if="!hasActiveMode">
-            <button @click="handleAdd" class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1">
+            <button @click="handleAdd" :class="btnDefault">
               <Plus :size="14" /> 新增
             </button>
-            <button @click="enterBatchEditMode" class="h-8 px-3 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 inline-flex items-center gap-1">
+            <button @click="enterBatchEditMode" :class="btnBlue">
               <Edit2 :size="14" /> 编辑
             </button>
-            <button @click="enterDeleteMode" class="h-8 px-3 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 inline-flex items-center gap-1">
+            <button @click="enterDeleteMode" :class="btnDestructive">
               <Trash2 :size="14" /> 删除
             </button>
-            <button @click="enterExportMode" class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1">
+            <button @click="enterExportMode" :class="btnDefault">
               <Download :size="14" /> 导出
             </button>
           </template>
           <template v-else>
             <template v-if="batchEditMode">
-              <button @click="handleConfirmBatchEdit" class="h-8 px-3 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-1">
+              <button @click="handleConfirmBatchEdit" :class="btnWarning">
                 <Edit2 :size="14" /> 确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
               </button>
-              <button @click="cancelBatchEdit" class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">取消</button>
+              <button @click="cancelBatchEdit" :class="btnSecondary">取消</button>
             </template>
             <template v-if="deleteMode">
-              <button @click="handleConfirmDelete" class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1">
+              <button @click="handleConfirmDelete" :class="btnDestructive">
                 <Trash2 :size="14" /> 确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
               </button>
-              <button @click="cancelDelete" class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">取消</button>
+              <button @click="cancelDelete" :class="btnSecondary">取消</button>
             </template>
             <template v-if="exportMode">
-              <button @click="handleConfirmExport" class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1">
+              <button @click="handleConfirmExport" :class="btnDefault">
                 <Download :size="14" /> 确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
               </button>
-              <button @click="cancelExport" class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">取消选择</button>
+              <button @click="cancelExport" :class="btnSecondary">取消选择</button>
             </template>
           </template>
         </div>
@@ -275,537 +275,485 @@
 
     <!-- ========== 弹窗 ========== -->
 
-    <!-- 查看详情弹窗 - 与V1.1 SupplierDetailModal一致：分组展示（基本信息/联系方式/地址信息/银行信息/其他信息） -->
-    <div v-if="showDetailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="showDetailModal = false">
-      <div class="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
-        <div class="px-6 py-4 bg-emerald-600 text-white flex items-center justify-between">
-          <h3 class="font-semibold">供应商详情</h3>
-          <button @click="showDetailModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
-        </div>
-        <div class="p-6 overflow-y-auto max-h-[70vh] space-y-4 text-sm">
-          <!-- 基本信息 -->
-          <div>
-            <h4 class="text-sm font-medium text-gray-500 mb-3">基本信息</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <span class="text-xs text-gray-500 block">供应商编号</span>
-                  <span class="text-sm font-medium text-gray-900">{{ detailSupplier?.code }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">供应商名称</span>
-                  <span class="text-sm font-medium text-gray-900">{{ detailSupplier?.name }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">供应类型</span>
-                  <span class="text-sm text-gray-700">{{ detailSupplier ? getSupplierTypeName(detailSupplier.supplierType) : '' }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">供应商属性</span>
-                  <span class="text-sm text-gray-700">{{ detailSupplier?.supplierAttribute }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">所属组织</span>
-                  <span class="text-sm text-gray-700">{{ detailSupplier?.organization }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">状态</span>
-                  <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" :class="{
-                    'bg-green-100 text-green-700': detailSupplier?.status === '合作中',
-                    'bg-yellow-100 text-yellow-700': detailSupplier?.status === '暂停',
-                    'bg-red-100 text-red-700': detailSupplier?.status === '终止'
-                  }">{{ detailSupplier?.status }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 联系方式 -->
-          <div>
-            <h4 class="text-sm font-medium text-gray-500 mb-3">联系方式</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <span class="text-xs text-gray-500 block">联系人</span>
-                  <span class="text-sm text-gray-900">{{ detailSupplier?.contact }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">移动电话</span>
-                  <span class="text-sm text-gray-900">{{ detailSupplier?.mobilePhone }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">工作电话</span>
-                  <span class="text-sm text-gray-700">{{ detailSupplier?.workPhone || '-' }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">传真</span>
-                  <span class="text-sm text-gray-700">{{ detailSupplier?.fax || '-' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 地址信息 -->
-          <div>
-            <h4 class="text-sm font-medium text-gray-500 mb-3">地址信息</h4>
-            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+    <!-- 查看详情弹窗 - ElModal，与V1.1 SupplierDetailModal一致：分组展示 -->
+    <ElModal
+      v-model="showDetailModal"
+      title="供应商详情"
+      :width="700"
+      :height="600"
+      :show-footer="true"
+      :show-submit="false"
+      :show-cancel="false"
+    >
+      <div class="overflow-y-auto space-y-4 text-sm">
+        <!-- 基本信息 -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-500 mb-3">基本信息</h4>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <span class="text-xs text-gray-500 block">国家/地区</span>
-                <span class="text-sm text-gray-900">{{ detailSupplier?.country }}</span>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <span class="text-xs text-gray-500 block">省份</span>
-                  <span class="text-sm text-gray-900">{{ detailSupplier?.province }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">城市</span>
-                  <span class="text-sm text-gray-900">{{ detailSupplier?.city }}</span>
-                </div>
+                <span class="text-xs text-gray-500 block">供应商编号</span>
+                <span class="text-sm font-medium text-gray-900">{{ detailSupplier?.code }}</span>
               </div>
               <div>
-                <span class="text-xs text-gray-500 block">详细地址</span>
-                <span class="text-sm text-gray-900">{{ detailSupplier?.address }}</span>
+                <span class="text-xs text-gray-500 block">供应商名称</span>
+                <span class="text-sm font-medium text-gray-900">{{ detailSupplier?.name }}</span>
               </div>
-            </div>
-          </div>
-
-          <!-- 银行信息 -->
-          <div>
-            <h4 class="text-sm font-medium text-gray-500 mb-3">银行信息</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <span class="text-xs text-gray-500 block">开户行</span>
-                  <span class="text-sm text-gray-900">{{ detailSupplier?.bankName || '-' }}</span>
-                </div>
-                <div>
-                  <span class="text-xs text-gray-500 block">银行卡号</span>
-                  <span class="text-sm text-gray-900">{{ detailSupplier?.bankCardNumber || '-' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 其他信息 -->
-          <div>
-            <h4 class="text-sm font-medium text-gray-500 mb-3">其他信息</h4>
-            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
               <div>
-                <span class="text-xs text-gray-500 block">创建时间</span>
-                <span class="text-sm text-gray-900">{{ detailSupplier?.createDate }}</span>
+                <span class="text-xs text-gray-500 block">供应类型</span>
+                <span class="text-sm text-gray-700">{{ detailSupplier ? getSupplierTypeName(detailSupplier.supplierType) : '' }}</span>
               </div>
-              <div v-if="detailSupplier?.remarks">
-                <span class="text-xs text-gray-500 block">备注</span>
-                <span class="text-sm text-gray-700">{{ detailSupplier.remarks }}</span>
+              <div>
+                <span class="text-xs text-gray-500 block">供应商属性</span>
+                <span class="text-sm text-gray-700">{{ detailSupplier?.supplierAttribute }}</span>
               </div>
-              <div v-if="detailSupplier?.lastEditBy">
-                <span class="text-xs text-gray-500 block">最后编辑人</span>
-                <span class="text-sm text-gray-700">{{ detailSupplier.lastEditBy }}</span>
+              <div>
+                <span class="text-xs text-gray-500 block">所属组织</span>
+                <span class="text-sm text-gray-700">{{ detailSupplier?.organization }}</span>
               </div>
-              <div v-if="detailSupplier?.lastEditTime">
-                <span class="text-xs text-gray-500 block">最后编辑时间</span>
-                <span class="text-sm text-gray-700">{{ detailSupplier.lastEditTime }}</span>
+              <div>
+                <span class="text-xs text-gray-500 block">状态</span>
+                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" :class="{
+                  'bg-green-100 text-green-700': detailSupplier?.status === '合作中',
+                  'bg-yellow-100 text-yellow-700': detailSupplier?.status === '暂停',
+                  'bg-red-100 text-red-700': detailSupplier?.status === '终止'
+                }">{{ detailSupplier?.status }}</span>
               </div>
             </div>
           </div>
         </div>
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
-          <button @click="showDetailModal = false" class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">关闭</button>
+
+        <!-- 联系方式 -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-500 mb-3">联系方式</h4>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs text-gray-500 block">联系人</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.contact }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">移动电话</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.mobilePhone }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">工作电话</span>
+                <span class="text-sm text-gray-700">{{ detailSupplier?.workPhone || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">传真</span>
+                <span class="text-sm text-gray-700">{{ detailSupplier?.fax || '-' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 地址信息 -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-500 mb-3">地址信息</h4>
+          <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div>
+              <span class="text-xs text-gray-500 block">国家/地区</span>
+              <span class="text-sm text-gray-900">{{ detailSupplier?.country }}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs text-gray-500 block">省份</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.province }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">城市</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.city }}</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">详细地址</span>
+              <span class="text-sm text-gray-900">{{ detailSupplier?.address }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 银行信息 -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-500 mb-3">银行信息</h4>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs text-gray-500 block">开户行</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.bankName || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">银行卡号</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.bankCardNumber || '-' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 其他信息 -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-500 mb-3">其他信息</h4>
+          <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div>
+              <span class="text-xs text-gray-500 block">创建时间</span>
+              <span class="text-sm text-gray-900">{{ detailSupplier?.createDate }}</span>
+            </div>
+            <div v-if="detailSupplier?.remarks">
+              <span class="text-xs text-gray-500 block">备注</span>
+              <span class="text-sm text-gray-700">{{ detailSupplier.remarks }}</span>
+            </div>
+            <div v-if="detailSupplier?.lastEditBy">
+              <span class="text-xs text-gray-500 block">最后编辑人</span>
+              <span class="text-sm text-gray-700">{{ detailSupplier.lastEditBy }}</span>
+            </div>
+            <div v-if="detailSupplier?.lastEditTime">
+              <span class="text-xs text-gray-500 block">最后编辑时间</span>
+              <span class="text-sm text-gray-700">{{ detailSupplier.lastEditTime }}</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 新增/编辑弹窗 - 与V1.1 SupplierAddModal/SupplierEditModal一致 -->
-    <div v-if="showFormModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="showFormModal = false; resetForm()">
-      <div class="bg-white rounded-xl w-full max-w-6xl shadow-xl max-h-[90vh] flex flex-col relative" @click.stop>
-        <!-- 标题栏 -->
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-emerald-600 flex-shrink-0">
-          <h3 class="text-lg font-semibold text-white">{{ isEdit ? '编辑供应商' : '新增供应商' }}</h3>
-          <div class="flex items-center gap-1">
-            <button @click="showFormModal = false; resetForm()" class="text-white/80 hover:text-white p-1">
-              <X :size="20" />
-            </button>
-          </div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <el-button size="small" @click="showDetailModal = false">关闭</el-button>
         </div>
+      </template>
+    </ElModal>
 
-        <!-- 基本信息区域 - 浅绿背景 -->
-        <div class="p-4 bg-emerald-50 border-b border-gray-200">
-          <div class="grid grid-cols-4 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-emerald-700 mb-1">供应商编号</label>
-              <input v-model="form.code" :disabled="isEdit" placeholder="手动输入或使用编码生成器" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-emerald-700 mb-1">供应商名称 *</label>
-              <input v-model="form.name" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-emerald-700 mb-1">供应类型 *</label>
-              <select v-model="form.supplierType" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white">
-                <option value="">请选择类型</option>
-                <option v-for="cat in categoryOptions" :key="cat.code" :value="cat.code">{{ getSupplierTypeName(cat.code) }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-emerald-700 mb-1">供应商属性 *</label>
-              <select v-model="form.supplierAttribute" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white">
-                <option value="">请选择属性</option>
-                <option v-for="opt in supplierAttributeOptions" :key="opt.code || opt.name" :value="opt.name">{{ opt.name }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-emerald-700 mb-1">所属组织 *</label>
-              <select v-model="form.organization" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white">
-                <option value="">请选择组织</option>
-                <option value="宁波帮帮忙公司">宁波帮帮忙公司</option>
-                <option value="成都帮帮您公司">成都帮帮您公司</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-emerald-700 mb-1">联系人 *</label>
-              <input v-model="form.contact" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-emerald-700 mb-1">移动电话 *</label>
-              <input v-model="form.mobilePhone" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-emerald-700 mb-1">状态</label>
-              <select v-model="form.status" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white">
-                <option value="合作中">合作中</option>
-                <option value="暂停">暂停</option>
-                <option value="终止">终止</option>
-              </select>
-            </div>
+    <!-- 新增/编辑弹窗 - ElModal，与V1.1 SupplierAddModal/SupplierEditModal一致 -->
+    <ElModal
+      v-model="showFormModal"
+      :title="isEdit ? '编辑供应商' : '新增供应商'"
+      :width="900"
+      :height="650"
+      :show-footer="true"
+      :show-submit="false"
+      :show-cancel="false"
+      @close="resetForm()"
+    >
+      <!-- 基本信息区域 - 浅绿背景 -->
+      <div class="p-4 bg-emerald-50 border-b border-gray-200 -mx-4 -mt-4">
+        <div class="grid grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-emerald-700 mb-1">供应商编号</label>
+            <input v-model="form.code" :disabled="isEdit" placeholder="手动输入或使用编码生成器" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed" />
           </div>
-        </div>
-
-        <!-- 详细信息区域 - 白色 -->
-        <div class="flex-1 overflow-y-auto p-4">
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">工作电话</label>
-              <input v-model="form.workPhone" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">传真</label>
-              <input v-model="form.fax" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">国家</label>
-              <input v-model="form.country" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">省份</label>
-              <input v-model="form.province" placeholder="省" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">城市</label>
-              <input v-model="form.city" placeholder="市" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">区县</label>
-              <input v-model="form.district" placeholder="区县" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div class="col-span-3">
-              <label class="block text-xs font-medium text-gray-700 mb-1">详细地址</label>
-              <input v-model="form.address" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">开户行</label>
-              <input v-model="form.bankName" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div class="col-span-2">
-              <label class="block text-xs font-medium text-gray-700 mb-1">银行卡号</label>
-              <input v-model="form.bankCardNumber" class="w-full h-9 px-3 border border-gray-200 rounded text-sm font-mono" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">创建时间</label>
-              <input type="date" v-model="form.createDate" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">最后编辑人</label>
-              <input v-model="form.lastEditBy" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">最后编辑时间</label>
-              <input v-model="form.lastEditTime" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div class="col-span-3">
-              <label class="block text-xs font-medium text-gray-700 mb-1">备注</label>
-              <textarea v-model="form.remarks" rows="2" class="w-full px-3 py-2 border border-gray-200 rounded text-sm"></textarea>
-            </div>
+          <div>
+            <label class="block text-xs font-medium text-emerald-700 mb-1">供应商名称 *</label>
+            <input v-model="form.name" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white" />
           </div>
-        </div>
-
-        <!-- 底部按钮 -->
-        <div class="p-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
-          <button @click="showFormModal = false; resetForm()" class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1">
-            <X :size="14" /> 取消
-          </button>
-          <button @click="handleSave" class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1">
-            <Send :size="14" /> {{ isEdit ? '保存' : '提交' }}
-          </button>
+          <div>
+            <label class="block text-xs font-medium text-emerald-700 mb-1">供应类型 *</label>
+            <select v-model="form.supplierType" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white">
+              <option value="">请选择类型</option>
+              <option v-for="cat in categoryOptions" :key="cat.code" :value="cat.code">{{ getSupplierTypeName(cat.code) }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-emerald-700 mb-1">供应商属性 *</label>
+            <select v-model="form.supplierAttribute" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white">
+              <option value="">请选择属性</option>
+              <option v-for="opt in supplierAttributeOptions" :key="opt.code || opt.name" :value="opt.name">{{ opt.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-emerald-700 mb-1">所属组织 *</label>
+            <select v-model="form.organization" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white">
+              <option value="">请选择组织</option>
+              <option value="宁波帮帮忙公司">宁波帮帮忙公司</option>
+              <option value="成都帮帮您公司">成都帮帮您公司</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-emerald-700 mb-1">联系人 *</label>
+            <input v-model="form.contact" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-emerald-700 mb-1">移动电话 *</label>
+            <input v-model="form.mobilePhone" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-emerald-700 mb-1">状态</label>
+            <select v-model="form.status" class="w-full h-9 px-3 border border-gray-200 rounded text-sm bg-white">
+              <option value="合作中">合作中</option>
+              <option value="暂停">暂停</option>
+              <option value="终止">终止</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 批量编辑弹窗 - 与V1.1 SupplierBatchEditModal完全一致：逐条编辑+累积保存 -->
-    <div v-if="showBatchEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="showBatchEditModal = false; handleBatchEditModalClose()">
-      <div class="bg-white rounded-xl w-full max-w-6xl shadow-xl max-h-[90vh] flex flex-col" @click.stop>
-        <!-- 标题栏: bg-emerald-600 -->
-        <div class="bg-emerald-600 px-6 py-4 rounded-t-xl flex items-center justify-between text-white flex-shrink-0">
-          <h3 class="text-lg font-semibold">批量编辑供应商</h3>
-          <button @click="showBatchEditModal = false; handleBatchEditModalClose()" class="text-white/80 hover:text-white p-1">
-            <X :size="20" />
-          </button>
-        </div>
-        <!-- 提示信息栏 -->
-        <div class="px-4 py-3 bg-blue-50 border-b border-blue-100">
-          <p class="text-sm text-blue-800">已选择 <strong>{{ batchEditSuppliers.length }}</strong> 个供应商进行批量编辑，已编辑 <strong>{{ batchEditedCount }}</strong> 个</p>
-        </div>
-        <!-- 供应商选择 -->
-        <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
-          <label class="text-sm font-medium text-gray-700 whitespace-nowrap">当前编辑：</label>
-          <select :value="currentBatchSupplierId ? String(currentBatchSupplierId) : ''" @change="(e) => handleBatchSupplierSelect(e.target.value)" class="flex-1 h-9 px-3 border border-gray-200 rounded text-sm">
-            <option v-for="s in batchEditSuppliers" :key="s.id" :value="String(s.id)">{{ s.code }} — {{ s.name }}{{ batchEditedSuppliers[s.id] ? ' ✅' : '' }}</option>
-          </select>
-          <button @click="handleBatchPrev" :disabled="currentBatchEditIndex === 0" class="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
-            <ChevronLeft :size="18" />
-          </button>
-          <span class="text-sm text-gray-500 whitespace-nowrap">{{ currentBatchEditIndex + 1 }} / {{ batchEditSuppliers.length }}</span>
-          <button @click="handleBatchNext" :disabled="currentBatchEditIndex >= batchEditSuppliers.length - 1" class="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
-            <ChevronRight :size="18" />
-          </button>
-        </div>
-        <!-- 只读标识信息 -->
-        <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
-          <div class="grid grid-cols-4 gap-3">
-            <div><label class="block text-xs text-gray-500 mb-1">供应商编号</label><div class="text-sm font-medium text-gray-900">{{ currentBatchSupplier?.code || '-' }}</div></div>
-            <div><label class="block text-xs text-gray-500 mb-1">供应商名称</label><div class="text-sm font-medium text-gray-900">{{ currentBatchSupplier?.name || '-' }}</div></div>
-            <div><label class="block text-xs text-gray-500 mb-1">创建时间</label><div class="text-sm text-gray-600">{{ currentBatchSupplier?.createDate || '-' }}</div></div>
-            <div><label class="block text-xs text-gray-500 mb-1">原始状态</label><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium" :class="{
-              'bg-green-100 text-green-700': currentBatchSupplier?.status === '合作中',
-              'bg-yellow-100 text-yellow-700': currentBatchSupplier?.status === '暂停',
-              'bg-red-100 text-red-700': currentBatchSupplier?.status === '终止'
-            }">{{ currentBatchSupplier?.status || '-' }}</span></div>
+      <!-- 详细信息区域 - 白色 -->
+      <div class="flex-1 overflow-y-auto p-4">
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">工作电话</label>
+            <input v-model="form.workPhone" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
           </div>
-        </div>
-        <!-- 可编辑字段 -->
-        <div class="flex-1 overflow-y-auto p-4 max-h-[50vh]">
-          <h4 class="text-sm font-semibold text-emerald-700 mb-3 pb-1 border-b border-emerald-200">基本信息</h4>
-          <div class="grid grid-cols-4 gap-3 mb-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">供应类型</label>
-              <select :value="getBatchValue('supplierType')" @change="(e) => handleBatchFieldChange('supplierType', e.target.value)" class="w-full h-9 px-3 border border-gray-200 rounded text-sm">
-                <option value="">不修改</option>
-                <option v-for="cat in categoryOptions" :key="cat.code" :value="cat.code">{{ getSupplierTypeName(cat.code) }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">供应商属性</label>
-              <select :value="getBatchValue('supplierAttribute')" @change="(e) => handleBatchFieldChange('supplierAttribute', e.target.value)" class="w-full h-9 px-3 border border-gray-200 rounded text-sm">
-                <option value="">不修改</option>
-                <option v-for="opt in supplierAttributeOptions" :key="opt.code || opt.name" :value="opt.name">{{ opt.name }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">所属组织</label>
-              <select :value="getBatchValue('organization')" @change="(e) => handleBatchFieldChange('organization', e.target.value)" class="w-full h-9 px-3 border border-gray-200 rounded text-sm">
-                <option value="">不修改</option>
-                <option value="宁波帮帮忙公司">宁波帮帮忙公司</option>
-                <option value="成都帮帮您公司">成都帮帮您公司</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">状态</label>
-              <select :value="getBatchValue('status')" @change="(e) => handleBatchFieldChange('status', e.target.value)" class="w-full h-9 px-3 border border-gray-200 rounded text-sm">
-                <option value="">不修改</option>
-                <option value="合作中">合作中</option>
-                <option value="暂停">暂停</option>
-                <option value="终止">终止</option>
-              </select>
-            </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">传真</label>
+            <input v-model="form.fax" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
           </div>
-
-          <!-- 联系信息 -->
-          <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">联系信息</h4>
-          <div class="grid grid-cols-4 gap-3 mb-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">联系人</label>
-              <input :value="getBatchValue('contact')" @input="(e) => handleBatchFieldChange('contact', e.target.value)" :placeholder="currentBatchSupplier?.contact || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">移动电话</label>
-              <input :value="getBatchValue('mobilePhone')" @input="(e) => handleBatchFieldChange('mobilePhone', e.target.value)" :placeholder="currentBatchSupplier?.mobilePhone || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">工作电话</label>
-              <input :value="getBatchValue('workPhone')" @input="(e) => handleBatchFieldChange('workPhone', e.target.value)" :placeholder="currentBatchSupplier?.workPhone || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">传真</label>
-              <input :value="getBatchValue('fax')" @input="(e) => handleBatchFieldChange('fax', e.target.value)" :placeholder="currentBatchSupplier?.fax || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">国家</label>
+            <input v-model="form.country" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
           </div>
-
-          <!-- 地区信息 -->
-          <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">地区信息</h4>
-          <div class="grid grid-cols-4 gap-3 mb-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">国家</label>
-              <input :value="getBatchValue('country')" @input="(e) => handleBatchFieldChange('country', e.target.value)" :placeholder="currentBatchSupplier?.country || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">省份</label>
-              <input :value="getBatchValue('province')" @input="(e) => handleBatchFieldChange('province', e.target.value)" :placeholder="currentBatchSupplier?.province || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">城市</label>
-              <input :value="getBatchValue('city')" @input="(e) => handleBatchFieldChange('city', e.target.value)" :placeholder="currentBatchSupplier?.city || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">区县</label>
-              <input :value="getBatchValue('district')" @input="(e) => handleBatchFieldChange('district', e.target.value)" :placeholder="currentBatchSupplier?.district || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">省份</label>
+            <input v-model="form.province" placeholder="省" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
           </div>
-          <div class="mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">城市</label>
+            <input v-model="form.city" placeholder="市" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">区县</label>
+            <input v-model="form.district" placeholder="区县" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div class="col-span-3">
             <label class="block text-xs font-medium text-gray-700 mb-1">详细地址</label>
-            <input :value="getBatchValue('address')" @input="(e) => handleBatchFieldChange('address', e.target.value)" :placeholder="currentBatchSupplier?.address || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+            <input v-model="form.address" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
           </div>
-
-          <!-- 财务信息 -->
-          <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">财务信息</h4>
-          <div class="grid grid-cols-2 gap-3 mb-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">开户行</label>
-              <input :value="getBatchValue('bankName')" @input="(e) => handleBatchFieldChange('bankName', e.target.value)" :placeholder="currentBatchSupplier?.bankName || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-1">银行卡号</label>
-              <input :value="getBatchValue('bankCardNumber')" @input="(e) => handleBatchFieldChange('bankCardNumber', e.target.value)" :placeholder="currentBatchSupplier?.bankCardNumber || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm font-mono" />
-            </div>
-          </div>
-
-          <!-- 备注 -->
-          <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">备注</h4>
           <div>
-            <textarea :value="getBatchValue('remarks')" @input="(e) => handleBatchFieldChange('remarks', e.target.value)" rows="2" :placeholder="currentBatchSupplier?.remarks || '未填写'" class="w-full px-3 py-2 border border-gray-200 rounded text-sm"></textarea>
+            <label class="block text-xs font-medium text-gray-700 mb-1">开户行</label>
+            <input v-model="form.bankName" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-gray-700 mb-1">银行卡号</label>
+            <input v-model="form.bankCardNumber" class="w-full h-9 px-3 border border-gray-200 rounded text-sm font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">创建时间</label>
+            <input type="date" v-model="form.createDate" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">最后编辑人</label>
+            <input v-model="form.lastEditBy" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">最后编辑时间</label>
+            <input v-model="form.lastEditTime" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div class="col-span-3">
+            <label class="block text-xs font-medium text-gray-700 mb-1">备注</label>
+            <textarea v-model="form.remarks" rows="2" class="w-full px-3 py-2 border border-gray-200 rounded text-sm"></textarea>
           </div>
         </div>
-        <!-- 底部操作按钮 -->
-        <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-between gap-3 flex-shrink-0">
-          <button @click="showBatchEditModal = false; handleBatchEditModalClose()" class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">取消</button>
+      </div>
+
+      <!-- 底部按钮 -->
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <el-button size="small" @click="showFormModal = false; resetForm()">取消</el-button>
+          <el-button type="primary" size="small" @click="handleSave">{{ isEdit ? '保存' : '提交' }}</el-button>
+        </div>
+      </template>
+    </ElModal>
+
+    <!-- 批量编辑弹窗 - ElModal，与V1.1 SupplierBatchEditModal完全一致：逐条编辑+累积保存 -->
+    <ElModal
+      v-model="showBatchEditModal"
+      title="批量编辑供应商"
+      :width="900"
+      :height="650"
+      :show-footer="true"
+      :show-submit="false"
+      :show-cancel="false"
+      @close="handleBatchEditModalClose()"
+    >
+      <!-- 提示信息栏 -->
+      <div class="px-4 py-3 bg-blue-50 border-b border-blue-100 -mx-4 -mt-4">
+        <p class="text-sm text-blue-800">已选择 <strong>{{ batchEditSuppliers.length }}</strong> 个供应商进行批量编辑，已编辑 <strong>{{ batchEditedCount }}</strong> 个</p>
+      </div>
+      <!-- 供应商选择 -->
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+        <label class="text-sm font-medium text-gray-700 whitespace-nowrap">当前编辑：</label>
+        <select :value="currentBatchSupplierId ? String(currentBatchSupplierId) : ''" @change="(e) => handleBatchSupplierSelect(e.target.value)" class="flex-1 h-9 px-3 border border-gray-200 rounded text-sm">
+          <option v-for="s in batchEditSuppliers" :key="s.id" :value="String(s.id)">{{ s.code }} — {{ s.name }}{{ batchEditedSuppliers[s.id] ? ' ✅' : '' }}</option>
+        </select>
+        <button @click="handleBatchPrev" :disabled="currentBatchEditIndex === 0" class="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
+          <ChevronLeft :size="18" />
+        </button>
+        <span class="text-sm text-gray-500 whitespace-nowrap">{{ currentBatchEditIndex + 1 }} / {{ batchEditSuppliers.length }}</span>
+        <button @click="handleBatchNext" :disabled="currentBatchEditIndex >= batchEditSuppliers.length - 1" class="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
+          <ChevronRight :size="18" />
+        </button>
+      </div>
+      <!-- 只读标识信息 -->
+      <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
+        <div class="grid grid-cols-4 gap-3">
+          <div><label class="block text-xs text-gray-500 mb-1">供应商编号</label><div class="text-sm font-medium text-gray-900">{{ currentBatchSupplier?.code || '-' }}</div></div>
+          <div><label class="block text-xs text-gray-500 mb-1">供应商名称</label><div class="text-sm font-medium text-gray-900">{{ currentBatchSupplier?.name || '-' }}</div></div>
+          <div><label class="block text-xs text-gray-500 mb-1">创建时间</label><div class="text-sm text-gray-600">{{ currentBatchSupplier?.createDate || '-' }}</div></div>
+          <div><label class="block text-xs text-gray-500 mb-1">原始状态</label><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium" :class="{
+            'bg-green-100 text-green-700': currentBatchSupplier?.status === '合作中',
+            'bg-yellow-100 text-yellow-700': currentBatchSupplier?.status === '暂停',
+            'bg-red-100 text-red-700': currentBatchSupplier?.status === '终止'
+          }">{{ currentBatchSupplier?.status || '-' }}</span></div>
+        </div>
+      </div>
+      <!-- 可编辑字段 -->
+      <div class="flex-1 overflow-y-auto p-4">
+        <h4 class="text-sm font-semibold text-emerald-700 mb-3 pb-1 border-b border-emerald-200">基本信息</h4>
+        <div class="grid grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">供应类型</label>
+            <select :value="getBatchValue('supplierType')" @change="(e) => handleBatchFieldChange('supplierType', e.target.value)" class="w-full h-9 px-3 border border-gray-200 rounded text-sm">
+              <option value="">不修改</option>
+              <option v-for="cat in categoryOptions" :key="cat.code" :value="cat.code">{{ getSupplierTypeName(cat.code) }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">供应商属性</label>
+            <select :value="getBatchValue('supplierAttribute')" @change="(e) => handleBatchFieldChange('supplierAttribute', e.target.value)" class="w-full h-9 px-3 border border-gray-200 rounded text-sm">
+              <option value="">不修改</option>
+              <option v-for="opt in supplierAttributeOptions" :key="opt.code || opt.name" :value="opt.name">{{ opt.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">所属组织</label>
+            <select :value="getBatchValue('organization')" @change="(e) => handleBatchFieldChange('organization', e.target.value)" class="w-full h-9 px-3 border border-gray-200 rounded text-sm">
+              <option value="">不修改</option>
+              <option value="宁波帮帮忙公司">宁波帮帮忙公司</option>
+              <option value="成都帮帮您公司">成都帮帮您公司</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">状态</label>
+            <select :value="getBatchValue('status')" @change="(e) => handleBatchFieldChange('status', e.target.value)" class="w-full h-9 px-3 border border-gray-200 rounded text-sm">
+              <option value="">不修改</option>
+              <option value="合作中">合作中</option>
+              <option value="暂停">暂停</option>
+              <option value="终止">终止</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 联系信息 -->
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">联系信息</h4>
+        <div class="grid grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">联系人</label>
+            <input :value="getBatchValue('contact')" @input="(e) => handleBatchFieldChange('contact', e.target.value)" :placeholder="currentBatchSupplier?.contact || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">移动电话</label>
+            <input :value="getBatchValue('mobilePhone')" @input="(e) => handleBatchFieldChange('mobilePhone', e.target.value)" :placeholder="currentBatchSupplier?.mobilePhone || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">工作电话</label>
+            <input :value="getBatchValue('workPhone')" @input="(e) => handleBatchFieldChange('workPhone', e.target.value)" :placeholder="currentBatchSupplier?.workPhone || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">传真</label>
+            <input :value="getBatchValue('fax')" @input="(e) => handleBatchFieldChange('fax', e.target.value)" :placeholder="currentBatchSupplier?.fax || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+        </div>
+
+        <!-- 地区信息 -->
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">地区信息</h4>
+        <div class="grid grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">国家</label>
+            <input :value="getBatchValue('country')" @input="(e) => handleBatchFieldChange('country', e.target.value)" :placeholder="currentBatchSupplier?.country || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">省份</label>
+            <input :value="getBatchValue('province')" @input="(e) => handleBatchFieldChange('province', e.target.value)" :placeholder="currentBatchSupplier?.province || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">城市</label>
+            <input :value="getBatchValue('city')" @input="(e) => handleBatchFieldChange('city', e.target.value)" :placeholder="currentBatchSupplier?.city || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">区县</label>
+            <input :value="getBatchValue('district')" @input="(e) => handleBatchFieldChange('district', e.target.value)" :placeholder="currentBatchSupplier?.district || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-medium text-gray-700 mb-1">详细地址</label>
+          <input :value="getBatchValue('address')" @input="(e) => handleBatchFieldChange('address', e.target.value)" :placeholder="currentBatchSupplier?.address || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+        </div>
+
+        <!-- 财务信息 -->
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">财务信息</h4>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">开户行</label>
+            <input :value="getBatchValue('bankName')" @input="(e) => handleBatchFieldChange('bankName', e.target.value)" :placeholder="currentBatchSupplier?.bankName || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">银行卡号</label>
+            <input :value="getBatchValue('bankCardNumber')" @input="(e) => handleBatchFieldChange('bankCardNumber', e.target.value)" :placeholder="currentBatchSupplier?.bankCardNumber || '未填写'" class="w-full h-9 px-3 border border-gray-200 rounded text-sm font-mono" />
+          </div>
+        </div>
+
+        <!-- 备注 -->
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-400">备注</h4>
+        <div>
+          <textarea :value="getBatchValue('remarks')" @input="(e) => handleBatchFieldChange('remarks', e.target.value)" rows="2" :placeholder="currentBatchSupplier?.remarks || '未填写'" class="w-full px-3 py-2 border border-gray-200 rounded text-sm"></textarea>
+        </div>
+      </div>
+      <!-- 底部操作按钮 -->
+      <template #footer>
+        <div class="flex justify-between gap-3 w-full">
+          <el-button size="small" @click="showBatchEditModal = false; handleBatchEditModalClose()">取消</el-button>
           <div class="flex items-center gap-3">
-            <button @click="handleBatchNext" :disabled="!currentBatchSupplierId" class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+            <el-button size="small" :disabled="!currentBatchSupplierId" @click="handleBatchNext">
               确认 {{ currentBatchEditIndex + 1 < batchEditSuppliers.length ? '(下一个)' : '(已最后一个)' }}
-            </button>
-            <button @click="handleSaveAllBatch" class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+            </el-button>
+            <el-button type="primary" size="small" @click="handleSaveAllBatch">
               保存全部 ({{ batchEditedCount }} 个)
-            </button>
+            </el-button>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </ElModal>
 
-    <!-- 导出格式选择弹窗 - 与V1.1 SupplierExportModal一致 -->
-    <div v-if="showExportModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="showExportModal = false; exitExportMode()">
-      <div class="bg-white rounded-xl w-full max-w-md shadow-2xl" @click.stop>
-        <div class="px-6 py-4 bg-emerald-600 text-white rounded-t-xl flex items-center justify-between">
-          <h3 class="font-semibold">选择导出格式</h3>
-          <button @click="showExportModal = false; exitExportMode()" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
-        </div>
-        <div class="p-6">
-          <p class="text-sm text-gray-500 mb-4">{{ exportRecords.length > 0 ? `已选择 ${exportRecords.length} 条数据` : `共 ${filteredSuppliers.length} 条数据` }}</p>
-          <div class="space-y-2">
-            <label v-for="fmt in exportFormats" :key="fmt.value" class="flex items-start p-3 border rounded-lg cursor-pointer" :class="exportFormat === fmt.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'" @click="exportFormat = fmt.value">
-              <input type="radio" :value="fmt.value" v-model="exportFormat" class="mt-1 mr-2" />
-              <div>
-                <span class="block text-sm font-medium text-gray-900">{{ fmt.label }}</span>
-                <span class="block text-xs text-gray-500 mt-0.5">{{ fmt.desc }}</span>
-              </div>
-            </label>
-          </div>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-          <button @click="showExportModal = false; exitExportMode()" class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">取消</button>
-          <button @click="handleDoExport" class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">确认导出</button>
-        </div>
-      </div>
-    </div>
+    <!-- 导出格式选择弹窗 - 统一使用 ExportFormatModal -->
+    <ExportFormatModal
+      v-model:visible="showExportModal"
+      v-model:export-file-type="exportFormat"
+      :selected-count="exportRecords.length > 0 ? exportRecords.length : filteredSuppliers.length"
+      @confirm="handleDoExport"
+    />
 
-    <!-- 单行删除警告弹窗 - 与V1.1 DeleteWarningDialog一致 -->
-    <div v-if="showDeleteWarning" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="showDeleteWarning = false">
-      <div class="bg-white rounded-xl w-full max-w-md shadow-2xl" @click.stop>
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-            <AlertTriangle :size="24" class="text-red-600" />
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900">确认删除</h3>
-        </div>
-        <div class="p-6 text-sm text-gray-600">
-          <p>确定要删除供应商 <span class="font-bold text-red-600">"{{ singleDeleteTarget?.name }}"</span> 吗？</p>
-          <p class="mt-2 text-red-500 font-medium">此操作不可撤销！</p>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-          <button @click="showDeleteWarning = false" class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">取消</button>
-          <button @click="handleConfirmSingleDelete" class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700">确认删除</button>
-        </div>
-      </div>
-    </div>
+    <!-- 单行删除警告弹窗 - 统一使用 DeleteWarningModal -->
+    <DeleteWarningModal
+      v-model:is-open="showDeleteWarning"
+      :selected-count="1"
+      title="确认删除"
+      :description="singleDeleteTarget ? `确定要删除供应商 <strong>${singleDeleteTarget.name}</strong> 吗？此操作 <span style='color:#dc2626'>无法恢复</span>，删除后数据将永久丢失。` : ''"
+      @confirm="handleConfirmSingleDelete"
+    />
 
-    <!-- 批量删除确认弹窗 - 与V1.1 BatchDeleteConfirmDialog一致（含供应商名称+风险警告） -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="showDeleteModal = false">
-      <div class="bg-white rounded-xl w-full max-w-md shadow-2xl" @click.stop>
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-            <AlertTriangle :size="24" class="text-red-600" />
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900">批量删除确认</h3>
-        </div>
-
-        <div class="p-6 text-sm text-gray-600 space-y-3">
-          <p>确定要删除选中的 <span class="font-bold text-red-600">{{ deleteSupplierIds.length }}</span> 个供应商吗？</p>
-          <div class="p-3 bg-gray-50 rounded-lg text-xs">
-            <p class="font-medium text-gray-700 mb-1">选中供应商：</p>
-            <p class="text-gray-600">{{ deleteSupplierNames }}</p>
-          </div>
-
-          <!-- 数据完整性警告 -->
-          <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p class="text-sm font-medium text-red-700 mb-2">数据完整性风险提示：</p>
-            <ul class="list-disc list-inside space-y-1 text-xs text-red-600">
-              <li>删除后将无法恢复供应商基础信息</li>
-              <li>关联的采购计划可能缺少供应商来源</li>
-              <li>物料的供应商追溯链可能出现断链</li>
-              <li>入库记录的供应商字段将失去关联</li>
-              <li>财务对账记录中的供应商信息可能受影响</li>
-            </ul>
-          </div>
-
-          <p class="text-red-500 font-medium">此操作不可撤销！请谨慎操作。</p>
-        </div>
-
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-          <button @click="showDeleteModal = false" class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">取消</button>
-          <button @click="handleDoDelete" class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700">已知晓风险，确认删除</button>
-        </div>
-      </div>
-    </div>
+    <!-- 批量删除确认弹窗 - 统一使用 DeleteWarningModal -->
+    <DeleteWarningModal
+      v-model:is-open="showDeleteModal"
+      :selected-count="deleteSupplierIds.length"
+      title="批量删除确认"
+      :description="deleteSupplierIds.length > 0 ? `确定要删除选中的 <strong>${deleteSupplierIds.length}</strong> 个供应商吗？<br/><br/><strong>选中供应商：</strong>${deleteSupplierNames}<br/><br/><span style='color:#dc2626'>此操作不可撤销！请谨慎操作。</span>` : ''"
+      @confirm="handleDoDelete"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Truck, Plus, Edit, Edit2, Trash2, Download, Eye, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Send, AlertTriangle, RotateCcw, ClipboardCopy, Wand2 } from 'lucide-vue-next'
+import { Truck, Plus, Edit2, Trash2, Download, Eye, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Send, AlertTriangle, RotateCcw, ClipboardCopy, Wand2 } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
+import { ElModal } from '@/components/ui'
+import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
+import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 import { useSupplierStore } from '@/stores/modules/inventory/useSupplierStore'
 import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { useSupplierCodeRuleStore } from '@/stores/modules/supplierCodeRule'
 import { validateMobilePhone, validateWorkPhone, validateFax, validateBankCard, validateCode, runValidations } from '@/utils/validators'
+// 与订单管理共享按钮样式常量
+import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnWarning } from '@/views/production/constants/buttonStyles'
 
 // ==================== 常量（与V1.1 data.ts完全一致） ====================
 
@@ -860,12 +808,6 @@ const getSupplierTypeName = (code) => {
   const cat = supplierCategories.find(c => c.code === code)
   return cat ? cat.name : (code || '')
 }
-
-const exportFormats = [
-  { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
-  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
-]
 
 // 编码生成器使用的分类选项（优先使用Store数据，回退到本地常量）
 const categoryOptions = computed(() => {
@@ -1444,3 +1386,24 @@ onMounted(async () => {
   ])
 })
 </script>
+
+<style scoped>
+/* 弹窗内输入框样式 - 与订单管理标准一致 */
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner) {
+  padding: 0 11px !important;
+  box-shadow: 0 0 0 1px #9ca3af inset !important;
+  border-radius: 0.5rem !important;
+  min-height: 38px;
+}
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #10b981 inset !important;
+}
+:deep(.el-select__wrapper) {
+  padding: 0 11px !important;
+  box-shadow: 0 0 0 1px #9ca3af inset !important;
+  border-radius: 0.5rem !important;
+  min-height: 38px;
+  background: #fff;
+}
+</style>

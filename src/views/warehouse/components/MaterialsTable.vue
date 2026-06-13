@@ -95,9 +95,9 @@
             </td>
             <td v-if="!exportMode && !batchEditMode && !deleteMode" class="px-4 py-3 whitespace-nowrap">
               <div class="flex items-center gap-1">
-                <button class="text-blue-600 hover:text-blue-800 p-1" @click="handleView(row)">查看</button>
-                <button class="text-blue-600 hover:text-blue-800 p-1" @click="handleEdit(row)">编辑</button>
-                <button class="text-red-600 hover:text-red-800 p-1" @click="handleDelete(row)">删除</button>
+                <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="handleView(row)">查看</button>
+                <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="handleEdit(row)">编辑</button>
+                <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-red-600 text-white hover:bg-red-700" @click="handleDelete(row)">删除</button>
               </div>
             </td>
           </tr>

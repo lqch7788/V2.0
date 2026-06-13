@@ -87,7 +87,10 @@
       </div>
 
       <!-- 重置按钮 -->
-      <el-button @click="handleReset">重置</el-button>
+      <button class="h-8 px-3 rounded-md text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-1" @click="handleReset">
+        <RotateCcw class="w-4 h-4" />
+        重置
+      </button>
     </div>
   </div>
 </template>
@@ -95,6 +98,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { Search } from '@element-plus/icons-vue'
+import { RotateCcw } from 'lucide-vue-next'
 
 const props = defineProps({
   searchCode: { type: String, default: '' },

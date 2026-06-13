@@ -25,7 +25,7 @@
     <!-- 错误状态 -->
     <div v-if="error && !loading" class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
       <p class="text-red-600">加载失败：{{ error }}</p>
-      <button class="h-8 px-3 mt-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="warehouseMaterialStore.loadMaterials()">
+      <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="warehouseMaterialStore.loadMaterials()">
         <RefreshCw :size="14" class="inline mr-1" />重试
       </button>
     </div>

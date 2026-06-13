@@ -105,8 +105,8 @@
 
       <!-- 重置按钮 -->
       <div class="flex items-end gap-2">
-        <button class="h-10 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleReset">
-          重置
+        <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-amber-500 text-white hover:bg-amber-600" @click="handleReset">
+          <RotateCcw class="w-3.5 h-3.5" />重置
         </button>
       </div>
     </div>
@@ -115,6 +115,7 @@
 
 <script setup>
 import { reactive, watch } from 'vue'
+import { RotateCcw } from 'lucide-vue-next'
 
 /**
  * 物料筛选器组件

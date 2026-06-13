@@ -6,44 +6,44 @@
       <h3 class="text-lg font-semibold text-gray-900">领料出库单列表</h3>
       <!-- 导出模式 -->
       <div v-if="exportMode" class="flex gap-2">
-        <el-button size="small" type="primary" @click="$emit('export-confirm')">
-          <el-icon><Download /></el-icon>
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="$emit('export-confirm')">
+          <Download class="w-4 h-4" />
           确认导出
-        </el-button>
-        <el-button size="small" @click="$emit('cancel-export')">取消</el-button>
+        </button>
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center gap-1" @click="$emit('cancel-export')">取消</button>
       </div>
       <!-- 批量编辑模式 -->
       <div v-else-if="batchEditMode === 'edit'" class="flex gap-2">
-        <el-button size="small" type="primary" @click="$emit('batch-edit-confirm')">
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="$emit('batch-edit-confirm')">
           确认编辑
-        </el-button>
-        <el-button size="small" @click="$emit('batch-cancel')">取消</el-button>
+        </button>
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center gap-1" @click="$emit('batch-cancel')">取消</button>
       </div>
       <!-- 批量删除模式 -->
       <div v-else-if="batchEditMode === 'delete'" class="flex gap-2">
-        <el-button size="small" type="danger" @click="$emit('batch-delete-confirm')">
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="$emit('batch-delete-confirm')">
           确认删除
-        </el-button>
-        <el-button size="small" @click="$emit('batch-cancel')">取消</el-button>
+        </button>
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center gap-1" @click="$emit('batch-cancel')">取消</button>
       </div>
       <!-- 默认模式 -->
       <div v-else class="flex gap-2">
-        <el-button size="small" type="primary" @click="$emit('add')">
-          <el-icon><Plus /></el-icon>
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="$emit('add')">
+          <Plus class="w-4 h-4" />
           新增
-        </el-button>
-        <el-button size="small" type="primary" @click="$emit('batch-edit-click')">
-          <el-icon><Edit /></el-icon>
+        </button>
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="$emit('batch-edit-click')">
+          <Edit class="w-4 h-4" />
           编辑
-        </el-button>
-        <el-button size="small" type="danger" @click="$emit('batch-delete-click')">
-          <el-icon><Delete /></el-icon>
+        </button>
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="$emit('batch-delete-click')">
+          <Delete class="w-4 h-4" />
           删除
-        </el-button>
-        <el-button size="small" @click="$emit('export-click')">
-          <el-icon><Download /></el-icon>
+        </button>
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="$emit('export-click')">
+          <Download class="w-4 h-4" />
           导出
-        </el-button>
+        </button>
       </div>
     </div>
 
@@ -182,7 +182,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Plus, Edit, Delete, Download } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Download } from 'lucide-vue-next'
 
 const props = defineProps({
   data: { type: Array, default: () => [] },

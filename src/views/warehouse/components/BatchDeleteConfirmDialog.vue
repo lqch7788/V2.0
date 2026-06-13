@@ -23,7 +23,7 @@
 
       <!-- 底部按钮 -->
       <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-        <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 flex-1" @click="handleClose">取消</button>
+        <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 flex-1" @click="handleClose">取消</button>
         <button class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 flex-1" @click="handleConfirm">确认删除</button>
       </div>
     </div>
