@@ -160,7 +160,7 @@
               <Plus :size="14" /> 新增
             </button>
             <button @click="enterBatchEditMode" class="h-8 px-3 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 inline-flex items-center gap-1">
-              <Edit :size="14" /> 编辑
+              <Edit2 :size="14" /> 编辑
             </button>
             <button @click="enterDeleteMode" class="h-8 px-3 rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 inline-flex items-center gap-1">
               <Trash2 :size="14" /> 删除
@@ -172,7 +172,7 @@
           <template v-else>
             <template v-if="batchEditMode">
               <button @click="handleConfirmBatchEdit" class="h-8 px-3 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-1">
-                <Edit :size="14" /> 确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+                <Edit2 :size="14" /> 确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
               </button>
               <button @click="cancelBatchEdit" class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">取消</button>
             </template>
@@ -242,7 +242,7 @@
                     <Eye :size="16" />
                   </button>
                   <button @click="handleEdit(supplier)" title="编辑" class="text-gray-500 hover:text-blue-600 p-1">
-                    <Edit :size="16" />
+                    <Edit2 :size="16" />
                   </button>
                   <button @click="handleDeleteSingle(supplier)" title="删除" class="text-gray-500 hover:text-red-600 p-1">
                     <Trash2 :size="16" />
@@ -275,41 +275,140 @@
 
     <!-- ========== 弹窗 ========== -->
 
-    <!-- 查看详情弹窗 - 与V1.1 SupplierDetailModal一致 -->
+    <!-- 查看详情弹窗 - 与V1.1 SupplierDetailModal一致：分组展示（基本信息/联系方式/地址信息/银行信息/其他信息） -->
     <div v-if="showDetailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="showDetailModal = false">
       <div class="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
         <div class="px-6 py-4 bg-emerald-600 text-white flex items-center justify-between">
           <h3 class="font-semibold">供应商详情</h3>
           <button @click="showDetailModal = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
         </div>
-        <div class="p-6 overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-3 text-sm">
-          <div><span class="text-gray-500">供应商编号：</span>{{ detailSupplier?.code }}</div>
-          <div><span class="text-gray-500">供应商名称：</span>{{ detailSupplier?.name }}</div>
-          <div><span class="text-gray-500">供应类型：</span>{{ detailSupplier ? getSupplierTypeName(detailSupplier.supplierType) : '' }}</div>
-          <div><span class="text-gray-500">供应商属性：</span>{{ detailSupplier?.supplierAttribute }}</div>
-          <div><span class="text-gray-500">所属组织：</span>{{ detailSupplier?.organization }}</div>
-          <div><span class="text-gray-500">状态：</span>
-            <span class="inline-flex px-2 py-0.5 rounded text-xs" :class="{
-              'bg-green-100 text-green-700': detailSupplier?.status === '合作中',
-              'bg-yellow-100 text-yellow-700': detailSupplier?.status === '暂停',
-              'bg-red-100 text-red-700': detailSupplier?.status === '终止'
-            }">{{ detailSupplier?.status }}</span>
+        <div class="p-6 overflow-y-auto max-h-[70vh] space-y-4 text-sm">
+          <!-- 基本信息 -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-3">基本信息</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <span class="text-xs text-gray-500 block">供应商编号</span>
+                  <span class="text-sm font-medium text-gray-900">{{ detailSupplier?.code }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">供应商名称</span>
+                  <span class="text-sm font-medium text-gray-900">{{ detailSupplier?.name }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">供应类型</span>
+                  <span class="text-sm text-gray-700">{{ detailSupplier ? getSupplierTypeName(detailSupplier.supplierType) : '' }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">供应商属性</span>
+                  <span class="text-sm text-gray-700">{{ detailSupplier?.supplierAttribute }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">所属组织</span>
+                  <span class="text-sm text-gray-700">{{ detailSupplier?.organization }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">状态</span>
+                  <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" :class="{
+                    'bg-green-100 text-green-700': detailSupplier?.status === '合作中',
+                    'bg-yellow-100 text-yellow-700': detailSupplier?.status === '暂停',
+                    'bg-red-100 text-red-700': detailSupplier?.status === '终止'
+                  }">{{ detailSupplier?.status }}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div><span class="text-gray-500">联系人：</span>{{ detailSupplier?.contact }}</div>
-          <div><span class="text-gray-500">移动电话：</span>{{ detailSupplier?.mobilePhone }}</div>
-          <div><span class="text-gray-500">工作电话：</span>{{ detailSupplier?.workPhone || '-' }}</div>
-          <div><span class="text-gray-500">传真：</span>{{ detailSupplier?.fax || '-' }}</div>
-          <div><span class="text-gray-500">国家：</span>{{ detailSupplier?.country }}</div>
-          <div><span class="text-gray-500">省份：</span>{{ detailSupplier?.province }}</div>
-          <div><span class="text-gray-500">城市：</span>{{ detailSupplier?.city }}</div>
-          <div><span class="text-gray-500">区县：</span>{{ detailSupplier?.district || '-' }}</div>
-          <div class="col-span-2"><span class="text-gray-500">详细地址：</span>{{ detailSupplier?.address }}</div>
-          <div><span class="text-gray-500">开户行：</span>{{ detailSupplier?.bankName || '-' }}</div>
-          <div class="col-span-2"><span class="text-gray-500">银行卡号：</span>{{ detailSupplier?.bankCardNumber || '-' }}</div>
-          <div><span class="text-gray-500">创建时间：</span>{{ detailSupplier?.createDate }}</div>
-          <div class="col-span-2"><span class="text-gray-500">备注：</span>{{ detailSupplier?.remarks || '-' }}</div>
-          <div><span class="text-gray-500">最后编辑人：</span>{{ detailSupplier?.lastEditBy || '-' }}</div>
-          <div><span class="text-gray-500">最后编辑时间：</span>{{ detailSupplier?.lastEditTime || '-' }}</div>
+
+          <!-- 联系方式 -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-3">联系方式</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <span class="text-xs text-gray-500 block">联系人</span>
+                  <span class="text-sm text-gray-900">{{ detailSupplier?.contact }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">移动电话</span>
+                  <span class="text-sm text-gray-900">{{ detailSupplier?.mobilePhone }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">工作电话</span>
+                  <span class="text-sm text-gray-700">{{ detailSupplier?.workPhone || '-' }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">传真</span>
+                  <span class="text-sm text-gray-700">{{ detailSupplier?.fax || '-' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 地址信息 -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-3">地址信息</h4>
+            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div>
+                <span class="text-xs text-gray-500 block">国家/地区</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.country }}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <span class="text-xs text-gray-500 block">省份</span>
+                  <span class="text-sm text-gray-900">{{ detailSupplier?.province }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">城市</span>
+                  <span class="text-sm text-gray-900">{{ detailSupplier?.city }}</span>
+                </div>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500 block">详细地址</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.address }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 银行信息 -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-3">银行信息</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <span class="text-xs text-gray-500 block">开户行</span>
+                  <span class="text-sm text-gray-900">{{ detailSupplier?.bankName || '-' }}</span>
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 block">银行卡号</span>
+                  <span class="text-sm text-gray-900">{{ detailSupplier?.bankCardNumber || '-' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 其他信息 -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-3">其他信息</h4>
+            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div>
+                <span class="text-xs text-gray-500 block">创建时间</span>
+                <span class="text-sm text-gray-900">{{ detailSupplier?.createDate }}</span>
+              </div>
+              <div v-if="detailSupplier?.remarks">
+                <span class="text-xs text-gray-500 block">备注</span>
+                <span class="text-sm text-gray-700">{{ detailSupplier.remarks }}</span>
+              </div>
+              <div v-if="detailSupplier?.lastEditBy">
+                <span class="text-xs text-gray-500 block">最后编辑人</span>
+                <span class="text-sm text-gray-700">{{ detailSupplier.lastEditBy }}</span>
+              </div>
+              <div v-if="detailSupplier?.lastEditTime">
+                <span class="text-xs text-gray-500 block">最后编辑时间</span>
+                <span class="text-sm text-gray-700">{{ detailSupplier.lastEditTime }}</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
           <button @click="showDetailModal = false" class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">关闭</button>
@@ -700,7 +799,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Truck, Plus, Edit, Trash2, Download, Eye, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Send, AlertTriangle, RotateCcw, ClipboardCopy, Wand2 } from 'lucide-vue-next'
+import { Truck, Plus, Edit, Edit2, Trash2, Download, Eye, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Send, AlertTriangle, RotateCcw, ClipboardCopy, Wand2 } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 import { useSupplierStore } from '@/stores/modules/inventory/useSupplierStore'
