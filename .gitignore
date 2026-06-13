@@ -64,6 +64,7 @@ test-*.ts
 
 # Playwright verification scripts (dev-only, regenerated on demand)
 scripts/verify-*.cjs
+scripts/debug-*.cjs
 
 # Project documentation (not source code)
 *.md
