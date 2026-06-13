@@ -317,12 +317,22 @@
                 {{ item.storageDate ? new Date(item.storageDate).toLocaleDateString('zh-CN') : '-' }}
               </td>
               <td class="px-4 py-3 whitespace-nowrap">
-                <button
-                  class="text-blue-600 hover:text-blue-800 text-sm p-1"
-                  @click="handleEditItem(item)"
-                >
-                  <Edit class="w-4 h-4 inline" />编辑
-                </button>
+                <div class="flex items-center gap-2">
+                  <button
+                    v-if="canOutbound(item)"
+                    class="text-red-600 hover:text-red-800 text-sm p-1 inline-flex items-center gap-1"
+                    @click="handleOutbound(item)"
+                    title="出库"
+                  >
+                    <ArrowUpCircle class="w-4 h-4" />出库
+                  </button>
+                  <button
+                    class="text-blue-600 hover:text-blue-800 text-sm p-1 inline-flex items-center gap-1"
+                    @click="handleEditItem(item)"
+                  >
+                    <Edit class="w-4 h-4" />编辑
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -1002,6 +1012,89 @@
         </div>
       </div>
     </div>
+
+    <!-- 出库弹窗（对齐 V1.1 OutboundModal.tsx：库存摘要 + 出库表单） -->
+    <div v-if="showOutboundModal && selectedOutboundStock" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="closeOutboundModal">
+      <div class="bg-white rounded-xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col" @click.stop>
+        <!-- Header -->
+        <div class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <ArrowUpCircle class="w-5 h-5 text-white" />
+            <h3 class="text-lg font-semibold">库存出库</h3>
+          </div>
+          <button @click="closeOutboundModal" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 overflow-y-auto flex-1 space-y-4">
+          <!-- 库存信息摘要 -->
+          <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <h4 class="text-sm font-semibold text-blue-700 mb-3 border-b border-blue-300 pb-1.5">库存信息</h4>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
+              <div class="flex flex-col">
+                <span class="text-xs text-gray-500">实例ID</span>
+                <span class="text-sm text-gray-900 font-mono mt-0.5 break-all">{{ selectedOutboundStock.instanceId || selectedOutboundStock.id }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs text-gray-500">作物</span>
+                <span class="text-sm text-gray-900 mt-0.5">{{ selectedOutboundStock.cropName || '-' }} / {{ selectedOutboundStock.variety || '-' }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs text-gray-500">当前库存</span>
+                <span class="text-sm font-mono font-semibold text-emerald-600 mt-0.5">{{ selectedOutboundStock.quantity }} {{ selectedOutboundStock.unit }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs text-gray-500">可用量</span>
+                <span class="text-sm font-mono font-semibold text-blue-600 mt-0.5">{{ availableQuantity }} {{ selectedOutboundStock.unit }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs text-gray-500">已冻结</span>
+                <span class="text-sm font-mono text-amber-600 mt-0.5">{{ selectedOutboundStock.frozenQuantity || 0 }} {{ selectedOutboundStock.unit }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs text-gray-500">入库日期</span>
+                <span class="text-sm text-gray-900 mt-0.5">{{ selectedOutboundStock.storageDate ? new Date(selectedOutboundStock.storageDate).toLocaleDateString('zh-CN') : '-' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 出库表单 -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">出库数量 <span class="text-red-500">*</span></label>
+              <input v-model.number="outboundForm.quantity" type="number" min="0" :max="availableQuantity" class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm" :placeholder="`最大 ${availableQuantity} ${selectedOutboundStock.unit}`" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">业务类型 <span class="text-red-500">*</span></label>
+              <select v-model="outboundForm.businessType" class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm bg-white">
+                <option value="sale">销售</option>
+                <option value="transfer">调拨出库</option>
+                <option value="damage">报损</option>
+                <option value="internal">内部种植</option>
+                <option value="gift">赠送</option>
+                <option value="return">退库</option>
+                <option value="adjust">调整</option>
+                <option value="other">其他</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">业务单号（可选）</label>
+              <input v-model="outboundForm.businessCode" class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm" placeholder="关联订单号/调拨单号等" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+              <textarea v-model="outboundForm.remarks" :rows="2" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm resize-none" placeholder="可选填写备注信息"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2 flex-shrink-0">
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="closeOutboundModal">取消</button>
+          <button class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="submitOutbound">确认出库</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1010,14 +1103,15 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import {
-  Package, Search, RefreshCw, Plus, Edit, Trash2, Download, X, Info, History, GitBranch, Clock, AlertTriangle, TrendingUp, TrendingDown
+  Package, Search, RefreshCw, Plus, Edit, Trash2, Download, X, Info, History, GitBranch, Clock, AlertTriangle, TrendingUp, TrendingDown, ArrowUpCircle
 } from 'lucide-vue-next'
 import {
   getInventoryList,
   createInventory,
   updateInventory,
   deleteInventory,
-  deleteInventoryBatch
+  deleteInventoryBatch,
+  outbound
 } from '@/api/inventory/apiInventoryService'
 import { useCropInventoryStore } from '@/stores/modules/inventory/useCropInventoryStore'
 import { useCropVarietyStore } from '@/stores/modules/cropVariety'
@@ -1176,6 +1270,15 @@ const showEditModal = ref(false)
 const showBatchEditModal = ref(false)
 const selectedInventory = ref(null)
 const exportFormat = ref('xlsx')
+// 出库弹窗状态（修复：脚本中已使用但缺少 ref 定义）
+const showOutboundModal = ref(false)
+const selectedOutboundStock = ref(null)
+const outboundForm = reactive({
+  quantity: '',
+  businessType: 'other',
+  businessCode: '',
+  remarks: '',
+})
 
 // 编辑中的库存记录
 const editingInventory = reactive({
@@ -1728,6 +1831,75 @@ async function handleSaveAdd() {
   } catch (error) {
     console.error('新增库存失败:', error)
     ElMessage.error('新增库存失败')
+  }
+}
+
+// 判断库存是否可出库（V1.1 规则：库存中/低库存）
+function canOutbound(item) {
+  const status = item.status || item.stockStatus
+  return status === 'in_stock' || status === 'low_stock' || status === '库存中' || status === '低库存'
+}
+
+// 出库操作（V1.1 对齐）
+function handleOutbound(item) {
+  if (!canOutbound(item)) {
+    ElMessage.warning('只有库存中或低库存状态的物品可以出库')
+    return
+  }
+  selectedOutboundStock.value = item
+  // 重置表单
+  outboundForm.quantity = ''
+  outboundForm.businessType = 'other'
+  outboundForm.businessCode = ''
+  outboundForm.remarks = ''
+  showOutboundModal.value = true
+}
+
+// 关闭出库弹窗
+function closeOutboundModal() {
+  showOutboundModal.value = false
+  selectedOutboundStock.value = null
+}
+
+// 计算可用数量
+const availableQuantity = computed(() => {
+  if (!selectedOutboundStock.value) return 0
+  const current = Number(selectedOutboundStock.value.quantity ?? 0)
+  const frozen = Number(selectedOutboundStock.value.frozenQuantity ?? 0)
+  return Math.max(0, current - frozen)
+})
+
+// 提交出库
+async function submitOutbound() {
+  const stock = selectedOutboundStock.value
+  if (!stock) {
+    ElMessage.warning('请选择要出库的库存')
+    return
+  }
+  const qty = Number(outboundForm.quantity)
+  if (!qty || qty <= 0) {
+    ElMessage.warning('请输入有效的出库数量')
+    return
+  }
+  if (qty > availableQuantity.value) {
+    ElMessage.warning(`出库数量不能超过可用量（${availableQuantity.value}）`)
+    return
+  }
+  try {
+    // 调用后端出库 API：与 V1.1 OutboundModal.tsx 一致
+    await outbound({
+      instance_id: stock.instanceId || stock.id,
+      quantity: qty,
+      business_type: outboundForm.businessType,
+      business_code: outboundForm.businessCode || '',
+      remarks: outboundForm.remarks || '',
+    })
+    ElMessage.success('出库成功')
+    closeOutboundModal()
+    await loadInventoryData()
+  } catch (error) {
+    console.error('出库失败:', error)
+    ElMessage.error('出库失败：' + (error?.message || '未知错误'))
   }
 }
 

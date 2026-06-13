@@ -25,6 +25,7 @@
           class="flex items-center gap-2 pb-3 text-base font-semibold transition-all relative rounded-none border-none"
           :class="activeTab === tab.key ? 'text-emerald-600' : 'text-gray-500'"
         >
+          <el-icon :size="16"><component :is="tab.icon" /></el-icon>
           {{ tab.label }}
           <div v-if="activeTab === tab.key" class="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full" />
         </el-button>
@@ -34,13 +35,13 @@
 </template>
 
 <script setup>
-import { List } from '@element-plus/icons-vue'
+import { List, FileText, ClipboardCheck, BarChart3, DollarSign } from 'lucide-vue-next'
 
 const TABS = [
-  { key: 'application', label: '申请领料' },
-  { key: 'execute', label: '领料出库' },
-  { key: 'statistics', label: '领料统计' },
-  { key: 'cost', label: '成本核算' },
+  { key: 'application', label: '申请领料', icon: FileText },
+  { key: 'execute', label: '领料出库', icon: ClipboardCheck },
+  { key: 'statistics', label: '领料统计', icon: BarChart3 },
+  { key: 'cost', label: '成本核算', icon: DollarSign },
 ]
 
 const props = defineProps({
