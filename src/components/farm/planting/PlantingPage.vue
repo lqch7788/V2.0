@@ -287,17 +287,23 @@ const cropNames = computed(() => {
 
 /** @type {import('vue').ComputedRef<{value: string, label: string}[]>} */
 const areas = computed(() => {
-  return getDictItems('planting_area').map((d) => ({ value: d.dictCode, label: d.dictLabel }))
+  return (dictionaryStore.dictionaries || [])
+    .filter(d => d.category === 'planting_area' && d.status === 'active')
+    .map((d) => ({ value: d.dictCode, label: d.dictLabel }))
 })
 
 /** @type {import('vue').ComputedRef<{value: string, label: string}[]>} */
 const sourceTypeOptions = computed(() => {
-  return getDictItems('source_type').map((d) => ({ value: d.dictCode, label: d.dictLabel }))
+  return (dictionaryStore.dictionaries || [])
+    .filter(d => d.category === 'source_type' && d.status === 'active')
+    .map((d) => ({ value: d.dictCode, label: d.dictLabel }))
 })
 
 /** @type {import('vue').ComputedRef<{value: string, label: string}[]>} */
 const plantingStatusOptions = computed(() => {
-  return getDictItems('planting_status').map((d) => ({ value: d.dictCode, label: d.dictLabel }))
+  return (dictionaryStore.dictionaries || [])
+    .filter(d => d.category === 'planting_status' && d.status === 'active')
+    .map((d) => ({ value: d.dictCode, label: d.dictLabel }))
 })
 
 // ==================== 从 Store 映射（1:1 翻译 V1.1 解构） ====================

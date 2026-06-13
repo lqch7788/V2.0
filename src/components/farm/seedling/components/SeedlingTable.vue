@@ -340,7 +340,7 @@ const varietyCache = ref(new Map())
 // 加载品种数据
 const loadVarieties = async () => {
   try {
-    const { getAllVarieties } = await import('@/services/apiCropVarietyService')
+    const { getAllVarieties } = await import('@/services/cropVarietyService')
     const varieties = await getAllVarieties()
     const cache = new Map()
     varieties.forEach(v => {

@@ -1085,9 +1085,10 @@ const loading = ref(false)
 const loadMaterials = async () => {
   loading.value = true
   try {
-    await warehouseMaterialStore.loadItems()
-    if (warehouseMaterialStore.items.length > 0) {
-      warehouseMaterials.value = warehouseMaterialStore.items
+    await warehouseMaterialStore.loadMaterials()
+    const storeList = warehouseMaterialStore.materials || []
+    if (storeList.length > 0) {
+      warehouseMaterials.value = storeList
     } else {
       const data = await getMaterials()
       warehouseMaterials.value = Array.isArray(data) ? data : (data.data || [])
