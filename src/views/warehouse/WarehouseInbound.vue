@@ -28,13 +28,14 @@
 
       <!-- 展开的生成面板 -->
       <div v-if="codeGenExpanded" class="p-6">
+        <!-- 编码生成器 - V1.1: grid-cols-6 + "生成编码"列 col-span-3 (50% 宽), Input+3个按钮全部同一行 -->
         <div class="grid grid-cols-6 gap-4 mb-4">
           <!-- 大类 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">大类</label>
             <select
               v-model="codeGen.bigCategory"
-              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+              class="w-full h-10 px-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500"
               @change="handleCodeGenBigCategoryChange"
             >
               <option value="">请选择</option>
@@ -46,7 +47,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">中类</label>
             <select
               v-model="codeGen.midCategory"
-              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+              class="w-full h-10 px-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500"
               :disabled="!codeGen.bigCategory"
               @change="handleCodeGenMidCategoryChange"
             >
@@ -59,7 +60,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">小类</label>
             <select
               v-model="codeGen.subCategory"
-              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+              class="w-full h-10 px-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500"
               :disabled="!codeGen.midCategory"
               @change="handleCodeGenSubCategoryChange"
             >
@@ -67,39 +68,44 @@
               <option v-for="cat in subCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
             </select>
           </div>
-          <!-- 生成编码 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">生成编码</label>
-            <div class="flex gap-2">
+          <!-- 生成编码 - V1.1 真实代码: col-span-3 占 50% 宽度, Input + 3个 size="sm" 按钮全部同一行 -->
+          <div class="col-span-3">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              生成编码
+              <span v-if="codeGenSuccess && !codeGenError" class="ml-2 text-sm text-green-600 font-normal">{{ codeGenSuccess }}</span>
+              <span v-if="codeGenError" class="ml-2 text-sm text-red-600 font-normal">{{ codeGenError }}</span>
+            </label>
+            <!-- V1.1 真实代码: Input w-40 h-10 + 3 个 size="sm" (h-8 px-3 text-xs) 按钮, 全部在同一行 -->
+            <div class="flex gap-2 items-center">
               <input
                 v-model="codeGen.generatedCode"
                 readonly
                 placeholder="点击生成"
-                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50"
+                class="w-40 h-10 px-3 border border-gray-200 rounded-lg text-sm bg-gray-50 flex-shrink-0"
               />
+              <!-- V1.1: size="sm" Button = h-8 px-3 text-xs (不自定义) -->
               <button
                 :disabled="!codeGen.subCategory"
-                class="h-10 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="h-8 px-3 rounded text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 @click="handleGenerateCode"
-              ><Wand2 class="w-4 h-4 inline mr-1" />生成</button>
+              >
+                <Wand2 class="w-4 h-4" />生成
+              </button>
+              <button
+                :disabled="!codeGen.generatedCode"
+                class="h-8 px-3 rounded text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                @click="handleCopyCode"
+              >
+                <Copy class="w-4 h-4" />{{ copySuccess ? '已复制!' : '复制' }}
+              </button>
+              <button
+                class="h-8 px-3 rounded text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center justify-center gap-1 whitespace-nowrap"
+                @click="handleResetCodeGen"
+              >
+                <RotateCcw class="w-4 h-4" />重置
+              </button>
             </div>
           </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <button
-            :disabled="!codeGen.generatedCode"
-            class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            @click="handleCopyCode"
-          >
-            <Copy class="w-4 h-4 inline mr-1" />{{ copySuccess ? '已复制!' : '复制' }}
-          </button>
-          <button
-            class="h-8 px-3 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600"
-            @click="handleResetCodeGen"
-          >
-            <RotateCcw class="w-4 h-4 inline mr-1" />重置
-          </button>
         </div>
 
         <!-- 错误/成功提示 -->
@@ -114,61 +120,70 @@
       </div>
     </div>
 
-    <!-- ========== 3. 筛选栏 ========== -->
+    <!-- ========== 3. 筛选栏 - 对应V1.1 MaterialInboundTab 5列 + 重置/搜索 ========== -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-600 whitespace-nowrap">入库单号:</label>
-          <input
-            v-model="searchCode"
-            placeholder="搜索单号"
-            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
-            @keyup.enter="handleSearch"
-          />
+      <div class="flex flex-wrap items-end gap-4">
+        <div class="flex-1 grid grid-cols-5 gap-4 min-w-0">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">入库单号</label>
+            <input
+              v-model="searchCode"
+              placeholder="搜索单号"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              @keyup.enter="handleSearch"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
+            <input
+              v-model="searchSupplier"
+              placeholder="搜索供应商"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              @keyup.enter="handleSearch"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+            <select
+              v-model="searchStatus"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500"
+              @change="handleSearch"
+            >
+              <option value="">全部</option>
+              <option value="pending">待审核</option>
+              <option value="completed">已完成</option>
+              <option value="voided">已作废</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">物料名称</label>
+            <input
+              v-model="searchMaterialName"
+              placeholder="搜索物料名称"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              @keyup.enter="handleSearch"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">物料编码</label>
+            <input
+              v-model="searchMaterialCode"
+              placeholder="搜索物料编码"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              @keyup.enter="handleSearch"
+            />
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-600 whitespace-nowrap">供应商:</label>
-          <input
-            v-model="searchSupplier"
-            placeholder="搜索供应商"
-            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
-            @keyup.enter="handleSearch"
-          />
+        <div class="flex gap-2">
+          <!-- V1.1: 重置按钮 amber + RotateCcw 单图标 -->
+          <button class="h-8 px-3 rounded text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-1" @click="resetSearchFilters">
+            <RotateCcw class="w-4 h-4" />重置
+          </button>
+          <!-- V1.1: 搜索按钮 default (emerald-600) -->
+          <button class="h-8 px-3 rounded text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="handleSearch">
+            <Search class="w-4 h-4" />搜索
+          </button>
         </div>
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-600 whitespace-nowrap">状态:</label>
-          <select
-            v-model="searchStatus"
-            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-28 bg-white"
-            @change="handleSearch"
-          >
-            <option value="">全部</option>
-            <option value="pending">待审核</option>
-            <option value="completed">已完成</option>
-            <option value="voided">已作废</option>
-          </select>
-        </div>
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-600 whitespace-nowrap">物料名称:</label>
-          <input
-            v-model="searchMaterialName"
-            placeholder="搜索物料名称"
-            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
-            @keyup.enter="handleSearch"
-          />
-        </div>
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-600 whitespace-nowrap">物料编码:</label>
-          <input
-            v-model="searchMaterialCode"
-            placeholder="搜索物料编码"
-            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm w-32"
-            @keyup.enter="handleSearch"
-          />
-        </div>
-        <button class="h-8 px-3 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600" @click="resetSearchFilters">
-          <RotateCcw class="w-4 h-4 inline mr-1" />重置
-        </button>
       </div>
     </div>
 
@@ -187,45 +202,45 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- 正常模式 -->
+          <!-- 正常模式 - V1.1 ActionToolbar 顺序: 新增 → 编辑 → 删除 → 导出 -->
           <template v-if="!hasActiveMode">
-            <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleAddRecord">
-              <Plus class="w-4 h-4 inline mr-1" />新增
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="handleAddRecord">
+              <Plus class="w-4 h-4" />新增入库
             </button>
-            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="enterEditMode">
-              <Edit class="w-4 h-4 inline mr-1" /><Edit2 class="w-4 h-4 inline mr-1" />编辑
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="enterEditMode">
+              <Edit class="w-4 h-4" />编辑
             </button>
-            <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="enterDeleteMode">
-              <Trash2 class="w-4 h-4 inline mr-1" />删除
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="enterDeleteMode">
+              <Trash2 class="w-4 h-4" />删除
             </button>
-            <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="enterExportMode">
-              <Download class="w-4 h-4 inline mr-1" />导出
+            <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="enterExportMode">
+              <Download class="w-4 h-4" />导出
             </button>
           </template>
           <!-- 模式按钮 -->
           <template v-else>
             <template v-if="editMode">
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleConfirmEdit">
-                <Pencil class="w-4 h-4 inline mr-1" />确认编辑{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="handleConfirmEdit">
+                <Edit2 class="w-4 h-4" />确认编辑{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
               </button>
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelSelection">
-                <X class="w-4 h-4 inline mr-1" />取消
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="cancelSelection">
+                <X class="w-4 h-4" />取消
               </button>
             </template>
             <template v-if="deleteMode">
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="handleConfirmDelete">
-                <Trash2 class="w-4 h-4 inline mr-1" />确认删除{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="handleConfirmDelete">
+                <Trash2 class="w-4 h-4" />确认删除{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
               </button>
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelSelection">
-                <X class="w-4 h-4 inline mr-1" />取消
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="cancelSelection">
+                <X class="w-4 h-4" />取消
               </button>
             </template>
             <template v-if="exportMode">
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleConfirmExport">
-                <Download class="w-4 h-4 inline mr-1" />确认导出{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="handleConfirmExport">
+                <Download class="w-4 h-4" />确认导出{{ selectedRows.length ? ` (${selectedRows.length})` : '' }}
               </button>
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200" @click="cancelSelection">
-                <X class="w-4 h-4 inline mr-1" />取消选择
+              <button class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="cancelSelection">
+                <X class="w-4 h-4" />取消选择
               </button>
             </template>
           </template>
@@ -287,37 +302,49 @@
                   </span>
                 </td>
               </tr>
-              <!-- 展开行：物料明细 -->
+              <!-- 展开行：物料明细 - V1.1 14列, 表头 bg-gray-100 -->
               <tr v-if="expandedRows.has(row.id)" :key="'exp-' + row.id" class="bg-gray-50">
                 <td :colspan="hasActiveMode ? 8 : 7" class="p-4">
-                  <h4 class="text-sm font-semibold text-gray-700 mb-3">物料明细（共 {{ row.materials?.length || 0 }} 项）</h4>
-                  <div class="overflow-x-auto">
-                    <table class="w-full border border-gray-200">
-                      <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                  <p class="font-medium text-gray-700 mb-2">物料明细：</p>
+                  <div class="overflow-x-auto rounded border">
+                    <table class="w-full bg-white">
+                      <thead class="bg-gray-100">
                         <tr>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">分类</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">规格</th>
-                          <th class="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap">数量</th>
-                          <th class="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap">单价</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">批次号</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">有效期至</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">物料编码</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">物料名称</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">分类</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">规格</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">条形码</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">单位</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">数量</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">单价</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">供应商</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">存放位置</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">批号</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">生产日期</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">有效期至</th>
+                          <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">备注</th>
                         </tr>
                       </thead>
-                      <tbody class="divide-y divide-gray-200">
+                      <tbody>
                         <tr v-if="!row.materials || row.materials.length === 0">
-                          <td colspan="8" class="px-3 py-4 text-center text-sm text-gray-500">暂无物料明细</td>
+                          <td colspan="14" class="px-3 py-4 text-center text-sm text-gray-500">暂无物料明细</td>
                         </tr>
-                        <tr v-for="m in (row.materials || [])" :key="m.id || m.code" class="hover:bg-white">
-                          <td class="px-3 py-2 text-xs text-gray-800 font-mono whitespace-nowrap">{{ m.code }}</td>
-                          <td class="px-3 py-2 text-xs text-gray-800 font-medium whitespace-nowrap">{{ m.name }}</td>
-                          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.category }}</td>
-                          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.specification }}</td>
-                          <td class="px-3 py-2 text-xs text-gray-800 text-right whitespace-nowrap">{{ m.quantity }} {{ m.unit }}</td>
-                          <td class="px-3 py-2 text-xs text-gray-800 text-right whitespace-nowrap">{{ m.price }}</td>
-                          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.batchNo || '-' }}</td>
-                          <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.expiryDate || '-' }}</td>
+                        <tr v-for="m in (row.materials || [])" :key="m.id || m.code" class="border-t">
+                          <td class="px-2 py-2 text-xs text-blue-600 whitespace-nowrap">{{ m.code }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.name }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.category || '-' }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.specification || '-' }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.barcode || '-' }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.unit }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.quantity }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.price }}元</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.supplier || '-' }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.location || '-' }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.batchNo || '-' }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.productionDate || '-' }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.expiryDate || '-' }}</td>
+                          <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.remarks || '-' }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -343,8 +370,8 @@
       </div>
     </div>
 
-    <!-- ========== 5. 查看详情弹窗 ========== -->
-    <ElModal :model-value="showDetailModal" title="入库记录详情" :width="700" :height="600" :show-footer="true" :show-submit="false" :show-cancel="false" @update:model-value="(v) => { if (!v) showDetailModal = false }" @close="showDetailModal = false">
+    <!-- ========== 5. 查看详情弹窗 - V1.1 size="xxl" (1080×650) ========== -->
+    <ElModal :model-value="showDetailModal" title="入库记录详情" :width="1080" :height="650" :show-footer="true" :show-submit="false" :show-cancel="false" :show-maximize="false" :enable-drag="false" :enable-resize="false" @update:model-value="(v) => { if (!v) showDetailModal = false }" @close="showDetailModal = false">
       <div v-if="detailRecord">
         <!-- 入库单信息卡片 -->
         <div class="bg-emerald-50 rounded-lg p-4 mb-6 border border-emerald-200">
@@ -384,16 +411,16 @@
           </div>
         </div>
 
-        <!-- 物料明细表 -->
+        <!-- 物料明细表 - V1.1: max-h-96 (不是 80), 表头无背景色 -->
         <h4 class="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <Package class="w-5 h-5 text-emerald-600" />
           物料明细
         </h4>
-        <div class="overflow-auto rounded-lg border border-gray-200 max-h-80">
-          <table class="w-full text-xs">
+        <div class="overflow-auto rounded-lg border border-gray-200 max-h-96">
+          <table class="min-w-full text-xs">
             <thead>
-              <tr class="bg-gray-50 text-gray-700 sticky top-0 z-10">
-                <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料编码</th>
+              <tr>
+                <th class="px-3 py-2 text-sm font-semibold text-gray-600 whitespace-nowrap text-left">物料编码</th>
                 <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">物料名称</th>
                 <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">分类</th>
                 <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">规格</th>
@@ -438,188 +465,16 @@
       </template>
     </ElModal>
 
-    <!-- ========== 6. 新增入库弹窗 ========== -->
-    <ElModal :model-value="showAddModal" title="新增入库记录" :width="900" :height="650" :show-footer="true" :show-submit="false" :show-cancel="false" @update:model-value="(v) => { if (!v) showAddModal = false }" @close="showAddModal = false">
-      <div>
-          <!-- 入库单信息 -->
-          <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-4">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-emerald-700 mb-1">入库单号</label>
-                <div class="flex gap-1">
-                  <input
-                    v-model="addForm.code"
-                    readonly
-                    placeholder="点击自动生成"
-                    class="flex-1 h-8 px-2 border border-gray-200 rounded text-sm font-mono bg-gray-50"
-                  />
-                  <button class="h-8 px-2 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="generateOrderCode">
-                    <RefreshCw class="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-emerald-700 mb-1">入库日期</label>
-                <input
-                  v-model="addForm.inboundDate"
-                  type="date"
-                  class="w-full h-8 px-2 border border-gray-200 rounded text-sm bg-gray-100 cursor-not-allowed"
-                  readonly
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-emerald-700 mb-1">供应商</label>
-                <input
-                  v-model="addForm.supplier"
-                  placeholder="请输入供应商"
-                  class="w-full h-8 px-2 border border-gray-200 rounded text-sm"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-emerald-700 mb-1">操作员</label>
-                <input
-                  v-model="addForm.operator"
-                  placeholder="请输入操作员"
-                  class="w-full h-8 px-2 border border-gray-200 rounded text-sm"
-                />
-              </div>
-            </div>
-          </div>
+    <!-- ========== 6. 新增入库弹窗 - V1.1 100% 重构子组件 InboundAddModal.vue ========== -->
+    <InboundAddModal
+      :is-open="showAddModal"
+      :on-generate-code="generateOrderCode"
+      @close="showAddModal = false"
+      @save="handleSaveNewInbound"
+    />
 
-          <!-- 物料明细 -->
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-sm font-semibold text-gray-800">物料明细（{{ addForm.materials.length }}种物料）</h4>
-            <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="addMaterialRow">
-              <Plus class="w-3 h-3 inline mr-1" />添加物料
-            </button>
-          </div>
-
-          <div v-if="addForm.materials.length === 0" class="text-center py-8 text-gray-500 text-sm">
-            暂无物料，请点击"添加物料"按钮添加
-          </div>
-
-          <div v-else class="overflow-x-auto rounded-lg border border-gray-200">
-            <table class="text-xs" style="min-width: 2000px">
-              <thead>
-                <tr>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">操作</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">物料编码</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">物料名称</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">分类</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">规格</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">条形码</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">单位</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">数量</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">单价</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">供应商</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">存放位置</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">批号</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">生产日期</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">有效期至</th>
-                  <th class="px-2 py-2 font-semibold text-gray-600 whitespace-nowrap sticky top-0 bg-gray-50 z-10">备注</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
-                <tr v-for="(m, idx) in addForm.materials" :key="m.id">
-                  <td class="px-2 py-1.5 whitespace-nowrap">
-                    <button class="text-red-500 hover:bg-red-50 p-1 rounded" @click="removeMaterialRow(idx)">
-                      <Trash2 class="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <div class="flex gap-1">
-                      <input v-model="m.code" placeholder="编码" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
-                      <button class="text-gray-500 hover:text-blue-600 p-0.5" @click="openAddMaterialCodeGen(idx)">
-                        <Settings class="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.name" placeholder="名称" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.category" placeholder="分类" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.specification" placeholder="规格" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.barcode" placeholder="条形码" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <select v-model="m.unit" class="w-14 h-6 px-1 border border-gray-200 rounded text-xs bg-white">
-                      <option v-for="u in unitOptions" :key="u" :value="u">{{ u }}</option>
-                    </select>
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model.number="m.quantity" type="number" placeholder="数量" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.price" placeholder="单价" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.supplier" placeholder="供应商" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.location" placeholder="位置" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.batchNo" placeholder="批号" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.productionDate" type="date" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.expiryDate" type="date" class="w-28 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                  <td class="px-1 py-1.5 whitespace-nowrap">
-                    <input v-model="m.remarks" placeholder="备注" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- 弹窗内编码生成器（与V1.1一致） -->
-          <div v-if="showModalCodeGen" class="mt-3 p-3 bg-gray-50 rounded border">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-sm font-semibold text-gray-700">编码生成（第{{ modalCodeGenIndex + 1 }}行物料）</span>
-              <button class="text-sm text-blue-600 hover:text-blue-800" @click="showModalCodeGen = false">关闭</button>
-            </div>
-            <div class="grid grid-cols-4 gap-3">
-              <select v-model="modalCodeGen.bigCategory" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="handleModalCodeGenBigChange">
-                <option value="">大类</option>
-                <option v-for="cat in bigCategoriesList" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
-              </select>
-              <select v-model="modalCodeGen.midCategory" :disabled="!modalCodeGen.bigCategory" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="handleModalCodeGenMidChange">
-                <option value="">中类</option>
-                <option v-for="cat in modalMidCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
-              </select>
-              <select v-model="modalCodeGen.subCategory" :disabled="!modalCodeGen.midCategory" class="px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white">
-                <option value="">小类</option>
-                <option v-for="cat in modalSubCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
-              </select>
-              <div class="flex gap-1">
-                <button
-                  :disabled="!modalCodeGen.subCategory"
-                  class="h-10 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  @click="generateModalCode"
-                >生成</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <el-button size="small" @click="showAddModal = false">取消</el-button>
-          <el-button type="primary" size="small" @click="handleSaveNewInbound">保存</el-button>
-        </div>
-      </template>
-    </ElModal>
-
-    <!-- ========== 7. 编辑入库弹窗（状态感知） ========== -->
-    <ElModal :model-value="showEditModal" title="编辑入库记录" :width="900" :height="650" :show-footer="true" :show-submit="false" :show-cancel="false" @update:model-value="(v) => { if (!v) showEditModal = false }" @close="showEditModal = false">
+    <!-- ========== 7. 编辑入库弹窗 - V1.1 size="xl" (900×600) ========== -->
+    <ElModal :model-value="showEditModal" title="编辑入库记录" :width="900" :height="600" :show-footer="true" :show-submit="false" :show-cancel="false" :show-maximize="false" :enable-drag="false" :enable-resize="false" @update:model-value="(v) => { if (!v) showEditModal = false }" @close="showEditModal = false">
       <div v-if="editRecord">
           <!-- 已完成状态警告 -->
           <div v-if="editRecord.status === 'completed'" class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
@@ -788,8 +643,8 @@
       </template>
     </ElModal>
 
-    <!-- ========== 8. 批量编辑弹窗 ========== -->
-    <ElModal :model-value="showBatchEditModal" title="批量编辑入库记录" :width="900" :height="650" :show-footer="true" :show-submit="false" :show-cancel="false" @update:model-value="(v) => { if (!v) showBatchEditModal = false }" @close="showBatchEditModal = false">
+    <!-- ========== 8. 批量编辑弹窗 - V1.1 size="xxxl" (1350×700) ========== -->
+    <ElModal :model-value="showBatchEditModal" title="批量编辑入库记录" :width="1350" :height="700" :show-footer="true" :show-submit="false" :show-cancel="false" :show-maximize="false" :enable-drag="false" :enable-resize="false" @update:model-value="(v) => { if (!v) showBatchEditModal = false }" @close="showBatchEditModal = false">
       <template #header-action>
         <span class="px-2 py-0.5 bg-emerald-500 text-white text-xs rounded">已选择 {{ batchEditRecords.length }} 条</span>
       </template>
@@ -855,14 +710,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Package, ChevronDown, ChevronRight, Plus, Pencil, Trash2, Download, RefreshCw, Settings, AlertTriangle, X, Wand2, Copy, RotateCcw, Edit, Edit2 } from 'lucide-vue-next'
+import { Package, ChevronDown, ChevronRight, Plus, Pencil, Trash2, Download, RefreshCw, Settings, AlertTriangle, X, Wand2, Copy, RotateCcw, Edit, Edit2, Search, Check } from 'lucide-vue-next'
 import { useInboundStore } from '@/stores/modules/inventory/useInboundStore'
+import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
 import { ElModal } from '@/components/ui'
 import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
+import InboundAddModal from './components/InboundAddModal.vue'
 
 // ==================== 常量配置（与V1.1一致） ====================
 
@@ -943,6 +800,28 @@ const categoryConfig = {
 // ==================== Store ====================
 
 const inboundStore = useInboundStore()
+const warehouseMaterialStore = useWarehouseMaterialStore()
+
+// 物料搜索下拉状态
+const materialSearchKeyword = ref('')
+const materialSearchIndex = ref(-1) // 当前正在搜索的物料行索引
+const materialSearchResults = ref([])
+const materialSearchShow = ref(false)
+const materialSearchHighlight = ref(0)
+
+// 点击外部关闭搜索下拉
+const closeMaterialSearch = () => {
+  materialSearchShow.value = false
+  materialSearchIndex.value = -1
+}
+
+// 监听全局点击关闭下拉
+const onDocumentClick = (e) => {
+  const target = e.target
+  if (target && target.closest && target.closest('.material-search-dropdown')) return
+  if (target && target.closest && target.closest('[data-material-search-trigger]')) return
+  closeMaterialSearch()
+}
 
 // ==================== 状态定义 ====================
 
@@ -1006,6 +885,30 @@ const modalCodeGen = reactive({ bigCategory: '', midCategory: '', subCategory: '
 
 // 导出格式
 const exportFormat = ref('excel')
+
+// V1.1 风格的物料库存数据（与 V1.1 WarehouseMaterialsPage.tsx 行 33-47 完全一致）
+// 用于入库弹窗的物料名称搜索下拉，作为 store 加载失败时的 fallback
+const mockWarehouseMaterials = [
+  { id: 1, code: 'SP0101001', name: '水稻种子', category: '种质资源-粮食作物种子', unit: '袋', quantity: 200, minStock: 50, maxStock: 500, price: '30元', supplier: '金种子业公司', location: 'A区-01', specification: '25kg/袋', barcode: '6932456789012', batchNo: 'PC20260301', productionDate: '2026-01-15', expiryDate: '2027-01-15', lastUpdateTime: '2026-03-20 10:30:00', dataStatus: '启用' },
+  { id: 2, code: 'SP0102001', name: '棉花种子', category: '种质资源-经济作物种子', unit: '袋', quantity: 80, minStock: 30, maxStock: 200, price: '25元', supplier: '丰收种业', location: 'A区-02', specification: '20kg/袋', barcode: '6932456789013', batchNo: 'PC20260220', productionDate: '2026-02-01', expiryDate: '2027-02-01', lastUpdateTime: '2026-03-19 14:20:00', dataStatus: '启用' },
+  { id: 3, code: 'SP0103001', name: '番茄种子', category: '种质资源-蔬菜种子', unit: '袋', quantity: 100, minStock: 50, maxStock: 300, price: '25元', supplier: '鑫源农资公司', location: 'A区-03', specification: '10g/袋', barcode: '6932456789014', batchNo: 'PC20260305', productionDate: '2026-02-20', expiryDate: '2026-08-20', lastUpdateTime: '2026-03-18 09:15:00', dataStatus: '启用' },
+  { id: 4, code: 'SP0201001', name: '商品有机肥', category: '肥料与土壤改良剂-有机肥', unit: '袋', quantity: 50, minStock: 100, maxStock: 400, price: '45元', supplier: '丰达化肥厂', location: 'B区-01', specification: '40kg/袋', barcode: '6932456789015', batchNo: 'PC20260110', productionDate: '2026-01-10', expiryDate: '2026-07-10', lastUpdateTime: '2026-03-20 08:00:00', dataStatus: '启用' },
+  { id: 5, code: 'SP0202001', name: '尿素', category: '肥料与土壤改良剂-化学肥料', unit: '袋', quantity: 150, minStock: 50, maxStock: 500, price: '80元', supplier: '丰达化肥厂', location: 'B区-02', specification: '50kg/袋', barcode: '6932456789016', batchNo: 'PC20260228', productionDate: '2026-02-28', expiryDate: '2028-02-28', lastUpdateTime: '2026-03-17 16:45:00', dataStatus: '启用' },
+  { id: 6, code: 'SP0301001', name: '吡虫啉', category: '农药与植保产品-杀虫剂', unit: '箱', quantity: 30, minStock: 20, maxStock: 100, price: '120元', supplier: '绿叶农业用品店', location: 'C区-01', specification: '100g/瓶', barcode: '6932456789017', batchNo: 'PC20251215', productionDate: '2025-12-15', expiryDate: '2027-12-15', lastUpdateTime: '2026-03-16 11:30:00', dataStatus: '启用' },
+  { id: 7, code: 'SP0302001', name: '多菌灵', category: '农药与植保产品-杀菌剂', unit: '箱', quantity: 20, minStock: 20, maxStock: 80, price: '150元', supplier: '绿叶农业用品店', location: 'C区-02', specification: '200g/瓶', barcode: '6932456789018', batchNo: 'PC20251120', productionDate: '2025-11-20', expiryDate: '2027-11-20', lastUpdateTime: '2026-03-15 13:20:00', dataStatus: '启用' },
+  { id: 8, code: 'EQ0103001', name: '电动喷雾机', category: '农业机械-植保机械', unit: '台', quantity: 10, minStock: 5, maxStock: 30, price: '280元', supplier: '农机设备公司', location: 'D区-01', specification: '3W-16L', barcode: '6932456789019', batchNo: 'EQ20260301', productionDate: '2026-02-15', expiryDate: '2031-02-15', lastUpdateTime: '2026-03-14 10:00:00', dataStatus: '启用' },
+  { id: 9, code: 'EQ0306001', name: '滴灌带', category: '灌溉与水肥系统-灌溉终端', unit: '卷', quantity: 500, minStock: 200, maxStock: 1000, price: '25元', supplier: '节水灌溉设备厂', location: 'E区-01', specification: 'D16-2.0L/h', barcode: '6932456789020', batchNo: 'EQ20260125', productionDate: '2026-01-25', expiryDate: '2031-01-25', lastUpdateTime: '2026-03-13 15:30:00', dataStatus: '启用' },
+  { id: 10, code: 'OP0102001', name: '劳保胶靴', category: '劳保与防护用品-足部防护', unit: '双', quantity: 40, minStock: 20, maxStock: 100, price: '35元', supplier: '劳保用品商店', location: 'F区-01', specification: '39-43码', barcode: '6932456789021', batchNo: 'OP20260201', productionDate: '2026-02-01', expiryDate: '2028-02-01', lastUpdateTime: '2026-03-12 09:45:00', dataStatus: '启用' },
+  { id: 11, code: 'OP0201001', name: '锄头', category: '日常劳动工具-手动农具', unit: '把', quantity: 25, minStock: 10, maxStock: 80, price: '18元', supplier: '五金工具店', location: 'F区-02', specification: '1.2kg', barcode: '6932456789022', batchNo: 'OP20260115', productionDate: '2026-01-15', expiryDate: '2031-01-15', lastUpdateTime: '2026-03-11 14:00:00', dataStatus: '启用' },
+  { id: 12, code: 'PH0104001', name: '塑料袋', category: '采收容器-包装材料', unit: '卷', quantity: 200, minStock: 100, maxStock: 500, price: '15元', supplier: '包装材料公司', location: 'G区-01', specification: '50cm*80cm', barcode: '6932456789023', batchNo: 'PH20260210', productionDate: '2026-02-10', expiryDate: '2027-02-10', lastUpdateTime: '2026-03-10 16:20:00', dataStatus: '启用' }
+]
+
+// 物料搜索数据源：优先 store 实际数据，fallback 到 V1.1 风格 mock
+const materialSearchDataSource = computed(() => {
+  const storeData = warehouseMaterialStore.materials || []
+  if (storeData.length > 0) return storeData
+  return mockWarehouseMaterials
+})
 
 // ==================== 计算属性 ====================
 
@@ -1628,7 +1531,96 @@ const handleDoExport = () => {
 
 onMounted(async () => {
   await inboundStore.loadInboundRecords()
+  // 加载物料列表（用于入库弹窗的物料名称搜索下拉）
+  try {
+    await warehouseMaterialStore.loadMaterials()
+  } catch (err) {
+    console.warn('[WarehouseInbound] 物料列表加载失败', err)
+  }
+  // 绑定全局点击关闭搜索下拉
+  document.addEventListener('click', onDocumentClick)
 })
+
+onUnmounted(() => {
+  document.removeEventListener('click', onDocumentClick)
+})
+
+/**
+ * 物料搜索下拉相关函数
+ */
+// 打开搜索下拉（聚焦 input 时）
+const openMaterialSearch = (idx) => {
+  materialSearchIndex.value = idx
+  materialSearchKeyword.value = addForm.materials[idx]?.name || ''
+  filterMaterialSearchResults()
+  materialSearchShow.value = true
+  materialSearchHighlight.value = 0
+}
+
+// 输入时过滤
+const filterMaterialSearchResults = () => {
+  const kw = (materialSearchKeyword.value || '').trim().toLowerCase()
+  // 使用 computed 数据源（自动 fallback 到 V1.1 风格 mock 数据）
+  const all = materialSearchDataSource.value || []
+  if (!kw) {
+    // 关键字为空，显示前 20 条
+    materialSearchResults.value = all.slice(0, 20)
+    return
+  }
+  // 关键字非空，按 name / code 模糊匹配
+  materialSearchResults.value = all.filter(m => {
+    const name = (m.name || '').toLowerCase()
+    const code = (m.code || '').toLowerCase()
+    return name.includes(kw) || code.includes(kw)
+  }).slice(0, 20)
+}
+
+const onMaterialSearchInput = () => {
+  if (materialSearchIndex.value < 0) return
+  filterMaterialSearchResults()
+  materialSearchShow.value = true
+  materialSearchHighlight.value = 0
+}
+
+// 键盘导航（↑↓ Enter Esc）
+const onMaterialSearchKeydown = (e) => {
+  if (!materialSearchShow.value) return
+  const max = materialSearchResults.value.length
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    materialSearchHighlight.value = (materialSearchHighlight.value + 1) % Math.max(max, 1)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    materialSearchHighlight.value = (materialSearchHighlight.value - 1 + max) % Math.max(max, 1)
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    const item = materialSearchResults.value[materialSearchHighlight.value]
+    if (item) selectMaterialForRow(item)
+  } else if (e.key === 'Escape') {
+    e.preventDefault()
+    closeMaterialSearch()
+  }
+}
+
+// 选择物料后自动填充所有相关字段
+const selectMaterialForRow = (material) => {
+  const idx = materialSearchIndex.value
+  if (idx < 0 || !addForm.materials[idx]) return
+  const row = addForm.materials[idx]
+  // 关联字段（V1.1 行为：选择后自动填充所有基础信息）
+  row.code = material.code || ''
+  row.name = material.name || ''
+  row.category = material.category || ''
+  row.specification = material.specification || ''
+  row.barcode = material.barcode || ''
+  row.unit = material.unit || '袋'
+  row.price = material.price || ''
+  row.supplier = material.supplier || ''
+  row.location = material.location || ''
+  row._fromSearch = true // 标记已从搜索选择（用于其他字段联动）
+  // 关闭下拉
+  closeMaterialSearch()
+}
 </script>
 
 <style scoped>

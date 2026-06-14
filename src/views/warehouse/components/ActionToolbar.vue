@@ -15,18 +15,19 @@
 
         <button
           v-if="showLowStockButton"
-          class="h-8 px-3 rounded-md text-xs font-medium"
-          :class="filters.showLowStock ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-amber-500 text-white hover:bg-amber-600'"
+          class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1"
+          :class="filters.showLowStock ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
           @click="onLowStockToggle"
         >
-          <span v-if="lowStockCount > 0" class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-1">
+          <span v-if="lowStockCount > 0" class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
             {{ lowStockCount }}
           </span>
           库存不足
         </button>
 
+        <!-- V1.1 编辑按钮: Edit + Edit2 双图标, variant=blue (blue-600) -->
         <button v-if="canEdit" class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="onBatchEdit">
-          <Pencil :size="14" />编辑
+          <Edit :size="14" /><Edit2 :size="14" />编辑
         </button>
 
         <button v-if="canDelete" class="h-8 px-3 rounded-md text-xs font-medium bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="onDelete">
@@ -41,9 +42,9 @@
       <!-- 编辑模式 -->
       <template v-if="batchEditMode">
         <button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="onConfirmBatchEdit">
-          <Pencil :size="14" />确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+          <Edit2 :size="14" />确认编辑{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
         </button>
-        <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center gap-1" @click="onCancelBatchEdit">
+        <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="onCancelBatchEdit">
           <X :size="14" />取消
         </button>
       </template>
@@ -72,7 +73,7 @@
 </template>
 
 <script setup>
-import { Plus, Download, Pencil, Trash2, X } from 'lucide-vue-next'
+import { Plus, Download, Edit, Edit2, Trash2, X } from 'lucide-vue-next'
 
 /**
  * 操作工具栏组件

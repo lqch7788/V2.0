@@ -12,29 +12,26 @@
   >
     <div class="space-y-3">
       <p class="text-sm text-gray-500 mb-4">已选择 {{ selectedCount }} 条数据</p>
-      <div
+      <!-- V1.1: 原生 radio input + 整个 label 可点击 -->
+      <label
         v-for="format in exportFormats"
         :key="format.value"
-        @click="handleFormatChange(format.value)"
-        :class="[
-          'flex items-center p-4 border rounded-lg cursor-pointer transition-all',
-          currentFormat === format.value
-            ? 'border-emerald-500 bg-emerald-50'
-            : 'border-gray-400 hover:border-gray-400'
-        ]"
+        class="flex items-center p-4 border rounded-lg cursor-pointer transition-all"
+        :class="currentFormat === format.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-400'"
       >
-        <el-radio
-          :model-value="currentFormat"
+        <input
+          type="radio"
+          name="exportFormat"
           :value="format.value"
+          :checked="currentFormat === format.value"
           @change="handleFormatChange(format.value)"
-        >
-          &nbsp;
-        </el-radio>
+          class="w-4 h-4 text-emerald-600 border-gray-400 focus:ring-emerald-500"
+        />
         <div class="ml-3">
           <span class="block text-sm font-medium text-gray-900">{{ format.label }}</span>
           <span class="block text-xs text-gray-500">{{ format.desc }}</span>
         </div>
-      </div>
+      </label>
     </div>
 
     <template #footer>
@@ -52,8 +49,7 @@ import { ElModal } from '@/components/ui'
 
 const exportFormats = [
   { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
-  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
+  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' }
 ]
 
 const props = defineProps({

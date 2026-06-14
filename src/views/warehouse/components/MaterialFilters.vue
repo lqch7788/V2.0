@@ -2,14 +2,14 @@
   <!-- 物料筛选器组件 - 对应V1.1 MaterialFilters.tsx -->
   <div class="bg-white rounded-xl p-4 shadow-sm">
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-      <!-- 物料编号 -->
+      <!-- 物料编号 - 对应V1.1: w-full h-10 px-3 border border-gray-200 focus:border-emerald-500 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">物料编号</label>
         <input
           v-model="localFilters.code"
           type="text"
           placeholder="搜索编号"
-          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
           @input="handleInputChange('code', localFilters.code)"
         />
       </div>
@@ -21,7 +21,7 @@
           v-model="localFilters.name"
           type="text"
           placeholder="搜索名称"
-          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
           @input="handleInputChange('name', localFilters.name)"
         />
       </div>
@@ -33,7 +33,7 @@
           v-model="localFilters.supplier"
           type="text"
           placeholder="搜索供应商"
-          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
           @input="handleInputChange('supplier', localFilters.supplier)"
         />
       </div>
@@ -45,7 +45,7 @@
           v-model="localFilters.location"
           type="text"
           placeholder="搜索位置"
-          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
           @input="handleInputChange('location', localFilters.location)"
         />
       </div>
@@ -55,7 +55,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">大类</label>
         <select
           v-model="localFilters.searchBigCategory"
-          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500"
           @change="handleChange('searchBigCategory', localFilters.searchBigCategory)"
         >
           <option value="">全部</option>
@@ -72,7 +72,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">中类</label>
         <select
           v-model="localFilters.searchMidCategory"
-          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500"
           :disabled="!localFilters.searchBigCategory"
           @change="handleChange('searchMidCategory', localFilters.searchMidCategory)"
         >
@@ -90,7 +90,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">小类</label>
         <select
           v-model="localFilters.searchSubCategory"
-          class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500"
           :disabled="!localFilters.searchMidCategory"
           @change="handleChange('searchSubCategory', localFilters.searchSubCategory)"
         >
