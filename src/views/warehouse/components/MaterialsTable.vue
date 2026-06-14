@@ -39,15 +39,11 @@
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">有效期至</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">最后更新时间</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">数据状态</th>
-            <th
-              v-if="!exportMode && !batchEditMode && !deleteMode"
-              class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap"
-            >操作</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-300">
           <tr v-if="displayedMaterials.length === 0">
-            <td :colspan="(exportMode || batchEditMode || deleteMode) ? 18 : 18" class="px-4 py-8 text-center text-gray-500">
+            <td :colspan="(exportMode || batchEditMode || deleteMode) ? 18 : 17" class="px-4 py-8 text-center text-gray-500">
               暂无数据
             </td>
           </tr>
@@ -82,6 +78,10 @@
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.price ? row.price.replace('元', '') : '' }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.supplier }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.location }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.batchNo }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.productionDate }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.expiryDate }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.lastUpdateTime ? row.lastUpdateTime.slice(0, 10) : '' }}</td>
             <td class="px-4 py-3 whitespace-nowrap">
               <span
                 class="inline-flex px-2 py-1 rounded-full text-xs font-medium"
@@ -92,13 +92,6 @@
               >
                 {{ row.dataStatus }}
               </span>
-            </td>
-            <td v-if="!exportMode && !batchEditMode && !deleteMode" class="px-4 py-3 whitespace-nowrap">
-              <div class="flex items-center gap-1">
-                <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="handleView(row)">查看</button>
-                <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="handleEdit(row)">编辑</button>
-                <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-red-600 text-white hover:bg-red-700" @click="handleDelete(row)">删除</button>
-              </div>
             </td>
           </tr>
         </tbody>

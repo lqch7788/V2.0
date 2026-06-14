@@ -25,137 +25,47 @@
       </div>
     </div>
 
-    <!-- 标签页 -->
-    <div class="flex gap-2">
+    <!-- 标签页 - 对应V1.1 TabSwitch: 物料入库在前，物料库存在后 -->
+    <div class="flex items-center gap-4">
+      <div class="flex gap-2">
+        <button
+          class="h-8 px-3 rounded-md text-sm font-medium"
+          :class="activeTab === 'inbound' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'"
+          @click="handleTabChange('inbound')"
+        >物料入库</button>
+        <button
+          class="h-8 px-3 rounded-md text-sm font-medium"
+          :class="activeTab === 'overview' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'"
+          @click="handleTabChange('overview')"
+        >物料库存</button>
+      </div>
+      <div class="h-6 w-px bg-gray-500"></div>
+      <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="$router.push('/code-rule')">编码规则 &gt;&gt;</button>
+      <span class="text-sm font-bold text-gray-900">物料编码生成</span>
       <button
-        class="h-8 px-3 rounded-md text-sm font-medium"
-        :class="activeTab === 'overview' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'"
-        @click="handleTabChange('overview')"
-      >物料库存</button>
-      <button
-        class="h-8 px-3 rounded-md text-sm font-medium"
-        :class="activeTab === 'inbound' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'"
-        @click="handleTabChange('inbound')"
-      >物料入库</button>
+        class="h-8 w-8 rounded-md inline-flex items-center justify-center text-gray-600 hover:bg-gray-100"
+        :title="codeGenExpanded ? '收起' : '展开'"
+        @click="codeGenExpanded = !codeGenExpanded"
+      >
+        <ChevronDown v-if="codeGenExpanded" class="w-5 h-5" />
+        <ChevronRight v-else class="w-5 h-5" />
+      </button>
     </div>
 
     <!-- 库存总览 -->
     <template v-if="activeTab === 'overview'">
-      <!-- 筛选器 - 对应V1.1 MaterialsFilters 双行布局 -->
-      <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
-        <!-- 第一行：简单筛选 -->
-        <div class="flex flex-wrap items-center gap-4 mb-4">
-          <!-- 物料编号 -->
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600 whitespace-nowrap">物料编号:</label>
-            <input
-              v-model="filters.code"
-              placeholder="输入编号"
-              class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm"
-              style="width: 128px"
-              @input="handleFilterChange('code', filters.code)"
-            />
-          </div>
-          <!-- 物料名称 -->
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600 whitespace-nowrap">物料名称:</label>
-            <input
-              v-model="filters.name"
-              placeholder="输入名称"
-              class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm"
-              style="width: 128px"
-              @input="handleFilterChange('name', filters.name)"
-            />
-          </div>
-          <!-- 简单分类 -->
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600 whitespace-nowrap">简单分类:</label>
-            <select
-              v-model="filters.category"
-              class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm bg-white"
-              style="width: 112px"
-              @change="handleFilterChange('category', filters.category)"
-            >
-              <option v-for="cat in simpleCategories" :key="cat" :value="cat">{{ cat }}</option>
-            </select>
-          </div>
-          <!-- 供应商 -->
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600 whitespace-nowrap">供应商:</label>
-            <select
-              v-model="filters.supplier"
-              class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm bg-white"
-              style="width: 128px"
-              @change="handleFilterChange('supplier', filters.supplier)"
-            >
-              <option value="">全部</option>
-              <option v-for="supplier in uniqueSuppliers" :key="supplier" :value="supplier">{{ supplier }}</option>
-            </select>
-          </div>
-          <!-- 存放位置 -->
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600 whitespace-nowrap">存放位置:</label>
-            <select
-              v-model="filters.location"
-              class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm bg-white"
-              style="width: 112px"
-              @change="handleFilterChange('location', filters.location)"
-            >
-              <option value="">全部</option>
-              <option v-for="location in uniqueLocations" :key="location" :value="location">{{ location }}</option>
-            </select>
-          </div>
-          <!-- 重置按钮 -->
-          <button class="h-8 px-3 rounded-md text-sm font-medium bg-amber-500 text-white hover:bg-amber-600" @click="handleReset">
-            <RefreshCw class="w-4 h-4 inline mr-1" />重置
-          </button>
-        </div>
-
-        <!-- 第二行：三级分类筛选 -->
-        <div class="flex flex-wrap items-center gap-4">
-          <span class="text-sm text-gray-600 whitespace-nowrap">三级分类:</span>
-          <!-- 大类 -->
-          <select
-            v-model="filters.searchBigCategory"
-            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm bg-white"
-            style="width: 180px"
-            @change="handleBigCategoryChange"
-          >
-            <option value="">全部大类</option>
-            <option v-for="cat in bigCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
-          </select>
-          <!-- 中类 -->
-          <select
-            v-model="filters.searchMidCategory"
-            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm bg-white"
-            style="width: 180px"
-            :disabled="!filters.searchBigCategory"
-            @change="handleMidCategoryChange"
-          >
-            <option value="">全部中类</option>
-            <option v-for="cat in midCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
-          </select>
-          <!-- 小类 -->
-          <select
-            v-model="filters.searchSubCategory"
-            class="px-3 py-1.5 border border-gray-400 rounded-lg text-sm bg-white"
-            style="width: 180px"
-            :disabled="!filters.searchMidCategory"
-          >
-            <option value="">全部小类</option>
-            <option v-for="cat in subCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
-          </select>
-          <!-- 仅显示库存不足 -->
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" v-model="showLowStock" @change="handleLowStockFilterChange" class="w-4 h-4 rounded border-gray-400 text-blue-600" />
-            <span class="text-sm text-amber-600">仅显示库存不足</span>
-          </label>
-        </div>
-      </div>
+      <!-- 筛选器 - 对应V1.1 MaterialFilters 单行8列布局 -->
+      <MaterialFilters
+        :filters="toolbarFilters"
+        :low-stock-count="lowStockCount"
+        :category-config="categoryConfig"
+        @filters-change="handleFiltersChange"
+        @low-stock-click="handleLowStockClick"
+      />
 
       <!-- ActionToolbar 批量操作工具栏 -->
       <ActionToolbar
-        title="库存总览"
+        title="物料库存"
         :batch-edit-mode="batchEditMode"
         :delete-mode="deleteMode"
         :export-mode="exportMode"
@@ -214,17 +124,14 @@
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">库存数量</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">最低库存</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">最高库存</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">单价(元)</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">单价（元）</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">供应商</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">存放位置</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">批次号</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">生产日期</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">有效期至</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">最后更新时间</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">数据状态</th>
-                <th
-                  v-if="!exportMode && !batchEditMode && !deleteMode"
-                  class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap"
-                >操作</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-300">
@@ -251,12 +158,9 @@
                 <td class="px-4 py-3 text-sm font-mono text-gray-600 whitespace-nowrap">{{ row.barcode || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.unit }}</td>
                 <td class="px-4 py-3 text-sm whitespace-nowrap">
-                  <div class="flex items-center gap-2">
-                    <span :class="row.quantity < row.minStock ? 'text-red-600 font-medium' : 'text-gray-900'">
-                      {{ row.quantity }}
-                    </span>
-                    <AlertTriangle v-if="row.quantity < row.minStock" class="w-4 h-4 text-red-500" />
-                  </div>
+                  <span :class="row.quantity < row.minStock ? 'text-red-600 font-medium' : 'text-gray-900'">
+                    {{ row.quantity }}
+                  </span>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.minStock }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.maxStock }}</td>
@@ -266,6 +170,7 @@
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.batchNo || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.productionDate || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.expiryDate || '-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.lastUpdateTime ? row.lastUpdateTime.slice(0, 10) : '-' }}</td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <span
                     class="inline-flex px-2 py-1 rounded-full text-xs font-medium"
@@ -276,13 +181,6 @@
                   >
                     {{ row.dataStatus || '启用' }}
                   </span>
-                </td>
-                <td v-if="!exportMode && !batchEditMode && !deleteMode" class="px-4 py-3 whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="handleView(row)">查看</button>
-                    <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="handleEdit(row)">编辑</button>
-                    <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-red-600 text-white hover:bg-red-700" @click="handleDelete(row)">删除</button>
-                  </div>
                 </td>
               </tr>
             </tbody>
@@ -306,155 +204,270 @@
 
     <!-- 物料入库 -->
     <template v-if="activeTab === 'inbound'">
-      <!-- 编码规则生成器 -->
-      <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
-        <div class="flex items-center gap-2 mb-4">
-          <h3 class="text-lg font-semibold text-gray-900">物料编码生成</h3>
-          <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-            资材编码规则：大类(2位) + 中类(2位) + 小类(2位) + 序号(3位)
-          </span>
-        </div>
-
-        <div class="grid grid-cols-4 gap-4 mb-4">
-          <div>
+      <!-- 编码规则生成器 - 对应V1.1: 仅在 codeGenExpanded 时显示 -->
+      <div v-if="codeGenExpanded" class="bg-white rounded-xl p-4 shadow-sm">
+        <div class="grid grid-cols-6 gap-4">
+          <div class="col-span-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">大类</label>
             <select
               v-model="codeGen.bigCategory"
-              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+              class="w-full h-10 px-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
               @change="handleCodeGenBigCategoryChange"
             >
-              <option value="">请选择大类</option>
-              <option v-for="cat in bigCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+              <option value="">请选择</option>
+              <option v-for="cat in bigCategoriesList" :key="cat.code" :value="cat.code">{{ cat.code }}-{{ cat.name }}</option>
             </select>
           </div>
-          <div>
+          <div class="col-span-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">中类</label>
             <select
               v-model="codeGen.midCategory"
-              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+              class="w-full h-10 px-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
               :disabled="!codeGen.bigCategory"
               @change="handleCodeGenMidCategoryChange"
             >
-              <option value="">请选择中类</option>
-              <option v-for="cat in codeGenMidCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+              <option value="">请选择</option>
+              <option v-for="cat in codeGenMidCategories" :key="cat.code" :value="cat.code">{{ cat.code }}-{{ cat.name }}</option>
             </select>
           </div>
-          <div>
+          <div class="col-span-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">小类</label>
             <select
               v-model="codeGen.subCategory"
-              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"
+              class="w-full h-10 px-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
               :disabled="!codeGen.midCategory"
               @change="handleCodeGenSubCategoryChange"
             >
-              <option value="">请选择小类</option>
-              <option v-for="cat in codeGenSubCategories" :key="cat.code" :value="cat.code">{{ cat.code }} - {{ cat.name }}</option>
+              <option value="">请选择</option>
+              <option v-for="cat in codeGenSubCategories" :key="cat.code" :value="cat.code">{{ cat.code }}-{{ cat.name }}</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">生成编码</label>
+          <div class="col-span-3">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              生成编码
+              <span v-if="codeGenSuccess && !codeGenError" class="ml-2 text-sm text-green-600 font-normal">{{ codeGenSuccess }}</span>
+              <span v-if="codeGenError" class="ml-2 text-sm text-red-600 font-normal">{{ codeGenError }}</span>
+            </label>
             <div class="flex gap-2">
               <input
                 v-model="codeGen.generatedCode"
                 placeholder="点击生成"
                 readonly
-                class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50"
+                class="w-40 h-10 px-3 border border-gray-200 rounded-lg text-sm bg-gray-50"
               />
               <button
-                class="h-10 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 :disabled="!codeGen.subCategory"
                 @click="handleCodeGen"
-              >生成</button>
+              >
+                <Wand2 class="w-4 h-4" />生成
+              </button>
+              <button
+                class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="!codeGen.generatedCode"
+                @click="handleCopyCode"
+              >
+                {{ copySuccess ? '已复制!' : '复制' }}
+              </button>
+              <button
+                class="h-8 px-3 rounded-md text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-1"
+                @click="handleResetCodeGen"
+              >
+                <RotateCcw class="w-4 h-4" />重置
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- 操作按钮 -->
-        <div class="flex items-center gap-3">
-          <button
-            class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            :disabled="!codeGen.generatedCode"
-            @click="handleVerifyCode"
-          >
-            <Search class="w-4 h-4 inline mr-1" />验证重码
-          </button>
-          <button
-            class="h-8 px-3 rounded-md text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            :disabled="!codeGen.generatedCode"
-            @click="handleCopyCode"
-          >
-            <Download class="w-4 h-4 inline mr-1" />{{ copySuccess ? '已复制!' : '复制编码' }}
-          </button>
-          <span class="text-xs text-gray-500">生成的编码可复制后用于新增物料</span>
-        </div>
-
-        <!-- 提示信息 -->
-        <div v-if="codeGenError" class="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
-          <p class="text-sm text-red-600">{{ codeGenError }}</p>
-        </div>
-        <div v-if="codeGenSuccess && !codeGenError" class="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-          <p class="text-sm text-green-600">{{ codeGenSuccess }}</p>
+      <!-- 入库记录表格 - 对应V1.1 MaterialInboundTab -->
+      <!-- 入库记录搜索栏 -->
+      <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+        <div class="flex items-end gap-4">
+          <div class="flex-1 grid grid-cols-5 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">入库单号</label>
+              <input v-model="inboundSearchCode" placeholder="搜索单号" class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
+              <input v-model="inboundSearchSupplier" placeholder="搜索供应商" class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+              <select v-model="inboundSearchStatus" class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500">
+                <option value="">全部</option>
+                <option value="pending">待审核</option>
+                <option value="completed">已完成</option>
+                <option value="voided">已作废</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">物料名称</label>
+              <input v-model="inboundSearchMaterialName" placeholder="搜索物料名称" class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">物料编码</label>
+              <input v-model="inboundSearchMaterialCode" placeholder="搜索物料编码" class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button class="h-8 px-3 rounded-md text-xs font-medium bg-amber-500 text-white hover:bg-amber-600" @click="handleResetInboundSearch">
+              <RotateCcw class="w-4 h-4 inline" /> 重置
+            </button>
+            <button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700">
+              <Search class="w-4 h-4 inline" /> 搜索
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- 入库记录表格 -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <!-- 入库记录表格 - 对应V1.1 MaterialInboundTab 表格结构 -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">物料入库记录</h3>
-          <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700" @click="handleAddInbound">
-            <Plus class="w-4 h-4 inline mr-1" />新增入库
-          </button>
+          <div class="flex items-center gap-3">
+            <h3 class="text-lg font-semibold text-gray-900">物料入库记录</h3>
+            <template v-if="inboundEditMode || inboundDeleteMode || inboundExportMode">
+              <div class="flex items-center gap-2 ml-4">
+                <button class="text-emerald-600 hover:text-emerald-700 p-0 h-auto text-sm" @click="handleInboundSelectAll">
+                  {{ isInboundAllSelected ? '全不选' : '全选' }}
+                </button>
+                <span class="text-sm text-gray-500">已选择 {{ inboundSelectedRows.length }} 项</span>
+              </div>
+            </template>
+          </div>
+          <div class="flex items-center gap-2">
+            <template v-if="!inboundEditMode && !inboundDeleteMode && !inboundExportMode">
+              <button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="inboundEditMode = true">
+                <Edit class="w-4 h-4" />编辑
+              </button>
+              <button class="h-8 px-3 rounded-md text-xs font-medium bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="inboundDeleteMode = true">
+                <Trash2 class="w-4 h-4" />删除
+              </button>
+              <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="inboundExportMode = true">
+                <Download class="w-4 h-4" />导出
+              </button>
+              <div class="w-px h-6 bg-gray-300 mx-1"></div>
+              <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="handleAddInbound">
+                <Plus class="w-4 h-4" />新增入库
+              </button>
+            </template>
+            <template v-else>
+              <template v-if="inboundEditMode">
+                <button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="handleInboundConfirmEdit">确认编辑{{ inboundSelectedRows.length > 0 ? ` (${inboundSelectedRows.length})` : '' }}</button>
+                <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center gap-1" @click="handleInboundCancelSelection">取消</button>
+              </template>
+              <template v-if="inboundDeleteMode && !inboundEditMode">
+                <button class="h-8 px-3 rounded-md text-xs font-medium bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="handleInboundConfirmDelete">确认删除{{ inboundSelectedRows.length > 0 ? ` (${inboundSelectedRows.length})` : '' }}</button>
+                <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center gap-1" @click="handleInboundCancelSelection">取消</button>
+              </template>
+              <template v-if="inboundExportMode && !inboundEditMode && !inboundDeleteMode">
+                <button class="h-8 px-3 rounded-md text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="handleInboundConfirmExport">确认导出{{ inboundSelectedRows.length > 0 ? ` (${inboundSelectedRows.length})` : '' }}</button>
+                <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 inline-flex items-center gap-1" @click="handleInboundCancelSelection">取消选择</button>
+              </template>
+            </template>
+          </div>
         </div>
-
-        <div class="overflow-auto max-h-[calc(100vh-280px)]">
+        <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
+            <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <tr>
+                <th v-if="inboundEditMode || inboundDeleteMode || inboundExportMode" class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-12"></th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap w-10"></th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">入库单号</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">物料编号</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">物料名称</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">入库数量</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">供应商</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">入库日期</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">供应商</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作员</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">物料数量</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-300">
-              <tr v-if="inboundRecords.length === 0">
-                <td colspan="9" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
-              </tr>
-              <tr v-for="row in inboundRecords" :key="row.id" class="hover:bg-blue-100 transition-colors">
-                <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline whitespace-nowrap" @click="handleViewInbound(row)">{{ row.code }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.materialCode }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.materialName }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.quantity }}{{ row.unit }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.supplier }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.inboundDate }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.operator }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <span :class="row.status === 'completed' ? 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800' : 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800'">
-                    {{ row.status === 'completed' ? '已完成' : '待审核' }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="handleViewInbound(row)">查看</button>
-                    <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700" @click="handleEditInbound(row)">编辑</button>
-                    <button class="h-8 px-3 rounded-md text-xs font-medium inline-flex items-center gap-1 bg-red-600 text-white hover:bg-red-700" @click="handleDeleteInbound(row)">删除</button>
-                  </div>
-                </td>
-              </tr>
+              <template v-for="record in filteredInboundRecords" :key="record.id">
+                <tr class="hover:bg-blue-100 transition-colors">
+                  <td v-if="inboundEditMode || inboundDeleteMode || inboundExportMode" class="px-4 py-3 whitespace-nowrap">
+                    <span v-if="inboundDeleteMode && record.status !== 'pending'" class="text-gray-300 text-xs">—</span>
+                    <input v-else type="checkbox" :checked="inboundSelectedRows.includes(record.id)" class="w-4 h-4 rounded border-gray-400" @change="handleInboundSelectRow(record.id)" />
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="inline-flex items-center justify-center w-8 h-8 rounded hover:bg-gray-100" @click="toggleInboundExpand(record.id)">
+                      <ChevronDown v-if="inboundExpandedRows.has(record.id)" class="w-4 h-4 text-gray-500" />
+                      <ChevronRight v-else class="w-4 h-4 text-gray-500" />
+                    </button>
+                  </td>
+                  <td class="px-4 py-3 text-sm font-medium text-blue-600 cursor-pointer hover:text-blue-800 underline whitespace-nowrap" @click="handleViewInbound(record)">{{ record.code }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ record.inboundDate }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ record.supplier }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ record.operator }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ record.materials.length }} 种物料</td>
+                  <td class="px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium" :class="{
+                      'bg-green-100 text-green-700': record.status === 'completed',
+                      'bg-gray-100 text-gray-500': record.status === 'voided',
+                      'bg-amber-100 text-amber-700': record.status === 'pending'
+                    }">
+                      {{ record.status === 'completed' ? '已完成' : record.status === 'voided' ? '已作废' : '待审核' }}
+                    </span>
+                  </td>
+                </tr>
+                <!-- 展开的物料明细子表 -->
+                <tr v-if="inboundExpandedRows.has(record.id)">
+                  <td :colspan="(inboundEditMode || inboundDeleteMode || inboundExportMode) ? 8 : 7" class="px-4 py-3 bg-gray-50">
+                    <div class="text-sm">
+                      <p class="font-medium text-gray-700 mb-2">物料明细：</p>
+                      <div class="overflow-x-auto rounded border">
+                        <table class="w-full bg-white">
+                          <thead class="bg-gray-100">
+                            <tr>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">物料编码</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">物料名称</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">分类</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">规格</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">条形码</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">单位</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">数量</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">单价</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">供应商</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">存放位置</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">批号</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">生产日期</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">有效期至</th>
+                              <th class="px-2 py-2 text-left text-xs font-medium whitespace-nowrap">备注</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="m in record.materials" :key="m.id" class="border-t">
+                              <td class="px-2 py-2 text-xs text-blue-600 whitespace-nowrap">{{ m.materialCode }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.materialName }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.category }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.specification }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.barcode }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.unit }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.quantity }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">{{ m.price }}元</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.supplier }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.location }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.batchNo }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.productionDate }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.expiryDate }}</td>
+                              <td class="px-2 py-2 text-xs text-gray-500 whitespace-nowrap">{{ m.remarks }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>
 
         <!-- 入库记录分页 -->
-        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
           <Pagination
             :current-page="inboundPage"
-            :total-pages="Math.ceil(inboundRecords.length / inboundPageSize) || 1"
+            :total-pages="Math.ceil(filteredInboundRecords.length / inboundPageSize) || 1"
             :page-size="inboundPageSize"
             :page-size-options="[10, 20, 50]"
             :show-page-size="true"
@@ -557,42 +570,102 @@
       </template>
     </ElModal>
 
-    <!-- ========== 物料详情弹窗 ========== -->
-    <ElModal :model-value="showDetailModal" title="物料详情" :width="700" :height="600" :show-submit="false" :show-cancel="false" @update:model-value="(v) => { if (!v) showDetailModal = false }" @close="showDetailModal = false">
+    <!-- ========== 物料详情弹窗 - 对应V1.1 MaterialDetailModal ========== -->
+    <ElModal :model-value="showDetailModal" title="物料详情查看" :width="900" :height="650" :show-submit="false" :show-cancel="false" @update:model-value="(v) => { if (!v) showDetailModal = false }" @close="showDetailModal = false">
         <div v-if="selectedMaterial">
-          <div class="grid grid-cols-3 gap-4 border border-gray-200 rounded-lg overflow-hidden">
-            <template v-for="(item, idx) in [
-              { label: '物料编号', value: selectedMaterial.code },
-              { label: '物料名称', value: selectedMaterial.name },
-              { label: '分类', value: selectedMaterial.category },
-              { label: '规格型号', value: selectedMaterial.specification || '-' },
-              { label: '条形码', value: selectedMaterial.barcode || '-' },
-              { label: '单位', value: selectedMaterial.unit },
-              { label: '库存数量', value: selectedMaterial.quantity, cls: selectedMaterial.quantity < selectedMaterial.minStock ? 'text-red-600 font-bold' : '' },
-              { label: '最低库存', value: selectedMaterial.minStock },
-              { label: '最高库存', value: selectedMaterial.maxStock || '-' },
-              { label: '单价', value: selectedMaterial.price },
-              { label: '供应商', value: selectedMaterial.supplier },
-              { label: '存放位置', value: selectedMaterial.location },
-              { label: '批次号', value: selectedMaterial.batchNo || '-' },
-              { label: '生产日期', value: selectedMaterial.productionDate || '-' },
-              { label: '有效期至', value: selectedMaterial.expiryDate || '-' },
-              { label: '最后更新时间', value: selectedMaterial.lastUpdateTime || '-' }
-            ]" :key="idx">
-              <div class="flex border-b border-gray-200 last:border-b-0">
-              <span class="w-32 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">{{ item.label }}</span>
-              <span class="px-3 py-2 text-sm text-gray-900 flex-1" :class="item.cls">{{ item.value }}</span>
+          <!-- 条形码标识 - 对应V1.1 -->
+          <div class="bg-emerald-50 rounded-lg p-4 mb-4 border border-emerald-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs text-emerald-600 block font-medium">条形码</span>
+                <span class="text-2xl font-mono font-bold text-emerald-700">{{ selectedMaterial.barcode }}</span>
               </div>
-            </template>
-            <!-- 数据状态 -->
-            <div class="flex border-b border-gray-200 last:border-b-0">
-              <span class="w-32 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">数据状态</span>
-              <span class="px-3 py-2 text-sm flex-1">
-                <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="selectedMaterial.dataStatus === '启用' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'">
-                  {{ selectedMaterial.dataStatus || '启用' }}
-                </span>
+              <Barcode class="w-12 h-12 text-emerald-600" />
+            </div>
+          </div>
+
+          <!-- 基本信息 - 4列grid -->
+          <h4 class="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Package class="w-5 h-5 text-emerald-600" />
+            基本信息
+          </h4>
+          <div class="bg-gray-50 rounded-lg p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <span class="text-xs text-gray-500 block">物料编码</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.code }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">物料名称</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.name }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">物料分类</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.category }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">规格型号</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.specification }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">单位</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.unit }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">当前库存</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.quantity }} {{ selectedMaterial.unit }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">最低库存</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.minStock }} {{ selectedMaterial.unit }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">最高库存</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.maxStock }} {{ selectedMaterial.unit }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">单价</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.price }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">供应商</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.supplier }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">存放位置</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.location }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">批次号</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.batchNo }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">生产日期</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.productionDate }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">有效期至</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.expiryDate }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">最后更新时间</span>
+              <span class="text-sm font-medium text-gray-900">{{ selectedMaterial.lastUpdateTime }}</span>
+            </div>
+            <div>
+              <span class="text-xs text-gray-500 block">数据状态</span>
+              <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="selectedMaterial.dataStatus === '启用' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                {{ selectedMaterial.dataStatus }}
               </span>
             </div>
+          </div>
+
+          <!-- 库存预警 -->
+          <div v-if="selectedMaterial.quantity < selectedMaterial.minStock" class="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+            <div class="flex items-center gap-2">
+              <span class="text-red-600 text-sm font-medium">⚠️ 库存预警</span>
+            </div>
+            <p class="text-red-600 text-sm mt-1">
+              当前库存 ({{ selectedMaterial.quantity }}) 低于最低库存警戒线 ({{ selectedMaterial.minStock }})，请及时补充。
+            </p>
           </div>
         </div>
       <template #footer>
@@ -691,139 +764,158 @@
       @save="handleSaveEdit"
     />
 
-    <!-- 物料新增弹窗 -->
-    <ElModal :model-value="showAddMaterialModal" title="新增物料库存" :width="900" :height="650" :show-submit="false" :show-cancel="false" @update:model-value="(v) => { if (!v) showAddMaterialModal = false }" @close="showAddMaterialModal = false">
-          <!-- 编码生成器 - V1.1 MaterialCreateModal + WarehouseInboundCodeGen 对齐 -->
-          <div class="bg-emerald-50 rounded-lg p-4 mb-4 border border-emerald-200">
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="text-sm font-semibold text-emerald-800 flex items-center gap-2">
-                <Wand2 class="w-4 h-4" />物料编码生成器
-              </h4>
-              <button class="text-xs text-emerald-600 hover:text-emerald-800 flex items-center gap-1" @click="handleResetMaterialCodeGen">
-                <RotateCcw class="w-3 h-3" />重置
-              </button>
-            </div>
-            <div class="grid grid-cols-3 gap-3 mb-3">
-              <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">大类 <span class="text-red-500">*</span></label>
-                <select v-model="materialCodeGen.bigCategory" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white">
-                  <option value="">请选择大类</option>
-                  <option v-for="b in bigCategoriesList" :key="b.code" :value="b.code">{{ b.code }}-{{ b.name }}</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">中类 <span class="text-red-500">*</span></label>
-                <select v-model="materialCodeGen.midCategory" :disabled="!materialCodeGen.bigCategory" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white disabled:bg-gray-100 disabled:text-gray-400">
-                  <option value="">请选择中类</option>
-                  <option v-for="m in materialMidOptions" :key="m.code" :value="m.code">{{ m.code }}-{{ m.name }}</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">小类 <span class="text-red-500">*</span></label>
-                <select v-model="materialCodeGen.subCategory" :disabled="!materialCodeGen.midCategory" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white disabled:bg-gray-100 disabled:text-gray-400">
-                  <option value="">请选择小类</option>
-                  <option v-for="s in materialSubOptions" :key="s.code" :value="s.code">{{ s.code }}-{{ s.name }}</option>
-                </select>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <input :value="materialCodeGen.generatedCode" readonly placeholder="点击生成" class="w-40 h-8 px-2 border border-gray-400 rounded-lg text-sm font-mono bg-gray-50" />
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-1" :disabled="!materialCodeGen.subCategory" @click="handleGenerateMaterialCode">
-                <Wand2 class="w-4 h-4" />生成
-              </button>
-              <button class="h-8 px-3 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1" :disabled="!materialCodeGen.generatedCode" @click="handleCopyMaterialCode">
-                <Copy class="w-4 h-4" />{{ materialCopySuccess ? '已复制!' : '复制' }}
-              </button>
-              <span v-if="materialCodeGenError" class="text-xs text-red-600 font-medium">{{ materialCodeGenError }}</span>
-              <span v-else-if="materialCodeGenSuccess" class="text-xs text-green-600 font-medium">{{ materialCodeGenSuccess }}</span>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">物料编码 <span class="text-red-500">*</span></label>
-              <input v-model="newMaterial.code" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm font-mono" placeholder="如：SP0201001" />
-              <div v-if="hasIOChar(newMaterial.code)" class="mt-1 text-xs text-amber-600 flex items-start gap-1">
-                <span class="font-bold">⚠️</span>
-                <span>编码含字母 I/O，与数字 1/0 形近，建议核对或替换</span>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">物料名称 <span class="text-red-500">*</span></label>
-              <input v-model="newMaterial.name" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="请输入物料名称" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">分类 <span class="text-red-500">*</span></label>
-              <input v-model="newMaterial.category" readonly class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-gray-50" placeholder="选择上方分类后自动填充" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">规格型号 <span class="text-red-500">*</span></label>
-              <input v-model="newMaterial.specification" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：50kg/袋" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">条形码</label>
-              <input v-model="newMaterial.barcode" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm font-mono" placeholder="13位数字" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">单位</label>
-              <select v-model="newMaterial.unit" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm bg-white">
-                <option value="">请选择单位</option>
-                <option v-for="u in unitOptions" :key="u" :value="u">{{ u }}</option>
+    <!-- 物料新增弹窗 - 对应V1.1 MaterialCreateModal -->
+    <ElModal :model-value="showAddMaterialModal" title="新增物料" :width="1100" :height="750" :show-submit="false" :show-cancel="false" @update:model-value="(v) => { if (!v) showAddMaterialModal = false }" @close="showAddMaterialModal = false">
+      <div class="space-y-4 overflow-y-auto">
+        <!-- 编码生成器 - 对应V1.1 WarehouseInboundCodeGen: bg-white -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <div class="grid grid-cols-6 gap-4">
+            <div class="col-span-1">
+              <label class="block text-sm font-medium text-gray-900 mb-1">大类</label>
+              <select v-model="materialCodeGen.bigCategory" class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" @change="materialCodeGen.midCategory = ''; materialCodeGen.subCategory = ''; materialCodeGen.generatedCode = ''">
+                <option value="">请选择</option>
+                <option v-for="b in bigCategoriesList" :key="b.code" :value="b.code">{{ b.code }}-{{ b.name }}</option>
               </select>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">当前库存</label>
-              <input v-model.number="newMaterial.quantity" type="number" min="0" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+            <div class="col-span-1">
+              <label class="block text-sm font-medium text-gray-900 mb-1">中类</label>
+              <select v-model="materialCodeGen.midCategory" :disabled="!materialCodeGen.bigCategory" class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner disabled:bg-gray-100 disabled:text-gray-400" @change="materialCodeGen.subCategory = ''; materialCodeGen.generatedCode = ''">
+                <option value="">请选择</option>
+                <option v-for="m in materialMidOptions" :key="m.code" :value="m.code">{{ m.code }}-{{ m.name }}</option>
+              </select>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">最低库存限值</label>
-              <input v-model="minStockInput" type="number" min="0" step="0.01" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
+            <div class="col-span-1">
+              <label class="block text-sm font-medium text-gray-900 mb-1">小类</label>
+              <select v-model="materialCodeGen.subCategory" :disabled="!materialCodeGen.midCategory" class="w-full h-10 px-3 border border-gray-400 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner disabled:bg-gray-100 disabled:text-gray-400" @change="materialCodeGen.generatedCode = ''">
+                <option value="">请选择</option>
+                <option v-for="s in materialSubOptions" :key="s.code" :value="s.code">{{ s.code }}-{{ s.name }}</option>
+              </select>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">最高库存限值</label>
-              <input v-model="maxStockInput" type="number" min="0" step="0.01" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
-              <div v-if="minStockInput && maxStockInput && parseFloat(minStockInput) > parseFloat(maxStockInput) && parseFloat(maxStockInput) > 0" class="mt-1 text-xs text-red-600 flex items-start gap-1">
-                <span class="font-bold">⚠️</span>
-                <span>最低库存不能高于最高库存</span>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">单价</label>
-              <input v-model="newMaterial.price" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：45.00" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
-              <input v-model="newMaterial.supplier" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="供应商名称" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">存放位置</label>
-              <input v-model="newMaterial.location" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" placeholder="如：A-01-01" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">批次号</label>
-              <input v-model="newMaterial.batchNo" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">生产日期</label>
-              <input v-model="newMaterial.productionDate" type="date" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">过期日期</label>
-              <input v-model="newMaterial.expiryDate" type="date" class="w-full h-8 px-2 border border-gray-400 rounded-lg text-sm" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">数据状态</label>
-              <div class="flex items-center gap-4 py-1">
-                <label class="flex items-center gap-2">
-                  <input type="radio" v-model="newMaterial.dataStatus" value="启用" class="w-4 h-4 text-blue-600 border-gray-400" />
-                  <span class="text-sm text-gray-700">启用</span>
-                </label>
-                <label class="flex items-center gap-2">
-                  <input type="radio" v-model="newMaterial.dataStatus" value="停用" class="w-4 h-4 text-blue-600 border-gray-400" />
-                  <span class="text-sm text-gray-700">停用</span>
-                </label>
+            <div class="col-span-3">
+              <label class="block text-sm font-medium text-gray-900 mb-1">
+                生成编码
+                <span v-if="materialCodeGenSuccess && !materialCodeGenError" class="ml-2 text-sm text-green-600 font-normal">{{ materialCodeGenSuccess }}</span>
+                <span v-if="materialCodeGenError" class="ml-2 text-sm text-red-600 font-normal">{{ materialCodeGenError }}</span>
+              </label>
+              <div class="flex gap-2">
+                <input :value="materialCodeGen.generatedCode" readonly placeholder="点击生成" class="w-40 h-10 px-3 border border-gray-400 rounded-lg text-sm bg-gray-50 shadow-inner" />
+                <button class="h-10 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="!materialCodeGen.subCategory" @click="handleGenerateMaterialCode">
+                  <Wand2 class="w-4 h-4" />生成
+                </button>
+                <button class="h-10 px-4 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="!materialCodeGen.generatedCode" @click="handleCopyMaterialCode">
+                  {{ materialCopySuccess ? '已复制!' : '复制' }}
+                </button>
+                <button class="h-10 px-4 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-1" @click="handleResetMaterialCodeGen">
+                  <RotateCcw class="w-4 h-4" />重置
+                </button>
               </div>
             </div>
           </div>
+          <!-- I/O风险提示 -->
+          <div class="mt-2 text-xs text-amber-600 flex items-start gap-1">
+            <span class="font-bold">⚠️</span>
+            <span>部分大类（如 OP/IT/OT）编码含字母 I/O，与数字 1/0 形近。生成后请人工核对，避免抄录/扫描时误读。</span>
+          </div>
+        </div>
+
+        <!-- 基本信息 - 对应V1.1: 2-col布局 -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">物料编码 <span class="text-red-500">*</span></label>
+            <input v-model="newMaterial.code" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="使用上方编码生成器自动生成，或手动输入" />
+            <div v-if="hasIOChar(newMaterial.code)" class="mt-1 text-xs text-amber-600 flex items-start gap-1">
+              <span class="font-bold">⚠️</span>
+              <span>编码含字母 I/O，与数字 1/0 形近，建议核对或替换</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">物料名称 <span class="text-red-500">*</span></label>
+            <input v-model="newMaterial.name" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="如：尿素 50kg/袋" />
+          </div>
+        </div>
+
+        <!-- 分类 - 对应V1.1: 3-col布局 -->
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">大类 <span class="text-red-500">*</span></label>
+            <select v-model="materialCodeGen.bigCategory" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" @change="materialCodeGen.midCategory = ''; materialCodeGen.subCategory = ''; materialCodeGen.generatedCode = ''">
+              <option value="">请选择大类</option>
+              <option v-for="b in bigCategoriesList" :key="b.code" :value="b.code">{{ b.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">中类 <span class="text-red-500">*</span></label>
+            <select v-model="materialCodeGen.midCategory" :disabled="!materialCodeGen.bigCategory" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner disabled:bg-gray-100 disabled:text-gray-400" @change="materialCodeGen.subCategory = ''; materialCodeGen.generatedCode = ''">
+              <option value="">请选择中类</option>
+              <option v-for="m in materialMidOptions" :key="m.code" :value="m.code">{{ m.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">小类 <span class="text-red-500">*</span></label>
+            <select v-model="materialCodeGen.subCategory" :disabled="!materialCodeGen.midCategory" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner disabled:bg-gray-100 disabled:text-gray-400" @change="materialCodeGen.generatedCode = ''">
+              <option value="">请选择小类</option>
+              <option v-for="s in materialSubOptions" :key="s.code" :value="s.code">{{ s.name }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 规格 + 单位 - 对应V1.1: 2-col -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">规格型号 <span class="text-red-500">*</span></label>
+            <input v-model="newMaterial.specification" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="如：50kg/袋" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">单位 <span class="text-red-500">*</span></label>
+            <input v-model="newMaterial.unit" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="如：袋 / 瓶 / 箱 / 公斤" />
+          </div>
+        </div>
+
+        <!-- 库存阈值 - 对应V1.1: 2-col -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">最低库存</label>
+            <input v-model="minStockInput" type="number" min="0" step="0.01" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="0" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">最高库存</label>
+            <input v-model="maxStockInput" type="number" min="0" step="0.01" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="0" />
+          </div>
+        </div>
+
+        <!-- 价格 + 供应商 - 对应V1.1: 2-col -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">单价(元)</label>
+            <input v-model="newMaterial.price" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="如：85.00" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">供应商</label>
+            <input v-model="newMaterial.supplier" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="如：中化化肥有限公司" />
+          </div>
+        </div>
+
+        <!-- 存放位置 + 条码 - 对应V1.1: 2-col -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">存放位置</label>
+            <input v-model="newMaterial.location" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="如：A区-01-01" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">条码</label>
+            <input v-model="newMaterial.barcode" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner" placeholder="选填" />
+          </div>
+        </div>
+
+        <!-- 数据状态 - 对应V1.1: Select下拉 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">数据状态</label>
+          <select v-model="newMaterial.dataStatus" class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner">
+            <option value="启用">启用</option>
+            <option value="停用">停用</option>
+          </select>
+        </div>
+      </div>
       <template #footer>
         <div class="flex justify-end gap-3">
           <el-button size="small" @click="handleCancelAddMaterial">取消</el-button>
@@ -950,7 +1042,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted, watch } from 'vue'
-import { Package, AlertTriangle, Download, Search, Plus, RefreshCw, Wand2, Copy, RotateCcw } from 'lucide-vue-next'
+import { Package, AlertTriangle, Download, Search, Plus, RefreshCw, Wand2, Copy, RotateCcw, ChevronDown, ChevronRight, Edit, Trash2, Barcode } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { ElModal } from '@/components/ui'
 import DeleteWarningModal from '@/components/common/DeleteWarningModal.vue'
@@ -960,6 +1052,7 @@ import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehou
 import { useInboundStore } from '@/stores/modules/inventory/useInboundStore'
 import { bigCategoriesList, categoryConfig } from '@/types/warehouseInbound.js'
 import ActionToolbar from './components/ActionToolbar.vue'
+import MaterialFilters from './components/MaterialFilters.vue'
 import MaterialEditModal from './components/MaterialEditModal.vue'
 import MaterialDeleteConfirmModal from './components/MaterialDeleteConfirmModal.vue'
 import DeleteWarningDialog from './components/DeleteWarningDialog.vue'
@@ -971,17 +1064,6 @@ const bigCategories = Object.entries(categoryConfig).map(([code, data]) => ({
   code,
   name: data.name
 }))
-
-// 简单分类选项（对应V1.1 SIMPLE_CATEGORIES）
-const simpleCategories = ['全部', '种子种苗', '肥料', '农药', '农膜']
-
-// 简单分类→分类名称映射（对应V1.1 categoryMap）
-const categoryFilterMap = {
-  '种子种苗': '种质资源',
-  '肥料': '肥料与土壤改良剂',
-  '农药': '农药与植保产品',
-  '农膜': '设施农业系统',
-}
 
 // 单位选项
 const unitOptions = ['袋', '箱', '个', '公斤', '升', '平方米']
@@ -1047,7 +1129,8 @@ onMounted(() => {
 })
 
 // 状态
-const activeTab = ref('overview')
+const activeTab = ref('inbound')
+const codeGenExpanded = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const inboundPage = ref(1)
@@ -1072,6 +1155,19 @@ const deleteMode = ref(false)
 const showDeleteWarning = ref(false)
 const showBatchDeleteConfirm = ref(false)
 
+// 入库记录搜索和操作状态 - 对应V1.1 MaterialInboundTab
+const inboundSearchCode = ref('')
+const inboundSearchSupplier = ref('')
+const inboundSearchStatus = ref('')
+const inboundSearchMaterialName = ref('')
+const inboundSearchMaterialCode = ref('')
+const inboundExpandedRows = ref(new Set())
+const inboundEditMode = ref(false)
+const inboundDeleteMode = ref(false)
+const inboundExportMode = ref(false)
+const inboundSelectedRows = ref([])
+const showInboundEditWarning = ref(false)
+
 // 筛选状态
 const filters = reactive({
   code: '',
@@ -1082,6 +1178,10 @@ const filters = reactive({
   searchBigCategory: '',
   searchMidCategory: '',
   searchSubCategory: ''
+})
+
+const inboundRecords = computed(() => {
+  return inboundRecordsData.value.length > 0 ? inboundRecordsData.value : mockInboundRecords.value
 })
 
 // 编码生成器状态
@@ -1116,10 +1216,6 @@ const filteredMaterials = computed(() => {
   return source.filter(m => {
     if (filters.code && !m.code.includes(filters.code)) return false
     if (filters.name && !m.name.includes(filters.name)) return false
-    if (filters.category && filters.category !== '全部') {
-      const mappedCategory = categoryFilterMap[filters.category] || filters.category
-      if (!m.category.includes(mappedCategory)) return false
-    }
     if (filters.supplier && m.supplier !== filters.supplier) return false
     if (filters.location && m.location !== filters.location) return false
     if (filters.searchBigCategory && !m.code.startsWith(filters.searchBigCategory)) return false
@@ -1148,47 +1244,39 @@ const toolbarFilters = computed(() => ({
   showLowStock: showLowStock.value
 }))
 
-const uniqueSuppliers = computed(() => {
-  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
-  return [...new Set(source.map(m => m.supplier))]
+// 编码生成器状态
+
+// 入库记录搜索过滤 - 对应V1.1 MaterialInboundTab
+const filteredInboundRecords = computed(() => {
+  return inboundRecords.value.filter(record => {
+    if (inboundSearchCode.value && !record.code.toLowerCase().includes(inboundSearchCode.value.toLowerCase())) return false
+    if (inboundSearchSupplier.value && !record.supplier.toLowerCase().includes(inboundSearchSupplier.value.toLowerCase())) return false
+    if (inboundSearchStatus.value && record.status !== inboundSearchStatus.value) return false
+    if (inboundSearchMaterialName.value || inboundSearchMaterialCode.value) {
+      const hasMatch = record.materials.some(m => {
+        const nameMatch = !inboundSearchMaterialName.value || (m.materialName && m.materialName.toLowerCase().includes(inboundSearchMaterialName.value.toLowerCase()))
+        const codeMatch = !inboundSearchMaterialCode.value || (m.materialCode && m.materialCode.toLowerCase().includes(inboundSearchMaterialCode.value.toLowerCase()))
+        return nameMatch && codeMatch
+      })
+      if (!hasMatch) return false
+    }
+    return true
+  })
 })
 
-const uniqueLocations = computed(() => {
-  const source = warehouseMaterials.value.length > 0 ? warehouseMaterials.value : mockWarehouseMaterials.value
-  return [...new Set(source.map(m => m.location))]
-})
-
-const inboundRecords = computed(() => {
-  return inboundRecordsData.value.length > 0 ? inboundRecordsData.value : mockInboundRecords.value
+const isInboundAllSelected = computed(() => {
+  if (inboundDeleteMode.value) {
+    const pendingRecords = filteredInboundRecords.value.filter(r => r.status === 'pending')
+    return pendingRecords.length > 0 && pendingRecords.every(r => inboundSelectedRows.value.includes(r.id))
+  }
+  return filteredInboundRecords.value.length > 0 && inboundSelectedRows.value.length === filteredInboundRecords.value.length
 })
 
 const isFormValid = computed(() => {
   return !codeError.value && !nameError.value && newInbound.materialCode && newInbound.materialName && newInbound.quantity
 })
 
-// 分类选项计算
-const midCategories = computed(() => {
-  if (!filters.searchBigCategory) return []
-  const bigCat = categoryConfig[filters.searchBigCategory]
-  if (!bigCat) return []
-  return Object.entries((bigCat).categories).map(([code, data]) => ({
-    code,
-    name: data.name
-  }))
-})
-
-const subCategories = computed(() => {
-  if (!filters.searchBigCategory || !filters.searchMidCategory) return []
-  const bigCat = categoryConfig[filters.searchBigCategory]
-  if (!bigCat) return []
-  const midCat = (bigCat).categories[filters.searchMidCategory]
-  if (!midCat) return []
-  return Object.entries(midCat.subCategories).map(([code, data]) => ({
-    code,
-    name: data.name
-  }))
-})
-
+// 编码生成器中类选项
 const codeGenMidCategories = computed(() => {
   if (!codeGen.bigCategory) return []
   const bigCat = categoryConfig[codeGen.bigCategory]
@@ -1234,6 +1322,15 @@ const handleTabChange = (tab) => {
 
 const handleLowStockClick = () => {
   showLowStock.value = !showLowStock.value
+  currentPage.value = 1
+}
+
+// 对应V1.1 handleFiltersChange - 筛选条件变更
+const handleFiltersChange = (newFilters) => {
+  Object.assign(filters, newFilters)
+  if (newFilters.showLowStock !== undefined) {
+    showLowStock.value = newFilters.showLowStock
+  }
   currentPage.value = 1
 }
 
@@ -1432,9 +1529,102 @@ const handleCopyCode = () => {
   setTimeout(() => { copySuccess.value = false }, 2000)
 }
 
+const handleResetCodeGen = () => {
+  codeGen.bigCategory = ''
+  codeGen.midCategory = ''
+  codeGen.subCategory = ''
+  codeGen.generatedCode = ''
+  codeGenError.value = ''
+  codeGenSuccess.value = ''
+}
+
 // 新增入库相关方法
 const handleAddInbound = () => {
   showAddModal.value = true
+}
+
+// 入库记录展开/折叠 - 对应V1.1 toggleExpandRow
+const toggleInboundExpand = (id) => {
+  const newSet = new Set(inboundExpandedRows.value)
+  if (newSet.has(id)) {
+    newSet.delete(id)
+  } else {
+    newSet.add(id)
+  }
+  inboundExpandedRows.value = newSet
+}
+
+// 入库记录全选 - 对应V1.1 handleSelectAll
+const handleInboundSelectAll = () => {
+  if (inboundDeleteMode.value) {
+    const pendingIds = filteredInboundRecords.value.filter(r => r.status === 'pending').map(r => r.id)
+    const allPendingSelected = pendingIds.every(id => inboundSelectedRows.value.includes(id))
+    if (allPendingSelected) {
+      inboundSelectedRows.value = inboundSelectedRows.value.filter(id => !pendingIds.includes(id))
+    } else {
+      inboundSelectedRows.value = [...inboundSelectedRows.value.filter(id => !pendingIds.includes(id)), ...pendingIds]
+    }
+  } else {
+    if (inboundSelectedRows.value.length === filteredInboundRecords.value.length) {
+      inboundSelectedRows.value = []
+    } else {
+      inboundSelectedRows.value = filteredInboundRecords.value.map(r => r.id)
+    }
+  }
+}
+
+// 入库记录单选 - 对应V1.1 handleSelectRow
+const handleInboundSelectRow = (id) => {
+  if (inboundSelectedRows.value.includes(id)) {
+    inboundSelectedRows.value = inboundSelectedRows.value.filter(r => r !== id)
+  } else {
+    inboundSelectedRows.value = [...inboundSelectedRows.value, id]
+  }
+}
+
+// 入库记录取消选择 - 对应V1.1 handleCancelSelection
+const handleInboundCancelSelection = () => {
+  inboundEditMode.value = false
+  inboundDeleteMode.value = false
+  inboundExportMode.value = false
+  inboundSelectedRows.value = []
+}
+
+// 入库记录确认编辑 - 对应V1.1 handleConfirmEdit
+const handleInboundConfirmEdit = () => {
+  if (inboundSelectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要编辑的记录')
+    return
+  }
+  showInboundEditWarning.value = true
+}
+
+// 入库记录确认删除 - 对应V1.1 handleConfirmDelete
+const handleInboundConfirmDelete = () => {
+  if (inboundSelectedRows.value.length > 0) {
+    const selectedRecords = inboundRecords.value.filter(r => inboundSelectedRows.value.includes(r.id))
+    if (selectedRecords.length > 0) {
+      const idsToDelete = selectedRecords.map(r => r.id)
+      inboundRecordsData.value = inboundRecordsData.value.filter(r => !idsToDelete.includes(r.id))
+      ElMessage.success('已删除选中入库记录')
+    }
+  }
+  handleInboundCancelSelection()
+}
+
+// 入库记录确认导出 - 对应V1.1 handleConfirmExport
+const handleInboundConfirmExport = () => {
+  ElMessage.info('入库记录导出功能')
+  handleInboundCancelSelection()
+}
+
+// 入库搜索重置
+const handleResetInboundSearch = () => {
+  inboundSearchCode.value = ''
+  inboundSearchSupplier.value = ''
+  inboundSearchStatus.value = ''
+  inboundSearchMaterialName.value = ''
+  inboundSearchMaterialCode.value = ''
 }
 
 const generateOrderCode = () => {

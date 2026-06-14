@@ -133,8 +133,8 @@ const bigCategories = [
   { code: 'OT', name: '其他类' },
 ]
 
-// 完整的分类配置
-const categoryConfig = {
+// 完整的分类配置（本地默认值，可通过prop覆盖）
+const localCategoryConfig = {
   'SP': {
     name: '生产投入类',
     categories: {
@@ -369,6 +369,11 @@ const props = defineProps({
   lowStockCount: {
     type: Number,
     default: 0
+  },
+  // 分类配置 - 对应V1.1 categoryConfig prop
+  categoryConfig: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -398,16 +403,18 @@ watch(() => props.filters, (newVal) => {
 
 // 获取大类列表
 const getSearchBigCategories = () => {
-  return Object.keys(categoryConfig).map(key => ({
+  const config = props.categoryConfig && Object.keys(props.categoryConfig).length > 0 ? props.categoryConfig : localCategoryConfig
+  return Object.keys(config).map(key => ({
     code: key,
-    name: categoryConfig[key].name
+    name: config[key].name
   }))
 }
 
 // 获取中类列表
 const getSearchMidCategories = () => {
   if (!localFilters.searchBigCategory) return []
-  const bigCat = categoryConfig[localFilters.searchBigCategory]
+  const config = props.categoryConfig && Object.keys(props.categoryConfig).length > 0 ? props.categoryConfig : localCategoryConfig
+  const bigCat = config[localFilters.searchBigCategory]
   if (!bigCat) return []
   return Object.entries(bigCat.categories).map(([code, data]) => ({
     code,
@@ -418,7 +425,8 @@ const getSearchMidCategories = () => {
 // 获取小类列表
 const getSearchSubCategories = () => {
   if (!localFilters.searchBigCategory || !localFilters.searchMidCategory) return []
-  const bigCat = categoryConfig[localFilters.searchBigCategory]
+  const config = props.categoryConfig && Object.keys(props.categoryConfig).length > 0 ? props.categoryConfig : localCategoryConfig
+  const bigCat = config[localFilters.searchBigCategory]
   if (!bigCat) return []
   const midCat = bigCat.categories[localFilters.searchMidCategory]
   if (!midCat) return []
