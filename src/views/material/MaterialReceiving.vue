@@ -391,8 +391,8 @@
 
     <!-- Tab 3: 领料统计（严格对齐 V1.1 StatisticsTab.tsx） -->
     <div v-show="activeTab === 'statistics'" class="space-y-4">
-      <!-- 统计卡片 - 5 张对齐 V1.1 StatisticsTab.tsx 第 217-291 行 -->
-      <div class="grid grid-cols-5 gap-3 mb-3">
+      <!-- 统计卡片 - 4 张对齐 V1.1 StatCards.tsx -->
+      <div class="grid grid-cols-4 gap-3 mb-3">
         <div class="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-lg p-3 border border-emerald-200/50">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
@@ -437,51 +437,19 @@
             </div>
           </div>
         </div>
-        <!-- 第5张: 同比变化 (V1.1 缺失修复) -->
-        <div class="bg-gradient-to-br from-rose-50 to-rose-100/50 rounded-lg p-3 border border-rose-200/50">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-rose-500 flex items-center justify-center">
-              <TrendingUp class="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <div class="text-xs text-rose-600/70">同比变化</div>
-              <div class="text-xl font-bold text-rose-700">+{{ statSummary.yearOnYearChange }}%</div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- 4 主 Tab + 区域子 Tab：月度汇总 / 物料汇总 / 部门汇总 / 区域统计 -->
+      <!-- 子 Tab：月度汇总 / 分类汇总（V1.1 实际仅 2 个 Tab） -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100">
         <div class="px-6 pt-4 pb-0 border-b border-gray-200">
-          <div class="flex gap-6 flex-wrap">
+          <div class="flex gap-6">
             <button class="relative pb-3 text-sm font-semibold transition-colors" :class="statActiveTab === 'monthly' ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'" @click="statActiveTab = 'monthly'; statCurrentPage = 1">
-              <span class="inline-flex items-center gap-1"><Calendar class="w-4 h-4" />📅 月度汇总</span>
+              <span class="inline-flex items-center gap-1"><Calendar class="w-4 h-4" />月度汇总</span>
               <span v-if="statActiveTab === 'monthly'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
             </button>
             <button class="relative pb-3 text-sm font-semibold transition-colors" :class="statActiveTab === 'material' ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'" @click="statActiveTab = 'material'; statCurrentPage = 1">
-              <span class="inline-flex items-center gap-1"><Package class="w-4 h-4" />📦 物料汇总</span>
+              <span class="inline-flex items-center gap-1"><BarChart2 class="w-4 h-4" />分类汇总</span>
               <span v-if="statActiveTab === 'material'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
-            </button>
-            <button class="relative pb-3 text-sm font-semibold transition-colors" :class="statActiveTab === 'department' ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'" @click="statActiveTab = 'department'; statCurrentPage = 1">
-              <span class="inline-flex items-center gap-1"><Users class="w-4 h-4" />👤 部门汇总</span>
-              <span v-if="statActiveTab === 'department'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
-            </button>
-            <button class="relative pb-3 text-sm font-semibold transition-colors" :class="statActiveTab === 'area' ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'" @click="statActiveTab = 'area'; statCurrentPage = 1">
-              <span class="inline-flex items-center gap-1"><BarChart3 class="w-4 h-4" />🏠 区域统计</span>
-              <span v-if="statActiveTab === 'area'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></span>
-            </button>
-          </div>
-          <!-- 区域统计子Tab -->
-          <div v-if="statActiveTab === 'area'" class="flex gap-2 py-2 border-t border-gray-100 bg-gray-50/50">
-            <button class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors" :class="statActiveAreaTab === 'greenhouse' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'" @click="statActiveAreaTab = 'greenhouse'; statCurrentPage = 1">
-              <BarChart3 class="w-3.5 h-3.5 inline" /> 🏠 大棚统计
-            </button>
-            <button class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors" :class="statActiveAreaTab === 'field' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'" @click="statActiveAreaTab = 'field'; statCurrentPage = 1">
-              <BarChart3 class="w-3.5 h-3.5 inline" /> 🌾 大田统计
-            </button>
-            <button class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors" :class="statActiveAreaTab === 'batch' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'" @click="statActiveAreaTab = 'batch'; statCurrentPage = 1">
-              <BarChart3 class="w-3.5 h-3.5 inline" /> 🌱 种植批次统计
             </button>
           </div>
         </div>
@@ -754,384 +722,6 @@
           </div>
         </div>
 
-        <!-- ========== 部门汇总 Tab（V1.1 1:1 对齐）========== -->
-        <div v-show="statActiveTab === 'department'" class="p-4 space-y-4">
-          <!-- 部门通用筛选 -->
-          <div class="bg-gray-50 rounded-lg p-4">
-            <div class="flex items-end gap-4 flex-wrap">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">部门</label>
-                <select v-model="statSingleDepartmentFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[150px]">
-                  <option value="all">全部</option>
-                  <option v-for="d in STAT_DEPARTMENT_OPTIONS" :key="d" :value="d">{{ d }}</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">开始日期</label>
-                <input v-model="statDateRange.start" type="date" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[150px]" />
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">结束日期</label>
-                <input v-model="statDateRange.end" type="date" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[150px]" />
-              </div>
-              <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                <button class="px-2 py-1 rounded text-xs font-medium" :class="statQuickPeriod === 'currentWeek' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'" @click="onQuickFilter('currentWeek')">本周</button>
-                <button class="px-2 py-1 rounded text-xs font-medium" :class="statQuickPeriod === 'currentMonth' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'" @click="onQuickFilter('currentMonth')">本月</button>
-                <button class="px-2 py-1 rounded text-xs font-medium" :class="statQuickPeriod === 'currentQuarter' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'" @click="onQuickFilter('currentQuarter')">本季</button>
-                <button class="px-2 py-1 rounded text-xs font-medium" :class="statQuickPeriod === 'currentYear' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'" @click="onQuickFilter('currentYear')">本年</button>
-              </div>
-              <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="resetSharedFilter">
-                <RefreshCw class="w-4 h-4" />重置
-              </button>
-            </div>
-          </div>
-
-          <!-- 部门汇总表格 -->
-          <div class="border border-gray-200 rounded-xl overflow-hidden bg-white">
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                  <tr>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">申领人</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">部门</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">领料次数</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">领料单数</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">物料种类</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">总数量</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">总金额(元)</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">单次平均</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">平均金额(元)</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">Top物料</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-300">
-                  <tr v-if="filteredDepartmentData.length === 0">
-                    <td colspan="10" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
-                  </tr>
-                  <tr v-for="(row, idx) in paginatedDepartmentData" :key="row.applicant + idx" class="hover:bg-blue-50 transition-colors">
-                    <td class="px-3 py-2 text-sm font-medium text-gray-900 whitespace-nowrap">{{ row.applicant }}</td>
-                    <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.department }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-blue-600 font-medium whitespace-nowrap">{{ row.requisitionCount }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-700 whitespace-nowrap">{{ row.requisitionOrders }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-700 whitespace-nowrap">{{ row.materialTypes }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-900 font-medium whitespace-nowrap">{{ formatNumber(row.totalQuantity) }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">¥{{ formatNumber(row.totalAmount) }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-700 whitespace-nowrap">{{ row.avgPerOrder }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-700 whitespace-nowrap">¥{{ formatNumber(row.avgAmount) }}</td>
-                    <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">
-                      <div class="flex flex-wrap gap-1">
-                        <span v-for="m in row.topMaterials" :key="m" class="inline-flex px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-700">{{ m }}</span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-              <span>共 {{ filteredDepartmentData.length }} 条</span>
-              <Pagination
-                :current-page="statCurrentPage"
-                :total-pages="Math.ceil(filteredDepartmentData.length / statPageSize) || 1"
-                :page-size="statPageSize"
-                :page-size-options="[10, 20, 50]"
-                :show-page-size="true"
-                @page-change="(p) => statCurrentPage = p"
-                @page-size-change="(s) => { statPageSize = s; statCurrentPage = 1 }"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- ========== 区域统计 Tab（3 个子 Tab）========== -->
-        <div v-show="statActiveTab === 'area'" class="p-4 space-y-4">
-          <!-- 共享筛选 + 区域专属筛选 -->
-          <div class="bg-gray-50 rounded-lg p-4">
-            <div class="flex items-end gap-4 flex-wrap">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">部门</label>
-                <select v-model="statSingleDepartmentFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[150px]">
-                  <option value="all">全部</option>
-                  <option v-for="d in STAT_DEPARTMENT_OPTIONS" :key="d" :value="d">{{ d }}</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">开始日期</label>
-                <input v-model="statDateRange.start" type="date" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[150px]" />
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">结束日期</label>
-                <input v-model="statDateRange.end" type="date" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[150px]" />
-              </div>
-              <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                <button class="px-2 py-1 rounded text-xs font-medium" :class="statQuickPeriod === 'currentWeek' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'" @click="onQuickFilter('currentWeek')">本周</button>
-                <button class="px-2 py-1 rounded text-xs font-medium" :class="statQuickPeriod === 'currentMonth' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'" @click="onQuickFilter('currentMonth')">本月</button>
-                <button class="px-2 py-1 rounded text-xs font-medium" :class="statQuickPeriod === 'currentQuarter' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'" @click="onQuickFilter('currentQuarter')">本季</button>
-                <button class="px-2 py-1 rounded text-xs font-medium" :class="statQuickPeriod === 'currentYear' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'" @click="onQuickFilter('currentYear')">本年</button>
-              </div>
-              <button class="h-8 px-3 rounded-md text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="resetSharedFilter">
-                <RefreshCw class="w-4 h-4" />重置
-              </button>
-            </div>
-            <!-- 大棚专属筛选 -->
-            <div v-if="statActiveAreaTab === 'greenhouse'" class="flex items-end gap-4 mt-4 pt-4 border-t border-gray-100 flex-wrap">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">大棚类型</label>
-                <select v-model="statGreenhouseTypeFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[150px]">
-                  <option value="all">全部</option>
-                  <option v-for="t in GREENHOUSE_TYPE_OPTIONS" :key="t" :value="t">{{ t }}</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">具体大棚</label>
-                <select v-model="statGreenhouseFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[180px]">
-                  <option value="all">全部</option>
-                  <option v-for="g in GREENHOUSE_OPTIONS" :key="g" :value="g">{{ g }}</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">对比周期</label>
-                <select v-model="statComparisonPeriod" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[160px]">
-                  <option v-for="p in COMPARISON_PERIOD_OPTIONS" :key="p.value" :value="p.value">{{ p.label }}</option>
-                </select>
-              </div>
-            </div>
-            <!-- 大田专属筛选 -->
-            <div v-if="statActiveAreaTab === 'field'" class="flex items-end gap-4 mt-4 pt-4 border-t border-gray-100 flex-wrap">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">具体地块</label>
-                <select v-model="statFieldFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[180px]">
-                  <option value="all">全部</option>
-                  <option v-for="f in FIELD_OPTIONS" :key="f" :value="f">{{ f }}</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">对比周期</label>
-                <select v-model="statComparisonPeriod" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white w-[160px]">
-                  <option v-for="p in COMPARISON_PERIOD_OPTIONS" :key="p.value" :value="p.value">{{ p.label }}</option>
-                </select>
-              </div>
-            </div>
-            <!-- 批次专属筛选 -->
-            <div v-if="statActiveAreaTab === 'batch'" class="flex items-end gap-4 mt-4 pt-4 border-t border-gray-100 flex-wrap">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">批次选择</label>
-                <select v-model="statBatchFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white min-w-[280px]">
-                  <option value="all">全部批次</option>
-                  <option v-for="b in BATCH_FILTER_OPTIONS" :key="b.value" :value="b.value">{{ b.label }}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- 大棚统计表 -->
-          <div v-show="statActiveAreaTab === 'greenhouse'" class="border border-gray-200 rounded-xl overflow-hidden bg-white">
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                  <tr>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">大棚名称</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">大棚类型</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">统计周期</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">领料次数</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">物料种类</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">总数量</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">总金额(元)</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">环比数量</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">环比金额</th>
-                    <th class="px-3 py-3 text-center text-sm font-semibold whitespace-nowrap">变化率</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-300">
-                  <tr v-if="filteredGreenhouseData.length === 0">
-                    <td colspan="10" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
-                  </tr>
-                  <tr v-for="row in paginatedGreenhouseData" :key="row.greenhouse" class="hover:bg-blue-50 transition-colors">
-                    <td class="px-3 py-2 text-sm font-medium text-gray-900 whitespace-nowrap">{{ row.greenhouse }}</td>
-                    <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.greenhouseType }}</td>
-                    <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.period }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-blue-600 font-medium whitespace-nowrap">{{ row.requisitionCount }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-700 whitespace-nowrap">{{ row.materialTypes }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-900 font-medium whitespace-nowrap">{{ formatNumber(row.totalQuantity) }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">¥{{ formatNumber(row.totalAmount) }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-500 whitespace-nowrap">{{ formatNumber(row.comparison?.lastMonth?.quantity || 0) }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-500 whitespace-nowrap">¥{{ formatNumber(row.comparison?.lastMonth?.amount || 0) }}</td>
-                    <td class="px-3 py-2 text-sm text-center whitespace-nowrap">
-                      <span :class="(row.comparison?.lastMonth?.changeRate || 0) >= 0 ? 'text-red-600' : 'text-green-600'">
-                        {{ (row.comparison?.lastMonth?.changeRate || 0) >= 0 ? '↑' : '↓' }}{{ Math.abs(row.comparison?.lastMonth?.changeRate || 0).toFixed(1) }}%
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-              <span>共 {{ filteredGreenhouseData.length }} 条</span>
-              <Pagination
-                :current-page="statCurrentPage"
-                :total-pages="Math.ceil(filteredGreenhouseData.length / statPageSize) || 1"
-                :page-size="statPageSize"
-                :page-size-options="[10, 20, 50]"
-                :show-page-size="true"
-                @page-change="(p) => statCurrentPage = p"
-                @page-size-change="(s) => { statPageSize = s; statCurrentPage = 1 }"
-              />
-            </div>
-          </div>
-
-          <!-- 大田统计表 -->
-          <div v-show="statActiveAreaTab === 'field'" class="border border-gray-200 rounded-xl overflow-hidden bg-white">
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                  <tr>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">地块名称</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">作物</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">统计周期</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">领料次数</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">物料种类</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">总数量</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">总金额(元)</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">环比数量</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">环比金额</th>
-                    <th class="px-3 py-3 text-center text-sm font-semibold whitespace-nowrap">变化率</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-300">
-                  <tr v-if="filteredFieldData.length === 0">
-                    <td colspan="10" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
-                  </tr>
-                  <tr v-for="row in paginatedFieldData" :key="row.field" class="hover:bg-blue-50 transition-colors">
-                    <td class="px-3 py-2 text-sm font-medium text-gray-900 whitespace-nowrap">{{ row.field }}</td>
-                    <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.crop }}</td>
-                    <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.period }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-blue-600 font-medium whitespace-nowrap">{{ row.requisitionCount }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-700 whitespace-nowrap">{{ row.materialTypes }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-900 font-medium whitespace-nowrap">{{ formatNumber(row.totalQuantity) }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">¥{{ formatNumber(row.totalAmount) }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-500 whitespace-nowrap">{{ formatNumber(row.comparison?.lastMonth?.quantity || 0) }}</td>
-                    <td class="px-3 py-2 text-sm text-right text-gray-500 whitespace-nowrap">¥{{ formatNumber(row.comparison?.lastMonth?.amount || 0) }}</td>
-                    <td class="px-3 py-2 text-sm text-center whitespace-nowrap">
-                      <span :class="(row.comparison?.lastMonth?.changeRate || 0) >= 0 ? 'text-red-600' : 'text-green-600'">
-                        {{ (row.comparison?.lastMonth?.changeRate || 0) >= 0 ? '↑' : '↓' }}{{ Math.abs(row.comparison?.lastMonth?.changeRate || 0).toFixed(1) }}%
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-              <span>共 {{ filteredFieldData.length }} 条</span>
-              <Pagination
-                :current-page="statCurrentPage"
-                :total-pages="Math.ceil(filteredFieldData.length / statPageSize) || 1"
-                :page-size="statPageSize"
-                :page-size-options="[10, 20, 50]"
-                :show-page-size="true"
-                @page-change="(p) => statCurrentPage = p"
-                @page-size-change="(s) => { statPageSize = s; statCurrentPage = 1 }"
-              />
-            </div>
-          </div>
-
-          <!-- 种植批次统计表 -->
-          <div v-show="statActiveAreaTab === 'batch'" class="border border-gray-200 rounded-xl overflow-hidden bg-white">
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                  <tr>
-                    <th class="px-3 py-3 text-left text-sm font-semibold w-12"></th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">批次号</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">作物</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">品种</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">种植区域</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">面积</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">起始日期</th>
-                    <th class="px-3 py-3 text-left text-sm font-semibold whitespace-nowrap">结束日期</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">领料次数</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">物料种类</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">总数量</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">实际数量</th>
-                    <th class="px-3 py-3 text-right text-sm font-semibold whitespace-nowrap">总金额(元)</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-300">
-                  <tr v-if="filteredBatchData.length === 0">
-                    <td colspan="13" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
-                  </tr>
-                  <template v-for="row in paginatedBatchData" :key="row.batchCode">
-                    <tr class="hover:bg-blue-50 transition-colors">
-                      <td class="px-3 py-2 whitespace-nowrap">
-                        <button class="text-gray-500 hover:text-emerald-600" @click="toggleBatchExpand(row.batchCode)">
-                          <ChevronDown v-if="expandedBatchCodes.includes(row.batchCode)" class="w-4 h-4" />
-                          <ChevronRight v-else class="w-4 h-4" />
-                        </button>
-                      </td>
-                      <td class="px-3 py-2 text-sm font-mono text-cyan-600 whitespace-nowrap">{{ row.batchCode }}</td>
-                      <td class="px-3 py-2 text-sm text-gray-900 font-medium whitespace-nowrap">{{ row.cropName }}</td>
-                      <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.variety }}</td>
-                      <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.plantArea }}</td>
-                      <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.areaSize }}</td>
-                      <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.plannedStartDate }}</td>
-                      <td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">{{ row.plannedEndDate }}</td>
-                      <td class="px-3 py-2 text-sm text-right text-blue-600 font-medium whitespace-nowrap">{{ row.requisitionCount }}</td>
-                      <td class="px-3 py-2 text-sm text-right text-gray-700 whitespace-nowrap">{{ row.materialTypes }}</td>
-                      <td class="px-3 py-2 text-sm text-right text-gray-900 font-medium whitespace-nowrap">{{ formatNumber(row.totalQuantity) }}</td>
-                      <td class="px-3 py-2 text-sm text-right text-gray-700 whitespace-nowrap">{{ formatNumber(row.actualQuantity) }}</td>
-                      <td class="px-3 py-2 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">¥{{ formatNumber(row.totalAmount) }}</td>
-                    </tr>
-                    <tr v-if="expandedBatchCodes.includes(row.batchCode)" class="bg-gray-50">
-                      <td colspan="13" class="p-3">
-                        <div class="text-xs font-medium text-gray-700 mb-2">物料明细</div>
-                        <table class="w-full text-xs border border-gray-200 rounded">
-                          <thead class="bg-gray-100">
-                            <tr>
-                              <th class="px-3 py-2 text-left font-semibold">物料编码</th>
-                              <th class="px-3 py-2 text-left font-semibold">物料名称</th>
-                              <th class="px-3 py-2 text-left font-semibold">分类</th>
-                              <th class="px-3 py-2 text-left font-semibold">规格</th>
-                              <th class="px-3 py-2 text-left font-semibold">单位</th>
-                              <th class="px-3 py-2 text-right font-semibold">总数量</th>
-                              <th class="px-3 py-2 text-right font-semibold">实际数量</th>
-                              <th class="px-3 py-2 text-right font-semibold">总金额(元)</th>
-                              <th class="px-3 py-2 text-left font-semibold">主要仓库</th>
-                              <th class="px-3 py-2 text-left font-semibold">主要领料人</th>
-                            </tr>
-                          </thead>
-                          <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="d in (row.details || [])" :key="d.materialCode">
-                              <td class="px-3 py-2 font-mono text-cyan-600">{{ d.materialCode }}</td>
-                              <td class="px-3 py-2 text-gray-900">{{ d.materialName }}</td>
-                              <td class="px-3 py-2 text-gray-700">{{ d.category }}</td>
-                              <td class="px-3 py-2 text-gray-700">{{ d.spec }}</td>
-                              <td class="px-3 py-2 text-gray-700">{{ d.unit }}</td>
-                              <td class="px-3 py-2 text-right text-gray-900">{{ formatNumber(d.totalQuantity) }}</td>
-                              <td class="px-3 py-2 text-right text-gray-700">{{ formatNumber(d.actualQuantity) }}</td>
-                              <td class="px-3 py-2 text-right text-emerald-600 font-medium">¥{{ formatNumber(d.totalAmount) }}</td>
-                              <td class="px-3 py-2 text-gray-700">{{ d.mainWarehouse }}</td>
-                              <td class="px-3 py-2 text-gray-700">{{ d.mainApplicant }}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </td>
-                    </tr>
-                  </template>
-                </tbody>
-              </table>
-            </div>
-            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-              <span>共 {{ filteredBatchData.length }} 条</span>
-              <Pagination
-                :current-page="statCurrentPage"
-                :total-pages="Math.ceil(filteredBatchData.length / statPageSize) || 1"
-                :page-size="statPageSize"
-                :page-size-options="[10, 20, 50]"
-                :show-page-size="true"
-                @page-change="(p) => statCurrentPage = p"
-                @page-size-change="(s) => { statPageSize = s; statCurrentPage = 1 }"
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- 统计专用导出格式弹窗 -->
@@ -1151,59 +741,309 @@
       />
     </div>
 
-    <!-- Tab 4: 成本核算 -->
+    <!-- Tab 4: 成本核算 - 严格 1:1 对齐 V1.1 CostTab.tsx -->
     <div v-show="activeTab === 'cost'" class="space-y-4">
+      <!-- 子 Tab 切换 (V1.1 CostTabSwitcher) -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div class="border-b border-gray-100 px-6 pt-4">
-          <div class="flex gap-6">
+        <div class="border-b border-gray-200">
+          <div class="flex gap-1">
             <button v-for="ct in costSubTabs" :key="ct.key" @click="costActiveTab = ct.key"
-              class="pb-3 text-sm font-medium border-b-2 transition-colors"
-              :class="costActiveTab === ct.key ? 'text-emerald-600 border-emerald-500' : 'text-gray-500 border-transparent hover:text-gray-700'"
-            >{{ ct.label }}</button>
+              class="relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-colors"
+              :class="costActiveTab === ct.key ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'"
+            >
+              <component :is="ct.icon" class="w-4 h-4" />
+              {{ ct.label }}
+              <span v-if="costActiveTab === ct.key" class="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500"></span>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- 成本概览 -->
-      <div v-if="costActiveTab === 'overview'">
-        <div class="grid grid-cols-4 gap-4 mb-4">
-          <div v-for="kpi in costKPIs" :key="kpi.label" class="bg-white rounded-xl p-5 shadow-sm">
-            <p class="text-sm text-gray-500">{{ kpi.label }}</p>
-            <p class="text-2xl font-bold mt-1 text-gray-900">{{ kpi.value }}</p>
-            <p class="text-xs mt-1" :class="kpi.trend > 0 ? 'text-red-500' : 'text-green-500'">{{ kpi.trend > 0 ? '↑' : '↓' }} {{ Math.abs(kpi.trend) }}%</p>
+      <!-- 筛选表单 (V1.1 CostFiltersForm)：时间快捷+日期+部门下拉+分类下拉+重置 -->
+      <div class="bg-white/50 rounded-xl p-4 border border-gray-100">
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="flex items-center gap-2">
+            <Calendar class="w-4 h-4 text-gray-500" />
+            <span class="text-sm text-gray-600">时间：</span>
+          </div>
+          <div class="flex gap-1">
+            <button v-for="p in costQuickPeriods" :key="p.value"
+              class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+              :class="costFilters.quickPeriod === p.value ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              @click="onCostQuickPeriod(p.value)"
+            >{{ p.label }}</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="date" v-model="costFilters.dateRange.start" @change="costFilters.quickPeriod = 'custom'" class="px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500" />
+            <span class="text-gray-400">至</span>
+            <input type="date" v-model="costFilters.dateRange.end" @change="costFilters.quickPeriod = 'custom'" class="px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500" />
+          </div>
+          <select v-model="costSelectedDept" @change="onCostDeptChange" class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-emerald-500">
+            <option value="all">部门：全部</option>
+            <option v-for="d in COST_DEPARTMENTS" :key="d" :value="d">{{ d }}</option>
+          </select>
+          <select v-model="costSelectedCategory" @change="onCostCategoryChange" class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-cyan-500">
+            <option value="all">分类：全部</option>
+            <option v-for="c in COST_CATEGORIES" :key="c" :value="c">{{ c }}</option>
+          </select>
+          <button class="ml-auto h-8 px-3 rounded-md text-xs font-medium bg-gray-400 text-white hover:bg-gray-500 inline-flex items-center gap-1" @click="resetCostFilters">
+            <X class="w-4 h-4" />重置
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ 子 Tab：成本概览 ============ -->
+      <div v-if="costActiveTab === 'overview'" class="space-y-4">
+        <!-- KPI 4 卡 (V1.1 CostKPICards) -->
+        <div class="grid grid-cols-4 gap-3">
+          <div class="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-lg p-3 border border-emerald-200/50">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center"><span class="text-sm font-bold text-white">¥</span></div>
+              <div>
+                <div class="text-xs text-emerald-600/70">累计总成本</div>
+                <div class="text-xl font-bold text-emerald-700">¥{{ formatNumber(costKPI.totalCost) }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg p-3 border border-blue-200/50">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center"><Calendar class="w-4 h-4 text-white" /></div>
+              <div>
+                <div class="text-xs text-blue-600/70">本月成本</div>
+                <div class="text-xl font-bold text-blue-700">¥{{ formatNumber(costKPI.monthlyCost) }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-lg p-3 border border-amber-200/50">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center"><BarChart2 class="w-4 h-4 text-white" /></div>
+              <div>
+                <div class="text-xs text-amber-600/70">平均批次成本</div>
+                <div class="text-xl font-bold text-amber-700">¥{{ formatNumber(Math.round(costKPI.avgBatchCost)) }}</div>
+              </div>
+            </div>
+          </div>
+          <div :class="['rounded-lg p-3 border', costKPI.costDiffRate < 0 ? 'bg-gradient-to-br from-green-50 to-green-100/50 border-green-200/50' : 'bg-gradient-to-br from-red-50 to-red-100/50 border-red-200/50']">
+            <div class="flex items-center gap-2">
+              <div :class="['w-8 h-8 rounded-lg flex items-center justify-center', costKPI.costDiffRate < 0 ? 'bg-green-500' : 'bg-red-500']">
+                <TrendingDown :class="['w-4 h-4 text-white', costKPI.costDiffRate >= 0 ? 'transform rotate-180' : '']" />
+              </div>
+              <div>
+                <div :class="['text-xs', costKPI.costDiffRate < 0 ? 'text-green-600/70' : 'text-red-600/70']">成本差异率</div>
+                <div :class="['text-xl font-bold', costKPI.costDiffRate < 0 ? 'text-green-700' : 'text-red-700']">{{ costKPI.costDiffRate > 0 ? '+' : '' }}{{ costKPI.costDiffRate.toFixed(1) }}%</div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- 双图：饼图(1/3) + 趋势图(2/3) -->
         <div class="grid grid-cols-3 gap-4">
-          <div class="bg-white rounded-xl p-5 shadow-sm">
-            <h4 class="font-semibold text-gray-900 mb-4">分类成本构成</h4>
-            <div class="space-y-3">
-              <div v-for="cat in costCategoryData" :key="cat.name" class="flex items-center gap-3">
-                <span class="text-sm text-gray-600 w-36 truncate">{{ cat.name }}</span>
-                <div class="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full" :style="{ width: cat.percentage + '%', backgroundColor: cat.color }"></div></div>
-                <span class="text-sm font-medium text-gray-900 w-16 text-right">¥{{ (cat.amount * 10000).toLocaleString() }}</span>
-                <span class="text-xs text-gray-500 w-12 text-right">{{ cat.percentage }}%</span>
+          <!-- 饼图：成本构成（按分类） -->
+          <div class="col-span-1 bg-white/50 rounded-xl p-4 border border-gray-100">
+            <h5 class="font-semibold text-gray-700 mb-4 text-center">成本构成（按分类）</h5>
+            <div class="space-y-2">
+              <div v-for="cat in costCategoryAgg" :key="cat.category" class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full shrink-0" :style="{ backgroundColor: getCategoryColor(cat.category) }"></span>
+                <span class="text-xs text-gray-700 flex-1 truncate">{{ cat.category }}</span>
+                <span class="text-xs font-medium text-gray-900 w-12 text-right">{{ cat.percentage.toFixed(1) }}%</span>
+                <span class="text-xs text-emerald-600 font-medium w-20 text-right">¥{{ formatNumber(cat.totalAmount) }}</span>
+              </div>
+              <div class="pt-2 mt-2 border-t border-gray-200 flex items-center justify-between">
+                <span class="text-xs text-gray-600 font-bold">总成本</span>
+                <span class="text-sm text-emerald-700 font-bold">¥{{ formatNumber(costKPI.totalCost) }}</span>
               </div>
             </div>
           </div>
-          <div class="col-span-2 bg-white rounded-xl p-5 shadow-sm">
-            <h4 class="font-semibold text-gray-900 mb-4">月度成本趋势</h4>
-            <div class="space-y-2">
-              <div v-for="trend in costTrendData" :key="trend.month" class="flex items-center gap-2">
-                <span class="text-xs text-gray-500 w-20">{{ trend.month }}</span>
-                <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" :style="{ width: (trend.total / maxTrendQty * 100) + '%' }"></div></div>
-                <span class="text-xs text-gray-700 w-20 text-right">{{ trend.total.toLocaleString() }}</span>
+          <!-- 趋势图：12 月柱状图(CSS) -->
+          <div class="col-span-2 bg-white/50 rounded-xl p-4 border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+              <h5 class="font-semibold text-gray-700">成本趋势（{{ costMonthlyAgg.length }} 个月）</h5>
+            </div>
+            <div class="space-y-1.5">
+              <div v-for="m in costMonthlyAgg" :key="m.month" class="flex items-center gap-2">
+                <span class="text-xs text-gray-500 w-16 shrink-0">{{ m.month.replace('2025-', '').replace('2026-', '') }}月</span>
+                <div class="flex-1 h-5 bg-gray-100 rounded overflow-hidden">
+                  <div class="h-full bg-emerald-500" :style="{ width: ((m.totalAmount || 0) / costMaxMonth * 100) + '%' }"></div>
+                </div>
+                <span class="text-xs text-gray-700 w-24 text-right shrink-0">¥{{ formatNumber(m.totalAmount) }}</span>
               </div>
+              <div v-if="costMonthlyAgg.length === 0" class="text-center text-gray-500 text-sm py-8">暂无数据</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 分类对比 -->
-      <div v-if="costActiveTab === 'comparison'">
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden"><div class="p-4 border-b border-gray-100"><h3 class="text-lg font-semibold text-gray-900">分类成本对比</h3></div><table class="w-full"><thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"><tr><th class="px-4 py-2 text-left text-sm font-semibold">物料分类</th><th class="px-4 py-2 text-left text-sm font-semibold">总金额(万元)</th><th class="px-4 py-2 text-left text-sm font-semibold">占比</th><th class="px-4 py-2 text-left text-sm font-semibold">环比</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="row in costCategoryData" :key="row.name" class="hover:bg-gray-50"><td class="px-4 py-2 text-sm text-gray-600">{{ row.name }}</td><td class="px-4 py-2 text-sm text-gray-600">{{ (row.amount || 0).toLocaleString() }}</td><td class="px-4 py-2 text-sm text-gray-600">{{ row.percentage }}%</td><td class="px-4 py-2 text-sm text-gray-600">{{ row.mom || '-' }}</td></tr></tbody></table></div>
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden mt-4"><div class="p-4 border-b border-gray-100"><h3 class="text-lg font-semibold text-gray-900">部门成本对比</h3></div><table class="w-full"><thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"><tr><th class="px-4 py-2 text-left text-sm font-semibold">部门</th><th class="px-4 py-2 text-left text-sm font-semibold">使用量</th><th class="px-4 py-2 text-left text-sm font-semibold">总金额(元)</th><th class="px-4 py-2 text-left text-sm font-semibold">占总成本</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="row in costDeptData" :key="row.department" class="hover:bg-gray-50"><td class="px-4 py-2 text-sm text-gray-600">{{ row.department }}</td><td class="px-4 py-2 text-sm text-gray-600">{{ row.totalQuantity }}</td><td class="px-4 py-2 text-sm text-gray-600">{{ row.totalAmount.toLocaleString() }}</td><td class="px-4 py-2 text-sm text-gray-600">{{ row.percentage }}%</td></tr></tbody></table></div>
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden mt-4"><div class="p-4 border-b border-gray-100"><h3 class="text-lg font-semibold text-gray-900">批次成本对比</h3></div><table class="w-full"><thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"><tr><th class="px-4 py-2 text-left text-sm font-semibold">批次号</th><th class="px-4 py-2 text-left text-sm font-semibold">种植作物</th><th class="px-4 py-2 text-left text-sm font-semibold">总金额(元)</th><th class="px-4 py-2 text-left text-sm font-semibold">占总成本</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="row in costBatchData" :key="row.batchCode" class="hover:bg-gray-50"><td class="px-4 py-2 text-sm text-gray-600">{{ row.batchCode }}</td><td class="px-4 py-2 text-sm text-gray-600">{{ row.cropName }}</td><td class="px-4 py-2 text-sm text-gray-600">{{ row.totalAmount.toLocaleString() }}</td><td class="px-4 py-2 text-sm text-gray-600">{{ row.percentage }}%</td></tr></tbody></table></div>
+      <!-- ============ 子 Tab：分类对比 ============ -->
+      <div v-if="costActiveTab === 'comparison'" class="space-y-4">
+        <!-- 维度切换：按物料分类 / 按部门 / 按批次 -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-600">对比维度：</span>
+          <div class="flex gap-1">
+            <button class="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+              :class="costDimension === 'category' ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              @click="costDimension = 'category'; costExpandedBatch = []"
+            >按物料分类</button>
+            <button class="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+              :class="costDimension === 'department' ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              @click="costDimension = 'department'; costExpandedBatch = []"
+            >按部门</button>
+            <button class="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+              :class="costDimension === 'batch' ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              @click="costDimension = 'batch'; costExpandedBatch = []"
+            >按批次</button>
+          </div>
+        </div>
+
+        <!-- 按物料分类表 -->
+        <div v-if="costDimension === 'category'" class="bg-white/50 rounded-xl border border-gray-100 overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">物料分类</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">领料次数</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">总数量</th>
+                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">总金额</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">占比</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">操作</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr v-if="costCategoryAgg.length === 0"><td colspan="6" class="px-4 py-8 text-center text-gray-500">暂无数据</td></tr>
+              <tr v-for="row in costCategoryAgg" :key="row.category" class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ row.category }}</td>
+                <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.requisitionCount }}</td>
+                <td class="px-4 py-3 text-sm text-center text-gray-600">{{ formatNumber(row.totalQuantity) }}</td>
+                <td class="px-4 py-3 text-sm text-right font-semibold text-emerald-600">¥{{ formatNumber(row.totalAmount) }}</td>
+                <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.percentage.toFixed(1) }}%</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="text-emerald-600 hover:text-emerald-700 text-sm inline-flex items-center gap-1" @click="onViewCostDetail('category', row.category)">
+                    <Eye class="w-4 h-4" /> 查看明细
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 按部门表 -->
+        <div v-if="costDimension === 'department'" class="bg-white/50 rounded-xl border border-gray-100 overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">部门</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">领料次数</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">物料种类</th>
+                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">总金额</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">占比</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">操作</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr v-if="costDepartmentAgg.length === 0"><td colspan="6" class="px-4 py-8 text-center text-gray-500">暂无数据</td></tr>
+              <tr v-for="row in costDepartmentAgg" :key="row.department" class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ row.department }}</td>
+                <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.requisitionCount }}</td>
+                <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.materialTypes }}</td>
+                <td class="px-4 py-3 text-sm text-right font-semibold text-emerald-600">¥{{ formatNumber(row.totalAmount) }}</td>
+                <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.percentage.toFixed(1) }}%</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="text-emerald-600 hover:text-emerald-700 text-sm inline-flex items-center gap-1" @click="onViewCostDetail('department', row.department)">
+                    <Eye class="w-4 h-4" /> 查看明细
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 按批次表（含展开行） -->
+        <div v-if="costDimension === 'batch'" class="bg-white/50 rounded-xl border border-gray-100 overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 w-10"></th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">批次号</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">作物</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">领料次数</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">物料种类</th>
+                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">总成本</th>
+                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">单位成本</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr v-if="costBatchAgg.length === 0"><td colspan="7" class="px-4 py-8 text-center text-gray-500">暂无数据</td></tr>
+              <template v-for="row in costBatchAgg" :key="row.batchCode">
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3">
+                    <button class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-emerald-600" @click="toggleCostBatchExpand(row.batchCode)">
+                      <ChevronDown v-if="costExpandedBatch.includes(row.batchCode)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                  </td>
+                  <td class="px-4 py-3 text-sm font-mono text-emerald-600">{{ row.batchCode }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-900">{{ row.cropName }}</td>
+                  <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.requisitionCount }}</td>
+                  <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.materialTypes }}种</td>
+                  <td class="px-4 py-3 text-sm text-right font-semibold text-emerald-600">¥{{ formatNumber(row.totalAmount) }}</td>
+                  <td class="px-4 py-3 text-sm text-right text-amber-600">¥{{ row.unitCost.toFixed(2) }}/m²</td>
+                </tr>
+                <tr v-if="costExpandedBatch.includes(row.batchCode)">
+                  <td colspan="7" class="px-4 py-3 bg-gray-50">
+                    <div class="text-xs text-gray-500 mb-2">该批次物料领用明细：</div>
+                    <div class="grid grid-cols-4 gap-2">
+                      <div v-for="mat in (costBatchMaterialDetails[row.batchCode] || [])" :key="mat.materialCode" class="bg-white rounded p-2 border border-gray-200">
+                        <div class="text-xs text-gray-500">{{ mat.materialName }}</div>
+                        <div class="text-sm font-medium text-emerald-600">¥{{ formatNumber(mat.totalAmount) }}</div>
+                      </div>
+                      <div v-if="!(costBatchMaterialDetails[row.batchCode]?.length)" class="col-span-4 text-sm text-gray-500">暂无物料明细</div>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <!-- 成本明细弹窗（V1.1 CostDetailModal） -->
+      <ElModal :model-value="costDetailModalOpen" :title="costDetailTitle" :width="900" :height="650" @update:model-value="(v) => { if (!v) costDetailModalOpen = false }" @close="costDetailModalOpen = false">
+        <div class="overflow-auto max-h-[60vh]">
+          <table class="w-full">
+            <thead class="bg-gray-50 sticky top-0">
+              <tr>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">物料编码</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">物料名称</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">规格</th>
+                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">单位</th>
+                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">领料数量</th>
+                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">单价</th>
+                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">金额</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr v-if="costDetailData.length === 0"><td colspan="7" class="px-4 py-8 text-center text-gray-500">暂无数据</td></tr>
+              <tr v-for="(item, idx) in costDetailData" :key="idx" class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm font-mono text-emerald-600">{{ item.code }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ item.name }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ item.spec }}</td>
+                <td class="px-4 py-3 text-sm text-center text-gray-600">{{ item.unit }}</td>
+                <td class="px-4 py-3 text-sm text-right text-gray-600">{{ formatNumber(item.quantity) }}</td>
+                <td class="px-4 py-3 text-sm text-right text-gray-600">¥{{ item.unitPrice.toFixed(2) }}</td>
+                <td class="px-4 py-3 text-sm text-right font-semibold text-emerald-600">¥{{ formatNumber(item.amount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 mt-4">
+          <div class="flex justify-end gap-8">
+            <span class="text-sm text-gray-600">合计：</span>
+            <span class="text-lg font-bold text-emerald-600">¥{{ formatNumber(costDetailData.reduce((s, i) => s + i.amount, 0)) }}</span>
+          </div>
+        </div>
+        <template #footer>
+          <el-button size="small" @click="costDetailModalOpen = false">关闭</el-button>
+        </template>
+      </ElModal>
     </div>
 
     <!-- ============ 申请领料 - 详情弹窗 ============ -->
@@ -1473,10 +1313,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Plus, Pencil, Trash2, Download, AlertTriangle, ChevronRight, ChevronDown, RefreshCw, Package, Search, Eye, RotateCcw, Calendar, BarChart2, ClipboardList, TrendingDown, TrendingUp, BarChart3, FileX, Users, Home as HomeIcon } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Download, AlertTriangle, ChevronRight, ChevronDown, RefreshCw, Package, Search, Eye, RotateCcw, Calendar, BarChart2, ClipboardList, TrendingDown, TrendingUp, BarChart3, FileX, Users, Home as HomeIcon, X } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import MaterialReceivingHeader from '@/components/materialReceiving/MaterialReceivingHeader.vue'
 import Pagination from '@/components/ui/Pagination/Pagination.vue'
+import { ElModal } from '@/components/ui'
 import ExportTypeModal from '@/components/materialReceiving/modals/ExportTypeModal.vue'
 import StatDetailModal from '@/components/materialReceiving/modals/StatDetailModal.vue'
 import { getApplicationList, createApplication as apiCreateApp, updateApplication as apiUpdateApp, deleteApplication as apiDeleteApp, deleteApplicationsBatch, getExecuteList, createExecute as apiCreateExe, updateExecute as apiUpdateExe, deleteExecute as apiDeleteExe } from '@/api/material/apiMaterialRequestService'
@@ -1495,6 +1336,21 @@ import {
   BATCH_FILTER_OPTIONS,
   COMPARISON_PERIOD_OPTIONS
 } from '@/data/materialReceivingStatData'
+// 成本核算计算函数（V1.1 1:1 对齐）
+import {
+  filterCostRecords,
+  calcCostTotal,
+  calcMonthlyCost,
+  aggregateByCategory,
+  aggregateByDepartment,
+  aggregateByBatch,
+  aggregateByMonth,
+  getFilteredMaterialDetails,
+  getBatchMaterialDetails,
+  COST_CATEGORIES,
+  COST_DEPARTMENTS
+} from '@/data/costData'
+import { materialReceivingDetails } from '@/data/materialReceivingMockData'
 
 // V1.1 仅 7 个物料分类 key（白名单，防止混入领料单字段）
 const CATEGORY_KEY_WHITELIST = ['生产投入', '设施装备', '作业支持', '采后流通', '数字管理', '能源耗材', '其他']
@@ -2456,30 +2312,126 @@ const formatNumber = (n) => {
   return v.toLocaleString()
 }
 
-// ==================== Tab 4: 成本核算 ====================
-const costSubTabs = [{ key: 'overview', label: '成本概览' }, { key: 'comparison', label: '分类对比' }]
+// ==================== Tab 4: 成本核算 - 严格 1:1 对齐 V1.1 CostTab.tsx ====================
+const costSubTabs = [
+  { key: 'overview', label: '成本概览', icon: TrendingUp },
+  { key: 'comparison', label: '分类对比', icon: BarChart2 }
+]
 const costActiveTab = ref('overview')
-const costKPIs = [
-  { label: '总成本', value: '¥924,580', trend: 5.2 },
-  { label: '本月成本', value: '¥38,250', trend: -2.1 },
-  { label: '平均批次成本', value: '¥3,850', trend: 1.8 },
-  { label: '单位面积成本', value: '¥12.5/m²', trend: -0.5 }
+
+// 成本筛选状态（V1.1 CostFilters 1:1）
+const costQuickPeriods = [
+  { label: '本周', value: 'week' },
+  { label: '本月', value: 'month' },
+  { label: '本季', value: 'quarter' },
+  { label: '本年', value: 'year' }
 ]
-const costCategoryData = categorySummaryData
-const costTrendData = categoryTrendData
-const costDeptData = [
-  { department: '生产部', totalQuantity: 2530, totalAmount: 69370, percentage: 69.4 },
-  { department: '技术部', totalQuantity: 460, totalAmount: 12600, percentage: 12.6 },
-  { department: '设备部', totalQuantity: 215, totalAmount: 8700, percentage: 8.7 },
-  { department: '采后处理部', totalQuantity: 600, totalAmount: 5015, percentage: 5.0 },
-  { department: '品控部', totalQuantity: 120, totalAmount: 3380, percentage: 3.4 }
-]
-const costBatchData = [
-  { batchCode: 'FQ2024-001', cropName: '番茄', totalAmount: 18560, percentage: 33.7 },
-  { batchCode: 'SD2024-001', cropName: '水稻', totalAmount: 23480, percentage: 42.6 },
-  { batchCode: 'XM2024-001', cropName: '小麦', totalAmount: 13120, percentage: 23.8 }
-]
-const maxTrendQty = computed(() => Math.max(...(costTrendData.value || []).map(d => d.total), 1))
+const getInitialCostFilters = () => {
+  const now = new Date()
+  return {
+    quickPeriod: 'year',
+    dateRange: {
+      start: `${now.getFullYear()}-01-01`,
+      end: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    },
+    departments: [],
+    categories: [],
+    batches: [],
+    warehouses: []
+  }
+}
+const costFilters = reactive(getInitialCostFilters())
+const costSelectedDept = ref('all')
+const costSelectedCategory = ref('all')
+
+const onCostQuickPeriod = (period) => {
+  const now = new Date()
+  const yyyy = now.getFullYear()
+  const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  let start = '', end = fmt(now)
+  if (period === 'week') {
+    const ws = new Date(now); ws.setDate(now.getDate() - now.getDay()); start = fmt(ws)
+  } else if (period === 'month') {
+    start = `${yyyy}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+  } else if (period === 'quarter') {
+    const qm = Math.floor(now.getMonth() / 3) * 3
+    start = `${yyyy}-${String(qm + 1).padStart(2, '0')}-01`
+  } else if (period === 'year') {
+    start = `${yyyy}-01-01`
+  }
+  costFilters.quickPeriod = period
+  costFilters.dateRange.start = start
+  costFilters.dateRange.end = end
+}
+
+const onCostDeptChange = () => {
+  costFilters.departments = costSelectedDept.value === 'all' ? [] : [costSelectedDept.value]
+}
+const onCostCategoryChange = () => {
+  costFilters.categories = costSelectedCategory.value === 'all' ? [] : [costSelectedCategory.value]
+}
+const resetCostFilters = () => {
+  Object.assign(costFilters, getInitialCostFilters())
+  costSelectedDept.value = 'all'
+  costSelectedCategory.value = 'all'
+}
+
+// 数据源：优先用真实领料数据，兜底 V1.1 12 条 mock
+const costRecordsSource = computed(() => {
+  if (applicationData.value && applicationData.value.length > 0) return applicationData.value
+  return materialReceivingDetails
+})
+const costFilteredRecords = computed(() => filterCostRecords(costRecordsSource.value, costFilters))
+
+// KPI 4 卡：累计总成本 / 本月成本 / 平均批次成本 / 成本差异率
+const costKPI = computed(() => {
+  const records = costFilteredRecords.value
+  const totalCost = calcCostTotal(records)
+  const monthlyCost = calcMonthlyCost(records)
+  const batchData = aggregateByBatch(records)
+  const avgBatchCost = batchData.length > 0 ? totalCost / batchData.length : 0
+  const costDiffRate = -2.3 // V1.1 简化默认值
+  return { totalCost, monthlyCost, avgBatchCost, costDiffRate }
+})
+
+const costCategoryAgg = computed(() => aggregateByCategory(costFilteredRecords.value))
+const costDepartmentAgg = computed(() => aggregateByDepartment(costFilteredRecords.value))
+const costBatchAgg = computed(() => aggregateByBatch(costFilteredRecords.value))
+const costMonthlyAgg = computed(() => aggregateByMonth(costFilteredRecords.value))
+const costMaxMonth = computed(() => Math.max(...costMonthlyAgg.value.map(m => m.totalAmount), 1))
+const costBatchMaterialDetails = computed(() => getBatchMaterialDetails(costFilteredRecords.value))
+
+// 维度切换 + 批次明细展开
+const costDimension = ref('category')
+const costExpandedBatch = ref([])
+const toggleCostBatchExpand = (batchCode) => {
+  const idx = costExpandedBatch.value.indexOf(batchCode)
+  if (idx > -1) costExpandedBatch.value.splice(idx, 1)
+  else costExpandedBatch.value.push(batchCode)
+}
+
+// 分类颜色映射（V1.1 CostPieChart 1:1）
+const COST_CATEGORY_COLOR_MAP = {
+  '种质资源': '#06B6D4',
+  '肥料与土壤改良剂': '#8B5CF6',
+  '农药与植保产品': '#F59E0B',
+  '农业机械': '#F97316',
+  '劳保与防护用品': '#EC4899',
+  '采收容器': '#64748B',
+  '监测设备': '#10B981',
+  '其他': '#9CA3AF'
+}
+const getCategoryColor = (cat) => COST_CATEGORY_COLOR_MAP[cat] || '#9CA3AF'
+
+// 明细弹窗（V1.1 CostDetailModal）
+const costDetailModalOpen = ref(false)
+const costDetailTitle = ref('')
+const costDetailData = ref([])
+const onViewCostDetail = (dimension, value) => {
+  costDetailData.value = getFilteredMaterialDetails(costFilteredRecords.value, dimension, value)
+  costDetailTitle.value = `${value} 明细`
+  costDetailModalOpen.value = true
+}
 
 onMounted(() => { loadApplicationData(); loadExecuteData(); loadMaterialStatistics() })
 </script>
