@@ -499,17 +499,19 @@
             <label class="block text-xs font-medium text-gray-700 mb-1">国家</label>
             <input v-model="form.country" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
           </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">省份</label>
-            <input v-model="form.province" placeholder="省" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">城市</label>
-            <input v-model="form.city" placeholder="市" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">区县</label>
-            <input v-model="form.district" placeholder="区县" class="w-full h-9 px-3 border border-gray-200 rounded text-sm" />
+          <div class="col-span-3">
+            <label class="block text-xs font-medium text-gray-700 mb-1">省/市/区</label>
+            <!-- V1.1 Cascader 区域级联 (4级懒加载: 省份→城市→区县) -->
+            <Cascader
+              :options="regionProvincesOptions"
+              :lazy="true"
+              :max-level="4"
+              :load-children="handleLoadRegionChildren"
+              :change="handleRegionChange"
+              :value-nodes="regionPathNodes.length > 0 ? regionPathNodes : undefined"
+              placeholder="请选择省/市/区"
+              class="w-full"
+            />
           </div>
           <div class="col-span-3">
             <label class="block text-xs font-medium text-gray-700 mb-1">详细地址</label>
@@ -751,6 +753,8 @@ import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 import { useSupplierStore } from '@/stores/modules/inventory/useSupplierStore'
 import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { useSupplierCodeRuleStore } from '@/stores/modules/supplierCodeRule'
+import { useRegionStore } from '@/stores/modules/useRegionStore'
+import { Cascader } from '@/components/ui'
 import { validateMobilePhone, validateWorkPhone, validateFax, validateBankCard, validateCode, runValidations } from '@/utils/validators'
 // 与订单管理共享按钮样式常量
 import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnWarning } from '@/views/production/constants/buttonStyles'
@@ -821,6 +825,7 @@ const router = useRouter()
 const supplierStore = useSupplierStore()
 const dictionaryStore = useDictionaryStore()
 const supplierCodeRuleStore = useSupplierCodeRuleStore()
+const regionStore = useRegionStore()
 
 // ==================== 字典数据 ====================
 
@@ -898,6 +903,39 @@ const form = reactive({
 const formRef = ref()
 
 // ==================== 计算属性 ====================
+
+// V1.1 区域级联选择 (4级懒加载: 省份→城市→区县)
+// 跟踪级联选择路径节点
+const regionPathNodes = ref([])
+const regionProvincesOptions = computed(() => {
+  return (regionStore.provinces || []).map(n => ({
+    label: n.name,
+    value: String(n.id),
+    id: n.id
+  }))
+})
+
+// 懒加载回调
+const handleLoadRegionChildren = async (parentId) => {
+  const children = await regionStore.getChildren(parentId)
+  return (children || []).map(n => ({
+    label: n.name,
+    value: String(n.id),
+    id: n.id
+  }))
+}
+
+// 级联选择变化回调 (V1.1 handleRegionChange)
+const handleRegionChange = (nodes) => {
+  regionPathNodes.value = nodes
+  const province = nodes[0]?.label || ''
+  const city = nodes.slice(1).map(n => n.label).join(' ')
+  form.province = province
+  form.city = city
+}
+
+// 加载省份列表
+regionStore.fetchProvinces()
 
 const hasActiveMode = computed(() => batchEditMode.value || deleteMode.value || exportMode.value)
 
