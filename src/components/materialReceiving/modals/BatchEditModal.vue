@@ -1,8 +1,12 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="批量编辑领料记录"
-    width="840px"
+    :width="900"
+    :height="650"
+    :show-submit="false"
+    :show-cancel="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
     @close="handleClose"
   >
     <!-- 提示信息 -->
@@ -163,20 +167,21 @@
     <!-- 操作按钮 -->
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleNextRecord">
+        <el-button size="small" @click="handleNextRecord">
           确认 {{ currentBatchEditIndex + 1 < selectedRows.length ? '(下一个)' : '(已最后一个)' }}
         </el-button>
-        <el-button type="primary" @click="handleSaveAll">
+        <el-button type="primary" size="small" @click="handleSaveAll">
           保存全部 ({{ editedCount }} 个)
         </el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Delete } from '@element-plus/icons-vue'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -187,11 +192,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'record-change', 'field-change', 'material-change', 'material-delete', 'next-record', 'save-all'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 const currentRecordId = ref(null)
 

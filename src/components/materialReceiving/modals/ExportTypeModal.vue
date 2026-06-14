@@ -1,8 +1,13 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="选择导出格式"
-    width="500px"
+    :width="500"
+    :height="450"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
     @close="handleClose"
   >
     <div class="space-y-3">
@@ -37,15 +42,15 @@
 
     <template #footer>
       <div class="flex gap-3">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleConfirm">确认导出</el-button>
+        <el-button size="small" @click="handleClose">取消</el-button>
+        <el-button size="small" type="primary" @click="handleConfirm">确认导出</el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -53,11 +58,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'change', 'confirm'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 const formats = [
   { value: 'xlsx', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },

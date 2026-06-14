@@ -1,5 +1,15 @@
 <template>
-  <el-dialog v-model="visible" title="新增入库" width="800px" @close="handleClose">
+  <ElModal
+    :model-value="show"
+    title="新增入库"
+    :width="900"
+    :height="650"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
+    @close="handleClose"
+  >
     <el-form :model="localNewInbound" label-width="100px">
       <!-- 入库单号 -->
       <el-form-item label="入库单号">
@@ -71,15 +81,16 @@
     </el-form>
 
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" :disabled="!isValid" @click="handleSave">保存</el-button>
+      <el-button size="small" @click="handleClose">取消</el-button>
+      <el-button size="small" type="primary" :disabled="!isValid" @click="handleSave">保存</el-button>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { categoryConfig, warehouseMaterials, unitOptions } from './mockData'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -89,11 +100,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'save', 'new-inbound-change', 'generate-order-code', 'check-code-duplicate', 'check-name-duplicate'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 const localNewInbound = ref({ ...props.newInbound })
 

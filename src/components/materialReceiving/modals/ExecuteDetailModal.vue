@@ -1,8 +1,13 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="出库单详情"
-    width="1000px"
+    :width="1200"
+    :height="700"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
     @close="handleClose"
   >
     <!-- 基本信息 -->
@@ -101,14 +106,15 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <el-button @click="handleClose">关闭</el-button>
+        <el-button size="small" @click="handleClose">关闭</el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -116,11 +122,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 const localRecord = ref(props.record)
 

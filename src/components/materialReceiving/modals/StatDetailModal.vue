@@ -4,11 +4,15 @@
   4 个分组：物料基本信息 / 批次信息 / 领料统计 / 数据汇总
 -->
 <template>
-  <el-dialog
+  <ElModal
     :model-value="isOpen"
     title="物料统计明细"
-    width="900px"
-    :show-close="true"
+    :width="900"
+    :height="700"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
     @close="handleClose"
   >
     <div v-if="record" class="space-y-5">
@@ -134,12 +138,14 @@
     </div>
 
     <template #footer>
-      <el-button @click="handleClose">关闭</el-button>
+      <el-button size="small" @click="handleClose">关闭</el-button>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
+import { ElModal } from '@/components/ui'
+
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
   record: { type: Object, default: null },

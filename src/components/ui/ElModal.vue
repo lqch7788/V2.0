@@ -218,6 +218,13 @@ function centerModal() {
 }
 
 // === 容器样式 ===
+// V1.1 Modal.tsx 行 237: useCenteredLayout = !enableDrag && !enableResize && !isMaximized
+// useCenteredLayout 模式下: 用 fixed center + 只设 width 不设 height (height 由内容撑开)
+// 这是 V1.1 警告类弹窗（BatchEditWarningModal/MaterialExportModal 等）的渲染方式
+const useCenteredLayout = computed(() =>
+  !props.enableDrag && !props.enableResize && !isMaximized.value
+)
+
 const containerStyle = computed(() => {
   if (isMaximized.value) {
     return {
@@ -225,6 +232,18 @@ const containerStyle = computed(() => {
       top: '16px',
       width: 'calc(100vw - 32px)',
       height: 'calc(100vh - 32px)'
+    }
+  }
+  // V1.1 useCenteredLayout: 居中 + 自适应高度
+  if (useCenteredLayout.value) {
+    const w = modalSize.value.width
+    return {
+      position: 'fixed',
+      left: '50%',
+      top: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: (typeof w === 'number' ? w + 'px' : w),
+      maxHeight: '90vh'
     }
   }
   // 修复 P0-XXX:

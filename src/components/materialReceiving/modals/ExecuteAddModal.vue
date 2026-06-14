@@ -1,8 +1,13 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="新增领料出库单"
-    width="770px"
+    :width="900"
+    :height="650"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
     @close="handleClose"
   >
     <div class="grid grid-cols-2 gap-4">
@@ -168,15 +173,16 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" :disabled="materialPool.length === 0" @click="handleSave">保存</el-button>
+        <el-button size="small" @click="handleCancel">取消</el-button>
+        <el-button size="small" type="primary" :disabled="materialPool.length === 0" @click="handleSave">保存</el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -189,11 +195,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'add-form-change', 'selected-application-code-change', 'selected-material-indices-change', 'material-actual-quantities-change', 'add-to-material-pool', 'remove-from-material-pool', 'update-material-pool-quantity', 'cancel', 'save'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 const localForm = ref({ ...props.addForm })
 const selectedApplicationCode = ref(props.selectedApplicationCode)

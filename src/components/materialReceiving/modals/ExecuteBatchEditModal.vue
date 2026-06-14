@@ -1,8 +1,13 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="批量编辑领料出库记录"
-    width="840px"
+    :width="900"
+    :height="650"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
     @close="handleClose"
   >
     <!-- 提示信息 -->
@@ -126,16 +131,17 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleSaveAll">保存全部</el-button>
+        <el-button size="small" @click="handleClose">取消</el-button>
+        <el-button size="small" type="primary" @click="handleSaveAll">保存全部</el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Delete } from '@element-plus/icons-vue'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -146,11 +152,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'record-change', 'field-change', 'material-change', 'material-delete', 'save-all'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 const currentRecordId = ref(null)
 

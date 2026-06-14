@@ -1,8 +1,13 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="编辑领料出库单"
-    width="770px"
+    :width="900"
+    :height="650"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
     @close="handleClose"
   >
     <!-- 基本信息 -->
@@ -144,16 +149,17 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="$emit('save')">保存</el-button>
+        <el-button size="small" @click="handleCancel">取消</el-button>
+        <el-button size="small" type="primary" @click="$emit('save')">保存</el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Plus, Delete } from '@element-plus/icons-vue'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -174,11 +180,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'form-change', 'material-change', 'add-material', 'remove-material', 'save'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 const localForm = ref({ ...props.editForm })
 

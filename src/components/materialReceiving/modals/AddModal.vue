@@ -1,5 +1,15 @@
 <template>
-  <el-dialog v-model="visible" title="新增领料单" width="840px" :close-on-click-modal="false" @close="handleClose">
+  <ElModal
+    :model-value="show"
+    title="新增领料单"
+    :width="900"
+    :height="650"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
+    @close="handleClose"
+  >
     <el-form :model="localForm" label-width="100px">
       <div class="grid grid-cols-3 gap-4">
         <!-- 领料单号 -->
@@ -128,15 +138,16 @@
     </el-form>
 
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleSave">保存</el-button>
+      <el-button size="small" @click="handleClose">取消</el-button>
+      <el-button type="primary" size="small" @click="handleSave">保存</el-button>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { Plus, Delete } from '@element-plus/icons-vue'
+import { ElModal } from '@/components/ui'
 
 const PRODUCTION_BATCH_CODES = [
   'FQ2024-001', 'FQ2024-002', 'FQ2024-003', 'FQ2024-004',
@@ -166,11 +177,6 @@ const localForm = ref({
 watch(() => props.form, (val) => {
   localForm.value = { ...val }
 }, { deep: true, immediate: true })
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 // 物料编码变化处理
 const handleMaterialCodeChange = (index, value) => {

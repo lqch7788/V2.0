@@ -1,5 +1,15 @@
 <template>
-  <el-dialog v-model="visible" title="领料单详情" width="1200px" :close-on-click-modal="false">
+  <ElModal
+    :model-value="show"
+    title="领料单详情"
+    :width="1200"
+    :height="700"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleClose() }"
+    @close="handleClose"
+  >
     <div class="grid grid-cols-3 gap-4 mb-4">
       <div>
         <div class="text-sm text-gray-500">领料单号</div>
@@ -77,25 +87,20 @@
     </div>
 
     <template #footer>
-      <el-button @click="handleClose">关闭</el-button>
+      <el-button size="small" @click="handleClose">关闭</el-button>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ElModal } from '@/components/ui'
 
-const props = defineProps({
+defineProps({
   show: { type: Boolean, default: false },
   record: { type: Object, default: () => ({}) }
 })
 
 const emit = defineEmits(['close'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleClose()
-})
 
 const getStatusType = (statusClass) => {
   switch (statusClass) {

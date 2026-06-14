@@ -1,8 +1,13 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="作废申请"
-    width="500px"
+    :width="500"
+    :height="400"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleCancel() }"
     @close="handleCancel"
   >
     <div v-if="recordCode" class="mb-4">
@@ -24,15 +29,16 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="warning" @click="handleSubmit">确认申请</el-button>
+        <el-button size="small" @click="handleCancel">取消</el-button>
+        <el-button size="small" type="warning" @click="handleSubmit">确认申请</el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -41,11 +47,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'update:reason', 'confirm'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleCancel()
-})
 
 const localReason = ref(props.reason || '')
 

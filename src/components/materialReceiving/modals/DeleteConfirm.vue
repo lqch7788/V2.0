@@ -1,8 +1,12 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="确认删除"
-    width="500px"
+    :width="500"
+    :height="320"
+    :show-submit="false"
+    :show-cancel="false"
+    @update:model-value="(v) => { if (!v) handleCancel() }"
     @close="handleCancel"
   >
     <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
@@ -14,26 +18,21 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="danger" @click="handleConfirm">确认删除</el-button>
+        <el-button size="small" @click="handleCancel">取消</el-button>
+        <el-button type="danger" size="small" @click="handleConfirm">确认删除</el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ElModal } from '@/components/ui'
 
-const props = defineProps({
+defineProps({
   show: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['close', 'confirm'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleCancel()
-})
 
 const handleCancel = () => {
   emit('close')

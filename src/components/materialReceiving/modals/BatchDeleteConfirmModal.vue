@@ -1,8 +1,13 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <ElModal
+    :model-value="show"
     title="批量删除确认"
-    width="500px"
+    :width="500"
+    :height="350"
+    :show-submit="false"
+    :show-cancel="false"
+    :close-on-click-modal="false"
+    @update:model-value="(v) => { if (!v) handleCancel() }"
     @close="handleCancel"
   >
     <div class="flex items-start gap-3 mb-4">
@@ -26,16 +31,16 @@
 
     <template #footer>
       <div class="flex gap-3">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="danger" @click="handleConfirm">确认删除</el-button>
+        <el-button size="small" @click="handleCancel">取消</el-button>
+        <el-button size="small" type="danger" @click="handleConfirm">确认删除</el-button>
       </div>
     </template>
-  </el-dialog>
+  </ElModal>
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { WarningFilled } from '@element-plus/icons-vue'
+import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -43,11 +48,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'confirm'])
-
-const visible = computed({
-  get: () => props.show,
-  set: () => handleCancel()
-})
 
 const handleCancel = () => emit('close')
 
