@@ -211,6 +211,7 @@
                 />
               </th>
               <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 130px">任务编号</th>
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">来源</th>
               <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">任务类型</th>
               <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">工作区域</th>
               <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">作物</th>
@@ -218,46 +219,112 @@
               <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 120px">工作量</th>
               <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">进度</th>
               <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 90px">状态</th>
-              <th v-if="!exportMode" class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 70px">操作</th>
+              <th v-if="!exportMode" class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 130px">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-300">
-            <tr
-              v-for="row in paginatedData"
-              :key="row.id"
-              class="hover:bg-blue-100 transition-colors"
-            >
-              <td v-if="exportMode" class="py-3 whitespace-nowrap text-center">
-                <input
-                  type="checkbox"
-                  :checked="selectedRows.includes(row.id)"
-                  @change="handleToggleRow(row.id)"
-                  class="w-4 h-4 rounded border-gray-300 cursor-pointer"
-                />
-              </td>
-              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.taskCode }}</td>
-              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.taskTypeName }}</td>
-              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.greenhouse }}</td>
-              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.crop }}</td>
-              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.worker }}</td>
-              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ formatWorkload(row) }}</td>
-              <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
-                {{ row.progress !== undefined ? row.progress + '%' : '-' }}
-              </td>
-              <td class="py-3 px-4 text-sm whitespace-nowrap">
-                <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', statusColorClass(row.status)]">
-                  {{ row.status }}
-                </span>
-              </td>
-              <td v-if="!exportMode" class="py-3 whitespace-nowrap text-center">
-                <button class="text-gray-500 hover:text-gray-700 p-1" title="查看">
-                  <el-icon :size="16"><View /></el-icon>
-                </button>
-              </td>
-            </tr>
+            <template v-for="row in paginatedData" :key="row.id">
+              <!-- 主记录行 -->
+              <tr class="hover:bg-blue-100 transition-colors">
+                <td v-if="exportMode" class="py-3 px-3 whitespace-nowrap text-center">
+                  <input
+                    type="checkbox"
+                    :checked="selectedRows.includes(row.id)"
+                    @change="handleToggleRow(row.id)"
+                    class="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                  />
+                </td>
+                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
+                  <div class="flex items-center gap-1">
+                    <!-- 与 V1.1 L441-456 1:1 对齐：折叠按钮 -->
+                    <button
+                      v-if="row.children && row.children.length > 0"
+                      @click="toggleChildren(row.id)"
+                      class="text-gray-400 hover:text-gray-600"
+                    >
+                      <el-icon :size="14">
+                        <ArrowDown v-if="expandedIds.includes(row.id)" />
+                        <ArrowRight v-else />
+                      </el-icon>
+                    </button>
+                    <span class="font-medium">{{ row.taskCode }}</span>
+                  </div>
+                </td>
+                <!-- 与 V1.1 L267-274 1:1 对齐：来源 Badge -->
+                <td class="py-3 px-4 text-sm whitespace-nowrap text-center">
+                  <span :class="['inline-flex px-2 py-1 rounded text-xs font-medium', getSourceColor(row.sourceType || 'task')]">
+                    {{ getSourceLabel(row.sourceType || 'task') }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.taskTypeName }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.greenhouse }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.crop }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.worker }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ formatWorkload(row) }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
+                  {{ row.progress !== undefined ? row.progress + '%' : '-' }}
+                </td>
+                <td class="py-3 px-4 text-sm whitespace-nowrap">
+                  <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', statusColorClass(row.status)]">
+                    {{ row.status }}
+                  </span>
+                </td>
+                <!-- 与 V1.1 L492-514 1:1 对齐：验收/驳回操作 + 查看 -->
+                <td v-if="!exportMode" class="py-3 px-2 whitespace-nowrap text-center">
+                  <div class="flex items-center justify-center gap-1">
+                    <template v-if="row.status === '待验收'">
+                      <el-button link type="success" size="small" @click="handleAcceptRecord(row)" title="审核通过">
+                        <el-icon :size="14"><Check /></el-icon>通过
+                      </el-button>
+                      <el-button link type="danger" size="small" @click="handleRejectRecord(row)" title="审核驳回">
+                        <el-icon :size="14"><CircleClose /></el-icon>驳回
+                      </el-button>
+                    </template>
+                    <button v-else class="text-gray-500 hover:text-gray-700 p-1" title="查看">
+                      <el-icon :size="16"><View /></el-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <!-- 与 V1.1 L324-361 1:1 对齐：折叠子记录行 -->
+              <tr v-if="row.children && row.children.length > 0 && expandedIds.includes(row.id)">
+                <td :colspan="exportMode ? 11 : 10" class="px-4 py-0 bg-blue-50">
+                  <div class="py-2 pl-8 space-y-2">
+                    <div v-for="(child, idx) in row.children" :key="child.id" class="flex items-start gap-4 text-sm">
+                      <!-- 连接线 -->
+                      <div class="flex flex-col items-center">
+                        <div class="w-3 h-3 rounded-full bg-blue-400 border-2 border-white" />
+                        <div v-if="idx < row.children.length - 1" class="w-0.5 h-8 bg-blue-200" />
+                      </div>
+                      <!-- 内容 -->
+                      <div class="flex-1 grid grid-cols-12 gap-2 items-center">
+                        <div class="col-span-2 text-gray-500">{{ child.operationDate }}</div>
+                        <div class="col-span-1 text-gray-500">{{ child.time || '-' }}</div>
+                        <div class="col-span-2 font-medium text-gray-700">{{ child.operatorName }}</div>
+                        <div class="col-span-2">
+                          <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                            {{ child.operationTypeName }}
+                          </span>
+                          <span v-if="child.area" class="ml-1 text-gray-500">({{ child.area }})</span>
+                        </div>
+                        <div class="col-span-2 text-gray-600">
+                          {{ child.progress !== undefined ? child.progress + '%' : '-' }}
+                        </div>
+                        <div class="col-span-1 text-gray-600">
+                          {{ child.workload ? child.workload + (child.unit || '') : '-' }}
+                        </div>
+                        <div class="col-span-2 text-gray-500 truncate" :title="child.remarks || ''">
+                          {{ child.remarks || child.rejectReason || '-' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </template>
             <!-- 空状态 -->
             <tr v-if="paginatedData.length === 0">
-              <td :colspan="exportMode ? 10 : 9" class="py-8 text-center text-gray-500">
+              <td :colspan="exportMode ? 11 : 10" class="py-8 text-center text-gray-500">
                 暂无数据
               </td>
             </tr>
@@ -471,8 +538,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Download,
   Message,
@@ -481,6 +548,12 @@ import {
   Loading,
   Tickets,
   View,
+  ArrowDown,
+  ArrowRight,
+  Check,
+  CircleClose,
+  Plus,
+  RefreshLeft,
 } from '@element-plus/icons-vue'
 import { useTasks } from '@/composables/useTasks'
 import { usePersistentWorkLogs } from '@/composables/usePersistentWorkLogs'
@@ -586,6 +659,29 @@ const handleBatchEditConfirm = () => {
   batchDeleteMode.value = false
 }
 
+// ============ 与 V1.1 L267-274 getSourceLabel/getSourceColor 1:1 对齐：5 来源类型映射 ============
+const SOURCE_CONFIG = {
+  task: { label: '任务派发', color: 'bg-blue-100 text-blue-700' },
+  tempTask: { label: '临时任务', color: 'bg-amber-100 text-amber-700' },
+  manual: { label: '手动录入', color: 'bg-emerald-100 text-emerald-700' },
+  inspection: { label: '巡检', color: 'bg-purple-100 text-purple-700' },
+  scheduled: { label: '排班', color: 'bg-cyan-100 text-cyan-700' },
+}
+
+const getSourceLabel = (sourceType) => SOURCE_CONFIG[sourceType]?.label || sourceType
+const getSourceColor = (sourceType) => SOURCE_CONFIG[sourceType]?.color || 'bg-gray-100 text-gray-700'
+
+// ============ 与 V1.1 L62-63 1:1 对齐：折叠子记录 ============
+const expandedIds = ref([])
+const toggleChildren = (id) => {
+  const idx = expandedIds.value.indexOf(id)
+  if (idx >= 0) {
+    expandedIds.value.splice(idx, 1)
+  } else {
+    expandedIds.value.push(id)
+  }
+}
+
 // ============ 操作人员选项（动态从数据提取）============
 const filterOptionOperators = computed(() => {
   const names = [...new Set(summaries.value.map(s => s.worker).filter(Boolean))]
@@ -594,18 +690,6 @@ const filterOptionOperators = computed(() => {
 
 // ============ 筛选触发（统一入口）============
 const handleFilterChange = () => {
-  currentPage.value = 1
-}
-
-// ============ 与 V1.1 L156-168 handleReset 1:1 对齐：重置所有筛选 ============
-const handleResetFilters = () => {
-  dateFilter.value = ''
-  greenhouseFilter.value = ''
-  taskTypeFilter.value = ''
-  sourceTypeFilter.value = ''
-  statusFilter.value = ''
-  operatorFilter.value = ''
-  searchText.value = ''
   currentPage.value = 1
 }
 
@@ -789,10 +873,6 @@ function formatWorkload(row) {
 }
 
 // ============ 事件处理 ============
-function handleFilterChange() {
-  currentPage.value = 1
-}
-
 function handlePageSizeChange() {
   currentPage.value = 1
 }
