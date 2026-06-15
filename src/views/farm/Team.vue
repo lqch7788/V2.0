@@ -345,7 +345,10 @@ const handleBatchExportClick = async () => {
     })
     const headers = ['班组名称', '负责人', '作业区域', '成员数量', '描述']
     const rows = store.teams.filter(t => selectedRows.value.includes(t.id))
-    const csv = [headers.join(','), ...rows.map(r => headers.map(h => `"${(r as any)[h === '班组名称' ? 'name' : h === '负责人' ? 'leaderName' : h === '作业区域' ? 'workZone' : h === '成员数量' ? 'memberCount' : 'description'] || ''}"`).join(','))].join('\n')
+    const csv = [headers.join(','), ...rows.map(r => headers.map(h => {
+      const key = h === '班组名称' ? 'name' : h === '负责人' ? 'leaderName' : h === '作业区域' ? 'workZone' : h === '成员数量' ? 'memberCount' : 'description'
+      return `"${r[key] || ''}"`
+    }).join(','))].join('\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

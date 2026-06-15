@@ -807,7 +807,7 @@ import { useProblemStore } from '@/stores/modules/problem'
 import { useUserStore } from '@/stores/modules/user'
 import { useFarmTaskStore } from '@/stores/modules/farmTask'
 import { useWorkerStore } from '@/stores/modules/worker' // V2.0 实际存在，提供 workerList
-import { useInspectionStore } from '@/stores/modules/inspectionData' // 巡查问题联动（V1.1 useProblemStore.getBySource('inspection')）
+import { useInspectionDataStore } from '@/stores/modules/inspectionData' // 巡查问题联动（V1.1 useProblemStore.getBySource('inspection')）
 
 // 组件依赖
 import ProblemFilterToolbar from '@/components/farm/problemDispatch/components/ProblemFilterToolbar.vue'
@@ -841,7 +841,7 @@ try { workerStore = useWorkerStore() } catch (e) { workerStore = null }
 
 // 巡查问题联动 store（用于 getBySource('inspection')）
 let inspectionStore = null
-try { inspectionStore = useInspectionStore() } catch (e) { inspectionStore = null }
+try { inspectionStore = useInspectionDataStore() } catch (e) { inspectionStore = null }
 
 // ========== 常量 (V1.1 line 38-53) ==========
 const STATUS_CN_MAP = {
@@ -1884,8 +1884,8 @@ function downloadFile(content, filename, mimeType) {
 // ========== 巡查问题联动 (V1.1 useProblemStore getBySource) ==========
 function getInspectionProblems() {
   if (!inspectionStore) return []
-  // 尝试 inspectionStore.problems 或 inspectionStore.records
-  const list = inspectionStore.problems || inspectionStore.records || []
+  // 尝试 inspectionStore.records（V1.1 useInspectionDataStore 的 records 字段）
+  const list = inspectionStore.records || []
   return list.filter((p) => p.sourceModule === 'inspection' || p.inspectionId)
 }
 
