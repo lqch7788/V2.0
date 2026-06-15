@@ -722,7 +722,8 @@ function handleTaskRemind(task) {
   ElMessage.success(`已向 ${task.assigneeName || '执行人'} 发送催办提醒`)
 }
 
-// 催办冷却检查（与V1.1 useReminder.canSendReminder 逻辑一致）
+// 催办冷却检查（与V1.1 useReminder.canRemind 逻辑一致）
+// 返回值结构对齐 V1.1 useReminder.ts line 82-116：{ allowed, reason?, cooldownSec, todayCount }
 function canRemind(taskId) {
   const reminderRecords = tasksHook.reminderRecords.value || []
   const now = new Date()
@@ -732,8 +733,9 @@ function canRemind(taskId) {
   const todayReminders = reminderRecords.filter(
     r => r.taskId === taskId && (r.remindedAt || '').startsWith(today)
   )
-  if (todayReminders.length >= 5) {
-    return { allowed: false, reason: '今日催办次数已达上限(5次)' }
+  const todayCount = todayReminders.length
+  if (todayCount >= 5) {
+    return { allowed: false, reason: '今日催办次数已达上限(5次)', cooldownSec: 0, todayCount }
   }
 
   // 检查催办间隔
@@ -742,12 +744,18 @@ function canRemind(taskId) {
     const lastTime = new Date(lastReminder.remindedAt).getTime()
     const intervalMs = now.getTime() - lastTime
     if (intervalMs < 60 * 60 * 1000) {
-      const minutesLeft = Math.ceil((60 * 60 * 1000 - intervalMs) / 60000)
-      return { allowed: false, reason: `催办间隔需大于1小时，还需等待${minutesLeft}分钟` }
+      const cooldownSec = Math.ceil((60 * 60 * 1000 - intervalMs) / 1000)
+      const minutesLeft = Math.ceil(cooldownSec / 60)
+      return {
+        allowed: false,
+        reason: `催办间隔需大于1小时，还需等待${minutesLeft}分钟`,
+        cooldownSec,
+        todayCount,
+      }
     }
   }
 
-  return { allowed: true }
+  return { allowed: true, reason: '', cooldownSec: 0, todayCount }
 }
 
 function handleSelectExecutor(task) { selectExecutorTask.value = task }
@@ -1001,7 +1009,7 @@ function handleDoExport() {
   if (exportIds.value.length === 0) return
   const selectedTasks = tasks.value.filter(t => exportIds.value.includes(t.id))
   const headers = ['任务编号', '任务名称', '类型', '执行人', '区域', '优先级', '状态', '截止日期']
-  let content = ''
+  let content
   if (exportFormat.value === 'csv') {
     content = headers.join(',') + '\n' + selectedTasks.map(t => headers.map(h => {
       const row = {

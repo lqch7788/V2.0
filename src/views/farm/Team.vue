@@ -116,8 +116,11 @@
 
       <div class="overflow-x-auto">
         <el-table
-          :data="filteredTeams"
+          :data="paginatedTeams"
           style="width: 100%"
+          :header-cell-style="tableHeaderCellStyle"
+          :row-class-name="tableRowClassName"
+          highlight-current-row
           @selection-change="handleSelectionChange"
         >
           <el-table-column
@@ -146,7 +149,8 @@
           </el-table-column>
           <el-table-column label="描述" min-width="120">
             <template #default="{ row }">
-              <span class="text-sm text-gray-500">{{ row.description || '-' }}</span>
+              <!-- P1-3 修复：与 V1.1 TeamTable.tsx L384 max-w-xs truncate 1:1 对齐 -->
+              <span class="text-sm text-gray-500 max-w-[120px] truncate inline-block align-middle">{{ row.description || '-' }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="180" fixed="right">
@@ -293,6 +297,13 @@ const filteredTeams = computed(() => {
   })
 })
 
+// 与 V1.1 useTeam L70-75 paginatedTeams 1:1 对齐：分页切片
+const paginatedTeams = computed(() => {
+  const start = (pagination.currentPage - 1) * pagination.pageSize
+  const end = start + pagination.pageSize
+  return filteredTeams.value.slice(start, end)
+})
+
 // ============ 方法 ============
 const handleSearch = () => { pagination.currentPage = 1 }
 const handleReset = () => {
@@ -387,7 +398,9 @@ const handleSubmit = () => {
     store.updateTeam(editingTeam.value.id, { ...formData })
     ElMessage.success('更新成功')
   } else {
-    store.addTeam({ ...formData })
+    // P1-4 修复：与 V1.1 TeamTable.tsx L116-122 1:1 对齐
+    // V1.1 create 传 leaderId: 'new'，V2.0 之前传空(formData无此字段)
+    store.addTeam({ ...formData, leaderId: 'new' })
     ElMessage.success('创建成功')
   }
   isFormOpen.value = false
@@ -431,5 +444,37 @@ function getWorkZone(record) {
 // ============ 初始化 ============
 onMounted(() => {
   store.initSeedData()
+  // P1-2 修复：与 V1.1 TeamTable.tsx L353 hover:bg-emerald-50 1:1 对齐
+  // el-table 默认 hover 颜色为浅蓝色 (--el-table-row-hover-bg-color)
+  // 通过注入全局样式覆盖为翠绿浅色 #ecfdf5 (Tailwind emerald-50)
+  if (!document.getElementById('team-table-hover-style')) {
+    const style = document.createElement('style')
+    style.id = 'team-table-hover-style'
+    style.textContent = `
+      .el-table__body tr.el-table__row:hover > td.el-table__cell {
+        background-color: #ecfdf5 !important;
+        transition: background-color 0.2s ease;
+      }
+    `
+    document.head.appendChild(style)
+  }
 })
+
+// ============ P1-1 修复：与 V1.1 TeamTable.tsx L325 thead 1:1 对齐：蓝渐变表头 ============
+// V1.1: <thead className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+const tableHeaderCellStyle = () => {
+  return {
+    background: 'linear-gradient(to right, #3b82f6, #2563eb)',
+    color: '#ffffff',
+    fontWeight: '600',
+    borderBottom: 'none',
+  }
+}
+
+// ============ P1-2 修复：与 V1.1 TeamTable.tsx L353 hover:bg-emerald-50 1:1 对齐 ============
+// V1.1: <tr key={team.id} className="hover:bg-emerald-50 transition-colors">
+// el-table 默认有 hover 效果但颜色是浅蓝色，通过 cell-style + 注入全局样式覆盖
+const tableRowClassName = ({ rowIndex }) => {
+  return `team-row-hover-${rowIndex}`
+}
 </script>

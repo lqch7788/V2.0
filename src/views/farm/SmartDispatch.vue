@@ -223,19 +223,26 @@
                 <el-option label="巡检" value="inspection" />
                 <el-option label="人工分配" value="manual" />
               </el-select>
-                <el-option value="all" label="全部来源" />
-                <el-option value="farm" label="农事任务" />
-                <el-option value="tempTask" label="临时任务" />
-                <el-option value="inspection" label="巡查问题" />
-              </el-select>
             </div>
           </div>
           <div class="p-3 max-h-96 overflow-y-auto space-y-2">
+            <!-- P8 U1 - 任务池顶部全选 -->
+            <div v-if="filteredTaskPool.length > 0" class="flex items-center justify-between pb-1 border-b border-gray-100">
+              <span class="text-xs text-gray-500">共 {{ filteredTaskPool.length }} 个</span>
+              <el-button size="small" link @click="handleSelectAll">
+                {{ isAllSelected ? '取消全选' : '全选' }}
+              </el-button>
+            </div>
             <div v-for="task in filteredTaskPool" :key="task.id"
               @click="selectedTask = task"
               :class="['p-3 rounded-lg border cursor-pointer transition-colors', selectedTask?.id === task.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50']">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-sm font-medium text-gray-900 truncate">{{ task.title }}</span>
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                  <!-- P14 I4 - 任务池多选 checkbox -->
+                  <input type="checkbox" :checked="selectedTasks.has(task.id)" @change="toggleTaskSelection(task, $event)"
+                    @click.stop class="w-3.5 h-3.5 text-blue-600 rounded" />
+                  <span class="text-sm font-medium text-gray-900 truncate">{{ task.title }}</span>
+                </div>
                 <span :class="['px-1.5 py-0.5 rounded text-xs font-medium', priorityColors[task.priority] || priorityColors.normal]">
                   {{ priorityLabel(task.priority) }}
                 </span>
@@ -260,6 +267,11 @@
               <p>请选择左侧任务</p>
               <p class="text-xs text-gray-400 mt-1">系统将自动生成推荐</p>
             </div>
+            <!-- P15 S1 - AI 推荐加载状态（V1.1 isLoadingAI + spinner 1:1） -->
+            <div v-else-if="isLoadingAI" class="flex items-center justify-center py-8 text-gray-500">
+              <div class="animate-spin rounded-full h-6 w-6 border-2 border-purple-500 border-t-transparent"></div>
+              <span class="ml-3 text-sm">正在分析最优执行人...</span>
+            </div>
             <div v-else class="space-y-2">
               <div v-for="(rec, index) in currentRecommendations" :key="rec.workerId"
                 :class="['p-3 rounded-lg border-2 transition-all', index === 0 ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-400']">
@@ -282,7 +294,9 @@
                   <span>负荷{{ rec.currentLoad }}%</span>
                 </div>
                 <div class="flex flex-wrap gap-1 mb-2">
+                  <!-- P5 I1 - 推荐理由双向显示（正/负） -->
                   <span v-for="(reason, i) in rec.positiveReasons" :key="'p'+i" class="px-1.5 py-0.5 rounded text-xs bg-green-50 text-green-700 border border-green-200">{{ reason }}</span>
+                  <span v-for="(reason, i) in rec.negativeReasons" :key="'n'+i" class="px-1.5 py-0.5 rounded text-xs bg-red-50 text-red-700 border border-red-200">{{ reason }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <el-button size="small" type="success" :disabled="!rec.isAvailable" @click="handleDispatch(rec)">派发</el-button>
@@ -326,6 +340,29 @@
               <div>
                 <div class="font-medium text-gray-900 text-sm">{{ factor.label }} ({{ factor.weight }})</div>
                 <div class="text-xs text-gray-500 mt-0.5">{{ factor.desc }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P11 S1/D3 - 任务进度时间轴（V1.1 TaskProgressTimeline 1:1） -->
+        <div v-if="selectedTask" class="bg-white rounded-lg border border-gray-200">
+          <div class="px-4 py-3 border-b border-gray-200">
+            <h3 class="font-semibold text-gray-900">任务进度</h3>
+          </div>
+          <div class="p-4">
+            <div class="space-y-3">
+              <div v-for="(step, i) in taskProgressSteps" :key="i" class="flex items-start gap-2">
+                <div :class="['w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0',
+                  step.done ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ i + 1 }}
+                </div>
+                <div class="flex-1 pb-2 border-l-2 border-gray-100 pl-3 -ml-3" :class="{'border-transparent': i === taskProgressSteps.length - 1}">
+                  <div :class="['text-sm font-medium', step.done ? 'text-gray-900' : 'text-gray-400']">
+                    {{ step.label }}
+                  </div>
+                  <div v-if="step.time" class="text-xs text-gray-500 mt-0.5">{{ step.time }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -598,7 +635,7 @@
     <!-- 与 V1.1 VerifyTaskModal.tsx 1:1 对齐：任务验收 -->
     <el-dialog v-model="showVerifyModal" title="任务验收" width="500px">
       <p class="text-sm text-gray-600 mb-4">
-        您即将验收：<strong>{{ selectedTask?.name || '' }}</strong>
+        您即将验收：<strong>{{ selectedTask?.title || '' }}</strong>
       </p>
       <el-form :model="verifyForm" label-width="100px">
         <el-form-item label="验收结果" required>
@@ -623,7 +660,7 @@
     <!-- 与 V1.1 WithdrawCancelModal.tsx 1:1 对齐：撤回/取消 -->
     <el-dialog v-model="showWithdrawModal" title="撤回/取消任务" width="500px">
       <p class="text-sm text-gray-600 mb-4">
-        您即将{{ withdrawForm.action === 'withdraw' ? '撤回' : '取消' }}：<strong>{{ selectedTask?.name || '' }}</strong>
+        您即将{{ withdrawForm.action === 'withdraw' ? '撤回' : '取消' }}：<strong>{{ selectedTask?.title || '' }}</strong>
       </p>
       <el-form :model="withdrawForm" label-width="100px">
         <el-form-item label="操作类型" required>
@@ -645,7 +682,7 @@
     <!-- 与 V1.1 OvertimeHandleModal.tsx 1:1 对齐：超时处理 -->
     <el-dialog v-model="showOvertimeModal" title="超时处理" width="500px">
       <p class="text-sm text-gray-600 mb-4">
-        处理超时任务：<strong>{{ selectedTask?.name || '' }}</strong>
+        处理超时任务：<strong>{{ selectedTask?.title || '' }}</strong>
       </p>
       <el-form :model="overtimeForm" label-width="100px">
         <el-form-item label="处理方式" required>
@@ -674,6 +711,11 @@
         已选择 <span class="font-bold text-blue-600">{{ selectedTasks.size }}</span> 个任务
       </span>
       <div class="flex items-center gap-2">
+        <el-button size="small" @click="handleSelectAll">
+          {{ isAllSelected ? '取消全选' : '全选' }}
+        </el-button>
+        <el-button size="small" @click="showExportModal = true">导出</el-button>
+        <el-button size="small" type="danger" @click="showDeleteWarning = true">删除</el-button>
         <el-button type="success" @click="handleBatchConfirm">
           批量确认派发
         </el-button>
@@ -728,6 +770,20 @@ const factorDescriptions = [
   { label: '历史表现', weight: '15%', icon: MagicStick, iconColor: 'text-purple-500', desc: '根据员工近30天的任务完成情况综合评分' },
   { label: '紧急程度', weight: '10%', icon: WarningFilled, iconColor: 'text-red-500', desc: '根据任务优先级计算，紧急任务优先分配给效率高的员工' },
 ]
+
+// P11 D3 - 任务进度时间轴（V1.1 TaskProgressTimeline 1:1）
+const taskProgressSteps = computed(() => {
+  if (!selectedTask.value) return []
+  const t = selectedTask.value
+  const steps = [
+    { label: '任务创建', done: true, time: t.taskCode ? '已生成' : '-' },
+    { label: 'AI推荐生成', done: ['recommended', 'optimization', 'dispatched'].includes(t.dispatchStatus), time: t.recommendedWorker ? `推荐 ${t.recommendedWorker}` : '待生成' },
+    { label: '执行人确认', done: t.dispatchStatus === 'dispatched' || !!t.dispatchedAt, time: t.dispatchedAt ? new Date(t.dispatchedAt).toLocaleString('zh-CN') : '待确认' },
+    { label: '执行中', done: false, time: '执行中' },
+    { label: '验收完成', done: false, time: '待验收' },
+  ]
+  return steps
+})
 
 // ============================================
 // 模拟数据
@@ -865,57 +921,189 @@ const otherTaskGroups = reactive([
   { title: '优化建议', icon: '💡', expanded: true, get tasks() { return mockTasks.filter(t => t.dispatchStatus === 'optimization') } },
 ])
 
+// 来源筛选（V1.1 FilterToolbar 来源部分 1:1）
+const sourceMap = {
+  task: '农事任务',
+  tempTask: '临时任务',
+  inspection: '巡查问题',
+  manual: '人工分配',
+}
 const filteredTaskPool = computed(() => {
   if (sourceFilter.value === 'all') return mockTasks
-  const sourceMap = { farm: '农事任务', tempTask: '临时任务', inspection: '巡查问题' }
   return mockTasks.filter(t => t.sourceLabel === sourceMap[sourceFilter.value])
 })
 
+// AI 推荐加载状态（P15 S1）
+const isLoadingAI = ref(false)
+
+// 5 因子权重（P3 B2 - 与 V1.1 useComprehensiveDispatch 一致）
+const factorWeights = reactive({
+  skill: 0.30,        // 技能匹配度
+  location: 0.20,     // 地理位置
+  load: 0.20,         // 当前负荷
+  performance: 0.15,  // 历史表现
+  urgency: 0.10,      // 紧急程度
+  batchFamiliarity: 0.03, // 批次熟悉
+  cycleAdaptation: 0.02,  // 周期适配
+})
+
+// 5 因子加权计算推荐分数（P3 B2 - 修复硬编码 [95,88,82,...]）
+const calcMatchScore = (worker, task) => {
+  // 技能匹配度：员工区域与任务区域是否一致
+  const skillScore = worker.workZone === task.workZone ? 100 : 60
+  // 地理位置：同上
+  const locationScore = worker.workZone === task.workZone ? 100 : 70
+  // 当前负荷：越低越高
+  const loadScore = Math.max(0, 100 - worker.currentLoad)
+  // 历史表现：模拟值（基于 currentLoad 反推）
+  const perfScore = Math.max(50, 100 - worker.currentLoad * 0.5)
+  // 紧急程度：urgent 任务优先给负荷低的人
+  const urgencyBonus = task.priority === 'urgent' ? (100 - worker.currentLoad) * 0.3 : 0
+  // 批次熟悉度（mock 固定）
+  const batchScore = 75
+  // 周期适配（mock 固定）
+  const cycleScore = 80
+
+  return Math.round(
+    skillScore * factorWeights.skill +
+    locationScore * factorWeights.location +
+    loadScore * factorWeights.load +
+    perfScore * factorWeights.performance +
+    (perfScore + urgencyBonus) * factorWeights.urgency +
+    batchScore * factorWeights.batchFamiliarity +
+    cycleScore * factorWeights.cycleAdaptation
+  )
+}
+
+// 推荐理由智能生成（P4 B2 - 基于因子计算）
+const buildReasons = (worker, task, scores) => {
+  const positive = []
+  const negative = []
+  if (worker.workZone === task.workZone) {
+    positive.push(`${task.workZone}常驻人员`)
+  } else {
+    negative.push('非该区域常驻')
+  }
+  if (worker.currentLoad < 50) {
+    positive.push(`当前负荷低(${worker.currentLoad}%)`)
+  } else if (worker.currentLoad >= 80) {
+    negative.push(`当前负荷高(${worker.currentLoad}%)`)
+  }
+  if (task.priority === 'urgent' && worker.currentLoad < 60) {
+    positive.push('适合紧急任务')
+  }
+  if (worker.currentLoad >= 80) {
+    negative.push('不建议承接新任务')
+  }
+  if (positive.length === 0) positive.push('综合技能匹配')
+  return { positive, negative }
+}
+
 const currentRecommendations = computed(() => {
   if (!selectedTask.value) return []
-  return workerList.map((w, i) => ({
-    workerId: w.id,
-    workerName: w.name,
-    workZone: w.workZone,
-    currentLoad: w.currentLoad,
-    matchScore: [95, 88, 82, 75, 70, 65][i] || 60,
-    confidenceLevel: i === 0 ? 'high' : i < 3 ? 'medium' : 'low',
-    isAvailable: w.currentLoad < 80,
-    positiveReasons: getMockReasons(w.name, selectedTask.value),
-  })).sort((a, b) => b.matchScore - a.matchScore)
+  const task = selectedTask.value
+  return workerList.map((w) => {
+    const matchScore = calcMatchScore(w, task)
+    const { positive, negative } = buildReasons(w, task, matchScore)
+    return {
+      workerId: w.id,
+      workerName: w.name,
+      workZone: w.workZone,
+      currentLoad: w.currentLoad,
+      matchScore,
+      confidenceLevel: matchScore >= 85 ? 'high' : matchScore >= 70 ? 'medium' : 'low',
+      isAvailable: w.currentLoad < 80,
+      positiveReasons: positive,
+      negativeReasons: negative,
+    }
+  }).sort((a, b) => b.matchScore - a.matchScore)
+})
+
+// 全选/反选（P8 U1 - 批量栏联动）
+const isAllSelected = computed(() => {
+  const pool = filteredTaskPool.value
+  if (pool.length === 0) return false
+  return pool.every(t => selectedTasks.value.has(t.id))
 })
 
 // ============================================
 // 方法
 // ============================================
-const getMockReasons = (workerName, task) => {
-  const reasons = []
-  if (workerName === '张三') reasons.push('番茄种植经验丰富', '1号温室常驻人员', '当前负荷低(40%)')
-  else if (workerName === '李四') reasons.push('施肥作业专长', '距离2号温室最近')
-  else if (workerName === '王五') reasons.push('植保技能认证', '紧急任务处理经验丰富')
-  else reasons.push('综合技能匹配', '历史完成率良好')
-  return reasons
-}
-
 const showResult = (result) => {
   dispatchResult.value = result
   setTimeout(() => { dispatchResult.value = null }, 3000)
 }
 
-const handleSourceFilter = () => {}
+// P9 I1 - 来源筛选触发模拟 AI 重新计算（带 loading）
+const handleSourceFilter = async () => {
+  isLoadingAI.value = true
+  await new Promise(r => setTimeout(r, 300))
+  isLoadingAI.value = false
+  showResult({ success: true, message: `已筛选来源：${sourceMap[sourceFilter.value] || '全部'}` })
+}
 
-const handleAccept = (task) => {
-  if (task.recommendedWorker) {
-    showResult({ success: true, message: `任务"${task.title}"已派发给 ${task.recommendedWorker}` })
+// 全选/反选（P8 U1）
+const handleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedTasks.value = new Set()
+  } else {
+    selectedTasks.value = new Set(filteredTaskPool.value.map(t => t.id))
   }
 }
 
-const handleAcceptOptimization = (task) => {
-  showResult({ success: true, message: `已接受优化建议，任务已更新` })
+// 切换单个任务选择（P14 I4 - 行/卡片选中状态联动）
+const toggleTaskSelection = (task, event) => {
+  event?.stopPropagation()
+  const newSet = new Set(selectedTasks.value)
+  if (newSet.has(task.id)) {
+    newSet.delete(task.id)
+  } else {
+    newSet.add(task.id)
+  }
+  selectedTasks.value = newSet
 }
 
+// P1 B1 - 接受 AI 推荐（真正改状态）
+const handleAccept = (task) => {
+  if (!task.recommendedWorker) {
+    showResult({ success: false, message: '该任务尚无 AI 推荐人，请先获取推荐' })
+    return
+  }
+  // 改状态：recommended → dispatched
+  const t = mockTasks.find(x => x.id === task.id)
+  if (t) {
+    t.dispatchStatus = 'dispatched'
+    t.dispatchedAt = new Date().toISOString()
+  }
+  showResult({ success: true, message: `任务"${task.title}"已派发给 ${task.recommendedWorker}` })
+  selectedTasks.value.delete(task.id)
+  selectedTasks.value = new Set(selectedTasks.value)
+}
+
+// P13 B1 - 接受优化建议（真正改状态）
+const handleAcceptOptimization = (task) => {
+  const t = mockTasks.find(x => x.id === task.id)
+  if (t) {
+    t.dispatchStatus = 'dispatched'
+    t.dispatchedAt = new Date().toISOString()
+  }
+  showResult({ success: true, message: `已接受优化建议，任务"${task.title}"已派发` })
+  selectedTasks.value.delete(task.id)
+  selectedTasks.value = new Set(selectedTasks.value)
+}
+
+// P2 B1/D2 - 派发推荐（真正更新状态 + 写回 recommendedWorker）
 const handleDispatch = (rec) => {
-  showResult({ success: true, message: `已派发给 ${rec.workerName}` })
+  if (!selectedTask.value) return
+  const task = selectedTask.value
+  const t = mockTasks.find(x => x.id === task.id)
+  if (t) {
+    t.recommendedWorker = rec.workerName
+    t.confidenceScore = rec.matchScore
+    t.dispatchStatus = 'dispatched'
+    t.dispatchedAt = new Date().toISOString()
+  }
+  showResult({ success: true, message: `已将"${task.title}"派发给 ${rec.workerName}（置信度 ${rec.matchScore}分）` })
   selectedTask.value = null
 }
 
@@ -965,7 +1153,11 @@ const handleCreateTaskConfirm = () => {
     ElMessage.warning('请填写必填项：任务类型、温室/大田、执行人、计划时间')
     return
   }
-  createTaskForm.taskId = `T${Date.now()}`
+  // P10 B1 - 与 V1.1 taskCode 格式对齐：NT + yyyyMMdd + 序号
+  const now = new Date()
+  const ymd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
+  const seq = String(mockTasks.length + 1).padStart(2, '0')
+  createTaskForm.taskId = `NT${ymd}${seq}`
   ElMessage.success(`任务创建成功：${createTaskForm.taskId}`)
   showCreateTaskModal.value = false
   Object.assign(createTaskForm, {
@@ -987,21 +1179,23 @@ const handleDeleteConfirm = () => {
 
 const handleExportConfirm = () => {
   const count = selectedTasks.value.size
-  // 实际导出逻辑
-  const headers = ['任务名称', '类型', '区域', '作物', '执行人', '优先级', '状态', '派发时间']
+  // P6 D1 - 修复导出字段名（与 mockTasks 实际字段对齐）
+  const headers = ['任务编号', '任务标题', '任务类型', '工作区域', 'AI推荐人', '置信度', '优先级', '状态', '派发时间']
   const csv = headers.join(',') + '\n' + Array.from(selectedTasks.value).map(id => {
-    const t = recommendedTasks.value.find(x => x.id === id) || filteredTaskPool.value.find(x => x.id === id)
-    return `"${t?.name || ''}","${t?.type || ''}","${t?.area || ''}","${t?.crop || ''}","${t?.assignee || ''}","${t?.priority || ''}","${t?.dispatchStatus || ''}","${t?.dispatchTime || ''}"`
+    const t = mockTasks.find(x => x.id === id)
+    if (!t) return ''
+    return `"${t.taskCode || ''}","${t.title || ''}","${t.typeName || ''}","${t.workZone || t.greenhouse || ''}","${t.recommendedWorker || ''}","${t.confidenceScore || 0}","${priorityLabel(t.priority)}","${statusColors[t.dispatchStatus]?.label || t.dispatchStatus || ''}","${t.dispatchedAt || ''}"`
   }).join('\n')
   const bom = '﻿'
   const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `任务派发记录_${new Date().toISOString().slice(0, 10)}.csv`
+  const ext = exportFormat.value === 'excel' ? 'xls' : exportFormat.value === 'word' ? 'doc' : 'csv'
+  a.download = `任务派发记录_${new Date().toISOString().slice(0, 10)}.${ext}`
   a.click()
   URL.revokeObjectURL(url)
-  ElMessage.success(`已导出 ${count} 个任务为 CSV 格式`)
+  ElMessage.success(`已导出 ${count} 个任务为 ${exportFormat.value.toUpperCase()} 格式`)
   showExportModal.value = false
   selectedTasks.value = new Set()
 }
@@ -1012,7 +1206,7 @@ const handleVerifyConfirm = () => {
     return
   }
   const resultText = verifyForm.result === 'pass' ? '通过' : '驳回'
-  ElMessage.success(`任务验收${resultText}：${selectedTask.value?.name || ''}`)
+  ElMessage.success(`任务验收${resultText}：${selectedTask.value?.title || ''}`)
   showVerifyModal.value = false
   Object.assign(verifyForm, { result: 'pass', comments: '', workload: 0 })
 }
@@ -1023,7 +1217,7 @@ const handleWithdrawConfirm = () => {
     return
   }
   const actionText = withdrawForm.action === 'withdraw' ? '撤回' : '取消'
-  ElMessage.success(`任务已${actionText}：${selectedTask.value?.name || ''}，原因：${withdrawForm.reason}`)
+  ElMessage.success(`任务已${actionText}：${selectedTask.value?.title || ''}，原因：${withdrawForm.reason}`)
   showWithdrawModal.value = false
   Object.assign(withdrawForm, { action: 'withdraw', reason: '' })
 }
@@ -1034,7 +1228,7 @@ const handleOvertimeConfirm = () => {
     return
   }
   const actionText = { extend: '延长', reassign: '重新派发', cancel: '取消' }[overtimeForm.action] || '处理'
-  ElMessage.success(`任务超时已${actionText}：${selectedTask.value?.name || ''}`)
+  ElMessage.success(`任务超时已${actionText}：${selectedTask.value?.title || ''}`)
   showOvertimeModal.value = false
   Object.assign(overtimeForm, { action: 'extend', extendHours: 0, reason: '' })
 }

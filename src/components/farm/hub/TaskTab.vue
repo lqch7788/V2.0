@@ -157,6 +157,7 @@
       :on-reassign="handleReassign"
       :on-select-executor="handleSelectExecutor"
       :on-publish="handlePublish"
+      :on-remind="onRemind"
       :is-my-tasks-view="false"
       :on-page-change="(page) => currentPage = page"
       :on-page-size-change="handlePageSizeChange"

@@ -35,23 +35,20 @@
     <!-- 筛选工具栏 -->
     <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap gap-4 items-end">
-        <!-- 日期筛选（下拉选择，从任务截止日期提取） -->
-        <div class="min-w-[150px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1">日期</label>
-          <el-select
-            v-model="dateFilter"
-            placeholder="全部"
-            clearable
+        <!-- 日期范围筛选（与 V1.1 L90-91 dateFrom/dateTo 1:1 对齐：daterange） -->
+        <div class="min-w-[260px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">日期范围</label>
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
             style="width: 100%"
             @change="handleFilterChange"
-          >
-            <el-option
-              v-for="opt in filterOptionDates"
-              :key="opt.value"
-              :label="opt.label"
-              :value="opt.value"
-            />
-          </el-select>
+          />
         </div>
 
         <!-- 工作区域筛选 -->
@@ -178,22 +175,39 @@
       </div>
     </div>
 
-    <!-- 表格标题栏 + 导出按钮 -->
-    <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-800">每日工单汇总表</h3>
-      <el-button v-if="!exportMode" size="small" @click="handleExportClick">
-        <el-icon><Download /></el-icon>
-        导出
-      </el-button>
-      <template v-else>
-        <div class="flex gap-2">
+    <!-- 表格标题栏 + 工具栏（与 V1.1 AgricultureRecordTableToolbar L30-77 1:1 对齐） -->
+    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-900">农事操作记录表</h3>
+      <div class="flex gap-2">
+        <template v-if="batchDeleteMode">
+          <el-button size="small" type="danger" @click="showDeleteWarning = true">
+            <el-icon><Delete /></el-icon>
+            确认删除 ({{ selectedRows.length }})
+          </el-button>
+          <el-button size="small" @click="handleCancelBatchDelete">
+            <el-icon><Close /></el-icon>
+            取消
+          </el-button>
+        </template>
+        <template v-else-if="exportMode">
           <el-button type="primary" size="small" @click="handleConfirmExport">
             <el-icon><Download /></el-icon>
             确认导出
           </el-button>
           <el-button size="small" @click="handleCancelExport">取消</el-button>
-        </div>
-      </template>
+        </template>
+        <template v-else>
+          <!-- P0-8 修复：新增批量删除按钮（V1.1 L54-62 Trash2 1:1 对齐） -->
+          <el-button size="small" type="danger" @click="handleEnterBatchDelete">
+            <el-icon><Delete /></el-icon>
+            删除
+          </el-button>
+          <el-button size="small" @click="handleExportClick">
+            <el-icon><Download /></el-icon>
+            导出
+          </el-button>
+        </template>
+      </div>
     </div>
 
     <!-- 数据表格（与V1.1 SummaryTable原生table完全一致） -->
@@ -202,7 +216,8 @@
         <table class="w-full">
           <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <tr>
-              <th v-if="exportMode" class="py-3 text-sm font-semibold whitespace-nowrap w-12">
+              <!-- P0-7 修复：复选框从 exportMode 改为 batchDeleteMode（与 V1.1 L395 1:1 对齐）-->
+              <th v-if="batchDeleteMode" class="py-3 text-sm font-semibold whitespace-nowrap w-12">
                 <input
                   type="checkbox"
                   :checked="selectedRows.length === filteredSummaries.length && filteredSummaries.length > 0"
@@ -210,23 +225,35 @@
                   class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                 />
               </th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 130px">任务编号</th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">来源</th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">任务类型</th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">工作区域</th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">作物</th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">执行人</th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 120px">工作量</th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 80px">进度</th>
-              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 90px">状态</th>
-              <th v-if="!exportMode" class="py-3 px-4 text-sm font-semibold whitespace-nowrap" style="width: 130px">操作</th>
+              <!-- 与 V1.1 L405 列序 1:1 对齐：操作单号 -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">操作单号</th>
+              <!-- P0 修复：保留来源列 -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">来源</th>
+              <!-- P0-3 修复：新增来源编号列（V1.1 L407 record.sourceCode） -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">来源编号</th>
+              <!-- P0-10 修复：保留操作类型列（由 getTypeBadge 渲染） -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">操作类型</th>
+              <!-- V1.1 L409 作物/区域 单列双行 -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">作物/区域</th>
+              <!-- V1.1 L410 操作人员 -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">操作人员</th>
+              <!-- P0-4 修复：新增操作日期列（V1.1 L411 record.operationDate） -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">操作日期</th>
+              <!-- P0-6 修复：进度列由 getProgressBar 渲染 -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">进度</th>
+              <!-- 状态列 -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">状态</th>
+              <!-- P0-5 修复：新增备注列（V1.1 L414 record.remarks） -->
+              <th class="py-3 px-4 text-sm font-semibold whitespace-nowrap">备注</th>
+              <th v-if="!exportMode && !batchDeleteMode" class="py-3 px-4 text-sm font-semibold whitespace-nowrap">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-300">
             <template v-for="row in paginatedData" :key="row.id">
               <!-- 主记录行 -->
-              <tr class="hover:bg-blue-100 transition-colors">
-                <td v-if="exportMode" class="py-3 px-3 whitespace-nowrap text-center">
+              <tr class="hover:bg-blue-50 transition-colors">
+                <!-- P0-7 修复：复选框由 batchDeleteMode 控制（V1.1 L430） -->
+                <td v-if="batchDeleteMode" class="py-3 px-3 whitespace-nowrap text-center">
                   <input
                     type="checkbox"
                     :checked="selectedRows.includes(row.id)"
@@ -234,9 +261,9 @@
                     class="w-4 h-4 rounded border-gray-300 cursor-pointer"
                   />
                 </td>
-                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    <!-- 与 V1.1 L441-456 1:1 对齐：折叠按钮 -->
+                <!-- V1.1 L440-456 1:1 对齐：操作单号+折叠按钮 -->
+                <td class="py-3 px-4 text-sm text-center">
+                  <div class="flex items-center justify-center gap-1">
                     <button
                       v-if="row.children && row.children.length > 0"
                       @click="toggleChildren(row.id)"
@@ -247,48 +274,81 @@
                         <ArrowRight v-else />
                       </el-icon>
                     </button>
-                    <span class="font-medium">{{ row.taskCode }}</span>
+                    <span class="font-medium text-gray-900 text-sm">{{ row.taskCode }}</span>
                   </div>
                 </td>
-                <!-- 与 V1.1 L267-274 1:1 对齐：来源 Badge -->
-                <td class="py-3 px-4 text-sm whitespace-nowrap text-center">
-                  <span :class="['inline-flex px-2 py-1 rounded text-xs font-medium', getSourceColor(row.sourceType || 'task')]">
+                <!-- V1.1 L458-462 1:1 对齐：来源 纯文字彩色（V1.1 用 text-color 类） -->
+                <td class="py-3 px-4 text-sm text-center whitespace-nowrap">
+                  <span :class="['font-medium', getSourceColor(row.sourceType || 'task')]">
                     {{ getSourceLabel(row.sourceType || 'task') }}
                   </span>
                 </td>
-                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.taskTypeName }}</td>
-                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.greenhouse }}</td>
-                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.crop }}</td>
-                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ row.worker }}</td>
-                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">{{ formatWorkload(row) }}</td>
-                <td class="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
-                  {{ row.progress !== undefined ? row.progress + '%' : '-' }}
+                <!-- P0-3 修复：新增来源编号（V1.1 L463-465） -->
+                <td class="py-3 px-4 text-sm text-blue-600 text-center">
+                  {{ row.sourceCode || '-' }}
                 </td>
-                <td class="py-3 px-4 text-sm whitespace-nowrap">
-                  <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', statusColorClass(row.status)]">
+                <!-- V1.1 L466-468 1:1 对齐：操作类型 getTypeBadge 8色 -->
+                <td class="py-3 px-4 text-sm text-center whitespace-nowrap">
+                  <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', getTypeBadgeClass(row.operationType)]">
+                    {{ row.taskTypeName }}
+                  </span>
+                </td>
+                <!-- V1.1 L469-474 1:1 对齐：作物/区域 双行（V1.1 单列双行） -->
+                <td class="py-3 px-4 text-sm text-center">
+                  <div class="text-sm">
+                    <div class="font-medium text-gray-900">{{ row.crop }}</div>
+                    <div class="text-gray-500 text-xs">{{ row.greenhouse }}</div>
+                  </div>
+                </td>
+                <!-- V1.1 L475-477 1:1 对齐：操作人员 -->
+                <td class="py-3 px-4 text-sm text-center text-gray-900 whitespace-nowrap">
+                  {{ row.worker }}
+                </td>
+                <!-- P0-4 修复：新增操作日期（V1.1 L478-480） -->
+                <td class="py-3 px-4 text-sm text-center text-gray-600 whitespace-nowrap">
+                  {{ row.operationDate }}
+                </td>
+                <!-- P0-6 修复：进度由 getProgressBar 渲染（V1.1 L481-483） -->
+                <td class="py-3 px-4 text-sm text-center whitespace-nowrap">
+                  <div class="flex items-center justify-center gap-2">
+                    <div v-if="row.progress !== undefined" class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        :class="['h-full rounded-full', row.progress === 100 ? 'bg-green-500' : 'bg-blue-500']"
+                        :style="{ width: row.progress + '%' }"
+                      />
+                    </div>
+                    <span v-if="row.progress !== undefined" class="text-xs text-gray-600">{{ row.progress }}%</span>
+                    <span v-else class="text-gray-400">-</span>
+                  </div>
+                </td>
+                <!-- 状态：getStatusBadge 6 状态（V1.1 L484-486） -->
+                <td class="py-3 px-4 text-sm text-center whitespace-nowrap">
+                  <span :class="['inline-flex px-2 py-1 rounded-full text-xs font-medium', getStatusBadgeClass(row.statusKey)]">
                     {{ row.status }}
                   </span>
                 </td>
-                <!-- 与 V1.1 L492-514 1:1 对齐：验收/驳回操作 + 查看 -->
-                <td v-if="!exportMode" class="py-3 px-2 whitespace-nowrap text-center">
-                  <div class="flex items-center justify-center gap-1">
-                    <template v-if="row.status === '待验收'">
-                      <el-button link type="success" size="small" @click="handleAcceptRecord(row)" title="审核通过">
-                        <el-icon :size="14"><Check /></el-icon>通过
-                      </el-button>
-                      <el-button link type="danger" size="small" @click="handleRejectRecord(row)" title="审核驳回">
-                        <el-icon :size="14"><CircleClose /></el-icon>驳回
-                      </el-button>
-                    </template>
-                    <button v-else class="text-gray-500 hover:text-gray-700 p-1" title="查看">
-                      <el-icon :size="16"><View /></el-icon>
-                    </button>
+                <!-- P0-5 修复：新增备注（V1.1 L487-491） -->
+                <td class="py-3 px-4 text-sm text-center">
+                  <div class="text-sm text-gray-500 max-w-[150px] truncate inline-block" :title="row.remarks || ''">
+                    {{ row.remarks || '-' }}
+                  </div>
+                </td>
+                <!-- V1.1 L492-515 1:1 对齐：操作列（待验收 显示通过+驳回） -->
+                <td v-if="!exportMode && !batchDeleteMode" class="py-3 px-2 whitespace-nowrap text-center">
+                  <div v-if="row.status === '待验收'" class="flex items-center justify-center gap-1">
+                    <el-button link type="success" size="small" @click="handleAcceptRecord(row)" title="审核通过">
+                      <el-icon :size="14"><Check /></el-icon>通过
+                    </el-button>
+                    <el-button link type="danger" size="small" @click="handleRejectRecord(row)" title="审核驳回">
+                      <el-icon :size="14"><CircleClose /></el-icon>驳回
+                    </el-button>
                   </div>
                 </td>
               </tr>
               <!-- 与 V1.1 L324-361 1:1 对齐：折叠子记录行 -->
               <tr v-if="row.children && row.children.length > 0 && expandedIds.includes(row.id)">
-                <td :colspan="exportMode ? 11 : 10" class="px-4 py-0 bg-blue-50">
+                <!-- V1.1 colspan=12：含复选框+12 列；本表无复选框时 colspan=11 -->
+                <td :colspan="batchDeleteMode ? 12 : 11" class="px-4 py-0 bg-blue-50">
                   <div class="py-2 pl-8 space-y-2">
                     <div v-for="(child, idx) in row.children" :key="child.id" class="flex items-start gap-4 text-sm">
                       <!-- 连接线 -->
@@ -307,8 +367,16 @@
                           </span>
                           <span v-if="child.area" class="ml-1 text-gray-500">({{ child.area }})</span>
                         </div>
-                        <div class="col-span-2 text-gray-600">
-                          {{ child.progress !== undefined ? child.progress + '%' : '-' }}
+                        <!-- P0-6 修复：子记录也用进度条（V1.1 L347 getProgressBar） -->
+                        <div class="col-span-2 flex items-center gap-2">
+                          <div v-if="child.progress !== undefined" class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              :class="['h-full rounded-full', child.progress === 100 ? 'bg-green-500' : 'bg-blue-500']"
+                              :style="{ width: child.progress + '%' }"
+                            />
+                          </div>
+                          <span v-if="child.progress !== undefined" class="text-xs text-gray-600">{{ child.progress }}%</span>
+                          <span v-else class="text-gray-400">-</span>
                         </div>
                         <div class="col-span-1 text-gray-600">
                           {{ child.workload ? child.workload + (child.unit || '') : '-' }}
@@ -322,9 +390,9 @@
                 </td>
               </tr>
             </template>
-            <!-- 空状态 -->
+            <!-- 空状态：V1.1 colspan 11（不含复选框）/ 12（含复选框） -->
             <tr v-if="paginatedData.length === 0">
-              <td :colspan="exportMode ? 11 : 10" class="py-8 text-center text-gray-500">
+              <td :colspan="batchDeleteMode ? 12 : 11" class="py-8 text-center text-gray-500">
                 暂无数据
               </td>
             </tr>
@@ -554,12 +622,14 @@ import {
   CircleClose,
   Plus,
   RefreshLeft,
+  Delete,
+  Close,
 } from '@element-plus/icons-vue'
 import { useTasks } from '@/composables/useTasks'
 import { usePersistentWorkLogs } from '@/composables/usePersistentWorkLogs'
 
 // ============ 数据源（与V1.1完全一致）============
-const { tasks } = useTasks()
+const { tasks, acceptCompletion, rejectForRework } = useTasks()
 const { workLogs } = usePersistentWorkLogs()
 
 // 任务类型英文→中文映射表（兜底用，覆盖所有V1.1已知类型）
@@ -587,7 +657,8 @@ const TYPE_NAME_MAP = {
 }
 
 // ============ 筛选状态（与 V1.1 L84-93 1:1 对齐：8 字段）============
-const dateFilter = ref('')
+// V1.1 L90-91 用 dateFrom + dateTo 两个字段；V2.0 用 daterange 数组
+const dateRange = ref([])
 const greenhouseFilter = ref('')
 const taskTypeFilter = ref('')
 const sourceTypeFilter = ref('')        // V1.1 L84 新增
@@ -600,6 +671,11 @@ const showAddModal = ref(false)         // V1.1 L106
 const showDeleteWarning = ref(false)    // V1.1 L98
 const batchDeleteMode = ref(false)     // V1.1 L97
 const showBatchEditModal = ref(false)   // 新增：批量编辑 Modal
+// ============ P0-8 修复：导出模式（V1.1 同样保留 exportMode）============
+const exportMode = ref(false)           // V1.1 L101
+const selectedRows = ref([])            // V1.1 L96
+const exportFormat = ref('excel')       // V1.1 L103
+const showExportModal = ref(false)     // V1.1 L102
 const batchEditForm = reactive({ greenhouseName: '', cropName: '', operatorName: '', remarks: '' })
 const addForm = reactive({
   recordCode: '',
@@ -615,7 +691,7 @@ const addForm = reactive({
 
 // ============ 与 V1.1 L156-168 handleReset 1:1 对齐：重置所有筛选 ============
 const handleResetFilters = () => {
-  dateFilter.value = ''
+  dateRange.value = []
   greenhouseFilter.value = ''
   taskTypeFilter.value = ''
   sourceTypeFilter.value = ''
@@ -701,36 +777,74 @@ const handleConfirmDelete = () => {
   ElMessage.success('已删除选中的记录')
 }
 
-// ============ 与 V1.1 L210-227 handleAcceptRecord 1:1 对齐：验收通过 ============
-const handleAcceptRecord = (row) => {
-  if (!row.taskId) {
+// ============ P0-8 修复：进入批量删除模式（V1.1 L383 onBatchDelete 1:1 对齐）============
+const handleEnterBatchDelete = () => {
+  batchDeleteMode.value = true
+  selectedRows.value = []
+}
+
+// ============ P0-8 修复：取消批量删除模式（V1.1 L384 onCancelBatchDelete 1:1 对齐）============
+const handleCancelBatchDelete = () => {
+  batchDeleteMode.value = false
+  selectedRows.value = []
+}
+
+// ============ P0-9 修复：与 V1.1 L210-227 handleAcceptRecord 1:1 对齐：验收通过接入真实 store ============
+// V1.1：sourceType==='task' → acceptTaskCompletion(sourceId)；==='tempTask' → acceptCompletion(sourceId)
+// V2.0：useTasks 暴露的 acceptCompletion 已支持通过 dispatchMode 路由，1:1 对齐调用语义
+const handleAcceptRecord = async (row) => {
+  if (!row.sourceId || !row.sourceType) {
     ElMessage.warning('该记录无法验收：缺少来源信息')
     return
   }
-  ElMessage.success(`已验收：${row.taskCode}`)
-  // 实际调用应走 useTasks().acceptTaskCompletion(row.taskId)
+  try {
+    if (row.sourceType === 'task') {
+      // V1.1 L217 acceptTaskCompletion：V2.0 useTasks 不再单独暴露，内部已并入 acceptCompletion
+      await acceptCompletion(row.sourceId)
+    } else if (row.sourceType === 'tempTask') {
+      // V1.1 L219 acceptCompletion
+      await acceptCompletion(row.sourceId)
+    } else {
+      ElMessage.warning('该类型记录不支持快速验收')
+      return
+    }
+    ElMessage.success(`已验收：${row.taskCode}`)
+  } catch (e) {
+    console.error('[handleAcceptRecord] 失败:', e)
+    ElMessage.error(`验收失败：${e?.message || '未知错误'}`)
+  }
 }
 
-// ============ 与 V1.1 L230-248 handleRejectRecord 1:1 对齐：驳回 ============
+// ============ P0-9 修复：与 V1.1 L230-248 handleRejectRecord 1:1 对齐：驳回接入真实 store ============
+// V1.1：sourceType==='task' → 提示任务驳回未实现；==='tempTask' → rejectCompletion(sourceId, reason)
 const handleRejectRecord = (row) => {
-  if (!row.taskId) {
+  if (!row.sourceId || !row.sourceType) {
     ElMessage.warning('该记录无法驳回：缺少来源信息')
     return
   }
-  // 实际应弹窗输入驳回原因
   ElMessageBox.prompt('请输入驳回原因：', '驳回确认', {
     confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
-  }).then(({ value }) => {
-    ElMessage.success(`已驳回：${row.taskCode}，原因：${value}`)
+  }).then(async ({ value }) => {
+    try {
+      if (row.sourceType === 'task') {
+        // V1.1 L240：任务驳回功能暂未实现，V2.0 useTasks 暴露了 rejectForRework
+        await rejectForRework(row.sourceId, value)
+      } else if (row.sourceType === 'tempTask') {
+        // V1.1 L244 rejectCompletion：V2.0 useTasks 暴露 rejectForRework，语义相同
+        await rejectForRework(row.sourceId, value)
+      } else {
+        ElMessage.warning('该类型记录不支持快速驳回')
+        return
+      }
+      ElMessage.success(`已驳回：${row.taskCode}，原因：${value}`)
+    } catch (e) {
+      console.error('[handleRejectRecord] 失败:', e)
+      ElMessage.error(`驳回失败：${e?.message || '未知错误'}`)
+    }
   }).catch(() => {})
 }
 
 // ============ 导出 ============
-const exportMode = ref(false)
-const selectedRows = ref([])
-const exportFormat = ref('excel')
-const showExportModal = ref(false)
-
 const exportFormats = [
   { value: 'excel', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
@@ -771,40 +885,81 @@ const summaries = computed(() => {
       return {
         id: task.id,
         taskCode: task.taskCode || task.id || '-',
+        // 来源编号（V1.1 表格列：record.sourceCode）
+        sourceCode: task.sourceCode || task.taskCode || task.id || '-',
+        // 操作日期（V1.1 表格列：record.operationDate）
+        operationDate: task.operationDate || task.dueDate || '-',
+        // 备注（V1.1 表格列：record.remarks）
+        remarks: task.remarks || '-',
         taskTypeName: task.typeName || TYPE_NAME_MAP[task.type] || task.type || '-',
+        operationType: task.type || 'other',
         greenhouse: task.greenhouseName || '-',
+        greenhouseId: task.greenhouseId || '',
         crop: task.cropName || '-',
         worker: task.assigneeName || '-',
+        operatorId: task.assigneeId || '',
         tasks: task.title || '-',
         workloadDays: totalDays || undefined,
         workloadHours: totalHours || undefined,
         workers: totalWorkers || undefined,
         progress: task.progress || 0,
         status: statusLabel,
+        statusKey: task.status,
+        sourceType: task.sourceType || (task.dispatchMode === 'tempTask' ? 'tempTask' : (task.dispatchMode === 'inspection' ? 'inspection' : 'task')),
+        sourceId: task.sourceId || task.id,
         dueDate: task.dueDate || undefined,
       }
     })
 })
 
-// ============ 筛选 ============
+// ============ 与 V1.1 L109-133 1:1 对齐：筛选（8 字段全部接入）============
 const filteredSummaries = computed(() => {
   return summaries.value.filter(s => {
-    if (dateFilter.value && s.dueDate !== dateFilter.value) return false
+    // 1. 日期范围（V1.1 L116-117 dateFrom/dateTo）
+    if (dateRange.value && dateRange.value.length === 2) {
+      const [from, to] = dateRange.value
+      if (s.dueDate) {
+        if (from && s.dueDate < from) return false
+        if (to && s.dueDate > to) return false
+      }
+    }
+    // 2. 工作区域
     if (greenhouseFilter.value && greenhouseFilter.value !== '全部' && s.greenhouse !== greenhouseFilter.value) return false
+    // 3. 任务类型
     if (taskTypeFilter.value && taskTypeFilter.value !== '全部' && s.taskTypeName !== taskTypeFilter.value) return false
+    // 4. 来源类型（V1.1 L111 sourceType）
+    if (sourceTypeFilter.value && (s.sourceType || 'task') !== sourceTypeFilter.value) return false
+    // 5. 状态（V1.1 L113 status）
+    if (statusFilter.value) {
+      const statusMap = {
+        pending: '待接受',
+        accepted: '已接受',
+        in_progress: '处理中',
+        waiting_acceptance: '待验收',
+        completed: '已完成',
+        rejected: '返工中',
+        cancelled: '已取消',
+      }
+      const expectedLabel = statusMap[statusFilter.value] || statusFilter.value
+      if (s.status !== expectedLabel) return false
+    }
+    // 6. 操作人员（V1.1 L115 operatorId）
+    if (operatorFilter.value && s.worker !== operatorFilter.value) return false
+    // 7. 搜索文本（V1.1 L121-130 searchText：任务编号/作物/区域/操作员）
+    if (searchText.value) {
+      const text = searchText.value.toLowerCase()
+      const matchSearch =
+        (s.taskCode || '').toLowerCase().includes(text) ||
+        (s.crop || '').toLowerCase().includes(text) ||
+        (s.greenhouse || '').toLowerCase().includes(text) ||
+        (s.worker || '').toLowerCase().includes(text)
+      if (!matchSearch) return false
+    }
     return true
   })
 })
 
 // ============ 筛选选项（从tasks提取，与V1.1完全一致）============
-const filterOptionDates = computed(() => {
-  const dates = [...new Set(tasks.value.map(t => t.dueDate).filter(Boolean))].sort((a, b) => String(b).localeCompare(String(a)))
-  return [
-    { value: '', label: '全部' },
-    ...dates.map(d => ({ value: d, label: d })),
-  ]
-})
-
 const filterOptionGreenhouses = computed(() => {
   const greenhouses = [...new Set(tasks.value.map(t => t.greenhouseName).filter(Boolean))]
   return [
@@ -828,22 +983,19 @@ const paginatedData = computed(() => {
   return filteredSummaries.value.slice(start, end)
 })
 
-// ============ 统计卡片（5个：与V1.1完全一致）============
+// ============ 统计卡片（P0-11 修复：4 个按来源分类，与 V1.1 L142-149 AgricultureRecordPageHeader 1:1 对齐）============
 const statCards = computed(() => {
+  // V1.1 按 records.sourceType 统计；V2.0 用 summaries[i].sourceType
   const total = summaries.value.length
-  const completed = summaries.value.filter(s => s.status === '已完成').length
-  const inProgress = summaries.value.filter(s =>
-    ['已接受', '处理中', '返工中'].includes(s.status)
-  ).length
-  const waitingAcceptance = summaries.value.filter(s => s.status === '待验收').length
-  const pending = summaries.value.filter(s => s.status === '待接受').length
+  const taskCount = summaries.value.filter(s => s.sourceType === 'task').length
+  const tempTaskCount = summaries.value.filter(s => s.sourceType === 'tempTask').length
+  const manualCount = summaries.value.filter(s => s.sourceType === 'manual').length
 
   return [
-    { label: '任务总数', value: total, icon: Tickets, iconBgColor: 'from-blue-500 to-blue-600' },
-    { label: '待接受', value: pending, icon: Message, iconBgColor: 'from-gray-500 to-gray-600' },
-    { label: '进行中', value: inProgress, icon: Loading, iconBgColor: 'from-amber-500 to-amber-600' },
-    { label: '待验收', value: waitingAcceptance, icon: Clock, iconBgColor: 'from-orange-500 to-orange-600' },
-    { label: '已完成', value: completed, icon: CircleCheck, iconBgColor: 'from-green-500 to-green-600' },
+    { label: '全部记录', value: total, icon: Tickets, iconBgColor: 'from-blue-500 to-blue-600' },
+    { label: '任务派发', value: taskCount, icon: Tickets, iconBgColor: 'from-green-500 to-green-600' },
+    { label: '临时任务', value: tempTaskCount, icon: Clock, iconBgColor: 'from-orange-500 to-orange-600' },
+    { label: '手动录入', value: manualCount, icon: Plus, iconBgColor: 'from-purple-500 to-purple-600' },
   ]
 })
 
@@ -861,6 +1013,35 @@ const statusColorMap = {
 
 function statusColorClass(status) {
   return statusColorMap[status] || 'bg-gray-100 text-gray-700'
+}
+
+// ============ P0-10 修复：getTypeBadge 8 色 badge（V1.1 L277-293 1:1 对齐）============
+const TYPE_BADGE_COLOR_MAP = {
+  planting: 'bg-green-100 text-green-700',
+  irrigation: 'bg-blue-100 text-blue-700',
+  fertilization: 'bg-amber-100 text-amber-700',
+  pest_control: 'bg-red-100 text-red-700',
+  pesticide: 'bg-red-100 text-red-700',
+  pruning: 'bg-purple-100 text-purple-700',
+  harvest: 'bg-orange-100 text-orange-700',
+  weeding: 'bg-emerald-100 text-emerald-700',
+  other: 'bg-gray-100 text-gray-700',
+}
+function getTypeBadgeClass(type) {
+  return TYPE_BADGE_COLOR_MAP[type] || TYPE_BADGE_COLOR_MAP['other']
+}
+
+// ============ 6 状态 badge（V1.1 L296-307 getStatusBadge 1:1 对齐）============
+const STATUS_BADGE_COLOR_MAP = {
+  completed: { label: '已完成', class: 'bg-green-100 text-green-700' },
+  in_progress: { label: '进行中', class: 'bg-blue-100 text-blue-700' },
+  pending: { label: '待执行', class: 'bg-amber-100 text-amber-700' },
+  waiting_acceptance: { label: '待验收', class: 'bg-orange-100 text-orange-700' },
+  rejected: { label: '已驳回', class: 'bg-red-100 text-red-700' },
+  cancelled: { label: '已取消', class: 'bg-gray-100 text-gray-700' },
+}
+function getStatusBadgeClass(statusKey) {
+  return STATUS_BADGE_COLOR_MAP[statusKey]?.class || 'bg-gray-100 text-gray-700'
 }
 
 // ============ 工作量格式化 ============

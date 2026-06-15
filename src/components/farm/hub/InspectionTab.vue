@@ -131,8 +131,8 @@
       :generate-record-code="generateRecordCode"
       :on-image-upload="handleImageUpload"
       :on-remove-image="removeImage"
-      :greenhouses="mockGreenhouses"
-      :users="mockUsers"
+      :greenhouses="greenhousesList"
+      :users="usersList"
       :crop-types="mockCropTypes"
       :crop-batches="mockCropBatches"
       :equipment-records="mockEquipment"
@@ -148,7 +148,7 @@
       :on-accept-problem="(problemId) => acceptanceModal = { isOpen: true, problemId }"
       :problem-data="detailProblemData"
       :problem-flow-records="detailFlowRecords"
-      :users="mockUsers"
+      :users="usersList"
     />
 
     <!-- 批量编辑弹窗 -->
@@ -170,7 +170,7 @@
             @change="onBatchRecordSelect"
           >
             <el-option
-              v-for="(rid, idx) in selectedIds"
+              v-for="rid in selectedIds"
               :key="rid"
               :value="rid"
               :label="`${filteredRecords.find(r => r.id == rid)?.recordCode || rid} - ${filteredRecords.find(r => r.id == rid)?.inspectorName || ''}`"
@@ -297,77 +297,15 @@
       </template>
     </el-dialog>
 
-    <!-- 问题验收弹窗 -->
-    <el-dialog
-      :model-value="acceptanceModal.isOpen"
-      title="问题验收"
-      width="700px"
-      @close="closeAcceptance"
-    >
-      <div v-if="acceptanceModal.problemId" class="space-y-4">
-        <template v-if="acceptanceProblem">
-          <!-- 处理结果信息 -->
-          <div class="bg-gray-50 rounded-lg p-4 space-y-2">
-            <div class="flex justify-between">
-              <span class="text-sm text-gray-600">处理人</span>
-              <span class="text-sm font-medium">{{ acceptanceProblem.handler || '-' }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-sm text-gray-600">处理日期</span>
-              <span class="text-sm font-medium">{{ acceptanceProblem.handleDate || '-' }}</span>
-            </div>
-            <div class="text-sm text-gray-600">处理结果</div>
-            <div class="bg-white rounded p-3 text-sm">{{ acceptanceProblem.handleResult || '无处理结果' }}</div>
-          </div>
-
-          <!-- 返工次数提示 -->
-          <div v-if="(acceptanceProblem.reworkCount ?? 0) > 0" :class="[
-            'text-sm p-3 rounded-lg border',
-            (acceptanceProblem.reworkCount ?? 0) >= 2
-              ? 'bg-red-50 text-red-700 border-red-200'
-              : 'bg-amber-50 text-amber-700 border-amber-200',
-          ]">
-            <div class="font-medium">
-              {{ (acceptanceProblem.reworkCount ?? 0) >= 2
-                ? '⚠️ 已返工多次，将退回问题分派页面重新分派'
-                : `已返工${acceptanceProblem.reworkCount}次，再次返工将退回问题分派`
-              }}
-            </div>
-          </div>
-
-          <!-- 流转记录 -->
-          <div>
-            <h4 class="text-sm font-medium text-gray-700 mb-2">处理流转记录</h4>
-            <div class="space-y-2 max-h-48 overflow-y-auto">
-              <div v-for="fr in (acceptanceProblem.flowRecords || [])" :key="fr.id" class="flex gap-3 text-xs">
-                <span class="text-gray-400 whitespace-nowrap">{{ formatFlowTime(fr.actionTime) }}</span>
-                <span class="font-medium text-gray-700">{{ fr.operatorName }}</span>
-                <span class="text-gray-500">{{ getFlowActionLabel(fr.action) }}</span>
-                <span v-if="fr.comment" class="text-gray-400">- {{ fr.comment }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 验收操作 -->
-          <div class="border-t pt-4">
-            <div class="flex gap-3 mb-4">
-              <el-button type="primary" class="flex-1" @click="handleApproveAcceptance">
-                <el-icon><CircleCheck /></el-icon>
-                验收通过
-              </el-button>
-              <el-button type="danger" class="flex-1" @click="handleRejectAcceptance">
-                <el-icon><CircleClose /></el-icon>
-                返工
-              </el-button>
-            </div>
-            <div class="text-xs text-gray-500 text-center">
-              通过：问题关闭，流转结束 | 返工：第1次给原执行人，第2次退分派重分
-            </div>
-          </div>
-        </template>
-        <div v-else class="text-center py-8 text-gray-400">问题数据不存在</div>
-      </div>
-    </el-dialog>
+    <!-- 问题验收弹窗 - 使用 V1.1 1:1 迁移的 InspectionAcceptanceModal（V1.1 line 1-459） -->
+    <InspectionAcceptanceModal
+      :is-open="acceptanceModal.isOpen"
+      :problem="acceptanceProblem"
+      :records="acceptanceProblem?.flowRecords || []"
+      :on-accept="handleApproveAcceptance"
+      :on-reject="handleRejectAcceptance"
+      :on-close="closeAcceptance"
+    />
   </div>
 </template>
 
@@ -386,7 +324,7 @@ const INITIAL_FILTERS = {
 
 <script setup>
 /** 巡查记录Tab - 从V1.1 InspectionTab.tsx 1:1迁移 */
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { WarningFilled, CircleCheck, CircleClose } from '@element-plus/icons-vue'
 import { useInspectionDataStore } from '@/stores/modules/inspectionData'
@@ -394,6 +332,8 @@ import InspectionSearch from './InspectionSearch.vue'
 import InspectionToolbar from './InspectionToolbar.vue'
 import CreateInspectionModal from './CreateInspectionModal.vue'
 import DetailInspectionModal from './DetailInspectionModal.vue'
+// 问题验收弹窗：V1.1 InspectionAcceptanceModal.tsx 1:1 迁移（V1.1 line 1-459）
+import InspectionAcceptanceModal from './modals/InspectionAcceptanceModal.vue'
 
 // ============================================
 // 常量配置（与V1.1完全一致）
@@ -412,19 +352,57 @@ const exportFormats = [
 ]
 
 // ============================================
-// Mock数据（自包含，后续对接Store）
+// Mock数据兜底（P0-6：优先从Store读取，无数据时使用mock）
+// user/greenhouse 接入真实 store；equipment/infrastructure/iot 暂保留 mock（待 store 接入）
 // ============================================
-const mockGreenhouses = [
+// 真实 store 数据：与V1.1 InspectionTab.tsx line 138-141 一致
+const storeGreenhouses = computed(() => greenhouseStore.greenhouses || [])
+const storeUsers = computed(() => userStore.users || [])
+
+// 兜底 mock 数组（保留为普通常量，供 script 中 [index] 索引访问）
+const FALLBACK_GREENHOUSES = [
   { id: 'GH001', name: 'A1号温室' },
   { id: 'GH002', name: 'B2号温室' },
   { id: 'GH003', name: 'C3号温室' },
 ]
-const mockUsers = [
+const FALLBACK_USERS = [
   { id: 'U001', name: '张建国', role: '技术员' },
   { id: 'U002', name: '李明华', role: '巡查员' },
   { id: 'U003', name: '王丰收', role: '管理员' },
   { id: 'U004', name: '陈晓东', role: '巡查组长' },
 ]
+
+const mockGreenhouses = computed(() => {
+  if (storeGreenhouses.value.length > 0) {
+    return storeGreenhouses.value.map((g) => ({ id: g.id, name: g.name }))
+  }
+  return FALLBACK_GREENHOUSES
+})
+
+const mockUsers = computed(() => {
+  if (storeUsers.value.length > 0) {
+    return storeUsers.value.map((u) => ({ id: u.id, name: u.name, role: u.role }))
+  }
+  return FALLBACK_USERS
+})
+
+// 别名：用于 template 中以 prop 值形式传入子组件（避免 computed 直接传 prop 警告）
+// Vue 模板中 v-for 会自动解包，但 :prop="x" 在 ref/computed 时会传 ref 对象
+const greenhousesList = mockGreenhouses
+const usersList = mockUsers
+
+// P0-6：组件挂载时触发 store 首次加载（与V1.1 InspectionTab.tsx line 155-177 一致）
+onMounted(() => {
+  if (userStore.users && userStore.users.length === 0 && typeof userStore.loadUsers === 'function') {
+    userStore.loadUsers()
+  }
+  if (greenhouseStore.greenhouses && greenhouseStore.greenhouses.length === 0 && typeof greenhouseStore.loadGreenhouses === 'function') {
+    greenhouseStore.loadGreenhouses()
+  }
+  if (problemStore.problems && problemStore.problems.length === 0 && typeof problemStore.fetchProblems === 'function') {
+    problemStore.fetchProblems()
+  }
+})
 const mockCropTypes = [
   { id: 'c1', name: '番茄' },
   { id: 'c2', name: '黄瓜' },
@@ -544,9 +522,17 @@ const emit = defineEmits([
 ])
 
 // ============================================
-// Store
+// Store（与V1.1 InspectionTab.tsx line 138-153 一致：user/greenhouse/problem/inspection）
+// IoT/equipment/infrastructure V2.0暂无对应 store，使用 mock 兜底（标注 TODO: 待 store 接入）
 // ============================================
+import { useUserStore } from '@/stores/modules/user'
+import { useGreenhouseStore } from '@/stores/modules/greenhouse'
+import { useProblemStore } from '@/stores/modules/problem'
+
 const inspectionStore = useInspectionDataStore()
+const userStore = useUserStore()
+const greenhouseStore = useGreenhouseStore()
+const problemStore = useProblemStore()
 
 // ============================================
 // 本地状态
@@ -595,7 +581,7 @@ function getDefaultNewRecord() {
     inspectionType: 'farm',
     greenhouseId: '',
     cropName: '',
-    inspectorId: mockUsers[0]?.id || '',
+    inspectorId: FALLBACK_USERS[0]?.id || '',
     batchId: '',
     batchCode: '',
     checkDate: new Date().toISOString().split('T')[0],
@@ -696,13 +682,13 @@ const detailRecord = computed(() => {
 // 详情关联问题
 const detailProblemData = computed(() => {
   if (!detailRecord.value?.problemId) return null
-  return mockProblems.find(p => p.id === detailRecord.value.problemId) || null
+  return problemList.value.find(p => p.id === detailRecord.value.problemId) || null
 })
 const detailFlowRecords = computed(() => detailProblemData.value?.flowRecords || [])
 
 // 验收问题数据
 const acceptanceProblem = computed(() => {
-  return mockProblems.find(p => p.id === acceptanceModal.problemId) || null
+  return problemList.value.find(p => p.id === acceptanceModal.problemId) || null
 })
 
 // ============================================
@@ -777,7 +763,7 @@ function handleOpenCreateModal() {
   newRecord.recordCode = newRecord.recordCode || generateRecordCode()
   newRecord.checkDate = newRecord.checkDate || new Date().toISOString().split('T')[0]
   newRecord.checkTime = newRecord.checkTime || new Date().toTimeString().slice(0, 5)
-  newRecord.inspectorId = newRecord.inspectorId || (mockUsers[0]?.id || '')
+  newRecord.inspectorId = newRecord.inspectorId || (FALLBACK_USERS[0]?.id || '')
   emit('openCreateModal')
 }
 
@@ -831,7 +817,7 @@ function validateForm() {
 
 function handleCreateRecord() {
   if (!validateForm()) return
-  const selectedUser = mockUsers.find(u => u.id === newRecord.inspectorId)
+  const selectedUser = mockUsers.value.find(u => u.id === newRecord.inspectorId)
   const selectedBatch = mockCropBatches.find(b => b.id === newRecord.batchId)
 
   let greenhouseId = ''
@@ -843,7 +829,7 @@ function handleCreateRecord() {
   let infrastructureName = ''
 
   if (newRecord.inspectionType === 'farm') {
-    const gh = mockGreenhouses.find(g => g.id === newRecord.greenhouseId)
+    const gh = mockGreenhouses.value.find(g => g.id === newRecord.greenhouseId)
     greenhouseId = newRecord.greenhouseId
     greenhouseName = gh?.name || ''
     cropName = newRecord.cropName
@@ -983,11 +969,11 @@ async function handleConfirmBatchEdit() {
       const edits = editedRecords.value[id]
       const updates = { ...edits }
       if (edits.greenhouseId && edits.greenhouseId !== record?.greenhouseId) {
-        const gh = mockGreenhouses.find(g => g.id === edits.greenhouseId)
+        const gh = mockGreenhouses.value.find(g => g.id === edits.greenhouseId)
         updates.greenhouseName = gh?.name || record?.greenhouseName
       }
       if (edits.inspectorId && edits.inspectorId !== record?.inspectorId) {
-        const user = mockUsers.find(u => u.id === edits.inspectorId)
+        const user = mockUsers.value.find(u => u.id === edits.inspectorId)
         updates.inspectorName = user?.name || record?.inspectorName
       }
       await inspectionStore.updateRecord(id, updates).catch(() => {})
@@ -1082,9 +1068,15 @@ function closeAcceptance() {
   acceptanceModal.problemId = null
 }
 
+// P0-6 接入 problemStore：优先从 store 获取问题数据
+const problemList = computed(() => {
+  const storeList = problemStore.problems || []
+  return storeList.length > 0 ? storeList : mockProblems
+})
+
 function handleApproveAcceptance() {
   if (!acceptanceModal.problemId) return
-  const problem = mockProblems.find(p => p.id === acceptanceModal.problemId)
+  const problem = problemList.value.find(p => p.id === acceptanceModal.problemId)
   if (problem) {
     problem.status = '已处理'
     problem.flowRecords.push({
@@ -1109,7 +1101,7 @@ function handleRejectAcceptance() {
     inputType: 'textarea',
   }).then(({ value }) => {
     if (value && acceptanceModal.problemId) {
-      const problem = mockProblems.find(p => p.id === acceptanceModal.problemId)
+      const problem = problemList.value.find(p => p.id === acceptanceModal.problemId)
       if (problem) {
         problem.reworkCount = (problem.reworkCount || 0) + 1
         if (problem.reworkCount >= 2) {

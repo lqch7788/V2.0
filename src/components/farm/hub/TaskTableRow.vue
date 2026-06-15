@@ -159,7 +159,7 @@
 
         <!-- 催办按钮：非草稿/已完成/已取消/已放弃/待接受（无执行人）状态显示（与V1.1 TaskTableRow.tsx line 412 一致） -->
         <el-button
-          v-if="showRemindButton"
+          v-if="showRemindButton && onRemind"
           :type="remindCheck.allowed ? 'danger' : 'info'"
           size="small"
           @click="handleRemind"
@@ -167,7 +167,8 @@
           class="text-xs"
           :title="remindTitle"
         >
-          催办
+          <!-- 冷却倒计时显示：与V1.1 TaskTableRow.tsx line 437-439 一致 -->
+          {{ cooldownLabel }}
         </el-button>
       </div>
     </td>
@@ -258,6 +259,11 @@ const props = defineProps({
   canRemind: { type: Function, default: () => ({ allowed: false }) },
   /** 发送催办消息的函数 */
   sendReminder: { type: Function, default: () => {} },
+  /** 催办属性：与V1.1 TaskTableRow.tsx line 101-105 一致 */
+  remindProps: {
+    type: Object,
+    default: () => ({ allowed: false, cooldownSec: 0, todayCount: 0 }),
+  },
 })
 
 /** 状态信息映射 */
@@ -314,7 +320,22 @@ const remindTitle = computed(() => {
   if (!remindCheck.value.allowed) {
     return remindCheck.value.reason || '暂时无法催办'
   }
+  // 与V1.1 TaskTableRow.tsx line 436 一致：cooldownSec>0显示"X分钟后可催办"，否则显示"今日已催办X次"
+  if (props.remindProps?.cooldownSec) {
+    return `${Math.ceil(props.remindProps.cooldownSec / 60)}分钟后可催办`
+  }
+  if (props.remindProps?.todayCount) {
+    return `今日已催办${props.remindProps.todayCount}次`
+  }
   return '点击发送催办消息'
+})
+
+/** 催办按钮文字标签：与V1.1 TaskTableRow.tsx line 437-439 一致 */
+const cooldownLabel = computed(() => {
+  if (props.remindProps?.cooldownSec) {
+    return `${Math.ceil(props.remindProps.cooldownSec / 60)}m`
+  }
+  return '催办'
 })
 
 /** 处理催办操作 */

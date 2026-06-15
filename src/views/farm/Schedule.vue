@@ -148,20 +148,47 @@
             </div>
           </div>
 
-          <!-- 月视图（V1.1 renderMonthView L112-183） -->
+          <!-- 月视图（V1.1 renderMonthView L112-183）：自定义 grid-cols-7 + 班次彩色标签 + 今天红圆 + +N更多 -->
           <div v-if="viewMode === 'month'" class="bg-white rounded-lg shadow overflow-hidden">
-            <el-calendar v-model="calendarDate">
-              <template #date-cell="{ data }">
-                <div class="relative" @click="handleCalendarDateClick(data.day)">
-                  <div :class="['text-center py-1', data.isSelected ? 'bg-blue-500 text-white rounded' : '']">
-                    {{ data.day.split('-').slice(2).join('-') }}
+            <!-- 星期标题 -->
+            <div class="grid grid-cols-7 bg-gray-50 border-b">
+              <div v-for="day in WEEKDAYS" :key="day" class="py-2 text-center text-sm font-medium text-gray-600">
+                {{ day }}
+              </div>
+            </div>
+            <!-- 日期网格：覆盖完整 6 周（42 天）含上下月 -->
+            <div class="grid grid-cols-7">
+              <div
+                v-for="dateStr in monthDateRange"
+                :key="dateStr"
+                @click="handleCalendarDateClick(dateStr)"
+                :class="['min-h-24 border-b border-r border-gray-300 p-1 cursor-pointer transition-colors',
+                  selectedDay === dateStr ? 'bg-blue-500' : 'bg-blue-50 hover:bg-blue-100',
+                  !isCurrentMonth(dateStr) ? 'bg-gray-100' : '']"
+              >
+                <div :class="['text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full',
+                  isToday(dateStr) ? 'bg-red-500 text-white' : '',
+                  !isCurrentMonth(dateStr) ? 'text-gray-400' : selectedDay === dateStr ? 'text-white' : 'text-gray-700']">
+                  {{ formatMonthDay(dateStr) }}
+                </div>
+                <!-- 排班标签（V1.1 L155-175）：员工名 + 班次 + 班次色 + 取消态 + 最多 3 条 + +N 更多 -->
+                <div class="space-y-0.5">
+                  <div
+                    v-for="schedule in getSchedulesForDate(dateStr).slice(0, 3)"
+                    :key="schedule.id"
+                    @click.stop="handleView(schedule)"
+                    :class="['text-xs px-1 py-0.5 rounded truncate text-white cursor-pointer',
+                      getShiftColor(schedule.shift),
+                      schedule.status === '已取消' ? 'opacity-50 line-through' : '']"
+                  >
+                    {{ schedule.staffName || schedule.staff_name }} {{ schedule.shift }}
                   </div>
-                  <div v-if="getScheduleCountForDate(data.day) > 0" class="absolute bottom-0 left-0 right-0 text-center">
-                    <span class="text-xs text-blue-600">{{ getScheduleCountForDate(data.day) }}人</span>
+                  <div v-if="getSchedulesForDate(dateStr).length > 3" class="text-xs text-gray-500 px-1">
+                    +{{ getSchedulesForDate(dateStr).length - 3 }} 更多
                   </div>
                 </div>
-              </template>
-            </el-calendar>
+              </div>
+            </div>
           </div>
 
           <!-- 周视图（V1.1 renderWeekView L186-272）：7 天横排 + 当日排班详情 -->
@@ -306,35 +333,60 @@
           <el-table
             :data="filteredSchedules.slice((pagination.currentPage - 1) * pagination.pageSize, (pagination.currentPage - 1) * pagination.pageSize + pagination.pageSize)"
             style="width: 100%"
+            :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#ffffff', fontWeight: 600 }"
+            :row-style="{ cursor: 'pointer' }"
             @selection-change="handleSelectionChange"
+            @row-click="handleTableRowClick"
           >
             <el-table-column
               v-if="exportMode || batchEditMode || batchDeleteMode"
               type="selection"
               width="50"
             />
-            <el-table-column prop="date" label="日期" width="120" />
-            <el-table-column prop="staffName" label="员工" width="100" />
+            <!-- 日期（含星期）V1.1 L427-430 1:1 对齐 -->
+            <el-table-column label="日期" width="120">
+              <template #default="{ row }">
+                <div class="text-sm font-medium text-gray-900">{{ row.date }}</div>
+                <div class="text-xs text-gray-500">{{ getWeekday(row.date) }}</div>
+              </template>
+            </el-table-column>
+            <!-- 员工 V1.1 L431-433 -->
+            <el-table-column prop="staffName" label="员工" width="100">
+              <template #default="{ row }">
+                <div class="text-sm font-medium text-gray-900">{{ row.staffName || row.staff_name || '-' }}</div>
+              </template>
+            </el-table-column>
+            <!-- 班次（带颜色）V1.1 L434-441 -->
             <el-table-column prop="shift" label="班次" width="100">
               <template #default="{ row }">
-                <el-tag :type="getShiftType(row.shift)" size="small">{{ row.shift }}</el-tag>
+                <span :class="['inline-flex items-center px-2 py-1 rounded text-xs font-medium text-white', getShiftColor(row.shift)]">
+                  {{ row.shift }}
+                </span>
               </template>
             </el-table-column>
-            <el-table-column prop="workZone" label="工作区域" width="120" />
-            <el-table-column prop="startTime" label="开始时间" width="100" />
-            <el-table-column prop="endTime" label="结束时间" width="100" />
+            <el-table-column prop="workZone" label="工作区域" width="120">
+              <template #default="{ row }">
+                <span class="text-sm text-gray-600">{{ row.workZone || row.work_zone || '-' }}</span>
+              </template>
+            </el-table-column>
+            <!-- 时间 V1.1 L445-447：开始 - 结束 -->
+            <el-table-column label="时间" width="140">
+              <template #default="{ row }">
+                <span class="text-sm text-gray-600">{{ getShiftTime(row.shift) }}</span>
+              </template>
+            </el-table-column>
+            <!-- 状态 V1.1 L448-457 -->
             <el-table-column prop="status" label="状态" width="100">
               <template #default="{ row }">
-                <el-tag :type="getStatusType(row.status)" size="small">{{ row.status }}</el-tag>
+                <span :class="['inline-flex items-center px-2 py-1 rounded text-xs font-medium', getStatusClass(row.status)]">
+                  {{ row.status }}
+                </span>
               </template>
             </el-table-column>
-            <el-table-column prop="checkIn" label="签到时间" width="120" />
-            <el-table-column prop="checkOut" label="签退时间" width="120" />
-            <el-table-column label="操作" width="150" fixed="right">
+            <!-- 签到/签退 V1.1 L458-460 -->
+            <el-table-column label="签到/签退" width="140">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" @click="handleView(row)">详情</el-button>
-                <el-button link type="danger" size="small" @click="handleCancel(row)" v-if="row.status === '已排班'">取消</el-button>
-                <el-button link type="warning" size="small" @click="handleEditSingle(row)">编辑</el-button>
+                <span class="text-sm text-gray-600">{{ row.checkIn || '-' }} / {{ row.checkOut || '-' }}</span>
               </template>
             </el-table-column>
           </el-table>
@@ -1048,6 +1100,52 @@ const weekDays = computed(() => {
     return { date: dateStr, day: d.getDate(), weekday: WEEKDAYS[i] }
   })
 })
+
+// ============ 月视图 6 周（42 天）日期范围（V1.1 L113-117 1:1 对齐） ============
+const monthDateRange = computed(() => {
+  const year = currentYear.value
+  const month = currentMonth.value
+  // 本月第一天
+  const firstDay = new Date(year, month - 1, 1)
+  // 本月第一天是周几（周一=0，周日=6）
+  let firstDayWeekday = firstDay.getDay() - 1
+  if (firstDayWeekday < 0) firstDayWeekday = 6
+  // 起始日：前推 firstDayWeekday 天到本周一
+  const startDate = new Date(firstDay)
+  startDate.setDate(firstDay.getDate() - firstDayWeekday)
+  // 42 天 = 6 周
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(startDate)
+    d.setDate(startDate.getDate() + i)
+    return d.toISOString().slice(0, 10)
+  })
+})
+
+// 判断某日是否属于当前显示月份（V1.1 L55-59 1:1 对齐）
+const isCurrentMonth = (dateStr) => {
+  const d = new Date(dateStr)
+  return d.getFullYear() === currentYear.value && d.getMonth() + 1 === currentMonth.value
+}
+
+// 月视图日期数字显示（V1.1 L36-42 formatDateDisplay month 模式）
+const formatMonthDay = (dateStr) => {
+  return new Date(dateStr).getDate().toString()
+}
+
+// 表格行星期显示（V1.1 L140-144 getWeekday 1:1 对齐）
+const getWeekday = (dateStr) => {
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  return weekdays[new Date(dateStr).getDay()]
+}
+
+// 表格行点击 → 显示排班详情（V1.1 L412-417 onScheduleClick 1:1 对齐）
+const handleTableRowClick = (row) => {
+  if (exportMode.value || batchEditMode.value || batchDeleteMode.value) {
+    // 批量模式下点击行不触发详情
+    return
+  }
+  selectedSchedule.value = row
+}
 
 const formatWeekdayTitle = (dateStr) => {
   const d = new Date(dateStr)

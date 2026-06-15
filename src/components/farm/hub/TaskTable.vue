@@ -109,9 +109,11 @@
             :on-reassign="onReassign ? () => onReassign(task) : undefined"
             :on-select-executor="onSelectExecutor ? () => onSelectExecutor(task) : undefined"
             :on-publish="onPublish ? () => onPublish(task) : undefined"
+            :on-remind="onRemind ? () => onRemind(task) : undefined"
             :is-my-tasks-view="isMyTasksView"
             :can-remind="canRemind"
             :send-reminder="sendReminder"
+            :remind-props="getRemindProps(task)"
           />
         </tbody>
       </table>
@@ -197,6 +199,8 @@ const props = defineProps({
   onReassign: { type: Function, default: undefined },
   /** 选择执行人回调 */
   onSelectExecutor: { type: Function, default: undefined },
+  /** 催办回调：与V1.1 TaskTable.tsx line 451 一致 */
+  onRemind: { type: Function, default: undefined },
   /** 发布回调 */
   onPublish: { type: Function, default: undefined },
   /** 是否为"我的任务"视图 */
@@ -308,5 +312,22 @@ const getSelectableReason = (task) => {
 /** 处理行选择 */
 const handleRowSelect = (index) => {
   props.onSelectRow(index)
+}
+
+/**
+ * 计算催办属性（remindProps）
+ * 与 V1.1 TaskTable.tsx line 455-459 一致：包含 allowed/cooldownSec/todayCount
+ * cooldownSec/todayCount 由父组件 FarmHub 通过 useReminder 提供，此处先返回基础值
+ */
+const getRemindProps = (task) => {
+  if (typeof props.canRemind !== 'function') {
+    return { allowed: false, cooldownSec: 0, todayCount: 0 }
+  }
+  const check = props.canRemind(task.id) || { allowed: false }
+  return {
+    allowed: !!check.allowed,
+    cooldownSec: check.cooldownSec || 0,
+    todayCount: check.todayCount || 0,
+  }
 }
 </script>

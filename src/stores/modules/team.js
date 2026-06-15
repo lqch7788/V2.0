@@ -1,19 +1,40 @@
 /**
  * 班组分配 Store
- * 从 V1.1 useTeamManageStore.ts 1:1迁移
+ * 从 V1.1 useTeamManageStore.ts 1:1 迁移
  * 班组数据保存到 localStorage，刷新页面不丢失
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { loadFromStorage, saveToStorage, STORAGE_KEYS } from '@/composables/useLocalStorage'
+// 与V1.1 useTeamManageStore.ts L11-13 1:1对齐：导入API客户端
+import { assignTeamMembers } from '@/api/labor'
 
-// 初始种子数据（与V1.1一致）
+// ========== 与 V1.1 useTeamManageStore.ts L16-32 1:1 对齐：工人 ID→姓名映射 ==========
+const WORKER_NAMES = {
+  'w001': '张三',
+  'w002': '李四',
+  'w003': '王五',
+  'w004': '赵六',
+  'w005': '孙七',
+  'w006': '周八',
+  'w007': '吴九',
+  'w008': '郑十',
+  'w009': '冯十一',
+  'w010': '陈十二',
+  'w011': '楚十三',
+  'w012': '褚十四',
+  'w013': '卫十五',
+  'w014': '蒋十六',
+  'w015': '沈十七',
+}
+
+// 初始种子数据（与 V1.1 useTeamManageStore.ts L68-89 1:1 对齐）
 const INITIAL_TEAMS = [
   {
     id: 'team001',
     name: '收割组A',
     leaderId: 'w001',
-    leaderName: '郭靖',
+    leaderName: '张三',
     memberIds: ['w002', 'w003', 'w004'],
     memberCount: 3,
     description: '负责番茄采收',
@@ -25,7 +46,7 @@ const INITIAL_TEAMS = [
     id: 'team002',
     name: '灌溉组B',
     leaderId: 'w005',
-    leaderName: '杨过',
+    leaderName: '李四',
     memberIds: ['w006', 'w007'],
     memberCount: 2,
     description: '负责灌溉系统操作',
@@ -37,7 +58,7 @@ const INITIAL_TEAMS = [
     id: 'team003',
     name: '运输组C',
     leaderId: 'w008',
-    leaderName: '令狐冲',
+    leaderName: '王五',
     memberIds: ['w009', 'w010', 'w011', 'w012'],
     memberCount: 4,
     description: '负责农产品运输',
@@ -116,19 +137,30 @@ export const useTeamStore = defineStore('team', () => {
   }
 
   function assignWorkers(teamId, workerIds, operatorId, operatorName) {
+    // P0-4 修复：与 V1.1 useTeamManageStore.ts L171-197 1:1 对齐
+    // V1.1 先调 enhancedApiClient.post('/team-members/teams/${teamId}/members/batch')
+    // V2.0 后端对应 API: assignTeamMembers(teamId, memberIds) -> POST /api/teamMembers/assign
+    // 策略：先调 API（乐观更新），无论成功失败都更新本地状态
     const team = teams.value.find(t => t.id === teamId)
-    if (team) {
-      team.memberIds = [...new Set([...team.memberIds, ...workerIds])]
-      team.memberCount = team.memberIds.length
-      team.updatedAt = new Date().toISOString().split('T')[0]
-      unassignedWorkers.value = unassignedWorkers.value.filter(
-        w => !workerIds.includes(w.id)
-      )
-      // 与V1.1 L101-106 1:1 对齐：记录操作人（V1.1 写入 TeamAssignment 表）
-      team.lastAssignedBy = operatorName || 'system'
-      team.lastAssignedById = operatorId || ''
-      persist()
-    }
+    if (!team) return
+
+    // 1) 异步调用后端 API（与 V1.1 L173-178 1:1 对齐），失败仅打印警告不阻塞本地更新
+    assignTeamMembers(teamId, workerIds).catch((err) => {
+      // 保留乐观更新策略：API 失败不影响本地 store 更新
+      console.warn('[team store] 分配工人API失败（已忽略）:', err)
+    })
+
+    // 2) 无论API成功与否，都更新本地状态（与 V1.1 L183-196 1:1 对齐的乐观更新逻辑）
+    team.memberIds = [...new Set([...team.memberIds, ...workerIds])]
+    team.memberCount = team.memberIds.length
+    team.updatedAt = new Date().toISOString().split('T')[0]
+    unassignedWorkers.value = unassignedWorkers.value.filter(
+      w => !workerIds.includes(w.id)
+    )
+    // 与V1.1 L101-106 1:1 对齐：记录操作人（V1.1 写入 TeamAssignment 表）
+    team.lastAssignedBy = operatorName || 'system'
+    team.lastAssignedById = operatorId || ''
+    persist()
   }
 
   function removeWorker(teamId, workerId) {
@@ -140,14 +172,10 @@ export const useTeamStore = defineStore('team', () => {
     }
   }
 
-  // 与V1.1 L48 getWorkerName 1:1 对齐：根据 workerId 查真实姓名
+  // 与 V1.1 useTeamManageStore.ts L39-41 1:1 对齐：根据工人ID获取真实姓名（基于 WORKER_NAMES 映射）
   function getWorkerName(workerId) {
     if (!workerId) return '未知'
-    // 在 unassignedWorkers 中查找
-    const u = unassignedWorkers.value.find(w => w.id === workerId)
-    if (u) return u.name
-    // 兜底：去除前缀显示
-    return workerId.replace(/^[uw]+/, '').replace(/^0+/, '') || workerId
+    return WORKER_NAMES[workerId] || '未知'
   }
 
   // 与V1.1 L117-122 getTeamById 1:1 对齐
