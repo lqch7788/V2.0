@@ -11,7 +11,8 @@
   <ElModal
     v-model="visible"
     title="批次详情"
-    size="xl"
+    :width="700"
+    :height="600"
     :show-submit="false"
     :show-cancel="false"
     @close="handleClose"
@@ -19,13 +20,13 @@
     <div v-if="batch" class="space-y-4 modal-form-inputs">
       <!--
         基本信息：14 个字段，2 列 grid，1:1 对应 V1.1 DetailField[][] 配置
-        V1.1 L98-127
+        V1.1 L121-153
       -->
       <div class="grid grid-cols-2 gap-4">
-        <div v-for="(field, i) in basicInfoFields" :key="i">
-          <label class="text-xs text-gray-600 block mb-1 text-center">{{ field.label }}</label>
+        <div v-for="(field, i) in basicInfoFields" :key="i" class="flex items-start gap-3">
+          <label class="text-xs text-gray-600 w-24 flex-shrink-0 mt-2">{{ field.label }}</label>
           <p
-            class="h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 flex items-center text-gray-700"
+            class="flex-1 h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 flex items-center text-gray-700"
             v-html="field.value"
           />
         </div>
@@ -38,7 +39,8 @@
       -->
       <div class="border-t pt-4">
         <div class="text-sm font-medium text-gray-700 mb-3">审批记录</div>
-        <div v-if="loadingApprovals" class="text-center text-gray-500 py-4">加载中...</div>
+        <div v-if="loadError" class="text-center text-red-500 py-4 text-sm">加载失败：{{ loadError }}</div>
+        <div v-else-if="loadingApprovals" class="text-center text-gray-500 py-4">加载中...</div>
         <div v-else-if="approvals.length === 0" class="text-center text-gray-400 py-4">暂无审批记录</div>
         <div v-else class="space-y-4">
           <div v-for="approval in approvals" :key="approval.id" class="mb-4">
@@ -61,7 +63,7 @@
                 :key="record.id || idx"
                 class="flex flex-wrap items-start gap-x-4 gap-y-1 text-sm"
               >
-                <span class="text-gray-500 min-w-[140px]">{{ formatDateTime(record.actionTime) }}</span>
+                <span class="text-gray-500 min-w-[60px]">{{ formatDateTime(record.actionTime) }}</span>
                 <span class="text-gray-700">{{ record.approverName }}</span>
                 <span
                   :class="getActionTextClass(record.action)"
@@ -69,7 +71,7 @@
                 >
                   {{ actionLabels[record.action] || record.action }}
                 </span>
-                <span v-if="record.comment" class="text-gray-500 w-full pl-32">理由：{{ record.comment }}</span>
+                <span v-if="record.comment" class="text-gray-500 w-full pl-24">理由：{{ record.comment }}</span>
               </div>
             </div>
             <div v-else class="text-sm text-gray-400 pl-4 border-l-2 border-gray-200">尚未有审批操作</div>
@@ -83,12 +85,16 @@
         <button
           class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
           @click="handleClose"
-        >关闭</button>
+        >
+          <X class="w-4 h-4" /> 关闭
+        </button>
         <button
           v-if="onViewWorkOrders"
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
           @click="onViewWorkOrders"
-        >查看工单</button>
+        >
+          <Eye class="w-4 h-4" /> 查看工单
+        </button>
       </div>
     </template>
   </ElModal>
@@ -103,6 +109,7 @@
  *              P0-002-EX: 删除"生长进度"进度条
  */
 import { computed, ref, watch } from 'vue'
+import { Eye, X } from 'lucide-vue-next'
 import { ElModal } from '@/components/ui'
 import {
   batchStatusColors,
@@ -130,6 +137,7 @@ const visible = computed({
 // 审批记录 - 1:1 对应 V1.1 renderApprovalRecords
 const approvals = ref([])
 const loadingApprovals = ref(false)
+const loadError = ref(null)
 
 // 审批操作类型中文映射 - 1:1 对应 V1.1 L20-25
 const actionLabels = {
@@ -178,10 +186,22 @@ const statusBadge = computed(() => {
   return `<span class="inline-flex px-2 py-1 rounded-lg text-sm font-medium ${batchStatusColors[status]}">${batchStatusLabels[status]}</span>`
 })
 
-// 14 个基本字段 - 1:1 对应 V1.1 DetailField[][] L98-127（7 行 × 2 列）
+// 14 个基本字段 - 1:1 对应 V1.1 DetailField[][] L121-153（7 行 × 2 列）
+// 第 5 行右侧字段按 planType 分流（V1.1 L138-148）
 const basicInfoFields = computed(() => {
   if (!props.batch) return []
   const b = props.batch
+
+  // 2026-06-14: 育苗计划显示"投入→产出"，育种/种植显示"目标产量+单位" - 1:1 V1.1 L141-143
+  const targetField = b.planType === 'seedling'
+    ? { label: '目标投入 → 产出', value: `${b.targetInputCount || 0}株 → ${b.targetOutputCount || 0}株` }
+    : {
+        label: '目标产量',
+        value: b.targetYield != null
+          ? `${b.targetYield} ${unitLabel.value}`
+          : (b.targetQuantity != null ? `${b.targetQuantity} ${unitLabel.value}` : '-')
+      }
+
   return [
     { label: '批次编号', value: b.batchCode || '-' },
     { label: '种植模式', value: plantingModeLabel.value },
@@ -192,7 +212,7 @@ const basicInfoFields = computed(() => {
     { label: '开始时间', value: b.startDate || '-' },
     { label: '预计结束时间', value: b.expectedHarvestDate || '-' },
     { label: '负责人', value: b.responsiblePerson || '-' },
-    { label: '目标产量', value: b.targetYield != null ? `${b.targetYield} ${unitLabel.value}` : '-' },
+    targetField,
     { label: '当前状态', value: statusBadge.value },
     { label: '发布人', value: b.publisher || '-' },
     { label: '初次发布时间', value: b.publishDate || '-' },
@@ -201,20 +221,24 @@ const basicInfoFields = computed(() => {
 })
 
 // 加载审批记录 - 1:1 对应 V1.1 loadApprovals L47-58
+// H-07 + M-14: 不再静默吞错，loadError 显式渲染
 watch(() => props.batch, async (batch) => {
   if (batch) {
     loadingApprovals.value = true
+    loadError.value = null
     try {
       const result = await getProductionPlanApprovals(batch.id)
       approvals.value = result || []
     } catch (error) {
-      console.error('加载审批记录失败:', error)
+      console.error('[BatchDetailModal] 加载审批单失败', error)
+      loadError.value = error?.message || '加载审批记录失败'
       approvals.value = []
     } finally {
       loadingApprovals.value = false
     }
   } else {
     approvals.value = []
+    loadError.value = null
   }
 }, { immediate: true })
 

@@ -51,6 +51,8 @@ import { enhancedApiClient } from '@/lib/apiClient'
  * @property {number} [seedQuantity]
  * @property {string} [seedlingSiteName]
  * @property {number} [targetSeedlingCount]
+ * @property {number} [targetInputCount]   // 2026-06-14: 育苗目标投入
+ * @property {number} [targetOutputCount]  // 2026-06-14: 育苗目标产出
  * @property {string} [orderId]
  * @property {string} [orderCode]
  * @property {string} [remarks]
@@ -113,6 +115,9 @@ function normalizeBatch(raw) {
     seedQuantity: r.seedQuantity,
     seedlingSiteName: r.seedlingSiteName,
     targetSeedlingCount: r.targetSeedlingCount,
+    // 2026-06-14: 育苗目标语义字段 - 1:1 V1.1 normalizeBatch
+    targetInputCount: r.targetInputCount || 0,
+    targetOutputCount: r.targetOutputCount || 0,
     orderId: r.orderId,
     orderCode: r.orderCode,
     remarks: r.remarks,
@@ -201,4 +206,18 @@ export async function deleteProductionPlan(id) {
 export async function deleteProductionPlans(ids) {
   await enhancedApiClient.delete(`/production-plans/batch?ids=${ids.join(',')}`)
   return true
+}
+
+/**
+ * H-03: 调用后端生成生产计划编码（避免前端 batches.length+1 重复）
+ * 后端按日期 + 当日最大流水生成唯一编码
+ * 1:1 翻译 V1.1 apiProductionPlanService.ts L148-153 generateProductionPlanCode
+ * @param {string} [planType]
+ * @returns {Promise<string>}
+ */
+export async function generateProductionPlanCode(planType) {
+  const data = await enhancedApiClient.get(
+    `/production-plans/generate-code${planType ? `?planType=${encodeURIComponent(planType)}` : ''}`
+  )
+  return (data && data.code) || ''
 }

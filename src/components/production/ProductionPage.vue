@@ -4,7 +4,7 @@
   @description 复合组件：组装 L3 叶子组件，所有状态/逻辑由 useProductionPage 提供
 -->
 <template>
-  <div v-loading="hook.isLoading" class="space-y-6">
+  <div class="space-y-6">
     <!-- 页面头部 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

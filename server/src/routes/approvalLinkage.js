@@ -122,13 +122,22 @@ function updateProductionPlan(db, id, status, approvalCode, extra) {
         else if (status === 'rejected' || status === 'cancelled') {
             planStatus = 'cancelled';
         }
+        // 2026-06-14 修复：审批通过时回填 publish_date
+        // V1.1 行为：approval.ts:832-849 在审批通过时联动设置 publish_date = now
+        // 否则生产计划列表"发布时间"列永远为空
+        // 注意：rejected/cancelled 不回填 publish_date（与 V1.1 行为一致：作废计划不显示发布时间）
+        const publishDate = (planStatus === 'published') ? now : null;
         db.run(`
       UPDATE production_plans SET
         status = ?,
         batch_status = ?,
+        publish_date = COALESCE(?, publish_date),
         update_time = ?
       WHERE id = ?
-    `, [planStatus, planStatus, now, id]);
+    `, [planStatus, planStatus, publishDate, now, id]);
+        // ✅ 关键：sql.js 是内存数据库，db.run 不会自动持久化到磁盘，必须调 saveDatabase()
+        // 否则前端刷新页面后看到的状态仍是旧值（用户报告"审批通过后列表仍待审批"的真正根因）
+        require('../db').saveDatabase();
         return true;
     }
     catch (e) {
@@ -623,6 +632,12 @@ export function updateBusinessTable(db, businessType, requestId, action, approva
             if (updateProductionPlan(db, requestId, action, approvalCode, extra)) {
                 return { success: true, message: '生产计划状态已更新' };
             }
+            // 2026-06-15 修复 P0: 缺 return false 导致 fall-through 到 case 'production_batch'，
+            // 后者尝试 UPDATE crop_instances SET approval_code=... 但 crop_instances 表无此列 → 抛 no such column
+            // → 整个 updateBusinessTable 返回 success: false
+            // → PATCH /:id/action 的 try/catch 吞掉"联动失败"错误
+            // → 审批单 status 仍变 approved，但生产计划状态根本没改（用户报告"还是待审批"的真正根因）
+            return { success: false, message: '生产计划状态更新失败' };
         case 'production_batch':
             // 生产批次使用 crop_instances 表
             try {

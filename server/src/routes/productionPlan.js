@@ -72,6 +72,9 @@ function mapFieldsToFrontend(item) {
         seedlingSiteName: 'seedlingSiteName',
         seedQuantity: 'seedQuantity',
         targetSeedlingCount: 'targetSeedlingCount',
+        // 2026-06-14: 育苗目标语义字段 - 1:1 V1.1 L80-83
+        targetInputCount: 'targetInputCount',
+        targetOutputCount: 'targetOutputCount',
         endType: 'endType',
         // 关联订单字段
         orderId: 'orderId',
@@ -93,16 +96,54 @@ function mapArrayToFrontend(items) {
     return items.map(item => mapFieldsToFrontend(item));
 }
 /**
+ * 计划类型编码前缀
+ */
+const PLAN_TYPE_PREFIX = {
+    seed_breeding: 'JZ', // 育种 / Ji Zhong
+    seedling: 'YM',      // 育苗 / Yang Mu
+    planting: 'ZZ',      // 种植 / Zhong Zhi
+};
+/**
+ * 获取今日（按 prefix+date）已生成的最大流水号
+ * 1:1 翻译 V1.1 productionPlan.ts L115-135 getTodayMaxSerial
+ */
+function getTodayMaxSerial(prefix, dateStr) {
+    const db = getDatabase();
+    // LIKE 模式: 前缀(2) + 日期(8) + '-' + 3位序号占位 = 14 字符
+    const pattern = `${prefix}${dateStr}-___`;
+    const expectedLength = prefix.length + 8 + 1 + 3; // 14
+    const stmt = db.prepare(`
+        SELECT plan_code FROM production_plans
+        WHERE plan_code LIKE ? AND LENGTH(plan_code) = ?
+        ORDER BY plan_code DESC LIMIT 1
+    `);
+    stmt.bind([pattern, expectedLength]);
+    let maxSerial = 0;
+    if (stmt.step()) {
+        const row = stmt.getAsObject();
+        const serialStr = row.plan_code.slice(-3);
+        maxSerial = parseInt(serialStr, 10) || 0;
+    }
+    stmt.free();
+    return maxSerial;
+}
+/**
  * 生成生产计划编码
+ * 格式: {前缀}{YYYYMMDD}-{3位流水号}
+ * 例: ZZ20260607-001 / JZ20260607-001 / YM20260607-001
+ * 1:1 翻译 V1.1 productionPlan.ts L142-154
  */
 function generatePlanCode(type) {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
-    const seq = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-    const typePrefix = type ? type.substring(0, 2).toUpperCase() : 'PP';
-    return `PP${year}${month}${day}${typePrefix}${seq}`;
+    const dateStr = `${year}${month}${day}`;
+    // 未知类型 fallback 到 PP
+    const prefix = PLAN_TYPE_PREFIX[type] || 'PP';
+    const nextSerial = getTodayMaxSerial(prefix, dateStr) + 1;
+    const seq = String(nextSerial).padStart(3, '0');
+    return `${prefix}${dateStr}-${seq}`;
 }
 // ============================================
 // 生产计划基础 API
@@ -159,6 +200,23 @@ router.get('/', (req, res) => {
     }
 });
 /**
+ * 生成生产计划编码（必须在 /:id 路由前注册，否则会被 :id 匹配走 404）
+ * GET /api/production-plans/generate-code?planType=xxx
+ * 1:1 翻译 V1.1 productionPlan.ts L241-250
+ */
+router.get('/generate-code', (req, res) => {
+    try {
+        const planType = (req.query.planType) || '';
+        const code = generatePlanCode(planType);
+        res.json({ success: true, code });
+    }
+    catch (error) {
+        console.error('生成生产计划编码失败:', error);
+        res.status(500).json({ success: false, error: '生成生产计划编码失败' });
+    }
+});
+
+/**
  * 获取单个生产计划
  * GET /api/production-plans/:id
  */
@@ -186,7 +244,7 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
     try {
         const db = getDatabase();
-        const { id, batchCode, batchName, planType, cropName, variety, greenhouseName, greenhouseId, areaName, areaId, targetQuantity, targetYield, actualYield, startDate, expectedHarvestDate, actualHarvestDate, status, priority, remarks, publisher, createBy, responsiblePerson, unit, publishDate, batchStatus, planDetail, planDetailFileName, plantingArea, plantingAreaUnit, plantingMode, supplierName, seedlingSiteName, seedQuantity, targetSeedlingCount, orderId, orderCode, executionStatus } = req.body;
+        const { id, batchCode, batchName, planType, cropName, variety, greenhouseName, greenhouseId, areaName, areaId, targetQuantity, targetYield, actualYield, startDate, expectedHarvestDate, actualHarvestDate, status, priority, remarks, publisher, createBy, responsiblePerson, unit, publishDate, batchStatus, planDetail, planDetailFileName, plantingArea, plantingAreaUnit, plantingMode, supplierName, seedlingSiteName, seedQuantity, targetSeedlingCount, targetInputCount, targetOutputCount, orderId, orderCode, executionStatus } = req.body;
         if (!id) {
             return res.status(400).json({ success: false, error: '生产计划ID不能为空' });
         }
@@ -201,8 +259,9 @@ router.post('/', (req, res) => {
         responsible_person, unit, publish_date, batch_status,
         plan_detail, plan_detail_file_name, planting_area, planting_area_unit, planting_mode,
         supplier_name, seedling_site_name, seed_quantity, target_seedling_count,
+        target_input_count, target_output_count,
         order_id, order_code, execution_status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
             id,
             code,
@@ -236,6 +295,9 @@ router.post('/', (req, res) => {
             seedlingSiteName || '',
             seedQuantity || 0,
             targetSeedlingCount || 0,
+            // 2026-06-14: 育苗目标语义字段
+            targetInputCount || 0,
+            targetOutputCount || 0,
             orderId || '',
             orderCode || '',
             executionStatus || 'pending_execution'
@@ -319,13 +381,25 @@ router.put('/:id', (req, res) => {
             // 修复 P0: PUT fieldMap 缺 executionStatus 映射，导致 UPDATE 报
             // "no such column: executionStatus"，保存时 500
             executionStatus: 'execution_status',
+            // 2026-06-14: 补育苗目标语义字段映射 - 1:1 V1.1
+            targetInputCount: 'target_input_count',
+            targetOutputCount: 'target_output_count',
         };
         const updateFields = [];
         const values = [];
+        // 2026-06-15 修复: 加 allowedKeys 白名单（1:1 V1.1 productionPlan.ts:489-498）
+        // 根因: 之前 fieldMap[key] || key 兜底会让前端传任意未声明字段名原样写入 SQL
+        //       如果前端 typo 或带乱码,会报"no such column: XXX"导致整个 PUT 失败
+        //       表现为用户编辑后保存报"更新生产计划失败"
+        // V1.1 修复: allowedKeys 白名单 + 直接丢弃未声明字段（防 SQL 注入 + 脏数据）
+        const allowedKeys = new Set(Object.keys(fieldMap));
         for (const [key, value] of Object.entries(updates)) {
-            if (key === 'id')
+            if (key === 'id') continue;
+            if (!allowedKeys.has(key)) {
+                console.warn(`[PUT] 丢弃未声明字段: ${key}=${value}`);
                 continue;
-            const dbField = fieldMap[key] || key;
+            }
+            const dbField = fieldMap[key];
             updateFields.push(`${dbField} = ?`);
             values.push(value);
         }
@@ -343,8 +417,8 @@ router.put('/:id', (req, res) => {
         res.json({ success: true, message: '生产计划更新成功', data: updatedData });
     }
     catch (error) {
-        console.error('更新生产计划失败:', error);
-        res.status(500).json({ success: false, error: '更新生产计划失败' });
+        console.error('更新生产计划失败:', error.message);
+        res.status(500).json({ success: false, error: '更新生产计划失败: ' + error.message });
     }
 });
 /**

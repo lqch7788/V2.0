@@ -13,6 +13,8 @@ import { useAuthStore } from '@/stores/modules/auth'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { enhancedApiClient } from '@/lib/apiClient'
 import { showAlert, showConfirm } from '@/lib/dialogService'
+// V2.0 无独立 logger，统一使用 console.error（与 V1.1 logger.error 行为等价）
+import { generateProductionPlanCode } from '@/services/apiProductionPlanService'
 
 // ============================================
 // 1:1 翻译 V1.1 types 枚举与常量
@@ -133,7 +135,11 @@ function getInitialFormData(authStore) {
     planDetail: '',
     // 关联订单字段
     orderId: [],
-    orderCode: []
+    orderCode: [],
+    // 2026-06-14: 育苗目标语义字段 - 1:1 V1.1 ProductionFormData
+    // 必须在 initialFormData 初始化（否则 undefined || 0 = 0，保存后列表显示 0）
+    targetInputCount: 0,
+    targetOutputCount: 0,
   }
 }
 
@@ -402,7 +408,16 @@ export function useProductionPage() {
 
   /**
    * 校验表单
-   * 1:1 翻译 V1.1 validateForm
+   * 1:1 翻译 V1.1 validateForm（含 2026-06-14 目标语义分流修复）
+   *
+   * 关键：2026-06-14 的"目标语义全链路改造"把弹窗 UI 按 planType 分流成
+   *   - SEEDLING → targetInputCount / targetOutputCount
+   *   - SEED_BREEDING / PLANTING → targetYield
+   * validateForm 也必须按 planType 分流，否则：
+   *   - 用户选"育苗"计划 → UI 不显示 targetYield → 该字段永远是空
+   *   - 点"提交审批" → validateForm() 失败 → if (!validateForm()) return; 静默退出
+   *   - errors.targetYield 写入了，但育苗分支 UI 不渲染这个错误
+   *   → 表现为"点击没反应、列表不增加"
    * @returns {boolean}
    */
   function validateForm() {
@@ -414,9 +429,22 @@ export function useProductionPage() {
     if (formData.value.greenhouseId.length === 0) newErrors.greenhouseId = '请选择区域'
     if (!formData.value.startDate) newErrors.startDate = '请选择定植日期'
     if (!formData.value.expectedHarvestDate) newErrors.expectedHarvestDate = '请选择预计采收日期'
-    if (!formData.value.targetYield) newErrors.targetYield = '请输入目标产量'
     if (formData.value.plantingMode.length === 0) newErrors.plantingMode = '请选择种植模式'
     if (!formData.value.responsiblePerson) newErrors.responsiblePerson = '请选择负责人'
+
+    // 2026-06-14: 目标字段按 planType 分流校验 - 与 CreateBatchModal 弹窗 UI 1:1 对齐
+    if (formData.value.planType === 'seedling') {
+      // 育苗计划：校验"目标投入"或"目标产出"至少一个 > 0
+      const input = Number(formData.value.targetInputCount) || 0
+      const output = Number(formData.value.targetOutputCount) || 0
+      if (input === 0 && output === 0) {
+        newErrors.targetInputCount = '请至少输入目标投入或目标产出'
+        newErrors.targetOutputCount = '请至少输入目标投入或目标产出'
+      }
+    } else {
+      // 育种 / 种植计划：校验目标产量必填
+      if (!formData.value.targetYield) newErrors.targetYield = '请输入目标产量'
+    }
 
     errors.value = newErrors
     return Object.keys(newErrors).length === 0
@@ -444,14 +472,20 @@ export function useProductionPage() {
 
   /**
    * 生成批次编号
-   * 1:1 翻译 V1.1 generateBatchCode
+   * H-03: 改用后端 service 生成编码（之前 batches.length+1 会导致编号重复）
+   * 1:1 翻译 V1.1 useProductionForm.ts:60-71 generateBatchCode
+   * 后端按日期+当日最大流水生成唯一编码（ZZ20260607-001 格式）
    */
-  function generateBatchCode() {
-    const year = new Date().getFullYear()
-    const num = batches.value.length + 1
-    const prefix = PlanTypeCodePrefix[/** @type {PlanType} */ (formData.value.planType)] || 'FQ'
-    const code = `${prefix}${year}-${String(num).padStart(3, '0')}`
-    formData.value = { ...formData.value, batchCode: code }
+  async function generateBatchCode() {
+    try {
+      const code = await generateProductionPlanCode(/** @type {PlanType} */ (formData.value.planType))
+      if (code) {
+        formData.value = { ...formData.value, batchCode: code }
+      }
+    } catch (error) {
+      console.error('[ProductionPlan] 生成批次编号失败', error)
+      await showAlert('生成批次编号失败，请重试')
+    }
   }
 
   // ==================== 保存草稿 ====================
@@ -477,6 +511,8 @@ export function useProductionPage() {
       batchName: formData.value.batchCode,
       planType: formData.value.planType,
       cropName: formData.value.cropName,
+      // 2026-06-05: 写入 cropCode（V1.1 L104）
+      cropCode: formData.value.cropCode,
       variety: formData.value.variety,
       greenhouseId: greenhouseIds,
       greenhouseName: greenhouseNames,
@@ -488,7 +524,7 @@ export function useProductionPage() {
       startDate: formData.value.startDate,
       expectedHarvestDate: formData.value.expectedHarvestDate,
       actualHarvestDate: '',
-      status: 'draft',
+      // P0-04: 统一只用 batch_status 列；status 列由后端默认 'planning'，前端不再写入
       stage: 'seedling',
       stageName: '苗期',
       priority: 'normal',
@@ -508,6 +544,9 @@ export function useProductionPage() {
       seedlingSiteName: '',
       seedQuantity: 0,
       targetSeedlingCount: 0,
+      // 2026-06-14: 育苗目标语义字段（仅育苗计划用）- 1:1 V1.1 L137-138
+      targetInputCount: formData.value.targetInputCount || 0,
+      targetOutputCount: formData.value.targetOutputCount || 0,
       // 关联订单
       orderId: formData.value.orderId.join(',') || undefined,
       orderCode: formData.value.orderCode.join(',') || undefined,
@@ -521,7 +560,7 @@ export function useProductionPage() {
       resetForm()
       errors.value = {}
     } catch (error) {
-      // logger.error('保存草稿失败:', error);
+      console.error('[ProductionPlan] 保存草稿失败', error)
       await showAlert('保存草稿失败，请重试')
     }
   }
@@ -550,20 +589,25 @@ export function useProductionPage() {
       batchName: formData.value.batchCode,
       planType: formData.value.planType,
       cropName: formData.value.cropName,
+      // 2026-06-05: 写入 cropCode（V1.1 L176）
+      cropCode: formData.value.cropCode,
       variety: formData.value.variety,
+      greenhouseId: greenhouseIds,
       greenhouseName: greenhouseNames,
       areaName: greenhouseNames,
       targetQuantity: parseInt(formData.value.targetYield) || 0,
       startDate: formData.value.startDate,
       expectedHarvestDate: formData.value.expectedHarvestDate,
-      status: 'pending',
+      // P0-04: 统一只用 batch_status 列；status 列由后端默认 'planning'，前端不再写入
       priority: 'normal',
       remarks: formData.value.description || '',
       publisher: formData.value.publisher || currentUsername.value,
       createBy: formData.value.publisher || currentUsername.value,
       responsiblePerson: formData.value.responsiblePerson,
       unit: formData.value.unit || 'kg',
-      publishDate: today,
+      // 2026-06-12 修复: 提交审批时不该直接写入 publishDate,应等审批通过再流转
+      // 根因: 之前 hard-code publishDate=today,导致新建未审批就显示"已发布"
+      publishDate: '',
       batchStatus: 'pending',
       planDetail: formData.value.planDetail || '',
       planDetailFileName: '',
@@ -574,6 +618,9 @@ export function useProductionPage() {
       seedlingSiteName: '',
       seedQuantity: 0,
       targetSeedlingCount: 0,
+      // 2026-06-14: 育苗目标语义字段（仅育苗计划用）- 1:1 V1.1 L204-205
+      targetInputCount: formData.value.targetInputCount || 0,
+      targetOutputCount: formData.value.targetOutputCount || 0,
       orderId: formData.value.orderId.join(',') || '',
       orderCode: formData.value.orderCode.join(',') || '',
     }
@@ -611,7 +658,9 @@ export function useProductionPage() {
             plantingMode: formData.value.plantingMode.join(','),
           },
         }
-        await enhancedApiClient.post('/approvals', approvalData)
+        // C5 修复：审批单走 useApprovalStore.addApproval（已包含 POST + 乐观更新 + 错误处理）
+        // 1:1 V1.1 L243
+        await useApprovalStore().addApproval(/** @type {any} */ (approvalData))
         await refreshApprovals()
       }
 
@@ -619,8 +668,7 @@ export function useProductionPage() {
       resetForm()
       errors.value = {}
     } catch (error) {
-      // 修复 P0: 清理调试时遗留的 4 个 console.error（仅保留 1 个）
-      console.error('[提交审批失败]', error)
+      console.error('[ProductionPlan] 提交审批失败', error)
       await showAlert(`提交审批失败：${error?.message || '请重试'}`)
     }
   }
@@ -655,7 +703,7 @@ export function useProductionPage() {
       }
       await showAlert('删除成功')
     } catch (error) {
-      // logger.error('删除生产计划失败:', error);
+      console.error('[ProductionPlan] 删除生产计划失败', error)
       await showAlert('删除失败，请重试')
     }
   }
@@ -663,16 +711,17 @@ export function useProductionPage() {
   // ==================== 批量删除确认 ====================
   /**
    * 批量删除确认
-   * 1:1 翻译 V1.1 handleDeleteConfirm
+   * M-04: 成功后才清 batchDeleteMode（之前先关弹窗再 await，成功后未再次清理导致 UI 残留）
+   * 1:1 翻译 V1.1 handleDeleteConfirm L281-304
    * @returns {Promise<void>}
    */
   async function handleDeleteConfirm() {
     showDeleteWarning.value = false
-    batchDeleteMode.value = false
     const toDelete = [...selectedRows.value]
 
     if (toDelete.length === 0) {
       selectedRows.value = []
+      batchDeleteMode.value = false
       return
     }
 
@@ -681,10 +730,13 @@ export function useProductionPage() {
         await productionPlanStore.deletePlans(toDelete)
       }
       selectedRows.value = []
+      batchDeleteMode.value = false // M-04: 成功后才关闭批量删除模式
       await showAlert('删除成功')
     } catch (error) {
-      // logger.error('删除生产计划失败:', error);
+      console.error('[ProductionPlan] 删除生产计划失败', error)
       await showAlert('删除失败，请重试')
+      batchDeleteMode.value = false
+      selectedRows.value = []
     }
   }
 
@@ -715,20 +767,36 @@ export function useProductionPage() {
 
     if (Object.keys(editedBatches.value).length > 0) {
       const submittedBatchIds = []
+      const failedBatchCodes = []
+      const failedReasons = []
 
       try {
-        // 直接复用 hook 顶部定义的 currentUserId/currentUsername/currentDepartment
-        // 避免重复 localStorage 访问
+        // P0-03: 串行 for+await 改为 Promise.allSettled 并行提交
+        // 1:1 翻译 V1.1 handlePublish L332-422
+        const submitTasks = batches.value
+          .map(batch => {
+            const edited = editedBatches.value[batch.batchCode]
+            if (!edited) return null
+            return { batch, edited }
+          })
+          .filter(t => t !== null)
 
-        for (const batch of batches.value) {
-          const edited = editedBatches.value[batch.batchCode]
-          if (edited) {
+        const today = new Date().toISOString().slice(0, 10)
+
+        // 并行执行所有提交任务；任一失败不影响其他
+        const results = await Promise.allSettled(
+          submitTasks.map(async ({ batch, edited }) => {
             if (USE_API) {
               /** @type {Record<string, unknown>} */
               const apiData = {}
               if (edited.targetQuantity !== undefined) apiData.targetQuantity = edited.targetQuantity
               if (edited.targetYield !== undefined) apiData.targetYield = edited.targetYield
+              // 2026-06-14: 育苗目标语义字段 - 1:1 V1.1 L349-350
+              if (edited.targetInputCount !== undefined) apiData.targetInputCount = edited.targetInputCount
+              if (edited.targetOutputCount !== undefined) apiData.targetOutputCount = edited.targetOutputCount
               if (edited.cropName !== undefined) apiData.cropName = edited.cropName
+              // 2026-06-05: 写入 cropCode
+              if (edited.cropCode !== undefined) apiData.cropCode = edited.cropCode
               if (edited.variety !== undefined) apiData.variety = edited.variety
               if (edited.greenhouseName !== undefined) apiData.greenhouseName = edited.greenhouseName
               if (edited.greenhouseId !== undefined) apiData.greenhouseId = edited.greenhouseId
@@ -747,9 +815,7 @@ export function useProductionPage() {
               await productionPlanStore.updatePlan(batch.id, /** @type {any} */ (apiData))
             }
 
-            const today = new Date().toISOString().slice(0, 10)
             const changeId = `BC${Date.now()}_${batch.id}`
-            const changeCode = `BG${today.replace(/-/g, '')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
 
             /** @type {string[]} */
             const changes = []
@@ -795,16 +861,35 @@ export function useProductionPage() {
             }
 
             if (USE_API) {
-              await enhancedApiClient.post('/approvals', approvalData)
+              // C5 修复：审批单走 useApprovalStore.addApproval - 1:1 V1.1 L417
+              await useApprovalStore().addApproval(/** @type {any} */ (approvalData))
             }
 
-            submittedBatchIds.push(batch.id)
+            return batch.id
+          })
+        )
+
+        // 收集成功 / 失败
+        results.forEach((r, idx) => {
+          if (r.status === 'fulfilled') {
+            submittedBatchIds.push(r.value)
+          } else {
+            const task = submitTasks[idx]
+            const reason = r.reason
+            const reasonMsg = reason instanceof Error
+              ? reason.message
+              : typeof reason === 'string'
+                ? reason
+                : (() => { try { return JSON.stringify(reason) } catch { return String(reason) } })()
+            console.error(`[handlePublish] 批次 ${task.batch.batchCode} 提交失败`, reason)
+            failedBatchCodes.push(task.batch.batchCode)
+            failedReasons.push(reasonMsg)
           }
-        }
+        })
 
         await refreshApprovals()
       } catch (error) {
-        // logger.error('提交审批失败:', error);
+        console.error('[ProductionPlan] 提交审批失败', error)
         await showAlert('提交审批失败，请重试')
         return
       }
@@ -829,18 +914,31 @@ export function useProductionPage() {
       editedBatches.value = remainingEditedBatches
       editedBatchCodes.value = remainingEditedBatchCodes
 
-      if (submittedBatchIds.length === selectedRows.value.length) {
+      // P0-03: 最终 toast 显示成功 / 失败数 - 1:1 V1.1 L476-500
+      const successCount = submittedBatchIds.length
+      const failedCount = failedBatchCodes.length
+      if (failedCount > 0) {
+        const detailLines = failedBatchCodes
+          .map((code, i) => {
+            const msg = failedReasons[i] || '未知错误'
+            const short = msg.length > 120 ? msg.slice(0, 120) + '…' : msg
+            return `• ${code}: ${short}`
+          })
+          .join('\n')
+        await showAlert(
+          `提交完成：成功 ${successCount} 项，失败 ${failedCount} 项（${failedBatchCodes.slice(0, 3).join('、')}${failedCount > 3 ? ' 等' : ''}）\n\n失败详情：\n${detailLines}`
+        )
+      }
+
+      if (successCount === selectedRows.value.length && failedCount === 0) {
         showBatchEditModal.value = false
         editedBatches.value = {}
         editedBatchCodes.value = []
         selectedRows.value = []
+      } else if (successCount > 0) {
+        // 部分成功：保留剩余未提交项，弹窗不关 - 1:1 V1.1 L496-499
       } else {
-        // 修复 P0: 部分提交也关闭模态（与 handleSave 保持一致 UX 优化）
-        await showAlert(`已提交 ${submittedBatchIds.length} 项`)
-        showBatchEditModal.value = false
-        editedBatches.value = {}
-        editedBatchCodes.value = []
-        selectedRows.value = []
+        // 全部失败：保留弹窗让用户重试
       }
     }
   }
@@ -869,7 +967,12 @@ export function useProductionPage() {
             const apiData = {}
             if (edited.targetQuantity !== undefined) apiData.targetQuantity = edited.targetQuantity
             if (edited.targetYield !== undefined) apiData.targetYield = edited.targetYield
+            // 2026-06-14: 育苗目标语义字段 - 1:1 V1.1 L523-524
+            if (edited.targetInputCount !== undefined) apiData.targetInputCount = edited.targetInputCount
+            if (edited.targetOutputCount !== undefined) apiData.targetOutputCount = edited.targetOutputCount
             if (edited.cropName !== undefined) apiData.cropName = edited.cropName
+            // 2026-06-05: 写入 cropCode
+            if (edited.cropCode !== undefined) apiData.cropCode = edited.cropCode
             if (edited.variety !== undefined) apiData.variety = edited.variety
             if (edited.greenhouseName !== undefined) apiData.greenhouseName = edited.greenhouseName
             if (edited.greenhouseId !== undefined) apiData.greenhouseId = edited.greenhouseId
@@ -892,6 +995,7 @@ export function useProductionPage() {
 
       await showAlert('保存成功！')
     } catch (error) {
+      console.error('[ProductionPlan] 保存失败', error)
       await showAlert('保存失败，请重试')
       return
     }
@@ -922,14 +1026,8 @@ export function useProductionPage() {
       editedBatchCodes.value = []
       selectedRows.value = []
     } else {
-      // 修复 P0: 部分保存也关闭模态（避免"已保存 1 项"后模态仍开着的困扰）
-      // 剩余未保存的会被统计后丢弃（保留已保存状态）
-      // V1.1 行为：保留打开让用户继续编辑剩余项 - UX 不友好，改 V2.0
+      // 1:1 V1.1 L577：保留打开让用户继续编辑剩余项
       await showAlert(`已保存 ${savedBatchCodes.length} 项`)
-      showBatchEditModal.value = false
-      editedBatches.value = {}
-      editedBatchCodes.value = []
-      selectedRows.value = []
     }
   }
 
@@ -949,12 +1047,23 @@ export function useProductionPage() {
       return
     }
 
+    // P0-05: 先确认（避免误点）+ 不再先 updatePlan('pending') 写脏数据
+    // 1:1 翻译 V1.1 handleVoidConfirm L592-600
+    const confirmed = await showConfirm(
+      `确认作废生产计划：${currentBatch.batchCode}？\n\n` +
+        `作物：${currentBatch.cropName} ${currentBatch.variety}\n` +
+        `区域：${currentBatch.greenhouseName}\n\n` +
+        `此操作不可逆，请确认！`
+    )
+    if (!confirmed) {
+      return
+    }
+
     /** @type {string[]} */
     const voidedBatchIds = []
 
     try {
       const voidId = `BV${Date.now()}_${currentBatch.id}`
-      const voidCode = `BV${today.replace(/-/g, '')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
 
       /** @type {Record<string, unknown>} */
       const approvalData = {
@@ -984,14 +1093,26 @@ export function useProductionPage() {
       }
 
       if (USE_API) {
-        await productionPlanStore.updatePlan(currentBatch.id, /** @type {any} */ ({ batchStatus: 'pending' }))
-        await enhancedApiClient.post('/approvals', approvalData)
+        // P0-05: 移除 updatePlan('pending') 步骤，直接提交审批单
+        // 1:1 翻译 V1.1 L636-646
+        try {
+          await useApprovalStore().addApproval(/** @type {any} */ (approvalData))
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e)
+          console.error('[作废] /approvals POST 失败', e)
+          await showAlert(`作废失败[提交审批单]：${msg}`)
+          return
+        }
       }
 
       voidedBatchIds.push(currentBatch.id)
       await refreshApprovals()
 
-      selectedRows.value = selectedRows.value.filter(id => !voidedBatchIds.includes(id))
+      // M-03: 用 prev 闭包避免多次连续 setState 互相覆盖
+      selectedRows.value = (() => {
+        const next = selectedRows.value.filter(id => !voidedBatchIds.includes(id))
+        return next
+      })()
 
       editedBatches.value = (() => {
         const next = { ...editedBatches.value }
@@ -1003,8 +1124,8 @@ export function useProductionPage() {
 
       showBatchEditModal.value = false
     } catch (error) {
-      // logger.error('提交作废申请失败:', error);
-      await showAlert('提交作废申请失败，请重试')
+      console.error('[作废] 整体失败', error)
+      await showAlert(`提交作废申请失败：${error?.message || String(error)}`)
     }
 
     showVoidWarning.value = false
@@ -1166,7 +1287,7 @@ export function useProductionPage() {
       exportMode.value = false
       selectedRows.value = []
     } catch (error) {
-      // logger.error('导出失败:', error);
+      // console.error('导出失败:', error);
       await showAlert('导出失败，请重试')
       showExportModal.value = false
       exportMode.value = false

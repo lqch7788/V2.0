@@ -14,7 +14,11 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        // 2026-06-15 修复: vite 代理默认指向 3001（历史旧后端），但开发修改在 3002 跑
+        // 用户浏览器 → vite dev(5002) → 此处 → 后端。如果此处写 3001，所有 /api 请求
+        // 会被代理到**未修改的旧后端**，导致所有修复（schema/fieldMap/审批联动）看不到
+        // 修复方法：与 V2.0 server/package.json dev 脚本一致，使用 3002
+        target: 'http://localhost:3002',
         changeOrigin: true
       }
     }

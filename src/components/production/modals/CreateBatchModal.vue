@@ -2,8 +2,8 @@
   <ElModal
     v-model="visible"
     title="新增生产计划批次"
-    :width="784"
-    :height="630"
+    :width="900"
+    :height="650"
     :show-submit="false"
     :show-cancel="false"
     @close="handleClose"
@@ -245,7 +245,7 @@
         </div>
       </div>
 
-      <!-- 第六行：负责人 + 目标产量 -->
+      <!-- 第六行：负责人 + 目标产量（按计划类型分流） - 1:1 V1.1 L426-507 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="text-sm font-medium text-gray-700 block mb-1">
@@ -266,7 +266,38 @@
           </select>
           <p v-if="errors.responsiblePerson" class="text-red-500 text-xs mt-1">{{ errors.responsiblePerson }}</p>
         </div>
-        <div class="grid grid-cols-2 gap-2">
+        <!-- 2026-06-14: 按计划类型分流 - 1:1 V1.1 L437-506 -->
+        <div v-if="formData.planType === 'seedling'" class="grid grid-cols-2 gap-2">
+          <!-- 育苗计划：投入 + 产出（单位锁定为"株"） -->
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1">目标投入（母株/种子/分株基数）</label>
+            <input
+              :value="formData.targetInputCount === 0 ? '' : (formData.targetInputCount ?? '')"
+              @input="handleTargetInputChange"
+              type="number"
+              min="0"
+              placeholder="0"
+              class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              :class="errors.targetInputCount ? 'border-red-500' : ''"
+            />
+            <p v-if="errors.targetInputCount" class="text-red-500 text-xs mt-1">{{ errors.targetInputCount }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1">目标产出（成活/扩繁/嫁接苗）</label>
+            <input
+              :value="formData.targetOutputCount === 0 ? '' : (formData.targetOutputCount ?? '')"
+              @input="handleTargetOutputChange"
+              type="number"
+              min="0"
+              placeholder="0"
+              class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+              :class="errors.targetOutputCount ? 'border-red-500' : ''"
+            />
+            <p v-if="errors.targetOutputCount" class="text-red-500 text-xs mt-1">{{ errors.targetOutputCount }}</p>
+          </div>
+        </div>
+        <div v-else class="grid grid-cols-2 gap-2">
+          <!-- 育种 / 种植计划：目标产量 + 单位 -->
           <div>
             <label class="text-sm font-medium text-gray-700 block mb-1">目标产量</label>
             <input
@@ -458,8 +489,7 @@ watch(() => props.formData.cropCode, (code) => {
 function handlePlanTypeChange(value, label) {
   emit('formChange', 'planType', value)
   emit('formChange', 'planTypeName', label)
-  // 切换计划类型时，清空生产模式
-  emit('formChange', 'plantingMode', [])
+  // 1:1 V1.1 L201-218：V1.1 切换 planType 不清空 plantingMode（保留用户已选）
 }
 
 function handleCropChange(code, varietyInfo) {
@@ -552,12 +582,30 @@ function toggleOrder(order) {
 
 function handlePlantingAreaInput(event) {
   // 修复 P0: 模板必须传 $event，这里才能拿到 event 对象
-  // 修复前：模板写 @input="handlePlantingAreaInput" 没传 $event，函数收到 Event 对象
-  // 调用 val.replace() 抛 TypeError → emit 失败 → formData 不更新
-  // → 失焦后被 :value="" 覆盖清空 → 种植面积丢失
   const raw = event.target.value
   const formatted = raw.replace(/[^\d.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/(\..{2})./g, '$1')
   emit('formChange', 'plantingArea', formatted)
+}
+
+// 育苗计划目标投入/产出 - 1:1 V1.1 L443-480
+function handleTargetInputChange(event) {
+  const v = event.target.value
+  if (v === '') {
+    emit('formChange', 'targetInputCount', 0)
+    return
+  }
+  const n = Number(v)
+  if (!Number.isNaN(n) && n >= 0) emit('formChange', 'targetInputCount', n)
+}
+
+function handleTargetOutputChange(event) {
+  const v = event.target.value
+  if (v === '') {
+    emit('formChange', 'targetOutputCount', 0)
+    return
+  }
+  const n = Number(v)
+  if (!Number.isNaN(n) && n >= 0) emit('formChange', 'targetOutputCount', n)
 }
 
 function handleFileUpload() {

@@ -39,6 +39,7 @@
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">作物名称</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">作物品种</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">种植区域</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">生产模式</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">开始时间</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">预计结束</th>
             <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">负责人</th>
@@ -80,7 +81,7 @@
             </td>
             <td class="px-4 py-3 text-sm font-medium whitespace-nowrap">
               <button
-                :class="btnGhost + ' text-blue-600 hover:text-blue-800'"
+                :class="btnGhost + ' text-blue-600 hover:text-blue-800 hover:underline'"
                 title="点击查看详情"
                 @click="onBatchCodeClick(batch)"
               >
@@ -95,19 +96,39 @@
                 {{ planTypeLabels[batch.planType] }}
               </span>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{{ batch.cropName }}</td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.variety }}</td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-              {{ batch.greenhouseName || batch.supplierName || batch.seedlingSiteName || '-' }}
-            </td>
+            <td
+              class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap"
+              :title="batch.cropName || ''"
+            >{{ truncateForTable(batch.cropName) }}</td>
+            <td
+              class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"
+              :title="batch.variety || ''"
+            >{{ truncateForTable(batch.variety) }}</td>
+            <td
+              class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"
+              :title="batch.greenhouseName || batch.supplierName || batch.seedlingSiteName || ''"
+            >{{ truncateForTable(batch.greenhouseName || batch.supplierName || batch.seedlingSiteName) }}</td>
+            <td
+              class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"
+              :title="renderPlantingMode(batch)"
+            >{{ truncateForTable(renderPlantingMode(batch)) }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.startDate }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.expectedHarvestDate || '-' }}</td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.responsiblePerson }}</td>
             <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap font-medium">
-              {{ `${batch.targetYield || 0} ${batch.unit || 'kg'}` }}
+              <!-- 2026-06-14: 育苗计划显示"投入→产出"，育种/种植显示"目标产量+单位" - 1:1 V1.1 L214-223 -->
+              <span v-if="batch.planType === 'seedling'" class="text-blue-700">
+                {{ batch.targetInputCount || 0 }}株投入 → {{ batch.targetOutputCount || 0 }}株产出
+              </span>
+              <template v-else>
+                {{ `${batch.targetQuantity || batch.targetYield || 0} ${batch.unit || 'kg'}` }}
+              </template>
             </td>
             <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.publisher || '-' }}</td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.publishDate || '-' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+              <!-- 发布时间只显示年月日(YYYY-MM-DD);为空时 fallback 到创建时间 - 1:1 V1.1 L226-231 -->
+              {{ formatPublishDate(batch) }}
+            </td>
             <td class="px-4 py-3 whitespace-nowrap">
               <span :class="`px-2 py-1 rounded-full text-xs font-medium ${batchStatusColors[batch.batchStatus || 'draft']}`">
                 {{ batchStatusLabels[batch.batchStatus || 'draft'] }}
@@ -121,35 +142,38 @@
                 {{ executionStatusLabels[batch.executionStatus] }}
               </span>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ batch.orderCode || '-' }}</td>
+            <td
+              class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"
+              :title="batch.orderCode || ''"
+            >{{ truncateForTable(batch.orderCode) }}</td>
             <td
               class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate"
               :title="batch.remarks || ''"
-            >
-              {{ batch.remarks || '-' }}
-            </td>
+            >{{ truncateForTable(batch.remarks) }}</td>
             <td class="px-4 py-3 text-sm whitespace-nowrap">
               <template v-if="batch.planDetailFileName">
-                <button
-                  :class="btnGhost + ' text-blue-600 hover:text-blue-800'"
-                  title="点击下载生产计划文件"
-                  @click="downloadPlanFile(batch)"
-                >
-                  {{ batch.planDetailFileName }}
-                </button>
+                <span :title="batch.planDetailFileName">
+                  {{ truncateForTable(batch.planDetailFileName) }}
+                  <button
+                    :class="btnGhost + ' text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 ml-1'"
+                    title="点击下载生产计划文件"
+                    @click="downloadPlanFile(batch)"
+                  >
+                    <Download class="w-4 h-4" />
+                  </button>
+                </span>
               </template>
               <span v-else class="text-gray-400">-</span>
             </td>
             <td class="px-4 py-3">
               <div class="flex items-center gap-1">
-                <!-- P0-XXX: 单行编辑保留（高频 1 步直达），单行删除已移除（删除走批量入口更安全） -->
                 <button
                   v-if="batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled'"
-                  :class="btnGhost + ' text-blue-600 hover:text-blue-800 p-1'"
+                  :class="btnGhost + ' text-gray-600 hover:text-blue-600 p-1'"
                   title="编辑"
                   @click="onEdit(batch)"
                 >
-                  <Pencil class="w-4 h-4" />
+                  <Edit2 class="w-4 h-4" />
                 </button>
               </div>
             </td>
@@ -197,7 +221,8 @@
           >
             {{ allSelectedForBatchDelete ? '全不选' : '全选' }}
           </button>
-          <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项（草稿/已作废可删除）</span>
+          <!-- L-04: 文案与实际行为一致（所有状态都可删除） - 1:1 V1.1 L329-330 -->
+          <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
         </div>
       </div>
     </div>
@@ -268,32 +293,18 @@
 
 <script>
 /**
- * ProductionTable - 生产计划列表表格（复合组件）
+ * ProductionTable - 生产计划列表表格
  * 1:1 翻译自 V1.1 src/components/production/ProductionTable.tsx
  *
- * Props:
- * - filteredBatches: 过滤后的批次列表
- * - currentPage: 当前页
- * - pageSize: 每页条数
- * - exportMode: 是否处于导出模式
- * - batchEditMode: 是否处于批量编辑模式
- * - batchDeleteMode: 是否处于批量删除模式
- * - selectedRows: 已选中的批次 ID 列表
- *
- * Emits:
- * - pageChange(page): 页码变化
- * - pageSizeChange(size): 每页条数变化
- * - selectRow(id): 单行选择
- * - selectAll(): 全选/全不选（导出模式）
- * - batchSelectAll(): 全选/全不选（批量编辑模式）
- * - batchDeleteSelectAll(): 全选/全不选（批量删除模式）
- * - batchCodeClick(batch): 点击批次号查看详情
- * - edit(batch): 编辑单行
- * - delete(batch): 删除单行
+ * 修复 P0:
+ *  - 补"生产模式"列 (V1.1 L140 / 2026-06-10)
+ *  - 育苗计划目标产量分流 (V1.1 L214-223)
+ *  - 发布时间截 YYYY-MM-DD (V1.1 L226-231)
+ *  - truncateForTable 8 字截断 (V1.1 L82-87)
+ *  - 文件名 .docx → .md 强制 (V1.1 L261)
  */
 import { computed, defineComponent } from 'vue'
-import { Pencil, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
-// 与技术方案共享按钮样式常量（行内编辑/详情按钮用 btnGhost）
+import { Edit2, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
 import { btnGhost } from '@/views/production/constants/buttonStyles'
 import {
   batchStatusColors,
@@ -302,83 +313,47 @@ import {
   executionStatusLabels,
   PlanTypeLabels as planTypeLabels,
   PlanTypeColors as planTypeColors,
+  SEED_BREEDING_MODES,
+  SEEDLING_MODES,
+  PLANTING_MODES,
 } from './constants'
 
-/**
- * @typedef {import('./constants').PlanType} PlanType
- */
-
-/**
- * @typedef {Object} CropBatch
- * @property {string} id
- * @property {string} batchCode
- * @property {string} cropName
- * @property {string} variety
- * @property {string} [greenhouseName]
- * @property {string} [supplierName]
- * @property {string} [seedlingSiteName]
- * @property {string} startDate
- * @property {string} [expectedHarvestDate]
- * @property {string} responsiblePerson
- * @property {number} [targetYield]
- * @property {string} [unit]
- * @property {string} [publisher]
- * @property {string} [publishDate]
- * @property {'draft' | 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled' | 'rejected'} [batchStatus]
- * @property {PlanType} [planType]
- * @property {'pending_execution' | 'in_progress' | 'completed'} [executionStatus]
- * @property {string} [orderCode]
- * @property {string} [planDetailFileName]
- * @property {string} [planDetail]
- * @property {number} [plantingArea]
- * @property {string} [plantingMode]
- */
+// 2026-06-10: 全局 plantingMode value→label 映射兜底（旧数据/拼写不一致都能命中）
+// 1:1 V1.1 L60-66
+const ALL_MODE_LABELS = (() => {
+  const m = {}
+  ;[...SEED_BREEDING_MODES, ...SEEDLING_MODES, ...PLANTING_MODES].forEach(opt => {
+    m[opt.value] = opt.label
+  })
+  return m
+})()
 
 export default defineComponent({
   name: 'ProductionTable',
-  // 显式注册 lucide-vue-next 组件到 components map（template 中 <Pencil> 需要这里注册）
   components: {
-    Pencil,
+    Edit2,
+    Download,
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
   },
   props: {
-    /** @type {{ type: import('vue').PropType<CropBatch[]>, default: () => CropBatch[] }} */
     filteredBatches: { type: Array, default: () => [] },
-    /** @type {{ type: Number, default: number }} */
     currentPage: { type: Number, default: 1 },
-    /** @type {{ type: Number, default: number }} */
     pageSize: { type: Number, default: 10 },
-    /** @type {{ type: Boolean, default: boolean }} */
     exportMode: { type: Boolean, default: false },
-    /** @type {{ type: Boolean, default: boolean }} */
     batchEditMode: { type: Boolean, default: false },
-    /** @type {{ type: Boolean, default: boolean }} */
     batchDeleteMode: { type: Boolean, default: false },
-    /** @type {{ type: import('vue').PropType<string[]>, default: () => string[] }} */
     selectedRows: { type: Array, default: () => [] },
-    // 1:1 对应 V1.1 ProductionTableProps line 17-26 所有 callback props
-    // 注意：Vue 3 规则 - prop 名以 'on' 开头会被当作 emit 监听器自动 unwrap
-    // 所以全部用 xxxHandler 命名避开 'on' 前缀
-    /** @type {{ type: Function, required: true }} */
     pageChangeHandler: { type: Function, required: true },
-    /** @type {{ type: Function, required: true }} */
     pageSizeChangeHandler: { type: Function, required: true },
-    /** @type {{ type: Function, required: true }} */
     selectRowHandler: { type: Function, required: true },
-    /** @type {{ type: Function, required: true }} */
     selectAllHandler: { type: Function, required: true },
-    /** @type {{ type: Function, required: true }} */
     batchSelectAllHandler: { type: Function, required: true },
-    /** @type {{ type: Function, required: true }} */
     batchDeleteSelectAllHandler: { type: Function, required: true },
-    /** @type {{ type: Function, required: true }} */
     batchCodeClickHandler: { type: Function, required: true },
-    /** @type {{ type: Function, required: true }} */
     editHandler: { type: Function, required: true },
-    /** @type {{ type: Function, required: true }} */
     deleteHandler: { type: Function, required: true },
   },
   emits: [
@@ -393,13 +368,10 @@ export default defineComponent({
     'delete',
   ],
   setup(props, { emit }) {
-    // 分页大小选项
     const pageSizeOptions = [10, 20, 50]
 
-    // 总页数
     const pageCount = computed(() => Math.ceil(props.filteredBatches.length / props.pageSize))
 
-    // 当前页显示的批次列表
     const displayedBatches = computed(() =>
       props.filteredBatches.slice(
         (props.currentPage - 1) * props.pageSize,
@@ -407,12 +379,11 @@ export default defineComponent({
       )
     )
 
-    // 全选状态 - 导出模式
     const allSelectedForExport = computed(
       () => props.selectedRows.length === props.filteredBatches.length && props.filteredBatches.length > 0
     )
 
-    // 全选状态 - 批量编辑模式（仅统计可编辑的批次：非 completed/cancelled）
+    // 1:1 V1.1 L91：批量编辑全选只统计可编辑批次（非 completed/cancelled）
     const allSelectedForBatchEdit = computed(() => {
       const selectable = props.filteredBatches.filter(
         (b) => b.batchStatus !== 'completed' && b.batchStatus !== 'cancelled'
@@ -420,19 +391,18 @@ export default defineComponent({
       return props.selectedRows.length === selectable.length && selectable.length > 0
     })
 
-    // 全选状态 - 批量删除模式（V1.1逻辑：所有批次都可删除）
+    // 1:1 V1.1 L93-94：所有批次都可删除
     const allSelectedForBatchDelete = computed(
       () => props.selectedRows.length === props.filteredBatches.length && props.filteredBatches.length > 0
     )
 
-    // 可见的页码（用于分页按钮）
     const visiblePages = computed(() => {
       const pages = []
       const total = pageCount.value || 1
       const current = props.currentPage
       const maxVisible = 5
       let start = Math.max(1, current - Math.floor(maxVisible / 2))
-      let end = Math.min(total, start + maxVisible - 1)
+      const end = Math.min(total, start + maxVisible - 1)
       if (end - start + 1 < maxVisible) {
         start = Math.max(1, end - maxVisible + 1)
       }
@@ -442,22 +412,14 @@ export default defineComponent({
       return pages
     })
 
-    // 每页条数（双向同步）
     const localPageSize = computed({
       get: () => props.pageSize,
       set: (v) => {
-        // 修复 P0: 与 V1.1 React 风格一致，调用 props.xxxHandler 而非 emit
         props.pageSizeChangeHandler(v)
         props.pageChangeHandler(1)
       },
     })
 
-    /**
-     * 获取行 className
-     * V1.1 逻辑：编辑模式下，已完成/已作废的行加灰色背景
-     * @param {CropBatch} batch
-     * @returns {string}
-     */
     function getRowClassName(batch) {
       let className = 'hover:bg-blue-100 transition-colors '
       if (
@@ -469,36 +431,64 @@ export default defineComponent({
       return className
     }
 
-    /**
-     * 批量编辑模式下，单行 checkbox 切换
-     * V1.1 逻辑：仅当批次不是 completed/cancelled 时才触发选中
-     * @param {CropBatch} batch
-     */
     function handleBatchEditRowToggle(batch) {
       if (batch.batchStatus !== 'completed' && batch.batchStatus !== 'cancelled') {
-        // 修复 P0: 与 V1.1 React 风格一致，调用 props.selectRowHandler 而非 emit
-        // 之前 emit('selectRow', batch.id) 没有父级监听（父级用 :select-row-handler 接收）
-        // 导致单选/多选失效，只能依赖"全选"按钮
         props.selectRowHandler(batch.id)
       }
     }
 
     /**
-     * 下载生产计划文件
-     * 根据文件名后缀判断 docx / markdown，构造 Blob 下载
-     * @param {CropBatch} batch
+     * 渲染生产模式 - 1:1 V1.1 L68-76
+     * @param {Object} batch
+     * @returns {string}
+     */
+    function renderPlantingMode(batch) {
+      const raw = batch.plantingMode
+      if (!raw) return '-'
+      const labels = String(raw)
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean)
+        .map(v => ALL_MODE_LABELS[v] || v)
+      return labels.length > 0 ? labels.join('、') : '-'
+    }
+
+    /**
+     * 列表长字段截断（默认最多 8 个汉字 + …） - 1:1 V1.1 L82-87
+     * @param {string|null|undefined} text
+     * @param {number} [maxChars]
+     * @returns {string}
+     */
+    function truncateForTable(text, maxChars = 8) {
+      if (text === null || text === undefined) return '-'
+      const s = String(text)
+      if (s.length <= maxChars) return s
+      return s.slice(0, maxChars) + '…'
+    }
+
+    /**
+     * 发布时间截 YYYY-MM-DD - 1:1 V1.1 L226-231
+     * @param {Object} batch
+     * @returns {string}
+     */
+    function formatPublishDate(batch) {
+      const v = batch.publishDate || batch.createTime
+      if (!v) return '-'
+      return v.includes('T') ? v.split('T')[0] : v.slice(0, 10)
+    }
+
+    /**
+     * 下载生产计划文件 - 1:1 V1.1 L258-274
+     * M-05: 一律下载为 .md 文件（planDetail 是 markdown 字符串）
+     * 之前后缀保留 .docx 但内容是 markdown，Word 打开报错
+     * @param {Object} batch
      */
     function downloadPlanFile(batch) {
-      const fileName = batch.planDetailFileName
-      const isDocx = fileName.endsWith('.docx')
+      const fileName = batch.planDetailFileName.replace(/\.docx$/i, '.md')
       const content =
         batch.planDetail ||
         `# ${batch.batchCode}\n\n批次号：${batch.batchCode}\n作物名称：${batch.cropName}\n作物品种：${batch.variety}\n种植区域：${batch.greenhouseName}\n种植面积：${batch.plantingArea} m²\n种植模式：${batch.plantingMode}\n负责人：${batch.responsiblePerson}\n开始时间：${batch.startDate}\n预计结束时间：${batch.expectedHarvestDate}\n目标产量：${batch.targetYield} kg\n当前状态：${batchStatusLabels[batch.batchStatus || 'draft']}`
-      const blob = new Blob([content], {
-        type: isDocx
-          ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-          : 'text/markdown',
-      })
+      const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -509,13 +499,8 @@ export default defineComponent({
       URL.revokeObjectURL(url)
     }
 
-    // ============ 事件透传（callback props 包装）============
-    // 1:1 对应 V1.1 onXxx props
     function onPageChange(page) {
       props.pageChangeHandler(page)
-    }
-    function onPageSizeChange(size) {
-      props.pageSizeChangeHandler(size)
     }
     function onSelectRow(id) {
       props.selectRowHandler(id)
@@ -532,7 +517,6 @@ export default defineComponent({
     function onBatchCodeClick(batch) {
       props.batchCodeClickHandler(batch)
     }
-    // 1:1 对应 V1.1 line 222 onClick={() => onEdit(batch)}
     function onEdit(batch) {
       props.editHandler(batch)
     }
@@ -548,6 +532,9 @@ export default defineComponent({
       localPageSize,
       getRowClassName,
       handleBatchEditRowToggle,
+      renderPlantingMode,
+      truncateForTable,
+      formatPublishDate,
       downloadPlanFile,
       onPageChange,
       onSelectRow,
@@ -556,7 +543,8 @@ export default defineComponent({
       onBatchDeleteSelectAll,
       onBatchCodeClick,
       onEdit,
-      Pencil,
+      Edit2,
+      Download,
       ChevronLeft,
       ChevronRight,
       ChevronsLeft,

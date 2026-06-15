@@ -12,22 +12,19 @@
   <ElModal
     v-model="visible"
     title="批量编辑生产计划"
-    :width="784"
-    :height="630"
+    :width="900"
+    :height="650"
     :show-submit="false"
     :show-cancel="false"
     @close="handleClose"
   >
-    <!-- Info Banner - "已选择 X 条" badge 从 header 移到这里（与新建弹窗 Info Banner 一致） -->
-    <div class="p-4 bg-gray-50 border-b border-gray-200 -mx-4 sm:-mx-6 -mt-4">
-      <div class="bg-blue-50 rounded-lg p-3 mb-3 flex items-center gap-3">
+    <!-- Info Banner - 1:1 V1.1 L251-278 -->
+    <div class="p-4 bg-gray-50 border-b border-gray-300 -mx-4 sm:-mx-6 -mt-4">
+      <div class="bg-blue-50 rounded-lg p-3 mb-3">
         <p class="text-sm text-blue-800">
           已选择 <strong>{{ selectedRows.length }}</strong> 个生产计划进行批量编辑，已编辑
           <strong>{{ editedBatchCodes.length }}</strong> 个
         </p>
-        <span class="px-2 py-0.5 bg-blue-600 text-white text-xs rounded">
-          已选择 {{ selectedRows.length }} 条
-        </span>
       </div>
 
       <div class="flex items-center gap-4 mb-3">
@@ -35,7 +32,7 @@
           <label class="text-xs text-gray-600 block mb-1">选择生产计划批次号</label>
           <select
             v-model="localSelectedBatchCode"
-            class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500 bg-white"
+            class="w-full px-4 py-3 border border-gray-400 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 shadow-inner bg-white"
           >
             <option value="" disabled>请选择批次号</option>
             <option
@@ -179,7 +176,7 @@
           </div>
         </div>
 
-        <!-- 第四行：负责人 + 目标产量/单位 - 1:1 对应 V1.1 L318-357 -->
+        <!-- 第四行：负责人 + 目标产量/单位（按计划类型分流） - 1:1 V1.1 L424-509 -->
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-xs text-gray-500 mb-1 block">负责人</label>
@@ -192,7 +189,33 @@
               <option v-for="name in RESPONSIBLE_PERSONS" :key="name" :value="name">{{ name }}</option>
             </select>
           </div>
-          <div class="grid grid-cols-2 gap-2">
+          <!-- 育苗计划：目标投入 + 目标产出 - 1:1 V1.1 L443-484 -->
+          <div v-if="currentPlanType === 'seedling'" class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-gray-500 mb-1 block">目标投入（母株/种子/分株基数）</label>
+              <input
+                :value="formState.targetInputCount === 0 || formState.targetInputCount == null ? '' : formState.targetInputCount"
+                type="number"
+                min="0"
+                placeholder="0"
+                class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                @input="handleTargetInputChange"
+              />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 mb-1 block">目标产出（成活/扩繁/嫁接苗）</label>
+              <input
+                :value="formState.targetOutputCount === 0 || formState.targetOutputCount == null ? '' : formState.targetOutputCount"
+                type="number"
+                min="0"
+                placeholder="0"
+                class="w-full px-3 py-2 border border-gray-500 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                @input="handleTargetOutputChange"
+              />
+            </div>
+          </div>
+          <!-- 育种 / 种植计划：目标产量 + 单位 -->
+          <div v-else class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-xs text-gray-500 mb-1 block">目标产量</label>
               <input
@@ -212,7 +235,7 @@
               >
                 <option value="" disabled>选择单位</option>
                 <option value="kg">kg</option>
-                <option value="克">克</option>
+                <option value="吨">吨</option>
                 <option value="g">g</option>
                 <option value="株">株</option>
               </select>
@@ -327,27 +350,31 @@
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
-        <!-- 1:1 对应 V1.1 L497-505 -->
+      <div class="flex gap-3">
+        <!-- 1:1 V1.1 L233-247 footer - 顺序：确认（下一个）→ 申请作废 → 保存/提交 -->
         <button
           class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
           @click="handleConfirmNext"
-        >确认（下一个）</button>
+        >
+          <Check class="w-4 h-4" /> 确认（下一个）
+        </button>
         <button
           class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-amber-500 text-white hover:bg-amber-600"
           @click="handleVoid"
-        >申请作废</button>
-        <!-- V1.1: published 状态显示"保存"，其他状态显示"提交" -->
+        >
+          <AlertTriangle class="w-4 h-4" /> 申请作废
+        </button>
+        <!-- 1:1 V1.1 L243：pending/rejected → "提交"(publish)；其他 → "保存"(save) -->
         <button
-          v-if="currentBatch && currentBatch.batchStatus === 'published'"
-          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
-          @click="handleSave"
-        >保存</button>
-        <button
-          v-else
+          v-if="currentBatch && (currentBatch.batchStatus === 'pending' || currentBatch.batchStatus === 'rejected')"
           class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
           @click="handlePublish"
         >提交</button>
+        <button
+          v-else
+          class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
+          @click="handleSave"
+        >保存</button>
       </div>
     </template>
   </ElModal>
@@ -364,7 +391,7 @@
  *              2026-06-04: 配合 ElModal #header 插槽 + 移除 :show-close="false"
  */
 import { computed, ref, watch } from 'vue'
-import { ChevronUp, ChevronDown, Upload } from 'lucide-vue-next'
+import { ChevronUp, ChevronDown, Upload, Check, AlertTriangle } from 'lucide-vue-next'
 import { ElModal } from '@/components/ui'
 import {
   batchStatusColors,
@@ -432,6 +459,9 @@ const plantingModeOptions = computed(() => {
   return getModesByPlanType(currentBatch.value.planType)
 })
 
+// 1:1 V1.1 L186-187 currentPlanType
+const currentPlanType = computed(() => formState.value.planType || currentBatch.value?.planType || 'planting')
+
 // 已选品种的详情（用于显示完整路径）- 1:1 对应 V1.1 setSelectedCrop + selectedCrop
 const selectedCrop = ref(null)
 
@@ -459,6 +489,9 @@ function defaultEditedData() {
     expectedHarvestDate: '',
     responsiblePerson: '',
     targetYield: '',
+    targetInputCount: 0,
+    targetOutputCount: 0,
+    planType: '',
     executionStatus: '',
     plantingMode: [],
     planDetailFileName: '',
@@ -478,14 +511,25 @@ function parseArray(val) {
 /**
  * 当选中批次变化时，从 base + edited 合并到 formState
  * 与 V1.1 editedData = { ...editedBatches[selectedBatchCode], ...base } 等价
+ *
+ * 2026-06-14 P0 修复: 增加 `props.editedBatches` 依赖
+ * 根因: 之前只 watch currentBatch，导致以下场景 formState 永远不重置：
+ *   1. 用户先在弹窗里编辑字段 A（emit 父组件）
+ *   2. 父组件 editedBatches 更新（但 currentBatch 没变）
+ *   3. 切换到另一个批次再切回 —— currentBatch 引用变化（find 返回新对象）watch 才触发
+ *   4. 但如果用户没切换批次，edited 一直累积在 formState 里没问题
+ *   **真正的"互相清零"根因**：之前 handleFieldChange 用 `props.editedBatches[code]` 读父级旧值做合并
+ *   当父级在某些时序下没及时同步 currentEdited 时，会用空对象覆盖已保存的字段
+ * 修复方案：watch 同时依赖 currentBatch + props.editedBatches（确保父级变化也重置）
+ *          + handleFieldChange 用 formState 做唯一数据源，不再读父级旧值
  */
-watch(currentBatch, (batch) => {
+watch([currentBatch, () => props.editedBatches], ([batch, editedMap]) => {
   selectedCrop.value = null
   if (!batch) {
     formState.value = defaultEditedData()
     return
   }
-  const edited = props.editedBatches[batch.batchCode] || {}
+  const edited = editedMap?.[batch.batchCode] || {}
   formState.value = {
     cropCode: edited.cropCode ?? batch.cropCode ?? '',
     cropName: edited.cropName ?? batch.cropName ?? '',
@@ -499,6 +543,9 @@ watch(currentBatch, (batch) => {
     expectedHarvestDate: edited.expectedHarvestDate ?? batch.expectedHarvestDate ?? '',
     responsiblePerson: edited.responsiblePerson ?? batch.responsiblePerson ?? '',
     targetYield: edited.targetYield ?? batch.targetYield ?? '',
+    targetInputCount: edited.targetInputCount ?? batch.targetInputCount ?? 0,
+    targetOutputCount: edited.targetOutputCount ?? batch.targetOutputCount ?? 0,
+    planType: edited.planType ?? batch.planType ?? '',
     executionStatus: edited.executionStatus ?? batch.executionStatus ?? '',
     plantingMode: parseArray(edited.plantingMode ?? batch.plantingMode),
     planDetailFileName: edited.planDetailFileName ?? batch.planDetailFileName ?? '',
@@ -518,14 +565,26 @@ watch(() => props.modelValue, (isOpen) => {
 /**
  * 单字段变更 - 1:1 翻译 V1.1 handleFieldChange
  * 直接 emit 'update:editedBatches' 和 'update:editedBatchCodes'
+ *
+ * 2026-06-14 P0 修复: 用 formState 做唯一数据源
+ * 根因（旧实现）：`const currentEdited = props.editedBatches[code] || {}` 读父级旧值做合并
+ *   当父级响应式系统还没及时把上一 emit 同步过来时，currentEdited 是空对象，
+ *   然后 `{ ...currentEdited, [field]: value }` 会丢弃已编辑的其他字段
+ *   → "输入 input A 后再输入 input B，input A 被清零" 现象
+ * 修复（新实现）：emit 时直接用 formState 当前完整内容作为该批次的 edited，
+ *   formState 始终是最新（每次输入都同步写），不再依赖父级旧值做合并
  */
 function handleFieldChange(field, value) {
+  // 1) 写 formState（保证 formState 始终是该字段的最新值）
   formState.value = { ...formState.value, [field]: value }
   if (!localSelectedBatchCode.value) return
-  const currentEdited = props.editedBatches[localSelectedBatchCode.value] || {}
+  // 2) emit 完整 formState（剥掉 formState 私有字段如有）
+  //    父组件 updated 公式: { ...props.editedBatches, [code]: { ...formState } }
+  //    但 formState 包含 defaultEditedData() 全字段，直接用作该 code 的 edited
+  //    这就确保了：emit 的 edited 永远包含所有已编辑字段的最新值
   const updated = {
     ...props.editedBatches,
-    [localSelectedBatchCode.value]: { ...currentEdited, [field]: value }
+    [localSelectedBatchCode.value]: { ...formState.value }
   }
   emit('update:editedBatches', updated)
   if (!props.editedBatchCodes.includes(localSelectedBatchCode.value)) {
@@ -576,6 +635,27 @@ function toggleGreenhouseByName(name, checked) {
 function isGreenhouseChecked(name) {
   const currentNames = (formState.value.greenhouseName || '').split(',').map(s => s.trim()).filter(Boolean)
   return currentNames.includes(name)
+}
+
+// 育苗计划目标投入/产出 - 1:1 V1.1 L451-481
+function handleTargetInputChange(event) {
+  const v = event.target.value
+  if (v === '') {
+    handleFieldChange('targetInputCount', 0)
+    return
+  }
+  const n = Number(v)
+  if (!Number.isNaN(n) && n >= 0) handleFieldChange('targetInputCount', n)
+}
+
+function handleTargetOutputChange(event) {
+  const v = event.target.value
+  if (v === '') {
+    handleFieldChange('targetOutputCount', 0)
+    return
+  }
+  const n = Number(v)
+  if (!Number.isNaN(n) && n >= 0) handleFieldChange('targetOutputCount', n)
 }
 
 function handleFileUpload() {

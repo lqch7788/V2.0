@@ -4,7 +4,7 @@
   @description 纯展示组件，统计总批次/执行中/已完成/草稿或已作废四个维度
 -->
 <template>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
     <div
       v-for="(stat, index) in stats"
       :key="index"
@@ -31,7 +31,7 @@
  * @description 生产计划统计卡片 - 1:1 翻译自 V1.1 ProductionStatsCards.tsx
  */
 import { computed } from 'vue'
-import { Layers, PlayCircle, CheckCircle2, FileEdit } from 'lucide-vue-next'
+import { Layers, PlayCircle, CheckCircle2, FileEdit, CheckCheck } from 'lucide-vue-next'
 
 /**
  * @typedef {Object} CropBatch
@@ -69,7 +69,7 @@ const props = defineProps({
   batches: { type: Array, default: () => [] }
 })
 
-// 1:1 翻译 V1.1 stats 数组，computed 对应 V1.1 的内联计算
+// 1:1 翻译 V1.1 stats 数组（5 张卡），computed 对应 V1.1 的内联计算
 const stats = computed(() => [
   {
     label: '总批次',
@@ -79,11 +79,26 @@ const stats = computed(() => [
   },
   {
     label: '执行中',
+    // P0-06: 单值匹配 in_progress（排除 published），更准确反映"在执行"状态
     value: props.batches.filter(
-      (/** @type {CropBatch} */ b) => b.batchStatus === 'published' || b.batchStatus === 'in_progress'
+      (/** @type {CropBatch} */ b) => b.batchStatus === 'in_progress'
     ).length,
     color: 'bg-emerald-500',
     icon: PlayCircle
+  },
+  {
+    // P1 修复：聚合"已提交审批"的所有状态（之前只统计 published，但 handleSubmitForApproval
+    // 实际写 pending/pending_complete/approved，published 永远为 0）
+    label: '已审批',
+    value: props.batches.filter(
+      (/** @type {CropBatch} */ b) =>
+        b.batchStatus === 'pending' ||
+        b.batchStatus === 'pending_complete' ||
+        b.batchStatus === 'published' ||
+        b.batchStatus === 'approved'
+    ).length,
+    color: 'bg-cyan-500',
+    icon: CheckCheck
   },
   {
     label: '已完成',

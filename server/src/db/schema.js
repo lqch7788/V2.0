@@ -1867,6 +1867,9 @@ export function initializeDatabase() {
       seedling_site_name TEXT,
       seed_quantity INTEGER DEFAULT 0,
       target_seedling_count INTEGER DEFAULT 0,
+      -- 2026-06-14: 育苗目标语义字段（与 V1.1 schema 1:1 对齐）
+      target_input_count INTEGER DEFAULT 0,
+      target_output_count INTEGER DEFAULT 0,
       order_id TEXT,
       order_code TEXT,
       execution_status TEXT DEFAULT 'pending_execution'
@@ -1883,6 +1886,9 @@ export function initializeDatabase() {
         ['order_id', 'TEXT'],
         ['order_code', 'TEXT'],
         ['execution_status', "TEXT DEFAULT 'pending_execution'"],
+        // 2026-06-14: 补育苗目标语义字段（与 V1.1 schema 1:1 对齐）
+        ['target_input_count', 'INTEGER DEFAULT 0'],
+        ['target_output_count', 'INTEGER DEFAULT 0'],
     ];
     for (const [col, type] of productionPlanAlters) {
         try {

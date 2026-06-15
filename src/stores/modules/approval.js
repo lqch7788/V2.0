@@ -14,6 +14,23 @@ import {
   ApprovalStatus,
 } from '@/services/apiApprovalService'
 
+/**
+ * 2026-06-14: 审批操作后,联动刷新相关业务 Store
+ * 根因: 后端 approvalLinkage.js L104-138 已联动修改 production_plans.batch_status + publish_date,
+ *       但前端业务 Store 不会自动感知,需要在审批成功后主动重拉
+ * 1:1 翻译 V1.1 useApprovalStore.ts:31-38 refreshRelatedBusinessStores
+ * 用 dynamic import 避免与 useProductionPlanStore 形成循环依赖
+ */
+async function refreshRelatedBusinessStores() {
+  try {
+    const { useProductionPlanStore } = await import('./productionPlan')
+    await useProductionPlanStore().fetchPlans()
+  } catch (err) {
+    // 静默失败 — 不阻塞审批主流程
+    console.warn('[ApprovalStore] 联动刷新生产计划失败:', err)
+  }
+}
+
 // ============================================================
 // 统计数据计算（与V1.1 computeStats 完全一致）
 // ============================================================
@@ -187,6 +204,10 @@ export const useApprovalStore = defineStore('approval', () => {
 
   /**
    * 审批通过（与V1.1完全一致：乐观更新+刷新）
+   * 2026-06-14: 审批通过后联动刷新 productionPlan store
+   * 根因: 后端 approval.ts:832-849 已联动修改 production_plans.batch_status + publish_date,
+   *       但前端业务 Store 不会自动感知,需要在审批成功后主动重拉生产计划列表
+   * 1:1 翻译 V1.1 useApprovalStore.ts:334-361 approve
    */
   const approve = async (id, comment) => {
     try {
@@ -201,6 +222,8 @@ export const useApprovalStore = defineStore('approval', () => {
         stats.value = computeStats(approvals.value)
         // 重新加载以获取最新数据（与V1.1一致）
         await fetchApprovals(filters.value)
+        // 2026-06-14: 联动刷新生产计划列表,让生产计划状态从 'pending' 变为 'published'
+        await refreshRelatedBusinessStores()
         return true
       } else {
         error.value = result.error || '审批通过失败'
@@ -215,6 +238,7 @@ export const useApprovalStore = defineStore('approval', () => {
 
   /**
    * 审批拒绝（与V1.1完全一致：乐观更新+刷新）
+   * 2026-06-14: 同样需要联动刷新生产计划列表 (rejected -> cancelled)
    */
   const reject = async (id, comment) => {
     try {
@@ -229,6 +253,8 @@ export const useApprovalStore = defineStore('approval', () => {
         stats.value = computeStats(approvals.value)
         // 重新加载以获取最新数据（与V1.1一致）
         await fetchApprovals(filters.value)
+        // 2026-06-14: 联动刷新生产计划列表
+        await refreshRelatedBusinessStores()
         return true
       } else {
         error.value = result.error || '审批拒绝失败'
