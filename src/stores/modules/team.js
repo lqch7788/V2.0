@@ -115,7 +115,7 @@ export const useTeamStore = defineStore('team', () => {
     persist()
   }
 
-  function assignWorkers(teamId, workerIds) {
+  function assignWorkers(teamId, workerIds, operatorId, operatorName) {
     const team = teams.value.find(t => t.id === teamId)
     if (team) {
       team.memberIds = [...new Set([...team.memberIds, ...workerIds])]
@@ -124,6 +124,9 @@ export const useTeamStore = defineStore('team', () => {
       unassignedWorkers.value = unassignedWorkers.value.filter(
         w => !workerIds.includes(w.id)
       )
+      // 与V1.1 L101-106 1:1 对齐：记录操作人（V1.1 写入 TeamAssignment 表）
+      team.lastAssignedBy = operatorName || 'system'
+      team.lastAssignedById = operatorId || ''
       persist()
     }
   }
@@ -137,6 +140,21 @@ export const useTeamStore = defineStore('team', () => {
     }
   }
 
+  // 与V1.1 L48 getWorkerName 1:1 对齐：根据 workerId 查真实姓名
+  function getWorkerName(workerId) {
+    if (!workerId) return '未知'
+    // 在 unassignedWorkers 中查找
+    const u = unassignedWorkers.value.find(w => w.id === workerId)
+    if (u) return u.name
+    // 兜底：去除前缀显示
+    return workerId.replace(/^[uw]+/, '').replace(/^0+/, '') || workerId
+  }
+
+  // 与V1.1 L117-122 getTeamById 1:1 对齐
+  function getTeamById(id) {
+    return teams.value.find(t => t.id === id)
+  }
+
   return {
     teams,
     unassignedWorkers,
@@ -148,5 +166,7 @@ export const useTeamStore = defineStore('team', () => {
     removeTeam,
     assignWorkers,
     removeWorker,
+    getWorkerName,
+    getTeamById,
   }
 })

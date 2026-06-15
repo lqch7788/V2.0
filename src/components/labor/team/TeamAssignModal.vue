@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { Check } from '@element-plus/icons-vue'
 
 const props = defineProps({
@@ -69,10 +69,18 @@ const props = defineProps({
   team: Object,
   unassignedWorkers: Array,
   onAssign: Function,
-  onClose: Function
+  onClose: Function,
+  currentUser: { type: Object, default: () => ({}) }
 })
 
 const selectedWorkers = ref([])
+
+// 与V1.1 L19-23 1:1 对齐：弹窗关闭时重置选择状态
+watch(() => props.isOpen, (newVal) => {
+  if (!newVal) {
+    selectedWorkers.value = []
+  }
+})
 
 const toggleWorker = (workerId) => {
   if (selectedWorkers.value.includes(workerId)) {
@@ -84,7 +92,10 @@ const toggleWorker = (workerId) => {
 
 const handleAssign = () => {
   if (selectedWorkers.value.length > 0 && props.team) {
-    props.onAssign(props.team.id, selectedWorkers.value)
+    // 与V1.1 L33-39 1:1 对齐：传 operatorId/operatorName
+    const operatorId = props.currentUser?.id || props.currentUser?.userId || 'system'
+    const operatorName = props.currentUser?.name || props.currentUser?.username || '系统'
+    props.onAssign(props.team.id, selectedWorkers.value, operatorId, operatorName)
     selectedWorkers.value = []
     props.onClose()
   }

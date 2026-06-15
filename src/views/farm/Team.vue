@@ -13,6 +13,11 @@
       </div>
     </div>
 
+    <!-- 加载状态（与V1.1 isLoading 对齐） -->
+    <div v-if="store.loading" class="bg-white rounded-xl p-8 shadow-sm text-center text-gray-500">
+      加载中...
+    </div>
+
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
@@ -40,7 +45,7 @@
       <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <el-icon :size="16" class="text-amber-600"><CirclePlus /></el-icon>
+            <el-icon :size="16" class="text-amber-600"><UserFilled /></el-icon>
           </div>
           <div>
             <p class="text-xs text-gray-500">未分配</p>
@@ -66,7 +71,7 @@
           <el-input v-model="filters.workZone" placeholder="请输入" size="small" style="width: 140px" clearable />
         </div>
         <div class="flex gap-2 ml-auto">
-          <el-button size="small" @click="handleReset">重置</el-button>
+          <el-button size="small" type="warning" plain @click="handleReset">重置</el-button>
           <el-button size="small" type="primary" @click="handleSearch">搜索</el-button>
         </div>
       </div>
@@ -78,7 +83,14 @@
       <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900">班组分配记录表</h3>
         <div class="flex gap-2">
-          <template v-if="batchDeleteMode">
+          <template v-if="exportMode">
+            <el-button size="small" type="success" :disabled="selectedRows.length === 0" @click="handleBatchExportClick">
+              <el-icon><Download /></el-icon>
+              确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
+            </el-button>
+            <el-button size="small" @click="handleCancelBatch">取消</el-button>
+          </template>
+          <template v-else-if="batchDeleteMode">
             <el-button size="small" type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete">
               <el-icon><Delete /></el-icon>
               确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
@@ -86,11 +98,15 @@
             <el-button size="small" @click="handleCancelBatch">取消</el-button>
           </template>
           <template v-else>
-            <el-button size="small" type="danger" @click="batchDeleteMode = true">
+            <el-button v-if="canExport" size="small" @click="exportMode = true">
+              <el-icon><Download /></el-icon>
+              批量导出
+            </el-button>
+            <el-button v-if="canDelete" size="small" type="danger" @click="batchDeleteMode = true">
               <el-icon><Delete /></el-icon>
               批量删除
             </el-button>
-            <el-button size="small" type="primary" @click="openCreateModal">
+            <el-button v-if="canCreate" size="small" type="primary" @click="openCreateModal">
               <el-icon><Plus /></el-icon>
               新建班组
             </el-button>
@@ -105,7 +121,7 @@
           @selection-change="handleSelectionChange"
         >
           <el-table-column
-            v-if="batchDeleteMode"
+            v-if="batchDeleteMode || exportMode"
             type="selection"
             width="50"
           />
@@ -139,13 +155,13 @@
                 <el-button text circle @click="openDetailModal(row)" title="查看详情">
                   <el-icon><View /></el-icon>
                 </el-button>
-                <el-button text circle @click="openAssignModal(row)" title="分配工人">
+                <el-button v-if="canEdit" text circle @click="openAssignModal(row)" title="分配工人">
                   <el-icon><CirclePlus /></el-icon>
                 </el-button>
-                <el-button text circle @click="openEditModal(row)" title="编辑">
+                <el-button v-if="canEdit" text circle @click="openEditModal(row)" title="编辑">
                   <el-icon><Edit /></el-icon>
                 </el-button>
-                <el-button text circle @click="handleDelete(row)" title="删除">
+                <el-button v-if="canDelete" text circle @click="handleDelete(row)" title="删除">
                   <el-icon><Delete /></el-icon>
                 </el-button>
               </div>
@@ -180,6 +196,7 @@
       :unassigned-workers="store.unassignedWorkers"
       :on-assign="handleAssign"
       :on-close="() => isAssignModalOpen = false"
+      :current-user="currentUser"
     />
 
     <!-- 班组详情弹窗 -->
@@ -227,12 +244,24 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, Plus, CirclePlus, Edit, Delete, View } from '@element-plus/icons-vue'
+import { User, UserFilled, Plus, CirclePlus, Edit, Delete, View, Download } from '@element-plus/icons-vue'
 import TeamAssignModal from '@/components/labor/team/TeamAssignModal.vue'
 import TeamDetailModal from '@/components/labor/team/TeamDetailModal.vue'
 import { useTeamStore } from '@/stores/modules/team'
 
+// ============ Props（与V1.1 TeamTableProps 1:1 对齐） ============
+const props = defineProps({
+  onBack: { type: Function, default: null },
+  canCreate: { type: Boolean, default: true },
+  canEdit: { type: Boolean, default: true },
+  canDelete: { type: Boolean, default: true },
+  canExport: { type: Boolean, default: true },
+})
+
 const store = useTeamStore()
+
+// ============ 当前用户（与V1.1 L71 currentUser 1:1 对齐） ============
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
 
 // ============ 筛选（3字段，与V1.1一致） ============
 const filters = reactive({ name: '', leaderName: '', workZone: '' })
@@ -240,8 +269,9 @@ const filters = reactive({ name: '', leaderName: '', workZone: '' })
 // ============ 分页 ============
 const pagination = reactive({ currentPage: 1, pageSize: 10 })
 
-// ============ 批量删除 ============
+// ============ 批量操作（与V1.1 L54-56 1:1 对齐：selectedRows/exportMode/batchDeleteMode） ============
 const batchDeleteMode = ref(false)
+const exportMode = ref(false)
 const selectedRows = ref([])
 
 // ============ 弹窗 ============
@@ -288,7 +318,33 @@ const handleBatchDelete = async () => {
 
 const handleCancelBatch = () => {
   batchDeleteMode.value = false
+  exportMode.value = false
   selectedRows.value = []
+}
+
+// ============ 批量导出（与V1.1 exportMode 1:1 对齐） ============
+const handleBatchExportClick = async () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要导出的班组')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(`确定导出选中的 ${selectedRows.value.length} 个班组吗？`, '提示', {
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'info',
+    })
+    const headers = ['班组名称', '负责人', '作业区域', '成员数量', '描述']
+    const rows = store.teams.filter(t => selectedRows.value.includes(t.id))
+    const csv = [headers.join(','), ...rows.map(r => headers.map(h => `"${(r as any)[h === '班组名称' ? 'name' : h === '负责人' ? 'leaderName' : h === '作业区域' ? 'workZone' : h === '成员数量' ? 'memberCount' : 'description'] || ''}"`).join(','))].join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `班组记录_${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+    handleCancelBatch()
+  } catch { /* 取消 */ }
 }
 
 const openAssignModal = (team) => {
@@ -319,7 +375,10 @@ const openEditModal = (team) => {
 }
 
 const handleAssign = (teamId, workerIds) => {
-  store.assignWorkers(teamId, workerIds)
+  // 与V1.1 L105-107 1:1 对齐：传 operatorId/operatorName
+  const operatorId = currentUser.id || currentUser.userId || 'system'
+  const operatorName = currentUser.name || currentUser.username || '系统'
+  store.assignWorkers(teamId, workerIds, operatorId, operatorName)
   ElMessage.success('分配成功')
 }
 

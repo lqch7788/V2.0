@@ -113,36 +113,198 @@
     <div class="grid grid-cols-3 gap-4">
       <!-- 日历/表格视图 -->
       <div class="col-span-2">
-        <!-- 日历视图 -->
-        <div v-if="displayMode === 'calendar'" class="bg-white rounded-lg shadow p-4">
-          <div class="flex items-center justify-between mb-4">
-            <el-button text @click="prevMonth">
-              <el-icon><ArrowLeft /></el-icon>
-            </el-button>
-            <span class="text-lg font-semibold">{{ currentYear }}年{{ currentMonth }}月</span>
-            <el-button text @click="nextMonth">
-              <el-icon><ArrowRight /></el-icon>
-            </el-button>
+        <!-- 日历视图 - 与 V1.1 ScheduleCalendar.tsx 1:1 对齐：月/周/日 3 视图 + 上下今天导航 -->
+        <div v-if="displayMode === 'calendar'" class="space-y-4">
+          <!-- 日历工具栏（V1.1 L338-394）：上一天/今天/下一天 + 月/周/日 切换 -->
+          <div class="flex items-center justify-between bg-white rounded-lg shadow p-3">
+            <div class="flex items-center gap-2">
+              <el-button text @click="handleCalendarPrev">
+                <el-icon><ArrowLeft /></el-icon>
+              </el-button>
+              <el-button size="small" type="primary" plain @click="handleCalendarToday">今天</el-button>
+              <el-button text @click="handleCalendarNext">
+                <el-icon><ArrowRight /></el-icon>
+              </el-button>
+              <span class="ml-4 text-lg font-semibold text-gray-800">
+                {{ currentYear }}年{{ currentMonth }}月
+              </span>
+            </div>
+            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <el-button
+                :type="viewMode === 'month' ? 'primary' : ''"
+                size="small"
+                @click="viewMode = 'month'"
+              >月</el-button>
+              <el-button
+                :type="viewMode === 'week' ? 'primary' : ''"
+                size="small"
+                @click="viewMode = 'week'"
+              >周</el-button>
+              <el-button
+                :type="viewMode === 'day' ? 'primary' : ''"
+                size="small"
+                @click="viewMode = 'day'"
+              >日</el-button>
+            </div>
           </div>
 
-          <el-calendar v-model="calendarDate">
-            <template #date-cell="{ data }">
-              <div class="relative" @click="handleCalendarDateClick(data.day)">
-                <div :class="['text-center py-1', data.isSelected ? 'bg-blue-500 text-white rounded' : '']">
-                  {{ data.day.split('-').slice(2).join('-') }}
+          <!-- 月视图（V1.1 renderMonthView L112-183） -->
+          <div v-if="viewMode === 'month'" class="bg-white rounded-lg shadow overflow-hidden">
+            <el-calendar v-model="calendarDate">
+              <template #date-cell="{ data }">
+                <div class="relative" @click="handleCalendarDateClick(data.day)">
+                  <div :class="['text-center py-1', data.isSelected ? 'bg-blue-500 text-white rounded' : '']">
+                    {{ data.day.split('-').slice(2).join('-') }}
+                  </div>
+                  <div v-if="getScheduleCountForDate(data.day) > 0" class="absolute bottom-0 left-0 right-0 text-center">
+                    <span class="text-xs text-blue-600">{{ getScheduleCountForDate(data.day) }}人</span>
+                  </div>
                 </div>
-                <div v-if="getScheduleCountForDate(data.day) > 0" class="absolute bottom-0 left-0 right-0 text-center">
-                  <span class="text-xs text-blue-600">{{ getScheduleCountForDate(data.day) }}人</span>
+              </template>
+            </el-calendar>
+          </div>
+
+          <!-- 周视图（V1.1 renderWeekView L186-272）：7 天横排 + 当日排班详情 -->
+          <div v-else-if="viewMode === 'week'" class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="grid grid-cols-7 bg-gray-50 border-b">
+              <div v-for="day in weekDays" :key="day.date"
+                :class="['py-3 text-center cursor-pointer transition-colors',
+                  selectedDay === day.date ? 'bg-blue-500 text-white' : 'bg-blue-50 hover:bg-blue-100']"
+                @click="selectedDay = day.date">
+                <div :class="['text-xs mb-1', selectedDay === day.date ? 'text-white/80' : 'text-gray-500']">{{ day.weekday }}</div>
+                <div :class="['text-lg font-medium w-8 h-8 mx-auto flex items-center justify-center rounded-full',
+                  isToday(day.date) ? 'bg-red-500 text-white' : selectedDay === day.date ? 'text-white' : 'text-gray-700']">
+                  {{ day.day }}
                 </div>
               </div>
-            </template>
-          </el-calendar>
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-medium text-gray-800 mb-3">{{ formatWeekdayTitle(selectedDay) }}</h3>
+              <div v-if="getSchedulesForDate(selectedDay).length === 0" class="text-gray-400 text-center py-8">暂无排班</div>
+              <div v-else class="space-y-2">
+                <div v-for="schedule in getSchedulesForDate(selectedDay)" :key="schedule.id"
+                  @click="handleView(schedule)"
+                  :class="['flex items-center justify-between p-3 rounded-lg border cursor-pointer',
+                    schedule.status === '已取消' ? 'bg-gray-50 opacity-60' : 'bg-white hover:bg-gray-50',
+                    schedule.status === '已执行' ? 'border-green-200' : 'border-gray-200']">
+                  <div class="flex items-center gap-3">
+                    <div :class="['w-2 h-2 rounded-full', getShiftColor(schedule.shift)]" />
+                    <div>
+                      <div class="font-medium text-gray-800">{{ getStaffName(schedule) }}</div>
+                      <div class="text-sm text-gray-500">{{ getWorkZone(schedule) }}</div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-medium text-gray-700">{{ schedule.shift }}</div>
+                    <div class="text-sm text-gray-500">{{ getShiftTime(schedule.shift) }}</div>
+                  </div>
+                  <span :class="['px-2 py-1 rounded text-xs', getStatusClass(schedule.status)]">
+                    {{ schedule.status }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 日视图（V1.1 renderDayView L275-333）：单日排班卡片 -->
+          <div v-else-if="viewMode === 'day'" class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b">
+              <h3 class="text-xl font-medium text-gray-800">{{ formatDayTitle(selectedDay) }}</h3>
+            </div>
+            <div class="p-4">
+              <div v-if="getSchedulesForDate(selectedDay).length === 0" class="text-gray-400 text-center py-12">暂无排班</div>
+              <div v-else class="space-y-3">
+                <div v-for="schedule in getSchedulesForDate(selectedDay)" :key="schedule.id"
+                  @click="handleView(schedule)"
+                  :class="['p-4 rounded-lg border cursor-pointer',
+                    schedule.status === '已取消' ? 'bg-gray-50 opacity-60' : 'bg-white hover:bg-gray-50',
+                    schedule.status === '已执行' ? 'border-green-200' : 'border-gray-200']">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div :class="['w-3 h-3 rounded', getShiftColor(schedule.shift)]" />
+                      <span class="font-medium text-gray-800">{{ getStaffName(schedule) }}</span>
+                      <span class="text-gray-400">|</span>
+                      <span class="text-gray-600">{{ getWorkZone(schedule) }}</span>
+                    </div>
+                    <span :class="['px-3 py-1 rounded-full text-sm', getStatusClass(schedule.status)]">
+                      {{ schedule.status }}
+                    </span>
+                  </div>
+                  <div class="mt-2 flex items-center gap-6 text-sm text-gray-500">
+                    <span>班次: {{ schedule.shift }}</span>
+                    <span>时间: {{ getShiftTime(schedule.shift) }}</span>
+                    <span v-if="schedule.checkIn">签到: {{ schedule.checkIn }}</span>
+                    <span v-if="schedule.checkOut">签退: {{ schedule.checkOut }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 表格视图 -->
         <div v-else class="bg-white rounded-lg shadow">
+          <!-- 表格工具栏：搜索 + 筛选（V1.1 ScheduleTable L260-363 1:1 对齐） -->
+          <div class="p-4 space-y-3 border-b">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-2 flex-1">
+                <el-input
+                  v-model="searchTerm"
+                  placeholder="搜索员工、区域、日期..."
+                  size="small"
+                  clearable
+                  style="max-width: 320px"
+                  @input="pagination.currentPage = 1"
+                />
+              </div>
+              <div class="text-sm text-gray-500">
+                共 {{ filteredSchedules.length }} 条记录
+              </div>
+            </div>
+            <div class="flex items-center gap-4 flex-wrap">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">日期:</span>
+                <el-date-picker
+                  v-model="dateRange.start"
+                  type="date"
+                  size="small"
+                  format="YYYY-MM-DD"
+                  value-format="YYYY-MM-DD"
+                  style="width: 140px"
+                  @change="pagination.currentPage = 1"
+                />
+                <span class="text-gray-400">至</span>
+                <el-date-picker
+                  v-model="dateRange.end"
+                  type="date"
+                  size="small"
+                  format="YYYY-MM-DD"
+                  value-format="YYYY-MM-DD"
+                  style="width: 140px"
+                  @change="pagination.currentPage = 1"
+                />
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">班次:</span>
+                <el-select v-model="shiftFilter" size="small" style="width: 120px" @change="pagination.currentPage = 1">
+                  <el-option label="全部" value="all" />
+                  <el-option v-for="c in store.shiftConfigs" :key="c.name" :label="c.name" :value="c.name" />
+                </el-select>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">状态:</span>
+                <el-select v-model="statusFilter" size="small" style="width: 120px" @change="pagination.currentPage = 1">
+                  <el-option label="全部" value="all" />
+                  <el-option label="已排班" value="已排班" />
+                  <el-option label="已执行" value="已执行" />
+                  <el-option label="已取消" value="已取消" />
+                </el-select>
+              </div>
+            </div>
+          </div>
+
           <el-table
-            :data="paginatedSchedules"
+            :data="filteredSchedules.slice((pagination.currentPage - 1) * pagination.pageSize, (pagination.currentPage - 1) * pagination.pageSize + pagination.pageSize)"
             style="width: 100%"
             @selection-change="handleSelectionChange"
           >
@@ -193,7 +355,7 @@
               v-model:current-page="pagination.currentPage"
               v-model:page-size="pagination.pageSize"
               :page-sizes="[10, 20, 50]"
-              :total="store.schedules.length"
+              :total="filteredSchedules.length"
               layout="total, sizes, prev, pager, next"
             />
           </div>
@@ -398,49 +560,164 @@
       </template>
     </el-dialog>
 
-    <!-- 调班申请弹窗 -->
+    <!-- 调班申请弹窗 - 与 V1.1 SwapRequestModal.tsx L75-172 1:1 对齐：6 字段完整表单 + 深度输入框 -->
     <el-dialog v-model="showSwapModal" title="调班申请" width="500px">
-      <el-form :model="swapForm" label-width="80px">
-        <el-form-item label="申请人">
-          <el-select v-model="swapForm.requesterId" placeholder="选择申请人" class="w-full">
-            <el-option v-for="staff in store.staffList" :key="staff.id" :label="staff.name" :value="staff.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="目标员工">
-          <el-select v-model="swapForm.targetId" placeholder="选择目标员工" class="w-full">
-            <el-option v-for="staff in store.staffList" :key="staff.id" :label="staff.name" :value="staff.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="原日期">
-          <el-date-picker v-model="swapForm.originalDate" type="date" class="w-full" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
-        </el-form-item>
-        <el-form-item label="目标日期">
-          <el-date-picker v-model="swapForm.targetDate" type="date" class="w-full" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
-        </el-form-item>
-        <el-form-item label="调班原因">
-          <el-input v-model="swapForm.reason" type="textarea" rows="3" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showSwapModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSwapSubmit">提交</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 班次设置弹窗 -->
-    <el-dialog v-model="showShiftEditor" title="班次设置" width="600px">
       <div class="space-y-4">
-        <div v-for="config in store.shiftConfigs" :key="config.name" class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-          <div :class="['w-4 h-4 rounded', config.color]" />
-          <span class="w-20 font-medium">{{ config.name }}</span>
-          <el-time-select v-model="config.startTime" placeholder="开始" style="width: 120px" />
-          <span class="text-gray-400">至</span>
-          <el-time-select v-model="config.endTime" placeholder="结束" style="width: 120px" />
+        <!-- 申请人（V1.1 L78-94） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">申请人</label>
+          <el-select
+            v-model="swapForm.requesterId"
+            placeholder="选择申请人"
+            class="w-full"
+            @change="handleSwapRequesterChange"
+          >
+            <el-option
+              v-for="staff in store.staffList"
+              :key="staff.id"
+              :label="`${staff.name} - ${staff.workZone || ''}`"
+              :value="staff.id"
+            />
+          </el-select>
+        </div>
+        <!-- 原排班日期（V1.1 L96-114） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">原排班日期</label>
+          <el-date-picker
+            v-model="swapForm.originalDate"
+            type="date"
+            class="w-full"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            placeholder="选择原排班日期"
+          />
+        </div>
+        <!-- 调班对象（V1.1 L116-133）：过滤掉申请人本人 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">调班对象</label>
+          <el-select
+            v-model="swapForm.targetId"
+            placeholder="选择调班对象"
+            class="w-full"
+            @change="handleSwapTargetChange"
+          >
+            <el-option
+              v-for="staff in store.staffList.filter(s => s.id !== swapForm.requesterId)"
+              :key="staff.id"
+              :label="`${staff.name} - ${staff.workZone || ''}`"
+              :value="staff.id"
+            />
+          </el-select>
+        </div>
+        <!-- 目标日期（V1.1 L135-153） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">目标日期</label>
+          <el-date-picker
+            v-model="swapForm.targetDate"
+            type="date"
+            class="w-full"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            placeholder="选择目标日期"
+          />
+        </div>
+        <!-- 调班原因（V1.1 L155-170） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">调班原因</label>
+          <el-input
+            v-model="swapForm.reason"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入调班原因..."
+          />
         </div>
       </div>
       <template #footer>
-        <el-button @click="showShiftEditor = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveShift">保存</el-button>
+        <el-button @click="showSwapModal = false">取消</el-button>
+        <el-button type="primary" @click="handleSwapSubmit">
+          <el-icon><Promotion /></el-icon>提交申请
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 班次设置弹窗 - 与 V1.1 ShiftEditor.tsx L52-181 1:1 对齐：颜色 8 色选择 + 编辑模式 -->
+    <el-dialog v-model="showShiftEditor" title="班次设置" width="600px">
+      <div class="space-y-4">
+        <div
+          v-for="config in store.shiftConfigs"
+          :key="config.name"
+          :class="['p-4 rounded-lg border-2 transition-all',
+            editingShiftName === config.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-400']"
+        >
+          <template v-if="editingShiftName === config.name">
+            <!-- 编辑模式：时间设置 + 颜色选择 8 色（V1.1 L66-146） -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div :class="['w-4 h-4 rounded', tempShiftConfig.color]" />
+                  <span class="font-medium text-gray-800">{{ config.name }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <el-button size="small" @click="handleShiftEditCancel">
+                    <el-icon><Close /></el-icon>取消
+                  </el-button>
+                  <el-button size="small" type="primary" @click="handleShiftEditSave">
+                    <el-icon><Check /></el-icon>保存
+                  </el-button>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 mb-1">开始时间</label>
+                  <el-time-select v-model="tempShiftConfig.startTime" style="width: 100%" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-600 mb-1">结束时间</label>
+                  <el-time-select v-model="tempShiftConfig.endTime" style="width: 100%" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">颜色</label>
+                <div class="flex gap-2 flex-wrap">
+                  <div
+                    v-for="color in SHIFT_COLORS"
+                    :key="color.name"
+                    :class="['w-8 h-8 rounded-full cursor-pointer flex items-center justify-center',
+                      tempShiftConfig.color === color.name ? 'ring-2 ring-offset-2 ring-gray-400' : '']"
+                    :style="{ backgroundColor: color.value }"
+                    @click="tempShiftConfig.color = color.name"
+                  >
+                    <el-icon v-if="tempShiftConfig.color === color.name" class="text-white"><Check /></el-icon>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <!-- 显示模式：颜色 + 时间 + 编辑按钮（V1.1 L148-170） -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div :class="['w-4 h-4 rounded', config.color]" />
+                <div>
+                  <div class="font-medium text-gray-800">{{ config.name }}</div>
+                  <div class="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                    <el-icon><Clock /></el-icon>
+                    {{ config.startTime }} - {{ config.endTime }}
+                  </div>
+                </div>
+              </div>
+              <el-button size="small" type="primary" plain @click="handleShiftEditStart(config)">
+                <el-icon><Edit /></el-icon>编辑
+              </el-button>
+            </div>
+          </template>
+        </div>
+      </div>
+      <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+        <p class="text-sm text-gray-500">提示：班次设置将影响所有排班记录的颜色和时间显示。修改班次时间不会影响已执行的签到记录。</p>
+      </div>
+      <template #footer>
+        <el-button @click="showShiftEditor = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -448,7 +725,7 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
-import { Calendar, List, User, Setting, Plus, Clock, ArrowLeft, ArrowRight, Download, Edit, Delete } from '@element-plus/icons-vue'
+import { Calendar, List, User, Setting, Plus, Clock, ArrowLeft, ArrowRight, ArrowRight as Promotion, Download, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useScheduleStore } from '@/stores/modules/schedule'
 
@@ -457,6 +734,48 @@ const store = useScheduleStore()
 // 显示模式
 const displayMode = ref('calendar')
 const calendarDate = ref(new Date())
+
+// ============ 与 V1.1 SchedulePage L61 viewMode 1:1 对齐：月/周/日 视图 ============
+const viewMode = ref('month')  // 'month' | 'week' | 'day'
+const selectedDay = ref(new Date().toISOString().slice(0, 10))
+
+// ============ 与 V1.1 ShiftEditor L25-26 1:1 对齐：班次编辑模式 ============
+const editingShiftName = ref(null)
+const tempShiftConfig = reactive({ startTime: '', endTime: '', color: '' })
+// 与 V1.1 ShiftEditor L13-22 1:1 对齐：颜色 8 色
+const SHIFT_COLORS = [
+  { name: 'bg-amber-500', value: '#f59e0b' },
+  { name: 'bg-blue-500', value: '#3b82f6' },
+  { name: 'bg-indigo-600', value: '#4f46e5' },
+  { name: 'bg-green-500', value: '#10b981' },
+  { name: 'bg-purple-500', value: '#a855f7' },
+  { name: 'bg-pink-500', value: '#ec4899' },
+  { name: 'bg-red-500', value: '#ef4444' },
+  { name: 'bg-teal-500', value: '#14b8a6' },
+]
+
+// ============ 表格视图：搜索 + 筛选（V1.1 ScheduleTable L87-128 1:1 对齐） ============
+const searchTerm = ref('')
+const shiftFilter = ref('all')
+const statusFilter = ref('all')
+const dateRange = ref({
+  start: (() => { const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1); return d.toISOString().slice(0, 10) })(),
+  end: (() => { const d = new Date(); d.setDate(d.getDate() + 6); return d.toISOString().slice(0, 10) })(),
+})
+
+// ============ 表格筛选后的数据（V1.1 L109-128 1:1 对齐） ============
+const filteredSchedules = computed(() => {
+  return store.schedules.filter(record => {
+    const matchSearch = !searchTerm.value ||
+      (record.staffName || '').toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      (record.workZone || '').toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      (record.date || '').includes(searchTerm.value)
+    const matchShift = shiftFilter.value === 'all' || record.shift === shiftFilter.value
+    const matchStatus = statusFilter.value === 'all' || record.status === statusFilter.value
+    const matchDate = record.date >= dateRange.value.start && record.date <= dateRange.value.end
+    return matchSearch && matchShift && matchStatus && matchDate
+  })
+})
 
 const currentYear = computed(() => calendarDate.value.getFullYear())
 const currentMonth = computed(() => calendarDate.value.getMonth() + 1)
@@ -495,7 +814,7 @@ const showEditId = ref('')
 const editForm = reactive({ shift: '早班', workZone: '' })
 
 // 调班表单
-const swapForm = reactive({ requesterId: '', targetId: '', originalDate: '', targetDate: '', reason: '' })
+const swapForm = reactive({ requesterId: '', requesterName: '', targetId: '', targetName: '', originalDate: '', targetDate: '', reason: '' })
 
 // 选中的排班
 const selectedSchedule = ref(null)
@@ -520,6 +839,93 @@ const prevMonth = () => { calendarDate.value = new Date(currentYear.value, curre
 const nextMonth = () => { calendarDate.value = new Date(currentYear.value, currentMonth.value, 1) }
 
 const handleCalendarDateClick = (day) => { selectedSchedule.value = store.schedules.find(s => s.date === day) || null }
+
+// ============ 与 V1.1 ScheduleCalendar L76-104 1:1 对齐：上一天/今天/下一天 ============
+const handleCalendarPrev = () => {
+  if (viewMode.value === 'day') {
+    const d = new Date(selectedDay.value)
+    d.setDate(d.getDate() - 1)
+    selectedDay.value = d.toISOString().slice(0, 10)
+  } else if (viewMode.value === 'week') {
+    const d = new Date(selectedDay.value)
+    d.setDate(d.getDate() - 7)
+    selectedDay.value = d.toISOString().slice(0, 10)
+  } else {
+    prevMonth()
+  }
+}
+
+const handleCalendarNext = () => {
+  if (viewMode.value === 'day') {
+    const d = new Date(selectedDay.value)
+    d.setDate(d.getDate() + 1)
+    selectedDay.value = d.toISOString().slice(0, 10)
+  } else if (viewMode.value === 'week') {
+    const d = new Date(selectedDay.value)
+    d.setDate(d.getDate() + 7)
+    selectedDay.value = d.toISOString().slice(0, 10)
+  } else {
+    nextMonth()
+  }
+}
+
+const handleCalendarToday = () => {
+  const today = new Date().toISOString().slice(0, 10)
+  selectedDay.value = today
+  calendarDate.value = new Date(today)
+}
+
+// ============ 与 V1.1 ScheduleCalendar L45-59 1:1 对齐：辅助函数 ============
+const isToday = (dateStr) => {
+  const today = new Date().toISOString().slice(0, 10)
+  return dateStr === today
+}
+
+const getSchedulesForDate = (dateStr) => {
+  return store.schedules.filter(s => s.date === dateStr)
+}
+
+const getShiftColor = (shift) => {
+  const config = store.shiftConfigs.find(c => c.name === shift)
+  return config?.color || 'bg-gray-500'
+}
+
+const getShiftTime = (shift) => {
+  const config = store.shiftConfigs.find(c => c.name === shift)
+  return config ? `${config.startTime} - ${config.endTime}` : '-'
+}
+
+const getStatusClass = (status) => ({
+  '已排班': 'bg-blue-100 text-blue-700',
+  '已执行': 'bg-green-100 text-green-700',
+  '已取消': 'bg-gray-100 text-gray-600',
+}[status] || 'bg-gray-100 text-gray-700')
+
+// ============ 周视图 7 天数据（V1.1 L186-272 1:1 对齐） ============
+const WEEKDAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+const weekDays = computed(() => {
+  const base = new Date(selectedDay.value)
+  // 把基准日对齐到本周一
+  const dayOfWeek = base.getDay() === 0 ? 7 : base.getDay()
+  const monday = new Date(base)
+  monday.setDate(base.getDate() - (dayOfWeek - 1))
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    const dateStr = d.toISOString().slice(0, 10)
+    return { date: dateStr, day: d.getDate(), weekday: WEEKDAYS[i] }
+  })
+})
+
+const formatWeekdayTitle = (dateStr) => {
+  const d = new Date(dateStr)
+  return `${d.getMonth() + 1}月${d.getDate()}日 ${WEEKDAYS[(d.getDay() === 0 ? 7 : d.getDay()) - 1]}`
+}
+
+const formatDayTitle = (dateStr) => {
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${WEEKDAYS[(d.getDay() === 0 ? 7 : d.getDay()) - 1]}`
+}
 
 // 表格选择
 const handleSelectionChange = (selection) => {
@@ -701,22 +1107,31 @@ const handleAddSchedule = () => {
   }
 }
 
-// 调班申请
+// 调班申请 - 与 V1.1 SwapRequestModal L62-73 1:1 对齐：完整验证
 const handleSwapSubmit = () => {
-  if (!swapForm.requesterId || !swapForm.targetId) { ElMessage.warning('请选择申请人和目标员工'); return }
+  if (!swapForm.requesterId || !swapForm.targetId || !swapForm.originalDate || !swapForm.targetDate) {
+    ElMessage.warning('请填写完整信息')
+    return
+  }
+  if (swapForm.requesterId === swapForm.targetId) {
+    ElMessage.warning('不能与自己调班')
+    return
+  }
   const requester = store.staffList.find(s => s.id === swapForm.requesterId)
   const target = store.staffList.find(s => s.id === swapForm.targetId)
   store.submitSwapRequest({
     requesterId: swapForm.requesterId,
-    requesterName: requester?.name || '',
+    requesterName: requester?.name || swapForm.requesterName,
     targetId: swapForm.targetId,
-    targetName: target?.name || '',
+    targetName: target?.name || swapForm.targetName,
     originalDate: swapForm.originalDate,
     targetDate: swapForm.targetDate,
     reason: swapForm.reason,
   })
   ElMessage.success('调班申请已提交')
   showSwapModal.value = false
+  // 与 V1.1 L114 1:1 对齐：重置表单
+  Object.assign(swapForm, { requesterId: '', requesterName: '', targetId: '', targetName: '', originalDate: '', targetDate: '', reason: '' })
 }
 
 const handleSwapApprove = (request) => { store.handleSwapRequest(request.id, '已同意'); ElMessage.success('已同意调班申请') }
@@ -727,8 +1142,68 @@ const handleSaveShift = () => {
   showShiftEditor.value = false
 }
 
+// ============ 与 V1.1 ShiftEditor L29-50 1:1 对齐：班次编辑 ============
+const handleShiftEditStart = (config) => {
+  editingShiftName.value = config.name
+  tempShiftConfig.startTime = config.startTime
+  tempShiftConfig.endTime = config.endTime
+  tempShiftConfig.color = config.color
+}
+
+const handleShiftEditSave = () => {
+  if (editingShiftName.value && tempShiftConfig.startTime && tempShiftConfig.endTime) {
+    const idx = store.shiftConfigs.findIndex(c => c.name === editingShiftName.value)
+    if (idx !== -1) {
+      store.shiftConfigs[idx] = { ...store.shiftConfigs[idx], ...tempShiftConfig }
+      ElMessage.success(`${editingShiftName.value}已更新`)
+    }
+    editingShiftName.value = null
+  } else {
+    ElMessage.warning('请填写完整时间')
+  }
+}
+
+const handleShiftEditCancel = () => {
+  editingShiftName.value = null
+}
+
+// ============ 与 V1.1 SwapRequestModal L39-59 1:1 对齐：员工选择联动姓名 ============
+const handleSwapRequesterChange = (staffId) => {
+  const staff = store.staffList.find(s => s.id === staffId)
+  if (staff) {
+    swapForm.requesterName = staff.name
+  }
+}
+
+const handleSwapTargetChange = (staffId) => {
+  const staff = store.staffList.find(s => s.id === staffId)
+  if (staff) {
+    swapForm.targetName = staff.name
+  }
+}
+
 // 初始化种子数据
 onMounted(() => {
   store.initSeedData()
 })
+
+// ============ 与 V1.1 L16-32 1:1 对齐：数据兼容工具 ============
+// 规范化排班记录（兼容 snake_case 和 camelCase）
+function normalizeRecord(record) {
+  return {
+    ...record,
+    staffName: record.staffName || record.staff_name || '',
+    workZone: record.workZone || record.work_zone || '',
+  }
+}
+
+// 获取规范的员工名称
+function getStaffName(record) {
+  return record.staffName || record.staff_name || '-'
+}
+
+// 获取规范的工作区域
+function getWorkZone(record) {
+  return record.workZone || record.work_zone || '-'
+}
 </script>

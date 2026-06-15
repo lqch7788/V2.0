@@ -59,6 +59,8 @@
 </template>
 
 <script setup>
+import { useTeamStore } from '@/stores/modules/team'
+
 defineProps({
   open: { type: Boolean, default: false },
   team: { type: Object, default: null },
@@ -66,8 +68,9 @@ defineProps({
 
 defineEmits(['close'])
 
+// 与V1.1 L48 getWorkerName 1:1 对齐：从 store 获取真实姓名
+const store = useTeamStore()
 function getMemberName(id) {
-  // 简化：通过ID前缀生成名称，后续可从Store获取真实名称
-  return id || '未知'
+  return store.getWorkerName(id)
 }
 </script>
