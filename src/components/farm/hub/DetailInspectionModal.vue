@@ -1,18 +1,24 @@
+<!--
+  巡查记录详情弹窗 - V1.1 DetailInspectionModal.tsx 1:1 迁移
+  - 顶部样式：V1.1 共享 Modal（size="xxxl"）+ "记录详情" 标题
+  - props: isOpen, onClose, record, onAcceptProblem（与 V1.1 line 59-64 完全一致）
+  - 业务逻辑：环境参数、流转记录、问题照片等区块 1:1 对齐
+-->
 <template>
-  <!-- 巡查记录详情弹窗 -->
   <el-dialog
     :model-value="isOpen"
     title="记录详情"
-    width="800px"
+    width="900px"
     :close-on-click-modal="false"
+    :show-close="true"
     @close="onClose"
   >
     <div v-if="!record" class="text-center py-12 text-gray-500">
       <p>无记录数据</p>
     </div>
 
-    <div v-else class="space-y-6 max-h-[70vh] overflow-y-auto pr-1">
-      <!-- 巡查类型标签 -->
+    <div v-else class="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
+      <!-- 巡查类型标签（V1.1 line 142-155） -->
       <div class="flex items-center gap-2">
         <span v-if="record.inspectionType === 'farm'" class="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full">
           种植区域巡查
@@ -124,7 +130,7 @@
         <div class="grid grid-cols-2 gap-6">
           <!-- 空气环境参数 -->
           <div class="bg-gray-50 rounded-lg p-4">
-            <h5 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">空气环境参数</h5>
+            <h5 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-400">空气环境参数</h5>
             <div class="space-y-3">
               <!-- 空气温度 -->
               <div v-if="record.airTemperature" class="flex items-center justify-between">
@@ -179,7 +185,7 @@
 
           <!-- 土壤环境参数 -->
           <div class="bg-gray-50 rounded-lg p-4">
-            <h5 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">土壤环境参数</h5>
+            <h5 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-400">土壤环境参数</h5>
             <div class="space-y-3">
               <div v-if="record.soilTemperature" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -477,6 +483,21 @@
                       <span>🎤</span>
                       <span>语音备注（已录音）</span>
                     </div>
+
+                    <!-- 工作量（V1.1 line 678-687） -->
+                    <div
+                      v-if="flowRecord.feedbackData.workloadDays !== undefined
+                        || flowRecord.feedbackData.workloadHours !== undefined
+                        || flowRecord.feedbackData.workers !== undefined"
+                      class="text-xs text-cyan-600 bg-cyan-50 rounded px-2 py-1"
+                    >
+                      <span>⏱️</span>
+                      <span>工作量：</span>
+                      <span v-if="flowRecord.feedbackData.workloadDays !== undefined">{{ flowRecord.feedbackData.workloadDays }}天</span>
+                      <span v-if="flowRecord.feedbackData.workloadDays !== undefined && flowRecord.feedbackData.workloadHours !== undefined"> + </span>
+                      <span v-if="flowRecord.feedbackData.workloadHours !== undefined">{{ flowRecord.feedbackData.workloadHours }}小时</span>
+                      <span v-if="flowRecord.feedbackData.workers !== undefined">，{{ flowRecord.feedbackData.workers }}人</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -544,11 +565,11 @@ const props = defineProps({
 // ============================================
 // 计算属性
 // ============================================
-// 流转记录按时间倒序
+// 流转记录按时间正序（最早的在前）— V1.1 line 105-108
 const flowRecords = computed(() => {
   const records = props.problemFlowRecords || []
   return [...records].sort((a, b) =>
-    new Date(b.actionTime).getTime() - new Date(a.actionTime).getTime()
+    new Date(a.actionTime).getTime() - new Date(b.actionTime).getTime()
   )
 })
 

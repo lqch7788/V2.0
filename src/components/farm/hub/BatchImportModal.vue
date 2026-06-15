@@ -1,19 +1,36 @@
+<!--
+  农事任务中心 - 批量导入任务弹窗
+  1:1 翻译自 V1.1 src/components/farm/hub/modals/BatchImportModal.tsx（300 行）
+  头部样式：V1.1 风格（icon + 标题 + 关闭按钮，行间分隔线）
+  字段：文件上传区（拖拽/点击）/ CSV 格式说明 / 数据预览前5条
+  - props: isOpen
+  - emits: close / import
+-->
 <template>
   <el-dialog
     :model-value="isOpen"
-    title=""
     width="800px"
+    top="5vh"
     :close-on-click-modal="false"
+    :show-header="false"
     @close="handleClose"
     class="batch-import-dialog"
   >
-    <!-- 头部 -->
+    <!-- 头部：V1.1 风格（icon + 标题 + 关闭按钮） -->
     <template #header>
-      <div class="flex items-center gap-3">
-        <el-icon :size="20" color="#059669">
-          <UploadFilled />
-        </el-icon>
-        <span class="text-lg font-semibold text-gray-900">批量导入任务</span>
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <el-icon :size="20" color="#059669">
+            <UploadFilled />
+          </el-icon>
+          <h3 class="text-lg font-semibold text-gray-900">批量导入任务</h3>
+        </div>
+        <button
+          class="text-gray-400 hover:text-gray-600 transition-colors"
+          @click="handleClose"
+        >
+          <el-icon :size="18"><Close /></el-icon>
+        </button>
       </div>
     </template>
 
@@ -36,7 +53,7 @@
           class="hidden"
           @change="handleFileChange"
         />
-        <label :class="{ 'cursor-pointer': true }" @click="openFilePicker">
+        <div class="cursor-pointer" @click="openFilePicker">
           <template v-if="importFile">
             <el-icon :size="40" color="#059669" class="mx-auto mb-2">
               <UploadFilled />
@@ -51,7 +68,7 @@
             <p class="font-medium text-gray-900">点击上传或拖拽文件到此处</p>
             <p class="text-sm text-gray-500 mt-1">支持 CSV、XLSX 格式文件</p>
           </template>
-        </label>
+        </div>
       </div>
 
       <!-- CSV格式说明（未选文件时显示） -->
@@ -60,7 +77,7 @@
         <p class="text-sm text-gray-600 mb-2">
           请确保CSV文件包含以下列（按顺序）：
         </p>
-        <code class="text-xs bg-white px-2 py-1 rounded border border-gray-200">
+        <code class="text-xs bg-white px-2 py-1 rounded border border-gray-200 block">
           任务类型,任务区域,作物,执行人,计划开始时间,计划结束时间,优先级
         </code>
         <p class="text-xs text-gray-500 mt-2">
@@ -75,37 +92,53 @@
           <span class="text-sm text-gray-500">共 {{ importData.length }} 条数据</span>
         </div>
         <div class="overflow-x-auto border border-gray-200 rounded-lg">
-          <el-table
-            :data="importPreview"
-            stripe
-            size="small"
-            style="width: 100%"
-          >
-            <el-table-column prop="typeLabel" label="任务类型" width="100" />
-            <el-table-column prop="field" label="任务区域" width="100" />
-            <el-table-column prop="crop" label="作物" width="80" />
-            <el-table-column prop="assignee" label="执行人" width="90" />
-            <el-table-column label="计划开始时间" width="120">
-              <template #default="{ row }">
-                {{ (row.planStart || '').split(' ')[0] || '-' }}
-              </template>
-            </el-table-column>
-            <el-table-column label="任务工时" width="110">
-              <template #default="{ row }">
-                {{ row.estimatedDays || 0 }}天{{ row.estimatedHours || 0 }}小时
-              </template>
-            </el-table-column>
-            <el-table-column label="优先级" width="80">
-              <template #default="{ row }">
-                <el-tag
-                  :type="row.priority === 'urgent' ? 'danger' : row.priority === 'high' ? 'warning' : 'info'"
-                  size="small"
-                >
-                  {{ row.priority === 'urgent' ? '紧急' : row.priority === 'high' ? '高' : '普通' }}
-                </el-tag>
-              </template>
-            </el-table-column>
-          </el-table>
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+              <tr>
+                <th class="px-3 py-2 text-left text-sm font-semibold whitespace-nowrap">任务类型</th>
+                <th class="px-3 py-2 text-left text-sm font-semibold whitespace-nowrap">任务区域</th>
+                <th class="px-3 py-2 text-left text-sm font-semibold whitespace-nowrap">作物</th>
+                <th class="px-3 py-2 text-left text-sm font-semibold whitespace-nowrap">执行人</th>
+                <th class="px-3 py-2 text-left text-sm font-semibold whitespace-nowrap">计划开始时间</th>
+                <th class="px-3 py-2 text-left text-sm font-semibold whitespace-nowrap">任务工时</th>
+                <th class="px-3 py-2 text-left text-sm font-semibold whitespace-nowrap">优先级</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-300">
+              <tr
+                v-for="(row, idx) in importPreview"
+                :key="idx"
+                class="hover:bg-blue-100 transition-colors"
+              >
+                <td class="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                  {{ row.typeLabel || '未知类型' }}
+                </td>
+                <td class="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">{{ row.field }}</td>
+                <td class="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">{{ row.crop }}</td>
+                <td class="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">{{ row.assignee }}</td>
+                <td class="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                  {{ (row.planStart || '').split(' ')[0] || '-' }}
+                </td>
+                <td class="px-3 py-2 text-sm text-gray-900 whitespace-nowrap">
+                  {{ row.estimatedDays || 0 }}天{{ row.estimatedHours || 0 }}小时
+                </td>
+                <td class="px-3 py-2 whitespace-nowrap">
+                  <span
+                    :class="[
+                      'px-2 py-0.5 rounded text-xs',
+                      row.priority === 'urgent'
+                        ? 'bg-red-100 text-red-700'
+                        : row.priority === 'high'
+                        ? 'bg-orange-100 text-orange-700'
+                        : 'bg-gray-100 text-gray-600'
+                    ]"
+                  >
+                    {{ row.priority === 'urgent' ? '紧急' : row.priority === 'high' ? '高' : '普通' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -113,12 +146,15 @@
     <!-- 底部按钮 -->
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleClose">取消</el-button>
+        <el-button @click="handleClose">
+          <el-icon><Close /></el-icon>取消
+        </el-button>
         <el-button
           type="primary"
           :disabled="importData.length === 0"
           @click="handleConfirm"
         >
+          <el-icon><UploadFilled /></el-icon>
           确认导入
           <template v-if="importData.length > 0">({{ importData.length }})</template>
         </el-button>
@@ -128,15 +164,13 @@
 </template>
 
 <script setup>
-/**
- * 批量导入任务弹窗组件
- * 支持 CSV/XLSX 文件上传、预览和批量导入
- */
 import { ref } from 'vue'
-import { UploadFilled } from '@element-plus/icons-vue'
+import { Close, UploadFilled } from '@element-plus/icons-vue'
 import { showAlert } from '@/lib/dialogService'
 
+// ============================================
 // 农事操作类型（与 V1.1 FARM_OPERATION_TYPES 保持一致）
+// ============================================
 const FARM_OPERATION_TYPES = [
   { value: 'planting', label: '定植' },
   { value: 'irrigation', label: '灌溉' },
@@ -148,40 +182,47 @@ const FARM_OPERATION_TYPES = [
   { value: 'other', label: '其他' },
 ]
 
+// ============================================
+// Props
+// ============================================
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
-  onClose: { type: Function, default: () => {} },
-  onImport: { type: Function, default: () => {} },
 })
 
+const emit = defineEmits(['close', 'import'])
+
+// ============================================
+// 状态
+// ============================================
 const fileInputRef = ref(null)
 const importFile = ref(null)
 const importPreview = ref([])
 const importData = ref([])
 
-// 解析CSV文件
+// ============================================
+// CSV 解析（与 V1.1 parseCSV 1:1）
+// ============================================
 const parseCSV = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
         const text = e.target?.result || ''
-        const lines = text.split('\n').filter(line => line.trim())
+        const lines = text.split('\n').filter((line) => line.trim())
         if (lines.length < 2) {
           reject(new Error('文件内容为空或格式不正确'))
           return
         }
-
-        // 解析表头（CSV文件包含表头行，这里也解析但不使用）
+        // V1.1: 解析表头（保留以备后用）
+        // const headers = lines[0].split(',').map(h => h.trim())
         const data = []
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.trim())
+          const values = lines[i].split(',').map((v) => v.trim())
           if (values.length >= 7) {
             const typeValue = values[0].toLowerCase()
             const taskType = FARM_OPERATION_TYPES.find(
-              t => t.value === typeValue || t.label === values[0]
+              (t) => t.value === typeValue || t.label === values[0]
             )
-
             data.push({
               type: taskType?.value || typeValue || 'irrigation',
               typeLabel: taskType?.label || values[0] || '灌溉',
@@ -194,7 +235,6 @@ const parseCSV = (file) => {
             })
           }
         }
-
         resolve(data)
       } catch (error) {
         reject(error)
@@ -205,40 +245,25 @@ const parseCSV = (file) => {
   })
 }
 
-// 打开文件选择器
+// ============================================
+// 事件处理
+// ============================================
 const openFilePicker = () => {
   fileInputRef.value?.click()
 }
 
-// 处理文件选择
-const handleFileChange = async (e) => {
-  const file = e.target?.files?.[0]
-  if (!file) return
-  await processFile(file)
-}
-
-// 处理文件拖拽
-const handleFileDrop = async (e) => {
-  const file = e.dataTransfer?.files?.[0]
-  if (!file) return
-  await processFile(file)
-}
-
-// 处理文件（校验 + 解析）
 const processFile = async (file) => {
   const fileExt = file.name.split('.').pop()?.toLowerCase()
   if (fileExt !== 'csv' && fileExt !== 'xlsx') {
     showAlert('请上传 CSV 或 XLSX 格式的文件')
     return
   }
-
   importFile.value = file
-
   try {
     const data = await parseCSV(file)
     importData.value = data
     importPreview.value = data.slice(0, 5)
-  } catch {
+  } catch (e) {
     showAlert('文件解析失败：请确保CSV格式正确，包含正确的表头和数据')
     importFile.value = null
     importPreview.value = []
@@ -246,22 +271,32 @@ const processFile = async (file) => {
   }
 }
 
-// 确认导入
+const handleFileChange = async (e) => {
+  const file = e.target?.files?.[0]
+  if (!file) return
+  await processFile(file)
+}
+
+const handleFileDrop = async (e) => {
+  const file = e.dataTransfer?.files?.[0]
+  if (!file) return
+  await processFile(file)
+}
+
 const handleConfirm = () => {
   if (importData.value.length === 0) {
     showAlert('没有可导入的数据')
     return
   }
-  props.onImport(importData.value)
+  emit('import', importData.value)
   handleClose()
 }
 
-// 关闭弹窗并重置
 const handleClose = () => {
   importFile.value = null
   importPreview.value = []
   importData.value = []
-  props.onClose()
+  emit('close')
 }
 </script>
 
@@ -269,5 +304,6 @@ const handleClose = () => {
 .batch-import-dialog :deep(.el-dialog__header) {
   border-bottom: 1px solid #f3f4f6;
   margin-right: 0;
+  padding: 0;
 }
 </style>

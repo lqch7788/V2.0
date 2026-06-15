@@ -1,19 +1,25 @@
+<!--
+  巡查详情弹窗 - V1.1 InspectionDetailModal.tsx 1:1 迁移
+  - 头部样式：渐变绿色（V1.1 line 75）+ X 关闭按钮（V1.1 line 82-84）
+  - props: recordId + onClose + onReportProblem（与 V1.1 line 12-16 完全一致）
+  - inspection prop 保留为兼容输入（外部直接传入时优先使用），缺失时按 V1.1 逻辑从 store 加载
+-->
 <template>
-  <!-- 巡查详情弹窗 -->
   <el-dialog
     :model-value="!!recordId"
     title=""
     width="700px"
     :close-on-click-modal="false"
+    :show-close="false"
     @close="onClose"
   >
     <!-- 加载中 -->
-    <div v-if="!inspection" class="text-center py-12 text-gray-500">
+    <div v-if="!inspectionData" class="text-center py-12 text-gray-500">
       <p>加载中...</p>
     </div>
 
     <div v-else class="flex flex-col max-h-[70vh]">
-      <!-- 头部（模仿V1.1渐变色风格） -->
+      <!-- 头部（V1.1 line 74-85 渐变色 + 状态徽章 + X 关闭按钮） -->
       <div class="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-lg -mx-5 -mt-5 mb-4">
         <div class="flex items-center gap-3">
           <h3 class="text-lg font-semibold text-white">巡查详情</h3>
@@ -21,6 +27,14 @@
             {{ statusConfig.label }}
           </span>
         </div>
+        <button
+          type="button"
+          class="text-white hover:bg-emerald-600 rounded p-1 transition-colors"
+          aria-label="关闭"
+          @click="onClose"
+        >
+          <el-icon :size="18"><Close /></el-icon>
+        </button>
       </div>
 
       <div class="flex-1 overflow-y-auto space-y-4">
@@ -33,7 +47,7 @@
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div>
               <span class="text-blue-600">巡查编号:</span>
-              <span class="ml-2 text-gray-900 font-mono">{{ inspection.recordCode }}</span>
+              <span class="ml-2 text-gray-900 font-mono">{{ inspectionData.recordCode }}</span>
             </div>
             <div>
               <span class="text-blue-600">巡查类型:</span>
@@ -41,39 +55,19 @@
             </div>
             <div>
               <span class="text-blue-600">执行区域:</span>
-              <span class="ml-2 text-gray-900">{{ inspection.greenhouseName || '-' }}</span>
+              <span class="ml-2 text-gray-900">{{ inspectionData.greenhouseName || '-' }}</span>
             </div>
             <div>
               <span class="text-blue-600">巡查人员:</span>
-              <span class="ml-2 text-gray-900">{{ inspection.inspectorName || '-' }}</span>
+              <span class="ml-2 text-gray-900">{{ inspectionData.inspectorName || '-' }}</span>
             </div>
             <div class="col-span-2">
               <span class="text-blue-600">巡查时间:</span>
-              <span class="ml-2 text-gray-900">{{ inspection.checkDate }} {{ inspection.checkTime || '' }}</span>
+              <span class="ml-2 text-gray-900">{{ inspectionData.checkDate }} {{ inspectionData.checkTime || '' }}</span>
             </div>
-            <div v-if="inspection.batchCode" class="col-span-2">
+            <div v-if="inspectionData.batchCode" class="col-span-2">
               <span class="text-blue-600">关联批次:</span>
-              <span class="ml-2 text-gray-900">{{ inspection.batchCode }}</span>
-            </div>
-            <!-- 作物名称（farm类型） -->
-            <div v-if="inspection.cropName">
-              <span class="text-blue-600">作物名称:</span>
-              <span class="ml-2 text-gray-900">{{ inspection.cropName }}</span>
-            </div>
-            <!-- 作物状态（farm类型） -->
-            <div v-if="inspection.cropStatus">
-              <span class="text-blue-600">作物状态:</span>
-              <span class="ml-2 text-gray-900">{{ inspection.cropStatus }}</span>
-            </div>
-            <!-- 株高（farm类型） -->
-            <div v-if="inspection.plantHeight">
-              <span class="text-blue-600">株高:</span>
-              <span class="ml-2 text-gray-900">{{ inspection.plantHeight }} cm</span>
-            </div>
-            <!-- 叶片数（farm类型） -->
-            <div v-if="inspection.leafCount">
-              <span class="text-blue-600">叶片数:</span>
-              <span class="ml-2 text-gray-900">{{ inspection.leafCount }} 片</span>
+              <span class="ml-2 text-gray-900">{{ inspectionData.batchCode }}</span>
             </div>
           </div>
         </div>
@@ -86,7 +80,7 @@
           </h4>
           <div class="space-y-3">
             <div
-              v-for="(item, index) in (inspection.checkItems || [])"
+              v-for="(item, index) in (inspectionData.checkItems || [])"
               :key="index"
               class="flex items-start gap-3 p-2 bg-white rounded"
             >
@@ -101,7 +95,7 @@
                 <p v-if="item.remark" class="text-xs text-gray-500 mt-1">备注: {{ item.remark }}</p>
               </div>
             </div>
-            <p v-if="!inspection.checkItems || inspection.checkItems.length === 0" class="text-sm text-gray-400 text-center py-4">
+            <p v-if="!inspectionData.checkItems || inspectionData.checkItems.length === 0" class="text-sm text-gray-400 text-center py-4">
               暂无检查项目
             </p>
           </div>
@@ -112,7 +106,7 @@
           <div class="flex items-center justify-between mb-3">
             <h4 class="text-sm font-bold text-red-700 flex items-center gap-2">
               <el-icon :size="16"><WarningFilled /></el-icon>
-              发现问题 ({{ inspection.issues ? inspection.issues.length : 0 }})
+              发现问题 ({{ inspectionData.issues ? inspectionData.issues.length : 0 }})
             </h4>
             <el-button
               v-if="onReportProblem"
@@ -123,12 +117,12 @@
               上报问题
             </el-button>
           </div>
-          <div v-if="!inspection.issues || inspection.issues.length === 0" class="text-sm text-gray-400 text-center py-4">
+          <div v-if="!inspectionData.issues || inspectionData.issues.length === 0" class="text-sm text-gray-400 text-center py-4">
             未发现问题
           </div>
           <div v-else class="space-y-2">
             <div
-              v-for="issue in inspection.issues"
+              v-for="issue in inspectionData.issues"
               :key="issue.id"
               class="p-3 bg-white rounded border border-red-200"
             >
@@ -144,14 +138,14 @@
         </div>
 
         <!-- 现场照片 - 青色背景 -->
-        <div v-if="inspection.photos && inspection.photos.length > 0" class="bg-cyan-50 rounded-lg p-4 border border-cyan-100">
+        <div v-if="inspectionData.photos && inspectionData.photos.length > 0" class="bg-cyan-50 rounded-lg p-4 border border-cyan-100">
           <h4 class="text-sm font-bold text-cyan-700 mb-3 flex items-center gap-2">
             <el-icon :size="16"><Picture /></el-icon>
             现场照片
           </h4>
           <div class="grid grid-cols-3 gap-2">
             <div
-              v-for="(photo, index) in inspection.photos"
+              v-for="(photo, index) in inspectionData.photos"
               :key="index"
               class="aspect-square bg-gray-200 rounded overflow-hidden"
             >
@@ -165,55 +159,13 @@
           </div>
         </div>
 
-        <!-- 环境参数（farm类型） -->
-        <div v-if="hasEnvironmentData" class="bg-teal-50 rounded-lg p-4 border border-teal-100">
-          <h4 class="text-sm font-bold text-teal-700 mb-3 flex items-center gap-2">
-            <el-icon :size="16"><Odometer /></el-icon>
-            环境参数
-          </h4>
-          <div class="grid grid-cols-2 gap-3 text-sm">
-            <div v-if="inspection.airTemperature" class="flex justify-between p-2 bg-white rounded">
-              <span class="text-teal-600">空气温度</span>
-              <span class="text-gray-900">{{ inspection.airTemperature }}°C</span>
-            </div>
-            <div v-if="inspection.airHumidity" class="flex justify-between p-2 bg-white rounded">
-              <span class="text-teal-600">空气湿度</span>
-              <span class="text-gray-900">{{ inspection.airHumidity }}%</span>
-            </div>
-            <div v-if="inspection.lightIntensity" class="flex justify-between p-2 bg-white rounded">
-              <span class="text-teal-600">光照强度</span>
-              <span class="text-gray-900">{{ inspection.lightIntensity }} Lux</span>
-            </div>
-            <div v-if="inspection.co2Concentration" class="flex justify-between p-2 bg-white rounded">
-              <span class="text-teal-600">CO2浓度</span>
-              <span class="text-gray-900">{{ inspection.co2Concentration }} ppm</span>
-            </div>
-            <div v-if="inspection.soilTemperature" class="flex justify-between p-2 bg-white rounded">
-              <span class="text-teal-600">土壤温度</span>
-              <span class="text-gray-900">{{ inspection.soilTemperature }}°C</span>
-            </div>
-            <div v-if="inspection.soilMoisture" class="flex justify-between p-2 bg-white rounded">
-              <span class="text-teal-600">土壤湿度</span>
-              <span class="text-gray-900">{{ inspection.soilMoisture }}%</span>
-            </div>
-            <div v-if="inspection.soilEc" class="flex justify-between p-2 bg-white rounded">
-              <span class="text-teal-600">土壤EC</span>
-              <span class="text-gray-900">{{ inspection.soilEc }} mS/cm</span>
-            </div>
-            <div v-if="inspection.soilPh" class="flex justify-between p-2 bg-white rounded">
-              <span class="text-teal-600">土壤pH</span>
-              <span class="text-gray-900">{{ inspection.soilPh }}</span>
-            </div>
-          </div>
-        </div>
-
         <!-- 备注 - 灰色背景 -->
-        <div v-if="inspection.remark" class="bg-gray-100 rounded-lg p-4 border border-gray-200">
+        <div v-if="inspectionData.remark" class="bg-gray-100 rounded-lg p-4 border border-gray-200">
           <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
             <el-icon :size="16"><EditPen /></el-icon>
             备注
           </h4>
-          <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ inspection.remark }}</p>
+          <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ inspectionData.remark }}</p>
         </div>
       </div>
 
@@ -227,7 +179,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Document, Files, WarningFilled, Picture, Odometer, EditPen } from '@element-plus/icons-vue'
+import { Document, Files, WarningFilled, Picture, EditPen, Close } from '@element-plus/icons-vue'
+import { useInspectionDataStore } from '@/stores/modules/inspectionData'
 
 // ============================================
 // 巡查类型配置（与V1.1完全一致）
@@ -262,6 +215,11 @@ const STATUS_CONFIG: Record<string, { bgClass: string; textClass: string; label:
 }
 
 // ============================================
+// Store（V1.1 line 42-53 内部按 recordId 查找 inspection）
+// ============================================
+const inspectionDataStore = useInspectionDataStore()
+
+// ============================================
 // Props 定义
 // ============================================
 const props = defineProps({
@@ -275,26 +233,26 @@ const props = defineProps({
 // ============================================
 // 计算属性
 // ============================================
-const inspection = computed(() => props.inspection)
+// 优先用 props.inspection（外部传入），否则从 store 按 recordId 查找（V1.1 line 42-53）
+const inspectionData = computed(() => {
+  if (props.inspection) return props.inspection
+  if (!props.recordId) return null
+  try {
+    const records = (inspectionDataStore.records || []) as any[]
+    return records.find((r: any) => String(r.id) === String(props.recordId)) || null
+  } catch {
+    return null
+  }
+})
 
 const statusConfig = computed(() => {
-  if (!inspection.value) return STATUS_CONFIG.normal
-  return STATUS_CONFIG[inspection.value.status] || STATUS_CONFIG.normal
+  if (!inspectionData.value) return STATUS_CONFIG.normal
+  return STATUS_CONFIG[inspectionData.value.status] || STATUS_CONFIG.normal
 })
 
 const typeLabel = computed(() => {
-  if (!inspection.value) return '种植巡查'
-  return INSPECTION_TYPE_CONFIG[inspection.value.inspectionType] || '种植巡查'
-})
-
-// 检查是否有环境数据
-const hasEnvironmentData = computed(() => {
-  if (!inspection.value) return false
-  const envFields = [
-    'airTemperature', 'airHumidity', 'lightIntensity', 'co2Concentration',
-    'soilTemperature', 'soilMoisture', 'soilEc', 'soilPh',
-  ]
-  return envFields.some(f => inspection.value[f] !== undefined && inspection.value[f] !== null)
+  if (!inspectionData.value) return '种植巡查'
+  return INSPECTION_TYPE_CONFIG[inspectionData.value.inspectionType] || '种植巡查'
 })
 
 // ============================================

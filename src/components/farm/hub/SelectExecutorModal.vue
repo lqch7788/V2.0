@@ -1,14 +1,34 @@
 <template>
   <el-dialog
     :model-value="isOpen"
-    width="700px"
+    width="900px"
     :close-on-click-modal="false"
+    :show-close="false"
     class="farm-modal"
     @close="handleClose"
   >
     <template #header>
-      <div class="farm-modal-header">
-        <span class="text-white text-lg font-semibold">选择执行人</span>
+      <!-- 顶部样式 1:1 对齐 V1.1 Modal.tsx L264-301 -->
+      <div class="farm-modal-header flex items-center justify-between px-6 py-3 select-none">
+        <h3 class="text-lg font-semibold text-white">选择执行人</h3>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-white hover:bg-emerald-500/40 rounded p-1 flex items-center justify-center"
+            :title="isMaximized ? '还原窗口' : '最大化窗口'"
+            @click="toggleMaximize"
+          >
+            <el-icon :size="16"><FullScreen v-if="!isMaximized" /><Aim v-else /></el-icon>
+          </button>
+          <button
+            type="button"
+            class="text-white hover:bg-emerald-500/40 rounded p-1 flex items-center justify-center"
+            title="关闭"
+            @click="handleClose"
+          >
+            <el-icon :size="18"><Close /></el-icon>
+          </button>
+        </div>
       </div>
     </template>
     <div v-if="!task" class="text-center py-8 text-gray-500">
@@ -184,14 +204,18 @@
         </p>
       </div>
 
-      <!-- 操作按钮 -->
+      <!-- 操作按钮（与 V1.1 一致：取消 + 确认派发，size="sm"，icon 在前） -->
       <div class="flex justify-end gap-3 pt-2 border-t border-gray-200">
-        <el-button @click="handleClose">取消</el-button>
+        <el-button size="small" @click="handleClose">
+          <el-icon :size="16" style="margin-right: 4px"><Close /></el-icon>取消
+        </el-button>
         <el-button
           type="primary"
+          size="small"
           :disabled="!selectedAssignee"
           @click="handleSubmit"
         >
+          <el-icon :size="16" style="margin-right: 4px"><UserFilled /></el-icon>
           确认派发
         </el-button>
       </div>
@@ -206,7 +230,7 @@
  */
 import { ref, computed, onMounted } from 'vue'
 import {
-  InfoFilled, StarFilled, UserFilled, Loading
+  InfoFilled, StarFilled, UserFilled, Loading, FullScreen, Aim, Close
 } from '@element-plus/icons-vue'
 import { getWorkers } from '@/services/apiWorkerService'
 
@@ -241,6 +265,11 @@ const dispatchMode = ref('ai_assisted')
 const aiRecommendations = ref([])
 // AI推荐加载状态
 const isLoadingAI = ref(false)
+// 最大化状态（V1.1 Modal 支持）
+const isMaximized = ref(false)
+function toggleMaximize() {
+  isMaximized.value = !isMaximized.value
+}
 
 // 选中执行人名称
 const selectedAssigneeName = computed(() => {
@@ -357,15 +386,24 @@ const handleClose = () => {
 </script>
 
 <style scoped>
+/* 顶部样式 1:1 对齐 V1.1 Modal.tsx L264-301 */
 :deep(.el-dialog__header) {
   padding: 0;
   margin: 0;
-  border-radius: 8px 8px 0 0;
+  border-radius: 12px 12px 0 0;
 }
 .farm-modal-header {
-  background: linear-gradient(to right, #059669, #10b981);
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 12px 12px 0 0;
+}
+:deep(.el-dialog__body) {
   padding: 16px 24px;
-  border-radius: 8px 8px 0 0;
+}
+:deep(.el-dialog__footer) {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 12px 12px;
 }
 button {
   background: none;

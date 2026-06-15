@@ -1,14 +1,36 @@
 <template>
   <el-dialog
     :model-value="isOpen"
-    width="800px"
+    width="900px"
     :close-on-click-modal="false"
+    :show-close="false"
     class="farm-modal"
     @close="handleClose"
   >
     <template #header>
-      <div class="farm-modal-header">
-        <span class="text-white text-lg font-semibold">新建任务</span>
+      <!-- 顶部样式 1:1 对齐 V1.1 Modal.tsx line 264-301：
+         bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500
+         rounded-t-xl，标题 text-white text-lg font-semibold，右侧 Maximize + Close -->
+      <div class="farm-modal-header flex items-center justify-between px-6 py-3 select-none">
+        <h3 class="text-lg font-semibold text-white">新建任务</h3>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-white hover:bg-emerald-500/40 rounded p-1 flex items-center justify-center"
+            :title="isMaximized ? '还原窗口' : '最大化窗口'"
+            @click="toggleMaximize"
+          >
+            <el-icon :size="16"><FullScreen v-if="!isMaximized" /><Aim v-else /></el-icon>
+          </button>
+          <button
+            type="button"
+            class="text-white hover:bg-emerald-500/40 rounded p-1 flex items-center justify-center"
+            title="关闭"
+            @click="handleClose"
+          >
+            <el-icon :size="18"><Close /></el-icon>
+          </button>
+        </div>
       </div>
     </template>
 
@@ -249,7 +271,7 @@
           />
         </div>
 
-        <!-- 任务类型配置面板 -->
+        <!-- 任务类型配置面板（V1.1 传函数 prop，V2.0 同样用 props.onConfigChange） -->
         <TaskTypeConfigPanel
           :task-types="newTask.types"
           :config-values="newTask.typeConfig"
@@ -497,24 +519,24 @@
       </div>
     </div>
 
-    <!-- 底部操作 -->
+    <!-- 底部操作（与 V1.1 bottomContent 1:1 对齐：V1.1 Modal 底部用 px-6 py-4 border-t bg-gray-50） -->
     <template #footer>
-      <div class="flex justify-between">
+      <div class="flex items-center justify-between">
         <el-button v-if="createStep > 1" size="small" @click="createStep--">
-          上一步
+          <el-icon :size="16" style="margin-right: 4px"><ArrowLeft /></el-icon>上一步
         </el-button>
         <template v-if="createStep === 2">
           <div class="flex gap-2 ml-auto">
             <el-button size="small" @click="handleSaveDraft">
-              保存草稿
+              <el-icon :size="16" style="margin-right: 4px"><Document /></el-icon>保存草稿
             </el-button>
             <el-button type="primary" size="small" @click="handleFinalCreate">
-              发布任务
+              <el-icon :size="16" style="margin-right: 4px"><Promotion /></el-icon>发布任务
             </el-button>
           </div>
         </template>
         <el-button v-else type="primary" size="small" class="ml-auto" @click="handleNextStep">
-          下一步 <el-icon :size="16"><ArrowRight /></el-icon>
+          下一步<el-icon :size="16" style="margin-left: 4px"><ArrowRight /></el-icon>
         </el-button>
       </div>
     </template>
@@ -529,7 +551,8 @@
  */
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
-  WarningFilled, ArrowRight, Clock, Timer, PictureFilled, Box, Microphone
+  WarningFilled, ArrowRight, ArrowLeft, Clock, Timer, PictureFilled, Box, Microphone,
+  FullScreen, Aim, Close, Document, Promotion
 } from '@element-plus/icons-vue'
 import { format, addHours, parse } from 'date-fns'
 import { FARM_OPERATION_TYPES } from '@/types/farm/common'
@@ -608,6 +631,7 @@ function calculateEndDateTime(startTime, days, hours, workHoursPerDay) {
 // ---------- State ----------
 const createStep = ref(1)
 const stepError = ref('')
+const isMaximized = ref(false) // V1.1 Modal 支持双击/按钮最大化
 
 // 下拉显示状态
 const showBatchDropdown = ref(false)
@@ -1009,8 +1033,10 @@ function doCreateTask(publish) {
 
   const taskStatus = publish ? 'pending' : 'draft'
 
-  // 通过 tasksHook 创建任务
+  // 通过 tasksHook 创建任务（与 V1.1 CreateTaskModal.tsx L280-319 1:1 字段映射）
   props.tasksHook.createTask({
+    id: newTask.taskId,                // V1.1 关键：传递用户生成的任务编号作为 id
+    taskCode: newTask.taskId,           // V1.1 关键：taskCode = taskId
     title: typeLabels || '农事任务',
     type: newTask.types[0] || 'other',
     typeName: typeLabels,
@@ -1089,6 +1115,11 @@ function handleClose() {
   props.onClose()
 }
 
+/** 切换最大化（与 V1.1 Modal handleMaximize 一致） */
+function toggleMaximize() {
+  isMaximized.value = !isMaximized.value
+}
+
 // ---------- 生命周期 ----------
 onMounted(async () => {
   // 加载执行人列表
@@ -1123,15 +1154,28 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 渐变弹窗头部（与V1.1 Modal组件 bg-gradient-to-r from-emerald-600 to-emerald-500 一致） */
+/* 顶部样式 1:1 对齐 V1.1 Modal.tsx L264-301：
+   bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 + rounded-t-xl */
 :deep(.el-dialog__header) {
   padding: 0;
   margin: 0;
-  border-radius: 8px 8px 0 0;
+  border-radius: 12px 12px 0 0;
 }
 .farm-modal-header {
-  background: linear-gradient(to right, #059669, #10b981);
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 12px 12px 0 0;
+  cursor: default;
+}
+.farm-modal-header :deep(.el-dialog__headerbtn) {
+  display: none; /* 隐藏 el-dialog 自带关闭按钮，使用我们自定义的 */
+}
+:deep(.el-dialog__body) {
   padding: 16px 24px;
-  border-radius: 8px 8px 0 0;
+}
+:deep(.el-dialog__footer) {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 12px 12px;
 }
 </style>

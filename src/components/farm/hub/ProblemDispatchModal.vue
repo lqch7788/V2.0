@@ -1,12 +1,33 @@
+<!--
+  农事任务中心 - 问题分派弹窗
+  1:1 翻译自 V1.1 src/components/farm/hub/ProblemDispatchModal.tsx（277 行）
+  头部样式：V1.1 风格渐变绿色横条 (from-emerald-500 via-emerald-600 to-emerald-500)
+  字段：问题信息 / 执行人选择 / 分派设置（优先级/期望完成日期/必填项）
+  - props: problemId / problem / availableWorkers
+  - emits: close / dispatched / dispatch
+-->
 <template>
-  <!-- 问题分派弹窗 -->
   <el-dialog
     :model-value="!!problemId"
-    title="问题分派"
     width="600px"
+    top="6vh"
     :close-on-click-modal="false"
+    :show-header="false"
     @close="onClose"
   >
+    <!-- 头部：V1.1 风格渐变绿色横条 -->
+    <template #header>
+      <div class="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 rounded-t-lg">
+        <h3 class="text-lg font-semibold text-white">问题分派</h3>
+        <button
+          class="text-white hover:text-gray-200 transition-colors"
+          @click="onClose"
+        >
+          <el-icon :size="18"><Close /></el-icon>
+        </button>
+      </div>
+    </template>
+
     <!-- 加载中 -->
     <div v-if="!problem" class="text-center py-12 text-gray-500">
       <p>加载中...</p>
@@ -34,11 +55,13 @@
           <div class="flex items-center gap-4">
             <div>
               <span class="text-gray-500">温室区域:</span>
-              <span class="ml-2 text-gray-900">{{ greenhouseName }}</span>
+              <span class="ml-2 text-gray-900">{{ greenhouseName || '-' }}</span>
             </div>
             <div>
               <span class="text-gray-500">严重程度:</span>
-              <span :class="severityConfig.bgClass + ' ' + severityConfig.textClass + ' ml-2 px-2 py-0.5 text-xs rounded'">
+              <span
+                :class="severityConfig.bg + ' ' + severityConfig.text + ' ml-2 px-2 py-0.5 text-xs rounded'"
+              >
                 {{ severity }}
               </span>
             </div>
@@ -55,7 +78,9 @@
             :key="worker.id"
             :class="[
               'flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors',
-              selectedWorkerId === worker.id ? 'bg-emerald-50 border border-emerald-200' : 'bg-white border border-gray-200 hover:bg-gray-50'
+              selectedWorkerId === worker.id
+                ? 'bg-emerald-50 border border-emerald-200'
+                : 'bg-white border border-gray-200 hover:bg-gray-50'
             ]"
           >
             <input
@@ -67,9 +92,14 @@
               @change="selectedWorkerId = worker.id"
             />
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-900">{{ worker.name }}（{{ worker.position }}）</p>
+              <p class="text-sm font-medium text-gray-900">
+                {{ worker.name }}（{{ worker.position }}）
+              </p>
             </div>
           </label>
+          <div v-if="!availableWorkers || availableWorkers.length === 0" class="text-center text-sm text-gray-400 py-4">
+            暂无可用工人员
+          </div>
         </div>
       </div>
 
@@ -82,7 +112,7 @@
             <label class="block text-sm text-gray-600 mb-2">优先级:</label>
             <div class="flex gap-2">
               <el-button
-                v-for="level in (['高', '中', '低'] as const)"
+                v-for="level in priorityLevels"
                 :key="level"
                 size="small"
                 :class="priority === level ? priorityButtonClass(level) : 'bg-gray-100 hover:bg-gray-200 text-gray-600'"
@@ -133,7 +163,9 @@
 
     <template #footer>
       <div class="flex items-center justify-end gap-3">
-        <el-button @click="onClose">取消</el-button>
+        <el-button @click="onClose">
+          <el-icon><Close /></el-icon>取消
+        </el-button>
         <el-button
           type="primary"
           :disabled="!selectedWorkerId || isSubmitting"
@@ -146,71 +178,51 @@
   </el-dialog>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch, type PropType } from 'vue'
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { Close } from '@element-plus/icons-vue'
+
+// 优先级档位（替代 V1.1 内的 (['高', '中', '低'] as const) 类型断言）
+const priorityLevels = ['高', '中', '低']
 
 // ============================================
-// 严重程度配置（与V1.1完全一致）
+// 严重程度配置（与 V1.1 完全一致）
 // ============================================
-const SEVERITY_CONFIG: Record<string, { bgClass: string; textClass: string; color: string }> = {
-  '轻微': { bgClass: 'bg-green-100', textClass: 'text-green-700', color: 'green' },
-  '中等': { bgClass: 'bg-yellow-100', textClass: 'text-yellow-700', color: 'yellow' },
-  '严重': { bgClass: 'bg-red-100', textClass: 'text-red-700', color: 'red' },
+const SEVERITY_CONFIG = {
+  '轻微': { bg: 'bg-green-100', text: 'text-green-700', color: 'green' },
+  '中等': { bg: 'bg-yellow-100', text: 'text-yellow-700', color: 'yellow' },
+  '严重': { bg: 'bg-red-100', text: 'text-red-700', color: 'red' },
 }
 
-// 状态中文映射
-const STATUS_CN_MAP: Record<string, string> = {
-  'pending': '待处理',
-  'in_progress': '处理中',
-  'waiting_acceptance': '待验收',
-  'completed': '已处理',
+// 状态中文映射（与 V1.1 STATUS_CN_MAP 一致）
+const STATUS_CN_MAP = {
+  pending: '待处理',
+  in_progress: '处理中',
+  waiting_acceptance: '待验收',
+  completed: '已处理',
 }
 
 // ============================================
-// Props 定义
+// Props
 // ============================================
 const props = defineProps({
   problemId: { type: Number, default: 0 },
-  onClose: { type: Function, required: true },
-  onDispatched: { type: Function, required: true },
-  /** 问题数据（从外部传入） */
+  onClose: { type: Function, default: null },
+  onDispatched: { type: Function, default: null },
+  /** 问题数据（从外部传入，与 ProblemTab 内部实现保持一致） */
   problem: { type: Object, default: null },
   /** 可用工人列表 */
-  availableWorkers: { type: Array as PropType<any[]>, default: () => [] },
+  availableWorkers: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['dispatch'])
+const emit = defineEmits(['close', 'dispatched', 'dispatch'])
 
 // ============================================
-// 状态
+// 计算属性（与 V1.1 issueText/severity/... 字段一致）
 // ============================================
 const problem = computed(() => props.problem)
 const availableWorkers = computed(() => props.availableWorkers || [])
 
-const selectedWorkerId = ref<string | null>(null)
-const priority = ref<'高' | '中' | '低'>('中')
-const expectedDate = ref<string>('')
-const requireCheckin = ref(false)
-const requirePhoto = ref(false)
-const isSubmitting = ref(false)
-
-// 弹窗打开时初始化默认日期为明天
-watch(() => props.problemId, (newVal) => {
-  if (newVal) {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    expectedDate.value = tomorrow.toISOString().split('T')[0]
-    selectedWorkerId.value = null
-    priority.value = '中'
-    requireCheckin.value = false
-    requirePhoto.value = false
-    isSubmitting.value = false
-  }
-})
-
-// ============================================
-// 计算属性
-// ============================================
 const issueText = computed(() => {
   if (!problem.value) return ''
   return problem.value.issueText || problem.value.description || problem.value.title || ''
@@ -227,7 +239,12 @@ const severityConfig = computed(() => {
 
 const statusLabel = computed(() => {
   if (!problem.value) return ''
-  return problem.value.statusLabel || STATUS_CN_MAP[problem.value.status] || problem.value.status || ''
+  return (
+    problem.value.statusLabel ||
+    STATUS_CN_MAP[problem.value.status] ||
+    problem.value.status ||
+    ''
+  )
 })
 
 const greenhouseName = computed(() => {
@@ -239,14 +256,44 @@ const problemCode = computed(() => {
   return problem.value.problemCode || `PD${props.problemId}`
 })
 
-// 日期代理
+// ============================================
+// 表单状态
+// ============================================
+const selectedWorkerId = ref(null)
+const priority = ref('中')
+const expectedDate = ref('')
+const requireCheckin = ref(false)
+const requirePhoto = ref(false)
+const isSubmitting = ref(false)
+
+// 弹窗打开时初始化默认值（V1.1 useEffect 等价）
+watch(
+  () => props.problemId,
+  (newVal) => {
+    if (newVal) {
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      expectedDate.value = tomorrow.toISOString().split('T')[0]
+      selectedWorkerId.value = null
+      priority.value = '中'
+      requireCheckin.value = false
+      requirePhoto.value = false
+      isSubmitting.value = false
+    }
+  },
+  { immediate: true }
+)
+
+// 日期代理（V1.1 DatePicker 双向绑定）
 const expectedDateProxy = computed({
-  get: () => expectedDate.value ? new Date(expectedDate.value) : null,
+  get: () => (expectedDate.value ? new Date(expectedDate.value) : null),
   set: (val) => {
     if (val instanceof Date) {
       expectedDate.value = val.toISOString().split('T')[0]
-    } else if (typeof val === 'string') {
+    } else if (typeof val === 'string' && val) {
       expectedDate.value = val
+    } else {
+      expectedDate.value = ''
     }
   },
 })
@@ -254,9 +301,9 @@ const expectedDateProxy = computed({
 // ============================================
 // 方法
 // ============================================
-// 优先级按钮样式
-const priorityButtonClass = (level: string) => {
-  const classes: Record<string, string> = {
+// 优先级按钮样式（与 V1.1 完全一致）
+const priorityButtonClass = (level) => {
+  const classes = {
     '高': 'bg-red-600 hover:bg-red-700 text-white',
     '中': 'bg-yellow-600 hover:bg-yellow-600 text-white',
     '低': 'bg-green-600 hover:bg-green-600 text-white',
@@ -264,19 +311,37 @@ const priorityButtonClass = (level: string) => {
   return classes[level] || ''
 }
 
+// 关闭弹窗
+const onClose = () => {
+  if (typeof props.onClose === 'function') {
+    props.onClose()
+  } else {
+    emit('close')
+  }
+}
+
+// 分派完成回调
+const emitDispatched = () => {
+  if (typeof props.onDispatched === 'function') {
+    props.onDispatched()
+  } else {
+    emit('dispatched')
+  }
+}
+
 // 提交分派
 const handleSubmit = () => {
   if (!problem.value || !selectedWorkerId.value) return
 
-  // 构建必填反馈列表
-  const requiredFeedback: string[] = []
+  // 构建必填反馈列表（V1.1 逻辑）
+  const requiredFeedback = []
   if (requireCheckin.value) requiredFeedback.push('gps')
   if (requirePhoto.value) {
     requiredFeedback.push('photo_before')
     requiredFeedback.push('photo_after')
   }
 
-  // 向外发射分派事件
+  // 向外发射分派事件（与 V1.1 保持一致）
   emit('dispatch', {
     problemId: props.problemId,
     workerId: selectedWorkerId.value,
@@ -287,6 +352,14 @@ const handleSubmit = () => {
 
   isSubmitting.value = true
   // 由父组件处理分派结果，成功后调用 onDispatched
-  props.onDispatched()
+  emitDispatched()
 }
 </script>
+
+<style scoped>
+/* 头部渐变绿条覆盖到 padding 边界 */
+:deep(.el-dialog__header) {
+  padding: 0;
+  margin-right: 0;
+}
+</style>

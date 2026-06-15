@@ -7,7 +7,8 @@
     @close="onClose"
   >
     <template #header>
-      <div class="farm-modal-header" :class="isWithdraw ? '' : 'cancel-header'">
+      <!-- 与V1.1 Modal.tsx 默认头部样式一致：emerald渐变（不区分withdraw/cancel） -->
+      <div class="farm-modal-header">
         <span class="text-white text-lg font-semibold">{{ modalTitle }}</span>
       </div>
     </template>
@@ -115,11 +116,13 @@ const isWithdraw = computed(() => props.type === 'withdraw')
 /** 弹窗标题 */
 const modalTitle = computed(() => isWithdraw.value ? '撤回任务' : '取消任务')
 
-/** 警示样式 */
+/** 警示样式 — 与V1.1 WithdrawCancelModal.tsx line 40, 65 一致：
+ *  V1.1 是 `text-blue-600 bg-blue-50` / `text-red-600 bg-red-50`（无 border-* 类）
+ *  边框颜色由外层 `flex items-start gap-3 p-4 rounded-lg border` 透传 */
 const alertClass = computed(() => {
   return isWithdraw.value
-    ? 'text-blue-600 bg-blue-50 border-blue-200'
-    : 'text-red-600 bg-red-50 border-red-200'
+    ? 'text-blue-600 bg-blue-50'
+    : 'text-red-600 bg-red-50'
 })
 
 /** 获取状态标签 */
@@ -151,12 +154,9 @@ function handleCancel() {
   border-radius: 8px 8px 0 0;
 }
 .farm-modal-header {
+  /* 与V1.1 Modal.tsx line 265 默认头部色一致：emerald渐变（统一withdraw/cancel） */
   background: linear-gradient(to right, #059669, #10b981);
   padding: 16px 24px;
   border-radius: 8px 8px 0 0;
-}
-/* 取消操作使用红色渐变 */
-.farm-modal-header.cancel-header {
-  background: linear-gradient(to right, #dc2626, #ef4444);
 }
 </style>

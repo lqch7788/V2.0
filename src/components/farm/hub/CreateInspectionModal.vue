@@ -1,14 +1,38 @@
 <template>
-  <!-- 新增巡查记录弹窗 -->
+  <!-- 新增巡查记录弹窗 - 顶部样式 1:1 V1.1 Modal.tsx -->
   <el-dialog
     :model-value="isOpen"
-    title="新增记录"
     width="900px"
     :close-on-click-modal="false"
+    :show-close="false"
     :destroy-on-close="true"
+    class="farm-modal"
     @close="onClose"
     @open="handleOpen"
   >
+    <template #header>
+      <div class="farm-modal-header flex items-center justify-between px-6 py-3 select-none">
+        <h3 class="text-lg font-semibold text-white">新增记录</h3>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-white hover:bg-emerald-500/40 rounded p-1 flex items-center justify-center"
+            :title="isMaximized ? '还原窗口' : '最大化窗口'"
+            @click="toggleMaximize"
+          >
+            <el-icon :size="16"><FullScreen v-if="!isMaximized" /><Aim v-else /></el-icon>
+          </button>
+          <button
+            type="button"
+            class="text-white hover:bg-emerald-500/40 rounded p-1 flex items-center justify-center"
+            title="关闭"
+            @click="onClose"
+          >
+            <el-icon :size="18"><Close /></el-icon>
+          </button>
+        </div>
+      </div>
+    </template>
     <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
       <!-- 巡查编号和扫码定位 -->
       <div class="flex items-center gap-4">
@@ -588,8 +612,10 @@
 
     <template #footer>
       <div class="flex items-center justify-end gap-3">
-        <el-button @click="onClose">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">提交记录</el-button>
+        <el-button size="small" @click="onClose">取消</el-button>
+        <el-button type="primary" size="small" @click="handleSubmit">
+          <el-icon :size="16" style="margin-right: 4px"><EditPen /></el-icon>提交记录
+        </el-button>
       </div>
     </template>
   </el-dialog>
@@ -597,7 +623,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, type PropType } from 'vue'
-import { Close, FullScreen, Camera } from '@element-plus/icons-vue'
+import { Close, FullScreen, Aim, Camera, EditPen } from '@element-plus/icons-vue'
 import {
   WEATHER_OPTIONS,
   CROP_STATUS_OPTIONS,
@@ -616,6 +642,12 @@ const issueCategories = ISSUE_CATEGORIES.map(c => ({ value: c.value, label: c.la
 // 严重程度选项
 // ============================================
 const severityLevels = ['轻微', '中等', '严重'] as const
+
+// 最大化状态（V1.1 Modal 支持）
+const isMaximized = ref(false)
+function toggleMaximize() {
+  isMaximized.value = !isMaximized.value
+}
 
 // ============================================
 // Props 定义
@@ -849,6 +881,25 @@ const handleSubmit = () => {
 </script>
 
 <style scoped>
+/* 顶部样式 1:1 对齐 V1.1 Modal.tsx L264-301 */
+:deep(.el-dialog__header) {
+  padding: 0;
+  margin: 0;
+  border-radius: 12px 12px 0 0;
+}
+.farm-modal-header {
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  border-radius: 12px 12px 0 0;
+}
+:deep(.el-dialog__body) {
+  padding: 16px 24px;
+}
+:deep(.el-dialog__footer) {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 12px 12px;
+}
 /* 隐藏 radio 的 screen-reader-only 隐藏 */
 .sr-only {
   position: absolute;
