@@ -34,13 +34,8 @@
         </span>
       </div>
 
-      <!-- 基本信息 -->
+      <!-- 基本信息（V1.1 line 158-237 顺序：人员→区域→farm/equipment/infrastructure 特有字段→日期→状态→问题处理→巡检时长） -->
       <div class="grid grid-cols-2 gap-4">
-        <!-- 巡查编号 -->
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <span class="text-sm text-gray-600">巡查编号</span>
-          <span class="text-sm font-medium text-gray-900 font-mono">{{ record.recordCode }}</span>
-        </div>
         <!-- 巡查人员 -->
         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <span class="text-sm text-gray-600">巡查人员</span>
@@ -51,19 +46,8 @@
           <span class="text-sm text-gray-600">巡查区域</span>
           <span class="text-sm font-medium text-gray-900">{{ record.greenhouseName }}</span>
         </div>
-        <!-- 巡查日期 -->
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <span class="text-sm text-gray-600">巡查日期</span>
-          <span class="text-sm font-medium text-gray-900">{{ record.checkDate }}</span>
-        </div>
 
-        <!-- 巡查时间 -->
-        <div v-if="record.checkTime" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <span class="text-sm text-gray-600">巡查时间</span>
-          <span class="text-sm font-medium text-gray-900">{{ record.checkTime }}</span>
-        </div>
-
-        <!-- farm类型特有 -->
+        <!-- farm类型特有：作物名称/作物状态/株高/叶片数 -->
         <template v-if="record.inspectionType === 'farm'">
           <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span class="text-sm text-gray-600">作物名称</span>
@@ -83,16 +67,22 @@
           </div>
         </template>
 
-        <!-- equipment类型特有 -->
+        <!-- equipment类型特有：设备名称 -->
         <div v-if="record.inspectionType === 'equipment'" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <span class="text-sm text-gray-600">设备名称</span>
           <span class="text-sm font-medium text-gray-900">{{ record.equipmentName }}</span>
         </div>
 
-        <!-- infrastructure类型特有 -->
+        <!-- infrastructure类型特有：设施名称 -->
         <div v-if="record.inspectionType === 'infrastructure'" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <span class="text-sm text-gray-600">设施名称</span>
           <span class="text-sm font-medium text-gray-900">{{ record.infrastructureName }}</span>
+        </div>
+
+        <!-- 巡查日期 -->
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <span class="text-sm text-gray-600">巡查日期</span>
+          <span class="text-sm font-medium text-gray-900">{{ record.checkDate }}</span>
         </div>
 
         <!-- 状态 -->
@@ -115,12 +105,6 @@
         <div v-if="record.duration" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <span class="text-sm text-gray-600">巡检时长</span>
           <span class="text-sm font-medium text-gray-900">{{ record.duration }} 分钟</span>
-        </div>
-
-        <!-- 关联批次 -->
-        <div v-if="record.batchCode" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <span class="text-sm text-gray-600">关联批次</span>
-          <span class="text-sm font-medium text-gray-900">{{ record.batchCode }}</span>
         </div>
       </div>
 
@@ -343,13 +327,14 @@
             </span>
           </div>
 
-          <!-- 验收按钮 -->
+          <!-- 验收按钮（V1.1 line 491-498：variant="default" + w-full + CheckCircle 图标） -->
           <div v-if="problemData.status === '待验收' && onAcceptProblem" class="mt-4 pt-4 border-t border-red-200">
             <el-button
               type="primary"
               class="w-full"
               @click="onAcceptProblem(problemData.id)"
             >
+              <el-icon class="w-4 h-4"><Check /></el-icon>
               问题验收
             </el-button>
           </div>
@@ -528,6 +513,7 @@
 
 <script setup lang="ts">
 import { computed, type PropType } from 'vue'
+import { Check } from '@element-plus/icons-vue'
 
 // ============================================
 // 动作类型中文映射（与V1.1完全一致）

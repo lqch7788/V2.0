@@ -1,12 +1,13 @@
 <template>
   <el-dialog
     :model-value="isOpen"
-    width="600px"
+    width="672px"
     :close-on-click-modal="false"
     class="farm-modal"
     @close="handleClose"
   >
     <template #header>
+      <!-- 与V1.1 Modal.tsx line 265 完全一致：3段 emerald 渐变 -->
       <div class="farm-modal-header">
         <span class="text-white text-lg font-semibold">超时处理</span>
       </div>
@@ -16,7 +17,7 @@
     </div>
 
     <div v-else class="space-y-5">
-      <!-- 超时警示 -->
+      <!-- 超时警示 - 与V1.1 OvertimeHandleModal.tsx line 93 一致 -->
       <div
         :class="[
           'flex items-start gap-3 p-4 rounded-lg border',
@@ -41,7 +42,7 @@
         </div>
       </div>
 
-      <!-- 任务信息 -->
+      <!-- 任务信息 - 与V1.1 line 109 一致 -->
       <div class="bg-gray-50 rounded-lg p-3">
         <p class="font-medium text-gray-900">{{ task.title }}</p>
         <p class="text-sm text-gray-500 mt-1">
@@ -55,7 +56,7 @@
         </p>
       </div>
 
-      <!-- 处理方式选择 -->
+      <!-- 处理方式选择 - 与V1.1 line 122 一致 -->
       <div>
         <p class="text-gray-700 mb-2 font-medium">选择处理方式</p>
         <div class="grid grid-cols-2 gap-3">
@@ -99,7 +100,7 @@
         </div>
       </div>
 
-      <!-- 继续执行表单 -->
+      <!-- 继续执行表单 - 与V1.1 line 175 一致 -->
       <div v-if="handleType === 'continue'" class="space-y-3">
         <div>
           <p class="text-gray-700 mb-1">
@@ -110,6 +111,7 @@
             type="textarea"
             :rows="2"
             placeholder="请说明超时原因..."
+            class="deep-input"
           />
         </div>
 
@@ -123,7 +125,7 @@
             placeholder="选择新截止日期"
             :disabled-date="disabledDate"
             value-format="YYYY-MM-DD"
-            class="w-full"
+            class="deep-input w-full"
           />
           <p class="text-xs text-gray-500 mt-1">
             每次最多延期 {{ DEADLINE_CONFIG.maxExtensionHours }} 小时
@@ -135,7 +137,7 @@
         </p>
       </div>
 
-      <!-- 放弃执行表单 -->
+      <!-- 放弃执行表单 - 与V1.1 line 214 一致 -->
       <div v-if="handleType === 'abandon'">
         <p class="text-gray-700 mb-1">
           放弃原因 <span class="text-red-500">*</span>
@@ -145,20 +147,26 @@
           type="textarea"
           :rows="3"
           placeholder="请说明放弃执行的原因..."
+          class="deep-input"
         />
         <p class="text-xs text-gray-500 mt-1">
           放弃后任务将变为"已放弃"状态，需要管理员重新派发
         </p>
       </div>
 
-      <!-- 操作按钮 -->
+      <!-- 操作按钮 - 与V1.1 line 233 一致：sm size + icon + variant 映射 -->
       <div class="flex gap-3 justify-end pt-2">
-        <el-button @click="handleClose">取消</el-button>
+        <el-button size="small" @click="handleClose">
+          <el-icon class="mr-1"><Close /></el-icon>
+          取消
+        </el-button>
         <el-button
           :type="handleType === 'abandon' ? 'danger' : 'primary'"
+          size="small"
           @click="handleSubmit"
           :disabled="!canSubmit"
         >
+          <el-icon class="mr-1"><Check /></el-icon>
           确认{{ handleType === 'continue' ? '继续执行' : '放弃执行' }}
         </el-button>
       </div>
@@ -170,11 +178,12 @@
 /**
  * 超时处理弹窗组件
  * 功能：执行人超时后选择继续执行或放弃
+ * 对应 V1.1 src/components/farm/hub/modals/OvertimeHandleModal.tsx 1:1 映射
  */
 import { ref, computed } from 'vue'
-import { WarningFilled, VideoPlay, CircleCloseFilled } from '@element-plus/icons-vue'
+import { WarningFilled, VideoPlay, CircleCloseFilled, Check, Close } from '@element-plus/icons-vue'
 
-// 延期配置常量（与 V1.1 DEADLINE_DEFAULTS 保持一致）
+// 延期配置常量（与 V1.1 DEADLINE_CONFIG 保持一致）
 const DEADLINE_CONFIG = {
   maxExtensions: 3,
   maxExtensionHours: 72,
@@ -267,14 +276,26 @@ const handleClose = () => {
   margin: 0;
   border-radius: 8px 8px 0 0;
 }
+/* 与V1.1 Modal.tsx line 265 一致：3段 emerald 渐变 */
 .farm-modal-header {
-  background: linear-gradient(to right, #059669, #10b981);
-  padding: 16px 24px;
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  padding: 12px 24px;
   border-radius: 8px 8px 0 0;
 }
 button {
   background: none;
   cursor: pointer;
   font-family: inherit;
+}
+/* 深度输入框样式 - 与V1.1 deepInputClass line 17 一致 */
+:deep(.deep-input .el-textarea__inner),
+:deep(.deep-input .el-input__wrapper) {
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+:deep(.deep-input .el-textarea__inner:focus),
+:deep(.deep-input .el-input__wrapper.is-focus) {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06), 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 </style>

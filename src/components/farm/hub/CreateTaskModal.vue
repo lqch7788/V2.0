@@ -12,6 +12,7 @@
          bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500
          rounded-t-xl，标题 text-white text-lg font-semibold，右侧 Maximize + Close -->
       <div class="farm-modal-header flex items-center justify-between px-6 py-3 select-none">
+        <!-- 顶部样式 1:1 对齐 V1.1 Modal.tsx L264-301: bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 + Maximize + Close -->
         <h3 class="text-lg font-semibold text-white">新建任务</h3>
         <div class="flex items-center gap-2">
           <button
@@ -73,8 +74,9 @@
                 size="default"
                 class="flex-1"
               />
-              <el-button type="primary" size="small" @click="newTask.taskId = autoGenerateTaskCode()">
-                生成
+              <!-- V1.1: variant="default" + Wand2 图标（emerald 主色），1:1 像素对齐 -->
+              <el-button type="primary" size="small" class="!bg-emerald-600 hover:!bg-emerald-700 !border-emerald-600" @click="newTask.taskId = autoGenerateTaskCode()">
+                <el-icon :size="14" style="margin-right: 4px"><MagicStick /></el-icon>生成
               </el-button>
             </div>
           </div>
@@ -125,7 +127,7 @@
                   class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
                 >
                   {{ getFieldName(fieldValue) }}
-                  <span class="hover:text-red-500 cursor-pointer text-xs font-bold" @click.stop="removeField(fieldValue)">&times;</span>
+                  <span class="text-gray-400 hover:!text-red-500 cursor-pointer text-xs font-bold" @click.stop="removeField(fieldValue)">&times;</span>
                 </span>
               </div>
               <div v-if="showFieldDropdown" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -181,7 +183,7 @@
                   class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-sm"
                 >
                   {{ cropValue }}
-                  <span class="hover:text-red-500 cursor-pointer text-xs font-bold" @click.stop="removeCrop(cropValue)">&times;</span>
+                  <span class="text-gray-400 hover:!text-red-500 cursor-pointer text-xs font-bold" @click.stop="removeCrop(cropValue)">&times;</span>
                 </span>
               </div>
               <div v-if="showCropDropdown" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -238,7 +240,7 @@
                 class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-sm"
               >
                 {{ getFarmOpTypeLabel(typeValue) }}
-                <span class="hover:text-red-500 cursor-pointer text-xs font-bold" @click.stop="removeTaskType(typeValue)">&times;</span>
+                <span class="text-gray-400 hover:!text-red-500 cursor-pointer text-xs font-bold" @click.stop="removeTaskType(typeValue)">&times;</span>
               </span>
             </div>
             <div v-if="showTaskTypeDropdown" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -288,8 +290,9 @@
             placeholder="请输入作业标准...（简单任务可在此直接输入，复杂任务可点击导入文件）"
           />
           <div class="mt-2 flex items-center gap-3">
-            <el-button type="primary" size="small" plain @click="handleImportFile">
-              导入文件
+            <!-- V1.1: variant="blue" + Upload 图标（蓝色按钮）1:1 像素对齐 -->
+            <el-button size="small" class="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600" @click="handleImportFile">
+              <el-icon :size="14" style="margin-right: 4px"><Upload /></el-icon>导入文件
             </el-button>
             <span class="text-xs text-gray-500">支持 .txt, .doc, .docx, .pdf 格式</span>
           </div>
@@ -317,7 +320,7 @@
               <el-select v-model="m.unit" size="small" class="w-18">
                 <el-option v-for="u in materialUnits" :key="u" :label="u" :value="u" />
               </el-select>
-              <span class="text-red-500 hover:text-red-700 cursor-pointer font-bold text-sm" @click="removeMaterial(i)">&times;</span>
+              <span class="text-gray-400 hover:!text-red-500 cursor-pointer font-bold text-sm" @click="removeMaterial(i)">&times;</span>
             </div>
             <el-button type="primary" link size="small" @click="addMaterial">
               + 物资
@@ -344,7 +347,7 @@
               <el-select v-model="t.unit" size="small" class="w-18">
                 <el-option v-for="u in toolUnits" :key="u" :label="u" :value="u" />
               </el-select>
-              <span class="text-red-500 hover:text-red-700 cursor-pointer font-bold text-sm" @click="removeTool(i)">&times;</span>
+              <span class="text-gray-400 hover:!text-red-500 cursor-pointer font-bold text-sm" @click="removeTool(i)">&times;</span>
             </div>
             <el-button type="primary" link size="small" @click="addTool">
               + 工具
@@ -444,7 +447,7 @@
           </el-select>
         </div>
 
-        <!-- 班组选择 -->
+        <!-- 班组选择（V1.1: w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50） -->
         <div>
           <label class="text-gray-700 text-sm mb-1 block">
             班组 <span class="text-xs text-gray-400">（来自农事管理-班组分配）</span>
@@ -453,6 +456,7 @@
             v-model="newTask.teamId"
             size="default"
             class="w-full"
+            :popper-class="'team-select-trigger'"
             placeholder="不关联班组（直接选人）"
             @change="onTeamChange"
           >
@@ -519,23 +523,27 @@
       </div>
     </div>
 
-    <!-- 底部操作（与 V1.1 bottomContent 1:1 对齐：V1.1 Modal 底部用 px-6 py-4 border-t bg-gray-50） -->
+    <!-- 底部操作（V1.1 Modal bottomContent 1:1 对齐：secondary=灰底，default=emerald 主色） -->
     <template #footer>
       <div class="flex items-center justify-between">
-        <el-button v-if="createStep > 1" size="small" @click="createStep--">
+        <!-- V1.1: variant="secondary" + ArrowLeft -->
+        <el-button v-if="createStep > 1" size="small" plain class="!bg-gray-100 hover:!bg-gray-200 !text-gray-700 !border-gray-300" @click="createStep--">
           <el-icon :size="16" style="margin-right: 4px"><ArrowLeft /></el-icon>上一步
         </el-button>
         <template v-if="createStep === 2">
           <div class="flex gap-2 ml-auto">
-            <el-button size="small" @click="handleSaveDraft">
+            <!-- V1.1: variant="secondary" + Save icon -->
+            <el-button size="small" plain class="!bg-gray-100 hover:!bg-gray-200 !text-gray-700 !border-gray-300" @click="handleSaveDraft">
               <el-icon :size="16" style="margin-right: 4px"><Document /></el-icon>保存草稿
             </el-button>
-            <el-button type="primary" size="small" @click="handleFinalCreate">
+            <!-- V1.1: variant="default"（emerald 主色）+ Send icon -->
+            <el-button size="small" class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !border-emerald-600" @click="handleFinalCreate">
               <el-icon :size="16" style="margin-right: 4px"><Promotion /></el-icon>发布任务
             </el-button>
           </div>
         </template>
-        <el-button v-else type="primary" size="small" class="ml-auto" @click="handleNextStep">
+        <!-- V1.1: variant="default"（emerald 主色）+ ChevronRight icon -->
+        <el-button v-else size="small" class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !border-emerald-600 ml-auto" @click="handleNextStep">
           下一步<el-icon :size="16" style="margin-left: 4px"><ArrowRight /></el-icon>
         </el-button>
       </div>
@@ -552,8 +560,11 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
   WarningFilled, ArrowRight, ArrowLeft, Clock, Timer, PictureFilled, Box, Microphone,
-  FullScreen, Aim, Close, Document, Promotion
+  FullScreen, Aim, Close, Document, Promotion, MagicStick, Upload
 } from '@element-plus/icons-vue'
+// V1.1 用了 lucide-react: MapPin/Camera/Sparkles/AlertCircle/UserPlus/Users 等，
+// element-plus 没有 MapPin 等图标，从 lucide-vue-next 补齐
+import { MapPin, Camera } from 'lucide-vue-next'
 import { format, addHours, parse } from 'date-fns'
 import { FARM_OPERATION_TYPES } from '@/types/farm/common'
 import { useTaskTypeConfig } from '@/composables/useTaskTypeConfig'
@@ -684,10 +695,10 @@ const startHourOptions = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 // 必填反馈选项（使用实际图标组件引用）
 const feedbackOptions = [
   { key: 'workload_confirm', label: '工作量确认', icon: Clock, iconBg: 'bg-emerald-500', iconColor: 'text-white' },
-  { key: 'gps', label: '位置打卡', icon: Timer, iconBg: 'bg-blue-500', iconColor: 'text-white' },
+  { key: 'gps', label: '位置打卡', icon: MapPin, iconBg: 'bg-blue-500', iconColor: 'text-white' },
   { key: 'material', label: '物资扫码', icon: Box, iconBg: 'bg-amber-500', iconColor: 'text-white' },
-  { key: 'photo_before', label: '作业前照片', icon: PictureFilled, iconBg: 'bg-purple-500', iconColor: 'text-white' },
-  { key: 'photo_after', label: '作业后照片', icon: PictureFilled, iconBg: 'bg-pink-500', iconColor: 'text-white' },
+  { key: 'photo_before', label: '作业前照片', icon: Camera, iconBg: 'bg-purple-500', iconColor: 'text-white' },
+  { key: 'photo_after', label: '作业后照片', icon: Camera, iconBg: 'bg-pink-500', iconColor: 'text-white' },
   { key: 'voice', label: '语音备注', icon: Microphone, iconBg: 'bg-teal-500', iconColor: 'text-white' },
 ]
 
@@ -1177,5 +1188,15 @@ onMounted(async () => {
   border-top: 1px solid #e5e7eb;
   background: #f9fafb;
   border-radius: 0 0 12px 12px;
+}
+
+/* V1.1 班组 trigger 蓝底：w-full px-3 py-2 border border-blue-300 ... bg-blue-50 focus:ring-2 focus:ring-blue-500 */
+:deep(.team-select-trigger.el-select) .el-select__wrapper,
+:deep(.team-select-trigger .el-select__wrapper) {
+  background-color: #eff6ff !important;
+  box-shadow: 0 0 0 1px #93c5fd inset !important;
+}
+:deep(.team-select-trigger .el-select__wrapper:hover) {
+  box-shadow: 0 0 0 1px #93c5fd inset, 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
 }
 </style>

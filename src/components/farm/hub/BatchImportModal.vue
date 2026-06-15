@@ -1,7 +1,7 @@
 <!--
   农事任务中心 - 批量导入任务弹窗
   1:1 翻译自 V1.1 src/components/farm/hub/modals/BatchImportModal.tsx（300 行）
-  头部样式：V1.1 风格（icon + 标题 + 关闭按钮，行间分隔线）
+  头部样式：V1.1 风格（icon + 标题 + 关闭按钮，行间分隔线，px-6 py-4 border-b border-gray-100）
   字段：文件上传区（拖拽/点击）/ CSV 格式说明 / 数据预览前5条
   - props: isOpen
   - emits: close / import
@@ -9,27 +9,26 @@
 <template>
   <el-dialog
     :model-value="isOpen"
-    width="800px"
+    width="768px"
     top="5vh"
     :close-on-click-modal="false"
     :show-header="false"
     @close="handleClose"
     class="batch-import-dialog"
   >
-    <!-- 头部：V1.1 风格（icon + 标题 + 关闭按钮） -->
+    <!-- 头部：V1.1 风格（Upload icon 5h 5 emerald-500 + 标题 + 关闭按钮 + 分隔线） -->
     <template #header>
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
         <div class="flex items-center gap-3">
-          <el-icon :size="20" color="#059669">
-            <UploadFilled />
-          </el-icon>
+          <Upload :size="20" class="text-emerald-500" />
           <h3 class="text-lg font-semibold text-gray-900">批量导入任务</h3>
         </div>
         <button
           class="text-gray-400 hover:text-gray-600 transition-colors"
+          aria-label="关闭"
           @click="handleClose"
         >
-          <el-icon :size="18"><Close /></el-icon>
+          <X :size="16" class="text-gray-400" />
         </button>
       </div>
     </template>
@@ -43,7 +42,7 @@
           'border-2 border-dashed rounded-xl p-8 text-center transition-colors',
           importFile
             ? 'border-emerald-400 bg-emerald-50'
-            : 'border-gray-400 hover:border-gray-500'
+            : 'border-gray-400 hover:border-gray-400'
         ]"
       >
         <input
@@ -55,16 +54,12 @@
         />
         <div class="cursor-pointer" @click="openFilePicker">
           <template v-if="importFile">
-            <el-icon :size="40" color="#059669" class="mx-auto mb-2">
-              <UploadFilled />
-            </el-icon>
+            <Upload :size="40" class="text-emerald-500 mx-auto mb-2 block" />
             <p class="font-medium text-gray-900">{{ importFile.name }}</p>
             <p class="text-sm text-gray-500 mt-1">点击或拖拽文件到此处重新上传</p>
           </template>
           <template v-else>
-            <el-icon :size="40" color="#909399" class="mx-auto mb-2">
-              <UploadFilled />
-            </el-icon>
+            <Upload :size="40" class="text-gray-400 mx-auto mb-2 block" />
             <p class="font-medium text-gray-900">点击上传或拖拽文件到此处</p>
             <p class="text-sm text-gray-500 mt-1">支持 CSV、XLSX 格式文件</p>
           </template>
@@ -143,18 +138,19 @@
       </div>
     </div>
 
-    <!-- 底部按钮 -->
+    <!-- 底部按钮：V1.1 风格 p-4 border-t border-gray-200 + Upload icon + "确认导入 ({n})" 文案 -->
     <template #footer>
-      <div class="flex justify-end gap-3">
-        <el-button @click="handleClose">
-          <el-icon><Close /></el-icon>取消
+      <div class="flex justify-end gap-3 px-4 py-4 -mx-6 -mb-4 border-t border-gray-200">
+        <el-button size="small" @click="handleClose">
+          <X :size="14" class="mr-1" />取消
         </el-button>
         <el-button
           type="primary"
+          size="small"
           :disabled="importData.length === 0"
           @click="handleConfirm"
         >
-          <el-icon><UploadFilled /></el-icon>
+          <Upload :size="14" class="mr-1" />
           确认导入
           <template v-if="importData.length > 0">({{ importData.length }})</template>
         </el-button>
@@ -165,7 +161,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Close, UploadFilled } from '@element-plus/icons-vue'
+import { Upload, X } from 'lucide-vue-next'
 import { showAlert } from '@/lib/dialogService'
 
 // ============================================

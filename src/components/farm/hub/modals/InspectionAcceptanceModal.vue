@@ -14,7 +14,7 @@
           <h2 class="text-lg font-semibold text-white">
             问题验收 - {{ problem.problemCode || problem.problem_code }}
           </h2>
-          <el-button link size="default" @click="handleClose" class="text-white hover:bg-emerald-600">
+          <el-button link @click="handleClose" class="text-white hover:bg-emerald-600">
             ×
           </el-button>
         </div>
@@ -103,7 +103,7 @@
 
                     <!-- 进度信息 -->
                     <div v-if="record.progress !== undefined && record.progress !== null" class="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                      <el-icon><Document /></el-icon>
+                      <el-icon><Files /></el-icon>
                       <span>进度：{{ record.progress }}%</span>
                     </div>
 
@@ -269,7 +269,7 @@
               class="flex items-start gap-3 p-4 rounded-lg border"
               :class="mode === 'confirm' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'"
             >
-              <el-icon class="mt-0.5 flex-shrink-0"><Warning /></el-icon>
+              <el-icon class="mt-0.5 flex-shrink-0"><WarningFilled /></el-icon>
               <div>
                 <p class="font-medium">
                   {{ mode === 'confirm' ? '确认验收通过后，问题将标记为已处理' : '驳回后问题将返回给处理人重新处理' }}
@@ -282,7 +282,10 @@
 
             <!-- 操作按钮 -->
             <div class="flex justify-end gap-3 pt-2">
-              <el-button @click="handleClose">取消</el-button>
+              <el-button @click="handleClose">
+                <el-icon class="w-4 h-4"><Close /></el-icon>
+                取消
+              </el-button>
               <el-button
                 @click="handleConfirm"
                 :disabled="mode === 'reject' && !rejectReason.trim()"
@@ -305,7 +308,7 @@
  */
 import { ref, computed } from 'vue'
 import {
-  Camera, Clock, Document, Location, Microphone, User, Warning,
+  Camera, Clock, Files, Location, Microphone, User, WarningFilled, Close,
 } from '@element-plus/icons-vue'
 
 const props = defineProps({

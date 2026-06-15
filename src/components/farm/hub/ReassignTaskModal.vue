@@ -1,12 +1,13 @@
 <template>
   <el-dialog
     :model-value="isOpen"
-    width="600px"
+    width="672px"
     :close-on-click-modal="false"
     class="farm-modal"
     @close="handleClose"
   >
     <template #header>
+      <!-- 与V1.1 Modal.tsx line 265 完全一致：3段 emerald 渐变 -->
       <div class="farm-modal-header">
         <span class="text-white text-lg font-semibold">重新派发任务</span>
       </div>
@@ -16,7 +17,7 @@
     </div>
 
     <div v-else class="space-y-5">
-      <!-- 警示信息 -->
+      <!-- 警示信息 - 与V1.1 ReassignTaskModal.tsx line 72-96 完全一致 -->
       <div
         :class="[
           'flex items-start gap-3 p-4 rounded-lg border',
@@ -44,7 +45,7 @@
         </div>
       </div>
 
-      <!-- 任务信息 -->
+      <!-- 任务信息 - 与V1.1 line 99-113 一致 -->
       <div class="bg-gray-50 rounded-lg p-3">
         <div class="grid grid-cols-2 gap-2 text-sm text-gray-500">
           <p>任务编号：{{ task.taskCode }}</p>
@@ -62,25 +63,30 @@
         </div>
       </div>
 
-      <!-- 执行人选择 -->
+      <!-- 执行人选择 - 与V1.1 line 116-137 一致：含 Users 图标 + deepInputClass 深度样式 -->
       <div>
         <p class="text-gray-700 mb-2 font-medium">选择新执行人</p>
-        <el-select
-          v-model="selectedAssignee"
-          placeholder="请选择执行人"
-          class="w-full"
-          filterable
-        >
-          <el-option
-            v-for="user in availableAssignees"
-            :key="user.id"
-            :label="`${user.name} (${user.role || '员工'})`"
-            :value="String(user.id)"
-          />
-        </el-select>
+        <div class="relative">
+          <el-icon :size="20" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
+            <User />
+          </el-icon>
+          <el-select
+            v-model="selectedAssignee"
+            placeholder="请选择执行人"
+            class="w-full deep-select"
+            popper-class="reassign-select-popper"
+          >
+            <el-option
+              v-for="user in availableAssignees"
+              :key="user.id"
+              :label="`${user.name} (${user.role || '员工'})`"
+              :value="String(user.id)"
+            />
+          </el-select>
+        </div>
       </div>
 
-      <!-- 确认提示 -->
+      <!-- 确认提示 - 与V1.1 line 140-149 一致 -->
       <div v-if="selectedAssignee" class="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
         <p class="text-sm text-emerald-800">
           确认将任务派发给：
@@ -90,14 +96,19 @@
         </p>
       </div>
 
-      <!-- 操作按钮 -->
+      <!-- 操作按钮 - 与V1.1 line 152-169 一致：sm size + icon + border-t divider -->
       <div class="flex justify-end gap-3 pt-2 border-t border-gray-200">
-        <el-button @click="handleClose">取消</el-button>
+        <el-button size="small" @click="handleClose">
+          <el-icon class="mr-1"><Close /></el-icon>
+          取消
+        </el-button>
         <el-button
           type="primary"
+          size="small"
           :disabled="!selectedAssignee"
           @click="handleSubmit"
         >
+          <el-icon class="mr-1"><UserFilled /></el-icon>
           确认派发
         </el-button>
       </div>
@@ -109,9 +120,10 @@
 /**
  * 重新派发任务弹窗组件
  * 功能：任务失败/放弃后，选择新执行人重新派发
+ * 对应 V1.1 src/components/farm/hub/modals/ReassignTaskModal.tsx 1:1 映射
  */
 import { ref, computed, onMounted } from 'vue'
-import { WarningFilled } from '@element-plus/icons-vue'
+import { WarningFilled, User, UserFilled, Close } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores'
 
 const props = defineProps({
@@ -124,7 +136,7 @@ const props = defineProps({
 const userStore = useUserStore()
 const selectedAssignee = ref('')
 
-// 状态映射
+// 状态映射 - 与V1.1 line 104-107 三元表达式一致
 const statusMap = {
   failed: '任务失败',
   rejected: '已拒绝',
@@ -152,7 +164,7 @@ const selectedAssigneeName = computed(() => {
   return user?.name || ''
 })
 
-// 加载用户列表
+// 加载用户列表 - 与V1.1 useEffect 一致
 onMounted(() => {
   if (!userStore.users || userStore.users.length === 0) {
     userStore.loadUsers()
@@ -183,9 +195,20 @@ const handleClose = () => {
   margin: 0;
   border-radius: 8px 8px 0 0;
 }
+/* 与V1.1 Modal.tsx line 265 一致：3段 emerald 渐变 */
 .farm-modal-header {
-  background: linear-gradient(to right, #059669, #10b981);
-  padding: 16px 24px;
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  padding: 12px 24px;
   border-radius: 8px 8px 0 0;
+}
+/* 深度输入框样式 - 与V1.1 deepInputClass line 15 一致 */
+:deep(.deep-select .el-input__wrapper) {
+  padding: 4px 16px 4px 40px;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  min-height: 46px;
+}
+:deep(.deep-select .el-input__wrapper.is-focus) {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06), 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 </style>

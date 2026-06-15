@@ -9,31 +9,33 @@
 <template>
   <el-dialog
     :model-value="!!problemId"
-    width="600px"
-    top="6vh"
+    width="576px"
+    top="7.5vh"
     :close-on-click-modal="false"
     :show-header="false"
     @close="onClose"
+    class="problem-dispatch-dialog"
   >
-    <!-- 头部：V1.1 风格渐变绿色横条 -->
+    <!-- 头部：V1.1 风格渐变绿色横条 (px-6 py-3 + 渐变 + 白字) -->
     <template #header>
       <div class="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 rounded-t-lg">
         <h3 class="text-lg font-semibold text-white">问题分派</h3>
         <button
           class="text-white hover:text-gray-200 transition-colors"
+          aria-label="关闭"
           @click="onClose"
         >
-          <el-icon :size="18"><Close /></el-icon>
+          <X :size="16" class="text-white" />
         </button>
       </div>
     </template>
 
-    <!-- 加载中 -->
-    <div v-if="!problem" class="text-center py-12 text-gray-500">
+    <!-- 加载中 (V1.1 p-8 + 居中文案) -->
+    <div v-if="!problem" class="text-center p-8 text-gray-500">
       <p>加载中...</p>
     </div>
 
-    <div v-else class="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+    <div v-else class="space-y-4 max-h-[calc(85vh-140px)] overflow-y-auto pr-1">
       <!-- 问题信息 -->
       <div class="bg-gray-50 rounded-lg p-4">
         <h4 class="text-sm font-medium text-gray-700 mb-3">问题信息</h4>
@@ -161,13 +163,15 @@
       </div>
     </div>
 
+    <!-- 底部 footer：V1.1 风格 (border-t border-gray-200 bg-gray-50 rounded-b-xl) -->
     <template #footer>
-      <div class="flex items-center justify-end gap-3">
-        <el-button @click="onClose">
-          <el-icon><Close /></el-icon>取消
+      <div class="flex items-center justify-end gap-3 px-6 py-4 -mx-6 -mb-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+        <el-button size="small" @click="onClose">
+          <X :size="14" class="mr-1" />取消
         </el-button>
         <el-button
           type="primary"
+          size="small"
           :disabled="!selectedWorkerId || isSubmitting"
           @click="handleSubmit"
         >
@@ -180,7 +184,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Close } from '@element-plus/icons-vue'
+import { X } from 'lucide-vue-next'
 
 // 优先级档位（替代 V1.1 内的 (['高', '中', '低'] as const) 类型断言）
 const priorityLevels = ['高', '中', '低']
@@ -201,6 +205,13 @@ const STATUS_CN_MAP = {
   waiting_acceptance: '待验收',
   completed: '已处理',
 }
+
+// ============================================
+// 本地日期工具（替代 V1.1 todayLocal，避免时区偏差）
+// ============================================
+const pad2 = (n) => String(n).padStart(2, '0')
+const formatLocalDate = (d) =>
+  `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
 
 // ============================================
 // Props
@@ -266,14 +277,14 @@ const requireCheckin = ref(false)
 const requirePhoto = ref(false)
 const isSubmitting = ref(false)
 
-// 弹窗打开时初始化默认值（V1.1 useEffect 等价）
+// 弹窗打开时初始化默认值（V1.1 useEffect 等价；使用本地日期避免时区偏差）
 watch(
   () => props.problemId,
   (newVal) => {
     if (newVal) {
       const tomorrow = new Date()
       tomorrow.setDate(tomorrow.getDate() + 1)
-      expectedDate.value = tomorrow.toISOString().split('T')[0]
+      expectedDate.value = formatLocalDate(tomorrow)
       selectedWorkerId.value = null
       priority.value = '中'
       requireCheckin.value = false
@@ -289,7 +300,7 @@ const expectedDateProxy = computed({
   get: () => (expectedDate.value ? new Date(expectedDate.value) : null),
   set: (val) => {
     if (val instanceof Date) {
-      expectedDate.value = val.toISOString().split('T')[0]
+      expectedDate.value = formatLocalDate(val)
     } else if (typeof val === 'string' && val) {
       expectedDate.value = val
     } else {

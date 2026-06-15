@@ -36,10 +36,10 @@
     </div>
 
     <div v-else class="space-y-5">
-      <!-- 提示信息 -->
+      <!-- 提示信息（V1.1: AlertCircle 图标 + 蓝框蓝底） -->
       <div class="flex items-start gap-3 p-4 rounded-lg border border-blue-100 bg-blue-50">
         <el-icon :size="20" class="text-blue-600 mt-0.5 flex-shrink-0">
-          <InfoFilled />
+          <AlertCircle />
         </el-icon>
         <div>
           <p class="font-medium text-blue-900">
@@ -76,7 +76,7 @@
               : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'
           ]"
         >
-          <el-icon :size="16"><StarFilled /></el-icon>
+          <el-icon :size="16"><Sparkles /></el-icon>
           AI智能推荐（默认）
         </button>
         <button
@@ -89,7 +89,7 @@
               : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'
           ]"
         >
-          <el-icon :size="16"><UserFilled /></el-icon>
+          <el-icon :size="16"><UserPlus /></el-icon>
           手动选择
         </button>
       </div>
@@ -111,7 +111,7 @@
           @click="fetchAIRecommendations"
           class="w-full py-4 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 hover:border-purple-500 hover:bg-purple-50 transition-colors"
         >
-          <el-icon :size="20"><StarFilled /></el-icon>
+          <el-icon :size="20"><Sparkles /></el-icon>
           <span class="ml-2">点击获取AI智能推荐</span>
         </button>
 
@@ -153,31 +153,31 @@
         </div>
       </div>
 
-      <!-- 手动模式 - 下拉选择 -->
+      <!-- 手动模式 - 下拉选择（V1.1: Label 含 Users 图标 + Select 用 deepInputClass） -->
       <div v-if="dispatchMode === 'manual'">
-        <p class="text-gray-700 mb-2 font-medium">选择执行人</p>
+        <p class="text-gray-700 mb-2 font-medium inline-flex items-center">
+          <el-icon :size="16" class="mr-1"><Users /></el-icon>选择执行人
+        </p>
         <el-select
           v-model="selectedAssignee"
           placeholder="请选择执行人..."
           class="w-full"
-          filterable
-          size="large"
+          size="default"
         >
           <el-option
             v-for="staff in taskDispatchStaff"
             :key="staff.id"
-            :label="`${staff.name} (${staff.role || '执行人员工'}) — ${getStatusLabel(staff.status)}`"
             :value="String(staff.id)"
           >
-            <div class="flex items-center justify-between w-full">
+            <div class="flex items-center justify-between w-full py-1">
               <div>
-                <div class="font-medium">{{ staff.name }}</div>
+                <div class="font-medium text-base">{{ staff.name }}</div>
                 <div class="text-sm text-gray-500">{{ staff.role || '执行人员工' }}</div>
               </div>
               <div class="flex gap-1 ml-4">
-                <!-- 状态标签 -->
+                <!-- 状态标签（含 Clock 图标） -->
                 <span :class="['px-2 py-0.5 rounded text-xs', getStatusColor(staff.status)]">
-                  {{ getStatusLabel(staff.status) }}
+                  <el-icon :size="12" class="mr-1 inline-block align-middle"><Clock /></el-icon>{{ getStatusLabel(staff.status) }}
                 </span>
                 <!-- 技能标签（最多2个） -->
                 <span
@@ -204,18 +204,18 @@
         </p>
       </div>
 
-      <!-- 操作按钮（与 V1.1 一致：取消 + 确认派发，size="sm"，icon 在前） -->
+      <!-- 操作按钮（V1.1: secondary=灰底，default=emerald 主色；icon: X, UserPlus） -->
       <div class="flex justify-end gap-3 pt-2 border-t border-gray-200">
-        <el-button size="small" @click="handleClose">
+        <el-button size="small" plain class="!bg-gray-100 hover:!bg-gray-200 !text-gray-700 !border-gray-300" @click="handleClose">
           <el-icon :size="16" style="margin-right: 4px"><Close /></el-icon>取消
         </el-button>
         <el-button
-          type="primary"
           size="small"
+          class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !border-emerald-600"
           :disabled="!selectedAssignee"
           @click="handleSubmit"
         >
-          <el-icon :size="16" style="margin-right: 4px"><UserFilled /></el-icon>
+          <el-icon :size="16" style="margin-right: 4px"><UserPlus /></el-icon>
           确认派发
         </el-button>
       </div>
@@ -230,8 +230,10 @@
  */
 import { ref, computed, onMounted } from 'vue'
 import {
-  InfoFilled, StarFilled, UserFilled, Loading, FullScreen, Aim, Close
+  MagicStick, Loading, FullScreen, Aim, Close, Clock
 } from '@element-plus/icons-vue'
+// V1.1 lucide-react: Sparkles/AlertCircle/UserPlus/Users 等
+import { Sparkles, AlertCircle, UserPlus, Users } from 'lucide-vue-next'
 import { getWorkers } from '@/services/apiWorkerService'
 
 const props = defineProps({

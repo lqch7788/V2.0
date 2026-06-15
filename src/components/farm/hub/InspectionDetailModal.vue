@@ -18,7 +18,7 @@
       <p>加载中...</p>
     </div>
 
-    <div v-else class="flex flex-col max-h-[70vh]">
+    <div v-else class="flex flex-col max-h-[85vh]">
       <!-- 头部（V1.1 line 74-85 渐变色 + 状态徽章 + X 关闭按钮） -->
       <div class="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-lg -mx-5 -mt-5 mb-4">
         <div class="flex items-center gap-3">
@@ -47,7 +47,7 @@
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div>
               <span class="text-blue-600">巡查编号:</span>
-              <span class="ml-2 text-gray-900 font-mono">{{ inspectionData.recordCode }}</span>
+              <span class="ml-2 text-gray-900">{{ inspectionData.recordCode }}</span>
             </div>
             <div>
               <span class="text-blue-600">巡查类型:</span>
@@ -75,7 +75,7 @@
         <!-- 巡查项目检查清单 - 紫色背景 -->
         <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
           <h4 class="text-sm font-bold text-purple-700 mb-3 flex items-center gap-2">
-            <el-icon :size="16"><Files /></el-icon>
+            <el-icon :size="16"><Document /></el-icon>
             巡查项目检查清单
           </h4>
           <div class="space-y-3">
@@ -105,7 +105,7 @@
         <div class="bg-red-50 rounded-lg p-4 border border-red-100">
           <div class="flex items-center justify-between mb-3">
             <h4 class="text-sm font-bold text-red-700 flex items-center gap-2">
-              <el-icon :size="16"><WarningFilled /></el-icon>
+              <el-icon :size="16"><Document /></el-icon>
               发现问题 ({{ inspectionData.issues ? inspectionData.issues.length : 0 }})
             </h4>
             <el-button
@@ -140,7 +140,7 @@
         <!-- 现场照片 - 青色背景 -->
         <div v-if="inspectionData.photos && inspectionData.photos.length > 0" class="bg-cyan-50 rounded-lg p-4 border border-cyan-100">
           <h4 class="text-sm font-bold text-cyan-700 mb-3 flex items-center gap-2">
-            <el-icon :size="16"><Picture /></el-icon>
+            <el-icon :size="16"><Document /></el-icon>
             现场照片
           </h4>
           <div class="grid grid-cols-3 gap-2">
@@ -162,16 +162,19 @@
         <!-- 备注 - 灰色背景 -->
         <div v-if="inspectionData.remark" class="bg-gray-100 rounded-lg p-4 border border-gray-200">
           <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-            <el-icon :size="16"><EditPen /></el-icon>
+            <el-icon :size="16"><Document /></el-icon>
             备注
           </h4>
           <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ inspectionData.remark }}</p>
         </div>
       </div>
 
-      <!-- 底部操作 -->
-      <div class="flex items-center justify-end gap-3 pt-4 mt-4 border-t border-gray-200">
-        <el-button @click="onClose">关闭</el-button>
+      <!-- 底部操作（V1.1 line 238-242：bg-gray-50 + px-6 py-4 + border-t + X图标） -->
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 -mx-5 -mb-5 mt-4 rounded-b-lg">
+        <el-button @click="onClose">
+          <el-icon class="w-4 h-4"><Close /></el-icon>
+          关闭
+        </el-button>
       </div>
     </div>
   </el-dialog>

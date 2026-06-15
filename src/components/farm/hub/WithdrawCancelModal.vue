@@ -1,13 +1,13 @@
 <template>
   <el-dialog
     :model-value="isOpen"
-    width="600px"
+    width="672px"
     :close-on-click-modal="false"
     class="farm-modal"
     @close="onClose"
   >
     <template #header>
-      <!-- 与V1.1 Modal.tsx 默认头部样式一致：emerald渐变（不区分withdraw/cancel） -->
+      <!-- 与V1.1 Modal.tsx line 265 完全一致：3段 emerald 渐变（统一withdraw/cancel） -->
       <div class="farm-modal-header">
         <span class="text-white text-lg font-semibold">{{ modalTitle }}</span>
       </div>
@@ -17,9 +17,12 @@
     </div>
 
     <div v-else class="space-y-5">
-      <!-- 警示信息 -->
+      <!-- 警示信息 - 与V1.1 WithdrawCancelModal.tsx line 64-75 完全一致：
+           border 类继承 + border-opacity-20（V1.1 用 border-opacity-20 让边色变浅） -->
       <div :class="['flex items-start gap-3 p-4 rounded-lg border', alertClass]">
-        <el-icon :size="20" :color="isWithdraw ? '#2563eb' : '#dc2626'"><WarningFilled /></el-icon>
+        <el-icon :size="20" class="mt-0.5 flex-shrink-0">
+          <WarningFilled />
+        </el-icon>
         <div>
           <p class="font-medium">
             {{ isWithdraw ? '撤回后将取消该任务的派发，执行人将无法再接受此任务' : '取消后任务将终止，执行人将无法继续执行' }}
@@ -30,7 +33,7 @@
         </div>
       </div>
 
-      <!-- 任务信息 -->
+      <!-- 任务信息 - 与V1.1 line 77-86 一致 -->
       <div class="bg-gray-50 rounded-lg p-3">
         <p class="font-medium text-gray-900">{{ task.title }}</p>
         <div class="grid grid-cols-2 gap-2 mt-2 text-sm text-gray-500">
@@ -41,7 +44,7 @@
         </div>
       </div>
 
-      <!-- 操作说明 -->
+      <!-- 操作说明 - 与V1.1 line 88-108 一致 -->
       <div :class="['p-3 rounded-lg', isWithdraw ? 'bg-blue-50' : 'bg-red-50']">
         <p class="text-sm font-medium mb-1">
           {{ isWithdraw ? '撤回操作' : '取消操作' }}适用于：
@@ -60,7 +63,7 @@
         </ul>
       </div>
 
-      <!-- 原因输入 -->
+      <!-- 原因输入 - 与V1.1 line 110-122 一致：含 deepInputClass 深度样式 -->
       <div>
         <label class="text-gray-700 text-sm mb-1 block">
           操作原因 <span class="text-red-500">*</span>
@@ -70,20 +73,26 @@
           type="textarea"
           :rows="3"
           :placeholder="'请输入' + (isWithdraw ? '撤回' : '取消') + '原因...'"
+          class="deep-input"
         />
       </div>
 
-      <!-- 操作按钮 -->
+      <!-- 操作按钮 - 与V1.1 line 124-144 一致：
+           取消按钮 = variant secondary + size sm + X 图标
+           确认按钮 = withdraw→blue / cancel→destructive + size sm + Check 图标 -->
       <div class="flex gap-3 justify-end pt-2">
         <el-button size="small" @click="handleCancel">
+          <el-icon class="mr-1"><Close /></el-icon>
           取消
         </el-button>
         <el-button
           :type="isWithdraw ? 'primary' : 'danger'"
+          :class="isWithdraw ? 'withdraw-confirm-btn' : ''"
           size="small"
           :disabled="!reason.trim()"
           @click="handleSubmit"
         >
+          <el-icon class="mr-1"><Check /></el-icon>
           确认{{ modalTitle }}
         </el-button>
       </div>
@@ -98,7 +107,7 @@
  * 对应 V1.1 src/components/farm/hub/modals/WithdrawCancelModal.tsx 1:1 映射
  */
 import { ref, computed } from 'vue'
-import { WarningFilled } from '@element-plus/icons-vue'
+import { WarningFilled, Check, Close } from '@element-plus/icons-vue'
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -116,16 +125,16 @@ const isWithdraw = computed(() => props.type === 'withdraw')
 /** 弹窗标题 */
 const modalTitle = computed(() => isWithdraw.value ? '撤回任务' : '取消任务')
 
-/** 警示样式 — 与V1.1 WithdrawCancelModal.tsx line 40, 65 一致：
+/** 警示样式 — 与V1.1 WithdrawCancelModal.tsx line 40, 65 完全一致：
  *  V1.1 是 `text-blue-600 bg-blue-50` / `text-red-600 bg-red-50`（无 border-* 类）
- *  边框颜色由外层 `flex items-start gap-3 p-4 rounded-lg border` 透传 */
+ *  border-opacity-20 让继承的 border 颜色变浅 20% */
 const alertClass = computed(() => {
   return isWithdraw.value
-    ? 'text-blue-600 bg-blue-50'
-    : 'text-red-600 bg-red-50'
+    ? 'text-blue-600 bg-blue-50 border-blue-200 border-opacity-20'
+    : 'text-red-600 bg-red-50 border-red-200 border-opacity-20'
 })
 
-/** 获取状态标签 */
+/** 获取状态标签 - 与V1.1 line 43-46 一致 */
 const statusLabel = computed(() => {
   if (!props.task) return ''
   if (isWithdraw.value) return '待接受'
@@ -153,10 +162,28 @@ function handleCancel() {
   margin: 0;
   border-radius: 8px 8px 0 0;
 }
+/* 与V1.1 Modal.tsx line 265 完全一致：3段 emerald 渐变 */
 .farm-modal-header {
-  /* 与V1.1 Modal.tsx line 265 默认头部色一致：emerald渐变（统一withdraw/cancel） */
-  background: linear-gradient(to right, #059669, #10b981);
-  padding: 16px 24px;
+  background: linear-gradient(to right, #10b981, #059669, #10b981);
+  padding: 12px 24px;
   border-radius: 8px 8px 0 0;
+}
+/* 深度输入框样式 - 与V1.1 deepInputClass line 14 一致 */
+:deep(.deep-input .el-textarea__inner) {
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+:deep(.deep-input .el-textarea__inner:focus) {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06), 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+/* 撤回确认按钮 - 与V1.1 buttonClass line 41 一致：bg-blue-500 hover:bg-blue-600 */
+:deep(.withdraw-confirm-btn) {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+:deep(.withdraw-confirm-btn:hover) {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
 }
 </style>

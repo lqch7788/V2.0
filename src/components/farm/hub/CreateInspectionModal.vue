@@ -46,14 +46,15 @@
               placeholder="点击生成或手动输入"
               class="font-mono"
             />
-            <el-button type="primary" size="small" @click="generateCode">
-              生成
+            <!-- V1.1: variant="default" + Wand2 icon（emerald 主色） -->
+            <el-button size="small" class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !border-emerald-600" @click="generateCode">
+              <el-icon :size="14" style="margin-right: 4px"><MagicStick /></el-icon>生成
             </el-button>
           </div>
         </div>
         <div class="pt-6">
-          <el-button type="primary" size="small" @click="onOpenQRScanner">
-            <el-icon :size="16"><FullScreen /></el-icon>
+          <el-button size="small" class="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600" @click="onOpenQRScanner">
+            <el-icon :size="14" style="margin-right: 4px"><FullScreen /></el-icon>
             扫码定位
           </el-button>
         </div>
@@ -305,7 +306,7 @@
         <h4 class="text-sm font-medium text-gray-700 mb-3">环境参数</h4>
         <div class="grid grid-cols-4 gap-4">
           <div>
-            <label class="block text-xs text-gray-600 mb-1">空气温度(°C)</label>
+            <label class="block text-sm text-gray-700 mb-1">空气温度(°C)</label>
             <el-input-number
               :model-value="localRecord.airTemperature ? Number(localRecord.airTemperature) : undefined"
               :precision="2"
@@ -315,7 +316,7 @@
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-600 mb-1">空气湿度(%)</label>
+            <label class="block text-sm text-gray-700 mb-1">空气湿度(%)</label>
             <el-input-number
               :model-value="localRecord.airHumidity ? Number(localRecord.airHumidity) : undefined"
               :precision="2"
@@ -325,7 +326,7 @@
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-600 mb-1">光照强度(lux)</label>
+            <label class="block text-sm text-gray-700 mb-1">光照强度(lux)</label>
             <el-input-number
               :model-value="localRecord.lightIntensity ? Number(localRecord.lightIntensity) : undefined"
               :precision="2"
@@ -335,7 +336,7 @@
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-600 mb-1">CO2浓度(ppm)</label>
+            <label class="block text-sm text-gray-700 mb-1">CO2浓度(ppm)</label>
             <el-input-number
               :model-value="localRecord.co2Concentration ? Number(localRecord.co2Concentration) : undefined"
               :precision="2"
@@ -345,7 +346,7 @@
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-600 mb-1">土壤温度(°C)</label>
+            <label class="block text-sm text-gray-700 mb-1">土壤温度(°C)</label>
             <el-input-number
               :model-value="localRecord.soilTemperature ? Number(localRecord.soilTemperature) : undefined"
               :precision="2"
@@ -355,7 +356,7 @@
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-600 mb-1">土壤湿度(%)</label>
+            <label class="block text-sm text-gray-700 mb-1">土壤湿度(%)</label>
             <el-input-number
               :model-value="localRecord.soilMoisture ? Number(localRecord.soilMoisture) : undefined"
               :precision="2"
@@ -365,7 +366,7 @@
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-600 mb-1">土壤EC(mS/cm)</label>
+            <label class="block text-sm text-gray-700 mb-1">土壤EC(mS/cm)</label>
             <el-input-number
               :model-value="localRecord.soilEc ? Number(localRecord.soilEc) : undefined"
               :precision="2"
@@ -375,7 +376,7 @@
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-600 mb-1">土壤pH</label>
+            <label class="block text-sm text-gray-700 mb-1">土壤pH</label>
             <el-input-number
               :model-value="localRecord.soilPh ? Number(localRecord.soilPh) : undefined"
               :precision="2"
@@ -397,7 +398,7 @@
             <input
               type="checkbox"
               :checked="localRecord.inspectionResult === 'normal'"
-              class="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+              class="w-5 h-5 rounded border-gray-400 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
               @change="setInspectionResult('normal')"
             />
             <span
@@ -413,7 +414,7 @@
             <input
               type="checkbox"
               :checked="localRecord.inspectionResult === 'abnormal'"
-              class="w-5 h-5 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+              class="w-5 h-5 rounded border-gray-400 text-red-600 focus:ring-red-500 cursor-pointer"
               @change="setInspectionResult('abnormal')"
             />
             <span
@@ -449,7 +450,7 @@
               <input
                 type="checkbox"
                 :checked="isIssueCategorySelected(cat.value)"
-                class="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                class="w-4 h-4 rounded border-gray-400 text-red-600 focus:ring-red-500 cursor-pointer"
                 @change="toggleIssueCategory(cat.value)"
               />
               <span class="text-sm font-medium">{{ cat.label }}</span>
@@ -511,7 +512,7 @@
                     : level === '中等'
                       ? 'border-amber-500 bg-amber-50 text-amber-700'
                       : 'border-gray-500 bg-gray-100 text-gray-700'
-                  : 'border-gray-200 hover:border-gray-400'
+                  : 'border-gray-400 hover:border-gray-400'
               ]"
             >
               <input
@@ -535,20 +536,21 @@
               <div
                 v-for="(img, idx) in (localRecord.issuePhotos || [])"
                 :key="idx"
-                class="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-300"
+                class="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-400"
               >
                 <img :src="img" :alt="`问题照片${idx + 1}`" class="w-full h-full object-cover" />
-                <el-button
-                  type="danger"
-                  size="small"
-                  :icon="Close"
-                  class="!absolute !top-0 !right-0 !w-5 !h-5 !rounded-none !rounded-bl-lg !p-0"
+                <!-- V1.1: 绝对定位 + bg-red-500 text-white rounded-bl-lg + X icon -->
+                <button
+                  type="button"
+                  class="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-bl-lg p-0 flex items-center justify-center hover:bg-red-600"
                   @click="removeIssuePhoto(idx)"
-                />
+                >
+                  <el-icon :size="12"><Close /></el-icon>
+                </button>
               </div>
               <label
                 v-if="(localRecord.issuePhotos || []).length < 6"
-                class="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-red-500 hover:bg-red-50 transition-colors"
+                class="w-20 h-20 rounded-lg border-2 border-dashed border-gray-400 flex flex-col items-center justify-center cursor-pointer hover:border-red-500 hover:bg-red-50 transition-colors"
               >
                 <el-icon :size="24" color="#9ca3af"><Camera /></el-icon>
                 <span class="text-xs text-gray-400 mt-1">添加</span>
@@ -565,21 +567,26 @@
           </div>
         </div>
 
-        <!-- 反馈人员多选 -->
+        <!-- 反馈人员多选（V1.1: 自定义红底 chip + X 按钮还原） -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
             反馈人员 <span class="text-red-500">*</span>
           </label>
           <div class="flex flex-wrap gap-2 mb-2">
-            <el-tag
+            <span
               v-for="userId in (localRecord.feedbackUsers || [])"
               :key="userId"
-              type="danger"
-              closable
-              @close="toggleFeedbackUser(userId)"
+              class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 text-sm rounded-full"
             >
               {{ getUserName(userId) }}
-            </el-tag>
+              <button
+                type="button"
+                class="ml-1 hover:text-red-900 w-6 h-6 flex items-center justify-center"
+                @click="toggleFeedbackUser(userId)"
+              >
+                <el-icon :size="12"><Close /></el-icon>
+              </button>
+            </span>
           </div>
           <el-select
             model-value=""
@@ -610,11 +617,12 @@
       </div>
     </div>
 
+    <!-- V1.1: Modal submitText="提交记录" cancelText="取消"（无独立图标，提交按钮=emerald 主色） -->
     <template #footer>
       <div class="flex items-center justify-end gap-3">
-        <el-button size="small" @click="onClose">取消</el-button>
-        <el-button type="primary" size="small" @click="handleSubmit">
-          <el-icon :size="16" style="margin-right: 4px"><EditPen /></el-icon>提交记录
+        <el-button size="small" plain class="!bg-gray-100 hover:!bg-gray-200 !text-gray-700 !border-gray-300" @click="onClose">取消</el-button>
+        <el-button size="small" class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !border-emerald-600" @click="handleSubmit">
+          提交记录
         </el-button>
       </div>
     </template>
@@ -623,7 +631,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, type PropType } from 'vue'
-import { Close, FullScreen, Aim, Camera, EditPen } from '@element-plus/icons-vue'
+import { Close, FullScreen, Aim, MagicStick } from '@element-plus/icons-vue'
+import { Camera } from 'lucide-vue-next'
 import {
   WEATHER_OPTIONS,
   CROP_STATUS_OPTIONS,

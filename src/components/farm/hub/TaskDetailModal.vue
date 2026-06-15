@@ -347,7 +347,7 @@
             type="success"
             @click="handleVerify"
           >
-            <el-icon :size="16"><Check /></el-icon>
+            <el-icon :size="16"><CheckCircle /></el-icon>
             验收
           </el-button>
         </div>
@@ -367,7 +367,7 @@
  */
 import { computed } from 'vue'
 import {
-  Document, Clock, Download, Close, Check
+  Document, Clock, Download, Close, Check as CheckCircle
 } from '@element-plus/icons-vue'
 import TaskProgressTimeline from './TaskProgressTimeline.vue'
 import { TASK_STATUS_CONFIG } from '@/config/taskConfig'

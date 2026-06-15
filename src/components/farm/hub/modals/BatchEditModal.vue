@@ -5,6 +5,9 @@
           / selectedRecordId / greenhouses / users / equipmentRecords / infrastructureRecords
   - emits: close / confirm / selectedRecordIdChange / editedRecordsChange / editedRecordIdsChange
   功能：批量选择巡查记录、编辑巡查类型/巡查人员/日期/天气/温度/湿度/问题分类/反馈人员/问题描述/备注
+  修复项：
+  1. temperature/humidity 添加 onBlur 触发字段变更（V1.1 NumberInput 同时绑定 onChange + onBlur）
+  2. title 与 V1.1 Modal 保持一致 "批量编辑巡查记录"
 -->
 <template>
   <el-dialog
@@ -104,23 +107,25 @@
           </el-select>
         </div>
 
-        <!-- 温度 - 可编辑 -->
+        <!-- 温度 - 可编辑（V1.1 NumberInput 同时 onChange + onBlur） -->
         <div>
           <label class="text-sm text-gray-600 block mb-1">温度(°C)</label>
           <el-input-number
             :model-value="editedData.temperature ?? currentRecord.temperature ?? 0"
             @update:model-value="(v) => handleFieldChange('temperature', Number(v) || 0)"
+            @blur="(e) => handleFieldChange('temperature', Number(e.target?.value ?? e) || 0)"
             :precision="2" :step="0.1" :min="-50" :max="80"
             class="w-full" placeholder="0.00" controls-position="right"
           />
         </div>
 
-        <!-- 湿度 - 可编辑 -->
+        <!-- 湿度 - 可编辑（V1.1 NumberInput 同时 onChange + onBlur） -->
         <div>
           <label class="text-sm text-gray-600 block mb-1">湿度(%)</label>
           <el-input-number
             :model-value="editedData.humidity ?? currentRecord.humidity ?? 0"
             @update:model-value="(v) => handleFieldChange('humidity', Number(v) || 0)"
+            @blur="(e) => handleFieldChange('humidity', Number(e.target?.value ?? e) || 0)"
             :precision="2" :step="1" :min="0" :max="100"
             class="w-full" placeholder="0.00" controls-position="right"
           />
@@ -190,8 +195,8 @@
     </div>
 
     <template #footer>
-      <el-button @click="$emit('close')">取消</el-button>
-      <el-button type="primary" @click="$emit('confirm')">保存修改</el-button>
+      <el-button size="small" @click="$emit('close')">取消</el-button>
+      <el-button size="small" type="primary" @click="$emit('confirm')">保存修改</el-button>
     </template>
   </el-dialog>
 </template>

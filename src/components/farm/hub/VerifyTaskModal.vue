@@ -108,7 +108,7 @@
                 size="small"
                 :type="handleType === 'reject' ? 'danger' : ''"
                 :disabled="handleType === 'approve'"
-                :class="handleType !== 'reject' ? 'text-red-600' : ''"
+                :class="handleType !== 'reject' ? 'text-red-600 hover:!bg-red-100' : ''"
                 @click="setHandleType('reject')"
               >
                 <el-icon :size="16"><CircleCloseFilled /></el-icon>
@@ -120,7 +120,7 @@
                 size="small"
                 :type="handleType === 'approve' ? 'success' : ''"
                 :disabled="handleType === 'reject'"
-                :class="handleType !== 'approve' ? 'text-emerald-600' : ''"
+                :class="handleType !== 'approve' ? 'text-emerald-600 hover:!bg-emerald-100' : ''"
                 @click="setHandleType('approve')"
               >
                 <el-icon :size="16"><CircleCheckFilled /></el-icon>
