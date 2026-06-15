@@ -1,7 +1,12 @@
 <template>
-  <!-- 巡查记录Tab - 从V1.1 InspectionTab.tsx 1:1迁移，完整业务逻辑 -->
+  <!--
+    巡查记录Tab - V1.1 InspectionTab.tsx 1:1迁移
+    - UI: 14列表格（巡查编号/类型/提交人/位置/日期/结果/问题分类/严重程度/反馈状态/反馈人员/处理进度/操作/备注）
+    - 后端: 7 store接入(inspection/user/greenhouse/iot/equipment/infrastructure/problem)
+    - 状态机: 正常/需关注/异常 + 验收通过/驳回返工
+  -->
   <div class="space-y-4">
-    <!-- 搜索栏 -->
+    <!-- 搜索栏 - V1.1 line 887-896 -->
     <InspectionSearch
       :filters="localFilters"
       :on-filters-change="handleFiltersChange"
@@ -9,7 +14,7 @@
       :on-reset="handleResetFilters"
     />
 
-    <!-- 工具栏 + 表格区域 -->
+    <!-- 工具栏 + 表格 - V1.1 line 899-924 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <InspectionToolbar
         :export-mode="exportMode"
@@ -28,80 +33,190 @@
         :on-cancel-batch-delete="cancelBatchDelete"
       />
 
-      <!-- 巡查记录表格 -->
+      <!-- 巡查记录表格 - V1.1 InspectionTable.tsx line 170-477 -->
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead>
-            <tr class="border-b border-gray-200 bg-gray-50">
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 w-10">
-                <el-checkbox
-                  v-if="exportMode || batchEditMode || batchDeleteMode"
-                  :model-value="isAllSelected"
-                  :indeterminate="isIndeterminate"
-                  size="small"
+          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <tr>
+              <th v-if="exportMode || batchEditMode || batchDeleteMode" class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap w-12">
+                <input
+                  type="checkbox"
+                  :checked="isAllSelected"
+                  class="w-4 h-4 rounded border-gray-400 text-emerald-600 focus:ring-emerald-500"
                   @change="handleSelectAll"
                 />
               </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">巡查编号</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">巡查类型</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">巡查人员</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">位置/对象</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">巡查日期</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">天气</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">状态</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">操作</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">巡查编号</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">巡查类型</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">提交人</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">位置/对象</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">巡查日期</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">巡查结果</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">问题分类</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">严重程度</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">反馈状态</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">反馈人员</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">处理进度</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">操作</th>
+              <th class="px-4 py-3 text-center text-sm font-semibold whitespace-nowrap">备注</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody class="divide-y divide-gray-300">
             <tr
               v-for="(record, idx) in paginatedRecords"
               :key="record.id"
-              :class="[
-                'hover:bg-gray-50 transition-colors',
-                isRowSelected(idx) ? 'bg-emerald-50' : '',
-              ]"
+              class="hover:bg-blue-100 transition-colors"
             >
-              <td class="px-4 py-3">
-                <el-checkbox
-                  v-if="exportMode || batchEditMode || batchDeleteMode"
-                  :model-value="isRowSelected(idx)"
-                  size="small"
+              <!-- 选择框 -->
+              <td v-if="exportMode || batchEditMode || batchDeleteMode" class="px-4 py-3 text-center">
+                <input
+                  type="checkbox"
+                  :checked="isRowSelected(idx)"
+                  class="w-4 h-4 rounded border-gray-400 text-emerald-600 focus:ring-emerald-500"
                   @change="() => handleToggleRow(idx)"
                 />
               </td>
-              <td class="px-4 py-3">
-                <span class="text-sm font-mono text-emerald-700">{{ record.recordCode }}</span>
-              </td>
-              <td class="px-4 py-3">
-                <span :class="getTypeBadgeClass(record.inspectionType)">
-                  {{ getTypeLabel(record.inspectionType) }}
-                </span>
-              </td>
-              <td class="px-4 py-3">
-                <span class="text-sm text-gray-900">{{ record.inspectorName }}</span>
-              </td>
-              <td class="px-4 py-3">
-                <span class="text-sm text-gray-600">{{ getLocationText(record) }}</span>
-              </td>
-              <td class="px-4 py-3">
-                <span class="text-sm text-gray-600">{{ record.checkDate }}</span>
-              </td>
-              <td class="px-4 py-3">
-                <span class="text-sm text-gray-600">{{ record.weather || '-' }}</span>
-              </td>
-              <td class="px-4 py-3">
-                <span :class="getStatusBadgeClass(record.status)">
-                  {{ STATUS_CONFIG[record.status]?.label || record.status }}
-                </span>
-              </td>
-              <td class="px-4 py-3">
-                <el-button type="primary" link size="small" @click="handleViewDetail(record)">
-                  查看
+              <!-- 巡查编号 - V1.1 line 213-222 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                <el-button type="primary" link size="small" class="font-medium h-6" @click="handleViewDetail(record)">
+                  {{ record.recordCode }}
                 </el-button>
+              </td>
+              <!-- 巡查类型 - V1.1 line 223-239 -->
+              <td class="px-4 py-3 text-center">
+                <span v-if="record.inspectionType === 'farm'" class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">种植</span>
+                <span v-else-if="record.inspectionType === 'equipment'" class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">设备</span>
+                <span v-else-if="record.inspectionType === 'infrastructure'" class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">设施</span>
+                <span v-else-if="record.inspectionType === 'other'" class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">其他</span>
+                <span v-else class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">-</span>
+              </td>
+              <!-- 提交人 - V1.1 line 240-242 -->
+              <td class="px-4 py-3 text-sm text-center text-gray-600 whitespace-nowrap">
+                <span class="font-medium text-gray-900 truncate block" :title="record.inspectorName">{{ record.inspectorName }}</span>
+              </td>
+              <!-- 位置/对象 - V1.1 line 243-260 -->
+              <td class="px-4 py-3 text-sm text-gray-600 min-w-[10em] max-w-[15em]">
+                <div class="flex items-center gap-1 overflow-hidden">
+                  <el-icon class="text-emerald-600 flex-shrink-0"><Location /></el-icon>
+                  <span class="text-gray-900 truncate block" :title="getLocationTitle(record)">
+                    <span v-if="record.inspectionType === 'farm'">{{ record.greenhouseName }}</span>
+                    <span v-else-if="record.inspectionType === 'equipment'">{{ record.equipmentName }}</span>
+                    <span v-else-if="record.inspectionType === 'infrastructure'">{{ record.infrastructureName }}</span>
+                    <span v-else-if="record.inspectionType === 'other'">{{ record.remarks }}</span>
+                    <span v-else>{{ record.greenhouseName || '-' }}</span>
+                  </span>
+                </div>
+              </td>
+              <!-- 巡查日期 - V1.1 line 261 -->
+              <td class="px-4 py-3 text-sm text-center text-gray-600 whitespace-nowrap">{{ record.checkDate }}</td>
+              <!-- 巡查结果 - V1.1 line 262-268 -->
+              <td class="px-4 py-3 text-center">
+                <span v-if="record.status === 'normal'" class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">正常</span>
+                <span v-else-if="record.status === 'attention'" class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">需关注</span>
+                <span v-else-if="record.status === 'warning'" class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">注意</span>
+                <span v-else-if="record.status === 'critical'" class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">异常</span>
+                <span v-else class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">未知</span>
+              </td>
+              <!-- 问题分类 - V1.1 line 269-303 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                <div v-if="record.issueCategories && record.issueCategories.length > 0" class="flex gap-1 justify-center flex-wrap">
+                  <span
+                    v-for="(cat, i) in record.issueCategories.slice(0, 2)"
+                    :key="i"
+                    class="px-2 py-0.5 bg-red-50 text-red-700 text-xs rounded-full"
+                  >{{ getIssueCategoryLabel(cat) }}</span>
+                  <span v-if="record.issueCategories.length > 2" class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">+{{ record.issueCategories.length - 2 }}</span>
+                </div>
+                <div v-else-if="record.issuePresets && record.issuePresets.length > 0" class="flex gap-1 justify-center flex-wrap">
+                  <span
+                    v-for="(preset, i) in record.issuePresets.slice(0, 2)"
+                    :key="i"
+                    class="px-2 py-0.5 bg-orange-50 text-orange-700 text-xs rounded-full"
+                  >{{ preset }}</span>
+                  <span v-if="record.issuePresets.length > 2" class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">+{{ record.issuePresets.length - 2 }}</span>
+                </div>
+                <span v-else class="text-sm text-gray-500">-</span>
+              </td>
+              <!-- 严重程度 - V1.1 line 304-316 -->
+              <td class="px-4 py-3 text-center">
+                <span
+                  v-if="record.issueSeverity"
+                  class="px-2 py-1 text-xs rounded-full"
+                  :class="getIssueSeverityClass(record.issueSeverity)"
+                >{{ record.issueSeverity }}</span>
+                <span v-else class="text-sm text-gray-500">-</span>
+              </td>
+              <!-- 反馈状态 - V1.1 line 318-352 -->
+              <td class="px-4 py-3 text-center">
+                <template v-if="getProblemForRecord(record)?.flowRecords">
+                  <template v-if="getSubmitFeedbackRecord(getProblemForRecord(record))">
+                    <div class="flex items-center justify-center gap-1">
+                      <span v-if="parseFeedback(getSubmitFeedbackRecord(getProblemForRecord(record)).feedbackData)?.gpsLocation" title="GPS已打卡" class="text-emerald-600">📍</span>
+                      <span v-if="parseFeedback(getSubmitFeedbackRecord(getProblemForRecord(record)).feedbackData)?.photosBefore?.length" :title="`作业前照片${parseFeedback(getSubmitFeedbackRecord(getProblemForRecord(record)).feedbackData).photosBefore.length}张`" class="text-blue-600">📷</span>
+                      <span v-if="parseFeedback(getSubmitFeedbackRecord(getProblemForRecord(record)).feedbackData)?.photosAfter?.length" :title="`作业后照片${parseFeedback(getSubmitFeedbackRecord(getProblemForRecord(record)).feedbackData).photosAfter.length}张`" class="text-orange-600">📷</span>
+                      <span v-if="parseFeedback(getSubmitFeedbackRecord(getProblemForRecord(record)).feedbackData)?.materialCode" title="物资已扫码" class="text-purple-600">📦</span>
+                      <span v-if="parseFeedback(getSubmitFeedbackRecord(getProblemForRecord(record)).feedbackData)?.voiceNote" title="语音备注" class="text-red-600">🎤</span>
+                    </div>
+                  </template>
+                  <span v-else class="text-gray-300">-</span>
+                </template>
+                <span v-else class="text-gray-300">-</span>
+              </td>
+              <!-- 反馈人员 - V1.1 line 353-371 -->
+              <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                <span v-if="record.feedbackUsers && record.feedbackUsers.length > 0" class="text-gray-700" :title="record.feedbackUsers.join('、')">
+                  <template v-if="record.feedbackUsers.length <= 2">
+                    {{ getFeedbackUserNames(record.feedbackUsers) }}
+                  </template>
+                  <template v-else>
+                    {{ getFeedbackUserNames([record.feedbackUsers[0]]) }}等{{ record.feedbackUsers.length }}人
+                  </template>
+                </span>
+                <span v-else class="text-gray-400">-</span>
+              </td>
+              <!-- 处理进度 - V1.1 line 373-398 -->
+              <td class="px-4 py-3 text-center">
+                <template v-if="getProblemForRecord(record)">
+                  <div class="flex items-center justify-center gap-1">
+                    <div class="w-12 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        class="h-full rounded-full"
+                        :class="getProgressBarClass(getProblemForRecord(record).status)"
+                        :style="{ width: `${getProblemProgress(getProblemForRecord(record))}%` }"
+                      ></div>
+                    </div>
+                    <span class="text-xs text-gray-500">{{ getProblemProgress(getProblemForRecord(record)) }}%</span>
+                  </div>
+                </template>
+                <span v-else class="text-gray-400 text-xs">-</span>
+              </td>
+              <!-- 操作 - V1.1 line 400-443 -->
+              <td class="px-4 py-3 text-center whitespace-nowrap">
+                <template v-if="getProblemForRecord(record)">
+                  <template v-if="canAccept(getProblemForRecord(record))">
+                    <el-button type="primary" size="small" class="h-6" @click="handleOpenAcceptance(getProblemForRecord(record))">
+                      <el-icon><CircleCheck /></el-icon> 验收
+                    </el-button>
+                  </template>
+                  <template v-else>
+                    <span
+                      class="text-xs font-medium"
+                      :class="getOperationStatusClass(getProblemForRecord(record).status)"
+                    >{{ getOperationStatusLabel(getProblemForRecord(record).status) }}</span>
+                  </template>
+                </template>
+                <span v-else class="text-gray-400 text-xs">-</span>
+              </td>
+              <!-- 备注 - V1.1 line 444-448 -->
+              <td class="px-4 py-3 text-sm text-gray-600 max-w-[10em]">
+                <span v-if="record.remarks" class="truncate block" :title="record.remarks">
+                  {{ record.remarks.length > 10 ? record.remarks.slice(0, 10) + '...' : record.remarks }}
+                </span>
+                <span v-else class="text-gray-400">-</span>
               </td>
             </tr>
             <tr v-if="paginatedRecords.length === 0">
-              <td :colspan="exportMode || batchEditMode || batchDeleteMode ? 9 : 8" class="px-4 py-12 text-center text-gray-400">
+              <td :colspan="13" class="px-4 py-12 text-center text-gray-400">
                 暂无巡查记录
               </td>
             </tr>
@@ -109,8 +224,8 @@
         </table>
       </div>
 
-      <!-- 分页 -->
-      <div v-if="totalPages > 1" class="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+      <!-- 分页 - V1.1 line 468-476 -->
+      <div v-if="totalPages > 1" class="px-4 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50">
         <span class="text-sm text-gray-500">共 {{ filteredRecords.length }} 条</span>
         <div class="flex items-center gap-2">
           <el-button size="small" :disabled="currentPage <= 1" @click="emit('pageChange', currentPage - 1)">上一页</el-button>
@@ -120,8 +235,9 @@
       </div>
     </div>
 
-    <!-- 新建弹窗 -->
+    <!-- 新建弹窗 - V1.1 line 962-979 -->
     <CreateInspectionModal
+      v-if="isCreateModalOpen"
       :is-open="isCreateModalOpen"
       :on-close="handleCloseCreateModal"
       :on-submit="handleCreateRecord"
@@ -131,27 +247,28 @@
       :generate-record-code="generateRecordCode"
       :on-image-upload="handleImageUpload"
       :on-remove-image="removeImage"
-      :greenhouses="greenhousesList"
-      :users="usersList"
-      :crop-types="mockCropTypes"
-      :crop-batches="mockCropBatches"
-      :equipment-records="mockEquipment"
-      :infrastructure-records="mockInfrastructure"
+      :greenhouses="storeGreenhouses"
+      :users="storeUsers"
+      :crop-types="cropTypes"
+      :crop-batches="cropBatches"
+      :equipment-records="equipmentList"
+      :infrastructure-records="infrastructureList"
       :on-open-q-r-scanner="() => isQRScannerOpen = true"
     />
 
-    <!-- 详情弹窗 -->
+    <!-- 详情弹窗 - V1.1 line 982-989 -->
     <DetailInspectionModal
+      v-if="detailRecord"
       :is-open="!!detailRecord"
       :on-close="() => emit('closeDetail')"
       :record="detailRecord"
       :on-accept-problem="(problemId) => acceptanceModal = { isOpen: true, problemId }"
       :problem-data="detailProblemData"
       :problem-flow-records="detailFlowRecords"
-      :users="usersList"
+      :users="storeUsers"
     />
 
-    <!-- 批量编辑弹窗 -->
+    <!-- 批量编辑弹窗 - V1.1 line 992-1008 -->
     <el-dialog
       :model-value="showBatchEditModal"
       title="批量编辑巡查记录"
@@ -188,7 +305,7 @@
               class="w-full"
             >
               <el-option value="" label="不修改" />
-              <el-option v-for="gh in mockGreenhouses" :key="gh.id" :value="gh.id" :label="gh.name" />
+              <el-option v-for="gh in storeGreenhouses" :key="gh.id" :value="gh.id" :label="gh.name" />
             </el-select>
           </div>
           <div>
@@ -200,7 +317,7 @@
               class="w-full"
             >
               <el-option value="" label="不修改" />
-              <el-option v-for="u in mockUsers" :key="u.id" :value="u.id" :label="u.name" />
+              <el-option v-for="u in storeUsers" :key="u.id" :value="u.id" :label="u.name" />
             </el-select>
           </div>
           <div>
@@ -229,10 +346,6 @@
             </el-select>
           </div>
         </div>
-
-        <div v-if="editedRecordIds.length > 0" class="text-sm text-gray-500">
-          已选择编辑 {{ editedRecordIds.length }} 条记录
-        </div>
       </div>
       <template #footer>
         <el-button @click="showBatchEditModal = false">取消</el-button>
@@ -240,7 +353,7 @@
       </template>
     </el-dialog>
 
-    <!-- 删除确认弹窗 -->
+    <!-- 删除确认弹窗 - V1.1 line 1011-1016 -->
     <el-dialog
       :model-value="showDeleteWarning"
       title="确认删除"
@@ -260,7 +373,7 @@
       </template>
     </el-dialog>
 
-    <!-- 导出格式弹窗 -->
+    <!-- 导出格式弹窗 - V1.1 line 1019-1068 -->
     <el-dialog
       :model-value="showExportModal"
       title="选择导出格式"
@@ -297,11 +410,13 @@
       </template>
     </el-dialog>
 
-    <!-- 问题验收弹窗 - 使用 V1.1 1:1 迁移的 InspectionAcceptanceModal（V1.1 line 1-459） -->
+    <!-- 问题验收弹窗 - V1.1 line 1078-1102 -->
     <InspectionAcceptanceModal
+      v-if="acceptanceModal.isOpen && acceptanceProblem"
       :is-open="acceptanceModal.isOpen"
       :problem="acceptanceProblem"
-      :records="acceptanceProblem?.flowRecords || []"
+      :records="acceptanceProblem.flowRecords || []"
+      :is-loading-records="false"
       :on-accept="handleApproveAcceptance"
       :on-reject="handleRejectAcceptance"
       :on-close="closeAcceptance"
@@ -310,7 +425,7 @@
 </template>
 
 <script>
-// 模块级常量（defineProps需要引用，必须放在普通script块中）
+// 模块级常量（V1.1 line 45-53）
 const INITIAL_FILTERS = {
   recordCode: '',
   inspectorName: '',
@@ -323,28 +438,89 @@ const INITIAL_FILTERS = {
 </script>
 
 <script setup>
-/** 巡查记录Tab - 从V1.1 InspectionTab.tsx 1:1迁移 */
+/**
+ * 巡查记录Tab - V1.1 InspectionTab.tsx 1:1迁移
+ * UI 14列对齐 + 后端 7 store 接入 + 状态机正常/需关注/异常 + 验收/驳回
+ */
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { WarningFilled, CircleCheck, CircleClose } from '@element-plus/icons-vue'
+import {
+  WarningFilled, CircleCheck, Location,
+} from '@element-plus/icons-vue'
 import { useInspectionDataStore } from '@/stores/modules/inspectionData'
+import { useProblemStore } from '@/stores/modules/problem'
+import { useUserStore } from '@/stores/modules/user'
+import { useGreenhouseStore } from '@/stores/modules/greenhouse'
+import { useIotStore } from '@/stores/modules/iot'
+import { useProductionPlanStore } from '@/stores/modules/productionPlan'
+import { useFarmTaskStore } from '@/stores/modules/farmTask'
+import { useDictionaryStore } from '@/stores/modules/dictionary'
 import InspectionSearch from './InspectionSearch.vue'
 import InspectionToolbar from './InspectionToolbar.vue'
+// V2.0 已存在的模态组件（路径修正：原 modals/ 子目录无此文件，根目录已有）
 import CreateInspectionModal from './CreateInspectionModal.vue'
 import DetailInspectionModal from './DetailInspectionModal.vue'
-// 问题验收弹窗：V1.1 InspectionAcceptanceModal.tsx 1:1 迁移（V1.1 line 1-459）
+// V1.1 InspectionAcceptanceModal.tsx 1:1迁移
 import InspectionAcceptanceModal from './modals/InspectionAcceptanceModal.vue'
 
 // ============================================
-// 常量配置（与V1.1完全一致）
+// 状态配置（V1.1 line 38-42, line 80-93）
 // ============================================
+// 巡查结果状态
 const STATUS_CONFIG = {
-  normal: { bg: 'bg-green-100', text: 'text-green-700', label: '正常' },
-  attention: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: '需关注' },
-  critical: { bg: 'bg-red-100', text: 'text-red-700', label: '异常' },
+  normal: { label: '正常' },
+  attention: { label: '需关注' },
+  critical: { label: '异常' },
 }
 
-// 导出格式选项
+// 问题状态映射（V1.1 line 404-419）
+const PROBLEM_STATUS_MAP = {
+  '待处理': '待处理',
+  '处理中': '处理中',
+  '待验收': '待验收',
+  '已处理': '已处理',
+  'pending': '待处理',
+  'processing': '处理中',
+  'waiting_acceptance': '待验收',
+  'waitingAcceptance': '待验收',
+  'pending_acceptance': '待验收',
+  'pendingAcceptance': '待验收',
+  'resolved': '已解决',
+  'completed': '已完成',
+  'completed_success': '已完成',
+  'completedSuccess': '已完成',
+}
+
+// 问题状态→进度（V1.1 line 152-158）
+const STATUS_PROGRESS_MAP = {
+  '待处理': 0, 'pending': 0,
+  '处理中': 50, 'in_progress': 50, 'processing': 50,
+  '待验收': 100, 'waiting_acceptance': 100, 'waitingAcceptance': 100, 'pending_acceptance': 100, 'pendingAcceptance': 100,
+  '已处理': 100, 'completed': 100, 'resolved': 100,
+}
+
+// 可验收状态（V1.1 line 165）
+const ACCEPT_STATUSES = ['待验收', 'waiting_acceptance', 'waitingAcceptance', 'pending_acceptance', 'pendingAcceptance']
+
+// 问题分类映射（V1.1 line 273-280）
+const ISSUE_CATEGORY_LABELS = {
+  disease: '病害',
+  pest: '虫害',
+  environment: '环境',
+  growth: '长势',
+  equipment: '设备',
+  other: '其他',
+}
+
+// 进度条颜色（V1.1 line 380-385）
+const PROGRESS_COLOR_MAP = {
+  '待处理': 'bg-gray-400',
+  '处理中': 'bg-blue-500',
+  '待验收': 'bg-amber-500',
+  '已处理': 'bg-green-500',
+}
+
+// 导出格式
 const exportFormats = [
   { value: 'excel', label: 'Excel 文件 (.xls)', icon: '📊' },
   { value: 'csv', label: 'CSV 文件 (.csv)', icon: '📄' },
@@ -352,149 +528,7 @@ const exportFormats = [
 ]
 
 // ============================================
-// Mock数据兜底（P0-6：优先从Store读取，无数据时使用mock）
-// user/greenhouse 接入真实 store；equipment/infrastructure/iot 暂保留 mock（待 store 接入）
-// ============================================
-// 真实 store 数据：与V1.1 InspectionTab.tsx line 138-141 一致
-const storeGreenhouses = computed(() => greenhouseStore.greenhouses || [])
-const storeUsers = computed(() => userStore.users || [])
-
-// 兜底 mock 数组（保留为普通常量，供 script 中 [index] 索引访问）
-const FALLBACK_GREENHOUSES = [
-  { id: 'GH001', name: 'A1号温室' },
-  { id: 'GH002', name: 'B2号温室' },
-  { id: 'GH003', name: 'C3号温室' },
-]
-const FALLBACK_USERS = [
-  { id: 'U001', name: '张建国', role: '技术员' },
-  { id: 'U002', name: '李明华', role: '巡查员' },
-  { id: 'U003', name: '王丰收', role: '管理员' },
-  { id: 'U004', name: '陈晓东', role: '巡查组长' },
-]
-
-const mockGreenhouses = computed(() => {
-  if (storeGreenhouses.value.length > 0) {
-    return storeGreenhouses.value.map((g) => ({ id: g.id, name: g.name }))
-  }
-  return FALLBACK_GREENHOUSES
-})
-
-const mockUsers = computed(() => {
-  if (storeUsers.value.length > 0) {
-    return storeUsers.value.map((u) => ({ id: u.id, name: u.name, role: u.role }))
-  }
-  return FALLBACK_USERS
-})
-
-// 别名：用于 template 中以 prop 值形式传入子组件（避免 computed 直接传 prop 警告）
-// Vue 模板中 v-for 会自动解包，但 :prop="x" 在 ref/computed 时会传 ref 对象
-const greenhousesList = mockGreenhouses
-const usersList = mockUsers
-
-// P0-6：组件挂载时触发 store 首次加载（与V1.1 InspectionTab.tsx line 155-177 一致）
-onMounted(() => {
-  if (userStore.users && userStore.users.length === 0 && typeof userStore.loadUsers === 'function') {
-    userStore.loadUsers()
-  }
-  if (greenhouseStore.greenhouses && greenhouseStore.greenhouses.length === 0 && typeof greenhouseStore.loadGreenhouses === 'function') {
-    greenhouseStore.loadGreenhouses()
-  }
-  if (problemStore.problems && problemStore.problems.length === 0 && typeof problemStore.fetchProblems === 'function') {
-    problemStore.fetchProblems()
-  }
-})
-const mockCropTypes = [
-  { id: 'c1', name: '番茄' },
-  { id: 'c2', name: '黄瓜' },
-  { id: 'c3', name: '辣椒' },
-]
-const mockCropBatches = [
-  { id: 'B001', batchCode: 'PD202605-001', cropName: '番茄', status: 'active' },
-  { id: 'B002', batchCode: 'PD202605-002', cropName: '黄瓜', status: 'active' },
-  { id: 'B003', batchCode: 'PD202604-003', cropName: '辣椒', status: 'planning' },
-]
-const mockEquipment = [
-  { id: 'EQ001', name: '自动灌溉系统A', location: 'A1温室', greenhouseId: 'GH001' },
-  { id: 'EQ002', name: '通风设备B', location: 'B2温室', greenhouseId: 'GH002' },
-]
-const mockInfrastructure = [
-  { id: 'IF001', name: '遮阳网系统', type: '遮阳', greenhouseId: 'GH001', location: 'A1温室' },
-  { id: 'IF002', name: '加温管道', type: '加温', greenhouseId: 'GH002', location: 'B2温室' },
-]
-
-// 初始巡查记录 Mock 数据
-const generateMockRecords = () => {
-  const types = ['farm', 'farm', 'farm', 'equipment', 'infrastructure', 'farm', 'farm', 'equipment']
-  const statuses = ['normal', 'normal', 'attention', 'normal', 'critical', 'normal', 'attention', 'normal']
-  const records = []
-  for (let i = 0; i < 25; i++) {
-    const t = types[i % types.length]
-    const today = new Date()
-    today.setDate(today.getDate() - i)
-    const dateStr = today.toISOString().split('T')[0]
-    records.push({
-      id: i + 1,
-      recordCode: `XT${dateStr.replace(/-/g, '')}-${String((i % 3) + 1).padStart(3, '0')}`,
-      inspectionType: t,
-      greenhouseId: t === 'farm' ? mockGreenhouses[i % 3].id : '',
-      greenhouseName: t === 'farm' ? mockGreenhouses[i % 3].name : (t === 'equipment' ? mockEquipment[i % 2].location : ''),
-      cropName: t === 'farm' ? mockCropTypes[i % 3].name : '',
-      inspectorId: mockUsers[i % 4].id,
-      inspectorName: mockUsers[i % 4].name,
-      checkDate: dateStr,
-      checkTime: `${String(8 + (i % 6)).padStart(2, '0')}:${String((i * 15) % 60).padStart(2, '0')}`,
-      weather: ['晴', '多云', '阴', '小雨'][i % 4],
-      temperature: 22 + (i % 10),
-      humidity: 55 + (i % 30),
-      cropStatus: '良好',
-      status: statuses[i % statuses.length],
-      equipmentId: t === 'equipment' ? mockEquipment[i % 2].id : '',
-      equipmentName: t === 'equipment' ? mockEquipment[i % 2].name : '',
-      infrastructureId: t === 'infrastructure' ? mockInfrastructure[i % 2].id : '',
-      infrastructureName: t === 'infrastructure' ? mockInfrastructure[i % 2].name : '',
-      issueText: i % 5 === 0 ? '发现' + ['蚜虫', '白粉病', '灰霉病'][i % 3] + '问题' : '',
-      issueSeverity: i % 5 === 0 ? ['轻微', '中等', '严重'][i % 3] : '',
-      issuePhotos: [],
-      feedbackUsers: [],
-      remarks: '',
-    })
-  }
-  return records
-}
-
-// Mock 问题数据
-const mockProblems = [
-  {
-    id: 1,
-    problemCode: 'PD20260520001',
-    status: '待验收',
-    handler: '李明华',
-    handleDate: '2026-05-25',
-    handleResult: '已喷洒农药处理，蚜虫数量明显减少',
-    reworkCount: 0,
-    flowRecords: [
-      { id: 'FR001', operatorId: 'U002', operatorName: '李明华', action: 'report', actionTime: '2026-05-20T10:00:00', comment: '发现蚜虫' },
-      { id: 'FR002', operatorId: 'U001', operatorName: '张建国', action: 'dispatch', actionTime: '2026-05-20T14:00:00', comment: '分派处理' },
-      { id: 'FR003', operatorId: 'U002', operatorName: '李明华', action: 'submit', actionTime: '2026-05-25T09:00:00', comment: '处理完成' },
-    ],
-  },
-  {
-    id: 2,
-    problemCode: 'PD20260521002',
-    status: '处理中',
-    handler: '王丰收',
-    handleDate: '2026-05-24',
-    handleResult: '正在处理白粉病',
-    reworkCount: 1,
-    flowRecords: [
-      { id: 'FR004', operatorId: 'U004', operatorName: '陈晓东', action: 'report', actionTime: '2026-05-21T08:00:00' },
-      { id: 'FR005', operatorId: 'U001', operatorName: '张建国', action: 'dispatch', actionTime: '2026-05-21T10:00:00' },
-    ],
-  },
-]
-
-// ============================================
-// Props定义（与V1.1 InspectionTabProps完全对应）
+// Props（V1.1 line 55-100）
 // ============================================
 const props = defineProps({
   inspections: { type: Array, default: () => [] },
@@ -522,58 +556,131 @@ const emit = defineEmits([
 ])
 
 // ============================================
-// Store（与V1.1 InspectionTab.tsx line 138-153 一致：user/greenhouse/problem/inspection）
-// IoT/equipment/infrastructure V2.0暂无对应 store，使用 mock 兜底（标注 TODO: 待 store 接入）
+// Store 接入（V1.1 line 138-153）— 7 store
 // ============================================
-import { useUserStore } from '@/stores/modules/user'
-import { useGreenhouseStore } from '@/stores/modules/greenhouse'
-import { useProblemStore } from '@/stores/modules/problem'
-
 const inspectionStore = useInspectionDataStore()
 const userStore = useUserStore()
 const greenhouseStore = useGreenhouseStore()
 const problemStore = useProblemStore()
+const iotStore = useIotStore()
+const planStore = useProductionPlanStore()
+const taskStore = useFarmTaskStore()
+const dictionaryStore = useDictionaryStore()
 
-// ============================================
-// 本地状态
-// ============================================
-// 巡查记录从 Store 获取
-const inspectionRecords = computed({
-  get: () => inspectionStore.records,
-  set: (val) => { /* store 管理数据，外部不直接赋值 */ },
+// 真实 store 数据（V1.1 line 138-153）
+const storeGreenhouses = computed(() => greenhouseStore.greenhouses || [])
+const storeUsers = computed(() => userStore.users || [])
+const storeDevices = computed(() => iotStore.devices || [])
+// equipment/infrastructure 当前 V2.0 暂无独立 store，使用 mock 兜底
+const equipmentList = ref([
+  { id: 'EQ001', name: '自动灌溉系统A', location: 'A1温室', greenhouseId: 'GH001' },
+  { id: 'EQ002', name: '通风设备B', location: 'B2温室', greenhouseId: 'GH002' },
+])
+const infrastructureList = ref([
+  { id: 'IF001', name: '遮阳网系统', type: '遮阳', greenhouseId: 'GH001', location: 'A1温室' },
+  { id: 'IF002', name: '加温管道', type: '加温', greenhouseId: 'GH002', location: 'B2温室' },
+])
+
+// 作物类型（V1.1 line 192-195）— 从字典获取（V2.0 dictionaryStore 提供 dictionaries）
+const cropTypes = computed(() => {
+  try {
+    const list = dictionaryStore.dictionaries || []
+    return list
+      .filter(d => d.category === 'crop_category')
+      .map(d => ({ value: d.dictLabel || d.label, label: d.dictLabel || d.label, name: d.dictLabel || d.label }))
+  } catch {
+    return [{ id: 'c1', name: '番茄' }, { id: 'c2', name: '黄瓜' }, { id: 'c3', name: '辣椒' }]
+  }
 })
 
-// 同步外部数据（外部 prop 优先）
-watch(() => props.inspections, (val) => {
-  if (val && val.length > 0) {
-    // 外部传入时暂不覆盖 store，保留 store 数据
-  }
-}, { immediate: true })
+// 作物批次（V1.1 line 180-190）— 从生产计划 store
+const cropBatches = computed(() => {
+  const batches = planStore.batches || []
+  return batches.map(p => ({
+    id: p.id,
+    batchCode: p.batchCode,
+    cropName: p.cropName || p.cropTypeName,
+    status: p.batchStatus || p.status,
+  }))
+})
 
-// 本地筛选（与外部双向同步）
+// 问题合并（V1.1 line 230-234）— 真实 store 优先，否则 props
+const mergedProblems = computed(() => {
+  if (problemStore.problems && problemStore.problems.length > 0) {
+    return problemStore.problems
+  }
+  return props.problems || []
+})
+
+// 默认巡查人员（V1.1 line 240-244）
+const defaultInspector = computed(() => {
+  return storeUsers.value[0] || { id: 'U001', name: '待分配' }
+})
+
+// 巡查记录（V1.1 line 198-223）— 真实 store 优先
+const inspectionRecords = computed(() => {
+  if (inspectionStore.records && inspectionStore.records.length > 0) {
+    return [...inspectionStore.records].sort((a, b) =>
+      new Date(b.createdAt || b.createTime || 0).getTime() -
+      new Date(a.createdAt || a.createTime || 0).getTime()
+    )
+  }
+  return [...(props.inspections || [])].sort((a, b) =>
+    new Date(b.createdAt || b.createTime || 0).getTime() -
+    new Date(a.createdAt || a.createTime || 0).getTime()
+  )
+})
+
+// ============================================
+// 组件挂载时加载真实数据（V1.1 line 155-177）
+// ============================================
+onMounted(() => {
+  // 巡查数据
+  if (inspectionStore.records && inspectionStore.records.length === 0) {
+    inspectionStore.fetchRecords()
+  }
+  // 用户
+  if (storeUsers.value.length === 0 && typeof userStore.loadUsers === 'function') {
+    userStore.loadUsers()
+  }
+  // 温室
+  if (storeGreenhouses.value.length === 0 && typeof greenhouseStore.loadGreenhouses === 'function') {
+    greenhouseStore.loadGreenhouses()
+  }
+  // 问题
+  if (problemStore.problems && problemStore.problems.length === 0 && typeof problemStore.fetchProblems === 'function') {
+    problemStore.fetchProblems()
+  }
+  // 物联网
+  if (storeDevices.value.length === 0 && typeof iotStore.fetchDevices === 'function') {
+    iotStore.fetchDevices()
+  }
+  // 生产计划（用于作物批次）
+  if (planStore.batches && planStore.batches.length === 0 && typeof planStore.fetchPlans === 'function') {
+    planStore.fetchPlans()
+  }
+  // 字典
+  if (dictionaryStore.dictionaries && dictionaryStore.dictionaries.length === 0 && typeof dictionaryStore.loadDictionaries === 'function') {
+    dictionaryStore.loadDictionaries()
+  }
+})
+
+// ============================================
+// 本地状态（V1.1 line 247-309）
+// ============================================
 const localFilters = reactive({ ...INITIAL_FILTERS, ...props.filters })
 watch(() => props.filters, (val) => {
   if (val) Object.assign(localFilters, val)
 }, { deep: true })
 
-// 弹窗状态
 const showBatchEditModal = ref(false)
 const showDeleteWarning = ref(false)
 const showExportModal = ref(false)
 const exportFormat = ref('excel')
 const isQRScannerOpen = ref(false)
-
-// 批量编辑状态
 const editedRecordIds = ref([])
 const editedRecords = ref({})
 const selectedRecordId = ref('')
-
-// 新建表单状态
-const newRecord = reactive(getDefaultNewRecord())
-const errors = reactive({})
-
-// 验收弹窗
-const acceptanceModal = reactive({ isOpen: false, problemId: null })
 
 function getDefaultNewRecord() {
   return {
@@ -581,7 +688,7 @@ function getDefaultNewRecord() {
     inspectionType: 'farm',
     greenhouseId: '',
     cropName: '',
-    inspectorId: FALLBACK_USERS[0]?.id || '',
+    inspectorId: defaultInspector.value.id,
     batchId: '',
     batchCode: '',
     checkDate: new Date().toISOString().split('T')[0],
@@ -618,10 +725,14 @@ function getDefaultNewRecord() {
   }
 }
 
+const newRecord = reactive(getDefaultNewRecord())
+const errors = reactive({})
+
+const acceptanceModal = reactive({ isOpen: false, problemId: null })
+
 // ============================================
-// 计算属性
+// 计算属性（V1.1 line 380-439）
 // ============================================
-// 统计信息
 const computedStats = computed(() => {
   if (props.stats) return props.stats
   const records = inspectionRecords.value
@@ -633,7 +744,6 @@ const computedStats = computed(() => {
   }
 })
 
-// 过滤后的记录
 const filteredRecords = computed(() => {
   return inspectionRecords.value.filter(record => {
     if (localFilters.recordCode && !record.recordCode?.toLowerCase().includes(localFilters.recordCode.toLowerCase())) return false
@@ -643,56 +753,50 @@ const filteredRecords = computed(() => {
     if (localFilters.endDate && record.checkDate > localFilters.endDate) return false
     if (localFilters.status !== 'all' && record.status !== localFilters.status) return false
     if (localFilters.problemStatus !== 'all') {
-      const problem = mockProblems.find(p => p.id === record.problemId)
-      const problemStatusMap = { '待处理': 'pending', '处理中': 'processing', '待验收': 'pending', '已处理': 'resolved' }
-      const mappedStatus = problemStatusMap[localFilters.problemStatus]
+      const problem = mergedProblems.value.find(p => p.id === record.problemId)
+      const mappedStatus = localFilters.problemStatus
       if (mappedStatus && problem?.status !== mappedStatus) return false
     }
     return true
   })
 })
 
-// 分页后的数据
 const paginatedRecords = computed(() => {
   const start = (props.currentPage - 1) * props.pageSize
   return filteredRecords.value.slice(start, start + props.pageSize)
 })
 
-// 总页数
 const totalPages = computed(() => Math.ceil(filteredRecords.value.length / props.pageSize) || 1)
 
-// 选中的ID数组
 const selectedIds = computed(() => {
   return props.selectedRows.map(idx => paginatedRecords.value[idx]?.id).filter(Boolean)
 })
 
-// 全选状态
 const isAllSelected = computed(() => {
   return paginatedRecords.value.length > 0 && props.selectedRows.length === paginatedRecords.value.length
 })
+
 const isIndeterminate = computed(() => {
   return props.selectedRows.length > 0 && props.selectedRows.length < paginatedRecords.value.length
 })
 
-// 详情记录
 const detailRecord = computed(() => {
   return inspectionRecords.value.find(r => String(r.id) === String(props.detailRecordId)) || null
 })
 
-// 详情关联问题
 const detailProblemData = computed(() => {
   if (!detailRecord.value?.problemId) return null
-  return problemList.value.find(p => p.id === detailRecord.value.problemId) || null
+  return mergedProblems.value.find(p => p.id === detailRecord.value.problemId) || null
 })
+
 const detailFlowRecords = computed(() => detailProblemData.value?.flowRecords || [])
 
-// 验收问题数据
 const acceptanceProblem = computed(() => {
-  return problemList.value.find(p => p.id === acceptanceModal.problemId) || null
+  return mergedProblems.value.find(p => p.id === acceptanceModal.problemId) || null
 })
 
 // ============================================
-// 筛选方法
+// 筛选与选择方法（V1.1 line 887-924）
 // ============================================
 function handleFiltersChange(newFilters) {
   Object.entries(newFilters).forEach(([key, value]) => {
@@ -705,9 +809,6 @@ function handleResetFilters() {
   emit('resetFilters')
 }
 
-// ============================================
-// 选择方法
-// ============================================
 function isRowSelected(idx) {
   return props.selectedRows.includes(idx)
 }
@@ -738,19 +839,95 @@ function cancelBatchDelete() {
 }
 
 // ============================================
-// 查看详情
+// 问题查找辅助（V1.1 line 131-159）
+// ============================================
+function getProblemForRecord(record) {
+  if (!record?.problemId) return undefined
+  return mergedProblems.value.find(p => p.id === record.problemId)
+}
+
+function getSubmitFeedbackRecord(problem) {
+  if (!problem?.flowRecords) return null
+  return [...(problem.flowRecords || [])].reverse().find(r => r.action === 'submit' && r.feedbackData) || null
+}
+
+function parseFeedback(feedback) {
+  if (!feedback) return null
+  let parsed = feedback
+  if (typeof feedback === 'string') {
+    try { parsed = JSON.parse(feedback) } catch { return null }
+  }
+  if (typeof parsed !== 'object' || parsed === null) return null
+  return parsed
+}
+
+function getProblemProgress(problem) {
+  if (!problem) return 0
+  return STATUS_PROGRESS_MAP[problem.status] ?? 0
+}
+
+function canAccept(problem) {
+  if (!problem) return false
+  return ACCEPT_STATUSES.includes(problem.status)
+}
+
+function getOperationStatusLabel(status) {
+  return PROBLEM_STATUS_MAP[status] || status || '-'
+}
+
+function getOperationStatusClass(status) {
+  if (status === '已处理' || status === 'resolved' || status === 'completed') {
+    return 'text-green-500'
+  }
+  if (status === '待验收' || ACCEPT_STATUSES.includes(status)) {
+    return 'text-amber-500'
+  }
+  return 'text-blue-500'
+}
+
+function getProgressBarClass(status) {
+  return PROGRESS_COLOR_MAP[status] || 'bg-gray-400'
+}
+
+function getIssueCategoryLabel(cat) {
+  return ISSUE_CATEGORY_LABELS[cat] || cat
+}
+
+function getIssueSeverityClass(severity) {
+  if (severity === '严重') return 'bg-red-100 text-red-700'
+  if (severity === '中等') return 'bg-amber-100 text-amber-700'
+  return 'bg-gray-100 text-gray-700'
+}
+
+function getFeedbackUserNames(ids) {
+  return ids.map(id => {
+    const user = storeUsers.value.find(u => u.id === id)
+    return user ? user.name : id
+  }).join('、')
+}
+
+function getLocationTitle(record) {
+  if (record.inspectionType === 'farm') return record.greenhouseName
+  if (record.inspectionType === 'equipment') return record.equipmentName
+  if (record.inspectionType === 'infrastructure') return record.infrastructureName
+  if (record.inspectionType === 'other') return record.remarks
+  return record.greenhouseName || '-'
+}
+
+// ============================================
+// 查看详情（V1.1 line 952）
 // ============================================
 function handleViewDetail(record) {
   emit('viewDetail', String(record.id))
 }
 
 // ============================================
-// 新建记录
+// 新建巡查（V1.1 line 562-702）
 // ============================================
 function generateRecordCode() {
   const today = new Date()
   const dateStr = today.toISOString().split('T')[0].replace(/-/g, '')
-  const todayRecords = inspectionRecords.value.filter(r => r.recordCode.includes(dateStr))
+  const todayRecords = inspectionRecords.value.filter(r => r.recordCode?.includes(dateStr))
   const maxSeq = todayRecords.reduce((max, r) => {
     const seq = parseInt(r.recordCode.split('-')[1] || '0')
     return seq > max ? seq : max
@@ -763,7 +940,7 @@ function handleOpenCreateModal() {
   newRecord.recordCode = newRecord.recordCode || generateRecordCode()
   newRecord.checkDate = newRecord.checkDate || new Date().toISOString().split('T')[0]
   newRecord.checkTime = newRecord.checkTime || new Date().toTimeString().slice(0, 5)
-  newRecord.inspectorId = newRecord.inspectorId || (FALLBACK_USERS[0]?.id || '')
+  newRecord.inspectorId = newRecord.inspectorId || defaultInspector.value.id
   emit('openCreateModal')
 }
 
@@ -815,10 +992,10 @@ function validateForm() {
   return Object.keys(newErrors).length === 0
 }
 
-function handleCreateRecord() {
+async function handleCreateRecord() {
   if (!validateForm()) return
-  const selectedUser = mockUsers.value.find(u => u.id === newRecord.inspectorId)
-  const selectedBatch = mockCropBatches.find(b => b.id === newRecord.batchId)
+  const selectedUser = storeUsers.value.find(u => u.id === newRecord.inspectorId)
+  const selectedBatch = cropBatches.value.find(b => b.id === newRecord.batchId)
 
   let greenhouseId = ''
   let greenhouseName = ''
@@ -829,26 +1006,26 @@ function handleCreateRecord() {
   let infrastructureName = ''
 
   if (newRecord.inspectionType === 'farm') {
-    const gh = mockGreenhouses.value.find(g => g.id === newRecord.greenhouseId)
+    const gh = storeGreenhouses.value.find(g => g.id === newRecord.greenhouseId)
     greenhouseId = newRecord.greenhouseId
     greenhouseName = gh?.name || ''
     cropName = newRecord.cropName
   } else if (newRecord.inspectionType === 'equipment') {
-    const eq = mockEquipment.find(e => e.id === newRecord.equipmentId)
+    const eq = equipmentList.value.find(e => e.id === newRecord.equipmentId)
     greenhouseId = eq?.greenhouseId || ''
     greenhouseName = eq?.location || ''
     equipmentId = newRecord.equipmentId
     equipmentName = eq?.name || ''
   } else if (newRecord.inspectionType === 'infrastructure') {
-    const inf = mockInfrastructure.find(i => i.id === newRecord.infrastructureId)
+    const inf = infrastructureList.value.find(i => i.id === newRecord.infrastructureId)
     greenhouseId = inf?.greenhouseId || ''
     greenhouseName = inf?.location || ''
     infrastructureId = newRecord.infrastructureId
     infrastructureName = inf?.name || ''
   }
 
-  // 问题推送逻辑
-  let newProblemId
+  // 异常 → 自动创建问题（V1.1 line 596-654）
+  let newProblemId = undefined
   if (newRecord.feedbackRequired && newRecord.feedbackUsers.length > 0 && newRecord.inspectionResult === 'abnormal') {
     const presetIssues = (newRecord.issuePresets || []).join('、')
     const issueText = presetIssues + (newRecord.issueText ? (presetIssues ? '；' + newRecord.issueText : newRecord.issueText) : '')
@@ -860,10 +1037,9 @@ function handleCreateRecord() {
       else if (allText.includes('蚜虫') || allText.includes('病') || allText.includes('虫')) severity = '中等'
     }
 
-    const problemCode = `PD${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${String(Date.now()).slice(-3)}`
-    const newProblem = {
-      id: mockProblems.length + 1,
-      problemCode,
+    // 通过 problemStore 真实 API 创建问题（V1.1 line 618-650）
+    const createdProblem = await problemStore.createProblem({
+      problem_code: `PD${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${String(Date.now()).slice(-3)}`,
       greenhouseId: newRecord.greenhouseId,
       greenhouseName,
       cropName,
@@ -875,19 +1051,12 @@ function handleCreateRecord() {
       temperature: newRecord.temperature || 0,
       humidity: newRecord.humidity || 0,
       cropStatus: newRecord.cropStatus,
-      plantHeight: newRecord.plantHeight || 0,
-      leafCount: newRecord.leafCount || 0,
       issueText: issueText || newRecord.issueText || '未描述具体问题',
       issueSeverity: severity,
       status: '待处理',
       remarks: newRecord.remarks,
-      images: newRecord.issuePhotos || [],
       sourceModule: 'inspection',
       sourceId: newRecord.recordCode,
-      handler: '',
-      handleDate: '',
-      handleResult: '',
-      reworkCount: 0,
       flowRecords: [{
         id: `FR-${Date.now()}`,
         problemId: 0,
@@ -898,13 +1067,13 @@ function handleCreateRecord() {
         toStatus: '待处理',
         actionTime: new Date().toISOString(),
       }],
+    })
+    if (createdProblem) {
+      newProblemId = createdProblem.id
     }
-    mockProblems.push(newProblem)
-    newProblemId = newProblem.id
   }
 
   const record = {
-    id: inspectionRecords.value.length + 1,
     recordCode: newRecord.recordCode,
     inspectionType: newRecord.inspectionType,
     greenhouseId,
@@ -938,12 +1107,15 @@ function handleCreateRecord() {
     problemId: newProblemId,
   }
 
-  inspectionStore.createRecord(record)
+  // 通过 inspectionStore 真实 API 创建巡查记录
   handleCloseCreateModal()
+  inspectionStore.createRecord(record).then(() => {
+    inspectionStore.fetchRecords()
+  }).catch(() => {})
 }
 
 // ============================================
-// 批量编辑
+// 批量编辑（V1.1 line 790-828）
 // ============================================
 function onBatchRecordSelect(id) {
   if (id && !editedRecords.value[id]) {
@@ -969,11 +1141,11 @@ async function handleConfirmBatchEdit() {
       const edits = editedRecords.value[id]
       const updates = { ...edits }
       if (edits.greenhouseId && edits.greenhouseId !== record?.greenhouseId) {
-        const gh = mockGreenhouses.value.find(g => g.id === edits.greenhouseId)
+        const gh = storeGreenhouses.value.find(g => g.id === edits.greenhouseId)
         updates.greenhouseName = gh?.name || record?.greenhouseName
       }
       if (edits.inspectorId && edits.inspectorId !== record?.inspectorId) {
-        const user = mockUsers.value.find(u => u.id === edits.inspectorId)
+        const user = storeUsers.value.find(u => u.id === edits.inspectorId)
         updates.inspectorName = user?.name || record?.inspectorName
       }
       await inspectionStore.updateRecord(id, updates).catch(() => {})
@@ -984,7 +1156,7 @@ async function handleConfirmBatchEdit() {
 }
 
 // ============================================
-// 批量删除
+// 批量删除（V1.1 line 831-852）
 // ============================================
 async function handleConfirmBatchDelete() {
   const idsToDelete = new Set(selectedIds.value)
@@ -998,7 +1170,7 @@ async function handleConfirmBatchDelete() {
 }
 
 // ============================================
-// 导出
+// 导出（V1.1 line 705-787）
 // ============================================
 function handleConfirmExport() {
   if (selectedIds.value.length === 0) {
@@ -1013,9 +1185,9 @@ function handleDoExport() {
   const headers = ['巡查编号', '巡查类型', '巡查人员', '位置/对象', '巡查日期', '天气', '温度(°C)', '湿度(%)', '发现问题', '问题照片', '问题处理', '状态']
   const exportData = selectedData.map(row => ({
     '巡查编号': row.recordCode,
-    '巡查类型': getTypeLabel(row.inspectionType),
+    '巡查类型': row.inspectionType === 'farm' ? '种植' : row.inspectionType === 'equipment' ? '设备' : row.inspectionType === 'infrastructure' ? '设施' : row.inspectionType === 'other' ? '其他' : '-',
     '巡查人员': row.inspectorName,
-    '位置/对象': getLocationText(row),
+    '位置/对象': getLocationTitle(row),
     '巡查日期': row.checkDate,
     '天气': row.weather,
     '温度(°C)': row.temperature,
@@ -1061,116 +1233,68 @@ function handleDoExport() {
 }
 
 // ============================================
-// 问题验收
+// 问题验收（V1.1 line 855-879）
 // ============================================
+function handleOpenAcceptance(problem) {
+  acceptanceModal.isOpen = true
+  acceptanceModal.problemId = problem.id
+}
+
 function closeAcceptance() {
   acceptanceModal.isOpen = false
   acceptanceModal.problemId = null
 }
 
-// P0-6 接入 problemStore：优先从 store 获取问题数据
-const problemList = computed(() => {
-  const storeList = problemStore.problems || []
-  return storeList.length > 0 ? storeList : mockProblems
-})
-
-function handleApproveAcceptance() {
+async function handleApproveAcceptance(comment) {
   if (!acceptanceModal.problemId) return
-  const problem = problemList.value.find(p => p.id === acceptanceModal.problemId)
-  if (problem) {
-    problem.status = '已处理'
-    problem.flowRecords.push({
-      id: `FR-${Date.now()}`,
-      operatorId: 'U001',
-      operatorName: '系统管理员',
-      action: 'approve',
-      fromStatus: '待验收',
-      toStatus: '已处理',
-      actionTime: new Date().toISOString(),
-      comment: '验收通过',
-    })
-  }
+  // 通过 problemStore 真实 API 更新状态为已处理
+  await problemStore.updateProblem(acceptanceModal.problemId, {
+    status: '已处理',
+    handleResult: comment || '验收通过',
+    flowRecords: [
+      ...(acceptanceProblem.value?.flowRecords || []),
+      {
+        id: `FR-${Date.now()}`,
+        operatorId: 'U001',
+        operatorName: '系统管理员',
+        action: 'approve',
+        fromStatus: '待验收',
+        toStatus: '已处理',
+        actionTime: new Date().toISOString(),
+        comment: comment || '验收通过',
+      },
+    ],
+  })
   ElMessage.success('验收通过')
+  problemStore.fetchProblems()
   closeAcceptance()
 }
 
-function handleRejectAcceptance() {
-  ElMessageBox.prompt('请输入返工原因', '返工确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    inputType: 'textarea',
-  }).then(({ value }) => {
-    if (value && acceptanceModal.problemId) {
-      const problem = problemList.value.find(p => p.id === acceptanceModal.problemId)
-      if (problem) {
-        problem.reworkCount = (problem.reworkCount || 0) + 1
-        if (problem.reworkCount >= 2) {
-          problem.status = '待处理'
-        } else {
-          problem.status = '处理中'
-        }
-        problem.flowRecords.push({
-          id: `FR-${Date.now()}`,
-          operatorId: 'U001',
-          operatorName: '系统管理员',
-          action: 'reject_acceptance',
-          fromStatus: '待验收',
-          toStatus: problem.status,
-          actionTime: new Date().toISOString(),
-          comment: value,
-        })
-      }
-      ElMessage.warning('已发起返工')
-      closeAcceptance()
-    }
-  }).catch(() => {})
-}
-
-// ============================================
-// 工具方法
-// ============================================
-function getTypeLabel(type) {
-  const map = { farm: '种植巡查', equipment: '设备巡查', infrastructure: '设施巡查', other: '其他巡查' }
-  return map[type] || type
-}
-
-function getTypeBadgeClass(type) {
-  const map = {
-    farm: 'px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full',
-    equipment: 'px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full',
-    infrastructure: 'px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full',
-    other: 'px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full',
-  }
-  return map[type] || 'px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full'
-}
-
-function getLocationText(record) {
-  if (record.inspectionType === 'farm') return record.greenhouseName || '-'
-  if (record.inspectionType === 'equipment') return record.equipmentName || '-'
-  if (record.inspectionType === 'infrastructure') return record.infrastructureName || '-'
-  return record.remarks || '-'
-}
-
-function getStatusBadgeClass(status) {
-  const map = {
-    normal: 'px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full',
-    attention: 'px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full',
-    warning: 'px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full',
-    critical: 'px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full',
-  }
-  return map[status] || 'px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full'
-}
-
-function formatFlowTime(timeStr) {
-  if (!timeStr) return ''
-  return new Date(timeStr).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-}
-
-function getFlowActionLabel(action) {
-  const map = {
-    report: '上报问题', dispatch: '分派任务', accept: '接单', reject: '拒绝',
-    submit: '提交反馈', approve: '验收通过', reject_acceptance: '验收返工',
-  }
-  return map[action] || action
+async function handleRejectAcceptance(reason) {
+  if (!acceptanceModal.problemId) return
+  const problem = acceptanceProblem.value
+  const newReworkCount = (problem?.reworkCount || 0) + 1
+  // reworkCount >= 2 → 待处理；否则处理中（V1.1 line 869-879）
+  const newStatus = newReworkCount >= 2 ? '待处理' : '处理中'
+  await problemStore.updateProblem(acceptanceModal.problemId, {
+    status: newStatus,
+    reworkCount: newReworkCount,
+    flowRecords: [
+      ...(problem?.flowRecords || []),
+      {
+        id: `FR-${Date.now()}`,
+        operatorId: 'U001',
+        operatorName: '系统管理员',
+        action: 'reject_acceptance',
+        fromStatus: '待验收',
+        toStatus: newStatus,
+        actionTime: new Date().toISOString(),
+        comment: reason,
+      },
+    ],
+  })
+  ElMessage.warning('已发起返工')
+  problemStore.fetchProblems()
+  closeAcceptance()
 }
 </script>

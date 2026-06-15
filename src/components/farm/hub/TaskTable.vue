@@ -317,12 +317,13 @@ const handleRowSelect = (index) => {
 /**
  * 计算催办属性（remindProps）
  * 与 V1.1 TaskTable.tsx line 455-459 一致：包含 allowed/cooldownSec/todayCount
- * cooldownSec/todayCount 由父组件 FarmHub 通过 useReminder 提供，此处先返回基础值
+ * 数据源：父组件 FarmHub 通过 canRemind(taskId) 返回，结构 { allowed, reason, cooldownSec, todayCount }
  */
 const getRemindProps = (task) => {
   if (typeof props.canRemind !== 'function') {
     return { allowed: false, cooldownSec: 0, todayCount: 0 }
   }
+  // V1.1 TaskTable.tsx line 456-459：直接从 canRemind(task.id) 读取
   const check = props.canRemind(task.id) || { allowed: false }
   return {
     allowed: !!check.allowed,

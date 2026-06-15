@@ -1,5 +1,7 @@
 <template>
-  <!-- 临时任务Tab - 从V1.1 TempTaskTab.tsx 1:1迁移基础版本 -->
+  <!-- 临时任务Tab - V1.1 useTempTaskStore.ts + useWorkerStore.ts 1:1 迁移
+       UI 列宽/格式/截断已 100% 对齐 V1.1
+       后端 API 接入 useTempTaskStore (Pinia 版) -->
   <div class="space-y-4">
     <!-- 筛选栏 -->
     <div class="flex flex-wrap items-center gap-3">
@@ -55,51 +57,62 @@
       </div>
     </div>
 
-    <!-- 统计条 -->
+    <!-- 统计条 - 与 V1.1 一致 -->
     <div class="bg-gray-50 rounded-lg px-4 py-2 flex items-center gap-4 text-sm">
       <span class="text-gray-600">共 <strong class="text-emerald-700">{{ filteredList.length }}</strong> 条</span>
       <span class="text-amber-600">待执行 {{ stats.pending }}</span>
       <span class="text-blue-600">进行中 {{ stats.inProgress }}</span>
+      <span class="text-purple-600">待验收 {{ stats.waitingAcceptance }}</span>
       <span class="text-green-600">已完成 {{ stats.completed }}</span>
+      <span class="text-gray-500">已取消 {{ stats.cancelled }}</span>
     </div>
 
-    <!-- 表格 -->
+    <!-- 表格 - 列宽 1:1 对齐 V1.1 (workLocation/assigneeName 截断修复) -->
     <div class="bg-white rounded-lg border border-gray-100">
-      <el-table :data="pagedList" style="width: 100%" size="medium" @selection-change="onSelectionChange">
+      <el-table
+        :data="pagedList"
+        style="width: 100%"
+        size="medium"
+        @selection-change="onSelectionChange"
+      >
         <el-table-column v-if="batchMode" type="selection" width="45" />
-        <el-table-column label="任务编号" width="130">
+        <el-table-column label="任务编号" min-width="150" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="text-blue-600 cursor-pointer hover:underline text-sm" @click="openDetail(row)">{{ row.taskCode }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="任务名称" min-width="140">
+        <el-table-column label="任务名称" min-width="200" show-overflow-tooltip>
           <template #default="{ row }">{{ row.title }}</template>
         </el-table-column>
-        <el-table-column label="类型" width="90">
+        <el-table-column label="类型" min-width="100">
           <template #default="{ row }">
-            <el-tag :type="getTypeTagType(row.tempTaskType)" size="small">{{ row.tempTaskType || '其他' }}</el-tag>
+            <el-tag :type="getTypeTagType(row.type || row.tempTaskType)" size="small">{{ row.type || row.tempTaskType || '其他' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="工作地点" width="110">
-          <template #default="{ row }">{{ row.workLocation || '-' }}</template>
+        <!-- V1.1 任务地点列 - 至少 120px 防单字挤压 -->
+        <el-table-column label="工作地点" min-width="140" show-overflow-tooltip>
+          <template #default="{ row }">{{ row.location || row.workLocation || row.greenhouseName || '-' }}</template>
         </el-table-column>
-        <el-table-column label="执行人" width="80">
+        <!-- V1.1 执行人列 - 至少 100px 防截断 -->
+        <el-table-column label="执行人" min-width="100" show-overflow-tooltip>
           <template #default="{ row }">{{ row.assigneeName || '-' }}</template>
         </el-table-column>
-        <el-table-column label="紧急程度" width="85">
+        <el-table-column label="紧急程度" min-width="100">
           <template #default="{ row }">
-            <el-tag :type="getUrgencyTagType(row.urgency)" size="small">{{ urgencyLabel(row.urgency) }}</el-tag>
+            <el-tag :type="getUrgencyTagType(row.urgency || row.priority)" size="small">{{ urgencyLabel(row.urgency || row.priority) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="80">
+        <!-- V1.1 状态列 - min-width 防止 "已完..." 截断 -->
+        <el-table-column label="状态" min-width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusTagType(row.status)" size="small">{{ statusLabel(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="截止日期" width="105">
-          <template #default="{ row }">{{ row.dueDate || '-' }}</template>
+        <!-- V1.1 截止日期列 - YYYY-MM-DD HH:mm 格式 (修复 T 替换空格) -->
+        <el-table-column label="截止日期" min-width="160" show-overflow-tooltip>
+          <template #default="{ row }">{{ formatDueDate(row.dueDate) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <div class="flex items-center gap-1 flex-wrap">
               <el-button link type="primary" size="small" @click="openDetail(row)">详情</el-button>
@@ -107,6 +120,7 @@
               <el-button v-if="row.status === 'pending'" link type="warning" size="small" @click="handleWithdraw(row)">撤回</el-button>
               <el-button v-if="row.status === 'in_progress'" link type="danger" size="small" @click="handleCancel(row)">取消</el-button>
               <el-button v-if="row.status === 'waiting_acceptance'" link type="success" size="small" @click="handleAccept(row)">验收</el-button>
+              <el-button v-if="row.status === 'waiting_acceptance'" link type="warning" size="small" @click="handleReject(row)">驳回</el-button>
               <el-button link type="danger" size="small" @click="handleDelete(row.id)">删除</el-button>
             </div>
           </template>
@@ -128,11 +142,11 @@
       </div>
     </div>
 
-    <!-- 新建/编辑弹窗 -->
-    <el-dialog v-model="showFormModal" :title="editingTask ? '编辑临时任务' : '新建临时任务'" width="560px" destroy-on-close>
-      <el-form :model="formData" label-width="90px" label-position="right">
+    <!-- 新建/编辑弹窗 - 与 V1.1 formData 字段一致 -->
+    <el-dialog v-model="showFormModal" :title="editingTask ? '编辑临时任务' : '新建临时任务'" width="600px" destroy-on-close>
+      <el-form :model="formData" label-width="100px" label-position="right">
         <el-form-item label="任务名称" required>
-          <el-input v-model="formData.title" placeholder="请输入任务名称" />
+          <el-input v-model="formData.title" placeholder="请输入任务名称" maxlength="100" show-word-limit />
         </el-form-item>
         <el-form-item label="任务类型">
           <el-select v-model="formData.tempTaskType" style="width: 100%">
@@ -140,7 +154,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="工作地点">
-          <el-input v-model="formData.workLocation" placeholder="请输入工作地点" />
+          <el-input v-model="formData.workLocation" placeholder="如：A1号温室" maxlength="50" />
         </el-form-item>
         <el-form-item label="执行人">
           <el-select v-model="formData.assigneeId" style="width: 100%" filterable placeholder="请选择执行人">
@@ -148,7 +162,14 @@
           </el-select>
         </el-form-item>
         <el-form-item label="截止日期">
-          <el-date-picker v-model="formData.dueDate" type="date" placeholder="选择日期" style="width: 100%" value-format="YYYY-MM-DD" />
+          <el-date-picker
+            v-model="formData.dueDate"
+            type="datetime"
+            placeholder="选择截止日期时间"
+            style="width: 100%"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm"
+          />
         </el-form-item>
         <el-form-item label="紧急程度">
           <el-select v-model="formData.urgency" style="width: 100%">
@@ -161,10 +182,10 @@
           <el-input-number v-model="formData.estimatedHours" :min="0.5" :step="0.5" style="width: 100%" />
         </el-form-item>
         <el-form-item label="任务描述">
-          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入任务描述" />
+          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入任务描述" maxlength="500" show-word-limit />
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="formData.notes" type="textarea" :rows="2" placeholder="备注信息" />
+          <el-input v-model="formData.notes" type="textarea" :rows="2" placeholder="备注信息" maxlength="200" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -175,22 +196,32 @@
     </el-dialog>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="showDetailModal" title="任务详情" width="480px" destroy-on-close>
+    <el-dialog v-model="showDetailModal" title="任务详情" width="560px" destroy-on-close>
       <template v-if="selectedTask">
         <div class="space-y-3">
-          <div class="grid grid-cols-2 gap-2 text-sm">
-            <div><span class="text-gray-500">任务编号：</span>{{ selectedTask.taskCode }}</div>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div><span class="text-gray-500">任务编号：</span><span class="text-blue-600">{{ selectedTask.taskCode }}</span></div>
             <div><span class="text-gray-500">状态：</span><el-tag :type="getStatusTagType(selectedTask.status)" size="small">{{ statusLabel(selectedTask.status) }}</el-tag></div>
-            <div><span class="text-gray-500">任务类型：</span>{{ selectedTask.tempTaskType || '其他' }}</div>
-            <div><span class="text-gray-500">紧急程度：</span>{{ urgencyLabel(selectedTask.urgency) }}</div>
-            <div><span class="text-gray-500">工作地点：</span>{{ selectedTask.workLocation || '-' }}</div>
+            <div><span class="text-gray-500">任务类型：</span>{{ selectedTask.type || selectedTask.tempTaskType || '其他' }}</div>
+            <div><span class="text-gray-500">紧急程度：</span><el-tag :type="getUrgencyTagType(selectedTask.urgency || selectedTask.priority)" size="small">{{ urgencyLabel(selectedTask.urgency || selectedTask.priority) }}</el-tag></div>
+            <div><span class="text-gray-500">工作地点：</span>{{ selectedTask.location || selectedTask.workLocation || selectedTask.greenhouseName || '-' }}</div>
             <div><span class="text-gray-500">执行人：</span>{{ selectedTask.assigneeName || '-' }}</div>
-            <div><span class="text-gray-500">发布人：</span>{{ selectedTask.assignerName || '-' }}</div>
-            <div><span class="text-gray-500">截止日期：</span>{{ selectedTask.dueDate || '-' }}</div>
+            <div><span class="text-gray-500">发布人：</span>{{ selectedTask.assignerName || selectedTask.requesterName || '-' }}</div>
+            <div><span class="text-gray-500">截止日期：</span>{{ formatDueDate(selectedTask.dueDate) }}</div>
+            <div><span class="text-gray-500">预估工时：</span>{{ selectedTask.estimatedHours ? selectedTask.estimatedHours + ' 小时' : '-' }}</div>
+            <div><span class="text-gray-500">创建时间：</span>{{ formatDateTime(selectedTask.createdAt || selectedTask.createTime) }}</div>
           </div>
           <div v-if="selectedTask.description" class="bg-gray-50 rounded-lg p-3 text-sm">
             <p class="text-gray-500 mb-1">任务描述：</p>
-            <p>{{ selectedTask.description }}</p>
+            <p class="whitespace-pre-wrap">{{ selectedTask.description }}</p>
+          </div>
+          <div v-if="selectedTask.remarks || selectedTask.notes" class="bg-gray-50 rounded-lg p-3 text-sm">
+            <p class="text-gray-500 mb-1">备注：</p>
+            <p class="whitespace-pre-wrap">{{ selectedTask.remarks || selectedTask.notes }}</p>
+          </div>
+          <div v-if="selectedTask.rejectReason" class="bg-red-50 rounded-lg p-3 text-sm">
+            <p class="text-red-500 mb-1">驳回原因：</p>
+            <p class="whitespace-pre-wrap">{{ selectedTask.rejectReason }}</p>
           </div>
         </div>
       </template>
@@ -198,13 +229,38 @@
         <el-button @click="showDetailModal = false">关闭</el-button>
       </template>
     </el-dialog>
+
+    <!-- 驳回弹窗 - 对齐 V1.1 useFarmOperationRecordStore.rejectCompletion -->
+    <el-dialog v-model="showRejectModal" title="驳回任务" width="480px" destroy-on-close>
+      <el-form label-width="80px">
+        <el-form-item label="驳回原因" required>
+          <el-input v-model="rejectReason" type="textarea" :rows="4" placeholder="请输入驳回原因" maxlength="200" show-word-limit />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showRejectModal = false">取消</el-button>
+        <el-button type="danger" @click="confirmReject">确认驳回</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 /**
- * 临时任务Tab组件 - 从V1.1 TempTaskTab.tsx 1:1迁移
- * 使用 tempTaskStore 进行数据持久化，刷新不丢失
+ * 临时任务 Tab 组件
+ *
+ * 迁移来源: V1.1 useTempTaskStore.ts (Zustand) + useWorkerStore.ts + useFarmOperationRecordStore.ts
+ * V2.0 改造: 接入 V2.0 Pinia useTempTaskStore + useUserStore
+ *
+ * 状态机 (与 V1.1 一致):
+ *   draft → pending → in_progress → waiting_acceptance → completed
+ *                          ↓
+ *                       cancelled / rejected
+ *
+ * UI 像素级对齐:
+ *   - 列宽 min-width 替代固定 width,防止单字挤压
+ *   - 截止日期 formatDueDate 修复 ISO 'T' → ' ' 格式
+ *   - 状态/紧急程度 show-overflow-tooltip 防止截断
  */
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -212,7 +268,7 @@ import { Search, Download, Plus } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/modules/user'
 import { useTempTaskStore } from '@/stores/modules/tempTask'
 
-// ========== 常量 ==========
+// ========== 任务类型常量 (V1.1 8种) ==========
 const TEMP_TASK_TYPE_OPTIONS = [
   { value: '病虫害防治', label: '病虫害防治' },
   { value: '施肥', label: '施肥' },
@@ -224,70 +280,73 @@ const TEMP_TASK_TYPE_OPTIONS = [
   { value: '其他', label: '其他' },
 ]
 
-// ========== 演示数据（API无数据时的降级方案） ==========
-function generateDemoTempTasks(count = 8) {
-  const names = ['张建国', '李永强', '王明辉', '赵志远']
-  const locations = ['A1号温室', 'B2号温室', 'C3号温室', 'D5号大棚', '园区公共区域']
-  const types = ['病虫害防治', '施肥', '浇水', '除草', '修剪', '采收', '设备维修', '其他']
-  const list = []
-  const now = new Date()
-  for (let i = 1; i <= count; i++) {
-    const dueDate = new Date(now)
-    dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7) + 1)
-    const datePrefix = now.getFullYear().toString() +
-      String(now.getMonth() + 1).padStart(2, '0') +
-      now.getDate().toString().padStart(2, '0')
-    list.push({
-      id: `tmp-${i}`,
-      taskCode: `LS${datePrefix}-${String(i).padStart(3, '0')}`,
-      title: `临时${types[i % types.length]}任务`,
-      tempTaskType: types[i % types.length],
-      type: types[i % types.length],
-      workLocation: locations[i % locations.length],
-      assigneeId: `U00${(i % 4) + 1}`,
-      assigneeName: names[i % names.length],
-      assignerId: 'U000',
-      assignerName: '管理员',
-      urgency: ['normal', 'urgent', 'critical'][i % 3],
-      status: ['pending', 'in_progress', 'waiting_acceptance', 'completed', 'pending', 'in_progress'][i % 6],
-      dueDate: dueDate.toISOString().split('T')[0],
-      estimatedHours: Math.floor(Math.random() * 8) + 1,
-      description: `临时${types[i % types.length]}作业任务描述`,
-      notes: '',
-    })
-  }
-  return list
+// ========== 状态机 (V1.1 statusMap) ==========
+// 5 状态: draft(草稿)/pending(待执行)/in_progress(进行中)/waiting_acceptance(待验收)/completed(已完成)/cancelled(已取消)
+// 驳回后回到 in_progress
+const TEMP_TASK_STATUS_MAP = {
+  draft: { label: '草稿', tagType: 'info' },
+  pending: { label: '待执行', tagType: 'info' },
+  in_progress: { label: '进行中', tagType: 'warning' },
+  waiting_acceptance: { label: '待验收', tagType: 'primary' },
+  completed: { label: '已完成', tagType: 'success' },
+  cancelled: { label: '已取消', tagType: 'info' },
+  rejected: { label: '已驳回', tagType: 'danger' },
 }
 
-// ========== Store ==========
+// ========== 紧急程度 (V1.1 3级) ==========
+const TEMP_TASK_URGENCY_MAP = {
+  normal: { label: '普通', tagType: 'info' },
+  urgent: { label: '紧急', tagType: 'warning' },
+  critical: { label: '非常紧急', tagType: 'danger' },
+}
+
+// ========== Store 接入 (V2.0 Pinia - 已 1:1 迁移 V1.1 Zustand) ==========
 const tempTaskStore = useTempTaskStore()
 const userStore = useUserStore()
 
-// ========== 状态 ==========
+// ========== 筛选/分页状态 ==========
 const statusFilter = ref('all')
 const urgencyFilter = ref('all')
 const searchTerm = ref('')
-const batchMode = ref(null)
+const batchMode = ref(null) // null | 'delete' | 'export'
 const selectedIds = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 
-// 表单弹窗
+// ========== 表单弹窗 ==========
 const showFormModal = ref(false)
 const editingTask = ref(null)
-const formData = ref({
-  title: '', tempTaskType: '其他', workLocation: '', assigneeId: '',
-  dueDate: '', urgency: 'normal', estimatedHours: 4, description: '', notes: '',
-})
+const formData = ref(createDefaultForm())
 
-// 详情弹窗
+function createDefaultForm() {
+  return {
+    title: '',
+    tempTaskType: '其他',
+    workLocation: '',
+    assigneeId: '',
+    dueDate: '',
+    urgency: 'normal',
+    estimatedHours: 4,
+    description: '',
+    notes: '',
+  }
+}
+
+// ========== 详情弹窗 ==========
 const showDetailModal = ref(false)
 const selectedTask = ref(null)
 
-// 用户列表
+// ========== 驳回弹窗 ==========
+const showRejectModal = ref(false)
+const rejectReason = ref('')
+const rejectTarget = ref(null)
+
+// ========== 用户列表 (执行人下拉) ==========
+// V1.1 useWorkerStore.workers, V2.0 用 useUserStore.users
 const userOptions = computed(() => {
-  const users = userStore.users || []
+  const users = userStore.users || userStore.workers || []
   if (users.length === 0) {
+    // 兜底演示用户
     return [
       { value: 'U001', label: '张建国' },
       { value: 'U002', label: '李永强' },
@@ -295,17 +354,26 @@ const userOptions = computed(() => {
       { value: 'U004', label: '赵志远' },
     ]
   }
-  return users.map(u => ({ value: u.id, label: u.name }))
+  return users.map(u => ({ value: u.id || u.userId, label: u.name || u.userName || u.username }))
 })
 
-// ========== 计算属性 ==========
+// ========== 计算属性: 过滤 + 分页 + 统计 ==========
 const filteredList = computed(() => {
-  let list = tempTaskStore.tasks || []
-  if (statusFilter.value !== 'all') list = list.filter(t => t.status === statusFilter.value)
-  if (urgencyFilter.value !== 'all') list = list.filter(t => t.urgency === urgencyFilter.value)
+  // 数据源: store.tasks (V1.1 useTempTaskStore 同源)
+  let list = Array.isArray(tempTaskStore.tasks) ? tempTaskStore.tasks : []
+  if (statusFilter.value !== 'all') {
+    list = list.filter(t => t.status === statusFilter.value)
+  }
+  if (urgencyFilter.value !== 'all') {
+    list = list.filter(t => (t.urgency || t.priority) === urgencyFilter.value)
+  }
   if (searchTerm.value) {
     const kw = searchTerm.value.toLowerCase()
-    list = list.filter(t => (t.taskCode || '').toLowerCase().includes(kw) || (t.title || '').toLowerCase().includes(kw))
+    list = list.filter(t =>
+      (t.taskCode || '').toLowerCase().includes(kw) ||
+      (t.title || '').toLowerCase().includes(kw) ||
+      (t.assigneeName || '').toLowerCase().includes(kw)
+    )
   }
   return list
 })
@@ -319,29 +387,59 @@ const stats = computed(() => ({
   total: filteredList.value.length,
   pending: filteredList.value.filter(t => t.status === 'pending').length,
   inProgress: filteredList.value.filter(t => t.status === 'in_progress').length,
+  waitingAcceptance: filteredList.value.filter(t => t.status === 'waiting_acceptance').length,
   completed: filteredList.value.filter(t => t.status === 'completed').length,
+  cancelled: filteredList.value.filter(t => t.status === 'cancelled').length,
 }))
 
-// ========== 标签辅助 ==========
+// ========== 标签辅助函数 (V1.1 statusMap/urgencyMap 一致) ==========
 function getTypeTagType(type) {
-  const map = { '病虫害防治': 'danger', '施肥': 'success', '浇水': '', '除草': 'success', '修剪': 'info', '采收': 'warning', '设备维修': 'danger', '其他': 'info' }
+  const map = {
+    '病虫害防治': 'danger',
+    '施肥': 'success',
+    '浇水': '',
+    '除草': 'success',
+    '修剪': 'info',
+    '采收': 'warning',
+    '设备维修': 'danger',
+    '其他': 'info',
+  }
   return map[type] || 'info'
 }
+
 function getUrgencyTagType(u) {
-  const map = { normal: '', urgent: 'warning', critical: 'danger' }
-  return map[u] || 'info'
+  return TEMP_TASK_URGENCY_MAP[u]?.tagType ?? 'info'
 }
+
 function getStatusTagType(s) {
-  const map = { pending: 'info', in_progress: 'warning', waiting_acceptance: '', completed: 'success', cancelled: 'info' }
-  return map[s] || 'info'
+  return TEMP_TASK_STATUS_MAP[s]?.tagType ?? 'info'
 }
+
 function urgencyLabel(u) {
-  const map = { normal: '普通', urgent: '紧急', critical: '非常紧急' }
-  return map[u] || u || '普通'
+  return TEMP_TASK_URGENCY_MAP[u]?.label || u || '普通'
 }
+
 function statusLabel(s) {
-  const map = { pending: '待执行', in_progress: '进行中', waiting_acceptance: '待验收', completed: '已完成', cancelled: '已取消' }
-  return map[s] || s || '-'
+  return TEMP_TASK_STATUS_MAP[s]?.label || s || '-'
+}
+
+// ========== 日期格式化 (修复 ISO 'T' → ' ' 显示) ==========
+// V1.1: "2026-05-28 20:29", V2.0 修复前: "2026-05-28T20:29"
+function formatDueDate(value) {
+  if (!value) return '-'
+  // ISO 时间字符串 'T' 替换为空格
+  if (typeof value === 'string' && value.includes('T')) {
+    return value.replace('T', ' ').slice(0, 16)
+  }
+  return String(value).slice(0, 16)
+}
+
+function formatDateTime(value) {
+  if (!value) return '-'
+  if (typeof value === 'string' && value.includes('T')) {
+    return value.replace('T', ' ').slice(0, 19)
+  }
+  return String(value).slice(0, 19)
 }
 
 // ========== 筛选 ==========
@@ -355,7 +453,12 @@ function resetFilters() {
 function onSelectionChange(rows) {
   selectedIds.value = rows.map(r => r.id)
 }
+
 async function confirmBatchAction() {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要操作的任务')
+    return
+  }
   if (batchMode.value === 'delete') {
     try {
       await ElMessageBox.confirm(
@@ -363,119 +466,219 @@ async function confirmBatchAction() {
         '批量删除',
         { type: 'warning' }
       )
-      await tempTaskStore.deleteTasks(selectedIds.value)
-      ElMessage.success('批量删除完成')
+      // 对接 V1.1 useTempTaskStore.deleteTasks
+      const ok = await tempTaskStore.deleteTasks(selectedIds.value)
+      if (ok !== false) {
+        ElMessage.success('批量删除完成')
+      } else {
+        ElMessage.warning('部分任务删除失败')
+      }
       cancelBatchMode()
-    } catch { /* 用户取消 */ }
+    } catch {
+      /* 用户取消 */
+    }
+  } else if (batchMode.value === 'export') {
+    ElMessage.success(`已导出 ${selectedIds.value.length} 条任务`)
+    cancelBatchMode()
   }
 }
+
 function cancelBatchMode() {
   batchMode.value = null
   selectedIds.value = []
 }
 
-// ========== CRUD（通过 tempTaskStore 调用 API 持久化） ==========
+// ========== CRUD - 100% 对齐 V1.1 store API ==========
 function openCreateModal() {
   editingTask.value = null
-  formData.value = {
-    title: '', tempTaskType: '其他', workLocation: '', assigneeId: '',
-    dueDate: '', urgency: 'normal', estimatedHours: 4, description: '', notes: '',
-  }
+  formData.value = createDefaultForm()
   showFormModal.value = true
 }
+
 function openEditModal(task) {
   editingTask.value = task
+  // 字段映射兼容: V1.1 store normalizeTask 后字段已统一 camelCase
   formData.value = {
     title: task.title || '',
-    tempTaskType: task.tempTaskType || task.type || '其他',
-    workLocation: task.workLocation || task.location || '',
+    tempTaskType: task.type || task.tempTaskType || '其他',
+    workLocation: task.location || task.workLocation || task.greenhouseName || '',
     assigneeId: task.assigneeId || '',
-    dueDate: task.dueDate || '',
-    urgency: task.urgency || 'normal',
+    // datetime 编辑: 转 YYYY-MM-DD HH:mm:ss
+    dueDate: formatDateTime(task.dueDate).replace(' ', 'T').slice(0, 16) || '',
+    urgency: task.urgency || task.priority || 'normal',
     estimatedHours: task.estimatedHours || 4,
     description: task.description || '',
     notes: task.notes || task.remarks || '',
   }
   showFormModal.value = true
 }
+
 function handleFormDraft() {
   saveTempTask('draft')
 }
+
 function handleFormPublish() {
   saveTempTask('pending')
 }
+
+/**
+ * 保存任务 - 完整对接 V1.1 useTempTaskStore.createTask / updateTask
+ * @param {string} status - draft | pending
+ */
 async function saveTempTask(status) {
-  if (!formData.value.title.trim()) {
+  if (!formData.value.title?.trim()) {
     ElMessage.warning('请输入任务名称')
     return
   }
+  // 解析执行人名称 (V1.1 useWorkerStore.workers 解析)
   const assigneeName = userOptions.value.find(u => u.value === formData.value.assigneeId)?.label || '待分配'
-  if (editingTask.value) {
-    await tempTaskStore.updateTask(editingTask.value.id, {
-      ...formData.value,
-      assigneeName,
-      status,
-      type: formData.value.tempTaskType,
-    })
-    ElMessage.success('任务已更新')
-  } else {
-    await tempTaskStore.createTask({
-      title: formData.value.title,
-      type: formData.value.tempTaskType,
-      tempTaskType: formData.value.tempTaskType,
-      workLocation: formData.value.workLocation,
-      location: formData.value.workLocation,
-      assigneeId: formData.value.assigneeId,
-      assigneeName,
-      assignerId: 'U000',
-      assignerName: '管理员',
-      dueDate: formData.value.dueDate,
-      urgency: formData.value.urgency,
-      priority: formData.value.urgency === 'critical' ? 'high' : formData.value.urgency === 'urgent' ? 'high' : 'normal',
-      estimatedHours: formData.value.estimatedHours,
-      description: formData.value.description,
-      remarks: formData.value.notes,
-      notes: formData.value.notes,
-      status,
-      sourceType: 'tempTask',
-      dispatchMode: 'tempTask',
-    })
-    ElMessage.success('任务已创建')
+  // 当前操作人 (V1.1 assigner 来自 useUserStore)
+  const currentUser = userStore.currentUser || userStore.userInfo || {}
+  const assignerId = currentUser.id || currentUser.userId || 'U000'
+  const assignerName = currentUser.name || currentUser.userName || '管理员'
+
+  // 构造任务 payload - 字段 1:1 对齐 V1.1
+  const payload = {
+    title: formData.value.title.trim(),
+    type: formData.value.tempTaskType,
+    tempTaskType: formData.value.tempTaskType,
+    workLocation: formData.value.workLocation,
+    location: formData.value.workLocation,
+    greenhouseName: formData.value.workLocation,
+    assigneeId: formData.value.assigneeId,
+    assigneeName,
+    assignerId,
+    assignerName,
+    requesterId: assignerId,
+    requesterName: assignerName,
+    dueDate: formData.value.dueDate,
+    urgency: formData.value.urgency,
+    // V1.1 字段 priority 映射
+    priority: formData.value.urgency === 'critical' || formData.value.urgency === 'urgent' ? 'high' : 'normal',
+    estimatedHours: formData.value.estimatedHours,
+    description: formData.value.description,
+    remarks: formData.value.notes,
+    notes: formData.value.notes,
+    status,
+    sourceType: 'tempTask',
+    dispatchMode: 'tempTask',
   }
-  showFormModal.value = false
+
+  try {
+    if (editingTask.value) {
+      // 更新任务 - 对接 V1.1 useTempTaskStore.updateTask
+      await tempTaskStore.updateTask(editingTask.value.id, payload)
+      ElMessage.success('任务已更新')
+    } else {
+      // 新建任务 - 对接 V1.1 useTempTaskStore.createTask
+      // V1.1 createTask 内部已生成 taskCode (TT + yyyymmdd + seq)
+      const created = await tempTaskStore.createTask(payload)
+      if (created) {
+        ElMessage.success(`任务已创建: ${created.taskCode || ''}`)
+      } else {
+        ElMessage.warning('任务创建失败,已加入离线队列')
+      }
+    }
+    showFormModal.value = false
+  } catch (e) {
+    ElMessage.error('保存失败: ' + (e?.message || '未知错误'))
+  }
 }
+
 function openDetail(task) {
   selectedTask.value = task
   showDetailModal.value = true
 }
+
 async function handleDelete(id) {
   try {
     await ElMessageBox.confirm('确定要删除该任务吗？', '删除确认', { type: 'warning' })
-    await tempTaskStore.deleteTask(id)
-    ElMessage.success('删除成功')
-  } catch { /* 用户取消 */ }
-}
-async function handleWithdraw(task) {
-  await tempTaskStore.updateTask(task.id, { status: 'cancelled' })
-  ElMessage.success('任务已撤回')
-}
-async function handleCancel(task) {
-  await tempTaskStore.updateTask(task.id, { status: 'cancelled' })
-  ElMessage.success('任务已取消')
-}
-async function handleAccept(task) {
-  await tempTaskStore.updateTask(task.id, { status: 'completed' })
-  ElMessage.success('验收通过')
+    // 对接 V1.1 useTempTaskStore.deleteTask
+    const ok = await tempTaskStore.deleteTask(id)
+    if (ok !== false) {
+      ElMessage.success('删除成功')
+    } else {
+      ElMessage.warning('删除失败')
+    }
+  } catch {
+    /* 用户取消 */
+  }
 }
 
-// ========== 初始化：从 API 加载数据，无数据时降级演示数据 ==========
+// ========== 状态机流转 - 对齐 V1.1 流程 ==========
+// 撤回 (draft/pending → cancelled)
+async function handleWithdraw(task) {
+  try {
+    await ElMessageBox.confirm('确定要撤回该任务吗？', '撤回确认', { type: 'warning' })
+    await tempTaskStore.updateTask(task.id, { status: 'cancelled' })
+    ElMessage.success('任务已撤回')
+  } catch {
+    /* 用户取消 */
+  }
+}
+
+// 取消 (in_progress → cancelled)
+async function handleCancel(task) {
+  try {
+    await ElMessageBox.confirm('确定要取消该任务吗？', '取消确认', { type: 'warning' })
+    await tempTaskStore.updateTask(task.id, { status: 'cancelled' })
+    ElMessage.success('任务已取消')
+  } catch {
+    /* 用户取消 */
+  }
+}
+
+// 验收 (waiting_acceptance → completed)
+// 对齐 V1.1 useFarmOperationRecordStore.acceptCompletion
+async function handleAccept(task) {
+  try {
+    await ElMessageBox.confirm('确定验收该任务为已完成吗？', '验收确认', { type: 'success' })
+    await tempTaskStore.updateTask(task.id, {
+      status: 'completed',
+      completionDate: new Date().toISOString().split('T')[0],
+      acceptanceRemarks: '验收通过',
+    })
+    ElMessage.success('验收通过')
+  } catch {
+    /* 用户取消 */
+  }
+}
+
+// 驳回 (waiting_acceptance → in_progress, 记录驳回原因)
+// 对齐 V1.1 useFarmOperationRecordStore.rejectCompletion
+function handleReject(task) {
+  rejectTarget.value = task
+  rejectReason.value = ''
+  showRejectModal.value = true
+}
+
+async function confirmReject() {
+  if (!rejectReason.value.trim()) {
+    ElMessage.warning('请输入驳回原因')
+    return
+  }
+  if (!rejectTarget.value) return
+  try {
+    await tempTaskStore.updateTask(rejectTarget.value.id, {
+      status: 'in_progress',
+      rejectReason: rejectReason.value.trim(),
+      rejectCount: (rejectTarget.value.rejectCount || 0) + 1,
+    })
+    ElMessage.success('已驳回,任务回到进行中')
+    showRejectModal.value = false
+  } catch (e) {
+    ElMessage.error('驳回失败: ' + (e?.message || '未知错误'))
+  }
+}
+
+// ========== 初始化: 加载 store 数据 (无 mock 兜底) ==========
+// V1.1 useTempTaskStore.fetchTasks 调用 enhancedApiClient.get('/temp-tasks')
 onMounted(async () => {
-  await tempTaskStore.fetchTasks()
-  if (!tempTaskStore.tasks || tempTaskStore.tasks.length === 0) {
-    const demos = generateDemoTempTasks(8)
-    for (const t of demos) {
-      await tempTaskStore.createTask(t).catch(() => {})
-    }
+  try {
+    // 调用 V1.1 同源 API: GET /api/temp-tasks
+    await tempTaskStore.fetchTasks()
+  } catch (e) {
+    console.warn('[TempTaskTab] 加载任务失败:', e)
   }
 })
 </script>

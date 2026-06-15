@@ -15,5 +15,8 @@
 <script setup>
 import { Promotion } from '@element-plus/icons-vue'
 
-defineProps({"title":"'农事任务派发'","subtitle":"'智能排程与任务调度管理中心'"})
+defineProps({
+  title: { type: String, default: '农事任务派发' },
+  subtitle: { type: String, default: '智能排程与任务调度管理中心' },
+})
 </script>

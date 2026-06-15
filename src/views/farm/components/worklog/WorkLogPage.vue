@@ -217,8 +217,12 @@ const filteredData = computed(() => {
   if (filters.value.greenhouse && filters.value.greenhouse !== '全部') {
     data = data.filter(log => log.greenhouse === filters.value.greenhouse)
   }
-  pagination.value.total = data.length
   return data
+})
+
+// 同步分页总数（在 computed 外避免副作用警告）
+watch(filteredLogs, (val) => {
+  pagination.value.total = val.length
 })
 
 // 查看详情

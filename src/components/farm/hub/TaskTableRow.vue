@@ -188,14 +188,14 @@
       <span v-else class="text-gray-400 text-xs">-</span>
     </td>
 
-    <!-- 计划开始 -->
+    <!-- 计划开始 - 对齐 V1.1 TaskTableRow.tsx line 467-469：移除 ISO T，用空格分隔 -->
     <td class="px-3 py-3 text-sm text-gray-600 whitespace-nowrap">
-      {{ task.planStart || task.dueDate || '-' }}
+      {{ formatDateTime(task.planStart || task.dueDate) }}
     </td>
 
-    <!-- 计划结束 -->
+    <!-- 计划结束 - 对齐 V1.1 TaskTableRow.tsx line 472-474 -->
     <td class="px-3 py-3 text-sm text-gray-600 whitespace-nowrap">
-      {{ task.planEnd || task.dueDate || '-' }}
+      {{ formatDateTime(task.planEnd || task.dueDate) }}
     </td>
 
     <!-- 任务工时 -->
@@ -304,15 +304,33 @@ const sopDisplayText = computed(() => {
   return content.length > 20 ? content.substring(0, 20) + '...' : content
 })
 
+/**
+ * 格式化日期时间 - 对齐 V1.1 TaskTableRow.tsx line 467-469
+ * V1.1 显示格式：2026-05-28 20:29（ISO 去掉 T，用空格分隔）
+ * V2.0 修复：直接显示 ISO 字符串会出现 2026-05-28T20:29，需替换为 2026-05-28 20:29
+ * @param {string} val - ISO 日期字符串或日期字符串
+ * @returns {string} 格式化后的日期时间，空值返回 '-'
+ */
+const formatDateTime = (val) => {
+  if (!val) return '-'
+  // ISO 字符串包含 T → 替换为空格，并截取 YYYY-MM-DD HH:mm
+  if (typeof val === 'string' && val.includes('T')) {
+    const [datePart, timePart] = val.split('T')
+    if (!timePart) return datePart
+    return `${datePart} ${timePart.substring(0, 5)}`
+  }
+  return val
+}
+
 /** 是否显示催办按钮 */
 const showRemindButton = computed(() => {
   return !['draft', 'completed', 'cancelled', 'abandoned', 'pending'].includes(props.task.status)
 })
 
-/** 催办检查结果 */
+/** 催办检查结果 - 对齐 V1.1 TaskTableRow.tsx line 419-421 canRemind(task.id) */
 const remindCheck = computed(() => {
-  if (!props.canRemind) return { allowed: false, reason: '' }
-  return props.canRemind(props.task.id)
+  if (!props.canRemind) return { allowed: false, reason: '', cooldownSec: 0, todayCount: 0 }
+  return props.canRemind(props.task.id) || { allowed: false, reason: '', cooldownSec: 0, todayCount: 0 }
 })
 
 /** 催办按钮提示文字 */

@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { defineComponent, computed, h } from 'vue'
+import { defineComponent, h } from 'vue'
 import { WarningFilled, Clock } from '@element-plus/icons-vue'
 
 /**
@@ -33,7 +33,7 @@ export const OvertimeDuration = defineComponent({
     size: { type: String, default: 'sm' }
   },
   setup(props) {
-    const durationText = computed(() => {
+    const durationText = (() => {
       const started = new Date(props.startedAt)
       const now = new Date()
       const diffMs = now.getTime() - started.getTime()
@@ -44,11 +44,11 @@ export const OvertimeDuration = defineComponent({
         return `已超时${diffDays}天${remainHours > 0 ? remainHours + '小时' : ''}`
       }
       return `已超时${diffHours}小时`
-    })
+    })()
 
-    const sizeClass = computed(() => props.size === 'sm' ? 'text-xs' : 'text-sm')
+    const sizeClass = props.size === 'sm' ? 'text-xs' : 'text-sm'
 
-    return () => h('span', { class: `text-red-600 font-medium ${sizeClass.value}` }, durationText.value)
+    return () => h('span', { class: `text-red-600 font-medium ${sizeClass}` }, durationText)
   }
 })
 </script>

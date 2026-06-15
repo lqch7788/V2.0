@@ -100,7 +100,7 @@ class ApiClient {
     } catch (error) {
       clearTimeout(timeoutId);
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error(`请求超时（${this.timeout}ms）`);
+        throw new Error(`请求超时（${this.timeout}ms）`, { cause: error });
       }
       throw error;
     }

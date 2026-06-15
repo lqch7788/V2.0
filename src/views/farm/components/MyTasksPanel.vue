@@ -346,7 +346,7 @@ const filteredTasks = computed(() => {
     return getTime(b) - getTime(a)
   }
 
-  let result = []
+  let result
   switch (taskFilter.value) {
     case 'production':
       // 农事任务：仅显示 NS 开头，排除临时任务和问题反馈任务
