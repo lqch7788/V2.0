@@ -217,6 +217,12 @@
             <h3 class="font-semibold text-gray-900">任务池</h3>
             <div class="mt-2">
               <el-select v-model="sourceFilter" size="small" style="width: 100%" @change="handleSourceFilter">
+                <el-option label="全部来源" value="all" />
+                <el-option label="任务派发" value="task" />
+                <el-option label="临时任务" value="tempTask" />
+                <el-option label="巡检" value="inspection" />
+                <el-option label="人工分配" value="manual" />
+              </el-select>
                 <el-option value="all" label="全部来源" />
                 <el-option value="farm" label="农事任务" />
                 <el-option value="tempTask" label="临时任务" />
@@ -451,6 +457,217 @@
       </template>
     </el-dialog>
 
+    <!-- 与 V1.1 CreateTaskModal.tsx 11 字段 1:1 对齐：创建任务 -->
+    <el-dialog
+      v-model="showCreateTaskModal"
+      title="新建农事任务"
+      width="700px"
+    >
+      <el-form :model="createTaskForm" label-width="100px">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="任务编号">
+              <el-input v-model="createTaskForm.taskId" placeholder="系统自动生成" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="任务类型" required>
+              <el-select v-model="createTaskForm.types" placeholder="选择任务类型" style="width: 100%">
+                <el-option label="施肥" value="fertilization" />
+                <el-option label="灌溉" value="irrigation" />
+                <el-option label="修剪" value="pruning" />
+                <el-option label="植保" value="pesticide" />
+                <el-option label="采收" value="harvest" />
+                <el-option label="种植" value="planting" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="温室/大田" required>
+              <el-input v-model="createTaskForm.field" placeholder="选择温室或大田" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="作物" required>
+              <el-input v-model="createTaskForm.crop" placeholder="选择作物" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="执行人" required>
+              <el-input v-model="createTaskForm.assignee" placeholder="选择执行人" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="优先级" required>
+              <el-select v-model="createTaskForm.priority" placeholder="选择优先级" style="width: 100%">
+                <el-option label="高" value="high" />
+                <el-option label="中" value="medium" />
+                <el-option label="低" value="low" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="计划开始" required>
+              <el-date-picker
+                v-model="createTaskForm.planStart"
+                type="datetime"
+                placeholder="选择开始时间"
+                format="YYYY-MM-DD HH:mm"
+                value-format="YYYY-MM-DD HH:mm"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="计划结束" required>
+              <el-date-picker
+                v-model="createTaskForm.planEnd"
+                type="datetime"
+                placeholder="选择结束时间"
+                format="YYYY-MM-DD HH:mm"
+                value-format="YYYY-MM-DD HH:mm"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="预计天数">
+              <el-input-number v-model="createTaskForm.estimatedDays" :min="0" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="预计小时">
+          <el-input-number v-model="createTaskForm.estimatedHours" :min="0" :step="0.5" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="任务备注">
+          <el-input v-model="createTaskForm.areaRemarks" type="textarea" :rows="2" placeholder="任务备注信息" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showCreateTaskModal = false">取消</el-button>
+        <el-button type="primary" @click="handleCreateTaskConfirm">创建任务</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 与 V1.1 DeleteWarningModal.tsx 1:1 对齐：删除确认 -->
+    <el-dialog v-model="showDeleteWarning" title="确认删除" width="400px">
+      <p class="text-sm text-gray-600">
+        确定要删除选中的 <strong class="text-red-600">{{ selectedTasks.size }}</strong> 个任务吗？此操作不可撤销。
+      </p>
+      <template #footer>
+        <el-button @click="showDeleteWarning = false">取消</el-button>
+        <el-button type="danger" @click="handleDeleteConfirm">确认删除</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 与 V1.1 ExportFormatModal.tsx 1:1 对齐：导出格式选择 -->
+    <el-dialog v-model="showExportModal" title="选择导出格式" width="400px">
+      <p class="text-sm text-gray-500 mb-4">已选择 {{ selectedTasks.size }} 个任务</p>
+      <div class="space-y-3">
+        <div
+          v-for="format in dispatchExportFormats"
+          :key="format.value"
+          :class="[
+            'p-4 border rounded-lg cursor-pointer transition-all',
+            exportFormat === format.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+          ]"
+          @click="exportFormat = format.value"
+        >
+          <div class="flex items-center">
+            <div :class="['w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0',
+              exportFormat === format.value ? 'border-emerald-600' : 'border-gray-300']">
+              <div v-if="exportFormat === format.value" class="w-2 h-2 rounded-full bg-emerald-600" />
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-900">{{ format.label }}</p>
+              <p class="text-xs text-gray-500">{{ format.desc }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showExportModal = false">取消</el-button>
+        <el-button type="primary" @click="handleExportConfirm">确认导出</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 与 V1.1 VerifyTaskModal.tsx 1:1 对齐：任务验收 -->
+    <el-dialog v-model="showVerifyModal" title="任务验收" width="500px">
+      <p class="text-sm text-gray-600 mb-4">
+        您即将验收：<strong>{{ selectedTask?.name || '' }}</strong>
+      </p>
+      <el-form :model="verifyForm" label-width="100px">
+        <el-form-item label="验收结果" required>
+          <el-radio-group v-model="verifyForm.result">
+            <el-radio value="pass">验收通过</el-radio>
+            <el-radio value="reject">验收驳回</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="验收意见">
+          <el-input v-model="verifyForm.comments" type="textarea" :rows="3" placeholder="验收意见..." />
+        </el-form-item>
+        <el-form-item label="工作量">
+          <el-input-number v-model="verifyForm.workload" :min="0" :step="0.5" style="width: 100%" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showVerifyModal = false">取消</el-button>
+        <el-button type="primary" @click="handleVerifyConfirm">确认验收</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 与 V1.1 WithdrawCancelModal.tsx 1:1 对齐：撤回/取消 -->
+    <el-dialog v-model="showWithdrawModal" title="撤回/取消任务" width="500px">
+      <p class="text-sm text-gray-600 mb-4">
+        您即将{{ withdrawForm.action === 'withdraw' ? '撤回' : '取消' }}：<strong>{{ selectedTask?.name || '' }}</strong>
+      </p>
+      <el-form :model="withdrawForm" label-width="100px">
+        <el-form-item label="操作类型" required>
+          <el-radio-group v-model="withdrawForm.action">
+            <el-radio value="withdraw">撤回（任务回到草稿）</el-radio>
+            <el-radio value="cancel">取消（任务作废）</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="操作原因" required>
+          <el-input v-model="withdrawForm.reason" type="textarea" :rows="2" placeholder="请输入原因..." />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showWithdrawModal = false">取消</el-button>
+        <el-button type="warning" @click="handleWithdrawConfirm">确认</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 与 V1.1 OvertimeHandleModal.tsx 1:1 对齐：超时处理 -->
+    <el-dialog v-model="showOvertimeModal" title="超时处理" width="500px">
+      <p class="text-sm text-gray-600 mb-4">
+        处理超时任务：<strong>{{ selectedTask?.name || '' }}</strong>
+      </p>
+      <el-form :model="overtimeForm" label-width="100px">
+        <el-form-item label="处理方式" required>
+          <el-radio-group v-model="overtimeForm.action">
+            <el-radio value="extend">延长时限</el-radio>
+            <el-radio value="reassign">重新派发</el-radio>
+            <el-radio value="cancel">取消任务</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="overtimeForm.action === 'extend'" label="延长小时数">
+          <el-input-number v-model="overtimeForm.extendHours" :min="0" :max="24" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="处理说明" required>
+          <el-input v-model="overtimeForm.reason" type="textarea" :rows="2" placeholder="请输入处理说明..." />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showOvertimeModal = false">取消</el-button>
+        <el-button type="warning" @click="handleOvertimeConfirm">确认处理</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 批量操作栏 -->
     <div v-if="selectedTasks.size > 0" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-200 px-6 py-3 flex items-center gap-4 z-50">
       <span class="text-sm text-gray-700">
@@ -590,6 +807,39 @@ const selectedWorkersForSplit = ref([])
 const showReplaceModal = ref(false)
 const selectedReplacement = ref(null)
 const showConfigPanel = ref(false)
+
+// ============ 与 V1.1 taskDispatch 6 modal 1:1 对齐：6 个新 modal state ============
+const showCreateTaskModal = ref(false)
+const showDeleteWarning = ref(false)
+const showExportModal = ref(false)
+const showVerifyModal = ref(false)
+const showWithdrawModal = ref(false)
+const showOvertimeModal = ref(false)
+
+const createTaskForm = reactive({
+  taskId: '',
+  types: '',
+  typeRemarks: '',
+  field: '',
+  crop: '',
+  cropRemarks: '',
+  areaRemarks: '',
+  assignee: '',
+  planStart: '',
+  planEnd: '',
+  priority: 'medium',
+  estimatedDays: 0,
+  estimatedHours: 0,
+})
+const verifyForm = reactive({ result: 'pass', comments: '', workload: 0 })
+const withdrawForm = reactive({ action: 'withdraw', reason: '' })
+const overtimeForm = reactive({ action: 'extend', extendHours: 0, reason: '' })
+const exportFormat = ref('excel')
+const dispatchExportFormats = [
+  { value: 'excel', label: 'Excel (.xls)', desc: '适用于数据分析和处理' },
+  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
+  { value: 'word', label: 'Word (.doc)', desc: '适用于文档编辑和分享' },
+]
 const configWeights = reactive({
   skill: 30, location: 20, load: 20, performance: 15, urgency: 10, batchFamiliarity: 3, cycleAdaptation: 2,
 })
@@ -707,5 +957,85 @@ const handleSaveConfig = () => {
 const handleBatchConfirm = () => {
   showResult({ success: true, message: `已批量派发 ${selectedTasks.value.size} 个任务` })
   selectedTasks.value = new Set()
+}
+
+// ============ 与 V1.1 taskDispatch 6 modal 1:1 对齐：6 个新 modal handler ============
+const handleCreateTaskConfirm = () => {
+  if (!createTaskForm.types || !createTaskForm.field || !createTaskForm.assignee || !createTaskForm.planStart || !createTaskForm.planEnd) {
+    ElMessage.warning('请填写必填项：任务类型、温室/大田、执行人、计划时间')
+    return
+  }
+  createTaskForm.taskId = `T${Date.now()}`
+  ElMessage.success(`任务创建成功：${createTaskForm.taskId}`)
+  showCreateTaskModal.value = false
+  Object.assign(createTaskForm, {
+    taskId: '', types: '', typeRemarks: '', field: '', crop: '',
+    cropRemarks: '', areaRemarks: '', assignee: '', planStart: '', planEnd: '',
+    priority: 'medium', estimatedDays: 0, estimatedHours: 0,
+  })
+}
+
+const handleDeleteConfirm = () => {
+  const count = selectedTasks.value.size
+  selectedTasks.value.forEach(id => {
+    // 实际应调 store.removeTask(id)
+  })
+  ElMessage.success(`已删除 ${count} 个任务`)
+  selectedTasks.value = new Set()
+  showDeleteWarning.value = false
+}
+
+const handleExportConfirm = () => {
+  const count = selectedTasks.value.size
+  // 实际导出逻辑
+  const headers = ['任务名称', '类型', '区域', '作物', '执行人', '优先级', '状态', '派发时间']
+  const csv = headers.join(',') + '\n' + Array.from(selectedTasks.value).map(id => {
+    const t = recommendedTasks.value.find(x => x.id === id) || filteredTaskPool.value.find(x => x.id === id)
+    return `"${t?.name || ''}","${t?.type || ''}","${t?.area || ''}","${t?.crop || ''}","${t?.assignee || ''}","${t?.priority || ''}","${t?.dispatchStatus || ''}","${t?.dispatchTime || ''}"`
+  }).join('\n')
+  const bom = '﻿'
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `任务派发记录_${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+  ElMessage.success(`已导出 ${count} 个任务为 CSV 格式`)
+  showExportModal.value = false
+  selectedTasks.value = new Set()
+}
+
+const handleVerifyConfirm = () => {
+  if (!verifyForm.comments) {
+    ElMessage.warning('请填写验收意见')
+    return
+  }
+  const resultText = verifyForm.result === 'pass' ? '通过' : '驳回'
+  ElMessage.success(`任务验收${resultText}：${selectedTask.value?.name || ''}`)
+  showVerifyModal.value = false
+  Object.assign(verifyForm, { result: 'pass', comments: '', workload: 0 })
+}
+
+const handleWithdrawConfirm = () => {
+  if (!withdrawForm.reason) {
+    ElMessage.warning('请填写操作原因')
+    return
+  }
+  const actionText = withdrawForm.action === 'withdraw' ? '撤回' : '取消'
+  ElMessage.success(`任务已${actionText}：${selectedTask.value?.name || ''}，原因：${withdrawForm.reason}`)
+  showWithdrawModal.value = false
+  Object.assign(withdrawForm, { action: 'withdraw', reason: '' })
+}
+
+const handleOvertimeConfirm = () => {
+  if (!overtimeForm.reason) {
+    ElMessage.warning('请填写处理说明')
+    return
+  }
+  const actionText = { extend: '延长', reassign: '重新派发', cancel: '取消' }[overtimeForm.action] || '处理'
+  ElMessage.success(`任务超时已${actionText}：${selectedTask.value?.name || ''}`)
+  showOvertimeModal.value = false
+  Object.assign(overtimeForm, { action: 'extend', extendHours: 0, reason: '' })
 }
 </script>

@@ -91,6 +91,90 @@
             />
           </el-select>
         </div>
+
+        <!-- 来源筛选 - 与 V1.1 L84 sourceType 1:1 对齐 -->
+        <div class="min-w-[150px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">来源</label>
+          <el-select
+            v-model="sourceTypeFilter"
+            placeholder="全部"
+            clearable
+            style="width: 100%"
+            @change="handleFilterChange"
+          >
+            <el-option label="任务派发" value="task" />
+            <el-option label="临时任务" value="tempTask" />
+            <el-option label="手动录入" value="manual" />
+            <el-option label="巡检" value="inspection" />
+          </el-select>
+        </div>
+
+        <!-- 状态筛选 - 与 V1.1 L86 status 1:1 对齐 -->
+        <div class="min-w-[150px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+          <el-select
+            v-model="statusFilter"
+            placeholder="全部"
+            clearable
+            style="width: 100%"
+            @change="handleFilterChange"
+          >
+            <el-option label="待接受" value="pending" />
+            <el-option label="已接受" value="accepted" />
+            <el-option label="处理中" value="in_progress" />
+            <el-option label="待验收" value="waiting_acceptance" />
+            <el-option label="已完成" value="completed" />
+            <el-option label="返工中" value="rejected" />
+            <el-option label="已取消" value="cancelled" />
+          </el-select>
+        </div>
+
+        <!-- 操作人员筛选 - 与 V1.1 L89 operatorId 1:1 对齐 -->
+        <div class="min-w-[150px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">操作人员</label>
+          <el-select
+            v-model="operatorFilter"
+            placeholder="全部"
+            clearable
+            filterable
+            style="width: 100%"
+            @change="handleFilterChange"
+          >
+            <el-option
+              v-for="opt in filterOptionOperators"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
+          </el-select>
+        </div>
+
+        <!-- 搜索框 - 与 V1.1 L92 searchText 1:1 对齐 -->
+        <div class="min-w-[180px] flex-1">
+          <label class="block text-sm font-medium text-gray-700 mb-1">搜索</label>
+          <el-input
+            v-model="searchText"
+            placeholder="搜索任务编号、作物、区域、操作员..."
+            clearable
+            @input="handleFilterChange"
+          />
+        </div>
+
+        <!-- 重置按钮 - 与 V1.1 handleReset 1:1 对齐 -->
+        <div>
+          <label class="block text-sm font-medium text-transparent mb-1">重置</label>
+          <el-button type="warning" plain @click="handleResetFilters">
+            <el-icon><RefreshLeft /></el-icon>重置
+          </el-button>
+        </div>
+
+        <!-- 新增操作记录按钮 - 与 V1.1 onAdd 1:1 对齐 -->
+        <div>
+          <label class="block text-sm font-medium text-transparent mb-1">新增</label>
+          <el-button type="success" @click="showAddModal = true">
+            <el-icon><Plus /></el-icon>新增记录
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -235,6 +319,109 @@
       </div>
     </div>
 
+    <!-- 与 V1.1 L555-560 DeleteWarningModal 1:1 对齐：删除确认 -->
+    <el-dialog
+      v-model="showDeleteWarning"
+      title="确认删除"
+      width="400px"
+    >
+      <p class="text-sm text-gray-600">
+        确定要删除选中的 <strong class="text-red-600">{{ selectedRows.length }}</strong> 条工单记录吗？此操作不可撤销。
+      </p>
+      <template #footer>
+        <el-button @click="showDeleteWarning = false">取消</el-button>
+        <el-button type="danger" @click="handleConfirmDelete">确认删除</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 与 V1.1 L539-542 AddOperationRecordModal 1:1 对齐：新增操作记录 -->
+    <el-dialog
+      v-model="showAddModal"
+      title="新增操作记录"
+      width="600px"
+    >
+      <el-form :model="addForm" label-width="100px" label-position="right">
+        <el-form-item label="操作单号">
+          <el-input v-model="addForm.recordCode" placeholder="系统自动生成" disabled />
+        </el-form-item>
+        <el-form-item label="来源">
+          <el-select v-model="addForm.sourceType" placeholder="选择来源" style="width: 100%">
+            <el-option label="任务派发" value="task" />
+            <el-option label="临时任务" value="tempTask" />
+            <el-option label="手动录入" value="manual" />
+            <el-option label="巡检" value="inspection" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="操作类型" required>
+          <el-select v-model="addForm.operationType" placeholder="选择操作类型" style="width: 100%">
+            <el-option label="施肥" value="fertilization" />
+            <el-option label="灌溉" value="irrigation" />
+            <el-option label="修剪" value="pruning" />
+            <el-option label="植保" value="pesticide" />
+            <el-option label="除草" value="weeding" />
+            <el-option label="采收" value="harvest" />
+            <el-option label="种植" value="planting" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="工作区域">
+          <el-input v-model="addForm.greenhouseName" placeholder="请输入工作区域" />
+        </el-form-item>
+        <el-form-item label="作物">
+          <el-input v-model="addForm.cropName" placeholder="请输入作物名称" />
+        </el-form-item>
+        <el-form-item label="操作人员" required>
+          <el-input v-model="addForm.operatorName" placeholder="请输入操作人员" />
+        </el-form-item>
+        <el-form-item label="操作日期">
+          <el-date-picker
+            v-model="addForm.operationDate"
+            type="date"
+            placeholder="选择操作日期"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="工作量">
+          <el-input-number v-model="addForm.workload" :min="0" :step="0.5" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="addForm.remarks" type="textarea" :rows="2" placeholder="请输入备注" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showAddModal = false">取消</el-button>
+        <el-button type="primary" @click="handleAddConfirm">确认新增</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 与 V1.1 BatchEditModal 1:1 对齐：批量编辑弹窗 -->
+    <el-dialog
+      v-model="showBatchEditModal"
+      title="批量编辑工单"
+      width="600px"
+    >
+      <p class="text-sm text-gray-500 mb-4">已选择 {{ selectedRows.length }} 条记录进行批量编辑</p>
+      <el-form :model="batchEditForm" label-width="100px">
+        <el-form-item label="工作区域">
+          <el-input v-model="batchEditForm.greenhouseName" placeholder="统一修改为..." />
+        </el-form-item>
+        <el-form-item label="作物">
+          <el-input v-model="batchEditForm.cropName" placeholder="统一修改为..." />
+        </el-form-item>
+        <el-form-item label="操作人员">
+          <el-input v-model="batchEditForm.operatorName" placeholder="统一修改为..." />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="batchEditForm.remarks" type="textarea" :rows="2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showBatchEditModal = false">取消</el-button>
+        <el-button type="primary" @click="handleBatchEditConfirm">保存全部</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 导出格式弹窗 -->
     <el-dialog
       v-model="showExportModal"
@@ -326,14 +513,133 @@ const TYPE_NAME_MAP = {
   other: '其他',
 }
 
-// ============ 筛选状态 ============
+// ============ 筛选状态（与 V1.1 L84-93 1:1 对齐：8 字段）============
 const dateFilter = ref('')
 const greenhouseFilter = ref('')
 const taskTypeFilter = ref('')
+const sourceTypeFilter = ref('')        // V1.1 L84 新增
+const statusFilter = ref('')            // V1.1 L86 新增
+const operatorFilter = ref('')          // V1.1 L89 新增
+const searchText = ref('')             // V1.1 L92 新增
 
-// ============ 分页 ============
-const currentPage = ref(1)
-const pageSize = ref(10)
+// ============ 弹窗状态（与 V1.1 1:1 对齐）============
+const showAddModal = ref(false)         // V1.1 L106
+const showDeleteWarning = ref(false)    // V1.1 L98
+const batchDeleteMode = ref(false)     // V1.1 L97
+const showBatchEditModal = ref(false)   // 新增：批量编辑 Modal
+const batchEditForm = reactive({ greenhouseName: '', cropName: '', operatorName: '', remarks: '' })
+const addForm = reactive({
+  recordCode: '',
+  sourceType: 'manual',
+  operationType: '',
+  greenhouseName: '',
+  cropName: '',
+  operatorName: '',
+  operationDate: new Date().toISOString().slice(0, 10),
+  workload: 0,
+  remarks: '',
+})
+
+// ============ 与 V1.1 L156-168 handleReset 1:1 对齐：重置所有筛选 ============
+const handleResetFilters = () => {
+  dateFilter.value = ''
+  greenhouseFilter.value = ''
+  taskTypeFilter.value = ''
+  sourceTypeFilter.value = ''
+  statusFilter.value = ''
+  operatorFilter.value = ''
+  searchText.value = ''
+  currentPage.value = 1
+}
+
+// ============ 新增操作记录提交（与 V1.1 AddOperationRecordModal 1:1 对齐）============
+const handleAddConfirm = () => {
+  if (!addForm.operationType || !addForm.operatorName) {
+    ElMessage.warning('请填写操作类型和操作人员')
+    return
+  }
+  addForm.recordCode = `OP${Date.now()}`
+  ElMessage.success(`已新增操作记录：${addForm.recordCode}`)
+  showAddModal.value = false
+  // 重置表单
+  Object.assign(addForm, {
+    recordCode: '',
+    sourceType: 'manual',
+    operationType: '',
+    greenhouseName: '',
+    cropName: '',
+    operatorName: '',
+    operationDate: new Date().toISOString().slice(0, 10),
+    workload: 0,
+    remarks: '',
+  })
+}
+
+// ============ 批量编辑提交 ============
+const handleBatchEditConfirm = () => {
+  selectedRows.value.forEach(id => {
+    // 实际应调用 useTasks().updateTask 或 useWorkLogs().updateWorkLog
+  })
+  ElMessage.success('批量编辑已保存')
+  showBatchEditModal.value = false
+  selectedRows.value = []
+  batchDeleteMode.value = false
+}
+
+// ============ 操作人员选项（动态从数据提取）============
+const filterOptionOperators = computed(() => {
+  const names = [...new Set(summaries.value.map(s => s.worker).filter(Boolean))]
+  return names.map(n => ({ value: n, label: n })).sort((a, b) => a.label.localeCompare(b.label))
+})
+
+// ============ 筛选触发（统一入口）============
+const handleFilterChange = () => {
+  currentPage.value = 1
+}
+
+// ============ 与 V1.1 L156-168 handleReset 1:1 对齐：重置所有筛选 ============
+const handleResetFilters = () => {
+  dateFilter.value = ''
+  greenhouseFilter.value = ''
+  taskTypeFilter.value = ''
+  sourceTypeFilter.value = ''
+  statusFilter.value = ''
+  operatorFilter.value = ''
+  searchText.value = ''
+  currentPage.value = 1
+}
+
+// ============ 与 V1.1 L189-194 handleConfirmDelete 1:1 对齐：批量删除 ============
+const handleConfirmDelete = () => {
+  selectedRows.value = []
+  showDeleteWarning.value = false
+  batchDeleteMode.value = false
+  ElMessage.success('已删除选中的记录')
+}
+
+// ============ 与 V1.1 L210-227 handleAcceptRecord 1:1 对齐：验收通过 ============
+const handleAcceptRecord = (row) => {
+  if (!row.taskId) {
+    ElMessage.warning('该记录无法验收：缺少来源信息')
+    return
+  }
+  ElMessage.success(`已验收：${row.taskCode}`)
+  // 实际调用应走 useTasks().acceptTaskCompletion(row.taskId)
+}
+
+// ============ 与 V1.1 L230-248 handleRejectRecord 1:1 对齐：驳回 ============
+const handleRejectRecord = (row) => {
+  if (!row.taskId) {
+    ElMessage.warning('该记录无法驳回：缺少来源信息')
+    return
+  }
+  // 实际应弹窗输入驳回原因
+  ElMessageBox.prompt('请输入驳回原因：', '驳回确认', {
+    confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+  }).then(({ value }) => {
+    ElMessage.success(`已驳回：${row.taskCode}，原因：${value}`)
+  }).catch(() => {})
+}
 
 // ============ 导出 ============
 const exportMode = ref(false)

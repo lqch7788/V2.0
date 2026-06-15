@@ -408,6 +408,26 @@ const handleFormClose = () => {
   editingTeam.value = null
 }
 
+// ============ 与 V1.1 L16-22 1:1 对齐：数据兼容工具 ============
+// 规范化记录（兼容 snake_case 和 camelCase）
+function normalizeRecord(record) {
+  if (!record) return record
+  return {
+    ...record,
+    staffName: record.staffName || record.staff_name || '',
+    workZone: record.workZone || record.work_zone || '',
+  }
+}
+
+// 获取规范名称
+function getStaffName(record) {
+  return record.staffName || record.staff_name || '-'
+}
+
+function getWorkZone(record) {
+  return record.workZone || record.work_zone || '-'
+}
+
 // ============ 初始化 ============
 onMounted(() => {
   store.initSeedData()
