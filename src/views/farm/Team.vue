@@ -45,7 +45,7 @@
       <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <el-icon :size="16" class="text-amber-600"><UserFilled /></el-icon>
+            <el-icon :size="16" class="text-amber-600"><CirclePlus /></el-icon>
           </div>
           <div>
             <p class="text-xs text-gray-500">未分配</p>
@@ -63,7 +63,7 @@
           <el-input v-model="filters.name" placeholder="请输入" size="small" style="width: 140px" clearable />
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500 whitespace-nowrap">负责人</span>
+          <span class="text-sm text-gray-500 whitespace-nowrap">负责人:</span>
           <el-input v-model="filters.leaderName" placeholder="请输入" size="small" style="width: 140px" clearable />
         </div>
         <div class="flex items-center gap-2">
@@ -159,7 +159,7 @@
                 <el-button text circle @click="openDetailModal(row)" title="查看详情">
                   <el-icon><View /></el-icon>
                 </el-button>
-                <el-button v-if="canEdit" text circle @click="openAssignModal(row)" title="分配工人">
+                <el-button text circle @click="openAssignModal(row)" title="分配工人">
                   <el-icon><CirclePlus /></el-icon>
                 </el-button>
                 <el-button v-if="canEdit" text circle @click="openEditModal(row)" title="编辑">
@@ -248,7 +248,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, UserFilled, Plus, CirclePlus, Edit, Delete, View, Download } from '@element-plus/icons-vue'
+import { User, Plus, CirclePlus, Edit, Delete, View, Download } from '@element-plus/icons-vue'
 import TeamAssignModal from '@/components/labor/team/TeamAssignModal.vue'
 import TeamDetailModal from '@/components/labor/team/TeamDetailModal.vue'
 import { useTeamStore } from '@/stores/modules/team'
