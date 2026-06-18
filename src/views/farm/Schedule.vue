@@ -129,183 +129,40 @@
           @update:selectedDay="(v) => selectedDay = v"
         />
 
-        <!-- 表格视图 -->
-        <div v-else class="bg-white rounded-lg shadow">
-          <!-- 表格标题栏 + 批量按钮（V1.1 ScheduleTable L149-257 1:1 对齐） -->
-          <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900">排班记录</h3>
-            <div class="flex gap-2">
-              <template v-if="batchEditMode">
-                <el-button size="small" type="primary" :disabled="selectedRows.length === 0" @click="handleBatchEditClick">
-                  <el-icon><Edit /></el-icon>批量编辑
-                </el-button>
-                <el-button size="small" @click="handleCancelBatch">
-                  <el-icon><Close /></el-icon>取消
-                </el-button>
-              </template>
-              <template v-else-if="batchDeleteMode">
-                <el-button size="small" type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDeleteClick">
-                  <el-icon><Delete /></el-icon>确认删除
-                </el-button>
-                <el-button size="small" @click="handleCancelBatch">
-                  <el-icon><Close /></el-icon>取消
-                </el-button>
-              </template>
-              <template v-else-if="exportMode">
-                <el-button size="small" :disabled="selectedRows.length === 0" @click="handleBatchExportClick">
-                  <el-icon><Download /></el-icon>确认导出
-                </el-button>
-                <el-button size="small" @click="handleCancelBatch">
-                  <el-icon><Close /></el-icon>取消
-                </el-button>
-              </template>
-              <template v-else>
-                <el-button size="small" @click="handleBatchExportClick">
-                  <el-icon><Download /></el-icon>导出
-                </el-button>
-                <el-button size="small" @click="handleBatchEditClick">
-                  <el-icon><Edit /></el-icon>编辑
-                </el-button>
-                <el-button size="small" type="danger" @click="handleBatchDeleteClick">
-                  <el-icon><Delete /></el-icon>删除
-                </el-button>
-              </template>
-            </div>
-          </div>
-          <!-- 表格工具栏：搜索 + 筛选（V1.1 ScheduleTable L260-363 1:1 对齐） -->
-          <div class="p-4 space-y-3 border-b">
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex items-center gap-2 flex-1">
-                <el-input
-                  v-model="searchTerm"
-                  placeholder="搜索员工、区域、日期..."
-                  size="small"
-                  clearable
-                  style="max-width: 320px"
-                  @input="pagination.currentPage = 1"
-                />
-              </div>
-              <div class="text-sm text-gray-500">
-                共 {{ filteredSchedules.length }} 条记录
-              </div>
-            </div>
-            <div class="flex items-center gap-4 flex-wrap">
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">日期:</span>
-                <el-date-picker
-                  v-model="dateRange.start"
-                  type="date"
-                  size="small"
-                  format="YYYY-MM-DD"
-                  value-format="YYYY-MM-DD"
-                  style="width: 140px"
-                  @change="pagination.currentPage = 1"
-                />
-                <span class="text-gray-400">至</span>
-                <el-date-picker
-                  v-model="dateRange.end"
-                  type="date"
-                  size="small"
-                  format="YYYY-MM-DD"
-                  value-format="YYYY-MM-DD"
-                  style="width: 140px"
-                  @change="pagination.currentPage = 1"
-                />
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">班次:</span>
-                <el-select v-model="shiftFilter" size="small" style="width: 120px" @change="pagination.currentPage = 1">
-                  <el-option label="全部" value="all" />
-                  <el-option v-for="c in store.shiftConfigs" :key="c.name" :label="c.name" :value="c.name" />
-                </el-select>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">状态:</span>
-                <el-select v-model="statusFilter" size="small" style="width: 120px" @change="pagination.currentPage = 1">
-                  <el-option label="全部" value="all" />
-                  <el-option label="已排班" value="已排班" />
-                  <el-option label="已执行" value="已执行" />
-                  <el-option label="已取消" value="已取消" />
-                </el-select>
-              </div>
-            </div>
-          </div>
-
-          <el-table
-            class="schedule-table"
-            :data="filteredSchedules.slice((pagination.currentPage - 1) * pagination.pageSize, (pagination.currentPage - 1) * pagination.pageSize + pagination.pageSize)"
-            style="width: 100%"
-            :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#ffffff', fontWeight: 600 }"
-            :row-style="{ cursor: 'pointer' }"
-            @selection-change="handleSelectionChange"
-            @row-click="handleTableRowClick"
-          >
-            <el-table-column
-              v-if="exportMode || batchEditMode || batchDeleteMode"
-              type="selection"
-              width="50"
-            />
-            <!-- 日期（含星期）V1.1 L427-430 1:1 对齐 -->
-            <el-table-column label="日期" width="120">
-              <template #default="{ row }">
-                <div class="text-sm font-medium text-gray-900">{{ row.date }}</div>
-                <div class="text-xs text-gray-500">{{ getWeekday(row.date) }}</div>
-              </template>
-            </el-table-column>
-            <!-- 员工 V1.1 L431-433 -->
-            <el-table-column prop="staffName" label="员工" width="100">
-              <template #default="{ row }">
-                <div class="text-sm font-medium text-gray-900">{{ row.staffName || row.staff_name || '-' }}</div>
-              </template>
-            </el-table-column>
-            <!-- 班次（带颜色）V1.1 L434-441 -->
-            <el-table-column prop="shift" label="班次" width="100">
-              <template #default="{ row }">
-                <span :class="['inline-flex items-center px-2 py-1 rounded text-xs font-medium text-white', getShiftColor(row.shift)]">
-                  {{ row.shift }}
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="workZone" label="工作区域" width="120">
-              <template #default="{ row }">
-                <span class="text-sm text-gray-600">{{ row.workZone || row.work_zone || '-' }}</span>
-              </template>
-            </el-table-column>
-            <!-- 时间 V1.1 L445-447：开始 - 结束 -->
-            <el-table-column label="时间" width="140">
-              <template #default="{ row }">
-                <span class="text-sm text-gray-600">{{ getShiftTime(row.shift) }}</span>
-              </template>
-            </el-table-column>
-            <!-- 状态 V1.1 L448-457 -->
-            <el-table-column prop="status" label="状态" width="100">
-              <template #default="{ row }">
-                <span :class="['inline-flex items-center px-2 py-1 rounded text-xs font-medium', getStatusClass(row.status)]">
-                  {{ row.status }}
-                </span>
-              </template>
-            </el-table-column>
-            <!-- 签到/签退 V1.1 L458-460 -->
-            <el-table-column label="签到/签退" width="140">
-              <template #default="{ row }">
-                <span class="text-sm text-gray-600">{{ row.checkIn || '-' }} / {{ row.checkOut || '-' }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <!-- 批量操作提示栏（V1.1 ScheduleTable 无此栏，按钮已在表格标题栏 1:1 对齐） -->
-
-          <!-- 分页 -->
-          <div class="flex justify-end p-4">
-            <el-pagination
-              v-model:current-page="pagination.currentPage"
-              v-model:page-size="pagination.pageSize"
-              :page-sizes="[10, 20, 50]"
-              :total="filteredSchedules.length"
-              layout="total, sizes, prev, pager, next"
-            />
-          </div>
-        </div>
+        <!-- 表格视图 - 拆分为独立 SFC（V1.1 ScheduleTable.tsx 1:1 对齐） -->
+        <ScheduleTableView
+          v-else
+          :search-term="searchTerm"
+          :date-range="dateRange"
+          :shift-filter="shiftFilter"
+          :status-filter="statusFilter"
+          :batch-edit-mode="batchEditMode"
+          :batch-delete-mode="batchDeleteMode"
+          :export-mode="exportMode"
+          :selected-rows="selectedRows"
+          :shift-configs="store.shiftConfigs"
+          :filtered-schedules="filteredSchedules"
+          :paged-schedules="pagedSchedules"
+          :pagination="pagination"
+          :get-weekday="getWeekday"
+          :get-shift-color="getShiftColor"
+          :get-shift-time="getShiftTime"
+          :get-status-class="getStatusClass"
+          @update:searchTerm="(v) => searchTerm = v"
+          @update:dateRange="(v) => dateRange = v"
+          @update:shiftFilter="(v) => shiftFilter = v"
+          @update:statusFilter="(v) => statusFilter = v"
+          @update:selectedRows="(v) => selectedRows = v"
+          @update:pagination="(v) => pagination = v"
+          @search="pagination.currentPage = 1"
+          @date-change="pagination.currentPage = 1"
+          @filter-change="pagination.currentPage = 1"
+          @batch-edit-click="handleBatchEditClick"
+          @batch-delete-click="handleBatchDeleteClick"
+          @batch-export-click="handleBatchExportClick"
+          @cancel-batch="handleCancelBatch"
+          @row-click="handleTableRowClick"
+        />
       </div>
 
       <!-- 侧边栏 -->
@@ -743,8 +600,9 @@
 </template>
 
 <script setup>
-// V1.1 1:1 拆分：日历视图独立 SFC
+// V1.1 1:1 拆分：日历 + 表格视图独立 SFC
 import ScheduleCalendarView from './components/ScheduleCalendarView.vue'
+import ScheduleTableView from './components/ScheduleTableView.vue'
 import { ref, computed, onMounted, reactive } from 'vue'
 import { Calendar, List, User, Setting, Plus, Clock, ArrowLeft, ArrowRight, ArrowRight as Promotion, Download, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
