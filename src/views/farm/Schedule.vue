@@ -9,53 +9,13 @@
       @open-add="showAddModal = true"
     />
 
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-4 gap-3">
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <el-icon :size="16" class="text-blue-600"><Calendar /></el-icon>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500">今日排班</p>
-            <p class="text-lg font-bold text-gray-800">{{ store.todayCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-green-50 border border-green-200 rounded-lg p-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <el-icon :size="16" class="text-green-600"><Clock /></el-icon>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500">本周已执行</p>
-            <p class="text-lg font-bold text-gray-800">{{ store.executedCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <el-icon :size="16" class="text-amber-600"><User /></el-icon>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500">待调班申请</p>
-            <p class="text-lg font-bold text-gray-800">{{ store.pendingSwapCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <el-icon :size="16" class="text-purple-600"><List /></el-icon>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500">本月排班总数</p>
-            <p class="text-lg font-bold text-gray-800">{{ store.monthCount }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- 统计卡片 - 拆分为独立 SFC（V1.1 SchedulePage 1:1 对齐：4 卡片 今日/本周/待调班/本月） -->
+    <ScheduleStatsCards
+      :today-count="store.todayCount"
+      :executed-count="store.executedCount"
+      :pending-swap-count="store.pendingSwapCount"
+      :month-count="store.monthCount"
+    />
 
     <!-- 主内容区 -->
     <div class="grid grid-cols-3 gap-4">
@@ -218,8 +178,9 @@
 </template>
 
 <script setup>
-// V1.1 1:1 拆分：10 个独立 SFC（标题/日历/表格/班次编辑器/侧边栏/调班/批量编辑/新增/删除警告/导出格式）
+// V1.1 1:1 拆分：11 个独立 SFC（标题/统计/日历/表格/班次编辑器/侧边栏/调班/批量编辑/新增/删除警告/导出格式）
 import ScheduleHeader from './components/ScheduleHeader.vue'
+import ScheduleStatsCards from './components/ScheduleStatsCards.vue'
 import ScheduleCalendarView from './components/ScheduleCalendarView.vue'
 import ScheduleTableView from './components/ScheduleTableView.vue'
 import ScheduleShiftEditorModal from './components/ScheduleShiftEditorModal.vue'
