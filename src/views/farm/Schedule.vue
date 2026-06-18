@@ -360,85 +360,17 @@
       </template>
     </el-dialog>
 
-    <!-- 调班申请弹窗 - 与 V1.1 SwapRequestModal.tsx L75-172 1:1 对齐：6 字段完整表单 + 深度输入框 -->
-    <el-dialog v-model="showSwapModal" title="调班申请" width="500px">
-      <div class="space-y-4">
-        <!-- 申请人（V1.1 L78-94） -->
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">申请人</label>
-          <el-select
-            v-model="swapForm.requesterId"
-            placeholder="选择申请人"
-            class="w-full"
-            @change="handleSwapRequesterChange"
-          >
-            <el-option
-              v-for="staff in store.staffList"
-              :key="staff.id"
-              :label="`${staff.name} - ${staff.workZone || ''}`"
-              :value="staff.id"
-            />
-          </el-select>
-        </div>
-        <!-- 原排班日期（V1.1 L96-114） -->
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">原排班日期</label>
-          <el-date-picker
-            v-model="swapForm.originalDate"
-            type="date"
-            class="w-full"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-            placeholder="选择原排班日期"
-          />
-        </div>
-        <!-- 调班对象（V1.1 L116-133）：过滤掉申请人本人 -->
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">调班对象</label>
-          <el-select
-            v-model="swapForm.targetId"
-            placeholder="选择调班对象"
-            class="w-full"
-            @change="handleSwapTargetChange"
-          >
-            <el-option
-              v-for="staff in store.staffList.filter(s => s.id !== swapForm.requesterId)"
-              :key="staff.id"
-              :label="`${staff.name} - ${staff.workZone || ''}`"
-              :value="staff.id"
-            />
-          </el-select>
-        </div>
-        <!-- 目标日期（V1.1 L135-153） -->
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">目标日期</label>
-          <el-date-picker
-            v-model="swapForm.targetDate"
-            type="date"
-            class="w-full"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-            placeholder="选择目标日期"
-          />
-        </div>
-        <!-- 调班原因（V1.1 L155-170） -->
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">调班原因</label>
-          <el-input
-            v-model="swapForm.reason"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入调班原因..."
-          />
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="showSwapModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSwapSubmit">
-          <el-icon><Promotion /></el-icon>提交申请
-        </el-button>
-      </template>
-    </el-dialog>
+    <!-- 调班申请弹窗 - 拆分为独立 SFC（V1.1 SwapRequestModal.tsx L75-172 1:1 对齐） -->
+    <ScheduleSwapRequestModal
+      :is-open="showSwapModal"
+      :swap-form="swapForm"
+      :staff-list="store.staffList"
+      @close="showSwapModal = false"
+      @submit="handleSwapSubmit"
+      @update-form="(v) => swapForm = v"
+      @requester-change="handleSwapRequesterChange"
+      @target-change="handleSwapTargetChange"
+    />
 
     <!-- 班次设置弹窗 - 拆分为独立 SFC（V1.1 ShiftEditor.tsx L52-181 1:1 对齐） -->
     <ScheduleShiftEditorModal
@@ -457,11 +389,12 @@
 </template>
 
 <script setup>
-// V1.1 1:1 拆分：日历 + 表格 + 班次编辑器 + 侧边栏独立 SFC
+// V1.1 1:1 拆分：日历 + 表格 + 班次编辑器 + 侧边栏 + 调班申请独立 SFC
 import ScheduleCalendarView from './components/ScheduleCalendarView.vue'
 import ScheduleTableView from './components/ScheduleTableView.vue'
 import ScheduleShiftEditorModal from './components/ScheduleShiftEditorModal.vue'
 import ScheduleSidebar from './components/ScheduleSidebar.vue'
+import ScheduleSwapRequestModal from './components/ScheduleSwapRequestModal.vue'
 import { ref, computed, onMounted, reactive } from 'vue'
 import { Calendar, List, User, Setting, Plus, Clock, ArrowLeft, ArrowRight, ArrowRight as Promotion, Download, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
