@@ -149,28 +149,83 @@ export function useComprehensiveDispatch() {
     return taskPool.value.filter(t => t.source === source)
   }
 
-  // 单任务 AI 推荐（基于多因子评分）
+  // 单任务 AI 推荐（基于多因子评分 V1.1 L401-500 1:1 对齐：完整 reasonsDetail + riskWarnings + factorsDetail）
   const getRecommendations = (task) => {
     if (!task) return []
     return workers.value.map(worker => {
+      // 1. 技能匹配度
       const skillMatch = task.requiredSkills.length === 0 ? 80 :
         (task.requiredSkills.filter(s => worker.skills.includes(s)).length / task.requiredSkills.length) * 100
-      const locationScore = worker.workZone === task.workZone ? 100 : 60
+
+      // 2. 位置匹配
+      const locationScore = worker.workZone === task.workZone ? 100 :
+        (worker.workZone && task.workZone ? 60 : 50)
+
+      // 3. 负荷得分
       const loadScore = Math.max(0, 100 - worker.currentLoad)
+
+      // 4. 历史表现
       const performanceScore = worker.recentPerformance
+
+      // 5. 紧急程度
       const urgencyScore = task.priority === 'urgent' ? 100 : (task.priority === 'high' ? 80 : 60)
+
+      // 6. 批次熟悉度
       const batchFamiliarity = worker.batchFamiliarity?.[task.batchId] || 70
+
+      // 7. 周期适配（简化为经验加成）
+      const cycleAdaptation = worker.recentPerformance > 70 ? 80 : 50
+
+      // 8. 天气影响
       const weatherScore = envData.todayWeather?.value?.isSuitable ? 100 : 70
 
+      // 综合得分（V1.1 7 因子权重）
       const score =
         skillMatch * DEFAULT_DISPATCH_CONFIG.weights.skillMatch +
         locationScore * DEFAULT_DISPATCH_CONFIG.weights.location +
         loadScore * DEFAULT_DISPATCH_CONFIG.weights.currentLoad +
         performanceScore * DEFAULT_DISPATCH_CONFIG.weights.historicalPerformance +
         urgencyScore * DEFAULT_DISPATCH_CONFIG.weights.urgency +
-        batchFamiliarity * DEFAULT_DISPATCH_CONFIG.weights.batchFamiliarity
+        batchFamiliarity * DEFAULT_DISPATCH_CONFIG.weights.batchFamiliarity +
+        cycleAdaptation * DEFAULT_DISPATCH_CONFIG.weights.cycleAdaptation
 
       const confidenceLevel = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low'
+
+      // 详细推荐理由（V1.1 reasonsDetail）
+      const positive = []
+      const warning = []
+      if (skillMatch >= 80) positive.push(`技能完全匹配（${Math.round(skillMatch)}%）`)
+      else if (skillMatch >= 50) positive.push(`部分技能匹配（${Math.round(skillMatch)}%）`)
+      else warning.push(`技能匹配度低（${Math.round(skillMatch)}%）`)
+      if (locationScore === 100) positive.push('工作区域一致')
+      else if (locationScore === 60) warning.push('跨区域作业')
+      if (loadScore >= 70) positive.push(`当前负荷较低（${worker.currentLoad}%）`)
+      else if (loadScore < 40) warning.push(`当前负荷较高（${worker.currentLoad}%）`)
+      if (batchFamiliarity >= 80) positive.push('批次熟悉度高')
+      if (performanceScore >= 80) positive.push('历史表现优秀')
+      else if (performanceScore < 60) warning.push('历史表现一般')
+
+      // 风险预警
+      const riskWarnings = []
+      if (worker.currentLoad > 90) riskWarnings.push('当前负荷过高')
+      if (worker.attendanceStatus !== 'working') riskWarnings.push('非在岗状态')
+      if (task.priority === 'urgent' && score < 70) riskWarnings.push('紧急任务匹配度不足')
+      if (worker.skills.length === 0) riskWarnings.push('未登记技能')
+
+      // 因素详情（V1.1 factorsDetail）
+      const factorsDetail = {
+        production: task.cropName ? [`作物：${task.cropName}`, `批次：${task.batchCode || '未指定'}`] : [],
+        environment: [
+          `天气：${envData.todayWeather?.value?.condition || '未知'}`,
+          `气温：${envData.todayWeather?.value?.temperature || '--'}°C`,
+          `湿度：${envData.todayWeather?.value?.humidity || '--'}%`,
+        ],
+        worker: [
+          `员工：${worker.name}`,
+          `类型：${worker.workerType}`,
+          `当前负荷：${worker.currentLoad}%`,
+        ],
+      }
 
       return {
         worker,
@@ -190,10 +245,10 @@ export function useComprehensiveDispatch() {
         confidenceLevel,
         confidenceScore: Math.round(score),
         suggestedAction: score >= 70 ? 'dispatch' : 'review',
-        reasonsDetail: { positive: [], warning: [] },
-        riskWarnings: [],
+        reasonsDetail: { positive, warning },
+        riskWarnings,
         isAvailable: worker.attendanceStatus === 'working' && worker.currentLoad < 90,
-        factorsDetail: { production: [], environment: [], worker: [] },
+        factorsDetail,
       }
     }).sort((a, b) => b.matchScore - a.matchScore)
   }
