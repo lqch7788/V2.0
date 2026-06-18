@@ -208,6 +208,7 @@ import { useFarmTaskStore } from '@/stores/modules/farmTask.js'
 import { useProblemStore } from '@/stores/modules/problem.js'
 import { useTempTaskStore } from '@/stores/modules/tempTask.js'
 import { useInspectionDataStore } from '@/stores/modules/inspectionData.js'
+import { useUserStore } from '@/stores/modules/user.js'
 
 import TaskFilterTabs from './components/myTasks/TaskFilterTabs.vue'
 import ProductionTaskTableRow from './components/myTasks/ProductionTaskTableRow.vue'
@@ -237,12 +238,13 @@ const farmTaskStore = useFarmTaskStore()
 const problemStore = useProblemStore()
 const tempTaskStore = useTempTaskStore()
 const inspectionDataStore = useInspectionDataStore()
+const userStore = useUserStore()
 
 // 强制刷新 key（与 V1.1 一致）
 const refreshKey = ref(0)
 
-// 当前用户名（原型阶段默认使用陆启闯）
-const currentUserName = ref('陆启闯')
+// 当前用户名（从 useUserStore 获取，V1.1 L87 1:1 对齐；降级默认值'陆启闯'）
+const currentUserName = computed(() => userStore.users?.[0]?.name || '陆启闯')
 
 // ========== 任务数据映射（unifiedTasks 优先，farmTaskStore 降级）==========
 const myTasks = computed(() => {

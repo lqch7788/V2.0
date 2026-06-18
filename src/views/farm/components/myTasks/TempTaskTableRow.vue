@@ -85,7 +85,7 @@
         title="接受任务"
         @click="onAccept(task)"
       >
-        <el-icon class="w-3 h-3"><CircleCheck /></el-icon>
+        <el-icon class="w-4 h-4"><CircleCheck /></el-icon>
         接受
       </button>
       <button
@@ -93,7 +93,7 @@
         title="拒绝任务"
         @click="onReject(task)"
       >
-        <el-icon class="w-3 h-3"><CircleClose /></el-icon>
+        <el-icon class="w-4 h-4"><CircleClose /></el-icon>
         拒绝
       </button>
     </div>
@@ -104,7 +104,7 @@
       title="点击提交进度"
       @click="onOpenFeedbackModal(task)"
     >
-      <el-icon class="w-3 h-3"><EditPen /></el-icon>
+      <el-icon class="w-4 h-4"><EditPen /></el-icon>
       提交进度
     </button>
     <!-- rejected: 继续执行+查看 -->
@@ -114,7 +114,7 @@
         title="点击继续执行"
         @click="onContinueExecution(task)"
       >
-        <el-icon class="w-3 h-3"><VideoPlay /></el-icon>
+        <el-icon class="w-4 h-4"><VideoPlay /></el-icon>
         继续执行
       </button>
       <button
@@ -122,7 +122,7 @@
         title="点击查看详情"
         @click="onOpenDetailModal(task)"
       >
-        <el-icon class="w-3 h-3"><View /></el-icon>
+        <el-icon class="w-4 h-4"><View /></el-icon>
         查看
       </button>
     </div>
@@ -133,7 +133,7 @@
       title="点击查看详情"
       @click="onOpenDetailModal(task)"
     >
-      <el-icon class="w-3 h-3"><View /></el-icon>
+      <el-icon class="w-4 h-4"><View /></el-icon>
       查看
     </button>
   </td>

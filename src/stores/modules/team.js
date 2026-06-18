@@ -157,9 +157,6 @@ export const useTeamStore = defineStore('team', () => {
     unassignedWorkers.value = unassignedWorkers.value.filter(
       w => !workerIds.includes(w.id)
     )
-    // 与V1.1 L101-106 1:1 对齐：记录操作人（V1.1 写入 TeamAssignment 表）
-    team.lastAssignedBy = operatorName || 'system'
-    team.lastAssignedById = operatorId || ''
     persist()
   }
 

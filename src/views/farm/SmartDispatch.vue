@@ -301,6 +301,7 @@
                 <div class="flex items-center gap-2">
                   <el-button size="small" type="success" :disabled="!rec.isAvailable" @click="handleDispatch(rec)">派发</el-button>
                   <el-button size="small" @click="selectedTask = task; showDelayModal = true">延后</el-button>
+                  <el-button size="small" type="danger" plain @click="handleIgnore(rec)">忽略</el-button>
                 </div>
               </div>
             </div>
@@ -424,7 +425,7 @@
     <!-- ===== 弹窗 ===== -->
 
     <!-- 延后弹窗 -->
-    <el-dialog v-model="showDelayModal" title="延后派发" width="360px">
+    <el-dialog v-model="showDelayModal" title="延后派发" width="320px">
       <p class="text-sm text-gray-600 mb-4">将任务延后派发</p>
       <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 mb-2">延后天数</label>
@@ -442,7 +443,7 @@
     </el-dialog>
 
     <!-- 拆分弹窗 -->
-    <el-dialog v-model="showSplitModal" title="拆分任务" width="420px">
+    <el-dialog v-model="showSplitModal" title="拆分任务" width="384px">
       <p class="text-sm text-gray-600 mb-4">选择多个执行人来分担任务</p>
       <div class="mb-4 space-y-2 max-h-60 overflow-y-auto">
         <label v-for="worker in workerList" :key="worker.id"
@@ -461,7 +462,7 @@
     </el-dialog>
 
     <!-- 更换执行人弹窗 -->
-    <el-dialog v-model="showReplaceModal" title="更换执行人" width="420px">
+    <el-dialog v-model="showReplaceModal" title="更换执行人" width="384px">
       <p class="text-sm text-gray-600 mb-4">为 <span class="font-medium">{{ selectedTask?.title }}</span> 选择新的执行人</p>
       <div class="mb-4 space-y-2 max-h-60 overflow-y-auto">
         <label v-for="worker in workerList" :key="worker.id"
@@ -478,7 +479,7 @@
     </el-dialog>
 
     <!-- 配置中心弹窗 -->
-    <el-dialog v-model="showConfigPanel" title="派工配置中心" width="700px" top="5vh">
+    <el-dialog v-model="showConfigPanel" title="派工配置中心" width="896px" top="5vh">
       <div class="space-y-4">
         <div v-for="config in configItems" :key="config.key" class="flex items-center justify-between py-2 border-b border-gray-100">
           <div>
@@ -494,216 +495,7 @@
       </template>
     </el-dialog>
 
-    <!-- 与 V1.1 CreateTaskModal.tsx 11 字段 1:1 对齐：创建任务 -->
-    <el-dialog
-      v-model="showCreateTaskModal"
-      title="新建农事任务"
-      width="700px"
-    >
-      <el-form :model="createTaskForm" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="任务编号">
-              <el-input v-model="createTaskForm.taskId" placeholder="系统自动生成" disabled />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="任务类型" required>
-              <el-select v-model="createTaskForm.types" placeholder="选择任务类型" style="width: 100%">
-                <el-option label="施肥" value="fertilization" />
-                <el-option label="灌溉" value="irrigation" />
-                <el-option label="修剪" value="pruning" />
-                <el-option label="植保" value="pesticide" />
-                <el-option label="采收" value="harvest" />
-                <el-option label="种植" value="planting" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="温室/大田" required>
-              <el-input v-model="createTaskForm.field" placeholder="选择温室或大田" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="作物" required>
-              <el-input v-model="createTaskForm.crop" placeholder="选择作物" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="执行人" required>
-              <el-input v-model="createTaskForm.assignee" placeholder="选择执行人" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="优先级" required>
-              <el-select v-model="createTaskForm.priority" placeholder="选择优先级" style="width: 100%">
-                <el-option label="高" value="high" />
-                <el-option label="中" value="medium" />
-                <el-option label="低" value="low" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="计划开始" required>
-              <el-date-picker
-                v-model="createTaskForm.planStart"
-                type="datetime"
-                placeholder="选择开始时间"
-                format="YYYY-MM-DD HH:mm"
-                value-format="YYYY-MM-DD HH:mm"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="计划结束" required>
-              <el-date-picker
-                v-model="createTaskForm.planEnd"
-                type="datetime"
-                placeholder="选择结束时间"
-                format="YYYY-MM-DD HH:mm"
-                value-format="YYYY-MM-DD HH:mm"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="预计天数">
-              <el-input-number v-model="createTaskForm.estimatedDays" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="预计小时">
-          <el-input-number v-model="createTaskForm.estimatedHours" :min="0" :step="0.5" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="任务备注">
-          <el-input v-model="createTaskForm.areaRemarks" type="textarea" :rows="2" placeholder="任务备注信息" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showCreateTaskModal = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateTaskConfirm">创建任务</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 与 V1.1 DeleteWarningModal.tsx 1:1 对齐：删除确认 -->
-    <el-dialog v-model="showDeleteWarning" title="确认删除" width="400px">
-      <p class="text-sm text-gray-600">
-        确定要删除选中的 <strong class="text-red-600">{{ selectedTasks.size }}</strong> 个任务吗？此操作不可撤销。
-      </p>
-      <template #footer>
-        <el-button @click="showDeleteWarning = false">取消</el-button>
-        <el-button type="danger" @click="handleDeleteConfirm">确认删除</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 与 V1.1 ExportFormatModal.tsx 1:1 对齐：导出格式选择 -->
-    <el-dialog v-model="showExportModal" title="选择导出格式" width="400px">
-      <p class="text-sm text-gray-500 mb-4">已选择 {{ selectedTasks.size }} 个任务</p>
-      <div class="space-y-3">
-        <div
-          v-for="format in dispatchExportFormats"
-          :key="format.value"
-          :class="[
-            'p-4 border rounded-lg cursor-pointer transition-all',
-            exportFormat === format.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
-          ]"
-          @click="exportFormat = format.value"
-        >
-          <div class="flex items-center">
-            <div :class="['w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-              exportFormat === format.value ? 'border-emerald-600' : 'border-gray-300']">
-              <div v-if="exportFormat === format.value" class="w-2 h-2 rounded-full bg-emerald-600" />
-            </div>
-            <div class="ml-3">
-              <p class="text-sm font-medium text-gray-900">{{ format.label }}</p>
-              <p class="text-xs text-gray-500">{{ format.desc }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="showExportModal = false">取消</el-button>
-        <el-button type="primary" @click="handleExportConfirm">确认导出</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 与 V1.1 VerifyTaskModal.tsx 1:1 对齐：任务验收 -->
-    <el-dialog v-model="showVerifyModal" title="任务验收" width="500px">
-      <p class="text-sm text-gray-600 mb-4">
-        您即将验收：<strong>{{ selectedTask?.title || '' }}</strong>
-      </p>
-      <el-form :model="verifyForm" label-width="100px">
-        <el-form-item label="验收结果" required>
-          <el-radio-group v-model="verifyForm.result">
-            <el-radio value="pass">验收通过</el-radio>
-            <el-radio value="reject">验收驳回</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="验收意见">
-          <el-input v-model="verifyForm.comments" type="textarea" :rows="3" placeholder="验收意见..." />
-        </el-form-item>
-        <el-form-item label="工作量">
-          <el-input-number v-model="verifyForm.workload" :min="0" :step="0.5" style="width: 100%" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showVerifyModal = false">取消</el-button>
-        <el-button type="primary" @click="handleVerifyConfirm">确认验收</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 与 V1.1 WithdrawCancelModal.tsx 1:1 对齐：撤回/取消 -->
-    <el-dialog v-model="showWithdrawModal" title="撤回/取消任务" width="500px">
-      <p class="text-sm text-gray-600 mb-4">
-        您即将{{ withdrawForm.action === 'withdraw' ? '撤回' : '取消' }}：<strong>{{ selectedTask?.title || '' }}</strong>
-      </p>
-      <el-form :model="withdrawForm" label-width="100px">
-        <el-form-item label="操作类型" required>
-          <el-radio-group v-model="withdrawForm.action">
-            <el-radio value="withdraw">撤回（任务回到草稿）</el-radio>
-            <el-radio value="cancel">取消（任务作废）</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="操作原因" required>
-          <el-input v-model="withdrawForm.reason" type="textarea" :rows="2" placeholder="请输入原因..." />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showWithdrawModal = false">取消</el-button>
-        <el-button type="warning" @click="handleWithdrawConfirm">确认</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 与 V1.1 OvertimeHandleModal.tsx 1:1 对齐：超时处理 -->
-    <el-dialog v-model="showOvertimeModal" title="超时处理" width="500px">
-      <p class="text-sm text-gray-600 mb-4">
-        处理超时任务：<strong>{{ selectedTask?.title || '' }}</strong>
-      </p>
-      <el-form :model="overtimeForm" label-width="100px">
-        <el-form-item label="处理方式" required>
-          <el-radio-group v-model="overtimeForm.action">
-            <el-radio value="extend">延长时限</el-radio>
-            <el-radio value="reassign">重新派发</el-radio>
-            <el-radio value="cancel">取消任务</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item v-if="overtimeForm.action === 'extend'" label="延长小时数">
-          <el-input-number v-model="overtimeForm.extendHours" :min="0" :max="24" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="处理说明" required>
-          <el-input v-model="overtimeForm.reason" type="textarea" :rows="2" placeholder="请输入处理说明..." />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showOvertimeModal = false">取消</el-button>
-        <el-button type="warning" @click="handleOvertimeConfirm">确认处理</el-button>
-      </template>
-    </el-dialog>
+    <!-- P0-012~017 修复：6 个 FarmHub 弹窗已从 SmartDispatch 移除（V1.1 SmartDispatch 不含这些弹窗） -->
 
     <!-- 批量操作栏 -->
     <div v-if="selectedTasks.size > 0" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-200 px-6 py-3 flex items-center gap-4 z-50">
@@ -714,8 +506,6 @@
         <el-button size="small" @click="handleSelectAll">
           {{ isAllSelected ? '取消全选' : '全选' }}
         </el-button>
-        <el-button size="small" @click="showExportModal = true">导出</el-button>
-        <el-button size="small" type="danger" @click="showDeleteWarning = true">删除</el-button>
         <el-button type="success" @click="handleBatchConfirm">
           批量确认派发
         </el-button>
@@ -733,6 +523,40 @@ import {
   CircleCheck, CircleClose, ArrowDown, Check, Medal,
   MapLocation, Lightning, Clock, Timer, Location, List, Promotion
 } from '@element-plus/icons-vue'
+
+// V2.0 8 个 AI Composable 1:1 对齐 V1.1 hooks
+import { useComprehensiveDispatch } from '@/composables/useComprehensiveDispatch.js'
+import { useDispatchActions } from '@/composables/useDispatchActions.js'
+import { useEnvironmentData } from '@/composables/useEnvironmentData.js'
+import { useCropGrowthEngine } from '@/composables/useCropGrowthEngine.js'
+import { useMaterialEquipment } from '@/composables/useMaterialEquipment.js'
+import { useDailyWorkOrderAnalysis } from '@/composables/useDailyWorkOrderAnalysis.js'
+import { usePendingConfirmTasks } from '@/composables/usePendingConfirmTasks.js'
+import { useFarmHub } from '@/composables/useFarmHub.js'
+
+// 8 个 AI Hook 集成
+const dispatchEngine = useComprehensiveDispatch()
+const dispatchActions = useDispatchActions()
+const envData = useEnvironmentData()
+const cropGrowth = useCropGrowthEngine()
+const materialEquipment = useMaterialEquipment()
+const workOrderAnalysis = useDailyWorkOrderAnalysis()
+const pendingConfirm = usePendingConfirmTasks()
+const farmHub = useFarmHub()
+
+// 修复 P0-022: sendReminder 7 参数（V1.1 L401 1:1 对齐）
+// V2.0 原: tasksHook.sendReminder(task.id)
+// V1.1 原: sendReminder(taskId, code, assigneeId, assigneeName, assignerId, assignerName, reminderType)
+const sendReminder = (task) => {
+  return dispatchActions.sendReminder(
+    task.id,
+    task.taskCode || task.id,
+    task.assigneeId,
+    task.assigneeName,
+    task.assignerId || 'system',
+    task.assignerName || '系统管理员'
+  )
+}
 
 // ============================================
 // 常量
@@ -1111,6 +935,14 @@ const handleDelayConfirm = () => {
   showResult({ success: true, message: `任务已延后 ${delayDays.value} 天` })
   showDelayModal.value = false
   delayDays.value = 1
+}
+
+const handleIgnore = (rec) => {
+  // 从 AI 推荐项中移除（V1.1 useDispatchActions.rejectOptimization 1:1 对齐）
+  if (rec) {
+    recommendedTasks.value = recommendedTasks.value.filter(r => r.id !== rec.id)
+  }
+  showResult({ success: true, message: '已忽略该推荐' })
 }
 
 const handleSplitConfirm = () => {

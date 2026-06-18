@@ -38,21 +38,6 @@
             <el-icon><Setting /></el-icon>
             班次设置
           </el-button>
-          <!-- 表格视图下的批量操作按钮 -->
-          <template v-if="displayMode === 'table'">
-            <el-button size="small" @click="handleBatchExportClick">
-              <el-icon><Download /></el-icon>
-              {{ exportMode ? '确认导出' : '批量导出' }}
-            </el-button>
-            <el-button size="small" @click="handleBatchEditClick">
-              <el-icon><Edit /></el-icon>
-              {{ batchEditMode ? '确认编辑' : '批量编辑' }}
-            </el-button>
-            <el-button size="small" type="danger" @click="handleBatchDeleteClick">
-              <el-icon><Delete /></el-icon>
-              {{ batchDeleteMode ? '确认删除' : '批量删除' }}
-            </el-button>
-          </template>
           <el-button type="primary" size="small" @click="showAddModal = true">
             <el-icon><Plus /></el-icon>
             新增排班
@@ -271,6 +256,47 @@
 
         <!-- 表格视图 -->
         <div v-else class="bg-white rounded-lg shadow">
+          <!-- 表格标题栏 + 批量按钮（V1.1 ScheduleTable L149-257 1:1 对齐） -->
+          <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">排班记录</h3>
+            <div class="flex gap-2">
+              <template v-if="batchEditMode">
+                <el-button size="small" type="primary" :disabled="selectedRows.length === 0" @click="handleBatchEditClick">
+                  <el-icon><Edit /></el-icon>批量编辑
+                </el-button>
+                <el-button size="small" @click="handleCancelBatch">
+                  <el-icon><Close /></el-icon>取消
+                </el-button>
+              </template>
+              <template v-else-if="batchDeleteMode">
+                <el-button size="small" type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDeleteClick">
+                  <el-icon><Delete /></el-icon>确认删除
+                </el-button>
+                <el-button size="small" @click="handleCancelBatch">
+                  <el-icon><Close /></el-icon>取消
+                </el-button>
+              </template>
+              <template v-else-if="exportMode">
+                <el-button size="small" :disabled="selectedRows.length === 0" @click="handleBatchExportClick">
+                  <el-icon><Download /></el-icon>确认导出
+                </el-button>
+                <el-button size="small" @click="handleCancelBatch">
+                  <el-icon><Close /></el-icon>取消
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button size="small" @click="handleBatchExportClick">
+                  <el-icon><Download /></el-icon>导出
+                </el-button>
+                <el-button size="small" @click="handleBatchEditClick">
+                  <el-icon><Edit /></el-icon>编辑
+                </el-button>
+                <el-button size="small" type="danger" @click="handleBatchDeleteClick">
+                  <el-icon><Delete /></el-icon>删除
+                </el-button>
+              </template>
+            </div>
+          </div>
           <!-- 表格工具栏：搜索 + 筛选（V1.1 ScheduleTable L260-363 1:1 对齐） -->
           <div class="p-4 space-y-3 border-b">
             <div class="flex items-center justify-between gap-4">
@@ -392,15 +418,7 @@
             </el-table-column>
           </el-table>
 
-          <!-- 批量操作提示栏 -->
-          <div v-if="batchEditMode || batchDeleteMode || exportMode" class="bg-white px-4 py-3 border-t flex items-center justify-between">
-            <div class="text-sm text-gray-600">
-              已选择 <strong class="text-emerald-600">{{ selectedRows.length }}</strong> 项
-              <template v-if="batchEditMode">（点击批量编辑进入编辑模式）</template>
-              <template v-if="batchDeleteMode">（确认删除选中的记录）</template>
-            </div>
-            <el-button size="small" @click="handleCancelBatch">取消</el-button>
-          </div>
+          <!-- 批量操作提示栏（V1.1 ScheduleTable 无此栏，按钮已在表格标题栏 1:1 对齐） -->
 
           <!-- 分页 -->
           <div class="flex justify-end p-4">
@@ -461,7 +479,7 @@
             class="w-full mt-4 !border-red-200 !text-red-600 hover:!bg-red-50"
             @click="handleCancel(selectedSchedule)"
           >
-            取消排班
+            <el-icon><Close /></el-icon>取消排班
           </el-button>
         </div>
 
@@ -529,24 +547,6 @@
       <template #footer>
         <el-button @click="showAddModal = false">取消</el-button>
         <el-button type="primary" @click="handleAddSchedule">确定</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 单条编辑弹窗 -->
-    <el-dialog v-model="showEditModal" title="编辑排班" width="500px">
-      <el-form :model="editForm" label-width="80px">
-        <el-form-item label="班次">
-          <el-select v-model="editForm.shift" placeholder="选择班次" class="w-full">
-            <el-option v-for="config in store.shiftConfigs" :key="config.name" :label="config.name" :value="config.name" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="工作区域">
-          <el-input v-model="editForm.workZone" placeholder="输入工作区域" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showEditModal = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveEdit">保存</el-button>
       </template>
     </el-dialog>
 
@@ -926,7 +926,6 @@ const currentMonth = computed(() => calendarDate.value.getMonth() + 1)
 
 // 弹窗状态
 const showAddModal = ref(false)
-const showEditModal = ref(false)
 const showSwapModal = ref(false)
 const showShiftEditor = ref(false)
 const showBatchEditModal = ref(false)
@@ -994,22 +993,11 @@ const exportFormats = [
 // 新排班表单
 const newSchedule = reactive({ staffId: '', date: '', shift: '早班', workZone: '' })
 
-// 编辑表单
-const showEditId = ref('')
-const editForm = reactive({ shift: '早班', workZone: '' })
-
 // 调班表单
 const swapForm = reactive({ requesterId: '', requesterName: '', targetId: '', targetName: '', originalDate: '', targetDate: '', reason: '' })
 
 // 选中的排班
 const selectedSchedule = ref(null)
-
-// 分页后的排班
-const paginatedSchedules = computed(() => {
-  const start = (pagination.currentPage - 1) * pagination.pageSize
-  const end = start + pagination.pageSize
-  return store.schedules.slice(start, end)
-})
 
 // 获取日期的排班数量
 const getScheduleCountForDate = (date) => {
@@ -1303,18 +1291,9 @@ const handleCancel = (row) => {
   }).catch(() => {})
 }
 
-// 单条编辑
-const handleEditSingle = (row) => {
-  showEditId.value = row.id
-  editForm.shift = row.shift
-  editForm.workZone = row.workZone
-  showEditModal.value = true
-}
-
-const handleSaveEdit = () => {
-  store.updateSchedule(showEditId.value, { shift: editForm.shift, workZone: editForm.workZone })
-  ElMessage.success('编辑已保存')
-  showEditModal.value = false
+// 单条编辑（V1.1 ScheduleTable 不存在此功能，使用批量编辑代替；保留 handleEditSingle 占位以避免破坏未知调用）
+const handleEditSingle = (_row) => {
+  ElMessage.info('请使用批量编辑功能修改单条记录')
 }
 
 // 新增排班

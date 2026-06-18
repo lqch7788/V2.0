@@ -666,6 +666,10 @@ const statusFilter = ref('')            // V1.1 L86 新增
 const operatorFilter = ref('')          // V1.1 L89 新增
 const searchText = ref('')             // V1.1 L92 新增
 
+// ============ 分页 ============
+const currentPage = ref(1)              // 当前页
+const pageSize = ref(10)                // 每页条数
+
 // ============ 弹窗状态（与 V1.1 1:1 对齐）============
 const showAddModal = ref(false)         // V1.1 L106
 const showDeleteWarning = ref(false)    // V1.1 L98

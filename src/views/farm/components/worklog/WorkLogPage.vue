@@ -159,7 +159,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import WorkLogFilters from './WorkLogFilters.vue'
 import WorkLogTable from './WorkLogTable.vue'
@@ -169,6 +169,13 @@ import WorkLogBatchEditModal from './WorkLogBatchEditModal.vue'
 import { useWorkLogStore } from '@/stores/modules/workLog.js'
 
 const store = useWorkLogStore()
+
+// 初始化：加载数据（V1.1 1:1 对齐 useWorkLogStore.fetchWorkLogs）
+onMounted(() => {
+  if (store.fetchWorkLogs && store.workLogs.length === 0) {
+    store.fetchWorkLogs({ page: 1, limit: 100 }).catch(() => {})
+  }
+})
 
 // 筛选条件
 const filters = ref({

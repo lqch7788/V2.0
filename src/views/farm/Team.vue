@@ -71,8 +71,12 @@
           <el-input v-model="filters.workZone" placeholder="请输入" size="small" style="width: 140px" clearable />
         </div>
         <div class="flex gap-2 ml-auto">
-          <el-button size="small" type="warning" plain @click="handleReset">重置</el-button>
-          <el-button size="small" type="primary" @click="handleSearch">搜索</el-button>
+          <el-button size="small" type="warning" plain @click="handleReset">
+            <el-icon><Refresh /></el-icon>重置
+          </el-button>
+          <el-button size="small" type="primary" @click="handleSearch">
+            <el-icon><Search /></el-icon>搜索
+          </el-button>
         </div>
       </div>
     </div>
@@ -88,20 +92,20 @@
               <el-icon><Download /></el-icon>
               确认导出{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
-            <el-button size="small" @click="handleCancelBatch">取消</el-button>
+            <el-button size="small" @click="handleCancelBatch">
+              <el-icon><Close /></el-icon>取消
+            </el-button>
           </template>
           <template v-else-if="batchDeleteMode">
             <el-button size="small" type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete">
               <el-icon><Delete /></el-icon>
               确认删除{{ selectedRows.length > 0 ? ` (${selectedRows.length})` : '' }}
             </el-button>
-            <el-button size="small" @click="handleCancelBatch">取消</el-button>
+            <el-button size="small" @click="handleCancelBatch">
+              <el-icon><Close /></el-icon>取消
+            </el-button>
           </template>
           <template v-else>
-            <el-button v-if="canExport" size="small" @click="exportMode = true">
-              <el-icon><Download /></el-icon>
-              批量导出
-            </el-button>
             <el-button v-if="canDelete" size="small" type="danger" @click="batchDeleteMode = true">
               <el-icon><Delete /></el-icon>
               批量删除
@@ -150,7 +154,7 @@
           <el-table-column label="描述" min-width="120">
             <template #default="{ row }">
               <!-- P1-3 修复：与 V1.1 TeamTable.tsx L384 max-w-xs truncate 1:1 对齐 -->
-              <span class="text-sm text-gray-500 max-w-[120px] truncate inline-block align-middle">{{ row.description || '-' }}</span>
+              <span class="text-sm text-gray-500 max-w-xs truncate inline-block align-middle">{{ row.description || '-' }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="180" fixed="right">
@@ -237,8 +241,12 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <el-button @click="isFormOpen = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">保存</el-button>
+          <el-button @click="isFormOpen = false">
+            <el-icon><Close /></el-icon>取消
+          </el-button>
+          <el-button type="primary" @click="handleSubmit">
+            <el-icon><Check /></el-icon>保存
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -248,7 +256,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, Plus, CirclePlus, Edit, Delete, View, Download } from '@element-plus/icons-vue'
+import { User, Plus, CirclePlus, Edit, Delete, View, Download, Search, Refresh, Close, Check } from '@element-plus/icons-vue'
 import TeamAssignModal from '@/components/labor/team/TeamAssignModal.vue'
 import TeamDetailModal from '@/components/labor/team/TeamDetailModal.vue'
 import { useTeamStore } from '@/stores/modules/team'

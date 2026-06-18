@@ -1,6 +1,11 @@
+<!--
+  TaskExecutePanel.vue - 任务工单管理面板
+  V1.1 TasksPage.tsx 1:1 重构（去除 mock，接入 useTasks composable）
+  数据源：useTasks composable 统一合并 farmTaskStore + tempTaskStore + inspectionDataStore
+-->
 <template>
   <div class="space-y-4">
-    <!-- 页面标题 - 任务工单管理 -->
+    <!-- 页面标题 -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
@@ -18,36 +23,22 @@
       <div class="flex flex-wrap items-center gap-4">
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-500">搜索:</span>
-          <el-input
-            v-model="filters.searchTerm"
-            placeholder="搜索任务编号/名称"
-            class="w-48"
-            clearable
-          />
+          <el-input v-model="filters.searchTerm" placeholder="搜索任务编号/名称" class="w-48" clearable />
         </div>
-
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-500">任务类型:</span>
           <el-select v-model="filters.typeFilter" placeholder="全部" class="w-28" clearable>
             <el-option label="全部" value="" />
-            <el-option label="施肥" value="fertilization" />
-            <el-option label="灌溉" value="irrigation" />
-            <el-option label="修剪" value="pruning" />
-            <el-option label="植保" value="pesticide" />
-            <el-option label="采收" value="harvest" />
+            <el-option v-for="t in TASK_TYPES" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>
         </div>
-
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-500">状态:</span>
           <el-select v-model="filters.statusFilter" placeholder="全部" class="w-28" clearable>
             <el-option label="全部" value="" />
-            <el-option label="待执行" value="pending" />
-            <el-option label="进行中" value="in_progress" />
-            <el-option label="已完成" value="completed" />
+            <el-option v-for="s in TASK_STATUSES" :key="s.value" :label="s.label" :value="s.value" />
           </el-select>
         </div>
-
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-500">作业模式:</span>
           <el-select v-model="filters.modeFilter" placeholder="全部" class="w-28" clearable>
@@ -56,60 +47,77 @@
             <el-option label="自主" value="self" />
           </el-select>
         </div>
-
         <el-button type="primary" @click="handleSearch">搜索</el-button>
         <el-button @click="handleReset">重置</el-button>
 
         <div class="ml-auto flex gap-2">
-          <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon> 新增
-          </el-button>
-          <el-button @click="handleBatchEdit">编辑</el-button>
-          <el-button type="danger" @click="handleBatchDelete">删除</el-button>
-          <el-button @click="handleExport">导出</el-button>
+          <template v-if="exportMode">
+            <el-button type="primary" :disabled="selectedRows.length === 0" @click="showExportModal = true">确认导出</el-button>
+            <el-button @click="handleCancelExport">取消</el-button>
+          </template>
+          <template v-else-if="batchEditMode">
+            <el-button type="primary" :disabled="selectedRows.length === 0" @click="showBatchEditModal = true">批量编辑</el-button>
+            <el-button @click="handleCancelBatch">取消</el-button>
+          </template>
+          <template v-else-if="batchDeleteMode">
+            <el-button type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete">确认删除</el-button>
+            <el-button @click="handleCancelBatch">取消</el-button>
+          </template>
+          <template v-else>
+            <el-button type="primary" @click="openCreateModal"><el-icon><Plus /></el-icon> 新增</el-button>
+            <el-button @click="enterBatchEdit">编辑</el-button>
+            <el-button type="danger" @click="enterBatchDelete">删除</el-button>
+            <el-button @click="handleExportClick">导出</el-button>
+          </template>
         </div>
       </div>
     </div>
 
-    <!-- 任务列表 -->
+    <!-- 任务列表表格 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <el-table :data="paginatedTasks" style="width: 100%" v-loading="loading">
-        <el-table-column type="selection" width="55" />
-        <el-table-column prop="taskCode" label="任务编号" width="130" />
-        <el-table-column prop="title" label="任务标题" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="typeName" label="任务类型" width="100">
+        <!-- P0-PM-02: 复选框列宽 55 → 48 -->
+        <el-table-column type="selection" width="48" :selectable="isRowSelectable" />
+        <!-- P0-PM-04: 任务编号列宽 130 → 100 -->
+        <el-table-column label="任务编号" width="100">
           <template #default="{ row }">
-            <el-tag size="small">{{ row.typeName }}</el-tag>
+            <el-button link type="primary" size="small" @click="openDetailModal(row)">{{ row.taskCode }}</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="title" label="任务标题" min-width="180" show-overflow-tooltip />
+        <el-table-column label="任务类型" width="100">
+          <template #default="{ row }">
+            <TaskTypeTag :type="row.type" :type-name="row.typeName" />
           </template>
         </el-table-column>
         <el-table-column prop="greenhouseName" label="作业区域" width="120" show-overflow-tooltip />
         <el-table-column prop="assigneeName" label="执行人" width="100" />
-        <el-table-column prop="planStart" label="计划开始" width="120" />
+        <el-table-column label="计划开始" width="120">
+          <template #default="{ row }">
+            <span class="text-sm text-gray-600">{{ row.planStart || '-' }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="dueDate" label="计划结束" width="120" />
-        <el-table-column prop="priority" label="优先级" width="80">
+        <el-table-column label="优先级" width="80">
           <template #default="{ row }">
-            <el-tag :type="getPriorityType(row.priority)" size="small">
-              {{ getPriorityText(row.priority) }}
-            </el-tag>
+            <TaskPriorityBadge :priority="row.priority" />
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
-              {{ getStatusText(row.status) }}
-            </el-tag>
+            <TaskStatusBadge :status="row.status" />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <!-- P0-PM-03: 操作列宽 200 → 180 -->
+        <el-table-column label="操作" min-width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" size="small" @click="openDetailModal(row)">查看</el-button>
+            <el-button link type="primary" size="small" @click="openEditModal(row)">编辑</el-button>
+            <el-button link type="danger" size="small" @click="handleDeleteTask(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
       <div class="flex justify-end p-4">
         <el-pagination
           v-model:current-page="pagination.currentPage"
@@ -122,207 +130,412 @@
         />
       </div>
     </div>
+
+    <!-- 详情弹窗 -->
+    <TaskDetailModal :task="selectedTask" @close="closeDetailModal" @confirm-complete="handleConfirmComplete" />
+
+    <!-- 创建/编辑表单弹窗 -->
+    <TaskFormModal
+      v-model:is-open="isFormModalOpen"
+      :title="editingTask ? '编辑任务' : '创建任务'"
+      :form-data="formData"
+      :errors="formErrors"
+      :task-types="TASK_TYPES"
+      :greenhouses="greenhouseList"
+      :batches="cropBatches"
+      :workers="workerUsers"
+      @submit="handleFormSubmit"
+      @close="closeFormModal"
+      @change="updateFormData"
+    />
+
+    <!-- 删除确认弹窗 -->
+    <DeleteWarningModal
+      v-model:is-open="showDeleteWarning"
+      :selected-count="selectedRows.length"
+      @confirm="handleDeleteConfirm"
+    />
+
+    <!-- 导出格式选择弹窗 -->
+    <ExportFormatModal
+      v-model:is-open="showExportModal"
+      :export-format="exportFormat"
+      :selected-count="selectedRows.length"
+      @format-change="exportFormat = $event"
+      @confirm="handleDoExport"
+    />
+
+    <!-- 批量编辑弹窗 -->
+    <BatchEditModal
+      v-model:is-open="showBatchEditModal"
+      :selected-rows="selectedRows"
+      :tasks="tasks"
+      :users="workerOptions"
+      :greenhouses="greenhouseOptions"
+      @confirm="handleBatchEditConfirm"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { Check, Plus } from '@element-plus/icons-vue'
+/**
+ * TaskExecutePanel.vue
+ * V1.1 TasksPage.tsx → V2.0 Vue3 + Element Plus
+ * 数据流：useTasks() composable → farmTaskStore/tempTaskStore/inspectionDataStore
+ */
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Check, Plus } from '@element-plus/icons-vue'
+import { useTasks } from '@/composables/useTasks'
+import { useUserStore } from '@/stores/modules/user'
+import { useGreenhouseStore } from '@/stores/modules/greenhouse'
+import { useProductionPlanStore } from '@/stores/modules/productionPlan'
+import TaskStatusBadge from './tasks/TaskStatusBadge.vue'
+import TaskPriorityBadge from './tasks/TaskPriorityBadge.vue'
+import TaskTypeTag from './tasks/TaskTypeTag.vue'
+import TaskDetailModal from './tasks/TaskDetailModal.vue'
+import TaskFormModal from './tasks/TaskFormModal.vue'
+import BatchEditModal from './tasks/BatchEditModal.vue'
+import DeleteWarningModal from './tasks/DeleteWarningModal.vue'
+import ExportFormatModal from './tasks/ExportFormatModal.vue'
+import { TASK_TYPES, TASK_STATUSES } from './tasks/taskConstants'
 
-// 筛选条件
+// ========== 数据源 ==========
+const { tasks, addTask, updateTask, deleteTask, updateTaskStatus } = useTasks()
+const userStore = useUserStore()
+const greenhouseStore = useGreenhouseStore()
+const productionPlanStore = useProductionPlanStore()
+
+const loading = ref(false)
+const greenhouses = computed(() => greenhouseStore.greenhouses || [])
+const cropBatches = computed(() => productionPlanStore.batches || [])
+const workerUsers = computed(() => {
+  const users = userStore.users || []
+  return users.filter(u => u.role === 'technician' || u.role === 'worker' || u.position === '工人' || u.position === '技术员')
+})
+const greenhouseList = computed(() => greenhouses.value.map(g => ({ id: g.id, name: g.name })))
+const greenhouseOptions = computed(() => greenhouseList.value)
+const workerOptions = computed(() => workerUsers.value.map(u => ({ id: u.id, name: u.name })))
+
+// ========== 筛选 ==========
 const filters = ref({
   searchTerm: '',
   typeFilter: '',
   statusFilter: '',
-  modeFilter: ''
+  modeFilter: '',
 })
 
-// 分页
-const pagination = ref({
-  currentPage: 1,
-  pageSize: 10
+// ========== 分页 ==========
+const pagination = ref({ currentPage: 1, pageSize: 10 })
+
+// ========== 批量操作状态 ==========
+const batchEditMode = ref(false)
+const batchDeleteMode = ref(false)
+const exportMode = ref(false)
+const selectedRows = ref([])
+const showDeleteWarning = ref(false)
+const showExportModal = ref(false)
+const showBatchEditModal = ref(false)
+const exportFormat = ref('excel')
+
+// ========== 详情弹窗 ==========
+const selectedTask = ref(null)
+const isDetailModalOpen = ref(false)
+
+// ========== 表单弹窗 ==========
+const isFormModalOpen = ref(false)
+const editingTask = ref(null)
+
+const initialFormData = () => ({
+  taskCode: '',
+  title: '',
+  type: '',
+  batchCode: '',
+  greenhouseId: '',
+  assigneeId: '',
+  dueDate: new Date().toISOString().slice(0, 10),
+  workDuration: 0,
+  priority: 'medium',
+  mode: 'dispatch',
+  description: '',
 })
+const formData = ref(initialFormData())
+const formErrors = ref({})
 
-// 加载状态
-const loading = ref(false)
-
-// 任务数据
-const tasks = ref([
-  {
-    id: '1',
-    taskCode: 'NS202401001',
-    title: '番茄施肥作业',
-    typeName: '施肥',
-    greenhouseName: '1号大棚',
-    assigneeName: '张三',
-    planStart: '2024-01-15',
-    dueDate: '2024-01-16',
-    priority: 'high',
-    status: 'pending',
-    mode: 'dispatch'
-  },
-  {
-    id: '2',
-    taskCode: 'NS202401002',
-    title: '黄瓜灌溉任务',
-    typeName: '灌溉',
-    greenhouseName: '2号大棚',
-    assigneeName: '李四',
-    planStart: '2024-01-14',
-    dueDate: '2024-01-15',
-    priority: 'medium',
-    status: 'in_progress',
-    mode: 'dispatch'
-  },
-  {
-    id: '3',
-    taskCode: 'NS202401003',
-    title: '番茄修剪',
-    typeName: '修剪',
-    greenhouseName: '3号大棚',
-    assigneeName: '王五',
-    planStart: '2024-01-13',
-    dueDate: '2024-01-14',
-    priority: 'low',
-    status: 'completed',
-    mode: 'self'
-  }
-])
-
-// 过滤后的任务
+// ========== 过滤 & 分页 ==========
 const filteredTasks = computed(() => {
   return tasks.value.filter(task => {
-    if (filters.value.searchTerm && !task.taskCode.includes(filters.value.searchTerm) && !task.title.includes(filters.value.searchTerm)) {
-      return false
+    if (filters.value.searchTerm) {
+      const q = filters.value.searchTerm
+      const hit = (task.taskCode || '').includes(q) || (task.title || '').includes(q)
+      if (!hit) return false
     }
-    if (filters.value.typeFilter && task.typeName !== filters.value.typeFilter) {
-      return false
+    if (filters.value.typeFilter && (task.type || task.typeName) !== filters.value.typeFilter) {
+      const matchName = TASK_TYPES.find(t => t.value === filters.value.typeFilter)?.label
+      if (task.typeName !== matchName && task.type !== filters.value.typeFilter) return false
     }
-    if (filters.value.statusFilter && task.status !== filters.value.statusFilter) {
-      return false
-    }
-    if (filters.value.modeFilter && task.mode !== filters.value.modeFilter) {
-      return false
-    }
+    if (filters.value.statusFilter && task.status !== filters.value.statusFilter) return false
+    if (filters.value.modeFilter && task.mode !== filters.value.modeFilter && task.dispatchMode !== filters.value.modeFilter) return false
     return true
   })
 })
 
-// 分页后的任务
 const paginatedTasks = computed(() => {
   const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
-  const end = start + pagination.value.pageSize
-  return filteredTasks.value.slice(start, end)
+  return filteredTasks.value.slice(start, start + pagination.value.pageSize)
 })
 
-// 获取优先级类型
-const getPriorityType = (priority) => {
-  const typeMap = {
-    urgent: 'danger',
-    high: 'warning',
-    medium: 'primary',
-    low: 'info'
+const isRowSelectable = (row) => {
+  if (batchEditMode.value) return row.status !== 'completed' && row.status !== 'cancelled'
+  if (batchDeleteMode.value) return row.status === 'pending'
+  return true
+}
+
+// ========== 详情操作 ==========
+function openDetailModal(task) { selectedTask.value = task; isDetailModalOpen.value = true }
+function closeDetailModal() { isDetailModalOpen.value = false; selectedTask.value = null }
+
+// ========== 表单操作 ==========
+function generateTaskCode() {
+  const today = new Date()
+  const ymd = today.toISOString().slice(0, 10).replace(/-/g, '')
+  const seq = String((tasks.value.length || 0) + 1).padStart(3, '0')
+  return `NS${ymd}${seq}`
+}
+
+function openCreateModal() {
+  editingTask.value = null
+  formData.value = { ...initialFormData(), taskCode: generateTaskCode() }
+  formErrors.value = {}
+  isFormModalOpen.value = true
+}
+
+function openEditModal(task) {
+  editingTask.value = task
+  formData.value = {
+    taskCode: task.taskCode || '',
+    title: task.title || '',
+    type: task.type || '',
+    batchCode: task.batchCode || '',
+    greenhouseId: task.greenhouseId || '',
+    assigneeId: task.assigneeId || '',
+    dueDate: task.dueDate || new Date().toISOString().slice(0, 10),
+    workDuration: task.workDuration || task.estimatedHours || 0,
+    priority: task.priority || 'medium',
+    mode: task.mode || task.dispatchMode || 'dispatch',
+    description: task.description || '',
   }
-  return typeMap[priority] || 'info'
+  formErrors.value = {}
+  isFormModalOpen.value = true
 }
 
-// 获取优先级文本
-const getPriorityText = (priority) => {
-  const textMap = {
-    urgent: '紧急',
-    high: '高',
-    medium: '中',
-    low: '低'
+function closeFormModal() { isFormModalOpen.value = false; editingTask.value = null }
+
+function updateFormData(field, value) {
+  formData.value = { ...formData.value, [field]: value }
+}
+
+function validateForm() {
+  const errs = {}
+  if (!formData.value.title) errs.title = '请输入任务标题'
+  if (!formData.value.type) errs.type = '请选择任务类型'
+  if (!formData.value.mode) errs.mode = '请选择任务模式'
+  if (!formData.value.batchCode) errs.batchCode = '请选择批次'
+  if (!formData.value.greenhouseId) errs.greenhouseId = '请选择作业区域'
+  if (!formData.value.assigneeId) errs.assigneeId = '请选择执行人'
+  if (!formData.value.dueDate) errs.dueDate = '请选择截止时间'
+  if (!formData.value.workDuration || formData.value.workDuration <= 0) errs.workDuration = '请输入预计工时'
+  formErrors.value = errs
+  return Object.keys(errs).length === 0
+}
+
+async function handleFormSubmit() {
+  if (!validateForm()) {
+    ElMessage.error('请完善表单必填项')
+    return
   }
-  return textMap[priority] || '普通'
-}
+  const assignee = workerUsers.value.find(u => u.id === formData.value.assigneeId)
+  const greenhouse = greenhouses.value.find(g => g.id === formData.value.greenhouseId)
+  const batch = cropBatches.value.find(b => b.batchCode === formData.value.batchCode)
+  const taskType = TASK_TYPES.find(t => t.value === formData.value.type)
 
-// 获取状态类型
-const getStatusType = (status) => {
-  const typeMap = {
-    pending: 'warning',
-    in_progress: 'primary',
-    completed: 'success'
+  const payload = {
+    ...formData.value,
+    assigneeName: assignee?.name || '',
+    assignerName: userStore.userInfo?.name || userStore.currentUser?.name || '当前用户',
+    assignerId: userStore.userInfo?.id || userStore.currentUser?.id || '',
+    greenhouseName: greenhouse?.name || '',
+    typeName: taskType?.label || formData.value.type,
+    cropName: batch?.cropName || '',
   }
-  return typeMap[status] || 'info'
-}
 
-// 获取状态文本
-const getStatusText = (status) => {
-  const textMap = {
-    pending: '待执行',
-    in_progress: '进行中',
-    completed: '已完成'
+  try {
+    if (editingTask.value) {
+      await updateTask(editingTask.value.id, payload)
+      ElMessage.success('任务已更新')
+    } else {
+      await addTask({ ...payload, status: 'pending', dispatchMode: 'farm' })
+      ElMessage.success('任务已创建')
+    }
+    closeFormModal()
+  } catch (e) {
+    console.warn('[TaskExecutePanel] submit error', e)
+    ElMessage.error('保存失败')
   }
-  return textMap[status] || status
 }
 
-// 搜索
-const handleSearch = () => {
-  pagination.value.currentPage = 1
+function handleConfirmComplete(task) {
+  updateTaskStatus(task.id, 'completed')
+  ElMessage.success('任务已标记为完成')
+  closeDetailModal()
 }
 
-// 重置
-const handleReset = () => {
-  filters.value = {
-    searchTerm: '',
-    typeFilter: '',
-    statusFilter: '',
-    modeFilter: ''
-  }
-  pagination.value.currentPage = 1
-}
-
-// 新增
-const handleAdd = () => {
-  ElMessage.info('新增任务 - 功能待实现')
-}
-
-// 批量编辑
-const handleBatchEdit = () => {
-  ElMessage.info('批量编辑 - 功能待实现')
-}
-
-// 批量删除
-const handleBatchDelete = () => {
-  ElMessage.info('批量删除 - 功能待实现')
-}
-
-// 导出
-const handleExport = () => {
-  ElMessage.info('导出功能 - 待实现')
-}
-
-// 查看
-const handleView = (row) => {
-  ElMessage.info(`查看任务: ${row.taskCode}`)
-}
-
-// 编辑
-const handleEdit = (row) => {
-  ElMessage.info(`编辑任务: ${row.taskCode}`)
-}
-
-// 删除
-const handleDelete = (row) => {
-  ElMessageBox.confirm(`确定要删除任务 "${row.title}" 吗？`, '删除确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
+async function handleDeleteTask(task) {
+  try {
+    await ElMessageBox.confirm(`确定要删除任务 "${task.title}" 吗？`, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+    await deleteTask(task.id)
     ElMessage.success('删除成功')
-  }).catch(() => {})
+  } catch { /* 取消 */ }
 }
 
-// 分页大小改变
-const handlePageSizeChange = (size) => {
-  pagination.value.pageSize = size
+function handleSelectAll() {
+  if (selectedRows.value.length === filteredTasks.value.length) {
+    selectedRows.value = []
+  } else {
+    selectedRows.value = filteredTasks.value.map(t => t.id)
+  }
+}
+
+watch(filteredTasks, () => { pagination.value.currentPage = 1 })
+
+function enterBatchEdit() { batchEditMode.value = true; selectedRows.value = [] }
+function enterBatchDelete() { batchDeleteMode.value = true; selectedRows.value = [] }
+
+function handleBatchDelete() { showDeleteWarning.value = true }
+
+async function handleDeleteConfirm() {
+  if (selectedRows.value.length === 0) return
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedRows.value.length} 个任务吗？此操作无法恢复。`,
+      '批量删除任务',
+      { type: 'warning' }
+    )
+  } catch { return }
+  for (const id of selectedRows.value) {
+    await deleteTask(id)
+  }
+  ElMessage.success('批量删除完成')
+  selectedRows.value = []
+  showDeleteWarning.value = false
+  batchDeleteMode.value = false
+}
+
+async function handleBatchEditConfirm(editedTasks) {
+  const entries = Object.entries(editedTasks || {})
+  if (entries.length === 0) return
+  for (const [taskCode, updates] of entries) {
+    const task = tasks.value.find(t => t.taskCode === taskCode)
+    if (task) await updateTask(task.id, updates)
+  }
+  ElMessage.success(`已批量更新 ${entries.length} 个任务`)
+  selectedRows.value = []
+  batchEditMode.value = false
+}
+
+function handleCancelBatch() {
+  batchEditMode.value = false
+  batchDeleteMode.value = false
+  exportMode.value = false
+  selectedRows.value = []
+}
+
+function handleExportClick() { exportMode.value = true; selectedRows.value = [] }
+function handleCancelExport() { exportMode.value = false; selectedRows.value = [] }
+
+function todayLocal() { return new Date().toISOString().slice(0, 10) }
+
+function handleDoExport() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要导出的数据')
+    return
+  }
+  const selectedData = tasks.value.filter(t => selectedRows.value.includes(t.id))
+  const headers = ['任务编号', '任务标题', '任务类型', '作业区域', '执行人', '计划开始', '计划结束', '优先级', '状态']
+  const exportData = selectedData.map(row => ({
+    '任务编号': row.taskCode || '',
+    '任务标题': row.title || '',
+    '任务类型': row.typeName || '',
+    '作业区域': row.greenhouseName || '',
+    '执行人': row.assigneeName || '',
+    '计划开始': row.planStart || '-',
+    '计划结束': row.dueDate || '',
+    '优先级': row.priority || '',
+    '状态': row.status || '',
+  }))
+
+  let content = ''
+  let mimeType = ''
+  let extension = ''
+  if (exportFormat.value === 'csv') {
+    content = headers.join(',') + '\n' + exportData.map(row =>
+      headers.map(h => `"${row[h] || ''}"`).join(',')
+    ).join('\n')
+    mimeType = 'text/csv;charset=utf-8'
+    extension = 'csv'
+  } else if (exportFormat.value === 'excel') {
+    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    mimeType = 'application/vnd.ms-excel;charset=utf-8'
+    extension = 'xls'
+  } else if (exportFormat.value === 'word') {
+    content = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1">${headers.map(h => `<th>${h}</th>`).join('')}${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+    mimeType = 'application/vnd.ms-word;charset=utf-8'
+    extension = 'doc'
+  }
+
+  const fileName = `任务工单_${todayLocal()}.${extension}`
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  a.click()
+  URL.revokeObjectURL(url)
+
+  exportMode.value = false
+  selectedRows.value = []
+  showExportModal.value = false
+  ElMessage.success(`已导出 ${selectedData.length} 条数据`)
+}
+
+function handleSearch() { pagination.value.currentPage = 1 }
+function handleReset() {
+  filters.value = { searchTerm: '', typeFilter: '', statusFilter: '', modeFilter: '' }
   pagination.value.currentPage = 1
 }
+function handlePageChange(p) { pagination.value.currentPage = p }
+function handlePageSizeChange(s) { pagination.value.pageSize = s; pagination.value.currentPage = 1 }
 
-// 页码改变
-const handlePageChange = (page) => {
-  pagination.value.currentPage = page
-}
+onMounted(async () => {
+  loading.value = true
+  try {
+    if (!userStore.users || userStore.users.length === 0) {
+      await userStore.loadUsers?.()
+    }
+    if (!greenhouses.value || greenhouses.value.length === 0) {
+      await greenhouseStore.loadGreenhouses?.()
+    }
+    if (!cropBatches.value || cropBatches.value.length === 0) {
+      await productionPlanStore.fetchPlans?.()
+    }
+  } catch (e) {
+    console.warn('[TaskExecutePanel] load base data failed:', e)
+  } finally {
+    loading.value = false
+  }
+})
 </script>
