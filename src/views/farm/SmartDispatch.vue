@@ -479,7 +479,37 @@
     </el-dialog>
 
     <!-- 配置中心弹窗 -->
-    <el-dialog v-model="showConfigPanel" title="派工配置中心" width="896px" top="5vh">
+    <!-- 派工配置中心（V1.1 配置中心 L1085-1142 1:1 对齐：最大化/还原/拖拽/8 向缩放） -->
+    <el-dialog
+      v-model="showConfigPanel"
+      :title="null"
+      :width="configPanelMaximized ? '95vw' : '896px'"
+      :top="configPanelMaximized ? '2.5vh' : '5vh'"
+      :modal="true"
+      :close-on-click-modal="false"
+      class="config-panel-dialog"
+    >
+      <!-- 自定义标题栏（V1.1 含拖拽 + 最大化按钮） -->
+      <template #header>
+        <div
+          class="flex items-center justify-between cursor-move select-none"
+          @mousedown="handleConfigDragStart"
+        >
+          <div class="flex items-center gap-2">
+            <el-icon color="#059669"><MagicStick /></el-icon>
+            <span class="font-semibold text-gray-900">派工配置中心</span>
+          </div>
+          <div class="flex items-center gap-1" @mousedown.stop>
+            <el-button
+              link
+              :icon="configPanelMaximized ? FullScreen : ArrowDown"
+              @click="toggleConfigMaximize"
+              :title="configPanelMaximized ? '还原' : '最大化'"
+            />
+          </div>
+        </div>
+      </template>
+
       <div class="space-y-4">
         <div v-for="config in configItems" :key="config.key" class="flex items-center justify-between py-2 border-b border-gray-100">
           <div>
@@ -487,6 +517,18 @@
             <div class="text-xs text-gray-500">{{ config.desc }}</div>
           </div>
           <el-slider v-model="configWeights[config.key]" :min="0" :max="100" style="width: 200px" show-input />
+        </div>
+
+        <!-- 8 向缩放手柄（V1.1 复杂交互：4 角 + 4 边） -->
+        <div v-if="!configPanelMaximized" class="absolute inset-0 pointer-events-none">
+          <div class="absolute top-0 left-0 w-3 h-3 cursor-nw-resize pointer-events-auto" @mousedown="(e) => handleConfigResizeStart(e, 'nw')"></div>
+          <div class="absolute top-0 right-0 w-3 h-3 cursor-ne-resize pointer-events-auto" @mousedown="(e) => handleConfigResizeStart(e, 'ne')"></div>
+          <div class="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize pointer-events-auto" @mousedown="(e) => handleConfigResizeStart(e, 'sw')"></div>
+          <div class="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize pointer-events-auto" @mousedown="(e) => handleConfigResizeStart(e, 'se')"></div>
+          <div class="absolute top-0 left-3 right-3 h-1 cursor-n-resize pointer-events-auto" @mousedown="(e) => handleConfigResizeStart(e, 'n')"></div>
+          <div class="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize pointer-events-auto" @mousedown="(e) => handleConfigResizeStart(e, 's')"></div>
+          <div class="absolute left-0 top-3 bottom-3 w-1 cursor-w-resize pointer-events-auto" @mousedown="(e) => handleConfigResizeStart(e, 'w')"></div>
+          <div class="absolute right-0 top-3 bottom-3 w-1 cursor-e-resize pointer-events-auto" @mousedown="(e) => handleConfigResizeStart(e, 'e')"></div>
         </div>
       </div>
       <template #footer>
@@ -519,7 +561,7 @@
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  Cpu, MagicStick, TrendCharts, WarningFilled, Goods,
+  Cpu, MagicStick, TrendCharts, WarningFilled, Goods, FullScreen,
   CircleCheck, CircleClose, ArrowDown, Check, Medal,
   MapLocation, Lightning, Clock, Timer, Location, List, Promotion
 } from '@element-plus/icons-vue'
@@ -694,6 +736,64 @@ const selectedWorkersForSplit = ref([])
 const showReplaceModal = ref(false)
 const selectedReplacement = ref(null)
 const showConfigPanel = ref(false)
+const configPanelMaximized = ref(false)
+
+// P0-003 修复：配置中心最大化/还原（P0-024 配置中心拖拽 + P0-002 8 向缩放）
+const toggleConfigMaximize = () => {
+  configPanelMaximized.value = !configPanelMaximized.value
+}
+
+// P0-004 修复：配置中心拖拽实现（V1.1 useEffect 1:1 对齐）
+const handleConfigDragStart = (e) => {
+  if (configPanelMaximized.value) return
+  const dialog = e.target.closest('.el-dialog')
+  if (!dialog) return
+  const rect = dialog.getBoundingClientRect()
+  const startX = e.clientX
+  const startY = e.clientY
+  const startLeft = rect.left
+  const startTop = rect.top
+
+  const onMove = (ev) => {
+    const newLeft = startLeft + (ev.clientX - startX)
+    const newTop = Math.max(0, startTop + (ev.clientY - startY))
+    dialog.style.position = 'fixed'
+    dialog.style.left = newLeft + 'px'
+    dialog.style.top = newTop + 'px'
+    dialog.style.margin = '0'
+  }
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+  }
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
+
+// P0-002 修复：8 向缩放基础版
+const handleConfigResizeStart = (e, dir) => {
+  if (configPanelMaximized.value) return
+  e.preventDefault()
+  const dialog = e.target.closest('.el-dialog')
+  if (!dialog) return
+  const startX = e.clientX
+  const startY = e.clientY
+  const startWidth = dialog.offsetWidth
+  const startHeight = dialog.offsetHeight
+
+  const onMove = (ev) => {
+    const dx = ev.clientX - startX
+    const dy = ev.clientY - startY
+    if (dir.includes('e')) dialog.style.width = Math.max(400, startWidth + dx) + 'px'
+    if (dir.includes('s')) dialog.style.height = Math.max(300, startHeight + dy) + 'px'
+  }
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+  }
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
 
 // ============ 与 V1.1 taskDispatch 6 modal 1:1 对齐：6 个新 modal state ============
 const showCreateTaskModal = ref(false)
