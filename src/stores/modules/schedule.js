@@ -5,6 +5,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { enhancedApiClient } from '@/lib/apiClient'
+// 与 V1.1 scheduleStore.ts L436 对齐：从 useWorkerStore 动态加载真实工人列表
+import { useWorkerStore } from './worker'
 
 // ========== 默认班次配置（与V1.1完全一致）==========
 const DEFAULT_SHIFT_CONFIGS = [
@@ -161,14 +163,14 @@ export const useScheduleStore = defineStore('schedule', () => {
   }
 
   // 从API获取排班
+  // 与 V1.1 scheduleStore.ts L203-245 fetchSchedules 1:1 对齐：
+  // 先从真实工人库加载工人列表，再尝试 API，空/失败时回退本地种子数据
   async function fetchSchedules() {
     isLoading.value = true
     error.value = null
 
-    // 确保有员工列表
-    if (staffList.value.length === 0) {
-      staffList.value = [...DEFAULT_STAFF_LIST]
-    }
+    // 先从真实工人库加载工人列表（V1.1 L207）
+    await loadStaffFromWorkers()
 
     try {
       const apiSchedules = await enhancedApiClient.get('/schedules')
@@ -184,14 +186,45 @@ export const useScheduleStore = defineStore('schedule', () => {
         isLoading.value = false
         return
       }
-      // API返回空，使用本地种子数据
-      initSeedData()
-      isLoading.value = false
+      // API返回空，检查本地是否已有数据（V1.1 L228-234）
+      if (schedules.value.length === 0) {
+        initSeedData()
+      } else {
+        isLoading.value = false
+      }
     } catch (e) {
       console.warn('[ScheduleStore] API获取失败，使用本地数据:', e)
-      initSeedData()
-      error.value = e.message
+      // API失败，检查本地是否已有数据（V1.1 L239-243）
+      if (schedules.value.length === 0) {
+        initSeedData()
+      }
+      error.value = e?.message || String(e)
       isLoading.value = false
+    }
+  }
+
+  // 从 useWorkerStore 加载真实工人列表，映射为排班 Staff 格式
+  // 与 V1.1 scheduleStore.ts L433-456 loadStaffFromWorkers 1:1 对齐
+  async function loadStaffFromWorkers() {
+    try {
+      const workerStore = useWorkerStore()
+      let workers = workerStore.workers
+
+      // 如果工人数据尚未加载，主动触发加载（V1.1 L440-443）
+      if (!workers || workers.length === 0) {
+        await workerStore.loadWorkers()
+        workers = workerStore.workers
+      }
+
+      if (workers && workers.length > 0) {
+        staffList.value = workers.map(w => ({
+          id: w.id || w.workerId || '',
+          name: w.name || '',
+          workZone: w.department || w.departmentName || w.workArea || '',
+        }))
+      }
+    } catch (e) {
+      console.warn('[ScheduleStore] 加载工人列表失败:', e)
     }
   }
 
@@ -325,6 +358,7 @@ export const useScheduleStore = defineStore('schedule', () => {
     pendingSwapCount,
     monthCount,
     fetchSchedules,
+    loadStaffFromWorkers,
     initSeedData,
     addSchedule,
     updateSchedule,

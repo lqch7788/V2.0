@@ -331,6 +331,7 @@
           </div>
 
           <el-table
+            class="schedule-table"
             :data="filteredSchedules.slice((pagination.currentPage - 1) * pagination.pageSize, (pagination.currentPage - 1) * pagination.pageSize + pagination.pageSize)"
             style="width: 100%"
             :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#ffffff', fontWeight: 600 }"
@@ -1412,9 +1413,23 @@ const handleSwapTargetChange = (staffId) => {
   }
 }
 
-// 初始化种子数据
+// 与 V1.1 useSchedule.ts L13-15 1:1 对齐：组件挂载时调 fetchSchedules（先加载真实工人，再尝试 API，空则回退种子数据）
 onMounted(() => {
-  store.initSeedData()
+  store.fetchSchedules()
+  // 与 V1.1 ScheduleTable.tsx L416 hover:bg-blue-100 1:1 对齐：排班表格行 hover 为浅蓝色
+  // el-table 默认 hover 为浅灰，注入全局样式覆盖为 #dbeafe (Tailwind blue-100)
+  if (!document.getElementById('schedule-table-hover-style')) {
+    const style = document.createElement('style')
+    style.id = 'schedule-table-hover-style'
+    // 仅作用于排班表格容器，避免污染其他 el-table
+    style.textContent = `
+      .schedule-table .el-table__body tr.el-table__row:hover > td.el-table__cell {
+        background-color: #dbeafe !important;
+        transition: background-color 0.2s ease;
+      }
+    `
+    document.head.appendChild(style)
+  }
 })
 
 // ============ 与 V1.1 L16-32 1:1 对齐：数据兼容工具 ============
