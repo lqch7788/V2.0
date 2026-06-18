@@ -1,50 +1,13 @@
 <template>
   <div class="space-y-4 p-6">
-    <!-- 页面标题 -->
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-          <el-icon :size="24" class="text-white"><Calendar /></el-icon>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">排班调度</h1>
-          <p class="text-gray-500">员工排班管理与调班申请</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 快捷操作栏 -->
-    <div class="bg-white rounded-lg shadow-sm p-4">
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <!-- 左侧操作 -->
-        <div class="flex items-center gap-2">
-          <el-button :type="displayMode === 'calendar' ? 'primary' : ''" size="small" @click="displayMode = 'calendar'">
-            <el-icon><Calendar /></el-icon>
-            日历视图
-          </el-button>
-          <el-button :type="displayMode === 'table' ? 'primary' : ''" size="small" @click="displayMode = 'table'">
-            <el-icon><List /></el-icon>
-            表格视图
-          </el-button>
-        </div>
-
-        <!-- 右侧操作 -->
-        <div class="flex items-center gap-2">
-          <el-button size="small" class="!bg-purple-600 !border-purple-600 !text-white hover:!bg-purple-700" @click="showSwapModal = true">
-            <el-icon><User /></el-icon>
-            调班申请
-          </el-button>
-          <el-button size="small" class="!bg-blue-600 !border-blue-600 !text-white hover:!bg-blue-700" @click="showShiftEditor = true">
-            <el-icon><Setting /></el-icon>
-            班次设置
-          </el-button>
-          <el-button type="primary" size="small" @click="showAddModal = true">
-            <el-icon><Plus /></el-icon>
-            新增排班
-          </el-button>
-        </div>
-      </div>
-    </div>
+    <!-- 页面标题 + 快捷操作栏 - 拆分为独立 SFC -->
+    <ScheduleHeader
+      :display-mode="displayMode"
+      @update:displayMode="(v) => displayMode = v"
+      @open-swap="showSwapModal = true"
+      @open-shift-editor="showShiftEditor = true"
+      @open-add="showAddModal = true"
+    />
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-4 gap-3">
@@ -255,7 +218,8 @@
 </template>
 
 <script setup>
-// V1.1 1:1 拆分：9 个独立 SFC（日历/表格/班次编辑器/侧边栏/调班/批量编辑/新增/删除警告/导出格式）
+// V1.1 1:1 拆分：10 个独立 SFC（标题/日历/表格/班次编辑器/侧边栏/调班/批量编辑/新增/删除警告/导出格式）
+import ScheduleHeader from './components/ScheduleHeader.vue'
 import ScheduleCalendarView from './components/ScheduleCalendarView.vue'
 import ScheduleTableView from './components/ScheduleTableView.vue'
 import ScheduleShiftEditorModal from './components/ScheduleShiftEditorModal.vue'
