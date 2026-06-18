@@ -180,31 +180,16 @@
 
     <!-- ========== 弹窗 ========== -->
 
-    <!-- 新增排班弹窗 -->
-    <el-dialog v-model="showAddModal" title="新增排班" width="500px">
-      <el-form :model="newSchedule" label-width="80px">
-        <el-form-item label="员工">
-          <el-select v-model="newSchedule.staffId" placeholder="选择员工" class="w-full">
-            <el-option v-for="staff in store.staffList" :key="staff.id" :label="staff.name" :value="staff.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="日期">
-          <el-date-picker v-model="newSchedule.date" type="date" placeholder="选择日期" class="w-full" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
-        </el-form-item>
-        <el-form-item label="班次">
-          <el-select v-model="newSchedule.shift" placeholder="选择班次" class="w-full">
-            <el-option v-for="config in store.shiftConfigs" :key="config.name" :label="config.name" :value="config.name" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="工作区域">
-          <el-input v-model="newSchedule.workZone" placeholder="输入工作区域" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAddModal = false">取消</el-button>
-        <el-button type="primary" @click="handleAddSchedule">确定</el-button>
-      </template>
-    </el-dialog>
+    <!-- 新增排班弹窗 - 拆分为独立 SFC（V1.1 ScheduleAddModal.tsx 1:1 对齐） -->
+    <ScheduleAddModal
+      :is-open="showAddModal"
+      :new-schedule="newSchedule"
+      :staff-list="store.staffList"
+      :shift-configs="store.shiftConfigs"
+      @close="showAddModal = false"
+      @submit="handleAddSchedule"
+      @update-form="(v) => newSchedule = v"
+    />
 
     <!-- 批量编辑弹窗 - 拆分为独立 SFC（V1.1 ScheduleBatchEditModal.tsx 1:1 对齐） -->
     <ScheduleBatchEditModal
@@ -222,46 +207,24 @@
       @update:selected-record-id="(v) => selectedRecordId = v"
     />
 
-    <!-- 删除确认弹窗 -->
-    <el-dialog v-model="showDeleteWarning" title="确认删除" width="400px">
-      <p class="text-sm text-gray-600">确定要删除选中的 <strong class="text-red-600">{{ selectedRows.length }}</strong> 条排班记录吗？此操作不可撤销。</p>
-      <template #footer>
-        <el-button @click="showDeleteWarning = false">取消</el-button>
-        <el-button type="danger" @click="handleConfirmDelete">确认删除</el-button>
-      </template>
-    </el-dialog>
+    <!-- 删除确认弹窗 - 拆分为独立 SFC（V1.1 DeleteWarningModal.tsx 1:1 对齐） -->
+    <ScheduleDeleteWarningModal
+      :is-open="showDeleteWarning"
+      :selected-count="selectedRows.length"
+      @close="showDeleteWarning = false"
+      @confirm="handleConfirmDelete"
+    />
 
-    <!-- 导出格式选择弹窗 -->
-    <el-dialog v-model="showExportModal" title="选择导出格式" width="400px">
-      <p class="text-sm text-gray-500 mb-4">已选择 {{ selectedRows.length }} 条数据</p>
-      <div class="space-y-3">
-        <div
-          v-for="format in exportFormats"
-          :key="format.value"
-          :class="[
-            'p-4 border rounded-lg cursor-pointer transition-all',
-            exportFormat === format.value
-              ? 'border-emerald-500 bg-emerald-50'
-              : 'border-gray-200 hover:border-gray-300'
-          ]"
-          @click="exportFormat = format.value"
-        >
-          <div class="flex items-center">
-            <div :class="['w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0', exportFormat === format.value ? 'border-emerald-600' : 'border-gray-300']">
-              <div v-if="exportFormat === format.value" class="w-2 h-2 rounded-full bg-emerald-600" />
-            </div>
-            <div class="ml-3">
-              <p class="text-sm font-medium text-gray-900">{{ format.label }}</p>
-              <p class="text-xs text-gray-500">{{ format.desc }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="showExportModal = false">取消</el-button>
-        <el-button type="primary" @click="handleDoExport">导出</el-button>
-      </template>
-    </el-dialog>
+    <!-- 导出格式选择弹窗 - 拆分为独立 SFC（V1.1 ExportFormatModal.tsx 1:1 对齐） -->
+    <ScheduleExportFormatModal
+      :is-open="showExportModal"
+      :selected-count="selectedRows.length"
+      :export-format="exportFormat"
+      :export-formats="exportFormats"
+      @close="showExportModal = false"
+      @confirm="handleDoExport"
+      @update-format="(v) => exportFormat = v"
+    />
 
     <!-- 调班申请弹窗 - 拆分为独立 SFC（V1.1 SwapRequestModal.tsx L75-172 1:1 对齐） -->
     <ScheduleSwapRequestModal
@@ -292,13 +255,16 @@
 </template>
 
 <script setup>
-// V1.1 1:1 拆分：日历 + 表格 + 班次编辑器 + 侧边栏 + 调班 + 批量编辑独立 SFC
+// V1.1 1:1 拆分：9 个独立 SFC（日历/表格/班次编辑器/侧边栏/调班/批量编辑/新增/删除警告/导出格式）
 import ScheduleCalendarView from './components/ScheduleCalendarView.vue'
 import ScheduleTableView from './components/ScheduleTableView.vue'
 import ScheduleShiftEditorModal from './components/ScheduleShiftEditorModal.vue'
 import ScheduleSidebar from './components/ScheduleSidebar.vue'
 import ScheduleSwapRequestModal from './components/ScheduleSwapRequestModal.vue'
 import ScheduleBatchEditModal from './components/ScheduleBatchEditModal.vue'
+import ScheduleAddModal from './components/ScheduleAddModal.vue'
+import ScheduleDeleteWarningModal from './components/ScheduleDeleteWarningModal.vue'
+import ScheduleExportFormatModal from './components/ScheduleExportFormatModal.vue'
 import { ref, computed, onMounted, reactive } from 'vue'
 import { Calendar, List, User, Setting, Plus, Clock, ArrowLeft, ArrowRight, ArrowRight as Promotion, Download, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
