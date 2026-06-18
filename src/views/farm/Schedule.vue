@@ -98,161 +98,36 @@
     <div class="grid grid-cols-3 gap-4">
       <!-- 日历/表格视图 -->
       <div class="col-span-2">
-        <!-- 日历视图 - 与 V1.1 ScheduleCalendar.tsx 1:1 对齐：月/周/日 3 视图 + 上下今天导航 -->
-        <div v-if="displayMode === 'calendar'" class="space-y-4">
-          <!-- 日历工具栏（V1.1 L338-394）：上一天/今天/下一天 + 月/周/日 切换 -->
-          <div class="flex items-center justify-between bg-white rounded-lg shadow p-3">
-            <div class="flex items-center gap-2">
-              <el-button text @click="handleCalendarPrev">
-                <el-icon><ArrowLeft /></el-icon>
-              </el-button>
-              <el-button size="small" type="primary" plain @click="handleCalendarToday">今天</el-button>
-              <el-button text @click="handleCalendarNext">
-                <el-icon><ArrowRight /></el-icon>
-              </el-button>
-              <span class="ml-4 text-lg font-semibold text-gray-800">
-                {{ currentYear }}年{{ currentMonth }}月
-              </span>
-            </div>
-            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              <el-button
-                :type="viewMode === 'month' ? 'primary' : ''"
-                size="small"
-                @click="viewMode = 'month'"
-              >月</el-button>
-              <el-button
-                :type="viewMode === 'week' ? 'primary' : ''"
-                size="small"
-                @click="viewMode = 'week'"
-              >周</el-button>
-              <el-button
-                :type="viewMode === 'day' ? 'primary' : ''"
-                size="small"
-                @click="viewMode = 'day'"
-              >日</el-button>
-            </div>
-          </div>
-
-          <!-- 月视图（V1.1 renderMonthView L112-183）：自定义 grid-cols-7 + 班次彩色标签 + 今天红圆 + +N更多 -->
-          <div v-if="viewMode === 'month'" class="bg-white rounded-lg shadow overflow-hidden">
-            <!-- 星期标题 -->
-            <div class="grid grid-cols-7 bg-gray-50 border-b">
-              <div v-for="day in WEEKDAYS" :key="day" class="py-2 text-center text-sm font-medium text-gray-600">
-                {{ day }}
-              </div>
-            </div>
-            <!-- 日期网格：覆盖完整 6 周（42 天）含上下月 -->
-            <div class="grid grid-cols-7">
-              <div
-                v-for="dateStr in monthDateRange"
-                :key="dateStr"
-                @click="handleCalendarDateClick(dateStr)"
-                :class="['min-h-24 border-b border-r border-gray-300 p-1 cursor-pointer transition-colors',
-                  selectedDay === dateStr ? 'bg-blue-500' : 'bg-blue-50 hover:bg-blue-100',
-                  !isCurrentMonth(dateStr) ? 'bg-gray-100' : '']"
-              >
-                <div :class="['text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full',
-                  isToday(dateStr) ? 'bg-red-500 text-white' : '',
-                  !isCurrentMonth(dateStr) ? 'text-gray-400' : selectedDay === dateStr ? 'text-white' : 'text-gray-700']">
-                  {{ formatMonthDay(dateStr) }}
-                </div>
-                <!-- 排班标签（V1.1 L155-175）：员工名 + 班次 + 班次色 + 取消态 + 最多 3 条 + +N 更多 -->
-                <div class="space-y-0.5">
-                  <div
-                    v-for="schedule in getSchedulesForDate(dateStr).slice(0, 3)"
-                    :key="schedule.id"
-                    @click.stop="handleView(schedule)"
-                    :class="['text-xs px-1 py-0.5 rounded truncate text-white cursor-pointer',
-                      getShiftColor(schedule.shift),
-                      schedule.status === '已取消' ? 'opacity-50 line-through' : '']"
-                  >
-                    {{ schedule.staffName || schedule.staff_name }} {{ schedule.shift }}
-                  </div>
-                  <div v-if="getSchedulesForDate(dateStr).length > 3" class="text-xs text-gray-500 px-1">
-                    +{{ getSchedulesForDate(dateStr).length - 3 }} 更多
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 周视图（V1.1 renderWeekView L186-272）：7 天横排 + 当日排班详情 -->
-          <div v-else-if="viewMode === 'week'" class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="grid grid-cols-7 bg-gray-50 border-b">
-              <div v-for="day in weekDays" :key="day.date"
-                :class="['py-3 text-center cursor-pointer transition-colors',
-                  selectedDay === day.date ? 'bg-blue-500 text-white' : 'bg-blue-50 hover:bg-blue-100']"
-                @click="selectedDay = day.date">
-                <div :class="['text-xs mb-1', selectedDay === day.date ? 'text-white/80' : 'text-gray-500']">{{ day.weekday }}</div>
-                <div :class="['text-lg font-medium w-8 h-8 mx-auto flex items-center justify-center rounded-full',
-                  isToday(day.date) ? 'bg-red-500 text-white' : selectedDay === day.date ? 'text-white' : 'text-gray-700']">
-                  {{ day.day }}
-                </div>
-              </div>
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-medium text-gray-800 mb-3">{{ formatWeekdayTitle(selectedDay) }}</h3>
-              <div v-if="getSchedulesForDate(selectedDay).length === 0" class="text-gray-400 text-center py-8">暂无排班</div>
-              <div v-else class="space-y-2">
-                <div v-for="schedule in getSchedulesForDate(selectedDay)" :key="schedule.id"
-                  @click="handleView(schedule)"
-                  :class="['flex items-center justify-between p-3 rounded-lg border cursor-pointer',
-                    schedule.status === '已取消' ? 'bg-gray-50 opacity-60' : 'bg-white hover:bg-gray-50',
-                    schedule.status === '已执行' ? 'border-green-200' : 'border-gray-200']">
-                  <div class="flex items-center gap-3">
-                    <div :class="['w-2 h-2 rounded-full', getShiftColor(schedule.shift)]" />
-                    <div>
-                      <div class="font-medium text-gray-800">{{ getStaffName(schedule) }}</div>
-                      <div class="text-sm text-gray-500">{{ getWorkZone(schedule) }}</div>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="font-medium text-gray-700">{{ schedule.shift }}</div>
-                    <div class="text-sm text-gray-500">{{ getShiftTime(schedule.shift) }}</div>
-                  </div>
-                  <span :class="['px-2 py-1 rounded text-xs', getStatusClass(schedule.status)]">
-                    {{ schedule.status }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 日视图（V1.1 renderDayView L275-333）：单日排班卡片 -->
-          <div v-else-if="viewMode === 'day'" class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="p-4 border-b">
-              <h3 class="text-xl font-medium text-gray-800">{{ formatDayTitle(selectedDay) }}</h3>
-            </div>
-            <div class="p-4">
-              <div v-if="getSchedulesForDate(selectedDay).length === 0" class="text-gray-400 text-center py-12">暂无排班</div>
-              <div v-else class="space-y-3">
-                <div v-for="schedule in getSchedulesForDate(selectedDay)" :key="schedule.id"
-                  @click="handleView(schedule)"
-                  :class="['p-4 rounded-lg border cursor-pointer',
-                    schedule.status === '已取消' ? 'bg-gray-50 opacity-60' : 'bg-white hover:bg-gray-50',
-                    schedule.status === '已执行' ? 'border-green-200' : 'border-gray-200']">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                      <div :class="['w-3 h-3 rounded', getShiftColor(schedule.shift)]" />
-                      <span class="font-medium text-gray-800">{{ getStaffName(schedule) }}</span>
-                      <span class="text-gray-400">|</span>
-                      <span class="text-gray-600">{{ getWorkZone(schedule) }}</span>
-                    </div>
-                    <span :class="['px-3 py-1 rounded-full text-sm', getStatusClass(schedule.status)]">
-                      {{ schedule.status }}
-                    </span>
-                  </div>
-                  <div class="mt-2 flex items-center gap-6 text-sm text-gray-500">
-                    <span>班次: {{ schedule.shift }}</span>
-                    <span>时间: {{ getShiftTime(schedule.shift) }}</span>
-                    <span v-if="schedule.checkIn">签到: {{ schedule.checkIn }}</span>
-                    <span v-if="schedule.checkOut">签退: {{ schedule.checkOut }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- 日历视图 - 拆分为独立 SFC（V1.1 ScheduleCalendar.tsx 1:1 对齐） -->
+        <ScheduleCalendarView
+          v-if="displayMode === 'calendar'"
+          :view-mode="viewMode"
+          :selected-day="selectedDay"
+          :current-year="currentYear"
+          :current-month="currentMonth"
+          :weekdays="WEEKDAYS"
+          :month-date-range="monthDateRange"
+          :week-days="weekDays"
+          :schedules="store.schedules"
+          :is-current-month="isCurrentMonth"
+          :is-today="isToday"
+          :format-month-day="formatMonthDay"
+          :format-weekday-title="formatWeekdayTitle"
+          :format-day-title="formatDayTitle"
+          :get-schedules-for-date="getSchedulesForDate"
+          :get-shift-color="getShiftColor"
+          :get-shift-time="getShiftTime"
+          :get-staff-name="getStaffName"
+          :get-work-zone="getWorkZone"
+          :get-status-class="getStatusClass"
+          @prev="handleCalendarPrev"
+          @next="handleCalendarNext"
+          @today="handleCalendarToday"
+          @date-click="handleCalendarDateClick"
+          @view="handleView"
+          @update:viewMode="(v) => viewMode = v"
+          @update:selectedDay="(v) => selectedDay = v"
+        />
 
         <!-- 表格视图 -->
         <div v-else class="bg-white rounded-lg shadow">
@@ -868,6 +743,8 @@
 </template>
 
 <script setup>
+// V1.1 1:1 拆分：日历视图独立 SFC
+import ScheduleCalendarView from './components/ScheduleCalendarView.vue'
 import { ref, computed, onMounted, reactive } from 'vue'
 import { Calendar, List, User, Setting, Plus, Clock, ArrowLeft, ArrowRight, ArrowRight as Promotion, Download, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
