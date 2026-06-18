@@ -19,20 +19,8 @@
       </div>
     </div>
 
-    <!-- 监控仪表板 -->
-    <div class="grid grid-cols-4 gap-3">
-      <div v-for="metric in metricsData" :key="metric.label" class="bg-white rounded-lg p-3 border border-gray-200">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs text-gray-500">{{ metric.label }}</p>
-            <p :class="['text-lg font-bold', metric.color]">{{ metric.value }}</p>
-          </div>
-          <div :class="['w-10 h-10 rounded-lg flex items-center justify-center', metric.bgColor]">
-            <el-icon :size="18" :class="metric.iconColor"><component :is="metric.icon" /></el-icon>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- 监控仪表板（V1.1 DispatchMetricsDashboard 1:1 对齐：V2.0 抽离为独立 SFC） -->
+    <DispatchMetricsDashboard :stats="dispatchEngine.stats" />
 
     <!-- 决策因素说明 -->
     <div class="bg-gradient-to-r from-emerald-50 to-blue-50 p-4 rounded-lg border border-emerald-200">
@@ -48,22 +36,12 @@
       </div>
     </div>
 
-    <!-- 预测任务面板 -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-      <div class="flex items-center gap-2 mb-3">
-        <el-icon :size="18" class="text-purple-600"><TrendCharts /></el-icon>
-        <span class="font-semibold text-gray-900">预测与预警</span>
-      </div>
-      <div class="grid grid-cols-3 gap-3">
-        <div v-for="alert in predictedAlerts" :key="alert.title" :class="['p-3 rounded-lg border', alert.bgColor]">
-          <div class="flex items-center gap-2 mb-1">
-            <el-icon :size="16" :class="alert.iconColor"><WarningFilled /></el-icon>
-            <span :class="['text-sm font-medium', alert.textColor]">{{ alert.title }}</span>
-          </div>
-          <p class="text-xs text-gray-600">{{ alert.desc }}</p>
-        </div>
-      </div>
-    </div>
+    <!-- 预测任务面板（V1.1 PredictedTasksPanel 1:1 对齐：V2.0 抽离为独立 SFC） -->
+    <PredictedTasksPanel
+      :tasks="predictedTasksData"
+      :overdue-tasks="overdueTasksData"
+      :pest-alerts="pestAlertsData"
+    />
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-4 gap-3">
@@ -188,19 +166,12 @@
       </div>
     </div>
 
-    <!-- 物料设备状态面板 -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-      <div class="flex items-center gap-2 mb-3">
-        <el-icon :size="18" class="text-amber-600"><Goods /></el-icon>
-        <span class="font-semibold text-gray-900">物料设备状态</span>
-      </div>
-      <div class="grid grid-cols-4 gap-3">
-        <div v-for="item in materialStats" :key="item.label" class="bg-gray-50 rounded-lg p-3 text-center">
-          <div :class="['text-xl font-bold', item.color]">{{ item.value }}</div>
-          <div class="text-xs text-gray-500 mt-1">{{ item.label }}</div>
-        </div>
-      </div>
-    </div>
+    <!-- 物料设备状态面板（V1.1 MaterialEquipmentPanel 1:1 对齐：V2.0 抽离为独立 SFC） -->
+    <MaterialEquipmentPanel
+      :materials="materialEquipment.materials?.value || []"
+      :equipment="materialEquipment.equipment?.value || []"
+      :alerts="materialEquipment.lowStockAlerts?.value || []"
+    />
 
     <!-- 派发结果提示 -->
     <div v-if="dispatchResult" :class="['p-3 rounded-lg flex items-center gap-2', dispatchResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700']">
@@ -370,55 +341,12 @@
         </div>
       </div>
 
-      <!-- 最右侧：环境面板 -->
+      <!-- 最右侧：环境面板（V1.1 EnvironmentPanel 1:1 对齐：V2.0 抽离为独立 SFC） -->
       <div class="col-span-1">
-        <div class="bg-white rounded-lg border border-gray-200">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <h3 class="font-semibold text-gray-900">环境信息</h3>
-          </div>
-          <div class="p-4 space-y-4">
-            <!-- 今日天气 -->
-            <div>
-              <h4 class="text-sm font-medium text-gray-700 mb-2">今日天气</h4>
-              <div class="bg-blue-50 rounded-lg p-3">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm text-gray-700">{{ todayWeather.condition }}</span>
-                  <span class="text-2xl font-bold text-blue-600">{{ todayWeather.temp }}°C</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                  <span>湿度: {{ todayWeather.humidity }}%</span>
-                  <span>风速: {{ todayWeather.windSpeed }}</span>
-                </div>
-                <div v-if="todayWeather.recommendation" class="mt-2 text-xs text-emerald-600 bg-emerald-50 rounded p-2">
-                  建议: {{ todayWeather.recommendation }}
-                </div>
-              </div>
-            </div>
-
-            <!-- 传感器状态 -->
-            <div>
-              <h4 class="text-sm font-medium text-gray-700 mb-2">传感器状态</h4>
-              <div class="space-y-2">
-                <div v-for="sensor in sensors" :key="sensor.name" class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">{{ sensor.name }}</span>
-                  <span :class="sensor.status === 'normal' ? 'text-emerald-600' : 'text-red-600'">
-                    {{ sensor.value }}{{ sensor.unit }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 预警信息 -->
-            <div v-if="alerts.length > 0">
-              <h4 class="text-sm font-medium text-gray-700 mb-2">预警信息</h4>
-              <div class="space-y-1">
-                <div v-for="(alert, i) in alerts" :key="i" :class="['text-xs p-2 rounded', alert.level === 'critical' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600']">
-                  {{ alert.message }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EnvironmentPanel
+          :weather="envData.todayWeather?.value || envData.todayWeather"
+          :alerts="envData.unacknowledgedAlerts?.value || []"
+        />
       </div>
     </div>
 
