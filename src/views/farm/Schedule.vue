@@ -516,93 +516,27 @@
       </template>
     </el-dialog>
 
-    <!-- 班次设置弹窗 - 与 V1.1 ShiftEditor.tsx L52-181 1:1 对齐：颜色 8 色选择 + 编辑模式 -->
-    <el-dialog v-model="showShiftEditor" title="班次设置" width="600px">
-      <div class="space-y-4">
-        <div
-          v-for="config in store.shiftConfigs"
-          :key="config.name"
-          :class="['p-4 rounded-lg border-2 transition-all',
-            editingShiftName === config.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-400']"
-        >
-          <template v-if="editingShiftName === config.name">
-            <!-- 编辑模式：时间设置 + 颜色选择 8 色（V1.1 L66-146） -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div :class="['w-4 h-4 rounded', tempShiftConfig.color]" />
-                  <span class="font-medium text-gray-800">{{ config.name }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <el-button size="small" @click="handleShiftEditCancel">
-                    <el-icon><Close /></el-icon>取消
-                  </el-button>
-                  <el-button size="small" type="primary" @click="handleShiftEditSave">
-                    <el-icon><Check /></el-icon>保存
-                  </el-button>
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-600 mb-1">开始时间</label>
-                  <el-time-select v-model="tempShiftConfig.startTime" style="width: 100%" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-600 mb-1">结束时间</label>
-                  <el-time-select v-model="tempShiftConfig.endTime" style="width: 100%" />
-                </div>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-600 mb-2">颜色</label>
-                <div class="flex gap-2 flex-wrap">
-                  <div
-                    v-for="color in SHIFT_COLORS"
-                    :key="color.name"
-                    :class="['w-8 h-8 rounded-full cursor-pointer flex items-center justify-center',
-                      tempShiftConfig.color === color.name ? 'ring-2 ring-offset-2 ring-gray-400' : '']"
-                    :style="{ backgroundColor: color.value }"
-                    @click="tempShiftConfig.color = color.name"
-                  >
-                    <el-icon v-if="tempShiftConfig.color === color.name" class="text-white"><Check /></el-icon>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </template>
-          <template v-else>
-            <!-- 显示模式：颜色 + 时间 + 编辑按钮（V1.1 L148-170） -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div :class="['w-4 h-4 rounded', config.color]" />
-                <div>
-                  <div class="font-medium text-gray-800">{{ config.name }}</div>
-                  <div class="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
-                    <el-icon><Clock /></el-icon>
-                    {{ config.startTime }} - {{ config.endTime }}
-                  </div>
-                </div>
-              </div>
-              <el-button size="small" type="primary" plain @click="handleShiftEditStart(config)">
-                <el-icon><Edit /></el-icon>编辑
-              </el-button>
-            </div>
-          </template>
-        </div>
-      </div>
-      <div class="mt-4 p-3 bg-gray-50 rounded-lg">
-        <p class="text-sm text-gray-500">提示：班次设置将影响所有排班记录的颜色和时间显示。修改班次时间不会影响已执行的签到记录。</p>
-      </div>
-      <template #footer>
-        <el-button @click="showShiftEditor = false">关闭</el-button>
-      </template>
-    </el-dialog>
+    <!-- 班次设置弹窗 - 拆分为独立 SFC（V1.1 ShiftEditor.tsx L52-181 1:1 对齐） -->
+    <ScheduleShiftEditorModal
+      :is-open="showShiftEditor"
+      :shift-configs="store.shiftConfigs"
+      :editing-shift-name="editingShiftName"
+      :temp-shift-config="tempShiftConfig"
+      :shift-colors="SHIFT_COLORS"
+      @close="showShiftEditor = false"
+      @edit-start="handleShiftEditStart"
+      @edit-cancel="handleShiftEditCancel"
+      @edit-save="handleShiftEditSave"
+      @update-temp-config="(v) => tempShiftConfig = v"
+    />
   </div>
 </template>
 
 <script setup>
-// V1.1 1:1 拆分：日历 + 表格视图独立 SFC
+// V1.1 1:1 拆分：日历 + 表格 + 班次编辑器独立 SFC
 import ScheduleCalendarView from './components/ScheduleCalendarView.vue'
 import ScheduleTableView from './components/ScheduleTableView.vue'
+import ScheduleShiftEditorModal from './components/ScheduleShiftEditorModal.vue'
 import { ref, computed, onMounted, reactive } from 'vue'
 import { Calendar, List, User, Setting, Plus, Clock, ArrowLeft, ArrowRight, ArrowRight as Promotion, Download, Edit, Delete, Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
