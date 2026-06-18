@@ -13,7 +13,7 @@
         </div>
         <div class="pt-5">
           <el-button type="primary" size="default" @click="$emit('openQRScanner')">
-            <el-icon><Scan /></el-icon>
+            <el-icon><Aim /></el-icon>
             扫码定位
           </el-button>
         </div>
@@ -230,7 +230,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Scan, Close } from '@element-plus/icons-vue'
+import { Aim, Close } from '@element-plus/icons-vue'
 import { ISSUE_CATEGORIES, ISSUE_PRESETS, CROP_STATUS_OPTIONS } from '@/types/farm/common'
 
 const CROP_STATUS_LABELS = (CROP_STATUS_OPTIONS || []).map(s => typeof s === 'object' ? s.label : s)

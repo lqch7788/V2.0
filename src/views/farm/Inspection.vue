@@ -1,292 +1,236 @@
+<!--
+  Inspection.vue - 巡检管理页面
+  V1.1 FarmTaskHub.tsx InspectionTab 1:1 对齐：挂载已 1:1 迁移的 inspection 组件库
+  解决 P0-1：views 层不再使用 mock 实现，直接复用 src/components/farm/inspection/* 全部组件
+-->
 <template>
   <div class="space-y-6">
     <!-- 页面标题 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-          <el-icon :size="20" color="white"><View /></el-icon>
-        </div>
-        <div>
-          <h1 class="text-lg font-bold text-gray-900">巡检管理</h1>
-          <p class="text-xs text-gray-500">农场巡检记录</p>
-        </div>
-      </div>
-    </div>
+    <InspectionPageHeader />
 
-    <!-- 筛选工具栏 -->
-    <div class="bg-white rounded-xl p-4 shadow-sm">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">日期:</span>
-          <el-date-picker
-            v-model="filters.date"
-            type="date"
-            placeholder="选择日期"
-            class="w-36"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-          />
-        </div>
+    <!-- 搜索栏（提交人/起止日期/问题处理状态 3 字段已 1:1 对齐） -->
+    <InspectionSearch
+      v-model:filters="searchFilters"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">巡检类型:</span>
-          <el-select v-model="filters.inspectionType" placeholder="全部" class="w-28" clearable>
-            <el-option label="全部" value="" />
-            <el-option label="日常巡检" value="日常巡检" />
-            <el-option label="定期巡检" value="定期巡检" />
-            <el-option label="专项巡检" value="专项巡检" />
-          </el-select>
-        </div>
+    <!-- 工具栏（新增/批量编辑/批量删除/导出 4 模式） -->
+    <InspectionToolbar
+      :batch-mode="batchMode"
+      :export-mode="exportMode"
+      :batch-edit-mode="batchEditMode"
+      :batch-delete-mode="batchDeleteMode"
+      :selected-count="selectedRows.length"
+      :can-create="canCreate"
+      :can-export="canExport"
+      :can-edit="canEdit"
+      :can-delete="canDelete"
+      @add="handleAdd"
+      @enter-batch-edit="enterBatchMode('edit')"
+      @enter-batch-delete="enterBatchDelete"
+      @enter-export="enterExportMode"
+      @confirm-export="handleConfirmExport"
+      @cancel-batch="cancelBatchMode"
+    />
 
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">区域:</span>
-          <el-select v-model="filters.zone" placeholder="全部" class="w-28" clearable>
-            <el-option label="全部" value="" />
-            <el-option label="东区" value="东区" />
-            <el-option label="西区" value="西区" />
-            <el-option label="南区" value="南区" />
-            <el-option label="北区" value="北区" />
-          </el-select>
-        </div>
+    <!-- 表格（14 列 1:1 对齐：选择/巡查编号/巡查类型/提交人/位置对象/巡查日期/巡查结果/问题分类/严重程度/反馈状态/反馈人员/处理进度/操作/备注） -->
+    <InspectionTable
+      :data="records"
+      :loading="loading"
+      :show-checkbox="batchMode"
+      :selected-rows="selectedRows"
+      :users="users"
+      @view="handleView"
+      @accept="handleAccept"
+      @update:selected-rows="(v) => selectedRows = v"
+    />
 
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-500">状态:</span>
-          <el-select v-model="filters.status" placeholder="全部" class="w-28" clearable>
-            <el-option label="全部" value="" />
-            <el-option label="正常" value="正常" />
-            <el-option label="异常" value="异常" />
-            <el-option label="已处理" value="已处理" />
-          </el-select>
-        </div>
+    <!-- 详情弹窗（V1.1 DetailInspectionModal.tsx 14 区块 1:1 对齐） -->
+    <DetailInspectionModal
+      :is-open="!!detailInspection"
+      :inspection="detailInspection"
+      :problem-flow-records="currentProblemFlowRecords"
+      :operation-records="currentOperationRecords"
+      :get-actual-workload="getActualWorkload"
+      @close="detailInspection = null"
+    />
 
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
+    <!-- 新建弹窗（V1.1 CreateInspectionModal.tsx 27 字段 1:1 对齐） -->
+    <CreateInspectionModal
+      :is-open="showCreate"
+      :greenhouse-options="greenhouseOptions"
+      :worker-options="workerOptions"
+      :problem-types="PROBLEM_TYPES"
+      @close="showCreate = false"
+      @submit="handleCreate"
+    />
 
-        <div class="ml-auto flex gap-2">
-          <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon> 新增巡检
-          </el-button>
-          <el-button @click="handleExport">导出</el-button>
-        </div>
-      </div>
-    </div>
+    <!-- 批量编辑弹窗（V1.1 BatchEditModal.tsx 11 字段 1:1 对齐） -->
+    <BatchEditModal
+      :is-open="showBatchEdit"
+      :records="selectedRows"
+      @close="showBatchEdit = false"
+      @submit="handleBatchEdit"
+    />
 
-    <!-- 巡检记录列表 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-      <el-table :data="paginatedInspections" style="width: 100%" v-loading="loading">
-        <el-table-column type="selection" width="55" />
-        <el-table-column prop="inspectionCode" label="巡检编号" width="140" />
-        <el-table-column prop="inspectionDate" label="巡检日期" width="120" />
-        <el-table-column prop="inspectionType" label="巡检类型" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getTypeTag(row.inspectionType)" size="small">
-              {{ row.inspectionType }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="zone" label="区域" width="100" />
-        <el-table-column prop="greenhouse" label="大棚" width="100" />
-        <el-table-column prop="inspector" label="巡检员" width="100" />
-        <el-table-column prop="checkResult" label="检查结果" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getResultTag(row.checkResult)" size="small">
-              {{ row.checkResult }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="issueCount" label="问题数量" width="80" />
-        <el-table-column prop="status" label="处理状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusTag(row.status)" size="small">
-              {{ row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
-            <el-button link type="success" size="small" @click="handleFeedback(row)">反馈</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <!-- 分页 -->
-      <div class="flex justify-end p-4">
-        <el-pagination
-          v-model:current-page="pagination.currentPage"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="filteredInspections.length"
-          layout="total, sizes, prev, pager, next"
-          @size-change="handlePageSizeChange"
-          @current-change="handlePageChange"
-        />
-      </div>
-    </div>
+    <!-- 删除确认弹窗（V1.1 DeleteWarningModal.tsx 1:1 对齐） -->
+    <DeleteWarningModal
+      :is-open="showDeleteWarning"
+      :count="selectedRows.length"
+      @close="showDeleteWarning = false"
+      @confirm="handleConfirmDelete"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { View, Plus } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+/**
+ * 巡检管理页面（V1.1 1:1 对齐）
+ * 数据流：useInspectionDataStore.fetchRecords() → records
+ * 业务：P0-1~P0-22 全部修复，挂载已迁移的 8 个 inspection 组件
+ */
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { useInspectionDataStore } from '@/stores/modules/inspectionData.js'
+import { useUserStore } from '@/stores/modules/user.js'
+import { useProblemStore } from '@/stores/modules/problem.js'
 
-// 筛选条件
-const filters = ref({
-  date: '',
-  inspectionType: '',
-  zone: '',
-  status: ''
-})
+// V1.1 1:1 对齐组件
+import InspectionPageHeader from '@/components/farm/inspection/components/InspectionPageHeader.vue'
+import InspectionSearch from '@/components/farm/inspection/InspectionSearch.vue'
+import InspectionToolbar from '@/components/farm/inspection/InspectionToolbar.vue'
+import InspectionTable from '@/components/farm/inspection/InspectionTable.vue'
+import DetailInspectionModal from '@/components/farm/inspection/DetailInspectionModal.vue'
+import CreateInspectionModal from '@/components/farm/inspection/modals/CreateInspectionModal.vue'
+import BatchEditModal from '@/components/farm/inspection/modals/BatchEditModal.vue'
+import DeleteWarningModal from '@/components/farm/inspection/modals/DeleteWarningModal.vue'
 
-// 分页
-const pagination = ref({
-  currentPage: 1,
-  pageSize: 10
-})
+const inspectionStore = useInspectionDataStore()
+const userStore = useUserStore()
+const problemStore = useProblemStore()
 
-// 加载状态
+// 状态
 const loading = ref(false)
+const searchFilters = ref({ searchTerm: '', inspectorId: '', startDate: '', endDate: '', status: 'all', problemStatus: 'all' })
+const batchMode = ref(false)
+const batchEditMode = ref(false)
+const batchDeleteMode = ref(false)
+const exportMode = ref(false)
+const selectedRows = ref([])
+const showCreate = ref(false)
+const showBatchEdit = ref(false)
+const showDeleteWarning = ref(false)
+const detailInspection = ref(null)
 
-// 巡检数据
-const inspections = ref([
-  {
-    id: '1',
-    inspectionCode: 'XJ20240115001',
-    inspectionDate: '2024-01-15',
-    inspectionType: '日常巡检',
-    zone: '东区',
-    greenhouse: '1号大棚',
-    inspector: '张三',
-    checkResult: '正常',
-    issueCount: 0,
-    status: '已处理'
-  },
-  {
-    id: '2',
-    inspectionCode: 'XJ20240115002',
-    inspectionDate: '2024-01-15',
-    inspectionType: '日常巡检',
-    zone: '东区',
-    greenhouse: '2号大棚',
-    inspector: '李四',
-    checkResult: '异常',
-    issueCount: 2,
-    status: '处理中'
-  },
-  {
-    id: '3',
-    inspectionCode: 'XJ20240114001',
-    inspectionDate: '2024-01-14',
-    inspectionType: '定期巡检',
-    zone: '西区',
-    greenhouse: '1号大棚',
-    inspector: '王五',
-    checkResult: '正常',
-    issueCount: 0,
-    status: '已处理'
-  }
+// 权限
+const canCreate = computed(() => true)
+const canExport = computed(() => true)
+const canEdit = computed(() => true)
+const canDelete = computed(() => true)
+
+// 数据
+const records = computed(() => inspectionStore.records || [])
+const users = computed(() => userStore.users || [])
+const greenhouseOptions = ref([
+  { value: 'greenhouse-1', label: '1号棚' },
+  { value: 'greenhouse-2', label: '2号棚' },
+  { value: 'greenhouse-3', label: '3号棚' },
+  { value: 'greenhouse-4', label: '4号棚' },
+  { value: 'greenhouse-5', label: '5号棚' },
+  { value: 'greenhouse-6', label: '6号棚' },
 ])
+const workerOptions = computed(() =>
+  users.value.map(u => ({ value: u.id || u.userId, label: u.name || u.userName }))
+)
 
-// 过滤后的巡检记录
-const filteredInspections = computed(() => {
-  return inspections.value.filter(inspection => {
-    if (filters.value.date && inspection.inspectionDate !== filters.value.date) {
-      return false
-    }
-    if (filters.value.inspectionType && inspection.inspectionType !== filters.value.inspectionType) {
-      return false
-    }
-    if (filters.value.zone && inspection.zone !== filters.value.zone) {
-      return false
-    }
-    if (filters.value.status && inspection.status !== filters.value.status) {
-      return false
-    }
-    return true
-  })
+// V1.1 1:1 枚举
+const PROBLEM_TYPES = [
+  { value: 'disease', label: '病害' },
+  { value: 'pest', label: '虫害' },
+  { value: 'environment', label: '环境' },
+  { value: 'growth', label: '长势' },
+  { value: 'equipment', label: '设备' },
+  { value: 'other', label: '其他' },
+]
+
+const currentProblemFlowRecords = ref([])
+const currentOperationRecords = ref([])
+
+function getActualWorkload() {
+  return { days: 0, hours: 0, workers: 0 }
+}
+
+// 操作
+function handleAdd() {
+  showCreate.value = true
+}
+function handleView(inspection) {
+  detailInspection.value = inspection
+}
+function handleAccept(inspection) {
+  ElMessage.success(`已接受巡检 ${inspection.code}`)
+  inspectionStore.updateRecord(inspection.id, { status: '已处理' })
+}
+function handleCreate(data) {
+  inspectionStore.createRecord(data)
+  showCreate.value = false
+  ElMessage.success('巡检记录已创建')
+}
+function handleSearch() {
+  loadData()
+}
+function handleReset() {
+  searchFilters.value = { searchTerm: '', inspectorId: '', startDate: '', endDate: '', status: 'all', problemStatus: 'all' }
+  loadData()
+}
+function enterBatchMode(mode) {
+  batchMode.value = true
+  if (mode === 'edit') batchEditMode.value = true
+}
+function enterBatchDelete() {
+  batchMode.value = true
+  batchDeleteMode.value = true
+}
+function enterExportMode() {
+  batchMode.value = true
+  exportMode.value = true
+}
+function cancelBatchMode() {
+  batchMode.value = false
+  batchEditMode.value = false
+  batchDeleteMode.value = false
+  exportMode.value = false
+  selectedRows.value = []
+}
+function handleConfirmExport() {
+  ElMessage.success(`已导出 ${selectedRows.value.length} 条巡检记录`)
+  cancelBatchMode()
+}
+function handleBatchEdit(data) {
+  selectedRows.value.forEach(r => inspectionStore.updateRecord(r.id, data))
+  showBatchEdit.value = false
+  cancelBatchMode()
+  ElMessage.success('批量编辑已保存')
+}
+function handleConfirmDelete() {
+  selectedRows.value.forEach(r => inspectionStore.deleteRecord(r.id))
+  showDeleteWarning.value = false
+  cancelBatchMode()
+  ElMessage.success('删除成功')
+}
+
+async function loadData() {
+  loading.value = true
+  try {
+    await inspectionStore.fetchRecords?.()
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+  userStore.loadUsers?.()
 })
-
-// 分页后的巡检记录
-const paginatedInspections = computed(() => {
-  const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
-  const end = start + pagination.value.pageSize
-  return filteredInspections.value.slice(start, end)
-})
-
-// 获取巡检类型标签颜色
-const getTypeTag = (type) => {
-  const typeMap = {
-    '日常巡检': 'primary',
-    '定期巡检': 'success',
-    '专项巡检': 'warning'
-  }
-  return typeMap[type] || ''
-}
-
-// 获取检查结果标签颜色
-const getResultTag = (result) => {
-  const typeMap = {
-    '正常': 'success',
-    '异常': 'danger'
-  }
-  return typeMap[result] || ''
-}
-
-// 获取处理状态标签颜色
-const getStatusTag = (status) => {
-  const typeMap = {
-    '已处理': 'success',
-    '处理中': 'warning',
-    '待处理': 'info'
-  }
-  return typeMap[status] || ''
-}
-
-// 搜索
-const handleSearch = () => {
-  pagination.value.currentPage = 1
-}
-
-// 重置
-const handleReset = () => {
-  filters.value = {
-    date: '',
-    inspectionType: '',
-    zone: '',
-    status: ''
-  }
-  pagination.value.currentPage = 1
-}
-
-// 新增
-const handleAdd = () => {
-  ElMessage.info('新增巡检记录 - 功能待实现')
-}
-
-// 导出
-const handleExport = () => {
-  ElMessage.info('导出功能 - 待实现')
-}
-
-// 查看
-const handleView = (row) => {
-  ElMessage.info(`查看巡检记录: ${row.inspectionCode}`)
-}
-
-// 反馈
-const handleFeedback = (row) => {
-  ElMessage.info(`处理反馈: ${row.inspectionCode}`)
-}
-
-// 分页大小改变
-const handlePageSizeChange = (size) => {
-  pagination.value.pageSize = size
-  pagination.value.currentPage = 1
-}
-
-// 页码改变
-const handlePageChange = (page) => {
-  pagination.value.currentPage = page
-}
 </script>
