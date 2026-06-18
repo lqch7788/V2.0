@@ -534,6 +534,13 @@ import { useDailyWorkOrderAnalysis } from '@/composables/useDailyWorkOrderAnalys
 import { usePendingConfirmTasks } from '@/composables/usePendingConfirmTasks.js'
 import { useFarmHub } from '@/composables/useFarmHub.js'
 
+// V2.0 5 个核心 UI 组件 1:1 对齐 V1.1
+import TaskCard from './components/TaskCard.vue'
+import DispatchMetricsDashboard from './components/DispatchMetricsDashboard.vue'
+import PredictedTasksPanel from './components/PredictedTasksPanel.vue'
+import MaterialEquipmentPanel from './components/MaterialEquipmentPanel.vue'
+import EnvironmentPanel from './components/EnvironmentPanel.vue'
+
 // 8 个 AI Hook 集成
 const dispatchEngine = useComprehensiveDispatch()
 const dispatchActions = useDispatchActions()
