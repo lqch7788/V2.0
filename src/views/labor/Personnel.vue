@@ -84,11 +84,12 @@ const handleTabChange = (tabName) => {
 </script>
 
 <style scoped>
-/* 继承全局样式，使用Element Plus Tabs样式 */
+/* V1.1 TabHeader 样式 - 白底 + 灰字 + 细绿色下划线激活指示 */
 .personnel-tabs :deep(.el-tabs__header) {
   margin: 0;
-  padding: 0 16px;
-  background: linear-gradient(to right, #10b981, #059669);
+  padding: 0;
+  background: transparent;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .personnel-tabs :deep(.el-tabs__nav-wrap::after) {
@@ -96,24 +97,28 @@ const handleTabChange = (tabName) => {
 }
 
 .personnel-tabs :deep(.el-tabs__item) {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
-  height: 40px;
-  line-height: 40px;
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 600;
+  height: 48px;
+  line-height: 48px;
+  padding: 0 20px;
+  transition: color 0.2s;
 }
 
 .personnel-tabs :deep(.el-tabs__item:hover) {
-  color: #fff;
+  color: #374151;
 }
 
 .personnel-tabs :deep(.el-tabs__item.is-active) {
-  color: #fff;
+  color: #059669;
   font-weight: 600;
 }
 
 .personnel-tabs :deep(.el-tabs__active-bar) {
-  background-color: #fff;
-  height: 3px;
+  background-color: #10b981;
+  height: 2px;
+  border-radius: 9999px;
 }
 
 .personnel-tabs :deep(.el-tabs__content) {
