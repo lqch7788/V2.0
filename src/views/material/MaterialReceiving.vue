@@ -272,6 +272,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Tab 4: 成本核算 - 已拆分为子组件 -->
+    <CostTab v-show="activeTab === 'cost'" :application-data="applicationData" :format-number="formatNumber" />
   </div>
 </template>
 
