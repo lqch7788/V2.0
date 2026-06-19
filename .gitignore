@@ -110,6 +110,7 @@ server/data/yuanxingtu_backup_*.db
 .worktrees/
 backup/
 .backup/
+.backup-stage1/
 
 # .ts files kept for observation period (not committed)
 # We have .js alternatives that take precedence in Vite/tsx
