@@ -118,9 +118,9 @@
 
     <!-- 分页（与V1.1 OrderTable.tsx L237-247 完全一致 - 使用通用 Pagination 组件） -->
     <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <Pagination
+      <el-pagination
         :current-page="pagination.current"
-        :total-pages="totalPages"
+        :total="Math.ceil(totalPages)"
         :page-size="pagination.pageSize"
         :page-size-options="[10, 20, 50]"
         :show-page-size="true"
@@ -169,7 +169,6 @@ import {
 } from '@/utils/orderHelpers'
 // 与生产模块共享按钮样式常量
 import { btnGhost } from '@/views/production/constants/buttonStyles'
-import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 const props = defineProps({
   data: {

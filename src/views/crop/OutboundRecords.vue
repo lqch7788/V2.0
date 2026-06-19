@@ -256,9 +256,9 @@
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-        <Pagination
+        <el-pagination
           :current-page="query.page"
-          :total-pages="Math.ceil(filteredData.length / query.limit) || 1"
+          :total="Math.ceil(Math.ceil(filteredData.length / query.limit) || 1)"
           :page-size="query.limit"
           :page-size-options="[10, 20, 50]"
           :show-page-size="true"
@@ -459,7 +459,6 @@ import {
   List, View, Delete, Download, Refresh, Close, WarningFilled,
   Box, Clock, Crop
 } from '@element-plus/icons-vue'
-import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 // ========== 常量定义（对应 V1.1 outboundConstants.ts） ==========
 

@@ -86,8 +86,7 @@
     />
 
     <!-- 删除确认弹窗 -->
-    <DeleteConfirm
-      :show="showDeleteConfirm"
+    <DeleteConfirm :is-open="showDeleteConfirm"
       @close="showDeleteConfirm = false"
       @confirm="handleConfirmDelete"
     />
@@ -119,8 +118,7 @@
     />
 
     <!-- 导出格式选择弹窗 -->
-    <ExportTypeModal
-      :show="showExportTypeModal"
+    <ExportTypeModal :is-open="showExportTypeModal"
       :export-file-type="exportFileType"
       @close="showExportTypeModal = false"
       @change="setExportFileType"

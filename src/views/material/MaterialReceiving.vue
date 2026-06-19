@@ -187,7 +187,7 @@
         <!-- 分页 -->
         <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
           <span class="text-sm text-gray-500">共 {{ filteredApplicationData.length }} 条记录</span>
-          <Pagination
+          <el-pagination
             :current-page="currentPage"
             :total-pages="totalPages"
             :page-size="pageSize"
@@ -376,7 +376,7 @@
 
         <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
           <span class="text-sm text-gray-500">共 {{ exFilteredData.length }} 条记录</span>
-          <Pagination
+          <el-pagination
             :current-page="exCurrentPage"
             :total-pages="exTotalPages"
             :page-size="exPageSize"
@@ -709,7 +709,7 @@
             </div>
             <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
               <span>共 {{ filteredMaterialStatData.length }} 条</span>
-              <Pagination
+              <el-pagination
                 :current-page="statCurrentPage"
                 :total-pages="Math.ceil(filteredMaterialStatData.length / statPageSize) || 1"
                 :page-size="statPageSize"
@@ -725,8 +725,7 @@
       </div>
 
       <!-- 统计专用导出格式弹窗 -->
-      <ExportTypeModal
-        :show="statShowExportTypeModal"
+      <ExportTypeModal :is-open="statShowExportTypeModal"
         :export-file-type="statExportFileType"
         @change="(v) => statExportFileType = v"
         @confirm="confirmMaterialStatExport"
@@ -1006,125 +1005,20 @@
       </div>
 
       <!-- 成本明细弹窗（V1.1 CostDetailModal） -->
-      <ElModal :model-value="costDetailModalOpen" :title="costDetailTitle" :width="900" :height="650" @update:model-value="(v) => { if (!v) costDetailModalOpen = false }" @close="costDetailModalOpen = false">
-        <div class="overflow-auto max-h-[60vh]">
-          <table class="w-full">
-            <thead class="bg-gray-50 sticky top-0">
-              <tr>
-                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">物料编码</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">物料名称</th>
-                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">规格</th>
-                <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">单位</th>
-                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">领料数量</th>
-                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">单价</th>
-                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">金额</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-if="costDetailData.length === 0"><td colspan="7" class="px-4 py-8 text-center text-gray-500">暂无数据</td></tr>
-              <tr v-for="(item, idx) in costDetailData" :key="idx" class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm font-mono text-emerald-600">{{ item.code }}</td>
-                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ item.name }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600">{{ item.spec }}</td>
-                <td class="px-4 py-3 text-sm text-center text-gray-600">{{ item.unit }}</td>
-                <td class="px-4 py-3 text-sm text-right text-gray-600">{{ formatNumber(item.quantity) }}</td>
-                <td class="px-4 py-3 text-sm text-right text-gray-600">¥{{ item.unitPrice.toFixed(2) }}</td>
-                <td class="px-4 py-3 text-sm text-right font-semibold text-emerald-600">¥{{ formatNumber(item.amount) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 mt-4">
-          <div class="flex justify-end gap-8">
-            <span class="text-sm text-gray-600">合计：</span>
-            <span class="text-lg font-bold text-emerald-600">¥{{ formatNumber(costDetailData.reduce((s, i) => s + i.amount, 0)) }}</span>
-          </div>
-        </div>
-        <template #footer>
-          <el-button size="small" @click="costDetailModalOpen = false">关闭</el-button>
-        </template>
-      </ElModal>
+      <ApplicationDetailModal :is-open="costDetailModalOpen" @close="costDetailModalOpen = false" />
     </div>
 
     <!-- ============ 申请领料 - 详情弹窗 ============ -->
-    <ElModal :model-value="showDetailModal" title="领料单详情" :width="700" :height="600" @update:model-value="(v) => { if (!v) showDetailModal = false }" @close="showDetailModal = false">
-      <div class="p-2">
-        <div v-if="selectedRecord" class="grid grid-cols-3 gap-0 border border-gray-200 rounded-lg overflow-hidden mb-4">
-          <template v-for="(item, idx) in [{l:'领料单号',v:selectedRecord.code},{l:'申请日期',v:selectedRecord.date},{l:'申请人',v:selectedRecord.applicant},{l:'部门',v:selectedRecord.department},{l:'库存地点',v:selectedRecord.warehouseLocation},{l:'物料种类',v:selectedRecord.materials?.length > 0 ? selectedRecord.materials.length + '种' : '-'},{l:'种植区域/用途',v:selectedRecord.plantArea},{l:'审核人',v:selectedRecord.reviewer},{l:'生产计划批次号',v:selectedRecord.productionBatchCode}]" :key="idx">
-            <span class="w-32 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">{{ item.l }}</span>
-            <span class="px-3 py-2 text-sm text-gray-900 flex-1">{{ item.v }}</span>
-          </template>
-          <div class="flex border-b border-gray-200"><span class="w-32 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">状态</span><span class="px-3 py-2 text-sm flex-1"><span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getAppStatusClass(selectedRecord?.status || '')">{{ selectedRecord?.status }}</span><p v-if="selectedRecord?.status === '已拒绝' && selectedRecord?.rejectReason" class="text-xs text-red-600 mt-1">拒绝原因：{{ selectedRecord.rejectReason }}</p></span></div>
-        </div>
-        <div class="mt-4"><h4 class="font-medium mb-2 text-sm text-gray-700">物料明细</h4>
-          <div class="overflow-x-auto rounded-lg border border-gray-200"><table class="w-full text-xs"><thead class="bg-[#F2F6FA]"><tr><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">物料编码</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">物料名称</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">规格</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">单位</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">申领数量</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">当前库存</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">单价(元)</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">小计(元)</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">仓库货位</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">备注</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="m in (selectedRecord?.materials || [])" :key="m.materialCode" class="hover:bg-emerald-100"><td class="px-3 py-2 text-sm text-blue-700 font-mono">{{ m.materialCode }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.materialName }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.spec }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.unit }}</td><td class="px-3 py-2 text-sm" :class="m.requestedQuantity > m.stockQuantity ? 'text-red-600 font-bold' : 'text-blue-700'">{{ m.requestedQuantity }}{{ m.requestedQuantity > m.stockQuantity ? ' (!)' : '' }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.stockQuantity }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ (m.unitPrice || 0).toFixed(2) }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.warehousePosition }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.remark || '-' }}</td></tr></tbody></table></div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="showDetailModal = false">关闭</el-button>
-      </template>
-    </ElModal>
+    <ApplicationDetailModal :is-open="showDetailModal"
+      :record="selectedRecord"
+      @close="showDetailModal = false"
+    />
 
     <!-- ============ 新增弹窗 ============ -->
-    <ElModal :model-value="showAddModal" title="新增领料单" :width="900" :height="650" @update:model-value="(v) => { if (!v) { showAddModal = false; resetAddForm() } }" @close="showAddModal = false; resetAddForm()">
-      <div class="p-2">
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">领料单号</label><div class="flex gap-2"><input v-model="addForm.code" readonly placeholder="点击生成获取单号" class="flex-1 px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50" /><button class="h-10 px-4 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="handleGenerateAddCode" title="生成领料单号">生成</button></div></div>
-          <div><label class="block text-sm text-gray-700 mb-1">申请日期</label><input v-model="addForm.date" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">操作员</label><input :value="currentOperatorName" readonly class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50" /></div>
-        </div>
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">申请人</label><select v-model="addForm.applicant" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">请选择</option><option v-for="u in userList" :key="u.id" :value="u.name">{{ u.name }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">部门</label><select v-model="addForm.department" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">请选择</option><option v-for="d in departments" :key="d" :value="d">{{ d }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">库存地点</label><select v-model="addForm.warehouseLocation" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">请选择</option><option v-for="w in warehouses" :key="w" :value="w">{{ w }}</option></select></div>
-        </div>
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">种植区域/用途</label><input v-model="addForm.plantArea" placeholder="如：1号棚-叶菜区" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">审核人</label><select v-model="addForm.reviewer" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">请选择</option><option v-for="u in userList" :key="u.id" :value="u.name">{{ u.name }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">生产计划批次号</label><select v-model="addForm.productionBatchCode" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="onProductionBatchChange($event.target.value)"><option value="">请选择生产批次</option><option v-for="code in PRODUCTION_BATCH_CODES" :key="code" :value="code">{{ code }}</option><option value="其他">其他</option></select></div>
-        </div>
-        <div v-if="addForm.productionBatchCode === '其他'" class="grid grid-cols-3 gap-4 mb-4">
-          <div class="col-span-2"><label class="block text-sm text-gray-700 mb-1">其他批次备注</label><input v-model="addForm.batchRemark" placeholder="请输入其他批次的具体说明" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-        </div>
-        <div class="mb-2 flex gap-2"><button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="handleAddMaterial"><Plus class="w-4 h-4" />添加物料</button></div>
-        <div v-if="addForm.materials.length > 0" class="overflow-x-auto rounded-lg border border-gray-200"><table class="text-xs" style="min-width:1400px"><thead class="bg-[#F2F6FA]"><tr><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">物料编码</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">物料名称</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">规格</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">单位</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">申领数量</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">当前库存</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">单价(元)</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">小计(元)</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">仓库货位</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">备注</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">操作</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="(m, $index) in addForm.materials" :key="$index"><td class="px-1 py-1"><input v-model="m.materialCode" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @change="onAddMaterialCodeChange(m)" /></td><td class="px-1 py-1"><input v-model="m.materialName" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @change="onAddMaterialNameChange(m)" /></td><td class="px-1 py-1"><input v-model="m.spec" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="m.unit" class="w-14 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="m.requestedQuantity" type="number" min="1" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="m.stockQuantity" type="number" min="0" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="m.unitPrice" type="number" min="0" step="0.01" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><span class="text-xs text-blue-700">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</span></td><td class="px-1 py-1"><input v-model="m.warehousePosition" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="m.remark" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><button class="text-red-600 hover:text-red-800 text-xs" @click="addForm.materials.splice($index, 1)">删除</button></td></tr></tbody></table></div>
-        <div v-else class="text-center py-8 text-gray-500 text-sm">暂无物料，请点击"添加物料"添加</div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="showAddModal = false; resetAddForm()">取消</el-button>
-        <el-button type="primary" size="small" @click="handleSaveAdd">保存</el-button>
-      </template>
-    </ElModal>
+    <ApplicationAddModal :is-open="showAddModal" @close="showAddModal = false" />
 
     <!-- ============ 编辑弹窗 ============ -->
-    <ElModal :model-value="showEditModal" title="编辑领料单" :width="900" :height="650" @update:model-value="(v) => { if (!v) showEditModal = false }" @close="showEditModal = false">
-      <div class="p-2">
-        <div class="mb-4 p-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-900">领料单号：{{ selectedRecord?.code }}</div>
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">申请日期</label><input v-model="editForm.date" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">申请人</label><select v-model="editForm.applicant" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="u in userList" :key="u.id" :value="u.name">{{ u.name }}</option></select></div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">部门</label><select v-model="editForm.department" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="d in departments" :key="d" :value="d">{{ d }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">库存地点</label><select v-model="editForm.warehouseLocation" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="w in warehouses" :key="w" :value="w">{{ w }}</option></select></div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">种植区域/用途</label><input v-model="editForm.plantArea" placeholder="如：1号棚-叶菜区" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">审核人</label><select v-model="editForm.reviewer" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="u in userList" :key="u.id" :value="u.name">{{ u.name }}</option></select></div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">生产计划批次号</label><input v-model="editForm.productionBatchCode" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">状态</label><select v-model="editForm.status" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="s in ['待审批','已审批','已拒绝','已作废','已取消']" :key="s" :value="s">{{ s }}</option></select></div>
-        </div>
-        <div class="mb-2"><button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="handleEditAddMaterial"><Plus class="w-4 h-4" />添加物料</button></div>
-        <div v-if="editForm.materials.length > 0" class="overflow-x-auto rounded-lg border border-gray-200"><table class="text-xs" style="min-width:1400px"><thead class="bg-[#F2F6FA]"><tr><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">物料编码</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">物料名称</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">规格</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">单位</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">申领数量</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">当前库存</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">单价(元)</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">小计(元)</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">仓库货位</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">备注</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">操作</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="(m, $index) in editForm.materials" :key="$index"><td class="px-1 py-1"><input v-model="m.materialCode" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" @change="onEditMaterialCodeChangeRow(m)" /></td><td class="px-1 py-1"><input v-model="m.materialName" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="m.spec" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="m.unit" class="w-14 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="m.requestedQuantity" type="number" min="1" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="m.stockQuantity" type="number" min="0" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="m.unitPrice" type="number" min="0" step="0.01" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><span class="text-xs text-blue-700">{{ (m.requestedQuantity * (m.unitPrice || 0)).toFixed(2) }}</span></td><td class="px-1 py-1"><input v-model="m.warehousePosition" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="m.remark" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><button class="text-red-600 hover:text-red-800 text-xs" @click="editForm.materials.splice($index, 1)">删除</button></td></tr></tbody></table></div>
-        <div v-else class="text-center py-8 text-gray-500 text-sm">暂无物料</div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="showEditModal = false">取消</el-button>
-        <el-button type="primary" size="small" @click="handleSaveEdit">保存</el-button>
-      </template>
-    </ElModal>
+    <ApplicationEditModal :is-open="showEditModal" @close="showEditModal = false" />
 
     <!-- ============ 删除确认弹窗 ============ -->
     <DeleteWarningModal
@@ -1137,33 +1031,10 @@
     />
 
     <!-- ============ 作废弹窗 ============ -->
-    <ElModal :model-value="showVoidModal" title="作废申请" :width="560" :height="450" @update:model-value="(v) => { if (!v) showVoidModal = false }" @close="showVoidModal = false">
-      <div class="p-2">
-        <div class="mb-4"><label class="block text-sm text-gray-700 mb-1">领料单号</label><span class="text-gray-700">{{ selectedRecord?.code }}</span></div>
-        <div class="mb-4"><label class="block text-sm text-gray-700 mb-1">作废原因 <span class="text-red-500">*</span></label><textarea v-model="voidReason" :rows="3" placeholder="请填写作废原因" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm resize-none"></textarea></div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="showVoidModal = false">取消</el-button>
-        <el-button type="danger" size="small" @click="submitVoid">确认作废</el-button>
-      </template>
-    </ElModal>
+    <ApplicationVoidModal :is-open="showVoidModal" @close="showVoidModal = false" />
 
     <!-- ============ 批量编辑弹窗 ============ -->
-    <ElModal :model-value="showBatchEditModal" title="批量编辑领料单" :width="900" :height="650" @update:model-value="(v) => { if (!v) showBatchEditModal = false }" @close="showBatchEditModal = false">
-      <div class="p-2">
-        <p class="text-sm text-blue-600 mb-4">已选择 <strong>{{ selectedRows.length }}</strong> 条领料单，修改以下字段将应用到所有选中记录</p>
-        <div class="grid grid-cols-2 gap-4">
-          <div><label class="block text-sm text-gray-700 mb-1">库存地点</label><select v-model="batchEditForm.warehouseLocation" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">不修改</option><option v-for="w in warehouses" :key="w" :value="w">{{ w }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">审核人</label><input v-model="batchEditForm.reviewer" placeholder="不修改" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">生产批次号</label><select v-model="batchEditForm.productionBatchCode" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">不修改</option><option v-for="b in PRODUCTION_BATCH_CODES" :key="b" :value="b">{{ b }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">状态</label><select v-model="batchEditForm.status" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">不修改</option><option value="待审批">待审批</option><option value="已审批">已审批</option><option value="已作废">已作废</option></select></div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="showBatchEditModal = false">取消</el-button>
-        <el-button type="primary" size="small" @click="handleBatchEditSave">保存 ({{ selectedRows.length }}条)</el-button>
-      </template>
-    </ElModal>
+    <ApplicationBatchEditModal :is-open="showBatchEditModal" @close="showBatchEditModal = false" />
 
     <!-- ============ 批量删除确认弹窗 ============ -->
     <DeleteWarningModal
@@ -1185,83 +1056,16 @@
     />
 
     <!-- ============ 出库 - 详情弹窗 ============ -->
-    <ElModal :model-value="exShowDetailModal" title="出库单详情" :width="700" :height="600" @update:model-value="(v) => { if (!v) exShowDetailModal = false }" @close="exShowDetailModal = false">
-      <div class="p-2">
-        <div class="grid grid-cols-3 gap-0 border border-gray-200 rounded-lg overflow-hidden mb-4">
-          <template v-for="(item, idx) in [{l:'出库单号',v:exSelectedRecord?.code},{l:'申请日期',v:exSelectedRecord?.date},{l:'申请人',v:exSelectedRecord?.applicant},{l:'库存地点',v:exSelectedRecord?.warehouseLocation},{l:'审核人',v:exSelectedRecord?.reviewer},{l:'操作人',v:exSelectedRecord?.operator},{l:'生产计划批次号',v:exSelectedRecord?.productionBatchCode},{l:'来源申请单',v:(exSelectedRecord?.sourceApplicationCodes || []).join(', ')}]" :key="idx"><span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">{{ item.l }}</span><span class="px-3 py-2 text-sm text-gray-900 flex-1">{{ item.v }}</span></template>
-          <div class="flex border-b border-gray-200"><span class="w-28 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 shrink-0 border-r border-gray-200">执行状态</span><span class="px-3 py-2 text-sm flex-1"><span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getExStatusClass(exSelectedRecord?.executeStatus || '')">{{ exSelectedRecord?.executeStatus }}</span></span></div>
-        </div>
-        <div class="mt-4"><h4 class="font-medium mb-2 text-sm text-gray-700">出库物料明细</h4>
-          <div class="overflow-x-auto rounded-lg border border-gray-200"><table class="w-full text-xs"><thead class="bg-[#F2F6FA]"><tr><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">来源领料单号</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">物料编码</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">物料名称</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">批次号</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">规格</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">单位</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">申请数量</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">实际库存</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">本次实发</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">单价(元)</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">小计(元)</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">仓库货位</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">差异</th><th class="px-3 py-2 text-left text-sm font-semibold text-blue-800">备注</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="m in (exSelectedRecord?.materials || [])" :key="m.materialCode" class="hover:bg-emerald-100"><td class="px-3 py-2 text-sm text-blue-700 font-mono">{{ m.applicationCode }}</td><td class="px-3 py-2 text-sm text-blue-700 font-mono">{{ m.materialCode }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.materialName }}</td><td class="px-3 py-2 text-sm text-blue-700 font-mono">{{ m.batchNo || '-' }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.spec }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.unit }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.requestedQuantity }}</td><td class="px-3 py-2 text-sm text-blue-700"><span :class="m.stockQuantity < m.requestedQuantity ? 'text-red-600 font-medium' : 'text-green-600'">{{ m.stockQuantity }}</span></td><td class="px-3 py-2 text-sm text-blue-700"><span v-if="m.actualQuantity > 0" :class="m.actualQuantity < m.requestedQuantity ? 'text-amber-600 font-medium' : 'text-green-600'">{{ m.actualQuantity }}</span><span v-else :class="m.stockQuantity === 0 ? 'text-red-600 font-medium' : 'text-gray-400'">{{ m.actualQuantity }}</span></td><td class="px-3 py-2 text-sm text-blue-700">{{ (m.unitPrice || 0).toFixed(2) }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ ((m.requestedQuantity || 0) * (m.unitPrice || 0)).toFixed(2) }}</td><td class="px-3 py-2 text-sm text-blue-700">{{ m.warehousePosition || '-' }}</td><td class="px-3 py-2 text-sm"><span v-if="(m.requestedQuantity || 0) - (m.actualQuantity || 0) > 0" class="text-red-600 font-medium">-{{ (m.requestedQuantity || 0) - (m.actualQuantity || 0) }}</span><span v-else class="text-green-600">0</span></td><td class="px-3 py-2 text-sm text-blue-700">{{ m.remark || '-' }}</td></tr></tbody></table></div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="exShowDetailModal = false">关闭</el-button>
-      </template>
-    </ElModal>
+    <ExecuteDetailModal :is-open="exShowDetailModal"
+      :record="exSelectedRecord"
+      @close="exShowDetailModal = false"
+    />
 
     <!-- ============ 出库 - 新增弹窗 ============ -->
-    <ElModal :model-value="exShowAddModal" title="新增出库单" :width="900" :height="650" @update:model-value="(v) => { if (!v) { exShowAddModal = false; resetExAddForm() } }" @close="exShowAddModal = false; resetExAddForm()">
-      <div class="p-2">
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">出库单号</label><input v-model="exAddForm.code" readonly class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">日期</label><input v-model="exAddForm.date" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">操作员</label><select v-model="exAddForm.operator" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="u in userList" :key="u.id" :value="u.name">{{ u.name }}</option></select></div>
-        </div>
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">仓库地点</label><select v-model="exAddForm.warehouseLocation" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="w in warehouses" :key="w" :value="w">{{ w }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">审核人</label><select v-model="exAddForm.reviewer" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="u in userList" :key="u.id" :value="u.name">{{ u.name }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">生产批次号</label><input v-model="exAddForm.productionBatchCode" placeholder="如：FQ2024-001" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-        </div>
-        <div class="mb-3 border-t border-gray-200 pt-3"><h4 class="font-medium text-sm text-gray-700 mb-2">物料池</h4>
-          <div class="grid grid-cols-2 gap-4 mb-3">
-            <div><label class="block text-sm text-gray-700 mb-1">来源领料单</label><select v-model="exSelectedAppCode" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white" @change="onExAppCodeChange($event.target.value)"><option value="">选择申请单</option><option v-for="app in applicationData" :key="app.code" :value="app.code">{{ app.code }} - {{ app.applicant }}</option></select></div>
-          </div>
-          <div v-if="exSelectedAppCode && exSelectedAppMaterials.length > 0" class="mb-3 p-3 bg-gray-50 rounded-lg">
-            <div class="flex gap-2 mb-2">
-              <button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="handleAddToPool">添加到物料池</button>
-              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="exSelectAllMaterials" @change="onExSelectAll($event.target.checked)" class="w-4 h-4 rounded border-gray-400 text-blue-600" /><span class="text-sm">全选</span></label>
-            </div>
-            <table class="w-full text-xs border border-gray-200"><thead class="bg-gray-100"><tr><th class="px-2 py-2 text-left font-semibold"><input type="checkbox" class="w-4 h-4 rounded border-gray-400" /></th><th class="px-2 py-2 text-left font-semibold">物料编码</th><th class="px-2 py-2 text-left font-semibold">物料名称</th><th class="px-2 py-2 text-left font-semibold">规格</th><th class="px-2 py-2 text-left font-semibold">单位</th><th class="px-2 py-2 text-left font-semibold">申请数量</th><th class="px-2 py-2 text-left font-semibold">本次实发</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="(m, $index) in exSelectedAppMaterials" :key="m.materialCode" class="hover:bg-white"><td class="px-2 py-1"><input type="checkbox" :checked="exSelectedMaterialIndices.includes(m)" @change="toggleExMaterial(m)" class="w-4 h-4 rounded border-gray-400" /></td><td class="px-2 py-1 text-gray-600">{{ m.materialCode }}</td><td class="px-2 py-1 text-gray-600">{{ m.materialName }}</td><td class="px-2 py-1 text-gray-600">{{ m.spec }}</td><td class="px-2 py-1 text-gray-600">{{ m.unit }}</td><td class="px-2 py-1 text-gray-600">{{ m.requestedQuantity }}</td><td class="px-2 py-1"><input v-model.number="exMaterialQuantities[$index]" type="number" :min="0" :max="m.requestedQuantity" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td></tr></tbody></table>
-          </div>
-          <div><label class="block text-sm text-gray-700 mb-1">物料池明细</label>
-            <table v-if="exMaterialPool.length > 0" class="w-full text-xs border border-gray-200"><thead class="bg-gray-100"><tr><th class="px-2 py-2 text-left font-semibold">来源单号</th><th class="px-2 py-2 text-left font-semibold">物料编码</th><th class="px-2 py-2 text-left font-semibold">物料名称</th><th class="px-2 py-2 text-left font-semibold">规格</th><th class="px-2 py-2 text-left font-semibold">单位</th><th class="px-2 py-2 text-left font-semibold">申请数量</th><th class="px-2 py-2 text-left font-semibold">本次实发</th><th class="px-2 py-2 text-left font-semibold">操作</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="(m, $index) in exMaterialPool" :key="$index"><td class="px-2 py-1 text-gray-600">{{ m.applicationCode }}</td><td class="px-2 py-1 text-gray-600">{{ m.materialCode }}</td><td class="px-2 py-1 text-gray-600">{{ m.materialName }}</td><td class="px-2 py-1 text-gray-600">{{ m.spec }}</td><td class="px-2 py-1 text-gray-600">{{ m.unit }}</td><td class="px-2 py-1 text-gray-600">{{ m.requestedQuantity }}</td><td class="px-2 py-1 text-gray-600">{{ m.actualQuantity }}</td><td class="px-2 py-1"><button class="text-red-600 hover:text-red-800 text-xs" @click="exMaterialPool.splice($index, 1)">移除</button></td></tr></tbody></table>
-            <div v-else class="text-center py-4 text-sm text-gray-500">物料池为空</div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="exShowAddModal = false; resetExAddForm()">取消</el-button>
-        <el-button type="primary" size="small" @click="handleExSaveAdd">保存</el-button>
-      </template>
-    </ElModal>
+    <ExecuteAddModal :is-open="exShowAddModal" @close="exShowAddModal = false" />
 
     <!-- ============ 出库 - 编辑弹窗 ============ -->
-    <ElModal :model-value="exShowEditModal" title="编辑出库单" :width="900" :height="650" @update:model-value="(v) => { if (!v) exShowEditModal = false }" @close="exShowEditModal = false">
-      <div class="p-2">
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">出库单号</label><input :value="exSelectedRecord?.code" readonly class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-gray-50" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">日期</label><input v-model="exEditForm.date" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">申领人</label><input v-model="exEditForm.applicant" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-        </div>
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">仓库地点</label><select v-model="exEditForm.warehouseLocation" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="w in warehouses" :key="w" :value="w">{{ w }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">生产批次号</label><input v-model="exEditForm.productionBatchCode" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">操作员</label><select v-model="exEditForm.operator" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="u in userList" :key="u.id" :value="u.name">{{ u.name }}</option></select></div>
-        </div>
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div><label class="block text-sm text-gray-700 mb-1">审核人</label><select v-model="exEditForm.reviewer" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="u in userList" :key="u.id" :value="u.name">{{ u.name }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">执行状态</label><select v-model="exEditForm.executeStatus" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option v-for="s in ['已出库','部分出库','待出库','已取消']" :key="s" :value="s">{{ s }}</option></select></div>
-          <div></div>
-        </div>
-        <div class="mb-2"><button class="h-8 px-3 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="exEditForm.materials.push({ materialCode:'', materialName:'', batchNo:'', spec:'', unit:'', category:'', requestedQuantity:0, stockQuantity:0, actualQuantity:0, unitPrice:0, warehousePosition:'', remark:'', applicationCode:'' })"><Plus class="w-4 h-4" />添加物料</button></div>
-        <div class="overflow-x-auto rounded-lg border border-gray-200"><table class="text-xs" style="min-width:1500px"><thead class="bg-[#F2F6FA]"><tr><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">来源领料单号</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">物料编码</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">物料名称</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">批次号</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">规格</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">单位</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">申请数量</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">实际库存</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">本次实发</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">单价(元)</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">小计(元)</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">仓库货位</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">备注</th><th class="px-2 py-2 text-left text-sm font-semibold text-blue-800">操作</th></tr></thead><tbody class="divide-y divide-gray-200"><tr v-for="(row, $index) in exEditForm.materials" :key="$index"><td class="px-1 py-1"><input v-model="row.applicationCode" readonly class="w-24 h-6 px-1 border border-gray-200 rounded text-xs bg-gray-50 font-mono" /></td><td class="px-1 py-1"><input v-model="row.materialCode" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="row.materialName" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="row.batchNo" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs font-mono" /></td><td class="px-1 py-1"><input v-model="row.spec" class="w-16 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="row.unit" class="w-14 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="row.requestedQuantity" type="number" min="0" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="row.stockQuantity" type="number" min="0" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="row.actualQuantity" type="number" min="0" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model.number="row.unitPrice" type="number" min="0" step="0.01" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><span class="text-xs text-blue-700">{{ ((row.requestedQuantity || 0) * (row.unitPrice || 0)).toFixed(2) }}</span></td><td class="px-1 py-1"><input v-model="row.warehousePosition" class="w-24 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><input v-model="row.remark" class="w-20 h-6 px-1 border border-gray-200 rounded text-xs" /></td><td class="px-1 py-1"><button class="text-red-600 hover:text-red-800 text-xs" @click="exEditForm.materials.splice($index, 1)">删除</button></td></tr></tbody></table></div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="exShowEditModal = false">取消</el-button>
-        <el-button type="primary" size="small" @click="handleExSaveEdit">保存</el-button>
-      </template>
-    </ElModal>
+    <ExecuteEditModal :is-open="exShowEditModal" @close="exShowEditModal = false" />
 
     <!-- ============ 出库 - 删除确认弹窗 ============ -->
     <DeleteWarningModal
@@ -1283,21 +1087,7 @@
     />
 
     <!-- ============ 出库 - 批量编辑弹窗 ============ -->
-    <ElModal :model-value="exShowBatchEditModal" title="批量编辑出库单" :width="900" :height="650" @update:model-value="(v) => { if (!v) exShowBatchEditModal = false }" @close="exShowBatchEditModal = false">
-      <div class="p-2">
-        <p class="text-sm text-blue-600 mb-4">已选择 <strong>{{ exSelectedRows.length }}</strong> 条出库单，修改以下字段将应用到所有选中记录</p>
-        <div class="grid grid-cols-2 gap-4">
-          <div><label class="block text-sm text-gray-700 mb-1">仓库地点</label><select v-model="exBatchEditForm.warehouseLocation" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">不修改</option><option v-for="w in warehouses" :key="w" :value="w">{{ w }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">审核人</label><input v-model="exBatchEditForm.reviewer" placeholder="不修改" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" /></div>
-          <div><label class="block text-sm text-gray-700 mb-1">生产批次号</label><select v-model="exBatchEditForm.productionBatchCode" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">不修改</option><option v-for="b in PRODUCTION_BATCH_CODES" :key="b" :value="b">{{ b }}</option></select></div>
-          <div><label class="block text-sm text-gray-700 mb-1">执行状态</label><select v-model="exBatchEditForm.executeStatus" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm bg-white"><option value="">不修改</option><option value="已出库">已出库</option><option value="部分出库">部分出库</option><option value="待出库">待出库</option><option value="已取消">已取消</option></select></div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button size="small" @click="exShowBatchEditModal = false">取消</el-button>
-        <el-button type="primary" size="small" @click="handleExBatchEditSave">保存 ({{ exSelectedRows.length }}条)</el-button>
-      </template>
-    </ElModal>
+    <ExecuteBatchEditModal :is-open="exShowBatchEditModal" @close="exShowBatchEditModal = false" />
 
     <!-- ============ 出库 - 批量删除确认弹窗 ============ -->
     <DeleteWarningModal
@@ -1316,10 +1106,20 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { Plus, Pencil, Trash2, Download, AlertTriangle, ChevronRight, ChevronDown, RefreshCw, Package, Search, Eye, RotateCcw, Calendar, BarChart2, ClipboardList, TrendingDown, TrendingUp, BarChart3, FileX, Users, Home as HomeIcon, X } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import MaterialReceivingHeader from '@/components/materialReceiving/MaterialReceivingHeader.vue'
-import Pagination from '@/components/ui/Pagination/Pagination.vue'
 import { ElModal } from '@/components/ui'
 import ExportTypeModal from '@/components/materialReceiving/modals/ExportTypeModal.vue'
+import ApplicationDetailModal from './components/ApplicationDetailModal.vue'
+import ExecuteDetailModal from './components/ExecuteDetailModal.vue'
 import StatDetailModal from '@/components/materialReceiving/modals/StatDetailModal.vue'
+import ApplicationAddModal from '@/components/materialReceiving/modals/AddModal.vue'
+import ApplicationEditModal from '@/components/materialReceiving/modals/EditModal.vue'
+import ApplicationBatchEditModal from '@/components/materialReceiving/modals/BatchEditModal.vue'
+import ApplicationVoidModal from '@/components/materialReceiving/modals/VoidModal.vue'
+import ApplicationDeleteConfirm from '@/components/materialReceiving/modals/DeleteConfirm.vue'
+import ApplicationBatchDeleteConfirm from '@/components/materialReceiving/modals/BatchDeleteConfirmModal.vue'
+import ExecuteAddModal from '@/components/materialReceiving/modals/ExecuteAddModal.vue'
+import ExecuteEditModal from '@/components/materialReceiving/modals/ExecuteEditModal.vue'
+import ExecuteBatchEditModal from '@/components/materialReceiving/modals/ExecuteBatchEditModal.vue'
 import { getApplicationList, createApplication as apiCreateApp, updateApplication as apiUpdateApp, deleteApplication as apiDeleteApp, deleteApplicationsBatch, getExecuteList, createExecute as apiCreateExe, updateExecute as apiUpdateExe, deleteExecute as apiDeleteExe } from '@/api/material/apiMaterialRequestService'
 import { getMaterialStatistics } from '@/api/material/apiMaterialStatisticsService'
 import { btnDefault, btnSecondary, btnDestructive, btnBlue, btnWarning } from '@/views/production/constants/buttonStyles'

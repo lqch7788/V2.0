@@ -54,15 +54,13 @@
     />
 
     <!-- 查看详情弹窗 -->
-    <ExecuteDetailModal
-      :show="showDetailModal"
+    <ExecuteDetailModal :is-open="showDetailModal"
       :record="selectedRecord"
       @close="showDetailModal = false"
     />
 
     <!-- 新增出库弹窗 -->
-    <ExecuteAddModal
-      :show="showAddModal"
+    <ExecuteAddModal :is-open="showAddModal"
       :add-form="addForm"
       :material-pool="materialPool"
       :selected-application-code="selectedApplicationCode"
@@ -95,22 +93,19 @@
     />
 
     <!-- 删除确认弹窗 -->
-    <ExecuteDeleteWarningModal
-      :show="showDeleteModal"
+    <ExecuteDeleteWarningModal :is-open="showDeleteModal"
       @close="showDeleteModal = false"
       @confirm="handleConfirmDelete"
     />
 
     <!-- 批量删除确认弹窗 -->
-    <ExecuteDeleteWarningModal
-      :show="showBatchDeleteModal"
+    <ExecuteDeleteWarningModal :is-open="showBatchDeleteModal"
       @close="showBatchDeleteModal = false"
       @confirm="handleConfirmBatchDelete"
     />
 
     <!-- 导出格式选择弹窗 -->
-    <ExportTypeModal
-      :show="showExportModal"
+    <ExportTypeModal :is-open="showExportModal"
       :export-file-type="exportFileType"
       @close="showExportModal = false"
       @change="setExportFileType"
@@ -118,8 +113,7 @@
     />
 
     <!-- 批量编辑弹窗 -->
-    <ExecuteBatchEditModal
-      :show="showBatchEditModal"
+    <ExecuteBatchEditModal :is-open="showBatchEditModal"
       :selected-rows="selectedRows"
       :records-list="executeData"
       @close="showBatchEditModal = false"

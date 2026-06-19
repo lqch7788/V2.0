@@ -100,9 +100,9 @@
 
     <!-- 分页 -->
     <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100 flex-shrink-0">
-      <Pagination
+      <el-pagination
         :current-page="localCurrentPage"
-        :total-pages="totalPages"
+        :total="Math.ceil(totalPages)"
         :page-size="localPageSize"
         :page-size-options="[10, 20, 50]"
         :show-page-size="true"
@@ -115,7 +115,6 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 /**
  * 物料表格组件

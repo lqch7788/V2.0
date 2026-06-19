@@ -482,9 +482,9 @@
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-        <Pagination
+        <el-pagination
           :current-page="currentPage"
-          :total-pages="totalPages || 1"
+          :total="Math.ceil(totalPages || 1)"
           :page-size="pageSize"
           :page-size-options="[10, 20, 50]"
           :show-page-size="true"
@@ -693,7 +693,6 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
-import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 // 审批Store
 const approvalStore = useApprovalStore()

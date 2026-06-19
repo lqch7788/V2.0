@@ -135,9 +135,9 @@
 
       <!-- 分页 - V1.1 L205-213: 自定义 Pagination 4 功能 -->
       <div class="px-4 py-3 border-t border-gray-100">
-        <Pagination
+        <el-pagination
           :current-page="currentPage"
-          :total-pages="totalPages"
+          :total="Math.ceil(totalPages)"
           :page-size="pageSize"
           :show-page-size="true"
           :page-size-options="[5, 10, 20, 50]"
@@ -180,7 +180,6 @@ import {
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
 import ApprovalDetail from '@/components/approval/ApprovalDetail.vue'
-import Pagination from '@/components/ui/Pagination/Pagination.vue'
 import { useApprovalBusinessDetail } from '@/composables/useApprovalBusinessDetail'
 
 const approvalStore = useApprovalStore()

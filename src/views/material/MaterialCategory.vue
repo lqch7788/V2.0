@@ -119,9 +119,9 @@
         </table>
         <!-- 分页（V1.1 L135-145） -->
         <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-          <Pagination
+          <el-pagination
             :current-page="currentPage"
-            :total-pages="totalPages"
+            :total="Math.ceil(totalPages)"
             :page-size="pageSize"
             :page-size-options="[10, 20, 50]"
             :show-page-size="true"
@@ -142,7 +142,6 @@
  */
 import { ref, computed } from 'vue'
 import { Edit, Eye, Plus, RotateCcw, Search, Tags } from 'lucide-vue-next'
-import Pagination from '@/components/ui/Pagination/Pagination.vue'
 
 // Mock 数据（V1.1 L17-23，5 条平铺）
 const materialCategories = [

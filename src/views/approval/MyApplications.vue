@@ -131,9 +131,9 @@
 
       <!-- 分页 - V1.1 L241-252: 自定义 Pagination 含 4 功能 -->
       <div v-if="totalPages > 1" class="px-4 py-3 border-t border-gray-100">
-        <Pagination
+        <el-pagination
           :current-page="currentPage"
-          :total-pages="totalPages"
+          :total="Math.ceil(totalPages)"
           :page-size="pageSize"
           @page-change="(p) => (currentPage = p)"
         />
@@ -171,7 +171,6 @@ import {
   Document, View
 } from '@element-plus/icons-vue'
 import ApprovalDetail from '@/components/approval/ApprovalDetail.vue'
-import Pagination from '@/components/ui/Pagination/Pagination.vue'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
 import { useApprovalBusinessDetail } from '@/composables/useApprovalBusinessDetail'
