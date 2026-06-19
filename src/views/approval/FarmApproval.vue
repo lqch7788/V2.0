@@ -399,6 +399,19 @@ const handleTabChange = (key) => {
   updateStats()
 }
 
+// 状态样式映射（修复 P0：getStatusClass 未定义）
+const STATUS_STYLE_MAP = {
+  '待审批': 'bg-amber-100 text-amber-700',
+  '已通过': 'bg-emerald-100 text-emerald-700',
+  '已拒绝': 'bg-red-100 text-red-700',
+  '已驳回': 'bg-red-100 text-red-700',
+  '已转交': 'bg-blue-100 text-blue-700',
+  '已撤回': 'bg-gray-100 text-gray-700',
+  '已作废': 'bg-gray-100 text-gray-700',
+  '已完成': 'bg-emerald-100 text-emerald-700'
+}
+const getStatusClass = (status) => STATUS_STYLE_MAP[status] || 'bg-gray-100 text-gray-700'
+
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1

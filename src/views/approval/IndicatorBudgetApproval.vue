@@ -388,6 +388,9 @@ const handleTabChange = (key) => {
   updateStats()
 }
 
+// 当前tab路径（修复 P0：currentTabPath 未定义）
+const currentTabPath = computed(() => `/approval/${activeTab.value}`)
+
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1

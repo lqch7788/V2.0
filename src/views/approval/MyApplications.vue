@@ -130,12 +130,15 @@
       <div v-if="paginatedData.length === 0" class="px-4 py-8 text-center text-gray-500">暂无数据</div>
 
       <!-- 分页 - V1.1 L241-252: 自定义 Pagination 含 4 功能 -->
-      <div v-if="totalPages > 1" class="px-4 py-3 border-t border-gray-100">
+      <div v-if="filteredData.length > pageSize" class="px-4 py-3 border-t border-gray-100">
         <el-pagination
-          :current-page="currentPage"
-          :total="Math.ceil(totalPages)"
-          :page-size="pageSize"
-          @page-change="(p) => (currentPage = p)"
+          v-model:current-page="currentPage"
+          :total="filteredData.length"
+          v-model:page-size="pageSize"
+          :page-sizes="[5, 10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+          @size-change="() => { currentPage = 1 }"
         />
       </div>
     </div>

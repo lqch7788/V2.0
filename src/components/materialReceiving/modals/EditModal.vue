@@ -176,10 +176,13 @@ import { ElModal } from '@/components/ui'
 const props = defineProps({
   show: { type: Boolean, default: false },
   record: { type: Object, default: null },
-  editForm: { type: Object, default: () => ({}) }
+  editForm: { type: Object, default: () => ({}) },
+  // 兼容父组件传 formChange / voidApply 事件占位
+  formChange: { type: Function, default: undefined },
+  voidApply: { type: Function, default: undefined }
 })
 
-const emit = defineEmits(['close', 'save', 'add-material', 'remove-material', 'material-change'])
+const emit = defineEmits(['close', 'save', 'add-material', 'remove-material', 'material-change', 'formChange', 'voidApply'])
 
 const localForm = ref({
   date: '',

@@ -1,7 +1,7 @@
 <template>
   <ElModal
-    :model-value="show"
-    title="选择导出格式"
+    :model-value="visibleComputed"
+    :title="title || '选择导出格式'"
     :width="500"
     :height="450"
     :show-submit="false"
@@ -50,29 +50,44 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
-  exportFileType: { type: String, default: 'xlsx' }
+  visible: { type: Boolean, default: undefined },
+  exportFileType: { type: String, default: 'xlsx' },
+  selectedCount: { type: Number, default: 0 },
+  title: { type: String, default: '' }
 })
 
-const emit = defineEmits(['close', 'change', 'confirm'])
+const emit = defineEmits(['close', 'confirm', 'change', 'update:export-file-type', 'update:visible'])
+
+const visibleComputed = computed({
+  get() {
+    return props.visible !== undefined ? props.visible : props.show
+  },
+  set(v) {
+    emit('update:visible', v)
+  }
+})
 
 const formats = [
   { value: 'xlsx', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
   { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
+  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' },
 ]
 
-const handleClose = () => emit('close')
-
-const handleChange = (value) => {
-  emit('change', value)
+const handleChange = (v) => {
+  emit('change', v)
+  emit('update:export-file-type', v)
 }
-
+const handleClose = () => {
+  emit('close')
+  emit('update:visible', false)
+}
 const handleConfirm = () => {
   emit('confirm')
-  handleClose()
+  emit('update:visible', false)
 }
 </script>

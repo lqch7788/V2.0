@@ -120,13 +120,13 @@
         <!-- 分页（V1.1 L135-145） -->
         <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
           <el-pagination
-            :current-page="currentPage"
-            :total="Math.ceil(totalPages)"
-            :page-size="pageSize"
-            :page-size-options="[10, 20, 50]"
-            :show-page-size="true"
-            @page-change="handlePageChange"
-            @page-size-change="handlePageSizeChange"
+            v-model:current-page="currentPage"
+            :total="filteredCategories.length"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
+            layout="total, sizes, prev, pager, next, jumper"
+            background
+            @size-change="() => { currentPage = 1 }"
           />
         </div>
       </div>

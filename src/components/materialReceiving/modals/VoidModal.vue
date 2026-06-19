@@ -42,6 +42,7 @@ import { ElModal } from '@/components/ui'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
+  record: { type: Object, default: null },
   recordCode: { type: String, default: '' },
   reason: { type: String, default: '' }
 })

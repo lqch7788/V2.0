@@ -116,13 +116,13 @@
       <!-- 分页 - V1.1 L185-193: 自定义 Pagination 4 功能 -->
       <div class="px-4 py-3 border-t border-gray-100">
         <el-pagination
-          :current-page="currentPage"
-          :total="Math.ceil(totalPages)"
-          :page-size="pageSize"
-          :show-page-size="true"
-          :page-size-options="[5, 10, 20, 50]"
-          @page-change="(p) => (currentPage = p)"
-          @page-size-change="(s) => { pageSize = s; currentPage = 1 }"
+          v-model:current-page="currentPage"
+          :total="filteredApprovals.length"
+          v-model:page-size="pageSize"
+          :page-sizes="[5, 10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+          @size-change="() => { currentPage = 1 }"
         />
       </div>
     </div>

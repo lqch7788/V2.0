@@ -81,7 +81,7 @@
           </div>
 
           <!-- Footer -->
-          <div v-if="showFooter" class="el-modal-footer">
+          <div v-if="showFooterComputed" class="el-modal-footer">
             <slot name="footer">
               <el-button :size="buttonSize" @click="handleCancel">{{ cancelText }}</el-button>
               <el-button
@@ -107,6 +107,10 @@ import { Close, FullScreen, Aim } from '@element-plus/icons-vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
+  // 兼容别名：父组件可能用 is-open / visible / show 控制
+  isOpen: { type: Boolean, default: undefined },
+  visible: { type: Boolean, default: undefined },
+  show: { type: Boolean, default: undefined },
   title: { type: String, default: '' },
   width: { type: [String, Number], default: undefined },
   height: { type: [String, Number], default: undefined },
@@ -114,8 +118,10 @@ const props = defineProps({
   closeOnClickModal: { type: Boolean, default: true },
   closeOnPressEscape: { type: Boolean, default: true },
   showFooter: { type: Boolean, default: true },
-  showClose: { type: Boolean, default: true },
+  // 兼容别名：showCancel / show-cancel / showSubmit / show-submit
+  showCancel: { type: Boolean, default: undefined },
   showSubmit: { type: Boolean, default: true },
+  showClose: { type: Boolean, default: true },
   showMaximize: { type: Boolean, default: true },
   enableDrag: { type: Boolean, default: true },
   enableResize: { type: Boolean, default: true },
@@ -143,7 +149,20 @@ const sizeMap = {
 
 const BOUNDARY_PADDING = 30
 
-const visible = computed(() => props.modelValue)
+const visible = computed(() => {
+  if (props.modelValue) return true
+  if (props.isOpen) return true
+  if (props.visible) return true
+  if (props.show) return true
+  return false
+})
+
+// 兼容 showCancel 别名（来自 show-cancel / showCancel）
+const showFooterComputed = computed(() => {
+  // 如果 showCancel 显式传入，则根据 showCancel 控制
+  if (props.showCancel === false) return false
+  return props.showFooter
+})
 
 // === 状态 ===
 const modalRef = ref(null)

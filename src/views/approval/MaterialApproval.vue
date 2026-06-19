@@ -207,7 +207,7 @@
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">部门</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">库存地点</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">物料种类</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">种植区域/用地</th>
+              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">种植区域/用途</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审核人</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">生产计划批次号</th>
               <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">状态</th>
@@ -310,119 +310,19 @@
         </table>
       </div>
 
-      <!-- 退料审批表格 -->
-      <div v-else-if="activeTab === 'return'" class="overflow-auto max-h-[calc(100vh-400px)]">
-        <table class="w-full">
-          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
-            <tr>
-              <th class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap"></th>
-              <th class="px-4 py-3 text-left text-sm font-semibold w-12 whitespace-nowrap"></th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料单号</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料日期</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料类型</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">申请人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料部门</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">仓库位置</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审批状态</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审核人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-300">
-            <tr v-if="paginatedData.length === 0">
-              <td colspan="12" class="px-4 py-8 text-center text-gray-500">暂无审批记录</td>
-            </tr>
-            <template v-for="row in paginatedData" :key="row.id">
-              <tr class="hover:bg-blue-100 transition-colors">
-                <td class="px-4 py-3">
-                  <button v-if="row.status === 'pending'" class="p-1" @click="handleToggleSelect(row.id)">
-                    <Check v-if="selectedIds.has(row.id)" :size="16" class="text-emerald-600" />
-                    <PlusCircle v-else :size="16" class="text-gray-400" />
-                  </button>
-                </td>
-                <td class="px-4 py-3">
-                  <button class="text-gray-500 hover:text-blue-600 p-1" @click="handleExpandRow(row.id)">
-                    <ChevronDown v-if="expandedRows.includes(row.id)" :size="14" />
-                    <ChevronRight v-else :size="14" />
-                  </button>
-                </td>
-                <td class="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">{{ row.code }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.applyDate }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ getReturnType(row) }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.applicantName }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.applicantDepartment }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.warehouseLocation }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="{
-                    'bg-green-100 text-green-700': row.status === 'approved',
-                    'bg-red-100 text-red-700': row.status === 'rejected',
-                    'bg-amber-100 text-amber-700': row.status === 'pending'
-                  }">{{ getReturnStatusText(row.status) }}</span>
-                </td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.approvers?.[0]?.userName || '-' }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.description }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    <button v-if="row.status === 'pending' && canApprove" class="text-green-600 hover:text-green-800 p-1" title="通过" @click="handleApprove(row)">
-                      <CheckCircle :size="16" />
-                    </button>
-                    <button v-if="row.status === 'pending' && canApprove" class="text-red-600 hover:text-red-800 p-1" title="拒绝" @click="handleRejectClick(row)">
-                      <XCircle :size="16" />
-                    </button>
-                    <button class="text-blue-600 hover:text-blue-800 p-1" title="查看详情" @click="handleViewDetail(row)">
-                      <Eye :size="16" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <!-- 展开行：退料物料明细 -->
-              <tr v-if="expandedRows.includes(row.id)" :key="'exp-' + row.id" class="bg-gray-50">
-                <td colspan="12" class="p-4">
-                  <div class="font-medium text-blue-800 mb-2">退料物料明细</div>
-                  <div class="overflow-x-auto mb-3">
-                    <table class="w-full border border-gray-200">
-                      <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
-                        <tr>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">来源领料单号</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料分类</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">规格</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">单位</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">退料数量</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">单价(元)</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">小计(元)</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">仓库货位</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">退料原因</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-gray-200">
-                        <tr v-for="m in row.materials" :key="m.id || m.materialCode" class="hover:bg-white">
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.sourceApplicationCode }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.materialCode }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.category }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.materialName }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.spec }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.unit }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.returnQuantity || m.requestedQuantity || 0 }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.unitPrice != null ? m.unitPrice.toFixed(2) : '-' }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.unitPrice != null ? ((m.returnQuantity || m.requestedQuantity || 0) * m.unitPrice).toFixed(2) : '-' }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.warehousePosition }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ m.reason }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div v-if="row.description" class="text-gray-600 mt-3">
-                    <span class="font-medium">退料说明：</span>{{ row.description }}
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
+      <!-- 退料审批表格 - 已拆分为子组件 -->
+      <ReturnApprovalTable
+        v-else-if="activeTab === 'return'"
+        :data="paginatedData"
+        :selected-ids="selectedIds"
+        :expanded-rows="expandedRows"
+        :can-approve="canApprove"
+        @toggle-select="handleToggleSelect"
+        @expand-row="handleExpandRow"
+        @approve="handleApprove"
+        @reject="handleRejectClick"
+        @view-detail="handleViewDetail"
+      />
 
       <!-- 通用审批表格（仓库相关审批：入库/调拨/种源入库等） -->
       <div v-else class="overflow-auto max-h-[calc(100vh-400px)]">
@@ -483,190 +383,34 @@
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
         <el-pagination
-          :current-page="currentPage"
-          :total="Math.ceil(totalPages || 1)"
-          :page-size="pageSize"
-          :page-size-options="[10, 20, 50]"
-          :show-page-size="true"
-          @page-change="(page) => { currentPage = page; expandedRows = [] }"
-          @page-size-change="(size) => { pageSize = size; currentPage = 1; expandedRows = [] }"
+          v-model:current-page="currentPage"
+          :total="approvals.length"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+          @size-change="() => { currentPage = 1; expandedRows = [] }"
         />
       </div>
     </div>
 
-    <!-- 详情弹窗 -->
-    <div v-if="detailModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="detailModal.show = false">
-      <div class="bg-white rounded-xl w-full max-w-[900px] max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
-        <!-- 弹窗头部 -->
-        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white flex items-center justify-between">
-          <h3 class="text-lg font-semibold">{{ activeTab === 'return' ? '退料单' : '领料单' }}详情</h3>
-          <button @click="detailModal.show = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
-        </div>
+    <!-- 详情弹窗 - 已拆分为子组件 -->
+    <MaterialDetailDialog
+      v-model="detailModal.show"
+      :item="detailModal.item"
+      :active-tab="activeTab"
+      :can-approve="canApprove"
+      @approve="handleApprove"
+      @reject="handleRejectClick"
+    />
 
-        <div v-if="detailModal.item" class="p-6 overflow-y-auto max-h-[70vh]">
-          <!-- 基本信息 -->
-          <div class="grid grid-cols-3 gap-4 mb-6">
-            <div>
-              <label class="text-xs text-gray-500 block">单号</label>
-              <p class="font-mono font-semibold text-gray-900">{{ detailModal.item.code }}</p>
-            </div>
-            <div>
-              <label class="text-xs text-gray-500 block">申请日期</label>
-              <p class="font-semibold text-gray-900">{{ detailModal.item.applyDate }}</p>
-            </div>
-            <div>
-              <label class="text-xs text-gray-500 block">状态</label>
-              <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium mt-1" :class="{
-                'bg-green-100 text-green-700': detailModal.item.status === 'approved',
-                'bg-red-100 text-red-700': detailModal.item.status === 'rejected',
-                'bg-amber-100 text-amber-700': detailModal.item.status === 'pending',
-                'bg-gray-100 text-gray-700': detailModal.item.status === 'cancelled' || detailModal.item.status === 'draft'
-              }">{{ getStatusText(detailModal.item.status) }}</span>
-              <p v-if="detailModal.item.status === 'rejected' && detailModal.item.records && detailModal.item.records.length > 0" class="text-xs text-red-600 mt-1">
-                拒绝原因：{{ detailModal.item.records[detailModal.item.records.length - 1]?.comment || '-' }}
-              </p>
-            </div>
-            <div>
-              <label class="text-xs text-gray-500 block">申请人</label>
-              <p class="font-semibold text-gray-900">{{ detailModal.item.applicantName }}</p>
-            </div>
-            <div>
-              <label class="text-xs text-gray-500 block">部门</label>
-              <p class="font-semibold text-gray-900">{{ detailModal.item.applicantDepartment }}</p>
-            </div>
-            <div>
-              <label class="text-xs text-gray-500 block">审核人</label>
-              <p class="font-semibold text-gray-900">{{ detailModal.item.approvers?.[0]?.userName || '-' }}</p>
-            </div>
-            <template v-if="activeTab === 'material' && detailModal.item.businessLink">
-              <div>
-                <label class="text-xs text-gray-500 block">库存地点</label>
-                <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.warehouseLocation || '-' }}</p>
-              </div>
-              <div>
-                <label class="text-xs text-gray-500 block">生产计划批次号</label>
-                <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.batchCode || '-' }}</p>
-              </div>
-              <div>
-                <label class="text-xs text-gray-500 block">物料种类</label>
-                <p class="font-semibold text-gray-900">
-                  {{ detailModal.item.materials?.length > 0 ? `${detailModal.item.materials.length}种` : '-' }}
-                </p>
-              </div>
-              <div>
-                <label class="text-xs text-gray-500 block">种植区域/用地</label>
-                <p class="font-semibold text-gray-900">{{ detailModal.item.businessLink?.plantArea || '-' }}</p>
-              </div>
-            </template>
-          </div>
-
-          <!-- 描述/说明 -->
-          <div v-if="detailModal.item.description" class="mb-6">
-            <label class="text-xs text-gray-500 block mb-1">申请说明</label>
-            <p class="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{{ detailModal.item.description }}</p>
-          </div>
-
-          <!-- 物料明细 -->
-          <div class="mb-6">
-            <label class="text-xs text-gray-500 block mb-2">
-              {{ activeTab === 'return' ? '退料单' : '领料单' }}物料明细
-            </label>
-            <div v-if="detailModal.item.materials?.length > 0" class="overflow-x-auto rounded-lg border border-gray-200">
-              <table class="w-full text-sm">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">物料编码</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">物料名称</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">物料分类</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">规格</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">单位</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">数量</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">已批数量</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                  <tr v-for="m in detailModal.item.materials" :key="m.id || m.materialCode">
-                    <td class="px-3 py-2 text-xs text-blue-700 font-mono whitespace-nowrap">{{ m.materialCode }}</td>
-                    <td class="px-3 py-2 text-xs text-blue-700 whitespace-nowrap">{{ m.materialName }}</td>
-                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ getCategoryByCode(m.materialCode) }}</td>
-                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.spec }}</td>
-                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.unit }}</td>
-                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.requestedQuantity || m.returnQuantity }}</td>
-                    <td class="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">{{ m.approvedQuantity || '-' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div v-else class="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">暂无物料明细</div>
-          </div>
-
-          <!-- 审批记录 -->
-          <div v-if="detailModal.item.records && detailModal.item.records.length > 0" class="mb-6">
-            <label class="text-xs text-gray-500 block mb-2">审批记录</label>
-            <div class="space-y-2">
-              <div v-for="(r, idx) in detailModal.item.records" :key="idx" class="bg-gray-50 rounded-lg p-3 text-sm">
-                <div class="flex items-center gap-2">
-                  <span class="font-medium text-gray-700">{{ r.approverName }}</span>
-                  <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="{
-                    'bg-green-100 text-green-700': r.action === 'approve',
-                    'bg-red-100 text-red-700': r.action === 'reject',
-                    'bg-gray-100 text-gray-700': r.action !== 'approve' && r.action !== 'reject'
-                  }">{{ r.action === 'approve' ? '通过' : r.action === 'reject' ? '拒绝' : '部分通过' }}</span>
-                </div>
-                <p v-if="r.comment" class="text-gray-600 mt-1">原因：{{ r.comment }}</p>
-                <p class="text-xs text-gray-400 mt-1">{{ r.actionTime }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 弹窗底部 -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="detailModal.show = false">
-            <X class="w-4 h-4 inline mr-1" />关闭
-          </button>
-          <template v-if="detailModal.item?.status === 'pending'">
-            <button class="h-8 px-4 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700" @click="handleApprove(detailModal.item)">通过</button>
-            <button class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="handleRejectClick(detailModal.item)">拒绝</button>
-          </template>
-        </div>
-      </div>
-    </div>
-
-    <!-- 拒绝原因弹窗 -->
-    <div v-if="rejectModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" @click="rejectModal.show = false">
-      <div class="bg-white rounded-xl w-full max-w-[500px] max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
-        <!-- 弹窗头部 -->
-        <div class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white flex items-center justify-between">
-          <h3 class="text-lg font-semibold">拒绝审批</h3>
-          <button @click="rejectModal.show = false" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
-        </div>
-
-        <div v-if="rejectModal.item" class="p-6">
-          <p class="text-sm text-gray-600 mb-2">
-            确定要拒绝「<span class="font-medium text-gray-900">{{ rejectModal.item.title }}</span>」吗？
-          </p>
-          <p class="text-xs text-gray-500 mb-4">拒绝后，申请人可以在领料页面修改料单后重新提交审批</p>
-          <div class="mb-4">
-            <label class="text-xs text-gray-700 block mb-1">拒绝原因（必填）</label>
-            <textarea
-              v-model="rejectModal.reason"
-              rows="3"
-              placeholder="请输入拒绝原因.."
-              class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm resize-none"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- 弹窗底部 -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-          <button class="h-8 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" @click="rejectModal.show = false">
-            <X class="w-4 h-4 inline mr-1" />取消
-          </button>
-          <button class="h-8 px-4 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700" @click="handleConfirmReject">确认拒绝</button>
-        </div>
-      </div>
-    </div>
+    <!-- 拒绝原因弹窗 - 已拆分为子组件 -->
+    <RejectReasonDialog
+      v-model="rejectModal.show"
+      :item="rejectModal.item"
+      v-model:reason="rejectModal.reason"
+      @confirm="handleConfirmReject"
+    />
   </div>
 </template>
 
@@ -693,6 +437,17 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
+import MaterialDetailDialog from './components/MaterialDetailDialog.vue'
+import RejectReasonDialog from './components/RejectReasonDialog.vue'
+import ReturnApprovalTable from './components/ReturnApprovalTable.vue'
+import {
+  getCategoryByCode,
+  getStatusText,
+  getStatusTagType,
+  getReturnStatusText,
+  getReturnStatusTagType,
+  getReturnType,
+} from './utils/materialApprovalLabels'
 
 // 审批Store
 const approvalStore = useApprovalStore()
@@ -1005,79 +760,7 @@ const handleApprove = async (item) => {
   }
 }
 
-// 物料分类辅助函数
-const getCategoryByCode = (code) => {
-  const prefix = code.substring(0, 2)
-  const categoryMap = {
-    'SP': '种质资源',
-    'EQ': '农业机械',
-    'OP': '劳保与防护用品',
-    'PH': '采收容器',
-    'IT': '监测设备',
-  }
-  if (prefix === 'SP') {
-    const subPrefix = code.substring(2, 4)
-    if (subPrefix === '02') return '肥料与土壤改良剂'
-    if (subPrefix === '03') return '农药与植保产品'
-    if (subPrefix === '01') return '种质资源'
-  }
-  return categoryMap[prefix] || '其他'
-}
-
-// 状态显示
-const getStatusText = (status) => {
-  const statusMap = {
-    approved: '已通过',
-    rejected: '已拒绝',
-    // P0-MA-002: "待审核" → "待审批"（V1.1 useMaterialApproval hook L199-200）
-    pending: '待审批',
-    cancelled: '已取消',
-    draft: '草稿',
-  }
-  return statusMap[status] || status
-}
-
-const getStatusTagType = (status) => {
-  const typeMap = {
-    approved: 'success',
-    rejected: 'danger',
-    pending: 'warning',
-    cancelled: 'info',
-    draft: 'info',
-  }
-  return typeMap[status] || 'info'
-}
-
-// 退料状态显示
-const getReturnStatusText = (status) => {
-  const statusMap = {
-    approved: '已完成',
-    rejected: '已驳回',
-    // P0-MA-002: "待审核" → "待审批"（V1.1 useMaterialApproval hook L216）
-    pending: '待审批',
-    cancelled: '已取消',
-  }
-  return statusMap[status] || status
-}
-
-const getReturnStatusTagType = (status) => {
-  const typeMap = {
-    approved: 'success',
-    rejected: 'danger',
-    pending: 'warning',
-    cancelled: 'info',
-  }
-  return typeMap[status] || 'info'
-}
-
-// 退料类型映射（P0修复: V1.1 useMaterialApproval.tsx:226-231 1:1 对齐）
-const getReturnType = (item) => {
-  if (item.businessLink?.returnType) return item.businessLink.returnType
-  if (item.description?.includes('生产退料')) return '生产退料'
-  if (item.description?.includes('品质退料')) return '品质退料'
-  if (item.description?.includes('试制退料')) return '试制退料'
-  return '生产退料'
-}
+// 物料分类 / 状态 / 退料类型映射 已拆分到 ./utils/materialApprovalLabels.js
 
 // 监听分页变化
 watch(currentPage, () => {

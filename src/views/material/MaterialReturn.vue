@@ -15,205 +15,59 @@
       </div>
     </div>
 
-    <!-- 搜索区域 -->
-    <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm border border-gray-100">
-      <div class="grid grid-cols-6 gap-4 items-end">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">退料单号</label>
-          <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input v-model="searchForm.code" placeholder="搜索退料单号..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('code', $event.target.value)" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">物资名称</label>
-          <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input v-model="searchForm.material" placeholder="搜索物资名称..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('material', $event.target.value)" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">仓库位置</label>
-          <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input v-model="searchForm.warehouse" placeholder="搜索仓库位置..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('warehouse', $event.target.value)" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">申请人</label>
-          <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input v-model="searchForm.applicant" placeholder="搜索申请人..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm" @input="updateSearchField('applicant', $event.target.value)" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
-          <select v-model="searchForm.status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white" @change="updateSearchField('status', $event.target.value)">
-            <option v-for="opt in STATUS_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-          </select>
-        </div>
-        <div class="flex items-end gap-2">
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-gray-700 mb-1">退料部门</label>
-            <select v-model="searchForm.department" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white" @change="updateSearchField('department', $event.target.value)">
-              <option value="all">全部部门</option>
-              <option v-for="dept in departmentOptions" :key="dept" :value="dept">{{ dept }}</option>
-            </select>
-          </div>
-          <button class="h-8 px-3 rounded-md text-xs bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-1 shrink-0" @click="handleReset"><RotateCcw class="w-4 h-4" />重置</button>
-        </div>
-      </div>
-    </div>
+    <!-- 搜索区域 - 已拆分为子组件 -->
+    <MaterialReturnSearchBar
+      :search-form="searchForm"
+      @update-field="updateSearchField"
+      @reset="handleReset"
+    />
 
     <!-- 数据表格 -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="p-4 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-900">生产退料单列表</h3>
-        <div class="flex gap-2">
-          <!-- 导出模式 -->
-          <template v-if="exportMode">
-            <button class="h-8 px-3 rounded-md text-xs bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="handleExportClick">
-              <Download class="w-4 h-4" />确认导出
-            </button>
-            <button class="h-8 px-3 rounded-md text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="handleCancelExport">取消</button>
-          </template>
-          <!-- 默认模式 -->
-          <template v-else>
-            <template v-if="!batchEditMode && !deleteMode">
-              <button class="h-8 px-3 rounded-md text-xs bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="showAddModal = true">
-                <Plus class="w-4 h-4" />新增
-              </button>
-              <button class="h-8 px-3 rounded-md text-xs bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-1" @click="enterBatchEditMode">
-                <Edit class="w-4 h-4" /><Edit2 class="w-4 h-4" />编辑
-              </button>
-              <button class="h-8 px-3 rounded-md text-xs bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="enterDeleteMode">
-                <Trash2 class="w-4 h-4" />删除
-              </button>
-              <button class="h-8 px-3 rounded-md text-xs bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="exportMode = true">
-                <Download class="w-4 h-4" />导出
-              </button>
-            </template>
-            <!-- 删除模式 -->
-            <template v-if="deleteMode">
-              <button class="h-8 px-3 rounded-md text-xs bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1" @click="showBatchDeleteConfirm = true">确认删除</button>
-              <button class="h-8 px-3 rounded-md text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="cancelDeleteMode">取消</button>
-            </template>
-            <!-- 编辑模式 -->
-            <template v-if="batchEditMode">
-              <button class="h-8 px-3 rounded-md text-xs bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1" @click="openBatchEditOrWarn">确认编辑</button>
-              <button class="h-8 px-3 rounded-md text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 inline-flex items-center gap-1" @click="cancelBatchEditMode">取消</button>
-            </template>
-          </template>
-        </div>
+        <MaterialReturnToolbar
+          :export-mode="exportMode"
+          :batch-edit-mode="batchEditMode"
+          :delete-mode="deleteMode"
+          @export-click="handleExportClick"
+          @cancel-export="handleCancelExport"
+          @add="showAddModal = true"
+          @enter-batch-edit="enterBatchEditMode"
+          @enter-delete="enterDeleteMode"
+          @enter-export="exportMode = true"
+          @confirm-delete="showBatchDeleteConfirm = true"
+          @cancel-delete="cancelDeleteMode"
+          @confirm-batch-edit="openBatchEditOrWarn"
+          @cancel-batch-edit="cancelBatchEditMode"
+        />
       </div>
 
-      <!-- 表格 -->
-      <div class="overflow-auto max-h-[calc(100vh-400px)]">
-        <table class="w-full">
-          <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
-            <tr>
-              <th v-if="exportMode || batchEditMode || deleteMode" class="px-4 py-3 text-left text-sm font-semibold w-14 whitespace-nowrap">
-                <input type="checkbox" :checked="paginatedReturns.length > 0 && selectedRows.length === paginatedReturns.length" @change="toggleSelectAllReturn" class="w-4 h-4 rounded border-white" />
-              </th>
-              <th class="px-4 py-3 text-left text-sm font-semibold w-12 whitespace-nowrap"></th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料单号</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料日期</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料类型</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">申请人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">操作人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">退料部门</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">仓库位置</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审批状态</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">审核人</th>
-              <th class="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">备注</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-300">
-            <tr v-if="paginatedReturns.length === 0">
-              <td :colspan="(exportMode || batchEditMode || deleteMode) ? 12 : 11" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
-            </tr>
-            <template v-for="row in paginatedReturns" :key="row.id">
-              <tr class="hover:bg-blue-100 transition-colors">
-                <td v-if="exportMode || batchEditMode || deleteMode" class="px-4 py-3">
-                  <input type="checkbox" :checked="selectedRows.includes(row.id)" :disabled="!checkSelectable(row)" @change="toggleReturnRow(row.id)" class="w-4 h-4 rounded border-gray-400" />
-                </td>
-                <td class="px-4 py-3">
-                  <button class="text-gray-500 hover:text-blue-600 p-1" @click="toggleExpandRow(row.id)">
-                    <ChevronDown v-if="expandedRows.has(row.id)" class="w-4 h-4" />
-                    <ChevronRight v-else class="w-4 h-4" />
-                  </button>
-                </td>
-                <td class="px-4 py-3 text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer whitespace-nowrap" @click="handleView(row)">{{ row.code }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.date }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.type }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.applicant }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.operator || '-' }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.department }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.warehouseLocation }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <span class="inline-flex px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(row)">{{ row.status }}</span>
-                </td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.reviewer || '-' }}</td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ row.remark || '-' }}</td>
-              </tr>
-              <!-- 展开行：物料明细 -->
-              <tr v-if="expandedRows.has(row.id)" :key="'exp-' + row.id" class="bg-gray-50">
-                <td :colspan="(exportMode || batchEditMode || deleteMode) ? 12 : 11" class="p-4">
-                  <h4 class="font-medium mb-2 text-gray-700">退料物料明细</h4>
-                  <div class="overflow-x-auto">
-                    <table class="w-full border border-gray-200">
-                      <thead class="bg-[#F2F6FA] text-gray-700">
-                        <tr>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">来源领料单号</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料编码</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料分类</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">物料名称</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">规格</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">单位</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">本次退料数量</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">单价(元)</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">小计(元)</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">仓库货位</th>
-                          <th class="px-3 py-2 text-left text-xs font-semibold whitespace-nowrap">退料原因</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-gray-200">
-                        <tr v-if="!row.materials || row.materials.length === 0">
-                          <td colspan="11" class="px-3 py-4 text-center text-sm text-gray-500">暂无物料</td>
-                        </tr>
-                        <tr v-for="mr in row.materials" :key="mr.id || mr.materialCode" class="hover:bg-white">
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.sourceApplicationCode }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.materialCode }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.category }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.materialName }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.spec }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.unit }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.returnQuantity }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.unitPrice }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ ((mr.returnQuantity || 0) * (mr.unitPrice || 0)).toFixed(2) }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.warehousePosition }}</td>
-                          <td class="px-3 py-2 text-sm text-gray-600 whitespace-nowrap">{{ mr.reason }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
+      <!-- 表格 - 已拆分为子组件 MaterialReturnTable -->
+      <MaterialReturnTable
+        :paginated-returns="paginatedReturns"
+        :selected-rows="selectedRows"
+        :expanded-rows="expandedRows"
+        :export-mode="exportMode"
+        :batch-edit-mode="batchEditMode"
+        :delete-mode="deleteMode"
+        :check-selectable="checkSelectable"
+        @toggle-select-all="toggleSelectAllReturn"
+        @toggle-row="toggleReturnRow"
+        @toggle-expand="toggleExpandRow"
+        @view="handleView"
+      />
 
       <!-- 分页 -->
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
         <el-pagination
-          :current-page="currentPage"
-          :total-pages="totalPages"
-          :page-size="pageSize"
-          :page-size-options="[10, 20, 50]"
-          :show-page-size="true"
-          @page-change="(page) => { currentPage = page }"
-          @page-size-change="(size) => { pageSize = size; currentPage = 1 }"
+          v-model:current-page="currentPage"
+          :total="paginatedTotal"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+          @size-change="() => { currentPage = 1 }"
         />
       </div>
     </div>
@@ -333,51 +187,41 @@ import { ArrowLeftRight, Plus, Edit, Edit2, Trash2, Download, ChevronDown, Chevr
 import { ElMessage } from 'element-plus'
 import { useMaterialReturnStore } from '@/stores/modules/inventory/useMaterialReturnStore'
 import { useWarehouseMaterialStore } from '@/stores/modules/inventory/useWarehouseMaterialStore'
+import { ElModal } from '@/components/ui'
+// 修复 P0-CMP: 之前完全未 import 任何 Modal 组件，模板中使用直接导致 Vue 警告
+import { ReturnDetailModal,
+  ReturnAddModal,
+  ReturnEditModal,
+  ReturnVoidModal,
+  ReturnMaterialSelectModal,
+  ReturnBatchEditModal
+} from './components'
+import MaterialReturnTable from './components/MaterialReturnTable.vue'
+import MaterialReturnSearchBar from './components/MaterialReturnSearchBar.vue'
+import MaterialReturnToolbar from './components/MaterialReturnToolbar.vue'
+import { DeleteWarningModal, ExportTypeModal } from '@/components/materialReceiving/modals'
+// ExportTypeModal alias for template
+const ExportFormatModal = ExportTypeModal
 
-// ============ 常量配置（与V1.1 config.ts一致） ============
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: '全部状态' },
-  { value: '待审批', label: '待审批' },
-  { value: '已审批', label: '已审批' },
-  { value: '已驳回', label: '已驳回' },
-  { value: '已完成', label: '已完成' },
-  { value: '已作废', label: '已作废' }
-]
-
-const STATUS_STYLE_MAP = {
-  'approved': { bg: 'bg-green-100', text: 'text-green-700' },
-  'pending': { bg: 'bg-amber-100', text: 'text-amber-700' },
-  'rejected': { bg: 'bg-red-100', text: 'text-red-700' },
-  'completed': { bg: 'bg-blue-100', text: 'text-blue-700' },
-  'voided': { bg: 'bg-gray-200', text: 'text-gray-500' },
-  '': { bg: 'bg-gray-100', text: 'text-gray-700' }
-}
-
-const STATUS_TO_CLASS = {
-  '待审批': 'pending',
-  '已审批': 'approved',
-  '已驳回': 'rejected',
-  '已完成': 'completed',
-  '已作废': 'voided'
-}
-
-const RETURN_REASONS = ['生产剩余', '产品质量问题', '领错物料', '规格不符', '过期产品', '运输损坏', '库存积压', '其他']
-const RETURN_TYPES = ['生产退料', '品质退料', '试制退料']
-const APPLICANTS = ['李建国', '王建华', '张建华', '赵技术', '陈技术', '周管理员', '吴主管']
-const WAREHOUSE_LOCATIONS = ['A区-01', 'A区-02', 'A区-03', 'A区-04', 'B区-01', 'B区-02', 'B区-03', 'C区-01', 'C区-05']
-const OPERATORS = ['郭靖', '杨过', '张无忌', '令狐冲', '段誉', '萧峰', '虚竹', '胡斐', '陈家洛', '袁承志']
-const REVIEWERS = ['黄药师', '小龙女', '周芷若', '任盈盈', '霍青桐', '夏雪宜', '程灵素', '扫地僧', '丁典']
-const EDITABLE_STATUSES = ['待审批', '已审批', '已驳回', '已完成']
-const DELETABLE_STATUSES = ['待审批', '已审批', '已驳回']
-const EXPORT_FORMATS = [
-  { value: 'xlsx', label: 'Excel (.xlsx)', desc: '适用于数据分析和处理' },
-  { value: 'csv', label: 'CSV (.csv)', desc: '适用于数据交换' },
-  { value: 'word', label: 'Word (.docx)', desc: '适用于文档编辑和分享' }
-]
-
-// 部门选项
-const departmentOptions = ['生产部', '种植部', '设备部', '品质部', '仓储部', '技术部']
+// 配置常量与工具函数 已拆分到 ./utils/materialReturnConfig.js
+import {
+  STATUS_OPTIONS,
+  RETURN_REASONS,
+  RETURN_TYPES,
+  APPLICANTS,
+  WAREHOUSE_LOCATIONS,
+  OPERATORS,
+  REVIEWERS,
+  EDITABLE_STATUSES,
+  DELETABLE_STATUSES,
+  EXPORT_FORMATS,
+  departmentOptions,
+  generateReturnCode,
+  getStatusClass,
+  createEmptyAddForm,
+  createEmptyEditForm,
+  createEmptyMaterial
+} from './utils/materialReturnConfig'
 
 // ============ Store ============
 
@@ -388,30 +232,6 @@ const warehouseStore = useWarehouseMaterialStore()
 const currentOperatorName = localStorage.getItem('username') || '系统管理员'
 
 // ============ 工具函数 ============
-
-/** 生成退料单号（TL+YYYYMMDD+3位流水号） */
-const generateReturnCode = (existingCodes) => {
-  const today = new Date()
-  const y = today.getFullYear()
-  const m = String(today.getMonth() + 1).padStart(2, '0')
-  const d = String(today.getDate()).padStart(2, '0')
-  const prefix = `TL${y}${m}${d}`
-  let maxSeq = 0
-  existingCodes.forEach(code => {
-    if (code && code.startsWith(prefix)) {
-      const seq = parseInt(code.substring(prefix.length), 10)
-      if (!isNaN(seq) && seq > maxSeq) maxSeq = seq
-    }
-  })
-  return `${prefix}${String(maxSeq + 1).padStart(3, '0')}`
-}
-
-/** 获取状态对应的样式类 */
-const getStatusClass = (record) => {
-  const cls = record.statusClass || STATUS_TO_CLASS[record.status] || ''
-  const style = STATUS_STYLE_MAP[cls] || STATUS_STYLE_MAP['']
-  return `${style.bg} ${style.text}`
-}
 
 /** 判断状态是否可删除 */
 const isDeletable = (status) => DELETABLE_STATUSES.includes(status)
@@ -453,59 +273,9 @@ const showMaterialSelectModal = ref(false)
 const materialSelectSearch = ref('')
 const selectedMaterialCodes = ref(new Set())
 
-// 表单
-const addForm = reactive(createEmptyAddForm())
+// 表单（工厂函数已迁出至 utils/materialReturnConfig）
+const addForm = reactive(createEmptyAddForm(currentOperatorName))
 const editForm = reactive(createEmptyEditForm())
-
-function createEmptyAddForm() {
-  return {
-    code: '',
-    date: new Date().toISOString().split('T')[0],
-    type: '生产退料',
-    applicant: '',
-    department: '',
-    warehouseLocation: '',
-    remark: '',
-    operator: currentOperatorName,
-    reviewer: '',
-    reviewDate: '',
-    rejectReason: '',
-    materials: []
-  }
-}
-
-function createEmptyEditForm() {
-  return {
-    date: '',
-    type: '',
-    applicant: '',
-    department: '',
-    warehouseLocation: '',
-    status: '',
-    remark: '',
-    operator: '',
-    reviewer: '',
-    reviewDate: '',
-    rejectReason: '',
-    materials: []
-  }
-}
-
-function createEmptyMaterial() {
-  return {
-    sourceApplicationCode: '',
-    materialCode: '',
-    category: '',
-    materialName: '',
-    spec: '',
-    unit: '',
-    returnQuantity: 0,
-    unitPrice: 0,
-    warehousePosition: '',
-    reason: '',
-    remark: ''
-  }
-}
 
 // ============ 计算属性 ============
 
@@ -529,6 +299,7 @@ const paginatedReturns = computed(() => {
 })
 
 const totalPages = computed(() => Math.ceil(filteredReturns.value.length / pageSize.value) || 1)
+const paginatedTotal = computed(() => filteredReturns.value.length)
 
 /** 批量编辑：当前记录ID */
 const currentBatchId = computed(() => selectedRows.value[currentBatchEditIndex.value])

@@ -156,10 +156,14 @@ const PRODUCTION_BATCH_CODES = [
 
 const props = defineProps({
   show: { type: Boolean, default: false },
-  form: { type: Object, default: () => ({}) }
+  form: { type: Object, default: () => ({}) },
+  // 兼容父组件可能用 add-form / addForm 传值
+  addForm: { type: Object, default: undefined },
+  // formChange 事件占位声明，避免被 Vue 当作 attr 下传给 ElModal
+  formChange: { type: Function, default: undefined }
 })
 
-const emit = defineEmits(['close', 'save', 'update:form', 'add-material', 'remove-material', 'material-change', 'generate-code'])
+const emit = defineEmits(['close', 'save', 'update:form', 'add-material', 'remove-material', 'material-change', 'generate-code', 'formChange', 'voidApply'])
 
 // 本地状态
 const localForm = ref({

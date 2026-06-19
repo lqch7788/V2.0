@@ -129,6 +129,7 @@
 
 <script setup>
 import { ElModal } from '@/components/ui'
+import { Info } from 'lucide-vue-next'
 defineProps({
   show: { type: Boolean, default: false }
 })

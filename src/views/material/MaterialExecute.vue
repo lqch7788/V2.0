@@ -132,6 +132,7 @@ import ExecuteTabTable from '@/components/materialReceiving/ExecuteTabTable.vue'
 import {
   ExecuteDetailModal,
   ExecuteAddModal,
+  ExecuteEditModal,
   ExecuteDeleteWarningModal,
   ExecuteBatchEditModal,
   ExportTypeModal

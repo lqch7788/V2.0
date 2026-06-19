@@ -254,7 +254,7 @@ const routes = [
     component: () => import('@/views/supplier/SupplierManagement.vue'),
     meta: { title: '供应商管理' }
   },
-  // 物料模块（V1.1 路径 /material-return、/material-receiving）
+  // 物料模块（V1.1 路径 /material-return、/material-receiving、/material-application、/material-execute）
   {
     path: '/material-return',
     name: 'MaterialReturnDirect',
@@ -266,6 +266,18 @@ const routes = [
     name: 'MaterialReceiving',
     component: () => import('@/views/material/MaterialReceiving.vue'),
     meta: { title: '生产领料' }
+  },
+  {
+    path: '/material-application',
+    name: 'MaterialApplication',
+    component: () => import('@/views/material/MaterialApplication.vue'),
+    meta: { title: '物料申请' }
+  },
+  {
+    path: '/material-execute',
+    name: 'MaterialExecute',
+    component: () => import('@/views/material/MaterialExecute.vue'),
+    meta: { title: '物料执行' }
   },
   {
     path: '/announcement',
