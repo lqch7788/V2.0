@@ -1,8 +1,12 @@
 <template>
   <div class="space-y-6">
-    <!-- 页面标题 -->
+    <!-- 页面标题 - V1.1 L456-458 含返回人事管理链接 -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center gap-3">
+        <router-link to="/settings/personnel" class="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm">
+          <el-icon :size="18"><ArrowLeft /></el-icon>
+          返回人事管理
+        </router-link>
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
           <el-icon :size="24" class="text-white"><User /></el-icon>
         </div>
@@ -22,7 +26,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审核</p>
+            <p class="text-xs text-gray-500">待审批</p>
           </div>
         </div>
       </div>
@@ -95,7 +99,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">审批状态</label>
           <el-select v-model="statusFilter" placeholder="全部状态" class="w-full">
             <el-option label="全部状态" value="all" />
-            <el-option label="待审核" value="pending" />
+            <el-option label="待审批" value="pending" />
             <el-option label="已通过" value="approved" />
             <el-option label="已拒绝" value="rejected" />
           </el-select>
@@ -428,7 +432,8 @@ import {
   CircleClose,
   Document,
   View,
-  Download
+  Download,
+  ArrowLeft
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useApprovalStore } from '@/stores/modules/approval'

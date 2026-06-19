@@ -17,8 +17,8 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-[#F2F6FA] rounded-xl p-4 shadow-sm">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-            <el-icon :size="20" class="text-blue-600"><Document /></el-icon>
+          <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center">
+            <el-icon :size="20" class="text-slate-600"><Document /></el-icon>
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
@@ -33,7 +33,7 @@
           </div>
           <div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.pending }}</p>
-            <p class="text-xs text-gray-500">待审核</p>
+            <p class="text-xs text-gray-500">待审批</p>
           </div>
         </div>
       </div>
@@ -92,7 +92,7 @@
         </div>
         <el-select v-model="statusFilter" placeholder="全部状态" style="width: 140px" @change="handleSearch">
           <el-option label="全部状态" value="全部" />
-          <el-option label="待审核" value="待审核" />
+          <el-option label="待审批" value="待审批" />
           <el-option label="已通过" value="已通过" />
           <el-option label="已拒绝" value="已拒绝" />
         </el-select>
@@ -220,9 +220,14 @@
         />
       </div>
 
-      <!-- 详情弹窗 -->
+      <!-- 详情弹窗 - V1.1 L412-417 含业务数据加载 (useApprovalBusinessDetail) + JSON 渲染 -->
       <el-dialog v-model="detailVisible" title="审批详情" width="800px" destroy-on-close>
         <ApprovalDetail v-if="currentApproval" :approval="currentApproval" />
+        <div v-if="businessLoading" class="text-sm text-gray-500 mt-2">加载业务数据中...</div>
+        <div v-if="businessData" class="border-t pt-4 mt-2">
+          <h4 class="text-sm font-semibold text-gray-900 mb-2">关联业务数据</h4>
+          <pre class="text-xs text-gray-600 bg-gray-50 rounded p-3 overflow-auto max-h-48">{{ JSON.stringify(businessData, null, 2) }}</pre>
+        </div>
       </el-dialog>
 
       <!-- 审批确认弹窗 -->
@@ -275,6 +280,7 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ApprovalDetail from '@/components/approval/ApprovalDetail.vue'
+import { useApprovalBusinessDetail } from '@/composables/useApprovalBusinessDetail'
 import { useApprovalStore } from '@/stores/modules/approval'
 import { storeToRefs } from 'pinia'
 
@@ -322,6 +328,8 @@ const selectedIds = ref(new Set())
 // 详情弹窗
 const detailVisible = ref(false)
 const currentApproval = ref(null)
+// 业务数据加载（V1.1 L33 useApprovalBusinessDetail 1:1 翻译）
+const { data: businessData, isLoading: businessLoading } = useApprovalBusinessDetail(() => currentApproval.value)
 
 // 当前Tab标签
 const currentTabLabel = computed(() => {
@@ -359,7 +367,7 @@ const filteredData = computed(() => {
       item.code?.includes(searchTerm.value)
     const matchStatus =
       statusFilter.value === '全部' ||
-      (statusFilter.value === '待审核' && item.status === ApprovalStatus.PENDING) ||
+      (statusFilter.value === '待审批' && item.status === ApprovalStatus.PENDING) ||
       (statusFilter.value === '已通过' && item.status === ApprovalStatus.APPROVED) ||
       (statusFilter.value === '已拒绝' && item.status === ApprovalStatus.REJECTED)
     return matchSearch && matchStatus
@@ -418,7 +426,7 @@ const getStatusText = (status) => {
     case ApprovalStatus.REJECTED:
       return '已拒绝'
     case ApprovalStatus.PENDING:
-      return '待审核'
+      return '待审批'
     default:
       return status
   }
