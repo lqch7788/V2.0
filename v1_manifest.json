@@ -1,0 +1,7600 @@
+{
+  "scan_timestamp": "2026-06-20T08:45:02.080682",
+  "root": "D:/TMcrop/yuanxingtu/V1.1/src",
+  "version": "V1.1",
+  "total_files": 1514,
+  "by_type": {
+    "css": 2,
+    "tsx": 966,
+    "ts": 546
+  },
+  "by_directory": {
+    "(root)": 5,
+    "components": 865,
+    "config": 7,
+    "constants": 5,
+    "contexts": 5,
+    "data": 20,
+    "db": 1,
+    "hooks": 78,
+    "i18n": 1,
+    "lib": 10,
+    "pages": 290,
+    "services": 74,
+    "stores": 112,
+    "types": 34,
+    "utils": 7
+  },
+  "files": [
+    {
+      "path": "App.css",
+      "type": "css",
+      "lines": 42
+    },
+    {
+      "path": "App.tsx",
+      "type": "tsx",
+      "lines": 418
+    },
+    {
+      "path": "components/DragContext.tsx",
+      "type": "tsx",
+      "lines": 39
+    },
+    {
+      "path": "components/DraggableContainer.tsx",
+      "type": "tsx",
+      "lines": 35
+    },
+    {
+      "path": "components/DraggableDialog.tsx",
+      "type": "tsx",
+      "lines": 35
+    },
+    {
+      "path": "components/DraggableModalWrapper.tsx",
+      "type": "tsx",
+      "lines": 39
+    },
+    {
+      "path": "components/DraggableTitleBar.tsx",
+      "type": "tsx",
+      "lines": 32
+    },
+    {
+      "path": "components/ErrorBoundary.tsx",
+      "type": "tsx",
+      "lines": 90
+    },
+    {
+      "path": "components/PageErrorBoundary.tsx",
+      "type": "tsx",
+      "lines": 126
+    },
+    {
+      "path": "components/announcement/AnnouncementPage.tsx",
+      "type": "tsx",
+      "lines": 361
+    },
+    {
+      "path": "components/announcement/index.ts",
+      "type": "ts",
+      "lines": 9
+    },
+    {
+      "path": "components/approval/ApprovalDetail.tsx",
+      "type": "tsx",
+      "lines": 272
+    },
+    {
+      "path": "components/approval/ApprovalFilters.tsx",
+      "type": "tsx",
+      "lines": 230
+    },
+    {
+      "path": "components/approval/ApprovalLevelBadge.tsx",
+      "type": "tsx",
+      "lines": 181
+    },
+    {
+      "path": "components/approval/ApprovalList.tsx",
+      "type": "tsx",
+      "lines": 167
+    },
+    {
+      "path": "components/approval/ApprovalSubmitPanel.tsx",
+      "type": "tsx",
+      "lines": 302
+    },
+    {
+      "path": "components/approval/ApprovalTimeline.tsx",
+      "type": "tsx",
+      "lines": 203
+    },
+    {
+      "path": "components/approval/BatchActionBar.tsx",
+      "type": "tsx",
+      "lines": 172
+    },
+    {
+      "path": "components/approval/BatchConfirmModal.tsx",
+      "type": "tsx",
+      "lines": 151
+    },
+    {
+      "path": "components/approval/BatchResultModal.tsx",
+      "type": "tsx",
+      "lines": 150
+    },
+    {
+      "path": "components/approval/BusinessPreview.tsx",
+      "type": "tsx",
+      "lines": 306
+    },
+    {
+      "path": "components/approval/MaterialApprovalForm.tsx",
+      "type": "tsx",
+      "lines": 213
+    },
+    {
+      "path": "components/approval/NotificationPanel.tsx",
+      "type": "tsx",
+      "lines": 236
+    },
+    {
+      "path": "components/approval/index.ts",
+      "type": "ts",
+      "lines": 9
+    },
+    {
+      "path": "components/auth/ActionGuard.tsx",
+      "type": "tsx",
+      "lines": 38
+    },
+    {
+      "path": "components/auth/PermissionGuard.tsx",
+      "type": "tsx",
+      "lines": 115
+    },
+    {
+      "path": "components/codeRule/AddMidModal.tsx",
+      "type": "tsx",
+      "lines": 68
+    },
+    {
+      "path": "components/codeRule/AddSubModal.tsx",
+      "type": "tsx",
+      "lines": 65
+    },
+    {
+      "path": "components/common/BatchActionBar.tsx",
+      "type": "tsx",
+      "lines": 129
+    },
+    {
+      "path": "components/common/DateRangePicker.tsx",
+      "type": "tsx",
+      "lines": 70
+    },
+    {
+      "path": "components/common/ExportActionToolbar.tsx",
+      "type": "tsx",
+      "lines": 100
+    },
+    {
+      "path": "components/common/ExportButton.tsx",
+      "type": "tsx",
+      "lines": 66
+    },
+    {
+      "path": "components/common/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 82
+    },
+    {
+      "path": "components/common/ExportToolbar.tsx",
+      "type": "tsx",
+      "lines": 98
+    },
+    {
+      "path": "components/common/FeedbackAttachments.tsx",
+      "type": "tsx",
+      "lines": 422
+    },
+    {
+      "path": "components/common/FeedbackInput.tsx",
+      "type": "tsx",
+      "lines": 703
+    },
+    {
+      "path": "components/common/GlobalDialog.tsx",
+      "type": "tsx",
+      "lines": 72
+    },
+    {
+      "path": "components/common/MaterialAutocomplete.tsx",
+      "type": "tsx",
+      "lines": 175
+    },
+    {
+      "path": "components/common/QRScanner.tsx",
+      "type": "tsx",
+      "lines": 279
+    },
+    {
+      "path": "components/common/SearchableSelect.tsx",
+      "type": "tsx",
+      "lines": 179
+    },
+    {
+      "path": "components/common/TabHeader.tsx",
+      "type": "tsx",
+      "lines": 70
+    },
+    {
+      "path": "components/common/TaskFlowTimeline.tsx",
+      "type": "tsx",
+      "lines": 106
+    },
+    {
+      "path": "components/common/TaskRecordTimeline.tsx",
+      "type": "tsx",
+      "lines": 282
+    },
+    {
+      "path": "components/common/badge/StatusBadge.tsx",
+      "type": "tsx",
+      "lines": 59
+    },
+    {
+      "path": "components/common/labor/LaborEmptyState.tsx",
+      "type": "tsx",
+      "lines": 137
+    },
+    {
+      "path": "components/common/labor/LaborExport.tsx",
+      "type": "tsx",
+      "lines": 233
+    },
+    {
+      "path": "components/common/labor/LaborFilters.tsx",
+      "type": "tsx",
+      "lines": 182
+    },
+    {
+      "path": "components/common/labor/LaborModal.tsx",
+      "type": "tsx",
+      "lines": 149
+    },
+    {
+      "path": "components/common/labor/LaborStatCard.tsx",
+      "type": "tsx",
+      "lines": 144
+    },
+    {
+      "path": "components/common/labor/LaborStatusBadge.tsx",
+      "type": "tsx",
+      "lines": 201
+    },
+    {
+      "path": "components/common/labor/LaborTable.tsx",
+      "type": "tsx",
+      "lines": 233
+    },
+    {
+      "path": "components/common/labor/LaborWorkerSelector.tsx",
+      "type": "tsx",
+      "lines": 201
+    },
+    {
+      "path": "components/common/labor/index.ts",
+      "type": "ts",
+      "lines": 29
+    },
+    {
+      "path": "components/common/modal/ProModal.tsx",
+      "type": "tsx",
+      "lines": 60
+    },
+    {
+      "path": "components/common/settings/BlockSelect.tsx",
+      "type": "tsx",
+      "lines": 56
+    },
+    {
+      "path": "components/common/settings/DepartmentSelect.tsx",
+      "type": "tsx",
+      "lines": 50
+    },
+    {
+      "path": "components/common/settings/DeviceSelect.tsx",
+      "type": "tsx",
+      "lines": 64
+    },
+    {
+      "path": "components/common/settings/DictSelect.tsx",
+      "type": "tsx",
+      "lines": 75
+    },
+    {
+      "path": "components/common/settings/GreenhouseSelect.tsx",
+      "type": "tsx",
+      "lines": 56
+    },
+    {
+      "path": "components/common/settings/PositionSelect.tsx",
+      "type": "tsx",
+      "lines": 56
+    },
+    {
+      "path": "components/common/settings/SupplierSelect.tsx",
+      "type": "tsx",
+      "lines": 78
+    },
+    {
+      "path": "components/common/settings/TeamSelect.tsx",
+      "type": "tsx",
+      "lines": 56
+    },
+    {
+      "path": "components/common/settings/UnitDictSelect.tsx",
+      "type": "tsx",
+      "lines": 54
+    },
+    {
+      "path": "components/common/settings/UserSelect.tsx",
+      "type": "tsx",
+      "lines": 149
+    },
+    {
+      "path": "components/common/settings/WarehouseSelect.tsx",
+      "type": "tsx",
+      "lines": 69
+    },
+    {
+      "path": "components/common/settings/ZoneSelect.tsx",
+      "type": "tsx",
+      "lines": 56
+    },
+    {
+      "path": "components/common/settings/index.ts",
+      "type": "ts",
+      "lines": 15
+    },
+    {
+      "path": "components/common/table/ProTable.tsx",
+      "type": "tsx",
+      "lines": 375
+    },
+    {
+      "path": "components/common/useExport.ts",
+      "type": "ts",
+      "lines": 174
+    },
+    {
+      "path": "components/common/useExportModal.ts",
+      "type": "ts",
+      "lines": 121
+    },
+    {
+      "path": "components/cost/CostBatchTable.tsx",
+      "type": "tsx",
+      "lines": 111
+    },
+    {
+      "path": "components/cost/CostCategoryBar.tsx",
+      "type": "tsx",
+      "lines": 58
+    },
+    {
+      "path": "components/cost/CostComparisonCharts.tsx",
+      "type": "tsx",
+      "lines": 112
+    },
+    {
+      "path": "components/cost/CostComparisonTable.tsx",
+      "type": "tsx",
+      "lines": 340
+    },
+    {
+      "path": "components/cost/CostContent.tsx",
+      "type": "tsx",
+      "lines": 186
+    },
+    {
+      "path": "components/cost/CostDetailModal.tsx",
+      "type": "tsx",
+      "lines": 79
+    },
+    {
+      "path": "components/cost/CostFiltersForm.tsx",
+      "type": "tsx",
+      "lines": 257
+    },
+    {
+      "path": "components/cost/CostKPICards.tsx",
+      "type": "tsx",
+      "lines": 83
+    },
+    {
+      "path": "components/cost/CostPieChart.tsx",
+      "type": "tsx",
+      "lines": 124
+    },
+    {
+      "path": "components/cost/CostTabSwitcher.tsx",
+      "type": "tsx",
+      "lines": 52
+    },
+    {
+      "path": "components/cost/CostTrendChart.tsx",
+      "type": "tsx",
+      "lines": 107
+    },
+    {
+      "path": "components/dashboard/ImageEnlargementModal.tsx",
+      "type": "tsx",
+      "lines": 63
+    },
+    {
+      "path": "components/dashboard/cards/AlertsCard.tsx",
+      "type": "tsx",
+      "lines": 65
+    },
+    {
+      "path": "components/dashboard/cards/CardSkeleton.tsx",
+      "type": "tsx",
+      "lines": 27
+    },
+    {
+      "path": "components/dashboard/cards/EnergyCard.tsx",
+      "type": "tsx",
+      "lines": 80
+    },
+    {
+      "path": "components/dashboard/cards/EquipmentStatusCard.tsx",
+      "type": "tsx",
+      "lines": 61
+    },
+    {
+      "path": "components/dashboard/cards/InventoryAlertCard.tsx",
+      "type": "tsx",
+      "lines": 57
+    },
+    {
+      "path": "components/dashboard/cards/ProductionProgressCard.tsx",
+      "type": "tsx",
+      "lines": 71
+    },
+    {
+      "path": "components/dashboard/cards/StatCard.tsx",
+      "type": "tsx",
+      "lines": 33
+    },
+    {
+      "path": "components/dashboard/cards/TodayTasksCard.tsx",
+      "type": "tsx",
+      "lines": 96
+    },
+    {
+      "path": "components/dashboard/cards/index.ts",
+      "type": "ts",
+      "lines": 7
+    },
+    {
+      "path": "components/dashboard/widgets/AlertItem.tsx",
+      "type": "tsx",
+      "lines": 28
+    },
+    {
+      "path": "components/dashboard/widgets/IoTSensorCard.tsx",
+      "type": "tsx",
+      "lines": 61
+    },
+    {
+      "path": "components/dashboard/widgets/TaskCard.tsx",
+      "type": "tsx",
+      "lines": 77
+    },
+    {
+      "path": "components/dashboard/widgets/WeatherWidget.tsx",
+      "type": "tsx",
+      "lines": 118
+    },
+    {
+      "path": "components/dashboard/widgets/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "components/dispatch/AIRecommendationPanel.tsx",
+      "type": "tsx",
+      "lines": 317
+    },
+    {
+      "path": "components/dispatch/DispatchConfigPanel.tsx",
+      "type": "tsx",
+      "lines": 430
+    },
+    {
+      "path": "components/dispatch/DispatchMetricsDashboard.tsx",
+      "type": "tsx",
+      "lines": 198
+    },
+    {
+      "path": "components/dispatch/DispatchModeConfig.tsx",
+      "type": "tsx",
+      "lines": 567
+    },
+    {
+      "path": "components/dispatch/DispatchPage.tsx",
+      "type": "tsx",
+      "lines": 110
+    },
+    {
+      "path": "components/dispatch/DispatchTaskPool.tsx",
+      "type": "tsx",
+      "lines": 154
+    },
+    {
+      "path": "components/dispatch/EnvironmentPanel.tsx",
+      "type": "tsx",
+      "lines": 216
+    },
+    {
+      "path": "components/dispatch/MaterialEquipmentPanel.tsx",
+      "type": "tsx",
+      "lines": 300
+    },
+    {
+      "path": "components/dispatch/OptimizationSuggestionModal.tsx",
+      "type": "tsx",
+      "lines": 195
+    },
+    {
+      "path": "components/dispatch/PredictedTasksPanel.tsx",
+      "type": "tsx",
+      "lines": 148
+    },
+    {
+      "path": "components/dispatch/components/dispatch/FarmDispatchTab.tsx",
+      "type": "tsx",
+      "lines": 278
+    },
+    {
+      "path": "components/dispatch/components/dispatch/FarmTaskForm.tsx",
+      "type": "tsx",
+      "lines": 433
+    },
+    {
+      "path": "components/dispatch/components/dispatch/FarmTaskTable.tsx",
+      "type": "tsx",
+      "lines": 247
+    },
+    {
+      "path": "components/dispatch/components/dispatch/SmartDispatchTab.tsx",
+      "type": "tsx",
+      "lines": 249
+    },
+    {
+      "path": "components/dispatch/components/dispatch/SmartTaskForm.tsx",
+      "type": "tsx",
+      "lines": 407
+    },
+    {
+      "path": "components/dispatch/components/dispatch/SmartTaskTable.tsx",
+      "type": "tsx",
+      "lines": 199
+    },
+    {
+      "path": "components/dispatch/components/dispatch/TempTaskForm.tsx",
+      "type": "tsx",
+      "lines": 216
+    },
+    {
+      "path": "components/dispatch/components/dispatch/TempTaskTab.tsx",
+      "type": "tsx",
+      "lines": 2188
+    },
+    {
+      "path": "components/dispatch/components/dispatch/TempTaskTable.tsx",
+      "type": "tsx",
+      "lines": 215
+    },
+    {
+      "path": "components/dispatch/components/dispatch/VerifyTempTaskModal.tsx",
+      "type": "tsx",
+      "lines": 396
+    },
+    {
+      "path": "components/dispatch/components/modals/TaskDetailModal.tsx",
+      "type": "tsx",
+      "lines": 54
+    },
+    {
+      "path": "components/dispatch/components/shared/ExecutorSelect.tsx",
+      "type": "tsx",
+      "lines": 227
+    },
+    {
+      "path": "components/dispatch/components/shared/RecommendIndicator.tsx",
+      "type": "tsx",
+      "lines": 111
+    },
+    {
+      "path": "components/dispatch/components/shared/TaskDetail.tsx",
+      "type": "tsx",
+      "lines": 289
+    },
+    {
+      "path": "components/dispatch/config/dispatchConfig.ts",
+      "type": "ts",
+      "lines": 147
+    },
+    {
+      "path": "components/dispatch/hooks/useDispatch.ts",
+      "type": "ts",
+      "lines": 48
+    },
+    {
+      "path": "components/dispatch/hooks/useSmartRecommend.ts",
+      "type": "ts",
+      "lines": 158
+    },
+    {
+      "path": "components/dispatch/index.ts",
+      "type": "ts",
+      "lines": 36
+    },
+    {
+      "path": "components/dispatch/types/dispatch.ts",
+      "type": "ts",
+      "lines": 162
+    },
+    {
+      "path": "components/dispatch/utils/recommendAlgorithm.ts",
+      "type": "ts",
+      "lines": 247
+    },
+    {
+      "path": "components/farm-structure/BlockTab.tsx",
+      "type": "tsx",
+      "lines": 357
+    },
+    {
+      "path": "components/farm-structure/CompanyBaseTab.tsx",
+      "type": "tsx",
+      "lines": 422
+    },
+    {
+      "path": "components/farm-structure/FacilityTab.tsx",
+      "type": "tsx",
+      "lines": 267
+    },
+    {
+      "path": "components/farm-structure/PlantingRecordTab.tsx",
+      "type": "tsx",
+      "lines": 425
+    },
+    {
+      "path": "components/farm/agriculture/AgricultureRecordPage.tsx",
+      "type": "tsx",
+      "lines": 563
+    },
+    {
+      "path": "components/farm/agriculture/components/AgricultureRecordFilterToolbar.tsx",
+      "type": "tsx",
+      "lines": 203
+    },
+    {
+      "path": "components/farm/agriculture/components/AgricultureRecordPageHeader.tsx",
+      "type": "tsx",
+      "lines": 53
+    },
+    {
+      "path": "components/farm/agriculture/components/AgricultureRecordPagination.tsx",
+      "type": "tsx",
+      "lines": 39
+    },
+    {
+      "path": "components/farm/agriculture/components/AgricultureRecordTableToolbar.tsx",
+      "type": "tsx",
+      "lines": 78
+    },
+    {
+      "path": "components/farm/agriculture/components/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/farm/agriculture/index.ts",
+      "type": "ts",
+      "lines": 1
+    },
+    {
+      "path": "components/farm/agriculture/modals/AddOperationRecordModal.tsx",
+      "type": "tsx",
+      "lines": 390
+    },
+    {
+      "path": "components/farm/agriculture/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 235
+    },
+    {
+      "path": "components/farm/agriculture/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/agriculture/modals/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/common/CodeToolbar.tsx",
+      "type": "tsx",
+      "lines": 56
+    },
+    {
+      "path": "components/farm/common/CropCodeSelector.tsx",
+      "type": "tsx",
+      "lines": 312
+    },
+    {
+      "path": "components/farm/common/FilterToolbar.tsx",
+      "type": "tsx",
+      "lines": 143
+    },
+    {
+      "path": "components/farm/common/ImageUploader.tsx",
+      "type": "tsx",
+      "lines": 235
+    },
+    {
+      "path": "components/farm/common/ProduceCodeGenerator.tsx",
+      "type": "tsx",
+      "lines": 199
+    },
+    {
+      "path": "components/farm/common/StatsCard.tsx",
+      "type": "tsx",
+      "lines": 74
+    },
+    {
+      "path": "components/farm/crop-growth/CropGrowthConfigPanel.tsx",
+      "type": "tsx",
+      "lines": 647
+    },
+    {
+      "path": "components/farm/crop-variety/CropVarietyDetail.tsx",
+      "type": "tsx",
+      "lines": 311
+    },
+    {
+      "path": "components/farm/crop-variety/CropVarietyManagement.tsx",
+      "type": "tsx",
+      "lines": 845
+    },
+    {
+      "path": "components/farm/crop-variety/CropVarietyTable.tsx",
+      "type": "tsx",
+      "lines": 321
+    },
+    {
+      "path": "components/farm/crop-variety/VarietyTree.tsx",
+      "type": "tsx",
+      "lines": 315
+    },
+    {
+      "path": "components/farm/crop-variety/VarietyTreeNode.tsx",
+      "type": "tsx",
+      "lines": 626
+    },
+    {
+      "path": "components/farm/crop-variety/components/CropVarietyCodeToolbar.tsx",
+      "type": "tsx",
+      "lines": 44
+    },
+    {
+      "path": "components/farm/crop-variety/hooks/useVarietyTree.ts",
+      "type": "ts",
+      "lines": 580
+    },
+    {
+      "path": "components/farm/crop-variety/modals/AddCropVarietyModal.tsx",
+      "type": "tsx",
+      "lines": 885
+    },
+    {
+      "path": "components/farm/crop-variety/modals/EditCropVarietyModal.tsx",
+      "type": "tsx",
+      "lines": 453
+    },
+    {
+      "path": "components/farm/crop-variety/modals/QuickAddModal.tsx",
+      "type": "tsx",
+      "lines": 315
+    },
+    {
+      "path": "components/farm/crop-variety/types.ts",
+      "type": "ts",
+      "lines": 144
+    },
+    {
+      "path": "components/farm/customer/CustomerModal.tsx",
+      "type": "tsx",
+      "lines": 239
+    },
+    {
+      "path": "components/farm/customer/CustomerPage.tsx",
+      "type": "tsx",
+      "lines": 519
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerAddModal.tsx",
+      "type": "tsx",
+      "lines": 759
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerBatchDeleteModal.tsx",
+      "type": "tsx",
+      "lines": 113
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerCodeGenerator.tsx",
+      "type": "tsx",
+      "lines": 85
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerDetailModal.tsx",
+      "type": "tsx",
+      "lines": 137
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerEditModal.tsx",
+      "type": "tsx",
+      "lines": 438
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerExportModal.tsx",
+      "type": "tsx",
+      "lines": 68
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerFilter.tsx",
+      "type": "tsx",
+      "lines": 141
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerPage.tsx",
+      "type": "tsx",
+      "lines": 403
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerStatsPanel.tsx",
+      "type": "tsx",
+      "lines": 259
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerTable.tsx",
+      "type": "tsx",
+      "lines": 342
+    },
+    {
+      "path": "components/farm/fertilizer/IotDataIndicator.tsx",
+      "type": "tsx",
+      "lines": 66
+    },
+    {
+      "path": "components/farm/harvest/HarvestPage.tsx",
+      "type": "tsx",
+      "lines": 1155
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestFilterToolbar.tsx",
+      "type": "tsx",
+      "lines": 169
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestPageHeader.tsx",
+      "type": "tsx",
+      "lines": 32
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestStatsCards.tsx",
+      "type": "tsx",
+      "lines": 58
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestTabSwitch.tsx",
+      "type": "tsx",
+      "lines": 54
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestTable.tsx",
+      "type": "tsx",
+      "lines": 362
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestTableToolbar.tsx",
+      "type": "tsx",
+      "lines": 163
+    },
+    {
+      "path": "components/farm/harvest/components/index.ts",
+      "type": "ts",
+      "lines": 11
+    },
+    {
+      "path": "components/farm/harvest/index.ts",
+      "type": "ts",
+      "lines": 6
+    },
+    {
+      "path": "components/farm/harvest/modals/AddModal.tsx",
+      "type": "tsx",
+      "lines": 718
+    },
+    {
+      "path": "components/farm/harvest/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 255
+    },
+    {
+      "path": "components/farm/harvest/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/harvest/modals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 254
+    },
+    {
+      "path": "components/farm/harvest/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/harvest/modals/index.ts",
+      "type": "ts",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/harvest/statusBadgeUtils.tsx",
+      "type": "tsx",
+      "lines": 88
+    },
+    {
+      "path": "components/farm/hub/CreateTaskModal.tsx",
+      "type": "tsx",
+      "lines": 535
+    },
+    {
+      "path": "components/farm/hub/FarmHubHeader.tsx",
+      "type": "tsx",
+      "lines": 148
+    },
+    {
+      "path": "components/farm/hub/InspectionDetailModal.tsx",
+      "type": "tsx",
+      "lines": 248
+    },
+    {
+      "path": "components/farm/hub/InspectionTab.tsx",
+      "type": "tsx",
+      "lines": 1107
+    },
+    {
+      "path": "components/farm/hub/OperationRecordPanel.tsx",
+      "type": "tsx",
+      "lines": 330
+    },
+    {
+      "path": "components/farm/hub/ProblemDispatchModal.tsx",
+      "type": "tsx",
+      "lines": 277
+    },
+    {
+      "path": "components/farm/hub/ProblemTab.tsx",
+      "type": "tsx",
+      "lines": 1427
+    },
+    {
+      "path": "components/farm/hub/TaskDetailModal.tsx",
+      "type": "tsx",
+      "lines": 526
+    },
+    {
+      "path": "components/farm/hub/TaskTab.tsx",
+      "type": "tsx",
+      "lines": 579
+    },
+    {
+      "path": "components/farm/hub/TodayOperationRecords.tsx",
+      "type": "tsx",
+      "lines": 73
+    },
+    {
+      "path": "components/farm/hub/VerifyTaskModal.tsx",
+      "type": "tsx",
+      "lines": 231
+    },
+    {
+      "path": "components/farm/hub/components/CalendarView.tsx",
+      "type": "tsx",
+      "lines": 446
+    },
+    {
+      "path": "components/farm/hub/components/ConfigFieldRenderer.tsx",
+      "type": "tsx",
+      "lines": 412
+    },
+    {
+      "path": "components/farm/hub/components/FilterToolbar.tsx",
+      "type": "tsx",
+      "lines": 214
+    },
+    {
+      "path": "components/farm/hub/components/InspectionSearch.tsx",
+      "type": "tsx",
+      "lines": 165
+    },
+    {
+      "path": "components/farm/hub/components/InspectionToolbar.tsx",
+      "type": "tsx",
+      "lines": 163
+    },
+    {
+      "path": "components/farm/hub/components/OvertimeBadge.tsx",
+      "type": "tsx",
+      "lines": 104
+    },
+    {
+      "path": "components/farm/hub/components/PageHeader.tsx",
+      "type": "tsx",
+      "lines": 29
+    },
+    {
+      "path": "components/farm/hub/components/StatsCards.tsx",
+      "type": "tsx",
+      "lines": 81
+    },
+    {
+      "path": "components/farm/hub/components/TaskExecuteCard.tsx",
+      "type": "tsx",
+      "lines": 266
+    },
+    {
+      "path": "components/farm/hub/components/TaskProgressTimeline.tsx",
+      "type": "tsx",
+      "lines": 213
+    },
+    {
+      "path": "components/farm/hub/components/TaskTable.tsx",
+      "type": "tsx",
+      "lines": 486
+    },
+    {
+      "path": "components/farm/hub/components/TaskTableHeader.tsx",
+      "type": "tsx",
+      "lines": 66
+    },
+    {
+      "path": "components/farm/hub/components/TaskTableRow.tsx",
+      "type": "tsx",
+      "lines": 482
+    },
+    {
+      "path": "components/farm/hub/components/TaskTypeConfigDisplay.tsx",
+      "type": "tsx",
+      "lines": 219
+    },
+    {
+      "path": "components/farm/hub/components/TaskTypeConfigPanel.tsx",
+      "type": "tsx",
+      "lines": 125
+    },
+    {
+      "path": "components/farm/hub/constants_taskDispatch.ts",
+      "type": "ts",
+      "lines": 126
+    },
+    {
+      "path": "components/farm/hub/hooks/useTaskTypeConfig.ts",
+      "type": "ts",
+      "lines": 162
+    },
+    {
+      "path": "components/farm/hub/hooks_useTaskTypeConfig.ts",
+      "type": "ts",
+      "lines": 162
+    },
+    {
+      "path": "components/farm/hub/modals/BatchEditAdapter.tsx",
+      "type": "tsx",
+      "lines": 105
+    },
+    {
+      "path": "components/farm/hub/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 274
+    },
+    {
+      "path": "components/farm/hub/modals/BatchImportModal.tsx",
+      "type": "tsx",
+      "lines": 300
+    },
+    {
+      "path": "components/farm/hub/modals/CreateInspectionModal.tsx",
+      "type": "tsx",
+      "lines": 746
+    },
+    {
+      "path": "components/farm/hub/modals/CreateTaskModal.tsx",
+      "type": "tsx",
+      "lines": 1261
+    },
+    {
+      "path": "components/farm/hub/modals/DeleteWarningAdapter.tsx",
+      "type": "tsx",
+      "lines": 37
+    },
+    {
+      "path": "components/farm/hub/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/hub/modals/DetailInspectionModal.tsx",
+      "type": "tsx",
+      "lines": 722
+    },
+    {
+      "path": "components/farm/hub/modals/ExportFormatAdapter.tsx",
+      "type": "tsx",
+      "lines": 106
+    },
+    {
+      "path": "components/farm/hub/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/hub/modals/InspectionAcceptanceModal.tsx",
+      "type": "tsx",
+      "lines": 459
+    },
+    {
+      "path": "components/farm/hub/modals/OvertimeHandleAdapter.tsx",
+      "type": "tsx",
+      "lines": 64
+    },
+    {
+      "path": "components/farm/hub/modals/OvertimeHandleModal.tsx",
+      "type": "tsx",
+      "lines": 261
+    },
+    {
+      "path": "components/farm/hub/modals/ReassignTaskAdapter.tsx",
+      "type": "tsx",
+      "lines": 37
+    },
+    {
+      "path": "components/farm/hub/modals/ReassignTaskModal.tsx",
+      "type": "tsx",
+      "lines": 176
+    },
+    {
+      "path": "components/farm/hub/modals/SelectExecutorModal.tsx",
+      "type": "tsx",
+      "lines": 373
+    },
+    {
+      "path": "components/farm/hub/modals/TaskAcceptanceAdapter.tsx",
+      "type": "tsx",
+      "lines": 148
+    },
+    {
+      "path": "components/farm/hub/modals/TaskAcceptanceModal.tsx",
+      "type": "tsx",
+      "lines": 387
+    },
+    {
+      "path": "components/farm/hub/modals/TempTaskAcceptanceAdapter.tsx",
+      "type": "tsx",
+      "lines": 93
+    },
+    {
+      "path": "components/farm/hub/modals/VerifyTaskModal.tsx",
+      "type": "tsx",
+      "lines": 224
+    },
+    {
+      "path": "components/farm/hub/modals/WithdrawCancelAdapter.tsx",
+      "type": "tsx",
+      "lines": 45
+    },
+    {
+      "path": "components/farm/hub/modals/WithdrawCancelModal.tsx",
+      "type": "tsx",
+      "lines": 148
+    },
+    {
+      "path": "components/farm/inspection/InspectionSearch.tsx",
+      "type": "tsx",
+      "lines": 159
+    },
+    {
+      "path": "components/farm/inspection/InspectionTable.tsx",
+      "type": "tsx",
+      "lines": 481
+    },
+    {
+      "path": "components/farm/inspection/components/InspectionPageHeader.tsx",
+      "type": "tsx",
+      "lines": 32
+    },
+    {
+      "path": "components/farm/inspection/components/InspectionToolbar.tsx",
+      "type": "tsx",
+      "lines": 156
+    },
+    {
+      "path": "components/farm/inspection/components/index.ts",
+      "type": "ts",
+      "lines": 6
+    },
+    {
+      "path": "components/farm/inspection/index.ts",
+      "type": "ts",
+      "lines": 6
+    },
+    {
+      "path": "components/farm/inspection/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 267
+    },
+    {
+      "path": "components/farm/inspection/modals/CreateInspectionModal.tsx",
+      "type": "tsx",
+      "lines": 746
+    },
+    {
+      "path": "components/farm/inspection/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/inspection/modals/DetailInspectionModal.tsx",
+      "type": "tsx",
+      "lines": 679
+    },
+    {
+      "path": "components/farm/inspection/modals/index.ts",
+      "type": "ts",
+      "lines": 3
+    },
+    {
+      "path": "components/farm/inventory/AddStockModal.tsx",
+      "type": "tsx",
+      "lines": 576
+    },
+    {
+      "path": "components/farm/inventory/InventoryDetailModal.tsx",
+      "type": "tsx",
+      "lines": 583
+    },
+    {
+      "path": "components/farm/inventory/InventoryFilter.tsx",
+      "type": "tsx",
+      "lines": 123
+    },
+    {
+      "path": "components/farm/inventory/InventoryInboundModal.tsx",
+      "type": "tsx",
+      "lines": 489
+    },
+    {
+      "path": "components/farm/inventory/InventoryStats.tsx",
+      "type": "tsx",
+      "lines": 69
+    },
+    {
+      "path": "components/farm/inventory/InventoryStockTypeCards.tsx",
+      "type": "tsx",
+      "lines": 69
+    },
+    {
+      "path": "components/farm/inventory/InventoryTable.tsx",
+      "type": "tsx",
+      "lines": 349
+    },
+    {
+      "path": "components/farm/inventory/InventoryTraceModal.tsx",
+      "type": "tsx",
+      "lines": 145
+    },
+    {
+      "path": "components/farm/inventory/OutboundExportModal.tsx",
+      "type": "tsx",
+      "lines": 100
+    },
+    {
+      "path": "components/farm/inventory/OutboundRecordsComponents.tsx",
+      "type": "tsx",
+      "lines": 427
+    },
+    {
+      "path": "components/farm/inventory/UnifiedRowHarvestInboundModal.tsx",
+      "type": "tsx",
+      "lines": 670
+    },
+    {
+      "path": "components/farm/order/OrderPage.tsx",
+      "type": "tsx",
+      "lines": 504
+    },
+    {
+      "path": "components/farm/order/components/OrderFilter.tsx",
+      "type": "tsx",
+      "lines": 153
+    },
+    {
+      "path": "components/farm/order/components/OrderStats.tsx",
+      "type": "tsx",
+      "lines": 81
+    },
+    {
+      "path": "components/farm/order/components/OrderTable.tsx",
+      "type": "tsx",
+      "lines": 250
+    },
+    {
+      "path": "components/farm/order/modals/AddModal.tsx",
+      "type": "tsx",
+      "lines": 504
+    },
+    {
+      "path": "components/farm/order/modals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 113
+    },
+    {
+      "path": "components/farm/order/modals/EditModal.tsx",
+      "type": "tsx",
+      "lines": 577
+    },
+    {
+      "path": "components/farm/order/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/pest-control/PestControlFilter.tsx",
+      "type": "tsx",
+      "lines": 140
+    },
+    {
+      "path": "components/farm/pest-control/PestControlPage.tsx",
+      "type": "tsx",
+      "lines": 245
+    },
+    {
+      "path": "components/farm/pest-control/PestControlStatsCards.tsx",
+      "type": "tsx",
+      "lines": 66
+    },
+    {
+      "path": "components/farm/pest-control/PestControlTable.tsx",
+      "type": "tsx",
+      "lines": 539
+    },
+    {
+      "path": "components/farm/pest-control/modals/AddPestControlModal.tsx",
+      "type": "tsx",
+      "lines": 956
+    },
+    {
+      "path": "components/farm/pest-control/modals/BatchDeleteModal.tsx",
+      "type": "tsx",
+      "lines": 32
+    },
+    {
+      "path": "components/farm/pest-control/modals/EditPestControlModal.tsx",
+      "type": "tsx",
+      "lines": 1033
+    },
+    {
+      "path": "components/farm/pest-control/modals/PestControlDetailModal.tsx",
+      "type": "tsx",
+      "lines": 307
+    },
+    {
+      "path": "components/farm/pest-control/modals/PestControlExportModal.tsx",
+      "type": "tsx",
+      "lines": 61
+    },
+    {
+      "path": "components/farm/pest-control/modals/QuickAddPestDiseaseModal.tsx",
+      "type": "tsx",
+      "lines": 159
+    },
+    {
+      "path": "components/farm/pest-control/modals/QuickAddPesticideModal.tsx",
+      "type": "tsx",
+      "lines": 162
+    },
+    {
+      "path": "components/farm/planting/PlantingPage.tsx",
+      "type": "tsx",
+      "lines": 703
+    },
+    {
+      "path": "components/farm/planting/components/PlantingFilter.tsx",
+      "type": "tsx",
+      "lines": 174
+    },
+    {
+      "path": "components/farm/planting/components/PlantingStats.tsx",
+      "type": "tsx",
+      "lines": 48
+    },
+    {
+      "path": "components/farm/planting/components/PlantingTable.tsx",
+      "type": "tsx",
+      "lines": 1059
+    },
+    {
+      "path": "components/farm/planting/index.ts",
+      "type": "ts",
+      "lines": 14
+    },
+    {
+      "path": "components/farm/planting/modals/AddModal.tsx",
+      "type": "tsx",
+      "lines": 697
+    },
+    {
+      "path": "components/farm/planting/modals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 304
+    },
+    {
+      "path": "components/farm/planting/modals/EditModal.tsx",
+      "type": "tsx",
+      "lines": 210
+    },
+    {
+      "path": "components/farm/planting/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/planting/modals/HarvestModal.tsx",
+      "type": "tsx",
+      "lines": 180
+    },
+    {
+      "path": "components/farm/planting/modals/HarvestRecordModal.tsx",
+      "type": "tsx",
+      "lines": 951
+    },
+    {
+      "path": "components/farm/planting/modals/ImageLightboxModal.tsx",
+      "type": "tsx",
+      "lines": 76
+    },
+    {
+      "path": "components/farm/planting/modals/PlantingLabelDetailModal.tsx",
+      "type": "tsx",
+      "lines": 292
+    },
+    {
+      "path": "components/farm/planting/modals/PlantingMarkModal.tsx",
+      "type": "tsx",
+      "lines": 274
+    },
+    {
+      "path": "components/farm/planting/modals/PlantingMoveModal.tsx",
+      "type": "tsx",
+      "lines": 267
+    },
+    {
+      "path": "components/farm/planting/modals/PlantingMoveRecordsModal.tsx",
+      "type": "tsx",
+      "lines": 166
+    },
+    {
+      "path": "components/farm/planting/modals/PrintLabelModal.tsx",
+      "type": "tsx",
+      "lines": 435
+    },
+    {
+      "path": "components/farm/problemDispatch/components/ProblemFilterToolbar.tsx",
+      "type": "tsx",
+      "lines": 232
+    },
+    {
+      "path": "components/farm/problemDispatch/components/ProblemPageHeader.tsx",
+      "type": "tsx",
+      "lines": 30
+    },
+    {
+      "path": "components/farm/problemDispatch/components/ProblemStatsCards.tsx",
+      "type": "tsx",
+      "lines": 73
+    },
+    {
+      "path": "components/farm/problemDispatch/components/ProblemTable.tsx",
+      "type": "tsx",
+      "lines": 245
+    },
+    {
+      "path": "components/farm/problemDispatch/components/SourceBadge.tsx",
+      "type": "tsx",
+      "lines": 42
+    },
+    {
+      "path": "components/farm/problemDispatch/components/SourceCell.tsx",
+      "type": "tsx",
+      "lines": 24
+    },
+    {
+      "path": "components/farm/problemDispatch/components/SourceFilter.tsx",
+      "type": "tsx",
+      "lines": 36
+    },
+    {
+      "path": "components/farm/problemDispatch/components/index.ts",
+      "type": "ts",
+      "lines": 11
+    },
+    {
+      "path": "components/farm/problemDispatch/constants/sourceConfig.ts",
+      "type": "ts",
+      "lines": 66
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 203
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/CreateProblemModal.tsx",
+      "type": "tsx",
+      "lines": 139
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/seed-source/SeedSourcePage.tsx",
+      "type": "tsx",
+      "lines": 834
+    },
+    {
+      "path": "components/farm/seed-source/components/SeedSourceFilter.tsx",
+      "type": "tsx",
+      "lines": 177
+    },
+    {
+      "path": "components/farm/seed-source/components/SeedSourceStats.tsx",
+      "type": "tsx",
+      "lines": 50
+    },
+    {
+      "path": "components/farm/seed-source/components/SeedSourceTable.tsx",
+      "type": "tsx",
+      "lines": 640
+    },
+    {
+      "path": "components/farm/seed-source/index.ts",
+      "type": "ts",
+      "lines": 13
+    },
+    {
+      "path": "components/farm/seed-source/modals/AddModal.tsx",
+      "type": "tsx",
+      "lines": 1052
+    },
+    {
+      "path": "components/farm/seed-source/modals/CirculationHistoryModal.tsx",
+      "type": "tsx",
+      "lines": 221
+    },
+    {
+      "path": "components/farm/seed-source/modals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 316
+    },
+    {
+      "path": "components/farm/seed-source/modals/EditModal.tsx",
+      "type": "tsx",
+      "lines": 458
+    },
+    {
+      "path": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/seed-source/modals/ImageLightboxModal.tsx",
+      "type": "tsx",
+      "lines": 82
+    },
+    {
+      "path": "components/farm/seed-source/modals/PrintLabelModal.tsx",
+      "type": "tsx",
+      "lines": 442
+    },
+    {
+      "path": "components/farm/seed-source/modals/PropagationRecordModal.tsx",
+      "type": "tsx",
+      "lines": 814
+    },
+    {
+      "path": "components/farm/seed-source/modals/PropagationStageModal.tsx",
+      "type": "tsx",
+      "lines": 349
+    },
+    {
+      "path": "components/farm/seedling/SeedlingPage.tsx",
+      "type": "tsx",
+      "lines": 858
+    },
+    {
+      "path": "components/farm/seedling/components/SeedlingFilter.tsx",
+      "type": "tsx",
+      "lines": 152
+    },
+    {
+      "path": "components/farm/seedling/components/SeedlingStats.tsx",
+      "type": "tsx",
+      "lines": 48
+    },
+    {
+      "path": "components/farm/seedling/components/SeedlingTable.tsx",
+      "type": "tsx",
+      "lines": 786
+    },
+    {
+      "path": "components/farm/seedling/index.ts",
+      "type": "ts",
+      "lines": 15
+    },
+    {
+      "path": "components/farm/seedling/modals/AddModal.tsx",
+      "type": "tsx",
+      "lines": 1532
+    },
+    {
+      "path": "components/farm/seedling/modals/DailyRecordModal.tsx",
+      "type": "tsx",
+      "lines": 796
+    },
+    {
+      "path": "components/farm/seedling/modals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 331
+    },
+    {
+      "path": "components/farm/seedling/modals/EditModal.tsx",
+      "type": "tsx",
+      "lines": 628
+    },
+    {
+      "path": "components/farm/seedling/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/seedling/modals/ImageLightboxModal.tsx",
+      "type": "tsx",
+      "lines": 76
+    },
+    {
+      "path": "components/farm/seedling/modals/PrintLabelModal.tsx",
+      "type": "tsx",
+      "lines": 435
+    },
+    {
+      "path": "components/farm/seedling/modals/SeedlingLabelManageModal.tsx",
+      "type": "tsx",
+      "lines": 248
+    },
+    {
+      "path": "components/farm/seedling/modals/TransplantHistoryModal.tsx",
+      "type": "tsx",
+      "lines": 233
+    },
+    {
+      "path": "components/farm/seedling/modals/TransplantModal.tsx",
+      "type": "tsx",
+      "lines": 257
+    },
+    {
+      "path": "components/farm/taskDispatch/components/ConfigFieldRenderer.tsx",
+      "type": "tsx",
+      "lines": 380
+    },
+    {
+      "path": "components/farm/taskDispatch/components/FilterToolbar.tsx",
+      "type": "tsx",
+      "lines": 204
+    },
+    {
+      "path": "components/farm/taskDispatch/components/OvertimeBadge.tsx",
+      "type": "tsx",
+      "lines": 103
+    },
+    {
+      "path": "components/farm/taskDispatch/components/PageHeader.tsx",
+      "type": "tsx",
+      "lines": 27
+    },
+    {
+      "path": "components/farm/taskDispatch/components/StatsCards.tsx",
+      "type": "tsx",
+      "lines": 81
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskExecuteCard.tsx",
+      "type": "tsx",
+      "lines": 266
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskProgressTimeline.tsx",
+      "type": "tsx",
+      "lines": 213
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTable.tsx",
+      "type": "tsx",
+      "lines": 316
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTableHeader.tsx",
+      "type": "tsx",
+      "lines": 60
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTableRow.tsx",
+      "type": "tsx",
+      "lines": 316
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTypeConfigDisplay.tsx",
+      "type": "tsx",
+      "lines": 219
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTypeConfigPanel.tsx",
+      "type": "tsx",
+      "lines": 125
+    },
+    {
+      "path": "components/farm/taskDispatch/components/index.ts",
+      "type": "ts",
+      "lines": 18
+    },
+    {
+      "path": "components/farm/taskDispatch/constants/index.ts",
+      "type": "ts",
+      "lines": 18
+    },
+    {
+      "path": "components/farm/taskDispatch/constants/taskDispatchConstants.ts",
+      "type": "ts",
+      "lines": 119
+    },
+    {
+      "path": "components/farm/taskDispatch/hooks/useTaskTypeConfig.ts",
+      "type": "ts",
+      "lines": 162
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 210
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/CreateTaskModal.tsx",
+      "type": "tsx",
+      "lines": 137
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/OvertimeHandleModal.tsx",
+      "type": "tsx",
+      "lines": 265
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/ReassignTaskModal.tsx",
+      "type": "tsx",
+      "lines": 171
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/TaskAcceptanceModal.tsx",
+      "type": "tsx",
+      "lines": 294
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/VerifyTaskModal.tsx",
+      "type": "tsx",
+      "lines": 221
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/WithdrawCancelModal.tsx",
+      "type": "tsx",
+      "lines": 149
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/farm/trace/FlowLogTab.tsx",
+      "type": "tsx",
+      "lines": 301
+    },
+    {
+      "path": "components/farm/trace/TraceChain.tsx",
+      "type": "tsx",
+      "lines": 289
+    },
+    {
+      "path": "components/home/AboutModal.tsx",
+      "type": "tsx",
+      "lines": 55
+    },
+    {
+      "path": "components/indicators/IndicatorsPage.tsx",
+      "type": "tsx",
+      "lines": 438
+    },
+    {
+      "path": "components/indicators/index.ts",
+      "type": "ts",
+      "lines": 9
+    },
+    {
+      "path": "components/inventory/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/attendance/WorkerAttendanceExport.tsx",
+      "type": "tsx",
+      "lines": 79
+    },
+    {
+      "path": "components/labor/attendance/WorkerAttendanceFilters.tsx",
+      "type": "tsx",
+      "lines": 92
+    },
+    {
+      "path": "components/labor/attendance/WorkerAttendancePage.tsx",
+      "type": "tsx",
+      "lines": 391
+    },
+    {
+      "path": "components/labor/attendance/WorkerAttendanceTable.tsx",
+      "type": "tsx",
+      "lines": 314
+    },
+    {
+      "path": "components/labor/attendance/hooks/useWorkerAttendance.ts",
+      "type": "ts",
+      "lines": 287
+    },
+    {
+      "path": "components/labor/attendance/index.ts",
+      "type": "ts",
+      "lines": 17
+    },
+    {
+      "path": "components/labor/attendance/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 182
+    },
+    {
+      "path": "components/labor/attendance/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/attendance/modals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 104
+    },
+    {
+      "path": "components/labor/attendance/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/attendance/modals/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/attendance/types.ts",
+      "type": "ts",
+      "lines": 58
+    },
+    {
+      "path": "components/labor/budget/BudgetBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 178
+    },
+    {
+      "path": "components/labor/budget/BudgetChart.tsx",
+      "type": "tsx",
+      "lines": 111
+    },
+    {
+      "path": "components/labor/budget/BudgetFormModal.tsx",
+      "type": "tsx",
+      "lines": 160
+    },
+    {
+      "path": "components/labor/budget/BudgetInputForm.tsx",
+      "type": "tsx",
+      "lines": 190
+    },
+    {
+      "path": "components/labor/budget/BudgetPage.tsx",
+      "type": "tsx",
+      "lines": 400
+    },
+    {
+      "path": "components/labor/budget/BudgetTable.tsx",
+      "type": "tsx",
+      "lines": 311
+    },
+    {
+      "path": "components/labor/budget/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/budget/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/budget/hooks/useBudget.ts",
+      "type": "ts",
+      "lines": 227
+    },
+    {
+      "path": "components/labor/budget/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/budget/types.ts",
+      "type": "ts",
+      "lines": 114
+    },
+    {
+      "path": "components/labor/contract/ContractBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 218
+    },
+    {
+      "path": "components/labor/contract/ContractFormModal.tsx",
+      "type": "tsx",
+      "lines": 187
+    },
+    {
+      "path": "components/labor/contract/ContractRemindModal.tsx",
+      "type": "tsx",
+      "lines": 71
+    },
+    {
+      "path": "components/labor/contract/ContractTable.tsx",
+      "type": "tsx",
+      "lines": 733
+    },
+    {
+      "path": "components/labor/contract/hooks/useContract.ts",
+      "type": "ts",
+      "lines": 119
+    },
+    {
+      "path": "components/labor/contract/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/contract/types.ts",
+      "type": "ts",
+      "lines": 61
+    },
+    {
+      "path": "components/labor/dispatch/DispatchRecommend.tsx",
+      "type": "tsx",
+      "lines": 130
+    },
+    {
+      "path": "components/labor/dispatch/WorkerMatchList.tsx",
+      "type": "tsx",
+      "lines": 43
+    },
+    {
+      "path": "components/labor/dispatch/hooks/useSmartDispatch.ts",
+      "type": "ts",
+      "lines": 161
+    },
+    {
+      "path": "components/labor/dispatch/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/dispatch/types.ts",
+      "type": "ts",
+      "lines": 69
+    },
+    {
+      "path": "components/labor/efficiency/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/efficiency/EfficiencyBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 218
+    },
+    {
+      "path": "components/labor/efficiency/EfficiencyChart.tsx",
+      "type": "tsx",
+      "lines": 162
+    },
+    {
+      "path": "components/labor/efficiency/EfficiencyDashboard.tsx",
+      "type": "tsx",
+      "lines": 134
+    },
+    {
+      "path": "components/labor/efficiency/EfficiencyFilters.tsx",
+      "type": "tsx",
+      "lines": 103
+    },
+    {
+      "path": "components/labor/efficiency/EfficiencyFormModal.tsx",
+      "type": "tsx",
+      "lines": 218
+    },
+    {
+      "path": "components/labor/efficiency/EfficiencyPage.tsx",
+      "type": "tsx",
+      "lines": 299
+    },
+    {
+      "path": "components/labor/efficiency/EfficiencyTable.tsx",
+      "type": "tsx",
+      "lines": 309
+    },
+    {
+      "path": "components/labor/efficiency/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/efficiency/hooks/useEfficiency.ts",
+      "type": "ts",
+      "lines": 109
+    },
+    {
+      "path": "components/labor/efficiency/index.ts",
+      "type": "ts",
+      "lines": 16
+    },
+    {
+      "path": "components/labor/efficiency/types.ts",
+      "type": "ts",
+      "lines": 32
+    },
+    {
+      "path": "components/labor/leave/LeaveDetailModal.tsx",
+      "type": "tsx",
+      "lines": 144
+    },
+    {
+      "path": "components/labor/leave/LeaveFilters.tsx",
+      "type": "tsx",
+      "lines": 79
+    },
+    {
+      "path": "components/labor/leave/LeaveFormModal.tsx",
+      "type": "tsx",
+      "lines": 230
+    },
+    {
+      "path": "components/labor/leave/LeavePage.tsx",
+      "type": "tsx",
+      "lines": 415
+    },
+    {
+      "path": "components/labor/leave/LeaveQuota.tsx",
+      "type": "tsx",
+      "lines": 115
+    },
+    {
+      "path": "components/labor/leave/LeaveTable.tsx",
+      "type": "tsx",
+      "lines": 298
+    },
+    {
+      "path": "components/labor/leave/hooks/useLeave.ts",
+      "type": "ts",
+      "lines": 219
+    },
+    {
+      "path": "components/labor/leave/index.ts",
+      "type": "ts",
+      "lines": 6
+    },
+    {
+      "path": "components/labor/leave/modals/LeaveBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 199
+    },
+    {
+      "path": "components/labor/leave/modals/LeaveDeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 55
+    },
+    {
+      "path": "components/labor/leave/modals/LeaveExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 70
+    },
+    {
+      "path": "components/labor/leave/modals/index.ts",
+      "type": "ts",
+      "lines": 3
+    },
+    {
+      "path": "components/labor/leave/types.ts",
+      "type": "ts",
+      "lines": 112
+    },
+    {
+      "path": "components/labor/monthly/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/monthly/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/monthly/MonthlyReportBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 190
+    },
+    {
+      "path": "components/labor/monthly/MonthlyReportChart.tsx",
+      "type": "tsx",
+      "lines": 129
+    },
+    {
+      "path": "components/labor/monthly/MonthlyReportFilters.tsx",
+      "type": "tsx",
+      "lines": 80
+    },
+    {
+      "path": "components/labor/monthly/MonthlyReportFormModal.tsx",
+      "type": "tsx",
+      "lines": 296
+    },
+    {
+      "path": "components/labor/monthly/MonthlyReportPage.tsx",
+      "type": "tsx",
+      "lines": 234
+    },
+    {
+      "path": "components/labor/monthly/MonthlyReportTable.tsx",
+      "type": "tsx",
+      "lines": 272
+    },
+    {
+      "path": "components/labor/monthly/MonthlyStatsCards.tsx",
+      "type": "tsx",
+      "lines": 65
+    },
+    {
+      "path": "components/labor/monthly/hooks/useMonthlyReport.ts",
+      "type": "ts",
+      "lines": 260
+    },
+    {
+      "path": "components/labor/monthly/index.ts",
+      "type": "ts",
+      "lines": 12
+    },
+    {
+      "path": "components/labor/monthly/types.ts",
+      "type": "ts",
+      "lines": 50
+    },
+    {
+      "path": "components/labor/myTasks/MyTasksPage.tsx",
+      "type": "tsx",
+      "lines": 960
+    },
+    {
+      "path": "components/labor/myTasks/ProblemTaskTableRow.tsx",
+      "type": "tsx",
+      "lines": 288
+    },
+    {
+      "path": "components/labor/myTasks/ProductionTaskTableRow.tsx",
+      "type": "tsx",
+      "lines": 218
+    },
+    {
+      "path": "components/labor/myTasks/TaskDetailModal.tsx",
+      "type": "tsx",
+      "lines": 589
+    },
+    {
+      "path": "components/labor/myTasks/TaskFeedbackModal.tsx",
+      "type": "tsx",
+      "lines": 308
+    },
+    {
+      "path": "components/labor/myTasks/TaskFilterTabs.tsx",
+      "type": "tsx",
+      "lines": 104
+    },
+    {
+      "path": "components/labor/myTasks/TaskRejectModal.tsx",
+      "type": "tsx",
+      "lines": 79
+    },
+    {
+      "path": "components/labor/myTasks/TaskSopModal.tsx",
+      "type": "tsx",
+      "lines": 66
+    },
+    {
+      "path": "components/labor/myTasks/TempTaskTableRow.tsx",
+      "type": "tsx",
+      "lines": 180
+    },
+    {
+      "path": "components/labor/myTasks/constants.ts",
+      "type": "ts",
+      "lines": 131
+    },
+    {
+      "path": "components/labor/myTasks/types.ts",
+      "type": "ts",
+      "lines": 123
+    },
+    {
+      "path": "components/labor/onboarding/OnboardingBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 210
+    },
+    {
+      "path": "components/labor/onboarding/OnboardingForm.tsx",
+      "type": "tsx",
+      "lines": 190
+    },
+    {
+      "path": "components/labor/onboarding/OnboardingPage.tsx",
+      "type": "tsx",
+      "lines": 755
+    },
+    {
+      "path": "components/labor/onboarding/hooks/useOnboarding.ts",
+      "type": "ts",
+      "lines": 210
+    },
+    {
+      "path": "components/labor/onboarding/index.ts",
+      "type": "ts",
+      "lines": 7
+    },
+    {
+      "path": "components/labor/onboarding/types.ts",
+      "type": "ts",
+      "lines": 77
+    },
+    {
+      "path": "components/labor/overtime/OvertimeDetailModal.tsx",
+      "type": "tsx",
+      "lines": 164
+    },
+    {
+      "path": "components/labor/overtime/OvertimeFilters.tsx",
+      "type": "tsx",
+      "lines": 88
+    },
+    {
+      "path": "components/labor/overtime/OvertimeFormModal.tsx",
+      "type": "tsx",
+      "lines": 193
+    },
+    {
+      "path": "components/labor/overtime/OvertimePage.tsx",
+      "type": "tsx",
+      "lines": 406
+    },
+    {
+      "path": "components/labor/overtime/OvertimeTable.tsx",
+      "type": "tsx",
+      "lines": 326
+    },
+    {
+      "path": "components/labor/overtime/hooks/useOvertime.ts",
+      "type": "ts",
+      "lines": 231
+    },
+    {
+      "path": "components/labor/overtime/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/overtime/modals/OvertimeBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 191
+    },
+    {
+      "path": "components/labor/overtime/modals/OvertimeDeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 55
+    },
+    {
+      "path": "components/labor/overtime/modals/OvertimeExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 70
+    },
+    {
+      "path": "components/labor/overtime/modals/index.ts",
+      "type": "ts",
+      "lines": 3
+    },
+    {
+      "path": "components/labor/overtime/types.ts",
+      "type": "ts",
+      "lines": 106
+    },
+    {
+      "path": "components/labor/performance/PerformanceChart.tsx",
+      "type": "tsx",
+      "lines": 144
+    },
+    {
+      "path": "components/labor/performance/PerformanceDetailModal.tsx",
+      "type": "tsx",
+      "lines": 155
+    },
+    {
+      "path": "components/labor/performance/PerformanceFilters.tsx",
+      "type": "tsx",
+      "lines": 93
+    },
+    {
+      "path": "components/labor/performance/PerformanceFormModal.tsx",
+      "type": "tsx",
+      "lines": 224
+    },
+    {
+      "path": "components/labor/performance/PerformancePage.tsx",
+      "type": "tsx",
+      "lines": 385
+    },
+    {
+      "path": "components/labor/performance/PerformanceTable.tsx",
+      "type": "tsx",
+      "lines": 330
+    },
+    {
+      "path": "components/labor/performance/hooks/usePerformance.ts",
+      "type": "ts",
+      "lines": 143
+    },
+    {
+      "path": "components/labor/performance/index.ts",
+      "type": "ts",
+      "lines": 18
+    },
+    {
+      "path": "components/labor/performance/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 221
+    },
+    {
+      "path": "components/labor/performance/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/performance/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/performance/modals/index.ts",
+      "type": "ts",
+      "lines": 3
+    },
+    {
+      "path": "components/labor/performance/types.ts",
+      "type": "ts",
+      "lines": 58
+    },
+    {
+      "path": "components/labor/personnel/PersonnelDetailModal.tsx",
+      "type": "tsx",
+      "lines": 324
+    },
+    {
+      "path": "components/labor/personnel/PersonnelFilters.tsx",
+      "type": "tsx",
+      "lines": 65
+    },
+    {
+      "path": "components/labor/personnel/PersonnelFormModal.tsx",
+      "type": "tsx",
+      "lines": 459
+    },
+    {
+      "path": "components/labor/personnel/PersonnelManagementPage.tsx",
+      "type": "tsx",
+      "lines": 741
+    },
+    {
+      "path": "components/labor/personnel/PersonnelTable.tsx",
+      "type": "tsx",
+      "lines": 204
+    },
+    {
+      "path": "components/labor/personnel/StaffManagementPage.tsx",
+      "type": "tsx",
+      "lines": 515
+    },
+    {
+      "path": "components/labor/personnel/hooks/useWorkerPersonnel.ts",
+      "type": "ts",
+      "lines": 88
+    },
+    {
+      "path": "components/labor/personnel/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/personnel/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 188
+    },
+    {
+      "path": "components/labor/personnel/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/personnel/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/personnel/modals/index.ts",
+      "type": "ts",
+      "lines": 3
+    },
+    {
+      "path": "components/labor/piecework/PieceworkBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 193
+    },
+    {
+      "path": "components/labor/piecework/PieceworkFormModal.tsx",
+      "type": "tsx",
+      "lines": 249
+    },
+    {
+      "path": "components/labor/piecework/PieceworkPage.tsx",
+      "type": "tsx",
+      "lines": 577
+    },
+    {
+      "path": "components/labor/piecework/PieceworkTable.tsx",
+      "type": "tsx",
+      "lines": 326
+    },
+    {
+      "path": "components/labor/piecework/hooks/usePiecework.ts",
+      "type": "ts",
+      "lines": 131
+    },
+    {
+      "path": "components/labor/piecework/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/piecework/types.ts",
+      "type": "ts",
+      "lines": 65
+    },
+    {
+      "path": "components/labor/position/modals/PositionBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 195
+    },
+    {
+      "path": "components/labor/position/modals/PositionDeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 50
+    },
+    {
+      "path": "components/labor/position/modals/PositionExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 65
+    },
+    {
+      "path": "components/labor/position/modals/PositionFormModal.tsx",
+      "type": "tsx",
+      "lines": 194
+    },
+    {
+      "path": "components/labor/position/modals/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/recruitment/RecruitmentBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 234
+    },
+    {
+      "path": "components/labor/recruitment/RecruitmentDetailModal.tsx",
+      "type": "tsx",
+      "lines": 194
+    },
+    {
+      "path": "components/labor/recruitment/RecruitmentFilters.tsx",
+      "type": "tsx",
+      "lines": 97
+    },
+    {
+      "path": "components/labor/recruitment/RecruitmentFormModal.tsx",
+      "type": "tsx",
+      "lines": 269
+    },
+    {
+      "path": "components/labor/recruitment/RecruitmentPage.tsx",
+      "type": "tsx",
+      "lines": 610
+    },
+    {
+      "path": "components/labor/recruitment/RecruitmentTable.tsx",
+      "type": "tsx",
+      "lines": 354
+    },
+    {
+      "path": "components/labor/recruitment/hooks/useRecruitment.ts",
+      "type": "ts",
+      "lines": 152
+    },
+    {
+      "path": "components/labor/recruitment/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/recruitment/types.ts",
+      "type": "ts",
+      "lines": 65
+    },
+    {
+      "path": "components/labor/risk/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/risk/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/risk/RiskAlertDetailModal.tsx",
+      "type": "tsx",
+      "lines": 177
+    },
+    {
+      "path": "components/labor/risk/RiskAlertList.tsx",
+      "type": "tsx",
+      "lines": 284
+    },
+    {
+      "path": "components/labor/risk/RiskBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 174
+    },
+    {
+      "path": "components/labor/risk/RiskDashboard.tsx",
+      "type": "tsx",
+      "lines": 132
+    },
+    {
+      "path": "components/labor/risk/RiskFilters.tsx",
+      "type": "tsx",
+      "lines": 105
+    },
+    {
+      "path": "components/labor/risk/RiskFormModal.tsx",
+      "type": "tsx",
+      "lines": 223
+    },
+    {
+      "path": "components/labor/risk/RiskPage.tsx",
+      "type": "tsx",
+      "lines": 310
+    },
+    {
+      "path": "components/labor/risk/hooks/useRisk.ts",
+      "type": "ts",
+      "lines": 125
+    },
+    {
+      "path": "components/labor/risk/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/risk/types.ts",
+      "type": "ts",
+      "lines": 60
+    },
+    {
+      "path": "components/labor/salary/SalaryCalculateModal.tsx",
+      "type": "tsx",
+      "lines": 193
+    },
+    {
+      "path": "components/labor/salary/SalaryExport.tsx",
+      "type": "tsx",
+      "lines": 202
+    },
+    {
+      "path": "components/labor/salary/SalaryFilters.tsx",
+      "type": "tsx",
+      "lines": 160
+    },
+    {
+      "path": "components/labor/salary/SalaryFormModal.tsx",
+      "type": "tsx",
+      "lines": 280
+    },
+    {
+      "path": "components/labor/salary/SalaryPage.tsx",
+      "type": "tsx",
+      "lines": 400
+    },
+    {
+      "path": "components/labor/salary/SalarySlipModal.tsx",
+      "type": "tsx",
+      "lines": 178
+    },
+    {
+      "path": "components/labor/salary/SalaryTable.tsx",
+      "type": "tsx",
+      "lines": 303
+    },
+    {
+      "path": "components/labor/salary/hooks/useSalary.ts",
+      "type": "ts",
+      "lines": 116
+    },
+    {
+      "path": "components/labor/salary/index.ts",
+      "type": "ts",
+      "lines": 20
+    },
+    {
+      "path": "components/labor/salary/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 154
+    },
+    {
+      "path": "components/labor/salary/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/salary/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/salary/modals/index.ts",
+      "type": "ts",
+      "lines": 3
+    },
+    {
+      "path": "components/labor/salary/types.ts",
+      "type": "ts",
+      "lines": 101
+    },
+    {
+      "path": "components/labor/schedule/ScheduleCalendar.tsx",
+      "type": "tsx",
+      "lines": 404
+    },
+    {
+      "path": "components/labor/schedule/SchedulePage.tsx",
+      "type": "tsx",
+      "lines": 691
+    },
+    {
+      "path": "components/labor/schedule/ScheduleTable.tsx",
+      "type": "tsx",
+      "lines": 484
+    },
+    {
+      "path": "components/labor/schedule/ShiftEditor.tsx",
+      "type": "tsx",
+      "lines": 185
+    },
+    {
+      "path": "components/labor/schedule/SwapRequestModal.tsx",
+      "type": "tsx",
+      "lines": 290
+    },
+    {
+      "path": "components/labor/schedule/hooks/useSchedule.ts",
+      "type": "ts",
+      "lines": 94
+    },
+    {
+      "path": "components/labor/schedule/index.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "components/labor/schedule/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/schedule/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/schedule/modals/ScheduleAddModal.tsx",
+      "type": "tsx",
+      "lines": 81
+    },
+    {
+      "path": "components/labor/schedule/modals/ScheduleBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 182
+    },
+    {
+      "path": "components/labor/schedule/modals/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "components/labor/schedule/types.ts",
+      "type": "ts",
+      "lines": 52
+    },
+    {
+      "path": "components/labor/skill/SkillBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 197
+    },
+    {
+      "path": "components/labor/skill/SkillDetailModal.tsx",
+      "type": "tsx",
+      "lines": 199
+    },
+    {
+      "path": "components/labor/skill/SkillFilters.tsx",
+      "type": "tsx",
+      "lines": 124
+    },
+    {
+      "path": "components/labor/skill/SkillFormModal.tsx",
+      "type": "tsx",
+      "lines": 147
+    },
+    {
+      "path": "components/labor/skill/SkillMatch.tsx",
+      "type": "tsx",
+      "lines": 124
+    },
+    {
+      "path": "components/labor/skill/SkillPage.tsx",
+      "type": "tsx",
+      "lines": 445
+    },
+    {
+      "path": "components/labor/skill/SkillTable.tsx",
+      "type": "tsx",
+      "lines": 443
+    },
+    {
+      "path": "components/labor/skill/SkillTagSelector.tsx",
+      "type": "tsx",
+      "lines": 188
+    },
+    {
+      "path": "components/labor/skill/hooks/useSkill.ts",
+      "type": "ts",
+      "lines": 199
+    },
+    {
+      "path": "components/labor/skill/index.ts",
+      "type": "ts",
+      "lines": 9
+    },
+    {
+      "path": "components/labor/skill/types.ts",
+      "type": "ts",
+      "lines": 76
+    },
+    {
+      "path": "components/labor/tasks/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 216
+    },
+    {
+      "path": "components/labor/tasks/TaskAttachmentList.tsx",
+      "type": "tsx",
+      "lines": 93
+    },
+    {
+      "path": "components/labor/tasks/TaskDetailModal.tsx",
+      "type": "tsx",
+      "lines": 200
+    },
+    {
+      "path": "components/labor/tasks/TaskFormModal.tsx",
+      "type": "tsx",
+      "lines": 197
+    },
+    {
+      "path": "components/labor/tasks/TaskModeBadge.tsx",
+      "type": "tsx",
+      "lines": 32
+    },
+    {
+      "path": "components/labor/tasks/TaskPriorityBadge.tsx",
+      "type": "tsx",
+      "lines": 32
+    },
+    {
+      "path": "components/labor/tasks/TaskStatusBadge.tsx",
+      "type": "tsx",
+      "lines": 44
+    },
+    {
+      "path": "components/labor/tasks/TaskTypeTag.tsx",
+      "type": "tsx",
+      "lines": 16
+    },
+    {
+      "path": "components/labor/tasks/TaskWorkerSelect.tsx",
+      "type": "tsx",
+      "lines": 32
+    },
+    {
+      "path": "components/labor/tasks/TasksFilters.tsx",
+      "type": "tsx",
+      "lines": 118
+    },
+    {
+      "path": "components/labor/tasks/TasksPage.tsx",
+      "type": "tsx",
+      "lines": 609
+    },
+    {
+      "path": "components/labor/tasks/TasksTable.tsx",
+      "type": "tsx",
+      "lines": 279
+    },
+    {
+      "path": "components/labor/tasks/hooks/useTaskExport.ts",
+      "type": "ts",
+      "lines": 68
+    },
+    {
+      "path": "components/labor/tasks/hooks/useTaskForm.ts",
+      "type": "ts",
+      "lines": 191
+    },
+    {
+      "path": "components/labor/tasks/hooks/useTasksFilters.ts",
+      "type": "ts",
+      "lines": 76
+    },
+    {
+      "path": "components/labor/tasks/index.ts",
+      "type": "ts",
+      "lines": 17
+    },
+    {
+      "path": "components/labor/team/TeamAssignModal.tsx",
+      "type": "tsx",
+      "lines": 116
+    },
+    {
+      "path": "components/labor/team/TeamDetailModal.tsx",
+      "type": "tsx",
+      "lines": 86
+    },
+    {
+      "path": "components/labor/team/TeamTable.tsx",
+      "type": "tsx",
+      "lines": 521
+    },
+    {
+      "path": "components/labor/team/hooks/useTeam.ts",
+      "type": "ts",
+      "lines": 141
+    },
+    {
+      "path": "components/labor/team/types.ts",
+      "type": "ts",
+      "lines": 62
+    },
+    {
+      "path": "components/labor/tempTask/TempTaskFilters.tsx",
+      "type": "tsx",
+      "lines": 107
+    },
+    {
+      "path": "components/labor/tempTask/TempTaskFormModal.tsx",
+      "type": "tsx",
+      "lines": 528
+    },
+    {
+      "path": "components/labor/tempTask/TempTaskPage.tsx",
+      "type": "tsx",
+      "lines": 1657
+    },
+    {
+      "path": "components/labor/tempTask/TempTaskTable.tsx",
+      "type": "tsx",
+      "lines": 436
+    },
+    {
+      "path": "components/labor/tempTask/hooks/useTempTaskFilters.ts",
+      "type": "ts",
+      "lines": 92
+    },
+    {
+      "path": "components/labor/tempTask/hooks/useTempTaskForm.ts",
+      "type": "ts",
+      "lines": 200
+    },
+    {
+      "path": "components/labor/tempTask/index.ts",
+      "type": "ts",
+      "lines": 7
+    },
+    {
+      "path": "components/labor/tempWorker/TempWorkerBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 201
+    },
+    {
+      "path": "components/labor/tempWorker/TempWorkerDetailModal.tsx",
+      "type": "tsx",
+      "lines": 195
+    },
+    {
+      "path": "components/labor/tempWorker/TempWorkerFilters.tsx",
+      "type": "tsx",
+      "lines": 85
+    },
+    {
+      "path": "components/labor/tempWorker/TempWorkerFormModal.tsx",
+      "type": "tsx",
+      "lines": 392
+    },
+    {
+      "path": "components/labor/tempWorker/TempWorkerPage.tsx",
+      "type": "tsx",
+      "lines": 379
+    },
+    {
+      "path": "components/labor/tempWorker/TempWorkerTable.tsx",
+      "type": "tsx",
+      "lines": 336
+    },
+    {
+      "path": "components/labor/tempWorker/hooks/useTempWorker.ts",
+      "type": "ts",
+      "lines": 140
+    },
+    {
+      "path": "components/labor/tempWorker/index.ts",
+      "type": "ts",
+      "lines": 6
+    },
+    {
+      "path": "components/labor/tempWorker/mockData.ts",
+      "type": "ts",
+      "lines": 141
+    },
+    {
+      "path": "components/labor/tempWorker/types.ts",
+      "type": "ts",
+      "lines": 102
+    },
+    {
+      "path": "components/labor/worklog/WorkLogBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 228
+    },
+    {
+      "path": "components/labor/worklog/WorkLogDetailModal.tsx",
+      "type": "tsx",
+      "lines": 95
+    },
+    {
+      "path": "components/labor/worklog/WorkLogFilters.tsx",
+      "type": "tsx",
+      "lines": 65
+    },
+    {
+      "path": "components/labor/worklog/WorkLogFormModal.tsx",
+      "type": "tsx",
+      "lines": 236
+    },
+    {
+      "path": "components/labor/worklog/WorkLogPage.tsx",
+      "type": "tsx",
+      "lines": 472
+    },
+    {
+      "path": "components/labor/worklog/WorkLogTable.tsx",
+      "type": "tsx",
+      "lines": 184
+    },
+    {
+      "path": "components/labor/worklog/hooks/useWorkLog.ts",
+      "type": "ts",
+      "lines": 90
+    },
+    {
+      "path": "components/labor/worklog/index.ts",
+      "type": "ts",
+      "lines": 19
+    },
+    {
+      "path": "components/labor/worklog/types.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "components/layout/Header.tsx",
+      "type": "tsx",
+      "lines": 246
+    },
+    {
+      "path": "components/layout/MainLayout.tsx",
+      "type": "tsx",
+      "lines": 35
+    },
+    {
+      "path": "components/layout/Sidebar.tsx",
+      "type": "tsx",
+      "lines": 609
+    },
+    {
+      "path": "components/material/MaterialManagementPage.tsx",
+      "type": "tsx",
+      "lines": 195
+    },
+    {
+      "path": "components/material/index.ts",
+      "type": "ts",
+      "lines": 2
+    },
+    {
+      "path": "components/materialCategory/index.ts",
+      "type": "ts",
+      "lines": 2
+    },
+    {
+      "path": "components/materialCategory/materialCategoryPage.tsx",
+      "type": "tsx",
+      "lines": 152
+    },
+    {
+      "path": "components/materialReceiving/ApplicationTab.tsx",
+      "type": "tsx",
+      "lines": 520
+    },
+    {
+      "path": "components/materialReceiving/ExecuteTab.tsx",
+      "type": "tsx",
+      "lines": 533
+    },
+    {
+      "path": "components/materialReceiving/MaterialReceivingHeader.tsx",
+      "type": "tsx",
+      "lines": 61
+    },
+    {
+      "path": "components/materialReceiving/MaterialReceivingPage.tsx",
+      "type": "tsx",
+      "lines": 343
+    },
+    {
+      "path": "components/materialReceiving/StatisticsTab.tsx",
+      "type": "tsx",
+      "lines": 837
+    },
+    {
+      "path": "components/materialReceiving/modals/AddModal.tsx",
+      "type": "tsx",
+      "lines": 387
+    },
+    {
+      "path": "components/materialReceiving/modals/BatchDeleteConfirmModal.tsx",
+      "type": "tsx",
+      "lines": 59
+    },
+    {
+      "path": "components/materialReceiving/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 375
+    },
+    {
+      "path": "components/materialReceiving/modals/DeleteConfirm.tsx",
+      "type": "tsx",
+      "lines": 42
+    },
+    {
+      "path": "components/materialReceiving/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/materialReceiving/modals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 125
+    },
+    {
+      "path": "components/materialReceiving/modals/EditModal.tsx",
+      "type": "tsx",
+      "lines": 289
+    },
+    {
+      "path": "components/materialReceiving/modals/EditWarningModal.tsx",
+      "type": "tsx",
+      "lines": 57
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteAddModal.tsx",
+      "type": "tsx",
+      "lines": 315
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteBatchDeleteConfirmModal.tsx",
+      "type": "tsx",
+      "lines": 59
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 322
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteDeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 49
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteDetailModal.tsx",
+      "type": "tsx",
+      "lines": 152
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteEditModal.tsx",
+      "type": "tsx",
+      "lines": 314
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteEditWarningModal.tsx",
+      "type": "tsx",
+      "lines": 49
+    },
+    {
+      "path": "components/materialReceiving/modals/ExportTypeModal.tsx",
+      "type": "tsx",
+      "lines": 79
+    },
+    {
+      "path": "components/materialReceiving/modals/StatDetailModal.tsx",
+      "type": "tsx",
+      "lines": 169
+    },
+    {
+      "path": "components/materialReceiving/modals/VoidModal.tsx",
+      "type": "tsx",
+      "lines": 75
+    },
+    {
+      "path": "components/materialReceiving/stats/StatCards.tsx",
+      "type": "tsx",
+      "lines": 94
+    },
+    {
+      "path": "components/materialReceiving/stats/StatFiltersForm.tsx",
+      "type": "tsx",
+      "lines": 106
+    },
+    {
+      "path": "components/materialReceiving/stats/StatMaterialTable.tsx",
+      "type": "tsx",
+      "lines": 92
+    },
+    {
+      "path": "components/materialReceiving/stats/StatMonthlyTable.tsx",
+      "type": "tsx",
+      "lines": 337
+    },
+    {
+      "path": "components/materialReceiving/stats/StatSearchBar.tsx",
+      "type": "tsx",
+      "lines": 333
+    },
+    {
+      "path": "components/materialReceiving/stats/StatTabHeader.tsx",
+      "type": "tsx",
+      "lines": 45
+    },
+    {
+      "path": "components/materialReceiving/tabs/CostTab.tsx",
+      "type": "tsx",
+      "lines": 171
+    },
+    {
+      "path": "components/materialReturn/MaterialReturnHeader.tsx",
+      "type": "tsx",
+      "lines": 19
+    },
+    {
+      "path": "components/materialReturn/MaterialReturnPage.tsx",
+      "type": "tsx",
+      "lines": 331
+    },
+    {
+      "path": "components/materialReturn/MaterialReturnSearch.tsx",
+      "type": "tsx",
+      "lines": 119
+    },
+    {
+      "path": "components/materialReturn/MaterialReturnTable.tsx",
+      "type": "tsx",
+      "lines": 169
+    },
+    {
+      "path": "components/materialReturn/config.ts",
+      "type": "ts",
+      "lines": 225
+    },
+    {
+      "path": "components/materialReturn/hooks/useMaterialReturn.ts",
+      "type": "ts",
+      "lines": 690
+    },
+    {
+      "path": "components/materialReturn/modals/AddModal.tsx",
+      "type": "tsx",
+      "lines": 264
+    },
+    {
+      "path": "components/materialReturn/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 356
+    },
+    {
+      "path": "components/materialReturn/modals/DeleteConfirmModal.tsx",
+      "type": "tsx",
+      "lines": 49
+    },
+    {
+      "path": "components/materialReturn/modals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 127
+    },
+    {
+      "path": "components/materialReturn/modals/EditAlertModal.tsx",
+      "type": "tsx",
+      "lines": 52
+    },
+    {
+      "path": "components/materialReturn/modals/EditModal.tsx",
+      "type": "tsx",
+      "lines": 308
+    },
+    {
+      "path": "components/materialReturn/modals/ExportTypeModal.tsx",
+      "type": "tsx",
+      "lines": 75
+    },
+    {
+      "path": "components/materialReturn/modals/MaterialSelectModal.tsx",
+      "type": "tsx",
+      "lines": 198
+    },
+    {
+      "path": "components/materialReturn/modals/SearchableSelect.tsx",
+      "type": "tsx",
+      "lines": 205
+    },
+    {
+      "path": "components/materialReturn/modals/VoidModal.tsx",
+      "type": "tsx",
+      "lines": 100
+    },
+    {
+      "path": "components/materialReturn/modals/WarningModal.tsx",
+      "type": "tsx",
+      "lines": 63
+    },
+    {
+      "path": "components/materialReturn/types.ts",
+      "type": "ts",
+      "lines": 146
+    },
+    {
+      "path": "components/materials/AddInboundModal.tsx",
+      "type": "tsx",
+      "lines": 338
+    },
+    {
+      "path": "components/materials/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 2
+    },
+    {
+      "path": "components/materials/InboundTable.tsx",
+      "type": "tsx",
+      "lines": 132
+    },
+    {
+      "path": "components/materials/MaterialsCodeGenerator.tsx",
+      "type": "tsx",
+      "lines": 234
+    },
+    {
+      "path": "components/materials/MaterialsFilters.tsx",
+      "type": "tsx",
+      "lines": 231
+    },
+    {
+      "path": "components/materials/MaterialsHeader.tsx",
+      "type": "tsx",
+      "lines": 46
+    },
+    {
+      "path": "components/materials/MaterialsPage.tsx",
+      "type": "tsx",
+      "lines": 792
+    },
+    {
+      "path": "components/materials/MaterialsTable.tsx",
+      "type": "tsx",
+      "lines": 142
+    },
+    {
+      "path": "components/materials/mockData.ts",
+      "type": "ts",
+      "lines": 275
+    },
+    {
+      "path": "components/materials/types.ts",
+      "type": "ts",
+      "lines": 71
+    },
+    {
+      "path": "components/messages/MessagesPage.tsx",
+      "type": "tsx",
+      "lines": 159
+    },
+    {
+      "path": "components/messages/index.ts",
+      "type": "ts",
+      "lines": 9
+    },
+    {
+      "path": "components/parkArchive/ParkArchivePage.tsx",
+      "type": "tsx",
+      "lines": 724
+    },
+    {
+      "path": "components/parkArchive/index.ts",
+      "type": "ts",
+      "lines": 9
+    },
+    {
+      "path": "components/planning/DailyWorkOrderReport.tsx",
+      "type": "tsx",
+      "lines": 360
+    },
+    {
+      "path": "components/planning/MonthlyPlanReport.tsx",
+      "type": "tsx",
+      "lines": 470
+    },
+    {
+      "path": "components/plantingMode/index.ts",
+      "type": "ts",
+      "lines": 2
+    },
+    {
+      "path": "components/plantingMode/plantingModePage.tsx",
+      "type": "tsx",
+      "lines": 208
+    },
+    {
+      "path": "components/process/index.ts",
+      "type": "ts",
+      "lines": 2
+    },
+    {
+      "path": "components/process/processPage.tsx",
+      "type": "tsx",
+      "lines": 161
+    },
+    {
+      "path": "components/production/ExpandableStatCard.tsx",
+      "type": "tsx",
+      "lines": 91
+    },
+    {
+      "path": "components/production/ProductionChainTable.tsx",
+      "type": "tsx",
+      "lines": 254
+    },
+    {
+      "path": "components/production/ProductionFilters.tsx",
+      "type": "tsx",
+      "lines": 138
+    },
+    {
+      "path": "components/production/ProductionPage.tsx",
+      "type": "tsx",
+      "lines": 240
+    },
+    {
+      "path": "components/production/ProductionStatsCards.tsx",
+      "type": "tsx",
+      "lines": 72
+    },
+    {
+      "path": "components/production/ProductionTable.tsx",
+      "type": "tsx",
+      "lines": 359
+    },
+    {
+      "path": "components/production/SummaryReportTab.tsx",
+      "type": "tsx",
+      "lines": 201
+    },
+    {
+      "path": "components/production/constants.ts",
+      "type": "ts",
+      "lines": 133
+    },
+    {
+      "path": "components/production/hooks/initialFormData.ts",
+      "type": "ts",
+      "lines": 40
+    },
+    {
+      "path": "components/production/hooks/types.ts",
+      "type": "ts",
+      "lines": 163
+    },
+    {
+      "path": "components/production/hooks/useProductionActions.ts",
+      "type": "ts",
+      "lines": 683
+    },
+    {
+      "path": "components/production/hooks/useProductionExport.ts",
+      "type": "ts",
+      "lines": 119
+    },
+    {
+      "path": "components/production/hooks/useProductionFilters.ts",
+      "type": "ts",
+      "lines": 121
+    },
+    {
+      "path": "components/production/hooks/useProductionForm.ts",
+      "type": "ts",
+      "lines": 79
+    },
+    {
+      "path": "components/production/hooks/useProductionPage.ts",
+      "type": "ts",
+      "lines": 339
+    },
+    {
+      "path": "components/production/hooks/useProductionSelection.ts",
+      "type": "ts",
+      "lines": 94
+    },
+    {
+      "path": "components/production/index.ts",
+      "type": "ts",
+      "lines": 6
+    },
+    {
+      "path": "components/production/modals/BatchDetailModal.tsx",
+      "type": "tsx",
+      "lines": 244
+    },
+    {
+      "path": "components/production/modals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 616
+    },
+    {
+      "path": "components/production/modals/CreateBatchModal.tsx",
+      "type": "tsx",
+      "lines": 572
+    },
+    {
+      "path": "components/production/modals/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "components/production/modals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/production/modals/VoidWarningModal.tsx",
+      "type": "tsx",
+      "lines": 51
+    },
+    {
+      "path": "components/production/modals/index.ts",
+      "type": "ts",
+      "lines": 6
+    },
+    {
+      "path": "components/production/types.ts",
+      "type": "ts",
+      "lines": 17
+    },
+    {
+      "path": "components/purchasePlan/ActionBar.tsx",
+      "type": "tsx",
+      "lines": 155
+    },
+    {
+      "path": "components/purchasePlan/AlertStats.tsx",
+      "type": "tsx",
+      "lines": 75
+    },
+    {
+      "path": "components/purchasePlan/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 512
+    },
+    {
+      "path": "components/purchasePlan/CreatePlanModal.tsx",
+      "type": "tsx",
+      "lines": 663
+    },
+    {
+      "path": "components/purchasePlan/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "components/purchasePlan/MaterialItemsTable.tsx",
+      "type": "tsx",
+      "lines": 203
+    },
+    {
+      "path": "components/purchasePlan/PlanDetailModal.tsx",
+      "type": "tsx",
+      "lines": 248
+    },
+    {
+      "path": "components/purchasePlan/PurchasePlanFilters.tsx",
+      "type": "tsx",
+      "lines": 158
+    },
+    {
+      "path": "components/purchasePlan/PurchasePlanPage.tsx",
+      "type": "tsx",
+      "lines": 1018
+    },
+    {
+      "path": "components/purchasePlan/PurchasePlanTable.tsx",
+      "type": "tsx",
+      "lines": 443
+    },
+    {
+      "path": "components/purchasePlan/codeGenerator.ts",
+      "type": "ts",
+      "lines": 35
+    },
+    {
+      "path": "components/purchasePlan/index.ts",
+      "type": "ts",
+      "lines": 10
+    },
+    {
+      "path": "components/purchasePlan/usePurchasePlanPageState.ts",
+      "type": "ts",
+      "lines": 71
+    },
+    {
+      "path": "components/purchasePlan/utils.ts",
+      "type": "ts",
+      "lines": 5
+    },
+    {
+      "path": "components/settings/fertilizer-library/FertilizerLibraryFilter.tsx",
+      "type": "tsx",
+      "lines": 66
+    },
+    {
+      "path": "components/settings/fertilizer-library/FertilizerLibraryPage.tsx",
+      "type": "tsx",
+      "lines": 693
+    },
+    {
+      "path": "components/settings/fertilizer-library/FertilizerLibraryTable.tsx",
+      "type": "tsx",
+      "lines": 330
+    },
+    {
+      "path": "components/settings/fertilizer-library/modals/AddFertilizerModal.tsx",
+      "type": "tsx",
+      "lines": 528
+    },
+    {
+      "path": "components/settings/fertilizer-library/modals/EditFertilizerModal.tsx",
+      "type": "tsx",
+      "lines": 552
+    },
+    {
+      "path": "components/settings/fertilizer-library/modals/FertilizerDetailModal.tsx",
+      "type": "tsx",
+      "lines": 189
+    },
+    {
+      "path": "components/settings/pest-disease-dict/PestDiseaseDictFilter.tsx",
+      "type": "tsx",
+      "lines": 53
+    },
+    {
+      "path": "components/settings/pest-disease-dict/PestDiseaseDictPage.tsx",
+      "type": "tsx",
+      "lines": 254
+    },
+    {
+      "path": "components/settings/pest-disease-dict/PestDiseaseDictTable.tsx",
+      "type": "tsx",
+      "lines": 165
+    },
+    {
+      "path": "components/settings/pest-disease-dict/modals/AddPestDiseaseModal.tsx",
+      "type": "tsx",
+      "lines": 358
+    },
+    {
+      "path": "components/settings/pest-disease-dict/modals/EditPestDiseaseModal.tsx",
+      "type": "tsx",
+      "lines": 336
+    },
+    {
+      "path": "components/settings/pest-disease-dict/modals/PestDiseaseDetailModal.tsx",
+      "type": "tsx",
+      "lines": 204
+    },
+    {
+      "path": "components/settings/pesticide-library/PesticideLibraryFilter.tsx",
+      "type": "tsx",
+      "lines": 78
+    },
+    {
+      "path": "components/settings/pesticide-library/PesticideLibraryPage.tsx",
+      "type": "tsx",
+      "lines": 434
+    },
+    {
+      "path": "components/settings/pesticide-library/PesticideLibraryTable.tsx",
+      "type": "tsx",
+      "lines": 306
+    },
+    {
+      "path": "components/settings/pesticide-library/PesticideSpecEditor.tsx",
+      "type": "tsx",
+      "lines": 269
+    },
+    {
+      "path": "components/settings/pesticide-library/modals/AddPesticideModal.tsx",
+      "type": "tsx",
+      "lines": 357
+    },
+    {
+      "path": "components/settings/pesticide-library/modals/EditPesticideModal.tsx",
+      "type": "tsx",
+      "lines": 453
+    },
+    {
+      "path": "components/settings/pesticide-library/modals/PesticideDetailModal.tsx",
+      "type": "tsx",
+      "lines": 190
+    },
+    {
+      "path": "components/summary/AlertCard.tsx",
+      "type": "tsx",
+      "lines": 65
+    },
+    {
+      "path": "components/summary/ComparisonPanel.tsx",
+      "type": "tsx",
+      "lines": 338
+    },
+    {
+      "path": "components/summary/DataResetButton.tsx",
+      "type": "tsx",
+      "lines": 60
+    },
+    {
+      "path": "components/summary/DetailDrawer.tsx",
+      "type": "tsx",
+      "lines": 46
+    },
+    {
+      "path": "components/summary/DistributionPie.tsx",
+      "type": "tsx",
+      "lines": 159
+    },
+    {
+      "path": "components/summary/ExportModal.tsx",
+      "type": "tsx",
+      "lines": 66
+    },
+    {
+      "path": "components/summary/Filters.tsx",
+      "type": "tsx",
+      "lines": 130
+    },
+    {
+      "path": "components/summary/GaugeChart.tsx",
+      "type": "tsx",
+      "lines": 127
+    },
+    {
+      "path": "components/summary/KpiCard.tsx",
+      "type": "tsx",
+      "lines": 99
+    },
+    {
+      "path": "components/summary/KpiCardGrid.tsx",
+      "type": "tsx",
+      "lines": 31
+    },
+    {
+      "path": "components/summary/PageHeader.tsx",
+      "type": "tsx",
+      "lines": 40
+    },
+    {
+      "path": "components/summary/ReportCharts.tsx",
+      "type": "tsx",
+      "lines": 156
+    },
+    {
+      "path": "components/summary/ReportTabs.tsx",
+      "type": "tsx",
+      "lines": 34
+    },
+    {
+      "path": "components/summary/StatCards.tsx",
+      "type": "tsx",
+      "lines": 43
+    },
+    {
+      "path": "components/summary/SummaryDateFilter.tsx",
+      "type": "tsx",
+      "lines": 88
+    },
+    {
+      "path": "components/summary/SummaryTable.tsx",
+      "type": "tsx",
+      "lines": 118
+    },
+    {
+      "path": "components/summary/TrendChart.tsx",
+      "type": "tsx",
+      "lines": 225
+    },
+    {
+      "path": "components/summary/constants.ts",
+      "type": "ts",
+      "lines": 124
+    },
+    {
+      "path": "components/summary/index.ts",
+      "type": "ts",
+      "lines": 39
+    },
+    {
+      "path": "components/summary/types.ts",
+      "type": "ts",
+      "lines": 96
+    },
+    {
+      "path": "components/summary/useExport.ts",
+      "type": "ts",
+      "lines": 267
+    },
+    {
+      "path": "components/supplier/DeleteDialogs.tsx",
+      "type": "tsx",
+      "lines": 109
+    },
+    {
+      "path": "components/supplier/PageHeader.tsx",
+      "type": "tsx",
+      "lines": 25
+    },
+    {
+      "path": "components/supplier/SupplierAddModal.tsx",
+      "type": "tsx",
+      "lines": 504
+    },
+    {
+      "path": "components/supplier/SupplierBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 471
+    },
+    {
+      "path": "components/supplier/SupplierCodeGenerator.tsx",
+      "type": "tsx",
+      "lines": 147
+    },
+    {
+      "path": "components/supplier/SupplierDetailModal.tsx",
+      "type": "tsx",
+      "lines": 148
+    },
+    {
+      "path": "components/supplier/SupplierEditModal.tsx",
+      "type": "tsx",
+      "lines": 409
+    },
+    {
+      "path": "components/supplier/SupplierExportModal.tsx",
+      "type": "tsx",
+      "lines": 74
+    },
+    {
+      "path": "components/supplier/SupplierFilters.tsx",
+      "type": "tsx",
+      "lines": 331
+    },
+    {
+      "path": "components/supplier/SupplierManagementPage.tsx",
+      "type": "tsx",
+      "lines": 607
+    },
+    {
+      "path": "components/supplier/SupplierTable.tsx",
+      "type": "tsx",
+      "lines": 147
+    },
+    {
+      "path": "components/supplier/data.ts",
+      "type": "ts",
+      "lines": 75
+    },
+    {
+      "path": "components/supplier/types.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "components/techSolution/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 355
+    },
+    {
+      "path": "components/techSolution/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 389
+    },
+    {
+      "path": "components/techSolution/DeleteWarningModal.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "components/techSolution/EditModal.tsx",
+      "type": "tsx",
+      "lines": 381
+    },
+    {
+      "path": "components/techSolution/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 83
+    },
+    {
+      "path": "components/techSolution/Header.tsx",
+      "type": "tsx",
+      "lines": 21
+    },
+    {
+      "path": "components/techSolution/TechSolutionDetailModal.tsx",
+      "type": "tsx",
+      "lines": 232
+    },
+    {
+      "path": "components/techSolution/TechSolutionFilters.tsx",
+      "type": "tsx",
+      "lines": 124
+    },
+    {
+      "path": "components/techSolution/TechSolutionPage.tsx",
+      "type": "tsx",
+      "lines": 895
+    },
+    {
+      "path": "components/techSolution/TechSolutionTable.tsx",
+      "type": "tsx",
+      "lines": 331
+    },
+    {
+      "path": "components/techSolution/constants.ts",
+      "type": "ts",
+      "lines": 16
+    },
+    {
+      "path": "components/techSolution/constants/defaultOperators.ts",
+      "type": "ts",
+      "lines": 10
+    },
+    {
+      "path": "components/techSolution/constants/relatedBatchOptions.ts",
+      "type": "ts",
+      "lines": 20
+    },
+    {
+      "path": "components/techSolution/index.ts",
+      "type": "ts",
+      "lines": 9
+    },
+    {
+      "path": "components/ui/Alert.tsx",
+      "type": "tsx",
+      "lines": 129
+    },
+    {
+      "path": "components/ui/Avatar.tsx",
+      "type": "tsx",
+      "lines": 158
+    },
+    {
+      "path": "components/ui/Breadcrumb.tsx",
+      "type": "tsx",
+      "lines": 102
+    },
+    {
+      "path": "components/ui/Calendar.tsx",
+      "type": "tsx",
+      "lines": 178
+    },
+    {
+      "path": "components/ui/Cascader.tsx",
+      "type": "tsx",
+      "lines": 398
+    },
+    {
+      "path": "components/ui/DatePicker.tsx",
+      "type": "tsx",
+      "lines": 59
+    },
+    {
+      "path": "components/ui/DateRangePicker.tsx",
+      "type": "tsx",
+      "lines": 355
+    },
+    {
+      "path": "components/ui/DeepInput.tsx",
+      "type": "tsx",
+      "lines": 69
+    },
+    {
+      "path": "components/ui/DeleteConfirmModal.tsx",
+      "type": "tsx",
+      "lines": 179
+    },
+    {
+      "path": "components/ui/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 129
+    },
+    {
+      "path": "components/ui/Divider.tsx",
+      "type": "tsx",
+      "lines": 116
+    },
+    {
+      "path": "components/ui/Drawer.tsx",
+      "type": "tsx",
+      "lines": 165
+    },
+    {
+      "path": "components/ui/EmptyState.tsx",
+      "type": "tsx",
+      "lines": 89
+    },
+    {
+      "path": "components/ui/FilterBar.tsx",
+      "type": "tsx",
+      "lines": 107
+    },
+    {
+      "path": "components/ui/GanttChart.tsx",
+      "type": "tsx",
+      "lines": 228
+    },
+    {
+      "path": "components/ui/ImageUploader.tsx",
+      "type": "tsx",
+      "lines": 160
+    },
+    {
+      "path": "components/ui/KanbanBoard.tsx",
+      "type": "tsx",
+      "lines": 180
+    },
+    {
+      "path": "components/ui/LabelResumeTimeline.tsx",
+      "type": "tsx",
+      "lines": 200
+    },
+    {
+      "path": "components/ui/List.tsx",
+      "type": "tsx",
+      "lines": 34
+    },
+    {
+      "path": "components/ui/Modal.tsx",
+      "type": "tsx",
+      "lines": 471
+    },
+    {
+      "path": "components/ui/Notification.tsx",
+      "type": "tsx",
+      "lines": 117
+    },
+    {
+      "path": "components/ui/NumberInput.tsx",
+      "type": "tsx",
+      "lines": 130
+    },
+    {
+      "path": "components/ui/Pagination.tsx",
+      "type": "tsx",
+      "lines": 185
+    },
+    {
+      "path": "components/ui/Progress.tsx",
+      "type": "tsx",
+      "lines": 158
+    },
+    {
+      "path": "components/ui/QRCode.tsx",
+      "type": "tsx",
+      "lines": 169
+    },
+    {
+      "path": "components/ui/Sheet.tsx",
+      "type": "tsx",
+      "lines": 169
+    },
+    {
+      "path": "components/ui/Skeleton.tsx",
+      "type": "tsx",
+      "lines": 104
+    },
+    {
+      "path": "components/ui/Space.tsx",
+      "type": "tsx",
+      "lines": 71
+    },
+    {
+      "path": "components/ui/Statistic.tsx",
+      "type": "tsx",
+      "lines": 122
+    },
+    {
+      "path": "components/ui/Steps.tsx",
+      "type": "tsx",
+      "lines": 103
+    },
+    {
+      "path": "components/ui/TextArea.tsx",
+      "type": "tsx",
+      "lines": 98
+    },
+    {
+      "path": "components/ui/TimePicker.tsx",
+      "type": "tsx",
+      "lines": 278
+    },
+    {
+      "path": "components/ui/Timeline.tsx",
+      "type": "tsx",
+      "lines": 102
+    },
+    {
+      "path": "components/ui/Toast.tsx",
+      "type": "tsx",
+      "lines": 99
+    },
+    {
+      "path": "components/ui/Tooltip.tsx",
+      "type": "tsx",
+      "lines": 107
+    },
+    {
+      "path": "components/ui/Tree.tsx",
+      "type": "tsx",
+      "lines": 234
+    },
+    {
+      "path": "components/ui/TreeSelect.tsx",
+      "type": "tsx",
+      "lines": 195
+    },
+    {
+      "path": "components/ui/UnifiedModal.tsx",
+      "type": "tsx",
+      "lines": 68
+    },
+    {
+      "path": "components/ui/VirtualTable.tsx",
+      "type": "tsx",
+      "lines": 198
+    },
+    {
+      "path": "components/ui/badge.tsx",
+      "type": "tsx",
+      "lines": 35
+    },
+    {
+      "path": "components/ui/button.tsx",
+      "type": "tsx",
+      "lines": 56
+    },
+    {
+      "path": "components/ui/card.tsx",
+      "type": "tsx",
+      "lines": 51
+    },
+    {
+      "path": "components/ui/checkbox.tsx",
+      "type": "tsx",
+      "lines": 27
+    },
+    {
+      "path": "components/ui/dialog.tsx",
+      "type": "tsx",
+      "lines": 116
+    },
+    {
+      "path": "components/ui/dropdown-menu.tsx",
+      "type": "tsx",
+      "lines": 109
+    },
+    {
+      "path": "components/ui/index.ts",
+      "type": "ts",
+      "lines": 78
+    },
+    {
+      "path": "components/ui/input.tsx",
+      "type": "tsx",
+      "lines": 23
+    },
+    {
+      "path": "components/ui/label.tsx",
+      "type": "tsx",
+      "lines": 23
+    },
+    {
+      "path": "components/ui/popover.tsx",
+      "type": "tsx",
+      "lines": 28
+    },
+    {
+      "path": "components/ui/select.tsx",
+      "type": "tsx",
+      "lines": 105
+    },
+    {
+      "path": "components/ui/table.tsx",
+      "type": "tsx",
+      "lines": 87
+    },
+    {
+      "path": "components/ui/tabs.tsx",
+      "type": "tsx",
+      "lines": 143
+    },
+    {
+      "path": "components/warehouse/ActionToolbar.tsx",
+      "type": "tsx",
+      "lines": 157
+    },
+    {
+      "path": "components/warehouse/BatchDeleteConfirmDialog.tsx",
+      "type": "tsx",
+      "lines": 48
+    },
+    {
+      "path": "components/warehouse/BatchEditWarningModal.tsx",
+      "type": "tsx",
+      "lines": 95
+    },
+    {
+      "path": "components/warehouse/DeleteWarningDialog.tsx",
+      "type": "tsx",
+      "lines": 42
+    },
+    {
+      "path": "components/warehouse/InboundModals.tsx",
+      "type": "tsx",
+      "lines": 1676
+    },
+    {
+      "path": "components/warehouse/MaterialBatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 239
+    },
+    {
+      "path": "components/warehouse/MaterialCreateModal.tsx",
+      "type": "tsx",
+      "lines": 495
+    },
+    {
+      "path": "components/warehouse/MaterialDetailModal.tsx",
+      "type": "tsx",
+      "lines": 119
+    },
+    {
+      "path": "components/warehouse/MaterialEditModal.tsx",
+      "type": "tsx",
+      "lines": 255
+    },
+    {
+      "path": "components/warehouse/MaterialExportModal.tsx",
+      "type": "tsx",
+      "lines": 72
+    },
+    {
+      "path": "components/warehouse/MaterialFilters.tsx",
+      "type": "tsx",
+      "lines": 234
+    },
+    {
+      "path": "components/warehouse/MaterialInboundTab.tsx",
+      "type": "tsx",
+      "lines": 696
+    },
+    {
+      "path": "components/warehouse/MaterialsTable.tsx",
+      "type": "tsx",
+      "lines": 178
+    },
+    {
+      "path": "components/warehouse/OutboundModal.tsx",
+      "type": "tsx",
+      "lines": 255
+    },
+    {
+      "path": "components/warehouse/PageHeader.tsx",
+      "type": "tsx",
+      "lines": 24
+    },
+    {
+      "path": "components/warehouse/TabSwitch.tsx",
+      "type": "tsx",
+      "lines": 51
+    },
+    {
+      "path": "components/warehouse/WarehouseMaterialsPage.tsx",
+      "type": "tsx",
+      "lines": 876
+    },
+    {
+      "path": "config/approvalHierarchy.ts",
+      "type": "ts",
+      "lines": 481
+    },
+    {
+      "path": "config/approvalTimeout.ts",
+      "type": "ts",
+      "lines": 357
+    },
+    {
+      "path": "config/dataSourceConfig.ts",
+      "type": "ts",
+      "lines": 86
+    },
+    {
+      "path": "config/grayScaleConfig.ts",
+      "type": "ts",
+      "lines": 241
+    },
+    {
+      "path": "config/rollbackDetector.ts",
+      "type": "ts",
+      "lines": 281
+    },
+    {
+      "path": "config/systemConfigReader.ts",
+      "type": "ts",
+      "lines": 216
+    },
+    {
+      "path": "config/taskConfig.ts",
+      "type": "ts",
+      "lines": 241
+    },
+    {
+      "path": "constants/cropConstants.ts",
+      "type": "ts",
+      "lines": 333
+    },
+    {
+      "path": "constants/outboundConstants.test.ts",
+      "type": "ts",
+      "lines": 73
+    },
+    {
+      "path": "constants/outboundConstants.ts",
+      "type": "ts",
+      "lines": 44
+    },
+    {
+      "path": "constants/seedSourceDict.ts",
+      "type": "ts",
+      "lines": 62
+    },
+    {
+      "path": "constants/units.ts",
+      "type": "ts",
+      "lines": 75
+    },
+    {
+      "path": "contexts/ApprovalContext.tsx",
+      "type": "tsx",
+      "lines": 421
+    },
+    {
+      "path": "contexts/AuthSettingsContext.tsx",
+      "type": "tsx",
+      "lines": 27
+    },
+    {
+      "path": "contexts/OrganizationContext.tsx",
+      "type": "tsx",
+      "lines": 120
+    },
+    {
+      "path": "contexts/SettingsContext.tsx",
+      "type": "tsx",
+      "lines": 52
+    },
+    {
+      "path": "contexts/ToastContext.tsx",
+      "type": "tsx",
+      "lines": 40
+    },
+    {
+      "path": "data/announcementConfig.ts",
+      "type": "ts",
+      "lines": 48
+    },
+    {
+      "path": "data/approval/approvalData.ts",
+      "type": "ts",
+      "lines": 779
+    },
+    {
+      "path": "data/blockConfig.ts",
+      "type": "ts",
+      "lines": 42
+    },
+    {
+      "path": "data/codeRuleData.ts",
+      "type": "ts",
+      "lines": 283
+    },
+    {
+      "path": "data/costData.ts",
+      "type": "ts",
+      "lines": 401
+    },
+    {
+      "path": "data/cropData.ts",
+      "type": "ts",
+      "lines": 451
+    },
+    {
+      "path": "data/cropStageTaskConfig.ts",
+      "type": "ts",
+      "lines": 451
+    },
+    {
+      "path": "data/farm/farmData.ts",
+      "type": "ts",
+      "lines": 791
+    },
+    {
+      "path": "data/farmMockData.ts",
+      "type": "ts",
+      "lines": 1158
+    },
+    {
+      "path": "data/inspectionFeedbackMockData.ts",
+      "type": "ts",
+      "lines": 109
+    },
+    {
+      "path": "data/labor/laborData.ts",
+      "type": "ts",
+      "lines": 732
+    },
+    {
+      "path": "data/laborConfig.ts",
+      "type": "ts",
+      "lines": 123
+    },
+    {
+      "path": "data/leaveConfig.ts",
+      "type": "ts",
+      "lines": 35
+    },
+    {
+      "path": "data/materialReceivingData.ts",
+      "type": "ts",
+      "lines": 440
+    },
+    {
+      "path": "data/mockData.ts",
+      "type": "ts",
+      "lines": 101
+    },
+    {
+      "path": "data/overtimeConfig.ts",
+      "type": "ts",
+      "lines": 40
+    },
+    {
+      "path": "data/produceCodeRule.ts",
+      "type": "ts",
+      "lines": 1631
+    },
+    {
+      "path": "data/recommendationRules.ts",
+      "type": "ts",
+      "lines": 998
+    },
+    {
+      "path": "data/summaryData.ts",
+      "type": "ts",
+      "lines": 235
+    },
+    {
+      "path": "data/warehouse/warehouseData.ts",
+      "type": "ts",
+      "lines": 375
+    },
+    {
+      "path": "db/database.ts",
+      "type": "ts",
+      "lines": 438
+    },
+    {
+      "path": "hooks/TasksContext.tsx",
+      "type": "tsx",
+      "lines": 30
+    },
+    {
+      "path": "hooks/farm/index.ts",
+      "type": "ts",
+      "lines": 27
+    },
+    {
+      "path": "hooks/farm/useCurrentUser.ts",
+      "type": "ts",
+      "lines": 161
+    },
+    {
+      "path": "hooks/farm/useEnvAlert.ts",
+      "type": "ts",
+      "lines": 265
+    },
+    {
+      "path": "hooks/farm/useExport.ts",
+      "type": "ts",
+      "lines": 112
+    },
+    {
+      "path": "hooks/farm/usePestAlert.ts",
+      "type": "ts",
+      "lines": 298
+    },
+    {
+      "path": "hooks/farm/useSmartRecommendation.ts",
+      "type": "ts",
+      "lines": 1170
+    },
+    {
+      "path": "hooks/farm/useWorkerMatch.ts",
+      "type": "ts",
+      "lines": 339
+    },
+    {
+      "path": "hooks/index.ts",
+      "type": "ts",
+      "lines": 78
+    },
+    {
+      "path": "hooks/materialReceiving/useMaterialReceiving.ts",
+      "type": "ts",
+      "lines": 830
+    },
+    {
+      "path": "hooks/use-mobile.tsx",
+      "type": "tsx",
+      "lines": 19
+    },
+    {
+      "path": "hooks/useAIOptimization.ts",
+      "type": "ts",
+      "lines": 226
+    },
+    {
+      "path": "hooks/useAnnouncementStore.ts",
+      "type": "ts",
+      "lines": 25
+    },
+    {
+      "path": "hooks/useApi.ts",
+      "type": "ts",
+      "lines": 105
+    },
+    {
+      "path": "hooks/useApproval.ts",
+      "type": "ts",
+      "lines": 245
+    },
+    {
+      "path": "hooks/useApprovalBusinessDetail.ts",
+      "type": "ts",
+      "lines": 472
+    },
+    {
+      "path": "hooks/useApprovalLevel.ts",
+      "type": "ts",
+      "lines": 179
+    },
+    {
+      "path": "hooks/useApprovalNotification.ts",
+      "type": "ts",
+      "lines": 265
+    },
+    {
+      "path": "hooks/useAttendanceRepairQueries.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "hooks/useBatchCosts.ts",
+      "type": "ts",
+      "lines": 99
+    },
+    {
+      "path": "hooks/useBatchSummary.tsx",
+      "type": "tsx",
+      "lines": 200
+    },
+    {
+      "path": "hooks/useBudgetStore.ts",
+      "type": "ts",
+      "lines": 25
+    },
+    {
+      "path": "hooks/useComprehensiveDispatch.ts",
+      "type": "ts",
+      "lines": 983
+    },
+    {
+      "path": "hooks/useContractRenewalQueries.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "hooks/useCropGrowthEngine.ts",
+      "type": "ts",
+      "lines": 346
+    },
+    {
+      "path": "hooks/useCropStorageStore.ts",
+      "type": "ts",
+      "lines": 25
+    },
+    {
+      "path": "hooks/useDailyProblemSummary.ts",
+      "type": "ts",
+      "lines": 182
+    },
+    {
+      "path": "hooks/useDailyTaskPlanning.ts",
+      "type": "ts",
+      "lines": 459
+    },
+    {
+      "path": "hooks/useDailyWorkOrderAnalysis.ts",
+      "type": "ts",
+      "lines": 610
+    },
+    {
+      "path": "hooks/useDailyWorkSummary.ts",
+      "type": "ts",
+      "lines": 169
+    },
+    {
+      "path": "hooks/useDepartmentOptions.ts",
+      "type": "ts",
+      "lines": 88
+    },
+    {
+      "path": "hooks/useDispatchActions.ts",
+      "type": "ts",
+      "lines": 450
+    },
+    {
+      "path": "hooks/useDispatchModeConfig.ts",
+      "type": "ts",
+      "lines": 202
+    },
+    {
+      "path": "hooks/useDraggable.ts",
+      "type": "ts",
+      "lines": 63
+    },
+    {
+      "path": "hooks/useDraggableModal.ts",
+      "type": "ts",
+      "lines": 51
+    },
+    {
+      "path": "hooks/useEnvironmentData.ts",
+      "type": "ts",
+      "lines": 545
+    },
+    {
+      "path": "hooks/useFarmHub.ts",
+      "type": "ts",
+      "lines": 866
+    },
+    {
+      "path": "hooks/useFarmTaskSchedule.ts",
+      "type": "ts",
+      "lines": 182
+    },
+    {
+      "path": "hooks/useFeatureFlag.ts",
+      "type": "ts",
+      "lines": 37
+    },
+    {
+      "path": "hooks/useFilteredSeedSources.ts",
+      "type": "ts",
+      "lines": 55
+    },
+    {
+      "path": "hooks/useGlobalDraggable.ts",
+      "type": "ts",
+      "lines": 72
+    },
+    {
+      "path": "hooks/useGlobalDraggableV2.ts",
+      "type": "ts",
+      "lines": 77
+    },
+    {
+      "path": "hooks/useIndicatorStore.ts",
+      "type": "ts",
+      "lines": 25
+    },
+    {
+      "path": "hooks/useInspectionStore.ts",
+      "type": "ts",
+      "lines": 25
+    },
+    {
+      "path": "hooks/useLaborCostCalc.ts",
+      "type": "ts",
+      "lines": 146
+    },
+    {
+      "path": "hooks/useLeaveQueries.ts",
+      "type": "ts",
+      "lines": 173
+    },
+    {
+      "path": "hooks/useLocalStorage.ts",
+      "type": "ts",
+      "lines": 145
+    },
+    {
+      "path": "hooks/useMaterialEquipment.ts",
+      "type": "ts",
+      "lines": 319
+    },
+    {
+      "path": "hooks/useMonthlyTaskPlanning.ts",
+      "type": "ts",
+      "lines": 823
+    },
+    {
+      "path": "hooks/useOnboardingQueries.ts",
+      "type": "ts",
+      "lines": 114
+    },
+    {
+      "path": "hooks/useOperationRecords.ts",
+      "type": "ts",
+      "lines": 842
+    },
+    {
+      "path": "hooks/useOvertimeDetection.ts",
+      "type": "ts",
+      "lines": 147
+    },
+    {
+      "path": "hooks/useOvertimeQueries.ts",
+      "type": "ts",
+      "lines": 120
+    },
+    {
+      "path": "hooks/usePageSize.ts",
+      "type": "ts",
+      "lines": 20
+    },
+    {
+      "path": "hooks/usePendingConfirmTasks.ts",
+      "type": "ts",
+      "lines": 342
+    },
+    {
+      "path": "hooks/usePermission.ts",
+      "type": "ts",
+      "lines": 307
+    },
+    {
+      "path": "hooks/usePersistentAttendance.ts",
+      "type": "ts",
+      "lines": 85
+    },
+    {
+      "path": "hooks/usePersistentProblems.ts",
+      "type": "ts",
+      "lines": 373
+    },
+    {
+      "path": "hooks/usePersistentWorkLogs.ts",
+      "type": "ts",
+      "lines": 300
+    },
+    {
+      "path": "hooks/usePositionQueries.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "hooks/useProblemDispatch.ts",
+      "type": "ts",
+      "lines": 607
+    },
+    {
+      "path": "hooks/useProductionChainStats.ts",
+      "type": "ts",
+      "lines": 189
+    },
+    {
+      "path": "hooks/useProductionReports.ts",
+      "type": "ts",
+      "lines": 379
+    },
+    {
+      "path": "hooks/usePurchasePlanStore.ts",
+      "type": "ts",
+      "lines": 52
+    },
+    {
+      "path": "hooks/useRecruitmentQueries.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "hooks/useReminder.ts",
+      "type": "ts",
+      "lines": 239
+    },
+    {
+      "path": "hooks/useResignationQueries.ts",
+      "type": "ts",
+      "lines": 106
+    },
+    {
+      "path": "hooks/useSalaryAdjustmentQueries.ts",
+      "type": "ts",
+      "lines": 114
+    },
+    {
+      "path": "hooks/useSalaryBudgetQueries.ts",
+      "type": "ts",
+      "lines": 89
+    },
+    {
+      "path": "hooks/useSanitize.ts",
+      "type": "ts",
+      "lines": 64
+    },
+    {
+      "path": "hooks/useScheduledTasks.ts",
+      "type": "ts",
+      "lines": 418
+    },
+    {
+      "path": "hooks/useSystemConfigValue.ts",
+      "type": "ts",
+      "lines": 122
+    },
+    {
+      "path": "hooks/useTaskStore.ts",
+      "type": "ts",
+      "lines": 25
+    },
+    {
+      "path": "hooks/useTasks.ts",
+      "type": "ts",
+      "lines": 1580
+    },
+    {
+      "path": "hooks/useTempTasks.ts",
+      "type": "ts",
+      "lines": 654
+    },
+    {
+      "path": "hooks/useThemeConfig.ts",
+      "type": "ts",
+      "lines": 54
+    },
+    {
+      "path": "hooks/useUnifiedTaskCreation.ts",
+      "type": "ts",
+      "lines": 557
+    },
+    {
+      "path": "hooks/useWarehouseQueries.ts",
+      "type": "ts",
+      "lines": 120
+    },
+    {
+      "path": "i18n/translations.ts",
+      "type": "ts",
+      "lines": 218
+    },
+    {
+      "path": "index.css",
+      "type": "css",
+      "lines": 361
+    },
+    {
+      "path": "lib/apiClient.ts",
+      "type": "ts",
+      "lines": 288
+    },
+    {
+      "path": "lib/dateUtils.ts",
+      "type": "ts",
+      "lines": 20
+    },
+    {
+      "path": "lib/dialogService.ts",
+      "type": "ts",
+      "lines": 94
+    },
+    {
+      "path": "lib/logger.ts",
+      "type": "ts",
+      "lines": 51
+    },
+    {
+      "path": "lib/processRouteMap.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "lib/queryClient.ts",
+      "type": "ts",
+      "lines": 46
+    },
+    {
+      "path": "lib/stockStatus.ts",
+      "type": "ts",
+      "lines": 74
+    },
+    {
+      "path": "lib/storageService.ts",
+      "type": "ts",
+      "lines": 73
+    },
+    {
+      "path": "lib/utils.ts",
+      "type": "ts",
+      "lines": 6
+    },
+    {
+      "path": "lib/validators.ts",
+      "type": "ts",
+      "lines": 78
+    },
+    {
+      "path": "main.tsx",
+      "type": "tsx",
+      "lines": 13
+    },
+    {
+      "path": "pages/AgricultureRecord.tsx",
+      "type": "tsx",
+      "lines": 2
+    },
+    {
+      "path": "pages/AlertInfo.tsx",
+      "type": "tsx",
+      "lines": 94
+    },
+    {
+      "path": "pages/Announcement.tsx",
+      "type": "tsx",
+      "lines": 368
+    },
+    {
+      "path": "pages/ApprovalLevelConfig.tsx",
+      "type": "tsx",
+      "lines": 816
+    },
+    {
+      "path": "pages/ApprovalWorkflowConfig.tsx",
+      "type": "tsx",
+      "lines": 416
+    },
+    {
+      "path": "pages/Approved.tsx",
+      "type": "tsx",
+      "lines": 222
+    },
+    {
+      "path": "pages/AuditLog.tsx",
+      "type": "tsx",
+      "lines": 562
+    },
+    {
+      "path": "pages/BaseOperationsCenter.tsx",
+      "type": "tsx",
+      "lines": 929
+    },
+    {
+      "path": "pages/BaseOperationsCenterV2.tsx",
+      "type": "tsx",
+      "lines": 1282
+    },
+    {
+      "path": "pages/BranchManagement.tsx",
+      "type": "tsx",
+      "lines": 356
+    },
+    {
+      "path": "pages/CodeRule.tsx",
+      "type": "tsx",
+      "lines": 623
+    },
+    {
+      "path": "pages/Contract.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/CropManagement.tsx",
+      "type": "tsx",
+      "lines": 234
+    },
+    {
+      "path": "pages/DailyPlanningPage.tsx",
+      "type": "tsx",
+      "lines": 492
+    },
+    {
+      "path": "pages/DailyProblemSummary.tsx",
+      "type": "tsx",
+      "lines": 493
+    },
+    {
+      "path": "pages/DailyWorkSummary.tsx",
+      "type": "tsx",
+      "lines": 193
+    },
+    {
+      "path": "pages/Dashboard.tsx",
+      "type": "tsx",
+      "lines": 245
+    },
+    {
+      "path": "pages/Dashboard/components/ActiveBatchesTable.tsx",
+      "type": "tsx",
+      "lines": 81
+    },
+    {
+      "path": "pages/Dashboard/components/BaseDetailModal.tsx",
+      "type": "tsx",
+      "lines": 224
+    },
+    {
+      "path": "pages/Dashboard/components/CostChart.tsx",
+      "type": "tsx",
+      "lines": 129
+    },
+    {
+      "path": "pages/Dashboard/components/EnvironmentTable.tsx",
+      "type": "tsx",
+      "lines": 190
+    },
+    {
+      "path": "pages/Dashboard/components/FieldTable.tsx",
+      "type": "tsx",
+      "lines": 103
+    },
+    {
+      "path": "pages/Dashboard/components/GreenhouseDetailModal.tsx",
+      "type": "tsx",
+      "lines": 216
+    },
+    {
+      "path": "pages/Dashboard/components/GreenhouseMap.tsx",
+      "type": "tsx",
+      "lines": 170
+    },
+    {
+      "path": "pages/Dashboard/components/GreenhouseTable.tsx",
+      "type": "tsx",
+      "lines": 108
+    },
+    {
+      "path": "pages/Dashboard/components/TodayTasksTable.tsx",
+      "type": "tsx",
+      "lines": 123
+    },
+    {
+      "path": "pages/Dashboard/components/YieldChart.tsx",
+      "type": "tsx",
+      "lines": 90
+    },
+    {
+      "path": "pages/Dashboard/components/index.ts",
+      "type": "ts",
+      "lines": 11
+    },
+    {
+      "path": "pages/Dashboard/hooks/useDashboard.ts",
+      "type": "ts",
+      "lines": 243
+    },
+    {
+      "path": "pages/Dashboard/types/dashboard.types.ts",
+      "type": "ts",
+      "lines": 96
+    },
+    {
+      "path": "pages/DepartmentSettings.tsx",
+      "type": "tsx",
+      "lines": 450
+    },
+    {
+      "path": "pages/DeviceMonitor.tsx",
+      "type": "tsx",
+      "lines": 77
+    },
+    {
+      "path": "pages/DictionaryManagement.tsx",
+      "type": "tsx",
+      "lines": 668
+    },
+    {
+      "path": "pages/Efficiency.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/EnvControl.tsx",
+      "type": "tsx",
+      "lines": 70
+    },
+    {
+      "path": "pages/EnvironmentMonitor.tsx",
+      "type": "tsx",
+      "lines": 487
+    },
+    {
+      "path": "pages/FarmActivityManagement.tsx",
+      "type": "tsx",
+      "lines": 339
+    },
+    {
+      "path": "pages/FarmApproval.tsx",
+      "type": "tsx",
+      "lines": 426
+    },
+    {
+      "path": "pages/Harvest.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "pages/HomePage.tsx",
+      "type": "tsx",
+      "lines": 399
+    },
+    {
+      "path": "pages/HrApproval.tsx",
+      "type": "tsx",
+      "lines": 743
+    },
+    {
+      "path": "pages/IndicatorBudgetApproval.tsx",
+      "type": "tsx",
+      "lines": 401
+    },
+    {
+      "path": "pages/Indicators.tsx",
+      "type": "tsx",
+      "lines": 231
+    },
+    {
+      "path": "pages/InventoryV3.tsx",
+      "type": "tsx",
+      "lines": 399
+    },
+    {
+      "path": "pages/IoTMonitor.tsx",
+      "type": "tsx",
+      "lines": 101
+    },
+    {
+      "path": "pages/Leave.tsx",
+      "type": "tsx",
+      "lines": 9
+    },
+    {
+      "path": "pages/Login.tsx",
+      "type": "tsx",
+      "lines": 174
+    },
+    {
+      "path": "pages/MaterialApproval.tsx",
+      "type": "tsx",
+      "lines": 291
+    },
+    {
+      "path": "pages/MaterialCategory.tsx",
+      "type": "tsx",
+      "lines": 1
+    },
+    {
+      "path": "pages/MaterialManagement.tsx",
+      "type": "tsx",
+      "lines": 267
+    },
+    {
+      "path": "pages/MaterialReceiving.tsx",
+      "type": "tsx",
+      "lines": 88
+    },
+    {
+      "path": "pages/MaterialReturn.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "pages/Materials.tsx",
+      "type": "tsx",
+      "lines": 256
+    },
+    {
+      "path": "pages/Messages.tsx",
+      "type": "tsx",
+      "lines": 6
+    },
+    {
+      "path": "pages/MonthlyPlanningPage.tsx",
+      "type": "tsx",
+      "lines": 804
+    },
+    {
+      "path": "pages/MonthlyReport.tsx",
+      "type": "tsx",
+      "lines": 6
+    },
+    {
+      "path": "pages/MyApplications.tsx",
+      "type": "tsx",
+      "lines": 274
+    },
+    {
+      "path": "pages/MyApproval.tsx",
+      "type": "tsx",
+      "lines": 238
+    },
+    {
+      "path": "pages/NotificationSettings.tsx",
+      "type": "tsx",
+      "lines": 574
+    },
+    {
+      "path": "pages/Onboarding.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/OutboundRecordsPage.tsx",
+      "type": "tsx",
+      "lines": 285
+    },
+    {
+      "path": "pages/Overtime.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/ParkArchive.tsx",
+      "type": "tsx",
+      "lines": 6
+    },
+    {
+      "path": "pages/PendingApproval.tsx",
+      "type": "tsx",
+      "lines": 218
+    },
+    {
+      "path": "pages/Performance.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/Piecework.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/PlanSummary.tsx",
+      "type": "tsx",
+      "lines": 251
+    },
+    {
+      "path": "pages/ProduceCodeRule.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "pages/Production.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "pages/ProductionApproval.tsx",
+      "type": "tsx",
+      "lines": 837
+    },
+    {
+      "path": "pages/Profile.tsx",
+      "type": "tsx",
+      "lines": 572
+    },
+    {
+      "path": "pages/PropagationRecordsPage.tsx",
+      "type": "tsx",
+      "lines": 481
+    },
+    {
+      "path": "pages/PurchasePlan.tsx",
+      "type": "tsx",
+      "lines": 6
+    },
+    {
+      "path": "pages/Recruitment.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/Reports.tsx",
+      "type": "tsx",
+      "lines": 309
+    },
+    {
+      "path": "pages/Risk.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/Salary.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/SalaryBudget.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/Schedule.tsx",
+      "type": "tsx",
+      "lines": 9
+    },
+    {
+      "path": "pages/Settings.tsx",
+      "type": "tsx",
+      "lines": 127
+    },
+    {
+      "path": "pages/Skill.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/SmartDispatch.tsx",
+      "type": "tsx",
+      "lines": 1148
+    },
+    {
+      "path": "pages/SupplierCodeRule.tsx",
+      "type": "tsx",
+      "lines": 373
+    },
+    {
+      "path": "pages/SupplierManagement.tsx",
+      "type": "tsx",
+      "lines": 2
+    },
+    {
+      "path": "pages/SystemConfig.tsx",
+      "type": "tsx",
+      "lines": 892
+    },
+    {
+      "path": "pages/Tasks.tsx",
+      "type": "tsx",
+      "lines": 7
+    },
+    {
+      "path": "pages/Team.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/TeamManagement.tsx",
+      "type": "tsx",
+      "lines": 483
+    },
+    {
+      "path": "pages/TechSolution.tsx",
+      "type": "tsx",
+      "lines": 6
+    },
+    {
+      "path": "pages/TempTask.tsx",
+      "type": "tsx",
+      "lines": 2
+    },
+    {
+      "path": "pages/TempWorker.tsx",
+      "type": "tsx",
+      "lines": 8
+    },
+    {
+      "path": "pages/UserPermission.tsx",
+      "type": "tsx",
+      "lines": 111
+    },
+    {
+      "path": "pages/WarehouseManagement.tsx",
+      "type": "tsx",
+      "lines": 375
+    },
+    {
+      "path": "pages/WorkLog.tsx",
+      "type": "tsx",
+      "lines": 9
+    },
+    {
+      "path": "pages/WorkOrders.tsx",
+      "type": "tsx",
+      "lines": 178
+    },
+    {
+      "path": "pages/WorkerAttendance.tsx",
+      "type": "tsx",
+      "lines": 10
+    },
+    {
+      "path": "pages/authority/AuthorityConfiguration.tsx",
+      "type": "tsx",
+      "lines": 619
+    },
+    {
+      "path": "pages/authority/BaseManagement.tsx",
+      "type": "tsx",
+      "lines": 383
+    },
+    {
+      "path": "pages/authority/DictionaryManagement.tsx",
+      "type": "tsx",
+      "lines": 535
+    },
+    {
+      "path": "pages/authority/GreenhouseManagement.tsx",
+      "type": "tsx",
+      "lines": 394
+    },
+    {
+      "path": "pages/authority/OrganizationManagement.tsx",
+      "type": "tsx",
+      "lines": 427
+    },
+    {
+      "path": "pages/authority/RoleManagement.tsx",
+      "type": "tsx",
+      "lines": 352
+    },
+    {
+      "path": "pages/authority/SystemConfigManagement.tsx",
+      "type": "tsx",
+      "lines": 387
+    },
+    {
+      "path": "pages/authority/UserAuthorityConfig.tsx",
+      "type": "tsx",
+      "lines": 298
+    },
+    {
+      "path": "pages/authority/UserBasePermission.tsx",
+      "type": "tsx",
+      "lines": 456
+    },
+    {
+      "path": "pages/authority/UserManagement.tsx",
+      "type": "tsx",
+      "lines": 499
+    },
+    {
+      "path": "pages/authority/UserPermissionHub.tsx",
+      "type": "tsx",
+      "lines": 90
+    },
+    {
+      "path": "pages/authority/WarehouseManagement.tsx",
+      "type": "tsx",
+      "lines": 375
+    },
+    {
+      "path": "pages/authority/index.ts",
+      "type": "ts",
+      "lines": 11
+    },
+    {
+      "path": "pages/authority/useDragResize.tsx",
+      "type": "tsx",
+      "lines": 128
+    },
+    {
+      "path": "pages/components/Announcement/AnnouncementFilters.tsx",
+      "type": "tsx",
+      "lines": 70
+    },
+    {
+      "path": "pages/components/Announcement/AnnouncementModals/DeleteModal.tsx",
+      "type": "tsx",
+      "lines": 36
+    },
+    {
+      "path": "pages/components/Announcement/AnnouncementModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 239
+    },
+    {
+      "path": "pages/components/Announcement/AnnouncementModals/ExportModal.tsx",
+      "type": "tsx",
+      "lines": 77
+    },
+    {
+      "path": "pages/components/Announcement/AnnouncementModals/FormModal.tsx",
+      "type": "tsx",
+      "lines": 300
+    },
+    {
+      "path": "pages/components/Announcement/AnnouncementModals/TemplateEditModal.tsx",
+      "type": "tsx",
+      "lines": 329
+    },
+    {
+      "path": "pages/components/Announcement/AnnouncementModals/TemplateSelectModal.tsx",
+      "type": "tsx",
+      "lines": 161
+    },
+    {
+      "path": "pages/components/Announcement/AnnouncementTable.tsx",
+      "type": "tsx",
+      "lines": 206
+    },
+    {
+      "path": "pages/components/Announcement/utils.ts",
+      "type": "ts",
+      "lines": 21
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsAnalyzePanel.tsx",
+      "type": "tsx",
+      "lines": 102
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsEvaluatePanel.tsx",
+      "type": "tsx",
+      "lines": 122
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsFilters.tsx",
+      "type": "tsx",
+      "lines": 64
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 201
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsModals/DeleteModal.tsx",
+      "type": "tsx",
+      "lines": 49
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 166
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsModals/ExportModal.tsx",
+      "type": "tsx",
+      "lines": 77
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsPanels.tsx",
+      "type": "tsx",
+      "lines": 100
+    },
+    {
+      "path": "pages/components/Indicators/IndicatorsTable.tsx",
+      "type": "tsx",
+      "lines": 178
+    },
+    {
+      "path": "pages/components/MaterialApproval/MaterialApprovalFilters.tsx",
+      "type": "tsx",
+      "lines": 156
+    },
+    {
+      "path": "pages/components/MaterialApproval/MaterialApprovalModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 201
+    },
+    {
+      "path": "pages/components/MaterialApproval/MaterialApprovalModals/RejectModal.tsx",
+      "type": "tsx",
+      "lines": 74
+    },
+    {
+      "path": "pages/components/MaterialApproval/MaterialApprovalTable.tsx",
+      "type": "tsx",
+      "lines": 575
+    },
+    {
+      "path": "pages/components/MaterialApproval/index.ts",
+      "type": "ts",
+      "lines": 7
+    },
+    {
+      "path": "pages/components/Materials/MaterialsCodeGenerator.tsx",
+      "type": "tsx",
+      "lines": 159
+    },
+    {
+      "path": "pages/components/Materials/MaterialsFilters.tsx",
+      "type": "tsx",
+      "lines": 208
+    },
+    {
+      "path": "pages/components/Materials/MaterialsModals/AddInboundModal.tsx",
+      "type": "tsx",
+      "lines": 280
+    },
+    {
+      "path": "pages/components/Materials/MaterialsModals/ExportFormatModal.tsx",
+      "type": "tsx",
+      "lines": 71
+    },
+    {
+      "path": "pages/components/Materials/MaterialsTable.tsx",
+      "type": "tsx",
+      "lines": 126
+    },
+    {
+      "path": "pages/components/ProduceCodeRule/ProduceCodeRule.tsx",
+      "type": "tsx",
+      "lines": 272
+    },
+    {
+      "path": "pages/components/ProduceCodeRule/ProduceCodeRuleTable.tsx",
+      "type": "tsx",
+      "lines": 603
+    },
+    {
+      "path": "pages/components/ProduceCodeRule/hooks/useProduceCodeRule.ts",
+      "type": "ts",
+      "lines": 359
+    },
+    {
+      "path": "pages/components/ProduceCodeRule/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "pages/components/ProduceCodeRule/types/produceCodeRule.types.ts",
+      "type": "ts",
+      "lines": 54
+    },
+    {
+      "path": "pages/crop/Fertilizer.tsx",
+      "type": "tsx",
+      "lines": 9
+    },
+    {
+      "path": "pages/crop/Harvest.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "pages/crop/Order.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "pages/crop/PestControl.tsx",
+      "type": "tsx",
+      "lines": 15
+    },
+    {
+      "path": "pages/crop/Planting.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "pages/crop/SeedSource.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "pages/crop/Seedling.tsx",
+      "type": "tsx",
+      "lines": 4
+    },
+    {
+      "path": "pages/farm/DailyWorkSummary.tsx",
+      "type": "tsx",
+      "lines": 322
+    },
+    {
+      "path": "pages/farm/FarmStructureManagement.tsx",
+      "type": "tsx",
+      "lines": 51
+    },
+    {
+      "path": "pages/farm/FarmTaskHub.tsx",
+      "type": "tsx",
+      "lines": 886
+    },
+    {
+      "path": "pages/farm/TaskCenterPage.tsx",
+      "type": "tsx",
+      "lines": 43
+    },
+    {
+      "path": "pages/hooks/useIndicators.ts",
+      "type": "ts",
+      "lines": 395
+    },
+    {
+      "path": "pages/hooks/useMaterialApproval.tsx",
+      "type": "tsx",
+      "lines": 285
+    },
+    {
+      "path": "pages/hooks/useMaterials.ts",
+      "type": "ts",
+      "lines": 586
+    },
+    {
+      "path": "pages/labor/AnalyticsPage.tsx",
+      "type": "tsx",
+      "lines": 44
+    },
+    {
+      "path": "pages/labor/AttendancePage.tsx",
+      "type": "tsx",
+      "lines": 41
+    },
+    {
+      "path": "pages/labor/AttendanceRepairPage.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "pages/labor/CompensationPage.tsx",
+      "type": "tsx",
+      "lines": 44
+    },
+    {
+      "path": "pages/labor/ContractRenewalPage.tsx",
+      "type": "tsx",
+      "lines": 110
+    },
+    {
+      "path": "pages/labor/LeavePage.tsx",
+      "type": "tsx",
+      "lines": 128
+    },
+    {
+      "path": "pages/labor/OnboardingPage.tsx",
+      "type": "tsx",
+      "lines": 147
+    },
+    {
+      "path": "pages/labor/OvertimePage.tsx",
+      "type": "tsx",
+      "lines": 5
+    },
+    {
+      "path": "pages/labor/PersonnelPage.tsx",
+      "type": "tsx",
+      "lines": 56
+    },
+    {
+      "path": "pages/labor/RecruitmentPage.tsx",
+      "type": "tsx",
+      "lines": 157
+    },
+    {
+      "path": "pages/labor/ResignationPage.tsx",
+      "type": "tsx",
+      "lines": 155
+    },
+    {
+      "path": "pages/labor/SalaryAdjustmentPage.tsx",
+      "type": "tsx",
+      "lines": 112
+    },
+    {
+      "path": "pages/labor/SalaryBudgetPage.tsx",
+      "type": "tsx",
+      "lines": 109
+    },
+    {
+      "path": "pages/labor/TaskCenterPage.tsx",
+      "type": "tsx",
+      "lines": 47
+    },
+    {
+      "path": "pages/labor/components/AttendanceRepairPage/AttendanceRepairPage.tsx",
+      "type": "tsx",
+      "lines": 98
+    },
+    {
+      "path": "pages/labor/components/AttendanceRepairPage/AttendanceRepairPageFilters.tsx",
+      "type": "tsx",
+      "lines": 198
+    },
+    {
+      "path": "pages/labor/components/AttendanceRepairPage/AttendanceRepairPageModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 181
+    },
+    {
+      "path": "pages/labor/components/AttendanceRepairPage/AttendanceRepairPageModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 110
+    },
+    {
+      "path": "pages/labor/components/AttendanceRepairPage/AttendanceRepairPageTable.tsx",
+      "type": "tsx",
+      "lines": 151
+    },
+    {
+      "path": "pages/labor/components/AttendanceRepairPage/hooks/useAttendanceRepairPage.ts",
+      "type": "ts",
+      "lines": 362
+    },
+    {
+      "path": "pages/labor/components/AttendanceRepairPage/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "pages/labor/components/AttendanceRepairPage/types/attendanceRepairPage.types.ts",
+      "type": "ts",
+      "lines": 69
+    },
+    {
+      "path": "pages/labor/components/ContractRenewalFilters.tsx",
+      "type": "tsx",
+      "lines": 145
+    },
+    {
+      "path": "pages/labor/components/ContractRenewalModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 208
+    },
+    {
+      "path": "pages/labor/components/ContractRenewalModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 124
+    },
+    {
+      "path": "pages/labor/components/ContractRenewalTable.tsx",
+      "type": "tsx",
+      "lines": 171
+    },
+    {
+      "path": "pages/labor/components/LeaveFilters.tsx",
+      "type": "tsx",
+      "lines": 143
+    },
+    {
+      "path": "pages/labor/components/LeaveModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 223
+    },
+    {
+      "path": "pages/labor/components/LeaveModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 112
+    },
+    {
+      "path": "pages/labor/components/LeaveModals/WithdrawModal.tsx",
+      "type": "tsx",
+      "lines": 61
+    },
+    {
+      "path": "pages/labor/components/LeaveTable.tsx",
+      "type": "tsx",
+      "lines": 167
+    },
+    {
+      "path": "pages/labor/components/OnboardingPage/OnboardingPageFilters.tsx",
+      "type": "tsx",
+      "lines": 81
+    },
+    {
+      "path": "pages/labor/components/OnboardingPage/OnboardingPageModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 201
+    },
+    {
+      "path": "pages/labor/components/OnboardingPage/OnboardingPageModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 118
+    },
+    {
+      "path": "pages/labor/components/OnboardingPage/OnboardingPageTable.tsx",
+      "type": "tsx",
+      "lines": 130
+    },
+    {
+      "path": "pages/labor/components/OvertimePage/OvertimePage.tsx",
+      "type": "tsx",
+      "lines": 100
+    },
+    {
+      "path": "pages/labor/components/OvertimePage/OvertimePageFilters.tsx",
+      "type": "tsx",
+      "lines": 159
+    },
+    {
+      "path": "pages/labor/components/OvertimePage/OvertimePageModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 186
+    },
+    {
+      "path": "pages/labor/components/OvertimePage/OvertimePageModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 104
+    },
+    {
+      "path": "pages/labor/components/OvertimePage/OvertimePageTable.tsx",
+      "type": "tsx",
+      "lines": 145
+    },
+    {
+      "path": "pages/labor/components/OvertimePage/hooks/useOvertimePage.ts",
+      "type": "ts",
+      "lines": 415
+    },
+    {
+      "path": "pages/labor/components/OvertimePage/index.ts",
+      "type": "ts",
+      "lines": 4
+    },
+    {
+      "path": "pages/labor/components/OvertimePage/types/overtimePage.types.ts",
+      "type": "ts",
+      "lines": 85
+    },
+    {
+      "path": "pages/labor/components/RecruitmentFilters.tsx",
+      "type": "tsx",
+      "lines": 98
+    },
+    {
+      "path": "pages/labor/components/RecruitmentModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 211
+    },
+    {
+      "path": "pages/labor/components/RecruitmentModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 137
+    },
+    {
+      "path": "pages/labor/components/RecruitmentTable.tsx",
+      "type": "tsx",
+      "lines": 186
+    },
+    {
+      "path": "pages/labor/components/ResignationPage/ResignationPageFilters.tsx",
+      "type": "tsx",
+      "lines": 76
+    },
+    {
+      "path": "pages/labor/components/ResignationPage/ResignationPageModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 163
+    },
+    {
+      "path": "pages/labor/components/ResignationPage/ResignationPageModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 105
+    },
+    {
+      "path": "pages/labor/components/ResignationPage/ResignationPageTable.tsx",
+      "type": "tsx",
+      "lines": 241
+    },
+    {
+      "path": "pages/labor/components/SalaryAdjustmentFilters.tsx",
+      "type": "tsx",
+      "lines": 159
+    },
+    {
+      "path": "pages/labor/components/SalaryAdjustmentModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 224
+    },
+    {
+      "path": "pages/labor/components/SalaryAdjustmentModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 131
+    },
+    {
+      "path": "pages/labor/components/SalaryAdjustmentTable.tsx",
+      "type": "tsx",
+      "lines": 191
+    },
+    {
+      "path": "pages/labor/components/SalaryBudgetFilters.tsx",
+      "type": "tsx",
+      "lines": 111
+    },
+    {
+      "path": "pages/labor/components/SalaryBudgetModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 168
+    },
+    {
+      "path": "pages/labor/components/SalaryBudgetModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 129
+    },
+    {
+      "path": "pages/labor/components/SalaryBudgetModals/SummaryModal.tsx",
+      "type": "tsx",
+      "lines": 143
+    },
+    {
+      "path": "pages/labor/components/SalaryBudgetTable.tsx",
+      "type": "tsx",
+      "lines": 194
+    },
+    {
+      "path": "pages/labor/hooks/useContractRenewal.ts",
+      "type": "ts",
+      "lines": 376
+    },
+    {
+      "path": "pages/labor/hooks/useLeave.ts",
+      "type": "ts",
+      "lines": 494
+    },
+    {
+      "path": "pages/labor/hooks/useOnboardingPage.ts",
+      "type": "ts",
+      "lines": 329
+    },
+    {
+      "path": "pages/labor/hooks/useRecruitment.ts",
+      "type": "ts",
+      "lines": 398
+    },
+    {
+      "path": "pages/labor/hooks/useResignationPage.ts",
+      "type": "ts",
+      "lines": 353
+    },
+    {
+      "path": "pages/labor/hooks/useSalaryAdjustment.ts",
+      "type": "ts",
+      "lines": 363
+    },
+    {
+      "path": "pages/labor/hooks/useSalaryBudget.ts",
+      "type": "ts",
+      "lines": 314
+    },
+    {
+      "path": "pages/labor/types/contractRenewal.types.ts",
+      "type": "ts",
+      "lines": 83
+    },
+    {
+      "path": "pages/labor/types/onboardingPage.types.ts",
+      "type": "ts",
+      "lines": 94
+    },
+    {
+      "path": "pages/labor/types/recruitment.types.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "pages/labor/types/resignationPage.types.ts",
+      "type": "ts",
+      "lines": 115
+    },
+    {
+      "path": "pages/labor/types/salaryAdjustment.types.ts",
+      "type": "ts",
+      "lines": 86
+    },
+    {
+      "path": "pages/labor/types/salaryBudget.types.ts",
+      "type": "ts",
+      "lines": 84
+    },
+    {
+      "path": "pages/material-flow/MaterialFlowPage.tsx",
+      "type": "tsx",
+      "lines": 1034
+    },
+    {
+      "path": "pages/material/tabs/ApplicationTab.tsx",
+      "type": "tsx",
+      "lines": 179
+    },
+    {
+      "path": "pages/material/tabs/ExecuteTab.tsx",
+      "type": "tsx",
+      "lines": 548
+    },
+    {
+      "path": "pages/material/tabs/StatisticsTab.tsx",
+      "type": "tsx",
+      "lines": 212
+    },
+    {
+      "path": "pages/material/tabs/components/ApplicationFilters.tsx",
+      "type": "tsx",
+      "lines": 142
+    },
+    {
+      "path": "pages/material/tabs/components/ApplicationModals.tsx",
+      "type": "tsx",
+      "lines": 670
+    },
+    {
+      "path": "pages/material/tabs/components/ApplicationTable.tsx",
+      "type": "tsx",
+      "lines": 323
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/ExecuteTabFilters.tsx",
+      "type": "tsx",
+      "lines": 139
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/ExecuteTabModals/AddModal.tsx",
+      "type": "tsx",
+      "lines": 427
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/ExecuteTabModals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 403
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/ExecuteTabModals/DeleteConfirmModal.tsx",
+      "type": "tsx",
+      "lines": 45
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/ExecuteTabModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 129
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/ExecuteTabModals/ExportTypeModal.tsx",
+      "type": "tsx",
+      "lines": 97
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/ExecuteTabModals/WarningModal.tsx",
+      "type": "tsx",
+      "lines": 51
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/ExecuteTabTable.tsx",
+      "type": "tsx",
+      "lines": 345
+    },
+    {
+      "path": "pages/material/tabs/components/ExecuteTab/index.ts",
+      "type": "ts",
+      "lines": 11
+    },
+    {
+      "path": "pages/material/tabs/components/MaterialFilters.tsx",
+      "type": "tsx",
+      "lines": 114
+    },
+    {
+      "path": "pages/material/tabs/components/MaterialTable.tsx",
+      "type": "tsx",
+      "lines": 164
+    },
+    {
+      "path": "pages/material/tabs/components/MonthlyDashboard.tsx",
+      "type": "tsx",
+      "lines": 324
+    },
+    {
+      "path": "pages/material/tabs/components/MonthlyFilters.tsx",
+      "type": "tsx",
+      "lines": 101
+    },
+    {
+      "path": "pages/material/tabs/components/MonthlyTable.tsx",
+      "type": "tsx",
+      "lines": 292
+    },
+    {
+      "path": "pages/material/tabs/components/StatCards.tsx",
+      "type": "tsx",
+      "lines": 76
+    },
+    {
+      "path": "pages/material/tabs/hooks/useApplicationTab.ts",
+      "type": "ts",
+      "lines": 796
+    },
+    {
+      "path": "pages/material/tabs/hooks/useExecuteTab.ts",
+      "type": "ts",
+      "lines": 623
+    },
+    {
+      "path": "pages/material/tabs/hooks/useStatisticsTab.ts",
+      "type": "ts",
+      "lines": 860
+    },
+    {
+      "path": "pages/material/tabs/types/applicationTab.types.ts",
+      "type": "ts",
+      "lines": 233
+    },
+    {
+      "path": "pages/material/tabs/types/executeTab.types.ts",
+      "type": "ts",
+      "lines": 175
+    },
+    {
+      "path": "pages/material/tabs/types/statisticsTab.types.ts",
+      "type": "ts",
+      "lines": 174
+    },
+    {
+      "path": "pages/settings/PestDiseaseDict.tsx",
+      "type": "tsx",
+      "lines": 15
+    },
+    {
+      "path": "pages/settings/PesticideLibrary.tsx",
+      "type": "tsx",
+      "lines": 15
+    },
+    {
+      "path": "pages/summary/BatchManagement.tsx",
+      "type": "tsx",
+      "lines": 49
+    },
+    {
+      "path": "pages/summary/BatchSummary.tsx",
+      "type": "tsx",
+      "lines": 666
+    },
+    {
+      "path": "pages/summary/BusinessAnalysis.tsx",
+      "type": "tsx",
+      "lines": 64
+    },
+    {
+      "path": "pages/summary/ChainTraceability.tsx",
+      "type": "tsx",
+      "lines": 542
+    },
+    {
+      "path": "pages/summary/CostAnalysis.tsx",
+      "type": "tsx",
+      "lines": 509
+    },
+    {
+      "path": "pages/summary/LaborAnalysis.tsx",
+      "type": "tsx",
+      "lines": 532
+    },
+    {
+      "path": "pages/summary/ProblemSummary.tsx",
+      "type": "tsx",
+      "lines": 472
+    },
+    {
+      "path": "pages/summary/SummaryIndicators.tsx",
+      "type": "tsx",
+      "lines": 518
+    },
+    {
+      "path": "pages/summary/SummaryOverview.tsx",
+      "type": "tsx",
+      "lines": 637
+    },
+    {
+      "path": "pages/summary/YieldAnalysis.tsx",
+      "type": "tsx",
+      "lines": 580
+    },
+    {
+      "path": "pages/system/DataMigration.tsx",
+      "type": "tsx",
+      "lines": 1133
+    },
+    {
+      "path": "pages/types/announcement.types.ts",
+      "type": "ts",
+      "lines": 139
+    },
+    {
+      "path": "pages/types/indicators.types.ts",
+      "type": "ts",
+      "lines": 147
+    },
+    {
+      "path": "pages/types/materialApproval.types.ts",
+      "type": "ts",
+      "lines": 107
+    },
+    {
+      "path": "pages/types/materials.types.ts",
+      "type": "ts",
+      "lines": 194
+    },
+    {
+      "path": "pages/warehouse/WarehouseInboundPage.tsx",
+      "type": "tsx",
+      "lines": 332
+    },
+    {
+      "path": "pages/warehouse/WarehouseOverviewPage.tsx",
+      "type": "tsx",
+      "lines": 373
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundCodeGen.tsx",
+      "type": "tsx",
+      "lines": 192
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundFilters.tsx",
+      "type": "tsx",
+      "lines": 130
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundModals/BatchEditModal.tsx",
+      "type": "tsx",
+      "lines": 577
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundModals/CreateModal.tsx",
+      "type": "tsx",
+      "lines": 679
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundModals/DeleteModal.tsx",
+      "type": "tsx",
+      "lines": 59
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundModals/DetailModal.tsx",
+      "type": "tsx",
+      "lines": 142
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundModals/EditModal.tsx",
+      "type": "tsx",
+      "lines": 375
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundModals/ExportModal.tsx",
+      "type": "tsx",
+      "lines": 169
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundModals/index.ts",
+      "type": "ts",
+      "lines": 10
+    },
+    {
+      "path": "pages/warehouse/components/WarehouseInboundTable.tsx",
+      "type": "tsx",
+      "lines": 211
+    },
+    {
+      "path": "pages/warehouse/hooks/useWarehouseInbound.ts",
+      "type": "ts",
+      "lines": 433
+    },
+    {
+      "path": "pages/warehouse/hooks/useWarehouseOverview.ts",
+      "type": "ts",
+      "lines": 170
+    },
+    {
+      "path": "pages/warehouse/utils/warehouseInbound.utils.ts",
+      "type": "ts",
+      "lines": 297
+    },
+    {
+      "path": "services/announcementService.ts",
+      "type": "ts",
+      "lines": 195
+    },
+    {
+      "path": "services/apiAnnouncementService.ts",
+      "type": "ts",
+      "lines": 102
+    },
+    {
+      "path": "services/apiApprovalWorkflowService.ts",
+      "type": "ts",
+      "lines": 178
+    },
+    {
+      "path": "services/apiAttendanceRepairService.ts",
+      "type": "ts",
+      "lines": 123
+    },
+    {
+      "path": "services/apiBasicDataService.ts",
+      "type": "ts",
+      "lines": 950
+    },
+    {
+      "path": "services/apiClient.ts",
+      "type": "ts",
+      "lines": 148
+    },
+    {
+      "path": "services/apiContractRenewalService.ts",
+      "type": "ts",
+      "lines": 205
+    },
+    {
+      "path": "services/apiCropBatchService.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "services/apiCropInstanceService.ts",
+      "type": "ts",
+      "lines": 145
+    },
+    {
+      "path": "services/apiCropOrderService.ts",
+      "type": "ts",
+      "lines": 193
+    },
+    {
+      "path": "services/apiCropVarietyExtensionService.ts",
+      "type": "ts",
+      "lines": 307
+    },
+    {
+      "path": "services/apiCropVarietyService.ts",
+      "type": "ts",
+      "lines": 228
+    },
+    {
+      "path": "services/apiCustomerService.ts",
+      "type": "ts",
+      "lines": 104
+    },
+    {
+      "path": "services/apiDailyPlanService.ts",
+      "type": "ts",
+      "lines": 108
+    },
+    {
+      "path": "services/apiFarmTaskService.ts",
+      "type": "ts",
+      "lines": 332
+    },
+    {
+      "path": "services/apiHarvestService.ts",
+      "type": "ts",
+      "lines": 112
+    },
+    {
+      "path": "services/apiInspectionService.ts",
+      "type": "ts",
+      "lines": 202
+    },
+    {
+      "path": "services/apiInventoryInboundService.ts",
+      "type": "ts",
+      "lines": 55
+    },
+    {
+      "path": "services/apiInventoryService.ts",
+      "type": "ts",
+      "lines": 138
+    },
+    {
+      "path": "services/apiLaborService.ts",
+      "type": "ts",
+      "lines": 272
+    },
+    {
+      "path": "services/apiLeaveService.ts",
+      "type": "ts",
+      "lines": 320
+    },
+    {
+      "path": "services/apiMaterialCodeCategoryService.ts",
+      "type": "ts",
+      "lines": 74
+    },
+    {
+      "path": "services/apiMaterialFlowService.ts",
+      "type": "ts",
+      "lines": 44
+    },
+    {
+      "path": "services/apiMaterialReturnService.ts",
+      "type": "ts",
+      "lines": 77
+    },
+    {
+      "path": "services/apiMonthlyPlanService.ts",
+      "type": "ts",
+      "lines": 108
+    },
+    {
+      "path": "services/apiNotificationService.ts",
+      "type": "ts",
+      "lines": 175
+    },
+    {
+      "path": "services/apiOnboardingService.ts",
+      "type": "ts",
+      "lines": 171
+    },
+    {
+      "path": "services/apiOperationLogService.ts",
+      "type": "ts",
+      "lines": 166
+    },
+    {
+      "path": "services/apiOvertimeService.ts",
+      "type": "ts",
+      "lines": 305
+    },
+    {
+      "path": "services/apiPlantingRecordService.ts",
+      "type": "ts",
+      "lines": 148
+    },
+    {
+      "path": "services/apiPlantingService.ts",
+      "type": "ts",
+      "lines": 403
+    },
+    {
+      "path": "services/apiPositionService.ts",
+      "type": "ts",
+      "lines": 107
+    },
+    {
+      "path": "services/apiProblemService.ts",
+      "type": "ts",
+      "lines": 279
+    },
+    {
+      "path": "services/apiProductionPlanService.ts",
+      "type": "ts",
+      "lines": 162
+    },
+    {
+      "path": "services/apiPurchasePlanService.ts",
+      "type": "ts",
+      "lines": 259
+    },
+    {
+      "path": "services/apiRecruitmentService.ts",
+      "type": "ts",
+      "lines": 241
+    },
+    {
+      "path": "services/apiResignationService.ts",
+      "type": "ts",
+      "lines": 228
+    },
+    {
+      "path": "services/apiSalaryAdjustmentService.ts",
+      "type": "ts",
+      "lines": 198
+    },
+    {
+      "path": "services/apiSalaryBudgetService.ts",
+      "type": "ts",
+      "lines": 203
+    },
+    {
+      "path": "services/apiSeedSourceService.ts",
+      "type": "ts",
+      "lines": 734
+    },
+    {
+      "path": "services/apiSeedlingService.ts",
+      "type": "ts",
+      "lines": 711
+    },
+    {
+      "path": "services/apiSupplierService.ts",
+      "type": "ts",
+      "lines": 52
+    },
+    {
+      "path": "services/apiTechSolutionService.ts",
+      "type": "ts",
+      "lines": 231
+    },
+    {
+      "path": "services/apiWarehouseMaterialService.ts",
+      "type": "ts",
+      "lines": 140
+    },
+    {
+      "path": "services/apiWorkerService.ts",
+      "type": "ts",
+      "lines": 128
+    },
+    {
+      "path": "services/approvalBusinessIntegration.ts",
+      "type": "ts",
+      "lines": 526
+    },
+    {
+      "path": "services/approvalDelegationService.ts",
+      "type": "ts",
+      "lines": 321
+    },
+    {
+      "path": "services/approvalSubmitService.ts",
+      "type": "ts",
+      "lines": 1302
+    },
+    {
+      "path": "services/approvalTimeoutService.ts",
+      "type": "ts",
+      "lines": 266
+    },
+    {
+      "path": "services/authorityService.ts",
+      "type": "ts",
+      "lines": 360
+    },
+    {
+      "path": "services/cropBatchService.ts",
+      "type": "ts",
+      "lines": 9
+    },
+    {
+      "path": "services/cropInstanceService.ts",
+      "type": "ts",
+      "lines": 11
+    },
+    {
+      "path": "services/cropVarietyExtensionService.ts",
+      "type": "ts",
+      "lines": 354
+    },
+    {
+      "path": "services/cropVarietyService.ts",
+      "type": "ts",
+      "lines": 856
+    },
+    {
+      "path": "services/dataRouter.ts",
+      "type": "ts",
+      "lines": 283
+    },
+    {
+      "path": "services/departmentService.ts",
+      "type": "ts",
+      "lines": 106
+    },
+    {
+      "path": "services/dictionaryService.ts",
+      "type": "ts",
+      "lines": 528
+    },
+    {
+      "path": "services/fieldMapping.ts",
+      "type": "ts",
+      "lines": 95
+    },
+    {
+      "path": "services/greenhouseService.ts",
+      "type": "ts",
+      "lines": 114
+    },
+    {
+      "path": "services/harvestService.ts",
+      "type": "ts",
+      "lines": 8
+    },
+    {
+      "path": "services/indicatorsService.ts",
+      "type": "ts",
+      "lines": 166
+    },
+    {
+      "path": "services/inventoryIntegration.ts",
+      "type": "ts",
+      "lines": 503
+    },
+    {
+      "path": "services/inventoryService.ts",
+      "type": "ts",
+      "lines": 460
+    },
+    {
+      "path": "services/inventoryTransactionService.ts",
+      "type": "ts",
+      "lines": 112
+    },
+    {
+      "path": "services/plantingService.ts",
+      "type": "ts",
+      "lines": 12
+    },
+    {
+      "path": "services/productionPlanService.ts",
+      "type": "ts",
+      "lines": 344
+    },
+    {
+      "path": "services/purchasePlanService.ts",
+      "type": "ts",
+      "lines": 64
+    },
+    {
+      "path": "services/seedlingService.ts",
+      "type": "ts",
+      "lines": 15
+    },
+    {
+      "path": "services/summaryService.ts",
+      "type": "ts",
+      "lines": 376
+    },
+    {
+      "path": "services/supplierService.ts",
+      "type": "ts",
+      "lines": 53
+    },
+    {
+      "path": "services/syncManager.ts",
+      "type": "ts",
+      "lines": 183
+    },
+    {
+      "path": "services/unifiedCache.ts",
+      "type": "ts",
+      "lines": 265
+    },
+    {
+      "path": "services/unifiedHarvestInboundService.ts",
+      "type": "ts",
+      "lines": 141
+    },
+    {
+      "path": "services/warehouseService.ts",
+      "type": "ts",
+      "lines": 107
+    },
+    {
+      "path": "stores/alertStore.ts",
+      "type": "ts",
+      "lines": 239
+    },
+    {
+      "path": "stores/attendanceStore.ts",
+      "type": "ts",
+      "lines": 333
+    },
+    {
+      "path": "stores/compensationStore.ts",
+      "type": "ts",
+      "lines": 351
+    },
+    {
+      "path": "stores/farmTaskStore.ts",
+      "type": "ts",
+      "lines": 330
+    },
+    {
+      "path": "stores/index.ts",
+      "type": "ts",
+      "lines": 330
+    },
+    {
+      "path": "stores/iotStore.ts",
+      "type": "ts",
+      "lines": 162
+    },
+    {
+      "path": "stores/leaveStore.ts",
+      "type": "ts",
+      "lines": 410
+    },
+    {
+      "path": "stores/overtimeStore.ts",
+      "type": "ts",
+      "lines": 610
+    },
+    {
+      "path": "stores/personnelStore.ts",
+      "type": "ts",
+      "lines": 270
+    },
+    {
+      "path": "stores/scheduleStore.ts",
+      "type": "ts",
+      "lines": 529
+    },
+    {
+      "path": "stores/useAnnouncementDataStore.ts",
+      "type": "ts",
+      "lines": 290
+    },
+    {
+      "path": "stores/useAnnouncementStore.ts",
+      "type": "ts",
+      "lines": 121
+    },
+    {
+      "path": "stores/useAnnouncementTemplateStore.ts",
+      "type": "ts",
+      "lines": 224
+    },
+    {
+      "path": "stores/useApprovalLevelStore.ts",
+      "type": "ts",
+      "lines": 192
+    },
+    {
+      "path": "stores/useApprovalStore.ts",
+      "type": "ts",
+      "lines": 452
+    },
+    {
+      "path": "stores/useApprovalWorkflowStore.ts",
+      "type": "ts",
+      "lines": 91
+    },
+    {
+      "path": "stores/useAttendanceRepairStore.ts",
+      "type": "ts",
+      "lines": 255
+    },
+    {
+      "path": "stores/useAuthStore.ts",
+      "type": "ts",
+      "lines": 270
+    },
+    {
+      "path": "stores/useBaseOperationsStore.ts",
+      "type": "ts",
+      "lines": 297
+    },
+    {
+      "path": "stores/useBaseStore.ts",
+      "type": "ts",
+      "lines": 102
+    },
+    {
+      "path": "stores/useBlockStore.ts",
+      "type": "ts",
+      "lines": 85
+    },
+    {
+      "path": "stores/useBranchStore.ts",
+      "type": "ts",
+      "lines": 87
+    },
+    {
+      "path": "stores/useBudgetStore.ts",
+      "type": "ts",
+      "lines": 69
+    },
+    {
+      "path": "stores/useContractRenewalStore.ts",
+      "type": "ts",
+      "lines": 221
+    },
+    {
+      "path": "stores/useContractStore.ts",
+      "type": "ts",
+      "lines": 227
+    },
+    {
+      "path": "stores/useCropGrowthConfigStore.ts",
+      "type": "ts",
+      "lines": 225
+    },
+    {
+      "path": "stores/useCropStorageStore.ts",
+      "type": "ts",
+      "lines": 64
+    },
+    {
+      "path": "stores/useCropVarietyStore.ts",
+      "type": "ts",
+      "lines": 173
+    },
+    {
+      "path": "stores/useCustomerStore.ts",
+      "type": "ts",
+      "lines": 54
+    },
+    {
+      "path": "stores/useDailyPlanStore.ts",
+      "type": "ts",
+      "lines": 103
+    },
+    {
+      "path": "stores/useDashboardStore.ts",
+      "type": "ts",
+      "lines": 213
+    },
+    {
+      "path": "stores/useDepartmentStore.ts",
+      "type": "ts",
+      "lines": 106
+    },
+    {
+      "path": "stores/useDeviceStore.ts",
+      "type": "ts",
+      "lines": 85
+    },
+    {
+      "path": "stores/useDictionaryStore.ts",
+      "type": "ts",
+      "lines": 133
+    },
+    {
+      "path": "stores/useDispatchStore.ts",
+      "type": "ts",
+      "lines": 197
+    },
+    {
+      "path": "stores/useEfficiencyStore.ts",
+      "type": "ts",
+      "lines": 107
+    },
+    {
+      "path": "stores/useEquipmentStore.ts",
+      "type": "ts",
+      "lines": 83
+    },
+    {
+      "path": "stores/useExecuteDataStore.ts",
+      "type": "ts",
+      "lines": 196
+    },
+    {
+      "path": "stores/useFarmActivityStore.ts",
+      "type": "ts",
+      "lines": 80
+    },
+    {
+      "path": "stores/useFarmOperationRecordStore.ts",
+      "type": "ts",
+      "lines": 110
+    },
+    {
+      "path": "stores/useFertilizerLibraryStore.ts",
+      "type": "ts",
+      "lines": 226
+    },
+    {
+      "path": "stores/useFertilizerStore.ts",
+      "type": "ts",
+      "lines": 239
+    },
+    {
+      "path": "stores/useGreenhouseStore.ts",
+      "type": "ts",
+      "lines": 86
+    },
+    {
+      "path": "stores/useHarvestStore.ts",
+      "type": "ts",
+      "lines": 87
+    },
+    {
+      "path": "stores/useInboundStore.ts",
+      "type": "ts",
+      "lines": 84
+    },
+    {
+      "path": "stores/useIndicatorDataStore.ts",
+      "type": "ts",
+      "lines": 418
+    },
+    {
+      "path": "stores/useIndicatorStore.ts",
+      "type": "ts",
+      "lines": 60
+    },
+    {
+      "path": "stores/useInfrastructureStore.ts",
+      "type": "ts",
+      "lines": 79
+    },
+    {
+      "path": "stores/useInspectionDataStore.ts",
+      "type": "ts",
+      "lines": 165
+    },
+    {
+      "path": "stores/useInspectionStore.ts",
+      "type": "ts",
+      "lines": 62
+    },
+    {
+      "path": "stores/useInventoryInboundStore.ts",
+      "type": "ts",
+      "lines": 113
+    },
+    {
+      "path": "stores/useInventoryStore.ts",
+      "type": "ts",
+      "lines": 152
+    },
+    {
+      "path": "stores/useInventoryTransactionStore.ts",
+      "type": "ts",
+      "lines": 192
+    },
+    {
+      "path": "stores/useMaterialCodeRuleStore.ts",
+      "type": "ts",
+      "lines": 254
+    },
+    {
+      "path": "stores/useMaterialFlowStore.ts",
+      "type": "ts",
+      "lines": 102
+    },
+    {
+      "path": "stores/useMaterialRequestDataStore.ts",
+      "type": "ts",
+      "lines": 241
+    },
+    {
+      "path": "stores/useMaterialRequestStore.ts",
+      "type": "ts",
+      "lines": 69
+    },
+    {
+      "path": "stores/useMaterialReturnStore.ts",
+      "type": "ts",
+      "lines": 83
+    },
+    {
+      "path": "stores/useMaterialTypeStore.ts",
+      "type": "ts",
+      "lines": 80
+    },
+    {
+      "path": "stores/useMonthlyPlanStore.ts",
+      "type": "ts",
+      "lines": 103
+    },
+    {
+      "path": "stores/useMonthlyReportStore.ts",
+      "type": "ts",
+      "lines": 92
+    },
+    {
+      "path": "stores/useNotificationSettingsStore.ts",
+      "type": "ts",
+      "lines": 182
+    },
+    {
+      "path": "stores/useNotificationStore.ts",
+      "type": "ts",
+      "lines": 53
+    },
+    {
+      "path": "stores/useOnboardingStore.ts",
+      "type": "ts",
+      "lines": 318
+    },
+    {
+      "path": "stores/useOrderDataStore.ts",
+      "type": "ts",
+      "lines": 117
+    },
+    {
+      "path": "stores/useOrderStore.ts",
+      "type": "ts",
+      "lines": 71
+    },
+    {
+      "path": "stores/useOrganizationStore.ts",
+      "type": "ts",
+      "lines": 364
+    },
+    {
+      "path": "stores/usePerformanceStore.ts",
+      "type": "ts",
+      "lines": 143
+    },
+    {
+      "path": "stores/usePestControlStore.ts",
+      "type": "ts",
+      "lines": 232
+    },
+    {
+      "path": "stores/usePestDiseaseDictStore.ts",
+      "type": "ts",
+      "lines": 200
+    },
+    {
+      "path": "stores/usePesticideLibraryStore.ts",
+      "type": "ts",
+      "lines": 242
+    },
+    {
+      "path": "stores/usePieceworkStore.ts",
+      "type": "ts",
+      "lines": 154
+    },
+    {
+      "path": "stores/usePlantLabelStore.ts",
+      "type": "ts",
+      "lines": 223
+    },
+    {
+      "path": "stores/usePlantingRecordStore.ts",
+      "type": "ts",
+      "lines": 123
+    },
+    {
+      "path": "stores/usePlantingStore.ts",
+      "type": "ts",
+      "lines": 220
+    },
+    {
+      "path": "stores/usePositionStore.ts",
+      "type": "ts",
+      "lines": 85
+    },
+    {
+      "path": "stores/useProblemStore.ts",
+      "type": "ts",
+      "lines": 254
+    },
+    {
+      "path": "stores/useProcessDefinitionStore.ts",
+      "type": "ts",
+      "lines": 97
+    },
+    {
+      "path": "stores/useProductionPlanStore.ts",
+      "type": "ts",
+      "lines": 111
+    },
+    {
+      "path": "stores/usePurchasePlanStore.ts",
+      "type": "ts",
+      "lines": 155
+    },
+    {
+      "path": "stores/useRecruitmentManageStore.ts",
+      "type": "ts",
+      "lines": 266
+    },
+    {
+      "path": "stores/useRecruitmentStore.ts",
+      "type": "ts",
+      "lines": 210
+    },
+    {
+      "path": "stores/useRegionStore.ts",
+      "type": "ts",
+      "lines": 87
+    },
+    {
+      "path": "stores/useReminderStore.ts",
+      "type": "ts",
+      "lines": 83
+    },
+    {
+      "path": "stores/useResignationStore.ts",
+      "type": "ts",
+      "lines": 232
+    },
+    {
+      "path": "stores/useRiskStore.ts",
+      "type": "ts",
+      "lines": 179
+    },
+    {
+      "path": "stores/useSalaryAdjustmentStore.ts",
+      "type": "ts",
+      "lines": 352
+    },
+    {
+      "path": "stores/useSalaryBudgetStore.ts",
+      "type": "ts",
+      "lines": 273
+    },
+    {
+      "path": "stores/useSalaryStore.ts",
+      "type": "ts",
+      "lines": 162
+    },
+    {
+      "path": "stores/useSeedSourceStore.ts",
+      "type": "ts",
+      "lines": 195
+    },
+    {
+      "path": "stores/useSeedlingStore.ts",
+      "type": "ts",
+      "lines": 157
+    },
+    {
+      "path": "stores/useSettingsStore.ts",
+      "type": "ts",
+      "lines": 73
+    },
+    {
+      "path": "stores/useShiftStore.ts",
+      "type": "ts",
+      "lines": 87
+    },
+    {
+      "path": "stores/useSkillStore.ts",
+      "type": "ts",
+      "lines": 283
+    },
+    {
+      "path": "stores/useStatisticsStore.ts",
+      "type": "ts",
+      "lines": 291
+    },
+    {
+      "path": "stores/useSummaryDataStore.ts",
+      "type": "ts",
+      "lines": 720
+    },
+    {
+      "path": "stores/useSupplierCodeRuleStore.ts",
+      "type": "ts",
+      "lines": 412
+    },
+    {
+      "path": "stores/useSupplierStore.ts",
+      "type": "ts",
+      "lines": 193
+    },
+    {
+      "path": "stores/useSystemConfigStore.ts",
+      "type": "ts",
+      "lines": 216
+    },
+    {
+      "path": "stores/useTaskStore.ts",
+      "type": "ts",
+      "lines": 61
+    },
+    {
+      "path": "stores/useTeamManageStore.ts",
+      "type": "ts",
+      "lines": 229
+    },
+    {
+      "path": "stores/useTeamStore.ts",
+      "type": "ts",
+      "lines": 85
+    },
+    {
+      "path": "stores/useTechSolutionStore.ts",
+      "type": "ts",
+      "lines": 89
+    },
+    {
+      "path": "stores/useTempTaskStore.ts",
+      "type": "ts",
+      "lines": 303
+    },
+    {
+      "path": "stores/useTempWorkerStore.ts",
+      "type": "ts",
+      "lines": 162
+    },
+    {
+      "path": "stores/useToastStore.ts",
+      "type": "ts",
+      "lines": 53
+    },
+    {
+      "path": "stores/useUserStore.ts",
+      "type": "ts",
+      "lines": 63
+    },
+    {
+      "path": "stores/useWarehouseMaterialStore.ts",
+      "type": "ts",
+      "lines": 86
+    },
+    {
+      "path": "stores/useWarehouseStore.ts",
+      "type": "ts",
+      "lines": 83
+    },
+    {
+      "path": "stores/useWorkLogStore.ts",
+      "type": "ts",
+      "lines": 244
+    },
+    {
+      "path": "stores/useWorkerStore.ts",
+      "type": "ts",
+      "lines": 50
+    },
+    {
+      "path": "stores/useZoneStore.ts",
+      "type": "ts",
+      "lines": 85
+    },
+    {
+      "path": "types/approval.ts",
+      "type": "ts",
+      "lines": 414
+    },
+    {
+      "path": "types/approvalIntegration.ts",
+      "type": "ts",
+      "lines": 652
+    },
+    {
+      "path": "types/approvalNotification.ts",
+      "type": "ts",
+      "lines": 217
+    },
+    {
+      "path": "types/authority.ts",
+      "type": "ts",
+      "lines": 317
+    },
+    {
+      "path": "types/crop.ts",
+      "type": "ts",
+      "lines": 715
+    },
+    {
+      "path": "types/crop/index.ts",
+      "type": "ts",
+      "lines": 12
+    },
+    {
+      "path": "types/crop/planting.ts",
+      "type": "ts",
+      "lines": 198
+    },
+    {
+      "path": "types/crop/seed.ts",
+      "type": "ts",
+      "lines": 217
+    },
+    {
+      "path": "types/crop/seedling.ts",
+      "type": "ts",
+      "lines": 164
+    },
+    {
+      "path": "types/cropCirculation.ts",
+      "type": "ts",
+      "lines": 62
+    },
+    {
+      "path": "types/cropVariety.ts",
+      "type": "ts",
+      "lines": 92
+    },
+    {
+      "path": "types/customer.types.ts",
+      "type": "ts",
+      "lines": 19
+    },
+    {
+      "path": "types/dataSource.ts",
+      "type": "ts",
+      "lines": 47
+    },
+    {
+      "path": "types/dispatch.ts",
+      "type": "ts",
+      "lines": 260
+    },
+    {
+      "path": "types/environment.ts",
+      "type": "ts",
+      "lines": 237
+    },
+    {
+      "path": "types/farm/common.ts",
+      "type": "ts",
+      "lines": 570
+    },
+    {
+      "path": "types/farm/taskTypeConfig.ts",
+      "type": "ts",
+      "lines": 682
+    },
+    {
+      "path": "types/index.ts",
+      "type": "ts",
+      "lines": 715
+    },
+    {
+      "path": "types/inventory.ts",
+      "type": "ts",
+      "lines": 553
+    },
+    {
+      "path": "types/inventoryInbound.ts",
+      "type": "ts",
+      "lines": 96
+    },
+    {
+      "path": "types/labor/approval.ts",
+      "type": "ts",
+      "lines": 62
+    },
+    {
+      "path": "types/labor/employee.ts",
+      "type": "ts",
+      "lines": 134
+    },
+    {
+      "path": "types/labor/overtime.ts",
+      "type": "ts",
+      "lines": 133
+    },
+    {
+      "path": "types/material.ts",
+      "type": "ts",
+      "lines": 139
+    },
+    {
+      "path": "types/materialFlow.ts",
+      "type": "ts",
+      "lines": 70
+    },
+    {
+      "path": "types/materialReceiving.ts",
+      "type": "ts",
+      "lines": 363
+    },
+    {
+      "path": "types/planning.ts",
+      "type": "ts",
+      "lines": 275
+    },
+    {
+      "path": "types/problemAttachment.ts",
+      "type": "ts",
+      "lines": 17
+    },
+    {
+      "path": "types/production.ts",
+      "type": "ts",
+      "lines": 125
+    },
+    {
+      "path": "types/purchase.ts",
+      "type": "ts",
+      "lines": 367
+    },
+    {
+      "path": "types/task.ts",
+      "type": "ts",
+      "lines": 311
+    },
+    {
+      "path": "types/techSolution.ts",
+      "type": "ts",
+      "lines": 58
+    },
+    {
+      "path": "types/views.ts",
+      "type": "ts",
+      "lines": 226
+    },
+    {
+      "path": "types/warehouseInbound.types.ts",
+      "type": "ts",
+      "lines": 358
+    },
+    {
+      "path": "utils/approvalLevelResolver.ts",
+      "type": "ts",
+      "lines": 352
+    },
+    {
+      "path": "utils/backupLocalStorage.ts",
+      "type": "ts",
+      "lines": 341
+    },
+    {
+      "path": "utils/exportUtils.ts",
+      "type": "ts",
+      "lines": 169
+    },
+    {
+      "path": "utils/migrationExecutor.ts",
+      "type": "ts",
+      "lines": 236
+    },
+    {
+      "path": "utils/migrationValidator.ts",
+      "type": "ts",
+      "lines": 240
+    },
+    {
+      "path": "utils/outboundPdfExporter.ts",
+      "type": "ts",
+      "lines": 121
+    },
+    {
+      "path": "utils/storageManager.ts",
+      "type": "ts",
+      "lines": 195
+    },
+    {
+      "path": "vite-env.d.ts",
+      "type": "ts",
+      "lines": 1
+    }
+  ]
+}

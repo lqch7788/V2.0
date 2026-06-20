@@ -6,6 +6,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 import pinia from './stores'
+import { registerDirectives } from './directives'
 import './styles/variables.css'
 import './styles/base.css'
 import './styles/element-plus.css'
@@ -16,6 +17,9 @@ const app = createApp(App)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
+
+// 注册全局自定义指令（拖拽 + 缩放）
+registerDirectives(app)
 
 app.use(pinia)
 app.use(router)

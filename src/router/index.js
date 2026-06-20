@@ -150,6 +150,25 @@ const routes = [
     component: () => import('@/views/system/BaseOperations.vue'),
     meta: { title: '基地运营中心' }
   },
+  // 【2026-06-20 修复 P0-CMP-002】新增 3 个 system 页面路由
+  {
+    path: '/settings/base-management',
+    name: 'BaseManagement',
+    component: () => import('@/views/system/authority/BaseManagement.vue'),
+    meta: { title: '基地管理' }
+  },
+  {
+    path: '/settings/greenhouse-management',
+    name: 'GreenhouseManagement',
+    component: () => import('@/views/system/authority/GreenhouseManagement.vue'),
+    meta: { title: '温室管理' }
+  },
+  {
+    path: '/settings/system-config-management',
+    name: 'SystemConfigManagement',
+    component: () => import('@/views/system/authority/SystemConfigManagement.vue'),
+    meta: { title: '系统配置' }
+  },
   {
     path: '/dashboard',
     name: 'Dashboard',
@@ -185,17 +204,32 @@ const routes = [
     component: () => import('@/views/farm/DailyWorkSummary.vue'),
     meta: { title: '每日工单汇总' }
   },
+  // 人工管理 - V1.1 风格聚合页面（2026-06-20 修复）
   {
     path: '/labor',
     name: 'Labor',
-    component: () => import('@/views/labor/LaborIndex.vue'),
-    meta: { title: '人工管理' }
+    component: () => import('@/views/labor/PersonnelPage.vue'),
+    meta: { title: '人事管理' }
   },
   {
     path: '/labor/attendance',
     name: 'LaborAttendance',
-    component: () => import('@/views/labor/Attendance.vue'),
+    component: () => import('@/views/labor/AttendancePage.vue'),
     meta: { title: '考勤管理' }
+  },
+  // 运营分析（4 Tab 聚合页）
+  {
+    path: '/labor/analytics',
+    name: 'LaborAnalytics',
+    component: () => import('@/views/labor/AnalyticsPage.vue'),
+    meta: { title: '运营分析' }
+  },
+  // 薪酬管理（4 Tab 聚合页）
+  {
+    path: '/labor/compensation',
+    name: 'LaborCompensation',
+    component: () => import('@/views/labor/CompensationPage.vue'),
+    meta: { title: '薪酬管理' }
   },
   {
     path: '/labor/personnel',

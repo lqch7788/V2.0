@@ -1,0 +1,5212 @@
+{
+  "scan_timestamp": "2026-06-20T08:45:30.460163",
+  "root": "D:/TMcrop/yuanxingtu/V2.0/src",
+  "version": "V1.1",
+  "total_files": 1036,
+  "by_type": {
+    "vue": 691,
+    "js": 342,
+    "css": 3
+  },
+  "by_directory": {
+    "(root)": 3,
+    "api": 24,
+    "composables": 39,
+    "config": 5,
+    "constants": 2,
+    "data": 11,
+    "hooks": 1,
+    "lib": 4,
+    "router": 2,
+    "services": 43,
+    "stores": 78,
+    "styles": 4,
+    "types": 22,
+    "utils": 7,
+    "views": 339,
+    "pages": 2,
+    "components": 450
+  },
+  "files": [
+    {
+      "path": "App.vue",
+      "type": "vue",
+      "lines": 33
+    },
+    {
+      "path": "api/alarmConfig.js",
+      "type": "js",
+      "lines": 39
+    },
+    {
+      "path": "api/cost.js",
+      "type": "js",
+      "lines": 81
+    },
+    {
+      "path": "api/crop/index.js",
+      "type": "js",
+      "lines": 190
+    },
+    {
+      "path": "api/farm/index.js",
+      "type": "js",
+      "lines": 43
+    },
+    {
+      "path": "api/index.js",
+      "type": "js",
+      "lines": 7
+    },
+    {
+      "path": "api/inventory/apiInventoryService.js",
+      "type": "js",
+      "lines": 177
+    },
+    {
+      "path": "api/inventory/inventoryIntegration.js",
+      "type": "js",
+      "lines": 294
+    },
+    {
+      "path": "api/inventory/inventoryService.js",
+      "type": "js",
+      "lines": 375
+    },
+    {
+      "path": "api/labor/index.js",
+      "type": "js",
+      "lines": 930
+    },
+    {
+      "path": "api/material/apiMaterialCodeCategoryService.js",
+      "type": "js",
+      "lines": 122
+    },
+    {
+      "path": "api/material/apiMaterialExecuteService.js",
+      "type": "js",
+      "lines": 117
+    },
+    {
+      "path": "api/material/apiMaterialRequestService.js",
+      "type": "js",
+      "lines": 289
+    },
+    {
+      "path": "api/material/apiMaterialReturnService.js",
+      "type": "js",
+      "lines": 158
+    },
+    {
+      "path": "api/material/apiMaterialStatisticsService.js",
+      "type": "js",
+      "lines": 96
+    },
+    {
+      "path": "api/material/apiWarehouseMaterialService.js",
+      "type": "js",
+      "lines": 207
+    },
+    {
+      "path": "api/request.js",
+      "type": "js",
+      "lines": 234
+    },
+    {
+      "path": "api/supplier/apiSupplierService.js",
+      "type": "js",
+      "lines": 181
+    },
+    {
+      "path": "api/system/approvalLevel.js",
+      "type": "js",
+      "lines": 120
+    },
+    {
+      "path": "api/system/approvalWorkflow.js",
+      "type": "js",
+      "lines": 129
+    },
+    {
+      "path": "api/system/authority.js",
+      "type": "js",
+      "lines": 316
+    },
+    {
+      "path": "api/system/index.js",
+      "type": "js",
+      "lines": 42
+    },
+    {
+      "path": "api/system/position.js",
+      "type": "js",
+      "lines": 50
+    },
+    {
+      "path": "api/warehouse/warehouseService.js",
+      "type": "js",
+      "lines": 135
+    },
+    {
+      "path": "api/workLog.js",
+      "type": "js",
+      "lines": 24
+    },
+    {
+      "path": "components/approval/ApprovalDetail.vue",
+      "type": "vue",
+      "lines": 412
+    },
+    {
+      "path": "components/approval/ApprovalFilters.vue",
+      "type": "vue",
+      "lines": 340
+    },
+    {
+      "path": "components/approval/ApprovalLevelBadge.vue",
+      "type": "vue",
+      "lines": 128
+    },
+    {
+      "path": "components/approval/ApprovalLevelInfo.vue",
+      "type": "vue",
+      "lines": 128
+    },
+    {
+      "path": "components/approval/ApprovalLevelTooltip.vue",
+      "type": "vue",
+      "lines": 48
+    },
+    {
+      "path": "components/approval/ApprovalList.vue",
+      "type": "vue",
+      "lines": 249
+    },
+    {
+      "path": "components/approval/ApprovalSubmitPanel.vue",
+      "type": "vue",
+      "lines": 251
+    },
+    {
+      "path": "components/approval/ApprovalTimeline.vue",
+      "type": "vue",
+      "lines": 253
+    },
+    {
+      "path": "components/approval/BatchActionBar.vue",
+      "type": "vue",
+      "lines": 225
+    },
+    {
+      "path": "components/approval/BatchConfirmModal.vue",
+      "type": "vue",
+      "lines": 190
+    },
+    {
+      "path": "components/approval/BatchResultModal.vue",
+      "type": "vue",
+      "lines": 188
+    },
+    {
+      "path": "components/approval/BusinessPreview.vue",
+      "type": "vue",
+      "lines": 295
+    },
+    {
+      "path": "components/approval/MaterialApprovalForm.vue",
+      "type": "vue",
+      "lines": 208
+    },
+    {
+      "path": "components/approval/NotificationPanel.vue",
+      "type": "vue",
+      "lines": 329
+    },
+    {
+      "path": "components/approval/index.js",
+      "type": "js",
+      "lines": 46
+    },
+    {
+      "path": "components/common/CustomIcons.vue",
+      "type": "vue",
+      "lines": 83
+    },
+    {
+      "path": "components/common/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 100
+    },
+    {
+      "path": "components/common/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 108
+    },
+    {
+      "path": "components/common/ImageLightboxModal.vue",
+      "type": "vue",
+      "lines": 90
+    },
+    {
+      "path": "components/common/MaterialAutocomplete.vue",
+      "type": "vue",
+      "lines": 193
+    },
+    {
+      "path": "components/common/PesticideSpecEditor.vue",
+      "type": "vue",
+      "lines": 205
+    },
+    {
+      "path": "components/common/TaskFlowTimeline.vue",
+      "type": "vue",
+      "lines": 102
+    },
+    {
+      "path": "components/common/badge/StatusBadge.vue",
+      "type": "vue",
+      "lines": 61
+    },
+    {
+      "path": "components/common/badge/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/common/index.js",
+      "type": "js",
+      "lines": 6
+    },
+    {
+      "path": "components/common/labor/LaborFilters.vue",
+      "type": "vue",
+      "lines": 133
+    },
+    {
+      "path": "components/common/labor/LaborPagination.vue",
+      "type": "vue",
+      "lines": 128
+    },
+    {
+      "path": "components/common/labor/LaborStatCard.vue",
+      "type": "vue",
+      "lines": 67
+    },
+    {
+      "path": "components/common/labor/LaborStatusBadge.vue",
+      "type": "vue",
+      "lines": 53
+    },
+    {
+      "path": "components/common/labor/LaborTable.vue",
+      "type": "vue",
+      "lines": 138
+    },
+    {
+      "path": "components/common/labor/index.js",
+      "type": "js",
+      "lines": 6
+    },
+    {
+      "path": "components/crop/CropCodeSelector.vue",
+      "type": "vue",
+      "lines": 232
+    },
+    {
+      "path": "components/crop/OptionItem.vue",
+      "type": "vue",
+      "lines": 28
+    },
+    {
+      "path": "components/dashboard/ImageEnlargementModal.vue",
+      "type": "vue",
+      "lines": 44
+    },
+    {
+      "path": "components/dashboard/cards/AlertsCard.vue",
+      "type": "vue",
+      "lines": 53
+    },
+    {
+      "path": "components/dashboard/cards/EnergyCard.vue",
+      "type": "vue",
+      "lines": 48
+    },
+    {
+      "path": "components/dashboard/cards/EquipmentStatusCard.vue",
+      "type": "vue",
+      "lines": 40
+    },
+    {
+      "path": "components/dashboard/cards/InventoryAlertCard.vue",
+      "type": "vue",
+      "lines": 29
+    },
+    {
+      "path": "components/dashboard/cards/ProductionProgressCard.vue",
+      "type": "vue",
+      "lines": 38
+    },
+    {
+      "path": "components/dashboard/cards/StatCard.vue",
+      "type": "vue",
+      "lines": 52
+    },
+    {
+      "path": "components/dashboard/cards/TodayTasksCard.vue",
+      "type": "vue",
+      "lines": 53
+    },
+    {
+      "path": "components/dashboard/cards/index.js",
+      "type": "js",
+      "lines": 8
+    },
+    {
+      "path": "components/dashboard/index.js",
+      "type": "js",
+      "lines": 4
+    },
+    {
+      "path": "components/dashboard/widgets/AlertItem.vue",
+      "type": "vue",
+      "lines": 22
+    },
+    {
+      "path": "components/dashboard/widgets/IoTSensorCard.vue",
+      "type": "vue",
+      "lines": 59
+    },
+    {
+      "path": "components/dashboard/widgets/TaskCard.vue",
+      "type": "vue",
+      "lines": 80
+    },
+    {
+      "path": "components/dashboard/widgets/WeatherWidget.vue",
+      "type": "vue",
+      "lines": 137
+    },
+    {
+      "path": "components/dashboard/widgets/index.js",
+      "type": "js",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/agriculture/AgricultureRecordFilterToolbar.vue",
+      "type": "vue",
+      "lines": 133
+    },
+    {
+      "path": "components/farm/agriculture/AgricultureRecordPage.vue",
+      "type": "vue",
+      "lines": 646
+    },
+    {
+      "path": "components/farm/agriculture/AgricultureRecordPageHeader.vue",
+      "type": "vue",
+      "lines": 39
+    },
+    {
+      "path": "components/farm/agriculture/AgricultureRecordPagination.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "components/farm/agriculture/components/AgricultureRecordTableToolbar.vue",
+      "type": "vue",
+      "lines": 38
+    },
+    {
+      "path": "components/farm/agriculture/components/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/agriculture/index.js",
+      "type": "js",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/agriculture/modals/AddOperationRecordModal.vue",
+      "type": "vue",
+      "lines": 83
+    },
+    {
+      "path": "components/farm/agriculture/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 61
+    },
+    {
+      "path": "components/farm/agriculture/modals/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/agriculture/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/agriculture/modals/index.js",
+      "type": "js",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/common/CodeToolbar.vue",
+      "type": "vue",
+      "lines": 24
+    },
+    {
+      "path": "components/farm/common/FilterToolbar.vue",
+      "type": "vue",
+      "lines": 32
+    },
+    {
+      "path": "components/farm/common/StatsCard.vue",
+      "type": "vue",
+      "lines": 32
+    },
+    {
+      "path": "components/farm/common/index.js",
+      "type": "js",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/crop-variety/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerBatchDeleteModal.vue",
+      "type": "vue",
+      "lines": 27
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerCodeGenerator.vue",
+      "type": "vue",
+      "lines": 38
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerExportModal.vue",
+      "type": "vue",
+      "lines": 32
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerFilter.vue",
+      "type": "vue",
+      "lines": 65
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerStatsPanel.vue",
+      "type": "vue",
+      "lines": 140
+    },
+    {
+      "path": "components/farm/fertilizer/FertilizerTable.vue",
+      "type": "vue",
+      "lines": 128
+    },
+    {
+      "path": "components/farm/fertilizer/IotDataIndicator.vue",
+      "type": "vue",
+      "lines": 31
+    },
+    {
+      "path": "components/farm/fertilizer/index.js",
+      "type": "js",
+      "lines": 9
+    },
+    {
+      "path": "components/farm/fertilizer/modals/FertilizerAddModal.vue",
+      "type": "vue",
+      "lines": 113
+    },
+    {
+      "path": "components/farm/fertilizer/modals/FertilizerDetailModal.vue",
+      "type": "vue",
+      "lines": 37
+    },
+    {
+      "path": "components/farm/fertilizer/modals/FertilizerEditModal.vue",
+      "type": "vue",
+      "lines": 90
+    },
+    {
+      "path": "components/farm/fertilizer/modals/index.js",
+      "type": "js",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/harvest/HarvestFilterToolbar.vue",
+      "type": "vue",
+      "lines": 194
+    },
+    {
+      "path": "components/farm/harvest/HarvestTable.vue",
+      "type": "vue",
+      "lines": 323
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestPageHeader.vue",
+      "type": "vue",
+      "lines": 22
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestStatsCards.vue",
+      "type": "vue",
+      "lines": 74
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestTabSwitch.vue",
+      "type": "vue",
+      "lines": 21
+    },
+    {
+      "path": "components/farm/harvest/components/HarvestTableToolbar.vue",
+      "type": "vue",
+      "lines": 56
+    },
+    {
+      "path": "components/farm/harvest/components/index.js",
+      "type": "js",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/harvest/index.js",
+      "type": "js",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/harvest/modals/AddModal.vue",
+      "type": "vue",
+      "lines": 690
+    },
+    {
+      "path": "components/farm/harvest/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 343
+    },
+    {
+      "path": "components/farm/harvest/modals/DeleteModal.vue",
+      "type": "vue",
+      "lines": 119
+    },
+    {
+      "path": "components/farm/harvest/modals/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 6
+    },
+    {
+      "path": "components/farm/harvest/modals/DetailModal.vue",
+      "type": "vue",
+      "lines": 321
+    },
+    {
+      "path": "components/farm/harvest/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 6
+    },
+    {
+      "path": "components/farm/harvest/modals/ExportModal.vue",
+      "type": "vue",
+      "lines": 142
+    },
+    {
+      "path": "components/farm/harvest/modals/index.js",
+      "type": "js",
+      "lines": 8
+    },
+    {
+      "path": "components/farm/hub/BatchImportModal.vue",
+      "type": "vue",
+      "lines": 305
+    },
+    {
+      "path": "components/farm/hub/CalendarView.vue",
+      "type": "vue",
+      "lines": 455
+    },
+    {
+      "path": "components/farm/hub/ConfigFieldRenderer.vue",
+      "type": "vue",
+      "lines": 348
+    },
+    {
+      "path": "components/farm/hub/CreateInspectionModal.vue",
+      "type": "vue",
+      "lines": 924
+    },
+    {
+      "path": "components/farm/hub/CreateTaskModal.vue",
+      "type": "vue",
+      "lines": 1202
+    },
+    {
+      "path": "components/farm/hub/DetailInspectionModal.vue",
+      "type": "vue",
+      "lines": 686
+    },
+    {
+      "path": "components/farm/hub/FarmHubHeader.vue",
+      "type": "vue",
+      "lines": 146
+    },
+    {
+      "path": "components/farm/hub/FilterToolbar.vue",
+      "type": "vue",
+      "lines": 205
+    },
+    {
+      "path": "components/farm/hub/HubPageHeader.vue",
+      "type": "vue",
+      "lines": 22
+    },
+    {
+      "path": "components/farm/hub/InspectionDetailModal.vue",
+      "type": "vue",
+      "lines": 303
+    },
+    {
+      "path": "components/farm/hub/InspectionSearch.vue",
+      "type": "vue",
+      "lines": 149
+    },
+    {
+      "path": "components/farm/hub/InspectionTab.vue",
+      "type": "vue",
+      "lines": 1300
+    },
+    {
+      "path": "components/farm/hub/InspectionToolbar.vue",
+      "type": "vue",
+      "lines": 93
+    },
+    {
+      "path": "components/farm/hub/OperationRecordPanel.vue",
+      "type": "vue",
+      "lines": 286
+    },
+    {
+      "path": "components/farm/hub/OvertimeBadge.vue",
+      "type": "vue",
+      "lines": 96
+    },
+    {
+      "path": "components/farm/hub/OvertimeHandleModal.vue",
+      "type": "vue",
+      "lines": 301
+    },
+    {
+      "path": "components/farm/hub/PageHeader.vue",
+      "type": "vue",
+      "lines": 24
+    },
+    {
+      "path": "components/farm/hub/ProblemDispatchModal.vue",
+      "type": "vue",
+      "lines": 376
+    },
+    {
+      "path": "components/farm/hub/ProblemTab.vue",
+      "type": "vue",
+      "lines": 1926
+    },
+    {
+      "path": "components/farm/hub/ReassignTaskModal.vue",
+      "type": "vue",
+      "lines": 214
+    },
+    {
+      "path": "components/farm/hub/SelectExecutorModal.vue",
+      "type": "vue",
+      "lines": 423
+    },
+    {
+      "path": "components/farm/hub/StatsCards.vue",
+      "type": "vue",
+      "lines": 75
+    },
+    {
+      "path": "components/farm/hub/TaskAcceptanceModal.vue",
+      "type": "vue",
+      "lines": 403
+    },
+    {
+      "path": "components/farm/hub/TaskDetailModal.vue",
+      "type": "vue",
+      "lines": 480
+    },
+    {
+      "path": "components/farm/hub/TaskExecuteCard.vue",
+      "type": "vue",
+      "lines": 426
+    },
+    {
+      "path": "components/farm/hub/TaskProgressTimeline.vue",
+      "type": "vue",
+      "lines": 192
+    },
+    {
+      "path": "components/farm/hub/TaskTab.vue",
+      "type": "vue",
+      "lines": 447
+    },
+    {
+      "path": "components/farm/hub/TaskTable.vue",
+      "type": "vue",
+      "lines": 334
+    },
+    {
+      "path": "components/farm/hub/TaskTableHeader.vue",
+      "type": "vue",
+      "lines": 70
+    },
+    {
+      "path": "components/farm/hub/TaskTableRow.vue",
+      "type": "vue",
+      "lines": 374
+    },
+    {
+      "path": "components/farm/hub/TaskTypeConfigDisplay.vue",
+      "type": "vue",
+      "lines": 165
+    },
+    {
+      "path": "components/farm/hub/TaskTypeConfigPanel.vue",
+      "type": "vue",
+      "lines": 108
+    },
+    {
+      "path": "components/farm/hub/TempTaskTab.vue",
+      "type": "vue",
+      "lines": 684
+    },
+    {
+      "path": "components/farm/hub/TodayOperationRecords.vue",
+      "type": "vue",
+      "lines": 56
+    },
+    {
+      "path": "components/farm/hub/VerifyTaskModal.vue",
+      "type": "vue",
+      "lines": 221
+    },
+    {
+      "path": "components/farm/hub/WithdrawCancelModal.vue",
+      "type": "vue",
+      "lines": 189
+    },
+    {
+      "path": "components/farm/hub/components/index.js",
+      "type": "js",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/hub/index.js",
+      "type": "js",
+      "lines": 14
+    },
+    {
+      "path": "components/farm/hub/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 319
+    },
+    {
+      "path": "components/farm/hub/modals/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 14
+    },
+    {
+      "path": "components/farm/hub/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 14
+    },
+    {
+      "path": "components/farm/hub/modals/InspectionAcceptanceModal.vue",
+      "type": "vue",
+      "lines": 464
+    },
+    {
+      "path": "components/farm/hub/modals/TempTaskAcceptanceModal.vue",
+      "type": "vue",
+      "lines": 413
+    },
+    {
+      "path": "components/farm/index.js",
+      "type": "js",
+      "lines": 13
+    },
+    {
+      "path": "components/farm/inspection/DetailInspectionModal.vue",
+      "type": "vue",
+      "lines": 298
+    },
+    {
+      "path": "components/farm/inspection/InspectionSearch.vue",
+      "type": "vue",
+      "lines": 106
+    },
+    {
+      "path": "components/farm/inspection/InspectionTable.vue",
+      "type": "vue",
+      "lines": 257
+    },
+    {
+      "path": "components/farm/inspection/InspectionToolbar.vue",
+      "type": "vue",
+      "lines": 69
+    },
+    {
+      "path": "components/farm/inspection/components/InspectionPageHeader.vue",
+      "type": "vue",
+      "lines": 19
+    },
+    {
+      "path": "components/farm/inspection/components/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/inspection/index.js",
+      "type": "js",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/inspection/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 88
+    },
+    {
+      "path": "components/farm/inspection/modals/CreateInspectionModal.vue",
+      "type": "vue",
+      "lines": 335
+    },
+    {
+      "path": "components/farm/inspection/modals/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/inspection/modals/index.js",
+      "type": "js",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/planting/PlantingFilterToolbar.vue",
+      "type": "vue",
+      "lines": 190
+    },
+    {
+      "path": "components/farm/planting/PlantingPage.vue",
+      "type": "vue",
+      "lines": 760
+    },
+    {
+      "path": "components/farm/planting/PlantingTable.vue",
+      "type": "vue",
+      "lines": 809
+    },
+    {
+      "path": "components/farm/planting/components/PlantingFilter.vue",
+      "type": "vue",
+      "lines": 272
+    },
+    {
+      "path": "components/farm/planting/components/PlantingStats.vue",
+      "type": "vue",
+      "lines": 100
+    },
+    {
+      "path": "components/farm/planting/components/index.js",
+      "type": "js",
+      "lines": 3
+    },
+    {
+      "path": "components/farm/planting/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/planting/modals/AddModal.vue",
+      "type": "vue",
+      "lines": 520
+    },
+    {
+      "path": "components/farm/planting/modals/DetailModal.vue",
+      "type": "vue",
+      "lines": 199
+    },
+    {
+      "path": "components/farm/planting/modals/EditModal.vue",
+      "type": "vue",
+      "lines": 230
+    },
+    {
+      "path": "components/farm/planting/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 4
+    },
+    {
+      "path": "components/farm/planting/modals/ExportModal.vue",
+      "type": "vue",
+      "lines": 91
+    },
+    {
+      "path": "components/farm/planting/modals/HarvestModal.vue",
+      "type": "vue",
+      "lines": 163
+    },
+    {
+      "path": "components/farm/planting/modals/ImageLightboxModal.vue",
+      "type": "vue",
+      "lines": 64
+    },
+    {
+      "path": "components/farm/planting/modals/LabelDetailModal.vue",
+      "type": "vue",
+      "lines": 203
+    },
+    {
+      "path": "components/farm/planting/modals/MarkModal.vue",
+      "type": "vue",
+      "lines": 358
+    },
+    {
+      "path": "components/farm/planting/modals/MoveModal.vue",
+      "type": "vue",
+      "lines": 258
+    },
+    {
+      "path": "components/farm/planting/modals/PlantingLabelDetailModal.vue",
+      "type": "vue",
+      "lines": 533
+    },
+    {
+      "path": "components/farm/planting/modals/PrintModal.vue",
+      "type": "vue",
+      "lines": 341
+    },
+    {
+      "path": "components/farm/planting/modals/index.js",
+      "type": "js",
+      "lines": 12
+    },
+    {
+      "path": "components/farm/problemDispatch/components/ProblemFilterToolbar.vue",
+      "type": "vue",
+      "lines": 122
+    },
+    {
+      "path": "components/farm/problemDispatch/components/ProblemPageHeader.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "components/farm/problemDispatch/components/ProblemStatsCards.vue",
+      "type": "vue",
+      "lines": 63
+    },
+    {
+      "path": "components/farm/problemDispatch/components/ProblemTable.vue",
+      "type": "vue",
+      "lines": 153
+    },
+    {
+      "path": "components/farm/problemDispatch/components/SourceBadge.vue",
+      "type": "vue",
+      "lines": 37
+    },
+    {
+      "path": "components/farm/problemDispatch/components/SourceCell.vue",
+      "type": "vue",
+      "lines": 18
+    },
+    {
+      "path": "components/farm/problemDispatch/components/SourceFilter.vue",
+      "type": "vue",
+      "lines": 22
+    },
+    {
+      "path": "components/farm/problemDispatch/components/index.js",
+      "type": "js",
+      "lines": 8
+    },
+    {
+      "path": "components/farm/problemDispatch/constants/sourceConfig.js",
+      "type": "js",
+      "lines": 30
+    },
+    {
+      "path": "components/farm/problemDispatch/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 168
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/CreateProblemModal.vue",
+      "type": "vue",
+      "lines": 104
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/problemDispatch/modals/index.js",
+      "type": "js",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/seed-source/components/SeedSourceFilter.vue",
+      "type": "vue",
+      "lines": 168
+    },
+    {
+      "path": "components/farm/seed-source/components/SeedSourceStats.vue",
+      "type": "vue",
+      "lines": 65
+    },
+    {
+      "path": "components/farm/seed-source/components/SeedSourceTable.vue",
+      "type": "vue",
+      "lines": 640
+    },
+    {
+      "path": "components/farm/seed-source/components/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/seed-source/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/seed-source/modals/AddModal.vue",
+      "type": "vue",
+      "lines": 795
+    },
+    {
+      "path": "components/farm/seed-source/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 516
+    },
+    {
+      "path": "components/farm/seed-source/modals/DetailModal.vue",
+      "type": "vue",
+      "lines": 286
+    },
+    {
+      "path": "components/farm/seed-source/modals/EditModal.vue",
+      "type": "vue",
+      "lines": 427
+    },
+    {
+      "path": "components/farm/seed-source/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/seed-source/modals/ImageLightboxModal.vue",
+      "type": "vue",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/seed-source/modals/PrintLabelModal.vue",
+      "type": "vue",
+      "lines": 531
+    },
+    {
+      "path": "components/farm/seed-source/modals/PropagationRecordModal.vue",
+      "type": "vue",
+      "lines": 344
+    },
+    {
+      "path": "components/farm/seed-source/modals/PropagationStageModal.vue",
+      "type": "vue",
+      "lines": 300
+    },
+    {
+      "path": "components/farm/seed-source/modals/index.js",
+      "type": "js",
+      "lines": 10
+    },
+    {
+      "path": "components/farm/seedling/components/SeedlingFilter.vue",
+      "type": "vue",
+      "lines": 152
+    },
+    {
+      "path": "components/farm/seedling/components/SeedlingStats.vue",
+      "type": "vue",
+      "lines": 79
+    },
+    {
+      "path": "components/farm/seedling/components/SeedlingTable.vue",
+      "type": "vue",
+      "lines": 627
+    },
+    {
+      "path": "components/farm/seedling/components/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/seedling/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/seedling/modals/AddModal.vue",
+      "type": "vue",
+      "lines": 534
+    },
+    {
+      "path": "components/farm/seedling/modals/DailyRecordModal.vue",
+      "type": "vue",
+      "lines": 465
+    },
+    {
+      "path": "components/farm/seedling/modals/DetailModal.vue",
+      "type": "vue",
+      "lines": 371
+    },
+    {
+      "path": "components/farm/seedling/modals/EditModal.vue",
+      "type": "vue",
+      "lines": 410
+    },
+    {
+      "path": "components/farm/seedling/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/seedling/modals/ImageLightboxModal.vue",
+      "type": "vue",
+      "lines": 5
+    },
+    {
+      "path": "components/farm/seedling/modals/PrintLabelModal.vue",
+      "type": "vue",
+      "lines": 515
+    },
+    {
+      "path": "components/farm/seedling/modals/SeedlingLabelManageModal.vue",
+      "type": "vue",
+      "lines": 279
+    },
+    {
+      "path": "components/farm/seedling/modals/TransplantHistoryModal.vue",
+      "type": "vue",
+      "lines": 166
+    },
+    {
+      "path": "components/farm/seedling/modals/TransplantModal.vue",
+      "type": "vue",
+      "lines": 241
+    },
+    {
+      "path": "components/farm/seedling/modals/index.js",
+      "type": "js",
+      "lines": 11
+    },
+    {
+      "path": "components/farm/taskDispatch/components/ConfigFieldRenderer.vue",
+      "type": "vue",
+      "lines": 221
+    },
+    {
+      "path": "components/farm/taskDispatch/components/FilterToolbar.vue",
+      "type": "vue",
+      "lines": 131
+    },
+    {
+      "path": "components/farm/taskDispatch/components/OvertimeBadge.vue",
+      "type": "vue",
+      "lines": 39
+    },
+    {
+      "path": "components/farm/taskDispatch/components/PageHeader.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "components/farm/taskDispatch/components/StatsCards.vue",
+      "type": "vue",
+      "lines": 70
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskExecuteCard.vue",
+      "type": "vue",
+      "lines": 147
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskProgressTimeline.vue",
+      "type": "vue",
+      "lines": 51
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTable.vue",
+      "type": "vue",
+      "lines": 184
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTableHeader.vue",
+      "type": "vue",
+      "lines": 40
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTableRow.vue",
+      "type": "vue",
+      "lines": 198
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTypeConfigDisplay.vue",
+      "type": "vue",
+      "lines": 177
+    },
+    {
+      "path": "components/farm/taskDispatch/components/TaskTypeConfigPanel.vue",
+      "type": "vue",
+      "lines": 170
+    },
+    {
+      "path": "components/farm/taskDispatch/components/index.js",
+      "type": "js",
+      "lines": 13
+    },
+    {
+      "path": "components/farm/taskDispatch/constants/taskDispatchConstants.js",
+      "type": "js",
+      "lines": 104
+    },
+    {
+      "path": "components/farm/taskDispatch/hooks/useTaskTypeConfig.js",
+      "type": "js",
+      "lines": 164
+    },
+    {
+      "path": "components/farm/taskDispatch/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 190
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/CreateTaskModal.vue",
+      "type": "vue",
+      "lines": 131
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 6
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 6
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/OvertimeHandleModal.vue",
+      "type": "vue",
+      "lines": 162
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/ReassignTaskModal.vue",
+      "type": "vue",
+      "lines": 109
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/TaskAcceptanceModal.vue",
+      "type": "vue",
+      "lines": 191
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/VerifyTaskModal.vue",
+      "type": "vue",
+      "lines": 136
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/WithdrawCancelModal.vue",
+      "type": "vue",
+      "lines": 98
+    },
+    {
+      "path": "components/farm/taskDispatch/modals/index.js",
+      "type": "js",
+      "lines": 10
+    },
+    {
+      "path": "components/farm/trace/TraceChain.vue",
+      "type": "vue",
+      "lines": 133
+    },
+    {
+      "path": "components/farm/trace/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/icons/UserDelete.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "components/inventory/ProduceDetailModal.vue",
+      "type": "vue",
+      "lines": 246
+    },
+    {
+      "path": "components/inventory/ProduceInventoryAddModal.vue",
+      "type": "vue",
+      "lines": 377
+    },
+    {
+      "path": "components/inventory/ProduceInventoryBatchEditModal.vue",
+      "type": "vue",
+      "lines": 334
+    },
+    {
+      "path": "components/inventory/ProduceInventoryToolbar.vue",
+      "type": "vue",
+      "lines": 82
+    },
+    {
+      "path": "components/inventory/index.js",
+      "type": "js",
+      "lines": 7
+    },
+    {
+      "path": "components/labor/attendance/WorkerAttendanceFilters.vue",
+      "type": "vue",
+      "lines": 68
+    },
+    {
+      "path": "components/labor/attendance/index.js",
+      "type": "js",
+      "lines": 9
+    },
+    {
+      "path": "components/labor/budget/BudgetChart.vue",
+      "type": "vue",
+      "lines": 40
+    },
+    {
+      "path": "components/labor/budget/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/dispatch/DispatchRecommend.vue",
+      "type": "vue",
+      "lines": 80
+    },
+    {
+      "path": "components/labor/dispatch/WorkerMatchList.vue",
+      "type": "vue",
+      "lines": 103
+    },
+    {
+      "path": "components/labor/dispatch/index.js",
+      "type": "js",
+      "lines": 3
+    },
+    {
+      "path": "components/labor/efficiency/EfficiencyChart.vue",
+      "type": "vue",
+      "lines": 52
+    },
+    {
+      "path": "components/labor/efficiency/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/leave/LeaveDetailModal.vue",
+      "type": "vue",
+      "lines": 106
+    },
+    {
+      "path": "components/labor/leave/LeaveQuota.vue",
+      "type": "vue",
+      "lines": 101
+    },
+    {
+      "path": "components/labor/leave/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/monthly/MonthlyStatsCards.vue",
+      "type": "vue",
+      "lines": 58
+    },
+    {
+      "path": "components/labor/monthly/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/myTasks/ProductionTaskTableRow.vue",
+      "type": "vue",
+      "lines": 351
+    },
+    {
+      "path": "components/labor/myTasks/TaskPagination.vue",
+      "type": "vue",
+      "lines": 40
+    },
+    {
+      "path": "components/labor/myTasks/TaskSopModal.vue",
+      "type": "vue",
+      "lines": 58
+    },
+    {
+      "path": "components/labor/myTasks/index.js",
+      "type": "js",
+      "lines": 3
+    },
+    {
+      "path": "components/labor/overtime/OvertimeDetailModal.vue",
+      "type": "vue",
+      "lines": 136
+    },
+    {
+      "path": "components/labor/overtime/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/performance/PerformanceChart.vue",
+      "type": "vue",
+      "lines": 74
+    },
+    {
+      "path": "components/labor/performance/PerformanceDetailModal.vue",
+      "type": "vue",
+      "lines": 128
+    },
+    {
+      "path": "components/labor/performance/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/personnel/PersonnelDetailModal.vue",
+      "type": "vue",
+      "lines": 342
+    },
+    {
+      "path": "components/labor/personnel/PersonnelFilters.vue",
+      "type": "vue",
+      "lines": 58
+    },
+    {
+      "path": "components/labor/personnel/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/risk/RiskAlertDetailModal.vue",
+      "type": "vue",
+      "lines": 156
+    },
+    {
+      "path": "components/labor/risk/RiskDashboard.vue",
+      "type": "vue",
+      "lines": 117
+    },
+    {
+      "path": "components/labor/risk/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/salary/SalaryFilters.vue",
+      "type": "vue",
+      "lines": 124
+    },
+    {
+      "path": "components/labor/salary/SalarySlipModal.vue",
+      "type": "vue",
+      "lines": 142
+    },
+    {
+      "path": "components/labor/salary/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/schedule/ScheduleCalendar.vue",
+      "type": "vue",
+      "lines": 165
+    },
+    {
+      "path": "components/labor/schedule/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/skill/SkillFilters.vue",
+      "type": "vue",
+      "lines": 108
+    },
+    {
+      "path": "components/labor/skill/SkillMatch.vue",
+      "type": "vue",
+      "lines": 103
+    },
+    {
+      "path": "components/labor/skill/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/tasks/TaskPriorityBadge.vue",
+      "type": "vue",
+      "lines": 33
+    },
+    {
+      "path": "components/labor/tasks/TaskStatusBadge.vue",
+      "type": "vue",
+      "lines": 45
+    },
+    {
+      "path": "components/labor/tasks/TaskTypeTag.vue",
+      "type": "vue",
+      "lines": 11
+    },
+    {
+      "path": "components/labor/tasks/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/labor/team/TeamAssignModal.vue",
+      "type": "vue",
+      "lines": 103
+    },
+    {
+      "path": "components/labor/team/TeamDetailModal.vue",
+      "type": "vue",
+      "lines": 73
+    },
+    {
+      "path": "components/labor/team/index.js",
+      "type": "js",
+      "lines": 2
+    },
+    {
+      "path": "components/layout/Header.vue",
+      "type": "vue",
+      "lines": 377
+    },
+    {
+      "path": "components/layout/Layout.vue",
+      "type": "vue",
+      "lines": 84
+    },
+    {
+      "path": "components/layout/Sidebar.vue",
+      "type": "vue",
+      "lines": 762
+    },
+    {
+      "path": "components/layout/index.js",
+      "type": "js",
+      "lines": 3
+    },
+    {
+      "path": "components/materialReceiving/ApplicationFilters.vue",
+      "type": "vue",
+      "lines": 170
+    },
+    {
+      "path": "components/materialReceiving/ApplicationTable.vue",
+      "type": "vue",
+      "lines": 286
+    },
+    {
+      "path": "components/materialReceiving/ExecuteTabFilters.vue",
+      "type": "vue",
+      "lines": 162
+    },
+    {
+      "path": "components/materialReceiving/ExecuteTabTable.vue",
+      "type": "vue",
+      "lines": 270
+    },
+    {
+      "path": "components/materialReceiving/MaterialReceivingHeader.vue",
+      "type": "vue",
+      "lines": 56
+    },
+    {
+      "path": "components/materialReceiving/index.js",
+      "type": "js",
+      "lines": 8
+    },
+    {
+      "path": "components/materialReceiving/modals/AddModal.vue",
+      "type": "vue",
+      "lines": 214
+    },
+    {
+      "path": "components/materialReceiving/modals/BatchDeleteConfirmModal.vue",
+      "type": "vue",
+      "lines": 58
+    },
+    {
+      "path": "components/materialReceiving/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 246
+    },
+    {
+      "path": "components/materialReceiving/modals/DeleteConfirm.vue",
+      "type": "vue",
+      "lines": 45
+    },
+    {
+      "path": "components/materialReceiving/modals/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 67
+    },
+    {
+      "path": "components/materialReceiving/modals/DetailModal.vue",
+      "type": "vue",
+      "lines": 119
+    },
+    {
+      "path": "components/materialReceiving/modals/EditModal.vue",
+      "type": "vue",
+      "lines": 228
+    },
+    {
+      "path": "components/materialReceiving/modals/EditWarningModal.vue",
+      "type": "vue",
+      "lines": 45
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteAddModal.vue",
+      "type": "vue",
+      "lines": 273
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteBatchDeleteConfirmModal.vue",
+      "type": "vue",
+      "lines": 55
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteBatchEditModal.vue",
+      "type": "vue",
+      "lines": 202
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteDeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 46
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteDetailModal.vue",
+      "type": "vue",
+      "lines": 150
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteEditModal.vue",
+      "type": "vue",
+      "lines": 206
+    },
+    {
+      "path": "components/materialReceiving/modals/ExecuteEditWarningModal.vue",
+      "type": "vue",
+      "lines": 46
+    },
+    {
+      "path": "components/materialReceiving/modals/ExportTypeModal.vue",
+      "type": "vue",
+      "lines": 93
+    },
+    {
+      "path": "components/materialReceiving/modals/StatDetailModal.vue",
+      "type": "vue",
+      "lines": 161
+    },
+    {
+      "path": "components/materialReceiving/modals/VoidModal.vue",
+      "type": "vue",
+      "lines": 76
+    },
+    {
+      "path": "components/materialReceiving/modals/index.js",
+      "type": "js",
+      "lines": 23
+    },
+    {
+      "path": "components/materialReceiving/stats/StatCards.vue",
+      "type": "vue",
+      "lines": 84
+    },
+    {
+      "path": "components/materialReceiving/stats/StatFiltersForm.vue",
+      "type": "vue",
+      "lines": 69
+    },
+    {
+      "path": "components/materialReceiving/stats/StatMaterialTable.vue",
+      "type": "vue",
+      "lines": 82
+    },
+    {
+      "path": "components/materialReceiving/stats/StatMonthlyTable.vue",
+      "type": "vue",
+      "lines": 124
+    },
+    {
+      "path": "components/materialReceiving/stats/StatSearchBar.vue",
+      "type": "vue",
+      "lines": 223
+    },
+    {
+      "path": "components/materialReceiving/stats/StatTabHeader.vue",
+      "type": "vue",
+      "lines": 36
+    },
+    {
+      "path": "components/materialReceiving/stats/index.js",
+      "type": "js",
+      "lines": 9
+    },
+    {
+      "path": "components/materialReturn/MaterialReturnHeader.vue",
+      "type": "vue",
+      "lines": 19
+    },
+    {
+      "path": "components/materialReturn/MaterialReturnSearch.vue",
+      "type": "vue",
+      "lines": 96
+    },
+    {
+      "path": "components/materialReturn/MaterialReturnTable.vue",
+      "type": "vue",
+      "lines": 77
+    },
+    {
+      "path": "components/materialReturn/index.js",
+      "type": "js",
+      "lines": 8
+    },
+    {
+      "path": "components/materialReturn/mockData.js",
+      "type": "js",
+      "lines": 65
+    },
+    {
+      "path": "components/materialReturn/types.js",
+      "type": "js",
+      "lines": 60
+    },
+    {
+      "path": "components/materials/AddInboundModal.vue",
+      "type": "vue",
+      "lines": 203
+    },
+    {
+      "path": "components/materials/InboundTable.vue",
+      "type": "vue",
+      "lines": 89
+    },
+    {
+      "path": "components/materials/MaterialsCodeGenerator.vue",
+      "type": "vue",
+      "lines": 174
+    },
+    {
+      "path": "components/materials/MaterialsFilters.vue",
+      "type": "vue",
+      "lines": 175
+    },
+    {
+      "path": "components/materials/MaterialsHeader.vue",
+      "type": "vue",
+      "lines": 47
+    },
+    {
+      "path": "components/materials/MaterialsTable.vue",
+      "type": "vue",
+      "lines": 143
+    },
+    {
+      "path": "components/materials/mockData.js",
+      "type": "js",
+      "lines": 282
+    },
+    {
+      "path": "components/materials/types.js",
+      "type": "js",
+      "lines": 92
+    },
+    {
+      "path": "components/production/ExpandableStatCard.vue",
+      "type": "vue",
+      "lines": 60
+    },
+    {
+      "path": "components/production/ProductionChainTable.vue",
+      "type": "vue",
+      "lines": 276
+    },
+    {
+      "path": "components/production/ProductionFilters.vue",
+      "type": "vue",
+      "lines": 195
+    },
+    {
+      "path": "components/production/ProductionPage.vue",
+      "type": "vue",
+      "lines": 271
+    },
+    {
+      "path": "components/production/ProductionStatsCards.vue",
+      "type": "vue",
+      "lines": 120
+    },
+    {
+      "path": "components/production/ProductionTable.vue",
+      "type": "vue",
+      "lines": 584
+    },
+    {
+      "path": "components/production/SummaryReportTab.vue",
+      "type": "vue",
+      "lines": 189
+    },
+    {
+      "path": "components/production/constants.js",
+      "type": "js",
+      "lines": 133
+    },
+    {
+      "path": "components/production/modals/BatchDetailModal.vue",
+      "type": "vue",
+      "lines": 271
+    },
+    {
+      "path": "components/production/modals/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 699
+    },
+    {
+      "path": "components/production/modals/CreateBatchModal.vue",
+      "type": "vue",
+      "lines": 644
+    },
+    {
+      "path": "components/production/modals/VoidWarningModal.vue",
+      "type": "vue",
+      "lines": 67
+    },
+    {
+      "path": "components/purchasePlan/AlertStats.vue",
+      "type": "vue",
+      "lines": 94
+    },
+    {
+      "path": "components/purchasePlan/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 627
+    },
+    {
+      "path": "components/purchasePlan/CreatePlanModal.vue",
+      "type": "vue",
+      "lines": 864
+    },
+    {
+      "path": "components/purchasePlan/MaterialItemsTable.vue",
+      "type": "vue",
+      "lines": 250
+    },
+    {
+      "path": "components/purchasePlan/PlanDetailModal.vue",
+      "type": "vue",
+      "lines": 371
+    },
+    {
+      "path": "components/purchasePlan/PurchasePlanFilters.vue",
+      "type": "vue",
+      "lines": 174
+    },
+    {
+      "path": "components/purchasePlan/PurchasePlanPage.vue",
+      "type": "vue",
+      "lines": 1191
+    },
+    {
+      "path": "components/purchasePlan/PurchasePlanTable.vue",
+      "type": "vue",
+      "lines": 507
+    },
+    {
+      "path": "components/summary/AlertCard.vue",
+      "type": "vue",
+      "lines": 85
+    },
+    {
+      "path": "components/summary/DetailDrawer.vue",
+      "type": "vue",
+      "lines": 48
+    },
+    {
+      "path": "components/summary/ExportModal.vue",
+      "type": "vue",
+      "lines": 78
+    },
+    {
+      "path": "components/summary/Filters.vue",
+      "type": "vue",
+      "lines": 123
+    },
+    {
+      "path": "components/summary/GaugeChart.vue",
+      "type": "vue",
+      "lines": 149
+    },
+    {
+      "path": "components/summary/KpiCard.vue",
+      "type": "vue",
+      "lines": 121
+    },
+    {
+      "path": "components/summary/KpiCardGrid.vue",
+      "type": "vue",
+      "lines": 27
+    },
+    {
+      "path": "components/summary/PageHeader.vue",
+      "type": "vue",
+      "lines": 63
+    },
+    {
+      "path": "components/summary/StatCards.vue",
+      "type": "vue",
+      "lines": 48
+    },
+    {
+      "path": "components/summary/SummaryDateFilter.vue",
+      "type": "vue",
+      "lines": 136
+    },
+    {
+      "path": "components/summary/SummaryTable.vue",
+      "type": "vue",
+      "lines": 141
+    },
+    {
+      "path": "components/summary/index.js",
+      "type": "js",
+      "lines": 15
+    },
+    {
+      "path": "components/summary/useExport.js",
+      "type": "js",
+      "lines": 232
+    },
+    {
+      "path": "components/ui/Alert/Alert.vue",
+      "type": "vue",
+      "lines": 43
+    },
+    {
+      "path": "components/ui/Avatar/Avatar.vue",
+      "type": "vue",
+      "lines": 32
+    },
+    {
+      "path": "components/ui/Badge/Badge.vue",
+      "type": "vue",
+      "lines": 25
+    },
+    {
+      "path": "components/ui/Breadcrumb/Breadcrumb.vue",
+      "type": "vue",
+      "lines": 20
+    },
+    {
+      "path": "components/ui/Breadcrumb/BreadcrumbItem.vue",
+      "type": "vue",
+      "lines": 64
+    },
+    {
+      "path": "components/ui/Button/Button.vue",
+      "type": "vue",
+      "lines": 68
+    },
+    {
+      "path": "components/ui/Button/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "components/ui/Calendar/Calendar.vue",
+      "type": "vue",
+      "lines": 24
+    },
+    {
+      "path": "components/ui/Card/Card.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "components/ui/Card/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "components/ui/Cascader/Cascader.vue",
+      "type": "vue",
+      "lines": 40
+    },
+    {
+      "path": "components/ui/Checkbox/Checkbox.vue",
+      "type": "vue",
+      "lines": 29
+    },
+    {
+      "path": "components/ui/DatePicker/DatePicker.vue",
+      "type": "vue",
+      "lines": 46
+    },
+    {
+      "path": "components/ui/DateRangePicker/DateRangePicker.vue",
+      "type": "vue",
+      "lines": 43
+    },
+    {
+      "path": "components/ui/Dialog/Dialog.vue",
+      "type": "vue",
+      "lines": 76
+    },
+    {
+      "path": "components/ui/Dialog/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "components/ui/Divider/Divider.vue",
+      "type": "vue",
+      "lines": 22
+    },
+    {
+      "path": "components/ui/Drawer/Drawer.vue",
+      "type": "vue",
+      "lines": 32
+    },
+    {
+      "path": "components/ui/Dropdown/Dropdown.vue",
+      "type": "vue",
+      "lines": 24
+    },
+    {
+      "path": "components/ui/ElDateRangePicker.vue",
+      "type": "vue",
+      "lines": 110
+    },
+    {
+      "path": "components/ui/ElDrawer.vue",
+      "type": "vue",
+      "lines": 159
+    },
+    {
+      "path": "components/ui/ElFilter.vue",
+      "type": "vue",
+      "lines": 414
+    },
+    {
+      "path": "components/ui/ElForm.vue",
+      "type": "vue",
+      "lines": 237
+    },
+    {
+      "path": "components/ui/ElModal.vue",
+      "type": "vue",
+      "lines": 652
+    },
+    {
+      "path": "components/ui/ElTable.vue",
+      "type": "vue",
+      "lines": 91
+    },
+    {
+      "path": "components/ui/Empty/Empty.vue",
+      "type": "vue",
+      "lines": 12
+    },
+    {
+      "path": "components/ui/FilterBar/FilterBar.vue",
+      "type": "vue",
+      "lines": 12
+    },
+    {
+      "path": "components/ui/Form.vue",
+      "type": "vue",
+      "lines": 49
+    },
+    {
+      "path": "components/ui/FormItem.vue",
+      "type": "vue",
+      "lines": 21
+    },
+    {
+      "path": "components/ui/GanttChart/GanttChart.vue",
+      "type": "vue",
+      "lines": 30
+    },
+    {
+      "path": "components/ui/ImageUploader/ImageUploader.vue",
+      "type": "vue",
+      "lines": 48
+    },
+    {
+      "path": "components/ui/Input/Input.vue",
+      "type": "vue",
+      "lines": 40
+    },
+    {
+      "path": "components/ui/Input/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "components/ui/KanbanBoard/KanbanBoard.vue",
+      "type": "vue",
+      "lines": 25
+    },
+    {
+      "path": "components/ui/Label/Label.vue",
+      "type": "vue",
+      "lines": 9
+    },
+    {
+      "path": "components/ui/LabelResumeTimeline/LabelResumeTimeline.vue",
+      "type": "vue",
+      "lines": 22
+    },
+    {
+      "path": "components/ui/List/List.vue",
+      "type": "vue",
+      "lines": 9
+    },
+    {
+      "path": "components/ui/Notification/Notification.vue",
+      "type": "vue",
+      "lines": 53
+    },
+    {
+      "path": "components/ui/NumberInput/NumberInput.vue",
+      "type": "vue",
+      "lines": 42
+    },
+    {
+      "path": "components/ui/Option/Option.vue",
+      "type": "vue",
+      "lines": 13
+    },
+    {
+      "path": "components/ui/Option/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "components/ui/Pagination/Pagination.vue",
+      "type": "vue",
+      "lines": 141
+    },
+    {
+      "path": "components/ui/Popover/Popover.vue",
+      "type": "vue",
+      "lines": 44
+    },
+    {
+      "path": "components/ui/Progress/Progress.vue",
+      "type": "vue",
+      "lines": 16
+    },
+    {
+      "path": "components/ui/QRCode/QRCode.vue",
+      "type": "vue",
+      "lines": 30
+    },
+    {
+      "path": "components/ui/Select/Select.vue",
+      "type": "vue",
+      "lines": 44
+    },
+    {
+      "path": "components/ui/Select/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "components/ui/Sheet/Sheet.vue",
+      "type": "vue",
+      "lines": 34
+    },
+    {
+      "path": "components/ui/Skeleton/Skeleton.vue",
+      "type": "vue",
+      "lines": 19
+    },
+    {
+      "path": "components/ui/Space/Space.vue",
+      "type": "vue",
+      "lines": 14
+    },
+    {
+      "path": "components/ui/Statistic/Statistic.vue",
+      "type": "vue",
+      "lines": 48
+    },
+    {
+      "path": "components/ui/Steps/Steps.vue",
+      "type": "vue",
+      "lines": 42
+    },
+    {
+      "path": "components/ui/TabPane.vue",
+      "type": "vue",
+      "lines": 21
+    },
+    {
+      "path": "components/ui/Table/Table.vue",
+      "type": "vue",
+      "lines": 39
+    },
+    {
+      "path": "components/ui/Table/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "components/ui/TableColumn.vue",
+      "type": "vue",
+      "lines": 39
+    },
+    {
+      "path": "components/ui/Tabs/Tabs.vue",
+      "type": "vue",
+      "lines": 29
+    },
+    {
+      "path": "components/ui/Tabs/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "components/ui/TextArea/TextArea.vue",
+      "type": "vue",
+      "lines": 52
+    },
+    {
+      "path": "components/ui/TimePicker/TimePicker.vue",
+      "type": "vue",
+      "lines": 40
+    },
+    {
+      "path": "components/ui/Timeline/Timeline.vue",
+      "type": "vue",
+      "lines": 38
+    },
+    {
+      "path": "components/ui/Toast/Toast.vue",
+      "type": "vue",
+      "lines": 58
+    },
+    {
+      "path": "components/ui/Tooltip/Tooltip.vue",
+      "type": "vue",
+      "lines": 17
+    },
+    {
+      "path": "components/ui/Tree/Tree.vue",
+      "type": "vue",
+      "lines": 42
+    },
+    {
+      "path": "components/ui/Tree/TreeNode.vue",
+      "type": "vue",
+      "lines": 167
+    },
+    {
+      "path": "components/ui/TreeSelect/TreeSelect.vue",
+      "type": "vue",
+      "lines": 45
+    },
+    {
+      "path": "components/ui/UnifiedModal/UnifiedModal.vue",
+      "type": "vue",
+      "lines": 62
+    },
+    {
+      "path": "components/ui/VirtualTable/VirtualTable.vue",
+      "type": "vue",
+      "lines": 31
+    },
+    {
+      "path": "components/ui/index.js",
+      "type": "js",
+      "lines": 51
+    },
+    {
+      "path": "components/warehouse/ActionToolbar.vue",
+      "type": "vue",
+      "lines": 87
+    },
+    {
+      "path": "components/warehouse/MaterialFilters.vue",
+      "type": "vue",
+      "lines": 141
+    },
+    {
+      "path": "components/warehouse/MaterialsTable.vue",
+      "type": "vue",
+      "lines": 111
+    },
+    {
+      "path": "components/warehouse/PageHeader.vue",
+      "type": "vue",
+      "lines": 24
+    },
+    {
+      "path": "components/warehouse/TabSwitch.vue",
+      "type": "vue",
+      "lines": 55
+    },
+    {
+      "path": "components/warehouse/index.js",
+      "type": "js",
+      "lines": 8
+    },
+    {
+      "path": "composables/index.js",
+      "type": "js",
+      "lines": 6
+    },
+    {
+      "path": "composables/production/useCropOptions.js",
+      "type": "js",
+      "lines": 23
+    },
+    {
+      "path": "composables/production/useDailyTaskAnalysis.js",
+      "type": "js",
+      "lines": 268
+    },
+    {
+      "path": "composables/production/useDailyTaskPlanning.js",
+      "type": "js",
+      "lines": 635
+    },
+    {
+      "path": "composables/production/useExportFormats.js",
+      "type": "js",
+      "lines": 33
+    },
+    {
+      "path": "composables/production/useMonthlyTaskPlanning.js",
+      "type": "js",
+      "lines": 1276
+    },
+    {
+      "path": "composables/production/useOperatorOptions.js",
+      "type": "js",
+      "lines": 60
+    },
+    {
+      "path": "composables/production/usePlantingModes.js",
+      "type": "js",
+      "lines": 104
+    },
+    {
+      "path": "composables/production/useProductionPage.js",
+      "type": "js",
+      "lines": 1430
+    },
+    {
+      "path": "composables/production/usePurchasePlan.js",
+      "type": "js",
+      "lines": 145
+    },
+    {
+      "path": "composables/production/useTechSolutionState.js",
+      "type": "js",
+      "lines": 119
+    },
+    {
+      "path": "composables/useApprovalBusinessDetail.js",
+      "type": "js",
+      "lines": 534
+    },
+    {
+      "path": "composables/useApprovalNotification.js",
+      "type": "js",
+      "lines": 323
+    },
+    {
+      "path": "composables/useComprehensiveDispatch.js",
+      "type": "js",
+      "lines": 304
+    },
+    {
+      "path": "composables/useCropGrowthEngine.js",
+      "type": "js",
+      "lines": 49
+    },
+    {
+      "path": "composables/useDailyWorkOrderAnalysis.js",
+      "type": "js",
+      "lines": 23
+    },
+    {
+      "path": "composables/useDashboard.js",
+      "type": "js",
+      "lines": 219
+    },
+    {
+      "path": "composables/useDispatchActions.js",
+      "type": "js",
+      "lines": 88
+    },
+    {
+      "path": "composables/useDraggable.js",
+      "type": "js",
+      "lines": 153
+    },
+    {
+      "path": "composables/useEnvironmentData.js",
+      "type": "js",
+      "lines": 62
+    },
+    {
+      "path": "composables/useExport.js",
+      "type": "js",
+      "lines": 102
+    },
+    {
+      "path": "composables/useFarmHub.js",
+      "type": "js",
+      "lines": 40
+    },
+    {
+      "path": "composables/useForm.js",
+      "type": "js",
+      "lines": 87
+    },
+    {
+      "path": "composables/useLocalStorage.js",
+      "type": "js",
+      "lines": 77
+    },
+    {
+      "path": "composables/useMaterialEquipment.js",
+      "type": "js",
+      "lines": 25
+    },
+    {
+      "path": "composables/useModal.js",
+      "type": "js",
+      "lines": 88
+    },
+    {
+      "path": "composables/usePendingConfirmTasks.js",
+      "type": "js",
+      "lines": 17
+    },
+    {
+      "path": "composables/usePermission.js",
+      "type": "js",
+      "lines": 37
+    },
+    {
+      "path": "composables/usePersistentAttendance.js",
+      "type": "js",
+      "lines": 73
+    },
+    {
+      "path": "composables/usePersistentWorkLogs.js",
+      "type": "js",
+      "lines": 213
+    },
+    {
+      "path": "composables/useProduceCodeRule.js",
+      "type": "js",
+      "lines": 278
+    },
+    {
+      "path": "composables/useReminder.js",
+      "type": "js",
+      "lines": 235
+    },
+    {
+      "path": "composables/useSmartRecommendation.js",
+      "type": "js",
+      "lines": 21
+    },
+    {
+      "path": "composables/useStorage.js",
+      "type": "js",
+      "lines": 34
+    },
+    {
+      "path": "composables/useTable.js",
+      "type": "js",
+      "lines": 93
+    },
+    {
+      "path": "composables/useTaskTypeConfig.js",
+      "type": "js",
+      "lines": 165
+    },
+    {
+      "path": "composables/useTasks.js",
+      "type": "js",
+      "lines": 1048
+    },
+    {
+      "path": "composables/useTheme.js",
+      "type": "js",
+      "lines": 43
+    },
+    {
+      "path": "composables/useVarietyTree.js",
+      "type": "js",
+      "lines": 524
+    },
+    {
+      "path": "config/approvalHierarchy.js",
+      "type": "js",
+      "lines": 441
+    },
+    {
+      "path": "config/approvalTimeout.js",
+      "type": "js",
+      "lines": 304
+    },
+    {
+      "path": "config/menuConfig.js",
+      "type": "js",
+      "lines": 143
+    },
+    {
+      "path": "config/systemConfigReader.js",
+      "type": "js",
+      "lines": 178
+    },
+    {
+      "path": "config/taskConfig.js",
+      "type": "js",
+      "lines": 214
+    },
+    {
+      "path": "constants/cropConstants.js",
+      "type": "js",
+      "lines": 193
+    },
+    {
+      "path": "constants/taskDispatch.js",
+      "type": "js",
+      "lines": 148
+    },
+    {
+      "path": "data/announcementData.js",
+      "type": "js",
+      "lines": 192
+    },
+    {
+      "path": "data/approval/approvalData.js",
+      "type": "js",
+      "lines": 315
+    },
+    {
+      "path": "data/costData.js",
+      "type": "js",
+      "lines": 288
+    },
+    {
+      "path": "data/farmData.js",
+      "type": "js",
+      "lines": 81
+    },
+    {
+      "path": "data/index.js",
+      "type": "js",
+      "lines": 27
+    },
+    {
+      "path": "data/indicatorsData.js",
+      "type": "js",
+      "lines": 183
+    },
+    {
+      "path": "data/laborData.js",
+      "type": "js",
+      "lines": 361
+    },
+    {
+      "path": "data/materialReceivingMockData.js",
+      "type": "js",
+      "lines": 73
+    },
+    {
+      "path": "data/materialReceivingStatData.js",
+      "type": "js",
+      "lines": 157
+    },
+    {
+      "path": "data/mockData.js",
+      "type": "js",
+      "lines": 362
+    },
+    {
+      "path": "data/produceCodeRule.js",
+      "type": "js",
+      "lines": 1072
+    },
+    {
+      "path": "hooks/useApprovalLevel.js",
+      "type": "js",
+      "lines": 141
+    },
+    {
+      "path": "lib/apiClient.js",
+      "type": "js",
+      "lines": 289
+    },
+    {
+      "path": "lib/dialogService.js",
+      "type": "js",
+      "lines": 51
+    },
+    {
+      "path": "lib/processRouteMap.js",
+      "type": "js",
+      "lines": 137
+    },
+    {
+      "path": "lib/storageService.js",
+      "type": "js",
+      "lines": 90
+    },
+    {
+      "path": "main.js",
+      "type": "js",
+      "lines": 24
+    },
+    {
+      "path": "pages/admin/DictionaryManagement.vue",
+      "type": "vue",
+      "lines": 625
+    },
+    {
+      "path": "pages/dispatch/DispatchPage.vue",
+      "type": "vue",
+      "lines": 87
+    },
+    {
+      "path": "router/index.js",
+      "type": "js",
+      "lines": 763
+    },
+    {
+      "path": "router/labor.js",
+      "type": "js",
+      "lines": 47
+    },
+    {
+      "path": "services/apiApprovalService.js",
+      "type": "js",
+      "lines": 469
+    },
+    {
+      "path": "services/apiApprovalWorkflowService.js",
+      "type": "js",
+      "lines": 112
+    },
+    {
+      "path": "services/apiBasicDataService.js",
+      "type": "js",
+      "lines": 588
+    },
+    {
+      "path": "services/apiClient.js",
+      "type": "js",
+      "lines": 127
+    },
+    {
+      "path": "services/apiCropBatchService.js",
+      "type": "js",
+      "lines": 44
+    },
+    {
+      "path": "services/apiCropInstanceService.js",
+      "type": "js",
+      "lines": 171
+    },
+    {
+      "path": "services/apiCropVarietyExtensionService.js",
+      "type": "js",
+      "lines": 213
+    },
+    {
+      "path": "services/apiCropVarietyService.js",
+      "type": "js",
+      "lines": 84
+    },
+    {
+      "path": "services/apiDailyPlanService.js",
+      "type": "js",
+      "lines": 145
+    },
+    {
+      "path": "services/apiDeviceDistributionService.js",
+      "type": "js",
+      "lines": 72
+    },
+    {
+      "path": "services/apiFarmTaskService.js",
+      "type": "js",
+      "lines": 346
+    },
+    {
+      "path": "services/apiInspectionService.js",
+      "type": "js",
+      "lines": 187
+    },
+    {
+      "path": "services/apiInventoryService.js",
+      "type": "js",
+      "lines": 144
+    },
+    {
+      "path": "services/apiLaborService.js",
+      "type": "js",
+      "lines": 263
+    },
+    {
+      "path": "services/apiLeaveService.js",
+      "type": "js",
+      "lines": 225
+    },
+    {
+      "path": "services/apiMaterialCodeCategoryService.js",
+      "type": "js",
+      "lines": 90
+    },
+    {
+      "path": "services/apiMaterialRequestService.js",
+      "type": "js",
+      "lines": 67
+    },
+    {
+      "path": "services/apiMaterialReturnService.js",
+      "type": "js",
+      "lines": 93
+    },
+    {
+      "path": "services/apiMonthlyPlanService.js",
+      "type": "js",
+      "lines": 145
+    },
+    {
+      "path": "services/apiOnboardingService.js",
+      "type": "js",
+      "lines": 80
+    },
+    {
+      "path": "services/apiOperationRecordService.js",
+      "type": "js",
+      "lines": 261
+    },
+    {
+      "path": "services/apiOvertimeService.js",
+      "type": "js",
+      "lines": 225
+    },
+    {
+      "path": "services/apiPlantingRecordService.js",
+      "type": "js",
+      "lines": 208
+    },
+    {
+      "path": "services/apiPlantingService.js",
+      "type": "js",
+      "lines": 370
+    },
+    {
+      "path": "services/apiProductionPlanService.js",
+      "type": "js",
+      "lines": 223
+    },
+    {
+      "path": "services/apiPurchasePlanService.js",
+      "type": "js",
+      "lines": 273
+    },
+    {
+      "path": "services/apiRecruitmentService.js",
+      "type": "js",
+      "lines": 165
+    },
+    {
+      "path": "services/apiResignationService.js",
+      "type": "js",
+      "lines": 161
+    },
+    {
+      "path": "services/apiSeedSourceService.js",
+      "type": "js",
+      "lines": 399
+    },
+    {
+      "path": "services/apiSeedlingService.js",
+      "type": "js",
+      "lines": 440
+    },
+    {
+      "path": "services/apiSupplierService.js",
+      "type": "js",
+      "lines": 59
+    },
+    {
+      "path": "services/apiWarehouseMaterialService.js",
+      "type": "js",
+      "lines": 79
+    },
+    {
+      "path": "services/apiWorkerService.js",
+      "type": "js",
+      "lines": 127
+    },
+    {
+      "path": "services/approvalSubmitService.js",
+      "type": "js",
+      "lines": 1064
+    },
+    {
+      "path": "services/cropOrderService.js",
+      "type": "js",
+      "lines": 167
+    },
+    {
+      "path": "services/cropVarietyExtensionService.js",
+      "type": "js",
+      "lines": 359
+    },
+    {
+      "path": "services/cropVarietyService.js",
+      "type": "js",
+      "lines": 624
+    },
+    {
+      "path": "services/customerService.js",
+      "type": "js",
+      "lines": 74
+    },
+    {
+      "path": "services/dictionaryService.js",
+      "type": "js",
+      "lines": 626
+    },
+    {
+      "path": "services/fieldMapping.js",
+      "type": "js",
+      "lines": 101
+    },
+    {
+      "path": "services/productionPlanService.js",
+      "type": "js",
+      "lines": 268
+    },
+    {
+      "path": "services/purchasePlanService.js",
+      "type": "js",
+      "lines": 61
+    },
+    {
+      "path": "services/techSolutionService.js",
+      "type": "js",
+      "lines": 161
+    },
+    {
+      "path": "stores/index.js",
+      "type": "js",
+      "lines": 63
+    },
+    {
+      "path": "stores/modules/alarmConfig.js",
+      "type": "js",
+      "lines": 151
+    },
+    {
+      "path": "stores/modules/announcement.js",
+      "type": "js",
+      "lines": 453
+    },
+    {
+      "path": "stores/modules/app.js",
+      "type": "js",
+      "lines": 64
+    },
+    {
+      "path": "stores/modules/approval.js",
+      "type": "js",
+      "lines": 450
+    },
+    {
+      "path": "stores/modules/approvalLevel.js",
+      "type": "js",
+      "lines": 192
+    },
+    {
+      "path": "stores/modules/approvalWorkflow.js",
+      "type": "js",
+      "lines": 134
+    },
+    {
+      "path": "stores/modules/areaSystem.js",
+      "type": "js",
+      "lines": 155
+    },
+    {
+      "path": "stores/modules/auth.js",
+      "type": "js",
+      "lines": 414
+    },
+    {
+      "path": "stores/modules/authority.js",
+      "type": "js",
+      "lines": 330
+    },
+    {
+      "path": "stores/modules/baseStore.js",
+      "type": "js",
+      "lines": 105
+    },
+    {
+      "path": "stores/modules/blockStore.js",
+      "type": "js",
+      "lines": 159
+    },
+    {
+      "path": "stores/modules/camera.js",
+      "type": "js",
+      "lines": 156
+    },
+    {
+      "path": "stores/modules/cost.js",
+      "type": "js",
+      "lines": 261
+    },
+    {
+      "path": "stores/modules/cropVariety.js",
+      "type": "js",
+      "lines": 247
+    },
+    {
+      "path": "stores/modules/customer.js",
+      "type": "js",
+      "lines": 55
+    },
+    {
+      "path": "stores/modules/dailyPlanning.js",
+      "type": "js",
+      "lines": 161
+    },
+    {
+      "path": "stores/modules/dailyWorkSummary.js",
+      "type": "js",
+      "lines": 60
+    },
+    {
+      "path": "stores/modules/department.js",
+      "type": "js",
+      "lines": 178
+    },
+    {
+      "path": "stores/modules/device.js",
+      "type": "js",
+      "lines": 170
+    },
+    {
+      "path": "stores/modules/deviceDistribution.js",
+      "type": "js",
+      "lines": 113
+    },
+    {
+      "path": "stores/modules/deviceSystem.js",
+      "type": "js",
+      "lines": 168
+    },
+    {
+      "path": "stores/modules/dictionary.js",
+      "type": "js",
+      "lines": 395
+    },
+    {
+      "path": "stores/modules/energyConfig.js",
+      "type": "js",
+      "lines": 166
+    },
+    {
+      "path": "stores/modules/farmPartition.js",
+      "type": "js",
+      "lines": 193
+    },
+    {
+      "path": "stores/modules/farmTask.js",
+      "type": "js",
+      "lines": 693
+    },
+    {
+      "path": "stores/modules/fertilizer.js",
+      "type": "js",
+      "lines": 284
+    },
+    {
+      "path": "stores/modules/fertilizerLibrary.js",
+      "type": "js",
+      "lines": 285
+    },
+    {
+      "path": "stores/modules/greenhouse.js",
+      "type": "js",
+      "lines": 284
+    },
+    {
+      "path": "stores/modules/harvest.js",
+      "type": "js",
+      "lines": 370
+    },
+    {
+      "path": "stores/modules/indicators.js",
+      "type": "js",
+      "lines": 350
+    },
+    {
+      "path": "stores/modules/inspectionData.js",
+      "type": "js",
+      "lines": 142
+    },
+    {
+      "path": "stores/modules/inspectionStatus.js",
+      "type": "js",
+      "lines": 89
+    },
+    {
+      "path": "stores/modules/inventory/index.js",
+      "type": "js",
+      "lines": 11
+    },
+    {
+      "path": "stores/modules/inventory/useCropInventoryStore.js",
+      "type": "js",
+      "lines": 521
+    },
+    {
+      "path": "stores/modules/inventory/useExecuteStore.js",
+      "type": "js",
+      "lines": 184
+    },
+    {
+      "path": "stores/modules/inventory/useInboundStore.js",
+      "type": "js",
+      "lines": 233
+    },
+    {
+      "path": "stores/modules/inventory/useMaterialRequestStore.js",
+      "type": "js",
+      "lines": 78
+    },
+    {
+      "path": "stores/modules/inventory/useMaterialReturnStore.js",
+      "type": "js",
+      "lines": 289
+    },
+    {
+      "path": "stores/modules/inventory/useMaterialTypeStore.js",
+      "type": "js",
+      "lines": 243
+    },
+    {
+      "path": "stores/modules/inventory/useSupplierStore.js",
+      "type": "js",
+      "lines": 226
+    },
+    {
+      "path": "stores/modules/inventory/useWarehouseMaterialStore.js",
+      "type": "js",
+      "lines": 190
+    },
+    {
+      "path": "stores/modules/inventory/useWarehouseStore.js",
+      "type": "js",
+      "lines": 292
+    },
+    {
+      "path": "stores/modules/iot.js",
+      "type": "js",
+      "lines": 226
+    },
+    {
+      "path": "stores/modules/labor.js",
+      "type": "js",
+      "lines": 939
+    },
+    {
+      "path": "stores/modules/materialCodeRule.js",
+      "type": "js",
+      "lines": 202
+    },
+    {
+      "path": "stores/modules/monthlyPlanning.js",
+      "type": "js",
+      "lines": 161
+    },
+    {
+      "path": "stores/modules/notificationSettings.js",
+      "type": "js",
+      "lines": 315
+    },
+    {
+      "path": "stores/modules/order.js",
+      "type": "js",
+      "lines": 74
+    },
+    {
+      "path": "stores/modules/orderData.js",
+      "type": "js",
+      "lines": 107
+    },
+    {
+      "path": "stores/modules/pestDiseaseDict.js",
+      "type": "js",
+      "lines": 295
+    },
+    {
+      "path": "stores/modules/pesticideLibrary.js",
+      "type": "js",
+      "lines": 344
+    },
+    {
+      "path": "stores/modules/plantLabel.js",
+      "type": "js",
+      "lines": 152
+    },
+    {
+      "path": "stores/modules/plantSetting.js",
+      "type": "js",
+      "lines": 154
+    },
+    {
+      "path": "stores/modules/planting.js",
+      "type": "js",
+      "lines": 237
+    },
+    {
+      "path": "stores/modules/plantingRecordStore.js",
+      "type": "js",
+      "lines": 185
+    },
+    {
+      "path": "stores/modules/position.js",
+      "type": "js",
+      "lines": 87
+    },
+    {
+      "path": "stores/modules/problem.js",
+      "type": "js",
+      "lines": 756
+    },
+    {
+      "path": "stores/modules/processDefinition.js",
+      "type": "js",
+      "lines": 219
+    },
+    {
+      "path": "stores/modules/productionPlan.js",
+      "type": "js",
+      "lines": 138
+    },
+    {
+      "path": "stores/modules/purchasePlan.js",
+      "type": "js",
+      "lines": 225
+    },
+    {
+      "path": "stores/modules/schedule.js",
+      "type": "js",
+      "lines": 374
+    },
+    {
+      "path": "stores/modules/seedSource.js",
+      "type": "js",
+      "lines": 343
+    },
+    {
+      "path": "stores/modules/seedling.js",
+      "type": "js",
+      "lines": 353
+    },
+    {
+      "path": "stores/modules/summary.js",
+      "type": "js",
+      "lines": 597
+    },
+    {
+      "path": "stores/modules/supplierCodeRule.js",
+      "type": "js",
+      "lines": 203
+    },
+    {
+      "path": "stores/modules/systemConfig.js",
+      "type": "js",
+      "lines": 275
+    },
+    {
+      "path": "stores/modules/team.js",
+      "type": "js",
+      "lines": 197
+    },
+    {
+      "path": "stores/modules/teamShift.js",
+      "type": "js",
+      "lines": 136
+    },
+    {
+      "path": "stores/modules/techSolution.js",
+      "type": "js",
+      "lines": 83
+    },
+    {
+      "path": "stores/modules/tempTask.js",
+      "type": "js",
+      "lines": 704
+    },
+    {
+      "path": "stores/modules/useRegionStore.js",
+      "type": "js",
+      "lines": 112
+    },
+    {
+      "path": "stores/modules/user.js",
+      "type": "js",
+      "lines": 301
+    },
+    {
+      "path": "stores/modules/warehouseMaterial.js",
+      "type": "js",
+      "lines": 119
+    },
+    {
+      "path": "stores/modules/waterFertilizer.js",
+      "type": "js",
+      "lines": 206
+    },
+    {
+      "path": "stores/modules/workLog.js",
+      "type": "js",
+      "lines": 171
+    },
+    {
+      "path": "stores/modules/worker.js",
+      "type": "js",
+      "lines": 187
+    },
+    {
+      "path": "stores/modules/zone.js",
+      "type": "js",
+      "lines": 158
+    },
+    {
+      "path": "styles/base.css",
+      "type": "css",
+      "lines": 147
+    },
+    {
+      "path": "styles/element-plus.css",
+      "type": "css",
+      "lines": 580
+    },
+    {
+      "path": "styles/index.js",
+      "type": "js",
+      "lines": 9
+    },
+    {
+      "path": "styles/variables.css",
+      "type": "css",
+      "lines": 199
+    },
+    {
+      "path": "types/announcement.js",
+      "type": "js",
+      "lines": 60
+    },
+    {
+      "path": "types/api.js",
+      "type": "js",
+      "lines": 29
+    },
+    {
+      "path": "types/approval.js",
+      "type": "js",
+      "lines": 157
+    },
+    {
+      "path": "types/approvalIntegration.js",
+      "type": "js",
+      "lines": 478
+    },
+    {
+      "path": "types/approvalNotification.js",
+      "type": "js",
+      "lines": 109
+    },
+    {
+      "path": "types/crop.js",
+      "type": "js",
+      "lines": 374
+    },
+    {
+      "path": "types/farm.js",
+      "type": "js",
+      "lines": 62
+    },
+    {
+      "path": "types/farm/common.js",
+      "type": "js",
+      "lines": 107
+    },
+    {
+      "path": "types/farm/taskTypeConfig.js",
+      "type": "js",
+      "lines": 620
+    },
+    {
+      "path": "types/index.js",
+      "type": "js",
+      "lines": 36
+    },
+    {
+      "path": "types/indicators.js",
+      "type": "js",
+      "lines": 168
+    },
+    {
+      "path": "types/inventory.js",
+      "type": "js",
+      "lines": 378
+    },
+    {
+      "path": "types/labor.js",
+      "type": "js",
+      "lines": 645
+    },
+    {
+      "path": "types/labor/approval.js",
+      "type": "js",
+      "lines": 48
+    },
+    {
+      "path": "types/material.js",
+      "type": "js",
+      "lines": 146
+    },
+    {
+      "path": "types/materialReceiving.js",
+      "type": "js",
+      "lines": 367
+    },
+    {
+      "path": "types/materialReturn.js",
+      "type": "js",
+      "lines": 131
+    },
+    {
+      "path": "types/materials.js",
+      "type": "js",
+      "lines": 73
+    },
+    {
+      "path": "types/production.js",
+      "type": "js",
+      "lines": 60
+    },
+    {
+      "path": "types/purchase.js",
+      "type": "js",
+      "lines": 404
+    },
+    {
+      "path": "types/system.js",
+      "type": "js",
+      "lines": 90
+    },
+    {
+      "path": "types/warehouseInbound.js",
+      "type": "js",
+      "lines": 348
+    },
+    {
+      "path": "utils/approvalLevelResolver.js",
+      "type": "js",
+      "lines": 289
+    },
+    {
+      "path": "utils/dictHelpers.js",
+      "type": "js",
+      "lines": 62
+    },
+    {
+      "path": "utils/fileUpload.js",
+      "type": "js",
+      "lines": 41
+    },
+    {
+      "path": "utils/orderHelpers.js",
+      "type": "js",
+      "lines": 82
+    },
+    {
+      "path": "utils/storage.js",
+      "type": "js",
+      "lines": 77
+    },
+    {
+      "path": "utils/techSolutionHelpers.js",
+      "type": "js",
+      "lines": 47
+    },
+    {
+      "path": "utils/validators.js",
+      "type": "js",
+      "lines": 62
+    },
+    {
+      "path": "views/NotFound.vue",
+      "type": "vue",
+      "lines": 15
+    },
+    {
+      "path": "views/announcement/components/AnnouncementFilters.vue",
+      "type": "vue",
+      "lines": 95
+    },
+    {
+      "path": "views/announcement/components/AnnouncementTable.vue",
+      "type": "vue",
+      "lines": 344
+    },
+    {
+      "path": "views/announcement/components/utils.js",
+      "type": "js",
+      "lines": 40
+    },
+    {
+      "path": "views/announcement/index.vue",
+      "type": "vue",
+      "lines": 633
+    },
+    {
+      "path": "views/announcement/modals/DeleteModal.vue",
+      "type": "vue",
+      "lines": 45
+    },
+    {
+      "path": "views/announcement/modals/DetailModal.vue",
+      "type": "vue",
+      "lines": 241
+    },
+    {
+      "path": "views/announcement/modals/ExportModal.vue",
+      "type": "vue",
+      "lines": 106
+    },
+    {
+      "path": "views/announcement/modals/FormModal.vue",
+      "type": "vue",
+      "lines": 320
+    },
+    {
+      "path": "views/announcement/modals/TemplateEditModal.vue",
+      "type": "vue",
+      "lines": 347
+    },
+    {
+      "path": "views/announcement/modals/TemplateSelectModal.vue",
+      "type": "vue",
+      "lines": 166
+    },
+    {
+      "path": "views/announcement/utils.js",
+      "type": "js",
+      "lines": 40
+    },
+    {
+      "path": "views/approval/Approved.vue",
+      "type": "vue",
+      "lines": 245
+    },
+    {
+      "path": "views/approval/FarmApproval.vue",
+      "type": "vue",
+      "lines": 584
+    },
+    {
+      "path": "views/approval/HrApproval.vue",
+      "type": "vue",
+      "lines": 744
+    },
+    {
+      "path": "views/approval/HrApprovalDetail.vue",
+      "type": "vue",
+      "lines": 710
+    },
+    {
+      "path": "views/approval/IndicatorBudgetApproval.vue",
+      "type": "vue",
+      "lines": 565
+    },
+    {
+      "path": "views/approval/MaterialApproval.vue",
+      "type": "vue",
+      "lines": 775
+    },
+    {
+      "path": "views/approval/MyApplications.vue",
+      "type": "vue",
+      "lines": 306
+    },
+    {
+      "path": "views/approval/MyApproval.vue",
+      "type": "vue",
+      "lines": 287
+    },
+    {
+      "path": "views/approval/PendingApproval.vue",
+      "type": "vue",
+      "lines": 243
+    },
+    {
+      "path": "views/approval/ProductionApproval.vue",
+      "type": "vue",
+      "lines": 720
+    },
+    {
+      "path": "views/approval/components/MaterialDetailDialog.vue",
+      "type": "vue",
+      "lines": 166
+    },
+    {
+      "path": "views/approval/components/RejectReasonDialog.vue",
+      "type": "vue",
+      "lines": 52
+    },
+    {
+      "path": "views/approval/components/ReturnApprovalTable.vue",
+      "type": "vue",
+      "lines": 132
+    },
+    {
+      "path": "views/approval/utils/materialApprovalLabels.js",
+      "type": "js",
+      "lines": 78
+    },
+    {
+      "path": "views/approval/utils/productionApprovalLabels.js",
+      "type": "js",
+      "lines": 88
+    },
+    {
+      "path": "views/crop/CropIndex.vue",
+      "type": "vue",
+      "lines": 85
+    },
+    {
+      "path": "views/crop/CropInventory.vue",
+      "type": "vue",
+      "lines": 1993
+    },
+    {
+      "path": "views/crop/Customer.vue",
+      "type": "vue",
+      "lines": 581
+    },
+    {
+      "path": "views/crop/CustomerModal.vue",
+      "type": "vue",
+      "lines": 192
+    },
+    {
+      "path": "views/crop/Fertilizer.vue",
+      "type": "vue",
+      "lines": 417
+    },
+    {
+      "path": "views/crop/Harvest.vue",
+      "type": "vue",
+      "lines": 1108
+    },
+    {
+      "path": "views/crop/Instance.vue",
+      "type": "vue",
+      "lines": 319
+    },
+    {
+      "path": "views/crop/Order.vue",
+      "type": "vue",
+      "lines": 568
+    },
+    {
+      "path": "views/crop/OutboundRecords.vue",
+      "type": "vue",
+      "lines": 848
+    },
+    {
+      "path": "views/crop/Planting.vue",
+      "type": "vue",
+      "lines": 18
+    },
+    {
+      "path": "views/crop/SeedSource.vue",
+      "type": "vue",
+      "lines": 655
+    },
+    {
+      "path": "views/crop/Seedling.vue",
+      "type": "vue",
+      "lines": 702
+    },
+    {
+      "path": "views/crop/components/OrderFilter.vue",
+      "type": "vue",
+      "lines": 183
+    },
+    {
+      "path": "views/crop/components/OrderStats.vue",
+      "type": "vue",
+      "lines": 84
+    },
+    {
+      "path": "views/crop/components/OrderTable.vue",
+      "type": "vue",
+      "lines": 274
+    },
+    {
+      "path": "views/crop/fertilizer/FertilizerAddModal.vue",
+      "type": "vue",
+      "lines": 305
+    },
+    {
+      "path": "views/crop/fertilizer/FertilizerBatchDeleteModal.vue",
+      "type": "vue",
+      "lines": 135
+    },
+    {
+      "path": "views/crop/fertilizer/FertilizerDetailModal.vue",
+      "type": "vue",
+      "lines": 228
+    },
+    {
+      "path": "views/crop/fertilizer/FertilizerEditModal.vue",
+      "type": "vue",
+      "lines": 328
+    },
+    {
+      "path": "views/crop/fertilizer/FertilizerExportModal.vue",
+      "type": "vue",
+      "lines": 102
+    },
+    {
+      "path": "views/crop/fertilizer/FertilizerFilter.vue",
+      "type": "vue",
+      "lines": 154
+    },
+    {
+      "path": "views/crop/fertilizer/FertilizerStatsPanel.vue",
+      "type": "vue",
+      "lines": 318
+    },
+    {
+      "path": "views/crop/fertilizer/FertilizerTable.vue",
+      "type": "vue",
+      "lines": 324
+    },
+    {
+      "path": "views/crop/fertilizer/IotDataIndicator.vue",
+      "type": "vue",
+      "lines": 58
+    },
+    {
+      "path": "views/crop/modals/AddModal.vue",
+      "type": "vue",
+      "lines": 376
+    },
+    {
+      "path": "views/crop/modals/CustomerModal.vue",
+      "type": "vue",
+      "lines": 188
+    },
+    {
+      "path": "views/crop/modals/DetailModal.vue",
+      "type": "vue",
+      "lines": 200
+    },
+    {
+      "path": "views/crop/modals/EditModal.vue",
+      "type": "vue",
+      "lines": 475
+    },
+    {
+      "path": "views/crop/modals/ExportModal.vue",
+      "type": "vue",
+      "lines": 93
+    },
+    {
+      "path": "views/dashboard/Dashboard.vue",
+      "type": "vue",
+      "lines": 291
+    },
+    {
+      "path": "views/dashboard/components/ActiveBatchesTable.vue",
+      "type": "vue",
+      "lines": 69
+    },
+    {
+      "path": "views/dashboard/components/AlertsCard.vue",
+      "type": "vue",
+      "lines": 60
+    },
+    {
+      "path": "views/dashboard/components/BaseDetailModal.vue",
+      "type": "vue",
+      "lines": 339
+    },
+    {
+      "path": "views/dashboard/components/CostChart.vue",
+      "type": "vue",
+      "lines": 205
+    },
+    {
+      "path": "views/dashboard/components/EnergyCard.vue",
+      "type": "vue",
+      "lines": 41
+    },
+    {
+      "path": "views/dashboard/components/EnvironmentTable.vue",
+      "type": "vue",
+      "lines": 147
+    },
+    {
+      "path": "views/dashboard/components/EquipmentStatusCard.vue",
+      "type": "vue",
+      "lines": 56
+    },
+    {
+      "path": "views/dashboard/components/FieldTable.vue",
+      "type": "vue",
+      "lines": 184
+    },
+    {
+      "path": "views/dashboard/components/GreenhouseDetailModal.vue",
+      "type": "vue",
+      "lines": 323
+    },
+    {
+      "path": "views/dashboard/components/GreenhouseMap.vue",
+      "type": "vue",
+      "lines": 189
+    },
+    {
+      "path": "views/dashboard/components/GreenhouseTable.vue",
+      "type": "vue",
+      "lines": 195
+    },
+    {
+      "path": "views/dashboard/components/InventoryAlertCard.vue",
+      "type": "vue",
+      "lines": 47
+    },
+    {
+      "path": "views/dashboard/components/ProductionProgressCard.vue",
+      "type": "vue",
+      "lines": 59
+    },
+    {
+      "path": "views/dashboard/components/TodayTasksCard.vue",
+      "type": "vue",
+      "lines": 82
+    },
+    {
+      "path": "views/dashboard/components/TodayTasksTable.vue",
+      "type": "vue",
+      "lines": 98
+    },
+    {
+      "path": "views/dashboard/components/YieldChart.vue",
+      "type": "vue",
+      "lines": 105
+    },
+    {
+      "path": "views/dispatch/DispatchIndex.vue",
+      "type": "vue",
+      "lines": 12
+    },
+    {
+      "path": "views/farm/AgricultureRecord.vue",
+      "type": "vue",
+      "lines": 21
+    },
+    {
+      "path": "views/farm/DailyWorkSummary.vue",
+      "type": "vue",
+      "lines": 1158
+    },
+    {
+      "path": "views/farm/FarmHub.vue",
+      "type": "vue",
+      "lines": 1316
+    },
+    {
+      "path": "views/farm/Inspection.vue",
+      "type": "vue",
+      "lines": 236
+    },
+    {
+      "path": "views/farm/MyTasks.vue",
+      "type": "vue",
+      "lines": 809
+    },
+    {
+      "path": "views/farm/Schedule.vue",
+      "type": "vue",
+      "lines": 755
+    },
+    {
+      "path": "views/farm/SmartDispatch.vue",
+      "type": "vue",
+      "lines": 1102
+    },
+    {
+      "path": "views/farm/TaskCenter.vue",
+      "type": "vue",
+      "lines": 63
+    },
+    {
+      "path": "views/farm/Tasks.vue",
+      "type": "vue",
+      "lines": 26
+    },
+    {
+      "path": "views/farm/Team.vue",
+      "type": "vue",
+      "lines": 491
+    },
+    {
+      "path": "views/farm/TempTask.vue",
+      "type": "vue",
+      "lines": 39
+    },
+    {
+      "path": "views/farm/WorkLog.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/farm/components/DispatchMetricsDashboard.vue",
+      "type": "vue",
+      "lines": 65
+    },
+    {
+      "path": "views/farm/components/EnvironmentPanel.vue",
+      "type": "vue",
+      "lines": 67
+    },
+    {
+      "path": "views/farm/components/MaterialEquipmentPanel.vue",
+      "type": "vue",
+      "lines": 79
+    },
+    {
+      "path": "views/farm/components/MyTasksPanel.vue",
+      "type": "vue",
+      "lines": 554
+    },
+    {
+      "path": "views/farm/components/PredictedTasksPanel.vue",
+      "type": "vue",
+      "lines": 69
+    },
+    {
+      "path": "views/farm/components/ScheduleAddModal.vue",
+      "type": "vue",
+      "lines": 45
+    },
+    {
+      "path": "views/farm/components/ScheduleBatchEditModal.vue",
+      "type": "vue",
+      "lines": 135
+    },
+    {
+      "path": "views/farm/components/ScheduleCalendarView.vue",
+      "type": "vue",
+      "lines": 174
+    },
+    {
+      "path": "views/farm/components/ScheduleDeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 22
+    },
+    {
+      "path": "views/farm/components/ScheduleExportFormatModal.vue",
+      "type": "vue",
+      "lines": 47
+    },
+    {
+      "path": "views/farm/components/ScheduleHeader.vue",
+      "type": "vue",
+      "lines": 62
+    },
+    {
+      "path": "views/farm/components/ScheduleShiftEditorModal.vue",
+      "type": "vue",
+      "lines": 98
+    },
+    {
+      "path": "views/farm/components/ScheduleSidebar.vue",
+      "type": "vue",
+      "lines": 107
+    },
+    {
+      "path": "views/farm/components/ScheduleStatsCards.vue",
+      "type": "vue",
+      "lines": 63
+    },
+    {
+      "path": "views/farm/components/ScheduleSwapRequestModal.vue",
+      "type": "vue",
+      "lines": 101
+    },
+    {
+      "path": "views/farm/components/ScheduleTableView.vue",
+      "type": "vue",
+      "lines": 225
+    },
+    {
+      "path": "views/farm/components/SmartDispatchPanel.vue",
+      "type": "vue",
+      "lines": 355
+    },
+    {
+      "path": "views/farm/components/TaskCard.vue",
+      "type": "vue",
+      "lines": 102
+    },
+    {
+      "path": "views/farm/components/TaskExecutePanel.vue",
+      "type": "vue",
+      "lines": 541
+    },
+    {
+      "path": "views/farm/components/TempTaskPanel.vue",
+      "type": "vue",
+      "lines": 359
+    },
+    {
+      "path": "views/farm/components/WorkLogPanel.vue",
+      "type": "vue",
+      "lines": 247
+    },
+    {
+      "path": "views/farm/components/myTasks/ProblemTaskTableRow.vue",
+      "type": "vue",
+      "lines": 254
+    },
+    {
+      "path": "views/farm/components/myTasks/ProductionTaskTableRow.vue",
+      "type": "vue",
+      "lines": 185
+    },
+    {
+      "path": "views/farm/components/myTasks/TaskDetailModal.vue",
+      "type": "vue",
+      "lines": 465
+    },
+    {
+      "path": "views/farm/components/myTasks/TaskFeedbackModal.vue",
+      "type": "vue",
+      "lines": 403
+    },
+    {
+      "path": "views/farm/components/myTasks/TaskFilterTabs.vue",
+      "type": "vue",
+      "lines": 107
+    },
+    {
+      "path": "views/farm/components/myTasks/TaskRejectModal.vue",
+      "type": "vue",
+      "lines": 71
+    },
+    {
+      "path": "views/farm/components/myTasks/TaskSopModal.vue",
+      "type": "vue",
+      "lines": 53
+    },
+    {
+      "path": "views/farm/components/myTasks/TempTaskTableRow.vue",
+      "type": "vue",
+      "lines": 167
+    },
+    {
+      "path": "views/farm/components/myTasks/constants.js",
+      "type": "js",
+      "lines": 138
+    },
+    {
+      "path": "views/farm/components/myTasks/types.js",
+      "type": "js",
+      "lines": 75
+    },
+    {
+      "path": "views/farm/components/tasks/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 147
+    },
+    {
+      "path": "views/farm/components/tasks/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 37
+    },
+    {
+      "path": "views/farm/components/tasks/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 53
+    },
+    {
+      "path": "views/farm/components/tasks/TaskDetailModal.vue",
+      "type": "vue",
+      "lines": 94
+    },
+    {
+      "path": "views/farm/components/tasks/TaskFormModal.vue",
+      "type": "vue",
+      "lines": 118
+    },
+    {
+      "path": "views/farm/components/tasks/TaskPriorityBadge.vue",
+      "type": "vue",
+      "lines": 29
+    },
+    {
+      "path": "views/farm/components/tasks/TaskStatusBadge.vue",
+      "type": "vue",
+      "lines": 24
+    },
+    {
+      "path": "views/farm/components/tasks/TaskTypeTag.vue",
+      "type": "vue",
+      "lines": 22
+    },
+    {
+      "path": "views/farm/components/tasks/taskConstants.js",
+      "type": "js",
+      "lines": 33
+    },
+    {
+      "path": "views/farm/components/tempTask/BatchEditModal.vue",
+      "type": "vue",
+      "lines": 247
+    },
+    {
+      "path": "views/farm/components/tempTask/DeleteWarningModal.vue",
+      "type": "vue",
+      "lines": 48
+    },
+    {
+      "path": "views/farm/components/tempTask/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 58
+    },
+    {
+      "path": "views/farm/components/tempTask/ReassignTaskModal.vue",
+      "type": "vue",
+      "lines": 106
+    },
+    {
+      "path": "views/farm/components/tempTask/TempTaskDetailModal.vue",
+      "type": "vue",
+      "lines": 298
+    },
+    {
+      "path": "views/farm/components/tempTask/TempTaskFilters.vue",
+      "type": "vue",
+      "lines": 125
+    },
+    {
+      "path": "views/farm/components/tempTask/TempTaskFormModal.vue",
+      "type": "vue",
+      "lines": 446
+    },
+    {
+      "path": "views/farm/components/tempTask/TempTaskPage.vue",
+      "type": "vue",
+      "lines": 901
+    },
+    {
+      "path": "views/farm/components/tempTask/TempTaskTable.vue",
+      "type": "vue",
+      "lines": 485
+    },
+    {
+      "path": "views/farm/components/tempTask/WithdrawCancelModal.vue",
+      "type": "vue",
+      "lines": 100
+    },
+    {
+      "path": "views/farm/components/tempTask/index.js",
+      "type": "js",
+      "lines": 9
+    },
+    {
+      "path": "views/farm/components/worklog/WorkLogBatchEditModal.vue",
+      "type": "vue",
+      "lines": 219
+    },
+    {
+      "path": "views/farm/components/worklog/WorkLogDetailModal.vue",
+      "type": "vue",
+      "lines": 87
+    },
+    {
+      "path": "views/farm/components/worklog/WorkLogFilters.vue",
+      "type": "vue",
+      "lines": 78
+    },
+    {
+      "path": "views/farm/components/worklog/WorkLogFormModal.vue",
+      "type": "vue",
+      "lines": 168
+    },
+    {
+      "path": "views/farm/components/worklog/WorkLogPage.vue",
+      "type": "vue",
+      "lines": 409
+    },
+    {
+      "path": "views/farm/components/worklog/WorkLogTable.vue",
+      "type": "vue",
+      "lines": 167
+    },
+    {
+      "path": "views/farm/pest-control/PestControlPage.vue",
+      "type": "vue",
+      "lines": 33
+    },
+    {
+      "path": "views/home/HomePage.vue",
+      "type": "vue",
+      "lines": 792
+    },
+    {
+      "path": "views/indicators/Indicators.vue",
+      "type": "vue",
+      "lines": 461
+    },
+    {
+      "path": "views/indicators/components/IndicatorsAnalyzePanel.vue",
+      "type": "vue",
+      "lines": 249
+    },
+    {
+      "path": "views/indicators/components/IndicatorsEvaluatePanel.vue",
+      "type": "vue",
+      "lines": 221
+    },
+    {
+      "path": "views/indicators/components/IndicatorsFilters.vue",
+      "type": "vue",
+      "lines": 78
+    },
+    {
+      "path": "views/indicators/components/IndicatorsModals/CreateModal.vue",
+      "type": "vue",
+      "lines": 188
+    },
+    {
+      "path": "views/indicators/components/IndicatorsModals/DeleteModal.vue",
+      "type": "vue",
+      "lines": 49
+    },
+    {
+      "path": "views/indicators/components/IndicatorsModals/DetailModal.vue",
+      "type": "vue",
+      "lines": 194
+    },
+    {
+      "path": "views/indicators/components/IndicatorsModals/ExportModal.vue",
+      "type": "vue",
+      "lines": 101
+    },
+    {
+      "path": "views/indicators/components/IndicatorsPanels.vue",
+      "type": "vue",
+      "lines": 170
+    },
+    {
+      "path": "views/indicators/components/IndicatorsTable.vue",
+      "type": "vue",
+      "lines": 397
+    },
+    {
+      "path": "views/labor/Analytics.vue",
+      "type": "vue",
+      "lines": 134
+    },
+    {
+      "path": "views/labor/Attendance.vue",
+      "type": "vue",
+      "lines": 92
+    },
+    {
+      "path": "views/labor/AttendancePage.vue",
+      "type": "vue",
+      "lines": 13
+    },
+    {
+      "path": "views/labor/AttendanceRepair.vue",
+      "type": "vue",
+      "lines": 91
+    },
+    {
+      "path": "views/labor/Compensation.vue",
+      "type": "vue",
+      "lines": 84
+    },
+    {
+      "path": "views/labor/Contract.vue",
+      "type": "vue",
+      "lines": 52
+    },
+    {
+      "path": "views/labor/ContractRenewal.vue",
+      "type": "vue",
+      "lines": 287
+    },
+    {
+      "path": "views/labor/Efficiency.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/HrApproval.vue",
+      "type": "vue",
+      "lines": 302
+    },
+    {
+      "path": "views/labor/LaborIndex.vue",
+      "type": "vue",
+      "lines": 191
+    },
+    {
+      "path": "views/labor/Leave.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/Onboarding.vue",
+      "type": "vue",
+      "lines": 48
+    },
+    {
+      "path": "views/labor/Overtime.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/Performance.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/Personnel.vue",
+      "type": "vue",
+      "lines": 99
+    },
+    {
+      "path": "views/labor/Piecework.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/Recruitment.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/Resignation.vue",
+      "type": "vue",
+      "lines": 159
+    },
+    {
+      "path": "views/labor/Risk.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/Salary.vue",
+      "type": "vue",
+      "lines": 44
+    },
+    {
+      "path": "views/labor/SalaryAdjustment.vue",
+      "type": "vue",
+      "lines": 95
+    },
+    {
+      "path": "views/labor/SalaryBudget.vue",
+      "type": "vue",
+      "lines": 586
+    },
+    {
+      "path": "views/labor/Skill.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/Staff.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/TempWorker.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/WorkerAttendance.vue",
+      "type": "vue",
+      "lines": 23
+    },
+    {
+      "path": "views/labor/components/BudgetApply.vue",
+      "type": "vue",
+      "lines": 476
+    },
+    {
+      "path": "views/labor/components/ContractPanel.vue",
+      "type": "vue",
+      "lines": 706
+    },
+    {
+      "path": "views/labor/components/CostForecast.vue",
+      "type": "vue",
+      "lines": 489
+    },
+    {
+      "path": "views/labor/components/EfficiencyAnalysis.vue",
+      "type": "vue",
+      "lines": 395
+    },
+    {
+      "path": "views/labor/components/LeavePanel.vue",
+      "type": "vue",
+      "lines": 551
+    },
+    {
+      "path": "views/labor/components/MonthlyReport.vue",
+      "type": "vue",
+      "lines": 630
+    },
+    {
+      "path": "views/labor/components/OnboardingPanel.vue",
+      "type": "vue",
+      "lines": 647
+    },
+    {
+      "path": "views/labor/components/OvertimePanel.vue",
+      "type": "vue",
+      "lines": 486
+    },
+    {
+      "path": "views/labor/components/PerformanceReview.vue",
+      "type": "vue",
+      "lines": 612
+    },
+    {
+      "path": "views/labor/components/PieceworkManage.vue",
+      "type": "vue",
+      "lines": 531
+    },
+    {
+      "path": "views/labor/components/RecruitmentApplyPanel.vue",
+      "type": "vue",
+      "lines": 357
+    },
+    {
+      "path": "views/labor/components/RecruitmentPanel.vue",
+      "type": "vue",
+      "lines": 661
+    },
+    {
+      "path": "views/labor/components/ResignationPanel.vue",
+      "type": "vue",
+      "lines": 426
+    },
+    {
+      "path": "views/labor/components/RiskWarning.vue",
+      "type": "vue",
+      "lines": 474
+    },
+    {
+      "path": "views/labor/components/SalaryManage.vue",
+      "type": "vue",
+      "lines": 505
+    },
+    {
+      "path": "views/labor/components/SkillPanel.vue",
+      "type": "vue",
+      "lines": 668
+    },
+    {
+      "path": "views/labor/components/StaffPanel.vue",
+      "type": "vue",
+      "lines": 593
+    },
+    {
+      "path": "views/labor/components/TempWorkerPanel.vue",
+      "type": "vue",
+      "lines": 621
+    },
+    {
+      "path": "views/labor/components/WorkerAttendancePanel.vue",
+      "type": "vue",
+      "lines": 546
+    },
+    {
+      "path": "views/login/Login.vue",
+      "type": "vue",
+      "lines": 210
+    },
+    {
+      "path": "views/material/MaterialApplication.vue",
+      "type": "vue",
+      "lines": 645
+    },
+    {
+      "path": "views/material/MaterialCategory.vue",
+      "type": "vue",
+      "lines": 206
+    },
+    {
+      "path": "views/material/MaterialExecute.vue",
+      "type": "vue",
+      "lines": 576
+    },
+    {
+      "path": "views/material/MaterialReceiving.vue",
+      "type": "vue",
+      "lines": 715
+    },
+    {
+      "path": "views/material/MaterialReturn.vue",
+      "type": "vue",
+      "lines": 794
+    },
+    {
+      "path": "views/material/components/ApplicationDetailModal.vue",
+      "type": "vue",
+      "lines": 106
+    },
+    {
+      "path": "views/material/components/ApplicationTab.vue",
+      "type": "vue",
+      "lines": 516
+    },
+    {
+      "path": "views/material/components/CostTab.vue",
+      "type": "vue",
+      "lines": 389
+    },
+    {
+      "path": "views/material/components/ExecuteDetailModal.vue",
+      "type": "vue",
+      "lines": 83
+    },
+    {
+      "path": "views/material/components/ExecuteTab.vue",
+      "type": "vue",
+      "lines": 318
+    },
+    {
+      "path": "views/material/components/MaterialReturnSearchBar.vue",
+      "type": "vue",
+      "lines": 65
+    },
+    {
+      "path": "views/material/components/MaterialReturnTable.vue",
+      "type": "vue",
+      "lines": 118
+    },
+    {
+      "path": "views/material/components/MaterialReturnToolbar.vue",
+      "type": "vue",
+      "lines": 54
+    },
+    {
+      "path": "views/material/components/MaterialSummaryTable.vue",
+      "type": "vue",
+      "lines": 113
+    },
+    {
+      "path": "views/material/components/ReturnAddModal.vue",
+      "type": "vue",
+      "lines": 140
+    },
+    {
+      "path": "views/material/components/ReturnBatchEditModal.vue",
+      "type": "vue",
+      "lines": 149
+    },
+    {
+      "path": "views/material/components/ReturnDetailModal.vue",
+      "type": "vue",
+      "lines": 120
+    },
+    {
+      "path": "views/material/components/ReturnEditModal.vue",
+      "type": "vue",
+      "lines": 137
+    },
+    {
+      "path": "views/material/components/ReturnMaterialSelectModal.vue",
+      "type": "vue",
+      "lines": 71
+    },
+    {
+      "path": "views/material/components/ReturnVoidModal.vue",
+      "type": "vue",
+      "lines": 46
+    },
+    {
+      "path": "views/material/components/index.js",
+      "type": "js",
+      "lines": 14
+    },
+    {
+      "path": "views/material/utils/materialReceivingConfig.js",
+      "type": "js",
+      "lines": 136
+    },
+    {
+      "path": "views/material/utils/materialReturnConfig.js",
+      "type": "js",
+      "lines": 117
+    },
+    {
+      "path": "views/message/Messages.vue",
+      "type": "vue",
+      "lines": 214
+    },
+    {
+      "path": "views/monitor/AlertInfo.vue",
+      "type": "vue",
+      "lines": 372
+    },
+    {
+      "path": "views/monitor/DeviceMonitor.vue",
+      "type": "vue",
+      "lines": 224
+    },
+    {
+      "path": "views/monitor/EnvControl.vue",
+      "type": "vue",
+      "lines": 258
+    },
+    {
+      "path": "views/monitor/EnvironmentMonitor.vue",
+      "type": "vue",
+      "lines": 269
+    },
+    {
+      "path": "views/monitor/IoTMonitor.vue",
+      "type": "vue",
+      "lines": 203
+    },
+    {
+      "path": "views/park/ParkArchive.vue",
+      "type": "vue",
+      "lines": 739
+    },
+    {
+      "path": "views/poc/POCPage.vue",
+      "type": "vue",
+      "lines": 368
+    },
+    {
+      "path": "views/poc/index.js",
+      "type": "js",
+      "lines": 1
+    },
+    {
+      "path": "views/production/DailyPlanning.vue",
+      "type": "vue",
+      "lines": 579
+    },
+    {
+      "path": "views/production/MonthlyPlanning.vue",
+      "type": "vue",
+      "lines": 606
+    },
+    {
+      "path": "views/production/PlanSummary.vue",
+      "type": "vue",
+      "lines": 335
+    },
+    {
+      "path": "views/production/Production.vue",
+      "type": "vue",
+      "lines": 18
+    },
+    {
+      "path": "views/production/PurchasePlan.vue",
+      "type": "vue",
+      "lines": 18
+    },
+    {
+      "path": "views/production/TechSolution.vue",
+      "type": "vue",
+      "lines": 923
+    },
+    {
+      "path": "views/production/components/BaseModal.vue",
+      "type": "vue",
+      "lines": 274
+    },
+    {
+      "path": "views/production/components/TechSolutionFilters.vue",
+      "type": "vue",
+      "lines": 97
+    },
+    {
+      "path": "views/production/components/TechSolutionTable.vue",
+      "type": "vue",
+      "lines": 206
+    },
+    {
+      "path": "views/production/constants/buttonStyles.js",
+      "type": "js",
+      "lines": 25
+    },
+    {
+      "path": "views/production/constants/magicNumbers.js",
+      "type": "js",
+      "lines": 34
+    },
+    {
+      "path": "views/production/constants/statuses.js",
+      "type": "js",
+      "lines": 127
+    },
+    {
+      "path": "views/production/constants/techSolutionScopes.js",
+      "type": "js",
+      "lines": 23
+    },
+    {
+      "path": "views/production/modals/AddModal.vue",
+      "type": "vue",
+      "lines": 176
+    },
+    {
+      "path": "views/production/modals/DetailModal.vue",
+      "type": "vue",
+      "lines": 110
+    },
+    {
+      "path": "views/production/modals/EditModal.vue",
+      "type": "vue",
+      "lines": 189
+    },
+    {
+      "path": "views/production/modals/ExportFormatModal.vue",
+      "type": "vue",
+      "lines": 55
+    },
+    {
+      "path": "views/production/modals/TechSolutionBatchEditModal.vue",
+      "type": "vue",
+      "lines": 339
+    },
+    {
+      "path": "views/production/modals/TechSolutionCreateModal.vue",
+      "type": "vue",
+      "lines": 432
+    },
+    {
+      "path": "views/production/modals/TechSolutionDetailModal.vue",
+      "type": "vue",
+      "lines": 191
+    },
+    {
+      "path": "views/production/modals/TechSolutionEditModal.vue",
+      "type": "vue",
+      "lines": 415
+    },
+    {
+      "path": "views/profile/Profile.vue",
+      "type": "vue",
+      "lines": 526
+    },
+    {
+      "path": "views/summary/BatchManagement.vue",
+      "type": "vue",
+      "lines": 49
+    },
+    {
+      "path": "views/summary/BusinessAnalysis.vue",
+      "type": "vue",
+      "lines": 797
+    },
+    {
+      "path": "views/summary/Indicators.vue",
+      "type": "vue",
+      "lines": 612
+    },
+    {
+      "path": "views/summary/MonthlyReport.vue",
+      "type": "vue",
+      "lines": 284
+    },
+    {
+      "path": "views/summary/Overview.vue",
+      "type": "vue",
+      "lines": 641
+    },
+    {
+      "path": "views/summary/Problems.vue",
+      "type": "vue",
+      "lines": 587
+    },
+    {
+      "path": "views/summary/sub/BatchSummary.vue",
+      "type": "vue",
+      "lines": 823
+    },
+    {
+      "path": "views/summary/sub/ChainTraceability.vue",
+      "type": "vue",
+      "lines": 595
+    },
+    {
+      "path": "views/summary/sub/CostAnalysis.vue",
+      "type": "vue",
+      "lines": 509
+    },
+    {
+      "path": "views/summary/sub/LaborAnalysis.vue",
+      "type": "vue",
+      "lines": 626
+    },
+    {
+      "path": "views/summary/sub/YieldAnalysis.vue",
+      "type": "vue",
+      "lines": 771
+    },
+    {
+      "path": "views/summary/sub/YieldDetailTable.vue",
+      "type": "vue",
+      "lines": 122
+    },
+    {
+      "path": "views/supplier/SupplierManagement.vue",
+      "type": "vue",
+      "lines": 1139
+    },
+    {
+      "path": "views/supplier/components/SupplierDetailModal.vue",
+      "type": "vue",
+      "lines": 155
+    },
+    {
+      "path": "views/system/ApprovalLevelConfig.vue",
+      "type": "vue",
+      "lines": 855
+    },
+    {
+      "path": "views/system/ApprovalWorkflowConfig.vue",
+      "type": "vue",
+      "lines": 464
+    },
+    {
+      "path": "views/system/AuditLog.vue",
+      "type": "vue",
+      "lines": 670
+    },
+    {
+      "path": "views/system/BaseOperations.vue",
+      "type": "vue",
+      "lines": 992
+    },
+    {
+      "path": "views/system/BaseSettings.vue",
+      "type": "vue",
+      "lines": 719
+    },
+    {
+      "path": "views/system/CodeRule.vue",
+      "type": "vue",
+      "lines": 545
+    },
+    {
+      "path": "views/system/CropGrowthConfigPanel.vue",
+      "type": "vue",
+      "lines": 708
+    },
+    {
+      "path": "views/system/CropVarietyManagement.vue",
+      "type": "vue",
+      "lines": 1070
+    },
+    {
+      "path": "views/system/DepartmentSettings.vue",
+      "type": "vue",
+      "lines": 565
+    },
+    {
+      "path": "views/system/DictionaryManagement.vue",
+      "type": "vue",
+      "lines": 637
+    },
+    {
+      "path": "views/system/FarmStructureManagement.vue",
+      "type": "vue",
+      "lines": 47
+    },
+    {
+      "path": "views/system/NotificationSettings.vue",
+      "type": "vue",
+      "lines": 671
+    },
+    {
+      "path": "views/system/ProduceCodeRule.vue",
+      "type": "vue",
+      "lines": 410
+    },
+    {
+      "path": "views/system/SupplierCodeRule.vue",
+      "type": "vue",
+      "lines": 379
+    },
+    {
+      "path": "views/system/SystemConfig.vue",
+      "type": "vue",
+      "lines": 742
+    },
+    {
+      "path": "views/system/SystemIndex.vue",
+      "type": "vue",
+      "lines": 192
+    },
+    {
+      "path": "views/system/TeamManagement.vue",
+      "type": "vue",
+      "lines": 594
+    },
+    {
+      "path": "views/system/WarehouseManagement.vue",
+      "type": "vue",
+      "lines": 434
+    },
+    {
+      "path": "views/system/authority/AuthorityConfiguration.vue",
+      "type": "vue",
+      "lines": 601
+    },
+    {
+      "path": "views/system/authority/OrgTreeNode.vue",
+      "type": "vue",
+      "lines": 102
+    },
+    {
+      "path": "views/system/authority/OrganizationManagement.vue",
+      "type": "vue",
+      "lines": 473
+    },
+    {
+      "path": "views/system/authority/RoleManagement.vue",
+      "type": "vue",
+      "lines": 345
+    },
+    {
+      "path": "views/system/authority/UserAuthorityConfig.vue",
+      "type": "vue",
+      "lines": 328
+    },
+    {
+      "path": "views/system/authority/UserBasePermission.vue",
+      "type": "vue",
+      "lines": 404
+    },
+    {
+      "path": "views/system/authority/UserManagement.vue",
+      "type": "vue",
+      "lines": 536
+    },
+    {
+      "path": "views/system/authority/UserPermissionHub.vue",
+      "type": "vue",
+      "lines": 95
+    },
+    {
+      "path": "views/system/authority/authorityTypes.js",
+      "type": "js",
+      "lines": 54
+    },
+    {
+      "path": "views/system/components/AddCropVarietyModal.vue",
+      "type": "vue",
+      "lines": 731
+    },
+    {
+      "path": "views/system/components/CategoryEditCell.vue",
+      "type": "vue",
+      "lines": 73
+    },
+    {
+      "path": "views/system/components/CropVarietyDetail.vue",
+      "type": "vue",
+      "lines": 296
+    },
+    {
+      "path": "views/system/components/DelegationRulesEditor.vue",
+      "type": "vue",
+      "lines": 188
+    },
+    {
+      "path": "views/system/components/DelegationRulesPreview.vue",
+      "type": "vue",
+      "lines": 89
+    },
+    {
+      "path": "views/system/components/EditCell.vue",
+      "type": "vue",
+      "lines": 67
+    },
+    {
+      "path": "views/system/components/EditCropVarietyModal.vue",
+      "type": "vue",
+      "lines": 354
+    },
+    {
+      "path": "views/system/components/ProduceCodeRule/ProduceCodeRuleModals/index.js",
+      "type": "js",
+      "lines": 10
+    },
+    {
+      "path": "views/system/components/ProduceCodeRule/hooks/useProduceCodeRuleForm.js",
+      "type": "js",
+      "lines": 12
+    },
+    {
+      "path": "views/system/components/ProduceCodeRule/types/produceCodeRule.types.js",
+      "type": "js",
+      "lines": 37
+    },
+    {
+      "path": "views/system/components/VarietyTreeNode.vue",
+      "type": "vue",
+      "lines": 509
+    },
+    {
+      "path": "views/system/fertilizer-library/index.vue",
+      "type": "vue",
+      "lines": 973
+    },
+    {
+      "path": "views/system/pest-disease-dict/index.vue",
+      "type": "vue",
+      "lines": 730
+    },
+    {
+      "path": "views/system/pesticide-library/index.vue",
+      "type": "vue",
+      "lines": 979
+    },
+    {
+      "path": "views/system/tabs/BlockTab.vue",
+      "type": "vue",
+      "lines": 594
+    },
+    {
+      "path": "views/system/tabs/CompanyBaseTab.vue",
+      "type": "vue",
+      "lines": 419
+    },
+    {
+      "path": "views/system/tabs/FacilityTab.vue",
+      "type": "vue",
+      "lines": 451
+    },
+    {
+      "path": "views/system/tabs/PlantingRecordTab.vue",
+      "type": "vue",
+      "lines": 605
+    },
+    {
+      "path": "views/tools/DataMigration.vue",
+      "type": "vue",
+      "lines": 987
+    },
+    {
+      "path": "views/warehouse/Materials.vue",
+      "type": "vue",
+      "lines": 1733
+    },
+    {
+      "path": "views/warehouse/ProduceInventory.vue",
+      "type": "vue",
+      "lines": 881
+    },
+    {
+      "path": "views/warehouse/WarehouseInbound.vue",
+      "type": "vue",
+      "lines": 1052
+    },
+    {
+      "path": "views/warehouse/WarehouseOverview.vue",
+      "type": "vue",
+      "lines": 594
+    },
+    {
+      "path": "views/warehouse/components/ActionToolbar.vue",
+      "type": "vue",
+      "lines": 168
+    },
+    {
+      "path": "views/warehouse/components/BatchDeleteConfirmDialog.vue",
+      "type": "vue",
+      "lines": 73
+    },
+    {
+      "path": "views/warehouse/components/BatchEditWarningModal.vue",
+      "type": "vue",
+      "lines": 110
+    },
+    {
+      "path": "views/warehouse/components/CodeGeneratorPanel.vue",
+      "type": "vue",
+      "lines": 137
+    },
+    {
+      "path": "views/warehouse/components/DeleteWarningDialog.vue",
+      "type": "vue",
+      "lines": 63
+    },
+    {
+      "path": "views/warehouse/components/InboundAddModal.vue",
+      "type": "vue",
+      "lines": 564
+    },
+    {
+      "path": "views/warehouse/components/InboundBatchEditModal.vue",
+      "type": "vue",
+      "lines": 113
+    },
+    {
+      "path": "views/warehouse/components/InboundDetailModal.vue",
+      "type": "vue",
+      "lines": 135
+    },
+    {
+      "path": "views/warehouse/components/InboundEditModal.vue",
+      "type": "vue",
+      "lines": 214
+    },
+    {
+      "path": "views/warehouse/components/InboundFilters.vue",
+      "type": "vue",
+      "lines": 89
+    },
+    {
+      "path": "views/warehouse/components/InboundTable.vue",
+      "type": "vue",
+      "lines": 222
+    },
+    {
+      "path": "views/warehouse/components/MaterialBatchEditModal.vue",
+      "type": "vue",
+      "lines": 292
+    },
+    {
+      "path": "views/warehouse/components/MaterialCreateModal.vue",
+      "type": "vue",
+      "lines": 550
+    },
+    {
+      "path": "views/warehouse/components/MaterialDeleteConfirmModal.vue",
+      "type": "vue",
+      "lines": 80
+    },
+    {
+      "path": "views/warehouse/components/MaterialDetailModal.vue",
+      "type": "vue",
+      "lines": 153
+    },
+    {
+      "path": "views/warehouse/components/MaterialEditModal.vue",
+      "type": "vue",
+      "lines": 246
+    },
+    {
+      "path": "views/warehouse/components/MaterialExportModal.vue",
+      "type": "vue",
+      "lines": 74
+    },
+    {
+      "path": "views/warehouse/components/MaterialFilters.vue",
+      "type": "vue",
+      "lines": 472
+    },
+    {
+      "path": "views/warehouse/components/MaterialsTable.vue",
+      "type": "vue",
+      "lines": 221
+    },
+    {
+      "path": "views/warehouse/components/PageHeader.vue",
+      "type": "vue",
+      "lines": 37
+    },
+    {
+      "path": "vite-env.d.js",
+      "type": "js",
+      "lines": 1
+    }
+  ]
+}

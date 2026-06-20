@@ -1,0 +1,3350 @@
+{
+  "approval": {
+    "v1_total": 23,
+    "v2_total": 25,
+    "mapped_count": 21,
+    "unmapped_v1_count": 2,
+    "unmapped_v2_count": 6,
+    "v1_files": [
+      "components/approval/ApprovalDetail.tsx",
+      "components/approval/ApprovalFilters.tsx",
+      "components/approval/ApprovalLevelBadge.tsx",
+      "components/approval/ApprovalList.tsx",
+      "components/approval/ApprovalSubmitPanel.tsx",
+      "components/approval/ApprovalTimeline.tsx",
+      "components/approval/BatchActionBar.tsx",
+      "components/approval/BatchConfirmModal.tsx",
+      "components/approval/BatchResultModal.tsx",
+      "components/approval/BusinessPreview.tsx",
+      "components/approval/MaterialApprovalForm.tsx",
+      "components/approval/NotificationPanel.tsx",
+      "pages/ApprovalLevelConfig.tsx",
+      "pages/ApprovalWorkflowConfig.tsx",
+      "pages/FarmApproval.tsx",
+      "pages/HrApproval.tsx",
+      "pages/IndicatorBudgetApproval.tsx",
+      "pages/MaterialApproval.tsx",
+      "pages/MyApplications.tsx",
+      "pages/PendingApproval.tsx",
+      "pages/ProductionApproval.tsx",
+      "pages/components/MaterialApproval/MaterialApprovalFilters.tsx",
+      "pages/components/MaterialApproval/MaterialApprovalTable.tsx"
+    ],
+    "v2_files": [
+      "views/approval/Approved.vue",
+      "views/approval/FarmApproval.vue",
+      "views/approval/HrApproval.vue",
+      "views/approval/HrApprovalDetail.vue",
+      "views/approval/IndicatorBudgetApproval.vue",
+      "views/approval/MaterialApproval.vue",
+      "views/approval/MyApplications.vue",
+      "views/approval/MyApproval.vue",
+      "views/approval/PendingApproval.vue",
+      "views/approval/ProductionApproval.vue",
+      "views/approval/components/ApprovalDetail.vue",
+      "views/approval/components/ApprovalFilters.vue",
+      "views/approval/components/ApprovalLevelBadge.vue",
+      "views/approval/components/ApprovalList.vue",
+      "views/approval/components/ApprovalSubmitPanel.vue",
+      "views/approval/components/ApprovalTimeline.vue",
+      "views/approval/components/BatchActionBar.vue",
+      "views/approval/components/BatchConfirmModal.vue",
+      "views/approval/components/BatchResultModal.vue",
+      "views/approval/components/BusinessPreview.vue",
+      "views/approval/components/MaterialApprovalForm.vue",
+      "views/approval/components/MaterialDetailDialog.vue",
+      "views/approval/components/NotificationPanel.vue",
+      "views/approval/components/RejectReasonDialog.vue",
+      "views/approval/components/ReturnApprovalTable.vue"
+    ],
+    "mapped": [
+      {
+        "v1": "components/approval/ApprovalDetail.tsx",
+        "v2": "views/approval/components/ApprovalDetail.vue"
+      },
+      {
+        "v1": "components/approval/ApprovalFilters.tsx",
+        "v2": "views/approval/components/ApprovalFilters.vue"
+      },
+      {
+        "v1": "components/approval/ApprovalLevelBadge.tsx",
+        "v2": "views/approval/components/ApprovalLevelBadge.vue"
+      },
+      {
+        "v1": "components/approval/ApprovalList.tsx",
+        "v2": "views/approval/components/ApprovalList.vue"
+      },
+      {
+        "v1": "components/approval/ApprovalSubmitPanel.tsx",
+        "v2": "views/approval/components/ApprovalSubmitPanel.vue"
+      },
+      {
+        "v1": "components/approval/ApprovalTimeline.tsx",
+        "v2": "views/approval/components/ApprovalTimeline.vue"
+      },
+      {
+        "v1": "components/approval/BatchActionBar.tsx",
+        "v2": "views/approval/components/BatchActionBar.vue"
+      },
+      {
+        "v1": "components/approval/BatchConfirmModal.tsx",
+        "v2": "views/approval/components/BatchConfirmModal.vue"
+      },
+      {
+        "v1": "components/approval/BatchResultModal.tsx",
+        "v2": "views/approval/components/BatchResultModal.vue"
+      },
+      {
+        "v1": "components/approval/BusinessPreview.tsx",
+        "v2": "views/approval/components/BusinessPreview.vue"
+      },
+      {
+        "v1": "components/approval/MaterialApprovalForm.tsx",
+        "v2": "views/approval/components/MaterialApprovalForm.vue"
+      },
+      {
+        "v1": "components/approval/NotificationPanel.tsx",
+        "v2": "views/approval/components/NotificationPanel.vue"
+      },
+      {
+        "v1": "pages/FarmApproval.tsx",
+        "v2": "views/approval/FarmApproval.vue"
+      },
+      {
+        "v1": "pages/HrApproval.tsx",
+        "v2": "views/approval/HrApproval.vue"
+      },
+      {
+        "v1": "pages/IndicatorBudgetApproval.tsx",
+        "v2": "views/approval/IndicatorBudgetApproval.vue"
+      },
+      {
+        "v1": "pages/MaterialApproval.tsx",
+        "v2": "views/approval/MaterialApproval.vue"
+      },
+      {
+        "v1": "pages/MyApplications.tsx",
+        "v2": "views/approval/MyApplications.vue"
+      },
+      {
+        "v1": "pages/PendingApproval.tsx",
+        "v2": "views/approval/PendingApproval.vue"
+      },
+      {
+        "v1": "pages/ProductionApproval.tsx",
+        "v2": "views/approval/ProductionApproval.vue"
+      },
+      {
+        "v1": "pages/components/MaterialApproval/MaterialApprovalFilters.tsx",
+        "v2": "views/approval/MaterialApproval.vue"
+      },
+      {
+        "v1": "pages/components/MaterialApproval/MaterialApprovalTable.tsx",
+        "v2": "views/approval/MaterialApproval.vue"
+      }
+    ],
+    "unmapped_v1": [
+      "pages/ApprovalLevelConfig.tsx",
+      "pages/ApprovalWorkflowConfig.tsx"
+    ],
+    "unmapped_v2": [
+      "views/approval/Approved.vue",
+      "views/approval/HrApprovalDetail.vue",
+      "views/approval/MyApproval.vue",
+      "views/approval/components/MaterialDetailDialog.vue",
+      "views/approval/components/RejectReasonDialog.vue",
+      "views/approval/components/ReturnApprovalTable.vue"
+    ]
+  },
+  "system_authority": {
+    "v1_total": 13,
+    "v2_total": 29,
+    "mapped_count": 12,
+    "unmapped_v1_count": 1,
+    "unmapped_v2_count": 17,
+    "v1_files": [
+      "pages/authority/AuthorityConfiguration.tsx",
+      "pages/authority/BaseManagement.tsx",
+      "pages/authority/DictionaryManagement.tsx",
+      "pages/authority/GreenhouseManagement.tsx",
+      "pages/authority/OrganizationManagement.tsx",
+      "pages/authority/RoleManagement.tsx",
+      "pages/authority/SystemConfigManagement.tsx",
+      "pages/authority/UserAuthorityConfig.tsx",
+      "pages/authority/UserBasePermission.tsx",
+      "pages/authority/UserManagement.tsx",
+      "pages/authority/UserPermissionHub.tsx",
+      "pages/authority/WarehouseManagement.tsx",
+      "pages/authority/useDragResize.tsx"
+    ],
+    "v2_files": [
+      "views/system/ApprovalLevelConfig.vue",
+      "views/system/ApprovalWorkflowConfig.vue",
+      "views/system/AuditLog.vue",
+      "views/system/BaseOperations.vue",
+      "views/system/BaseSettings.vue",
+      "views/system/CodeRule.vue",
+      "views/system/CropGrowthConfigPanel.vue",
+      "views/system/CropVarietyManagement.vue",
+      "views/system/DepartmentSettings.vue",
+      "views/system/DictionaryManagement.vue",
+      "views/system/FarmStructureManagement.vue",
+      "views/system/NotificationSettings.vue",
+      "views/system/ProduceCodeRule.vue",
+      "views/system/SupplierCodeRule.vue",
+      "views/system/SystemConfig.vue",
+      "views/system/SystemIndex.vue",
+      "views/system/TeamManagement.vue",
+      "views/system/WarehouseManagement.vue",
+      "views/system/authority/AuthorityConfiguration.vue",
+      "views/system/authority/BaseManagement.vue",
+      "views/system/authority/GreenhouseManagement.vue",
+      "views/system/authority/OrgTreeNode.vue",
+      "views/system/authority/OrganizationManagement.vue",
+      "views/system/authority/RoleManagement.vue",
+      "views/system/authority/SystemConfigManagement.vue",
+      "views/system/authority/UserAuthorityConfig.vue",
+      "views/system/authority/UserBasePermission.vue",
+      "views/system/authority/UserManagement.vue",
+      "views/system/authority/UserPermissionHub.vue"
+    ],
+    "mapped": [
+      {
+        "v1": "pages/authority/AuthorityConfiguration.tsx",
+        "v2": "views/system/authority/AuthorityConfiguration.vue"
+      },
+      {
+        "v1": "pages/authority/BaseManagement.tsx",
+        "v2": "views/system/authority/BaseManagement.vue"
+      },
+      {
+        "v1": "pages/authority/DictionaryManagement.tsx",
+        "v2": "views/system/DictionaryManagement.vue"
+      },
+      {
+        "v1": "pages/authority/GreenhouseManagement.tsx",
+        "v2": "views/system/authority/GreenhouseManagement.vue"
+      },
+      {
+        "v1": "pages/authority/OrganizationManagement.tsx",
+        "v2": "views/system/authority/OrganizationManagement.vue"
+      },
+      {
+        "v1": "pages/authority/RoleManagement.tsx",
+        "v2": "views/system/authority/RoleManagement.vue"
+      },
+      {
+        "v1": "pages/authority/SystemConfigManagement.tsx",
+        "v2": "views/system/authority/SystemConfigManagement.vue"
+      },
+      {
+        "v1": "pages/authority/UserAuthorityConfig.tsx",
+        "v2": "views/system/authority/UserAuthorityConfig.vue"
+      },
+      {
+        "v1": "pages/authority/UserBasePermission.tsx",
+        "v2": "views/system/authority/UserBasePermission.vue"
+      },
+      {
+        "v1": "pages/authority/UserManagement.tsx",
+        "v2": "views/system/authority/UserManagement.vue"
+      },
+      {
+        "v1": "pages/authority/UserPermissionHub.tsx",
+        "v2": "views/system/authority/UserPermissionHub.vue"
+      },
+      {
+        "v1": "pages/authority/WarehouseManagement.tsx",
+        "v2": "views/system/WarehouseManagement.vue"
+      }
+    ],
+    "unmapped_v1": [
+      "pages/authority/useDragResize.tsx"
+    ],
+    "unmapped_v2": [
+      "views/system/ApprovalLevelConfig.vue",
+      "views/system/ApprovalWorkflowConfig.vue",
+      "views/system/AuditLog.vue",
+      "views/system/BaseOperations.vue",
+      "views/system/BaseSettings.vue",
+      "views/system/CodeRule.vue",
+      "views/system/CropGrowthConfigPanel.vue",
+      "views/system/CropVarietyManagement.vue",
+      "views/system/DepartmentSettings.vue",
+      "views/system/FarmStructureManagement.vue",
+      "views/system/NotificationSettings.vue",
+      "views/system/ProduceCodeRule.vue",
+      "views/system/SupplierCodeRule.vue",
+      "views/system/SystemConfig.vue",
+      "views/system/SystemIndex.vue",
+      "views/system/TeamManagement.vue",
+      "views/system/authority/OrgTreeNode.vue"
+    ]
+  },
+  "labor": {
+    "v1_total": 222,
+    "v2_total": 163,
+    "mapped_count": 245,
+    "unmapped_v1_count": 33,
+    "unmapped_v2_count": 28,
+    "v1_files": [
+      "components/labor/attendance/WorkerAttendanceExport.tsx",
+      "components/labor/attendance/WorkerAttendanceFilters.tsx",
+      "components/labor/attendance/WorkerAttendancePage.tsx",
+      "components/labor/attendance/WorkerAttendanceTable.tsx",
+      "components/labor/attendance/modals/BatchEditModal.tsx",
+      "components/labor/attendance/modals/DeleteWarningModal.tsx",
+      "components/labor/attendance/modals/DetailModal.tsx",
+      "components/labor/attendance/modals/ExportFormatModal.tsx",
+      "components/labor/budget/BudgetBatchEditModal.tsx",
+      "components/labor/budget/BudgetChart.tsx",
+      "components/labor/budget/BudgetFormModal.tsx",
+      "components/labor/budget/BudgetInputForm.tsx",
+      "components/labor/budget/BudgetPage.tsx",
+      "components/labor/budget/BudgetTable.tsx",
+      "components/labor/budget/DeleteWarningModal.tsx",
+      "components/labor/budget/ExportFormatModal.tsx",
+      "components/labor/contract/ContractBatchEditModal.tsx",
+      "components/labor/contract/ContractFormModal.tsx",
+      "components/labor/contract/ContractRemindModal.tsx",
+      "components/labor/contract/ContractTable.tsx",
+      "components/labor/dispatch/DispatchRecommend.tsx",
+      "components/labor/dispatch/WorkerMatchList.tsx",
+      "components/labor/efficiency/DeleteWarningModal.tsx",
+      "components/labor/efficiency/EfficiencyBatchEditModal.tsx",
+      "components/labor/efficiency/EfficiencyChart.tsx",
+      "components/labor/efficiency/EfficiencyDashboard.tsx",
+      "components/labor/efficiency/EfficiencyFilters.tsx",
+      "components/labor/efficiency/EfficiencyFormModal.tsx",
+      "components/labor/efficiency/EfficiencyPage.tsx",
+      "components/labor/efficiency/EfficiencyTable.tsx",
+      "components/labor/efficiency/ExportFormatModal.tsx",
+      "components/labor/leave/LeaveDetailModal.tsx",
+      "components/labor/leave/LeaveFilters.tsx",
+      "components/labor/leave/LeaveFormModal.tsx",
+      "components/labor/leave/LeavePage.tsx",
+      "components/labor/leave/LeaveQuota.tsx",
+      "components/labor/leave/LeaveTable.tsx",
+      "components/labor/leave/modals/LeaveBatchEditModal.tsx",
+      "components/labor/leave/modals/LeaveDeleteWarningModal.tsx",
+      "components/labor/leave/modals/LeaveExportFormatModal.tsx",
+      "components/labor/monthly/DeleteWarningModal.tsx",
+      "components/labor/monthly/ExportFormatModal.tsx",
+      "components/labor/monthly/MonthlyReportBatchEditModal.tsx",
+      "components/labor/monthly/MonthlyReportChart.tsx",
+      "components/labor/monthly/MonthlyReportFilters.tsx",
+      "components/labor/monthly/MonthlyReportFormModal.tsx",
+      "components/labor/monthly/MonthlyReportPage.tsx",
+      "components/labor/monthly/MonthlyReportTable.tsx",
+      "components/labor/monthly/MonthlyStatsCards.tsx",
+      "components/labor/myTasks/MyTasksPage.tsx",
+      "components/labor/myTasks/ProblemTaskTableRow.tsx",
+      "components/labor/myTasks/ProductionTaskTableRow.tsx",
+      "components/labor/myTasks/TaskDetailModal.tsx",
+      "components/labor/myTasks/TaskFeedbackModal.tsx",
+      "components/labor/myTasks/TaskFilterTabs.tsx",
+      "components/labor/myTasks/TaskRejectModal.tsx",
+      "components/labor/myTasks/TaskSopModal.tsx",
+      "components/labor/myTasks/TempTaskTableRow.tsx",
+      "components/labor/onboarding/OnboardingBatchEditModal.tsx",
+      "components/labor/onboarding/OnboardingForm.tsx",
+      "components/labor/onboarding/OnboardingPage.tsx",
+      "components/labor/overtime/OvertimeDetailModal.tsx",
+      "components/labor/overtime/OvertimeFilters.tsx",
+      "components/labor/overtime/OvertimeFormModal.tsx",
+      "components/labor/overtime/OvertimePage.tsx",
+      "components/labor/overtime/OvertimeTable.tsx",
+      "components/labor/overtime/modals/OvertimeBatchEditModal.tsx",
+      "components/labor/overtime/modals/OvertimeDeleteWarningModal.tsx",
+      "components/labor/overtime/modals/OvertimeExportFormatModal.tsx",
+      "components/labor/performance/PerformanceChart.tsx",
+      "components/labor/performance/PerformanceDetailModal.tsx",
+      "components/labor/performance/PerformanceFilters.tsx",
+      "components/labor/performance/PerformanceFormModal.tsx",
+      "components/labor/performance/PerformancePage.tsx",
+      "components/labor/performance/PerformanceTable.tsx",
+      "components/labor/performance/modals/BatchEditModal.tsx",
+      "components/labor/performance/modals/DeleteWarningModal.tsx",
+      "components/labor/performance/modals/ExportFormatModal.tsx",
+      "components/labor/personnel/PersonnelDetailModal.tsx",
+      "components/labor/personnel/PersonnelFilters.tsx",
+      "components/labor/personnel/PersonnelFormModal.tsx",
+      "components/labor/personnel/PersonnelManagementPage.tsx",
+      "components/labor/personnel/PersonnelTable.tsx",
+      "components/labor/personnel/StaffManagementPage.tsx",
+      "components/labor/personnel/modals/BatchEditModal.tsx",
+      "components/labor/personnel/modals/DeleteWarningModal.tsx",
+      "components/labor/personnel/modals/ExportFormatModal.tsx",
+      "components/labor/piecework/PieceworkBatchEditModal.tsx",
+      "components/labor/piecework/PieceworkFormModal.tsx",
+      "components/labor/piecework/PieceworkPage.tsx",
+      "components/labor/piecework/PieceworkTable.tsx",
+      "components/labor/position/modals/PositionBatchEditModal.tsx",
+      "components/labor/position/modals/PositionDeleteWarningModal.tsx",
+      "components/labor/position/modals/PositionExportFormatModal.tsx",
+      "components/labor/position/modals/PositionFormModal.tsx",
+      "components/labor/recruitment/RecruitmentBatchEditModal.tsx",
+      "components/labor/recruitment/RecruitmentDetailModal.tsx",
+      "components/labor/recruitment/RecruitmentFilters.tsx",
+      "components/labor/recruitment/RecruitmentFormModal.tsx",
+      "components/labor/recruitment/RecruitmentPage.tsx",
+      "components/labor/recruitment/RecruitmentTable.tsx",
+      "components/labor/risk/DeleteWarningModal.tsx",
+      "components/labor/risk/ExportFormatModal.tsx",
+      "components/labor/risk/RiskAlertDetailModal.tsx",
+      "components/labor/risk/RiskAlertList.tsx",
+      "components/labor/risk/RiskBatchEditModal.tsx",
+      "components/labor/risk/RiskDashboard.tsx",
+      "components/labor/risk/RiskFilters.tsx",
+      "components/labor/risk/RiskFormModal.tsx",
+      "components/labor/risk/RiskPage.tsx",
+      "components/labor/salary/SalaryCalculateModal.tsx",
+      "components/labor/salary/SalaryExport.tsx",
+      "components/labor/salary/SalaryFilters.tsx",
+      "components/labor/salary/SalaryFormModal.tsx",
+      "components/labor/salary/SalaryPage.tsx",
+      "components/labor/salary/SalarySlipModal.tsx",
+      "components/labor/salary/SalaryTable.tsx",
+      "components/labor/salary/modals/BatchEditModal.tsx",
+      "components/labor/salary/modals/DeleteWarningModal.tsx",
+      "components/labor/salary/modals/ExportFormatModal.tsx",
+      "components/labor/schedule/ScheduleCalendar.tsx",
+      "components/labor/schedule/SchedulePage.tsx",
+      "components/labor/schedule/ScheduleTable.tsx",
+      "components/labor/schedule/ShiftEditor.tsx",
+      "components/labor/schedule/SwapRequestModal.tsx",
+      "components/labor/schedule/modals/DeleteWarningModal.tsx",
+      "components/labor/schedule/modals/ExportFormatModal.tsx",
+      "components/labor/schedule/modals/ScheduleAddModal.tsx",
+      "components/labor/schedule/modals/ScheduleBatchEditModal.tsx",
+      "components/labor/skill/SkillBatchEditModal.tsx",
+      "components/labor/skill/SkillDetailModal.tsx",
+      "components/labor/skill/SkillFilters.tsx",
+      "components/labor/skill/SkillFormModal.tsx",
+      "components/labor/skill/SkillMatch.tsx",
+      "components/labor/skill/SkillPage.tsx",
+      "components/labor/skill/SkillTable.tsx",
+      "components/labor/skill/SkillTagSelector.tsx",
+      "components/labor/tasks/BatchEditModal.tsx",
+      "components/labor/tasks/TaskAttachmentList.tsx",
+      "components/labor/tasks/TaskDetailModal.tsx",
+      "components/labor/tasks/TaskFormModal.tsx",
+      "components/labor/tasks/TaskModeBadge.tsx",
+      "components/labor/tasks/TaskPriorityBadge.tsx",
+      "components/labor/tasks/TaskStatusBadge.tsx",
+      "components/labor/tasks/TaskTypeTag.tsx",
+      "components/labor/tasks/TaskWorkerSelect.tsx",
+      "components/labor/tasks/TasksFilters.tsx",
+      "components/labor/tasks/TasksPage.tsx",
+      "components/labor/tasks/TasksTable.tsx",
+      "components/labor/team/TeamAssignModal.tsx",
+      "components/labor/team/TeamDetailModal.tsx",
+      "components/labor/team/TeamTable.tsx",
+      "components/labor/tempTask/TempTaskFilters.tsx",
+      "components/labor/tempTask/TempTaskFormModal.tsx",
+      "components/labor/tempTask/TempTaskPage.tsx",
+      "components/labor/tempTask/TempTaskTable.tsx",
+      "components/labor/tempWorker/TempWorkerBatchEditModal.tsx",
+      "components/labor/tempWorker/TempWorkerDetailModal.tsx",
+      "components/labor/tempWorker/TempWorkerFilters.tsx",
+      "components/labor/tempWorker/TempWorkerFormModal.tsx",
+      "components/labor/tempWorker/TempWorkerPage.tsx",
+      "components/labor/tempWorker/TempWorkerTable.tsx",
+      "components/labor/worklog/WorkLogBatchEditModal.tsx",
+      "components/labor/worklog/WorkLogDetailModal.tsx",
+      "components/labor/worklog/WorkLogFilters.tsx",
+      "components/labor/worklog/WorkLogFormModal.tsx",
+      "components/labor/worklog/WorkLogPage.tsx",
+      "components/labor/worklog/WorkLogTable.tsx",
+      "pages/Labor/AnalyticsPage.tsx",
+      "pages/Labor/AttendancePage.tsx",
+      "pages/Labor/AttendanceRepairPage.tsx",
+      "pages/Labor/CompensationPage.tsx",
+      "pages/Labor/ContractRenewalPage.tsx",
+      "pages/Labor/LeavePage.tsx",
+      "pages/Labor/OnboardingPage.tsx",
+      "pages/Labor/OvertimePage.tsx",
+      "pages/Labor/PersonnelPage.tsx",
+      "pages/Labor/RecruitmentPage.tsx",
+      "pages/Labor/ResignationPage.tsx",
+      "pages/Labor/SalaryAdjustmentPage.tsx",
+      "pages/Labor/SalaryBudgetPage.tsx",
+      "pages/Labor/TaskCenterPage.tsx",
+      "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPage.tsx",
+      "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageFilters.tsx",
+      "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageModals/CreateModal.tsx",
+      "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageModals/DetailModal.tsx",
+      "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageTable.tsx",
+      "pages/Labor/components/ContractRenewalFilters.tsx",
+      "pages/Labor/components/ContractRenewalModals/CreateModal.tsx",
+      "pages/Labor/components/ContractRenewalModals/DetailModal.tsx",
+      "pages/Labor/components/ContractRenewalTable.tsx",
+      "pages/Labor/components/LeaveFilters.tsx",
+      "pages/Labor/components/LeaveModals/CreateModal.tsx",
+      "pages/Labor/components/LeaveModals/DetailModal.tsx",
+      "pages/Labor/components/LeaveModals/WithdrawModal.tsx",
+      "pages/Labor/components/LeaveTable.tsx",
+      "pages/Labor/components/OnboardingPage/OnboardingPageFilters.tsx",
+      "pages/Labor/components/OnboardingPage/OnboardingPageModals/CreateModal.tsx",
+      "pages/Labor/components/OnboardingPage/OnboardingPageModals/DetailModal.tsx",
+      "pages/Labor/components/OnboardingPage/OnboardingPageTable.tsx",
+      "pages/Labor/components/OvertimePage/OvertimePage.tsx",
+      "pages/Labor/components/OvertimePage/OvertimePageFilters.tsx",
+      "pages/Labor/components/OvertimePage/OvertimePageModals/CreateModal.tsx",
+      "pages/Labor/components/OvertimePage/OvertimePageModals/DetailModal.tsx",
+      "pages/Labor/components/OvertimePage/OvertimePageTable.tsx",
+      "pages/Labor/components/RecruitmentFilters.tsx",
+      "pages/Labor/components/RecruitmentModals/CreateModal.tsx",
+      "pages/Labor/components/RecruitmentModals/DetailModal.tsx",
+      "pages/Labor/components/RecruitmentTable.tsx",
+      "pages/Labor/components/ResignationPage/ResignationPageFilters.tsx",
+      "pages/Labor/components/ResignationPage/ResignationPageModals/CreateModal.tsx",
+      "pages/Labor/components/ResignationPage/ResignationPageModals/DetailModal.tsx",
+      "pages/Labor/components/ResignationPage/ResignationPageTable.tsx",
+      "pages/Labor/components/SalaryAdjustmentFilters.tsx",
+      "pages/Labor/components/SalaryAdjustmentModals/CreateModal.tsx",
+      "pages/Labor/components/SalaryAdjustmentModals/DetailModal.tsx",
+      "pages/Labor/components/SalaryAdjustmentTable.tsx",
+      "pages/Labor/components/SalaryBudgetFilters.tsx",
+      "pages/Labor/components/SalaryBudgetModals/CreateModal.tsx",
+      "pages/Labor/components/SalaryBudgetModals/DetailModal.tsx",
+      "pages/Labor/components/SalaryBudgetModals/SummaryModal.tsx",
+      "pages/Labor/components/SalaryBudgetTable.tsx"
+    ],
+    "v2_files": [
+      "views/labor/Analytics.vue",
+      "views/labor/Attendance.vue",
+      "views/labor/AttendancePage.vue",
+      "views/labor/AttendanceRepair.vue",
+      "views/labor/Compensation.vue",
+      "views/labor/Contract.vue",
+      "views/labor/ContractRenewal.vue",
+      "views/labor/Efficiency.vue",
+      "views/labor/HrApproval.vue",
+      "views/labor/LaborIndex.vue",
+      "views/labor/Leave.vue",
+      "views/labor/Onboarding.vue",
+      "views/labor/Overtime.vue",
+      "views/labor/Performance.vue",
+      "views/labor/Personnel.vue",
+      "views/labor/Piecework.vue",
+      "views/labor/Recruitment.vue",
+      "views/labor/Resignation.vue",
+      "views/labor/Risk.vue",
+      "views/labor/Salary.vue",
+      "views/labor/SalaryAdjustment.vue",
+      "views/labor/SalaryBudget.vue",
+      "views/labor/Skill.vue",
+      "views/labor/Staff.vue",
+      "views/labor/TempWorker.vue",
+      "views/labor/WorkerAttendance.vue",
+      "views/labor/attendance/AttendanceTable.vue",
+      "views/labor/attendance/WorkerAttendanceExport.vue",
+      "views/labor/attendance/modals/BatchEditAdapter.vue",
+      "views/labor/attendance/modals/BatchEditModal.vue",
+      "views/labor/attendance/modals/DeleteWarningModal.vue",
+      "views/labor/attendance/modals/DetailModal.vue",
+      "views/labor/attendance/modals/ExportFormatModal.vue",
+      "views/labor/attendanceRepair/AttendanceRepairPage.vue",
+      "views/labor/attendanceRepair/AttendanceRepairTable.vue",
+      "views/labor/attendanceRepair/modals/CreateModal.vue",
+      "views/labor/attendanceRepair/modals/DetailModal.vue",
+      "views/labor/budget/BudgetBatchEditModal.vue",
+      "views/labor/budget/BudgetChart.vue",
+      "views/labor/budget/BudgetFormModal.vue",
+      "views/labor/budget/BudgetInputForm.vue",
+      "views/labor/budget/BudgetPage.vue",
+      "views/labor/budget/BudgetTable.vue",
+      "views/labor/components/BudgetApply.vue",
+      "views/labor/components/ContractPanel.vue",
+      "views/labor/components/CostForecast.vue",
+      "views/labor/components/EfficiencyAnalysis.vue",
+      "views/labor/components/LeavePanel.vue",
+      "views/labor/components/MonthlyReport.vue",
+      "views/labor/components/OnboardingPanel.vue",
+      "views/labor/components/OvertimePanel.vue",
+      "views/labor/components/PerformanceReview.vue",
+      "views/labor/components/PieceworkManage.vue",
+      "views/labor/components/RecruitmentApplyPanel.vue",
+      "views/labor/components/RecruitmentPanel.vue",
+      "views/labor/components/ResignationPanel.vue",
+      "views/labor/components/RiskWarning.vue",
+      "views/labor/components/SalaryManage.vue",
+      "views/labor/components/SkillPanel.vue",
+      "views/labor/components/StaffPanel.vue",
+      "views/labor/components/TempWorkerPanel.vue",
+      "views/labor/components/WorkerAttendancePanel.vue",
+      "views/labor/contract/ContractBatchEditModal.vue",
+      "views/labor/contract/ContractFormModal.vue",
+      "views/labor/contract/ContractRemindModal.vue",
+      "views/labor/dispatch/DispatchRecommend.vue",
+      "views/labor/dispatch/WorkerMatchList.vue",
+      "views/labor/efficiency/EfficiencyBatchEditModal.vue",
+      "views/labor/efficiency/EfficiencyChart.vue",
+      "views/labor/efficiency/EfficiencyDashboard.vue",
+      "views/labor/efficiency/EfficiencyFormModal.vue",
+      "views/labor/efficiency/EfficiencyTable.vue",
+      "views/labor/leave/LeaveDetailModal.vue",
+      "views/labor/leave/LeaveFilters.vue",
+      "views/labor/leave/LeaveFormModal.vue",
+      "views/labor/leave/LeaveQuota.vue",
+      "views/labor/leave/LeaveTable.vue",
+      "views/labor/leave/modals/LeaveBatchEditModal.vue",
+      "views/labor/leave/modals/LeaveDeleteWarningModal.vue",
+      "views/labor/leave/modals/LeaveExportFormatModal.vue",
+      "views/labor/monthly/MonthlyReportBatchEditModal.vue",
+      "views/labor/monthly/MonthlyReportChart.vue",
+      "views/labor/monthly/MonthlyReportFilters.vue",
+      "views/labor/monthly/MonthlyReportFormModal.vue",
+      "views/labor/monthly/MonthlyReportPage.vue",
+      "views/labor/monthly/MonthlyReportTable.vue",
+      "views/labor/monthly/MonthlyStatsCards.vue",
+      "views/labor/myTasks/MyTasksPage.vue",
+      "views/labor/myTasks/ProblemTaskTableRow.vue",
+      "views/labor/myTasks/ProductionTaskTableRow.vue",
+      "views/labor/myTasks/TaskDetailModal.vue",
+      "views/labor/myTasks/TaskFeedbackModal.vue",
+      "views/labor/myTasks/TaskFilterTabs.vue",
+      "views/labor/myTasks/TaskRejectModal.vue",
+      "views/labor/myTasks/TaskSopModal.vue",
+      "views/labor/myTasks/TempTaskTableRow.vue",
+      "views/labor/onboarding/OnboardingBatchEditModal.vue",
+      "views/labor/onboarding/OnboardingForm.vue",
+      "views/labor/overtime/OvertimeDetailModal.vue",
+      "views/labor/overtime/OvertimeFilters.vue",
+      "views/labor/overtime/OvertimeFormModal.vue",
+      "views/labor/overtime/OvertimeTable.vue",
+      "views/labor/overtime/modals/OvertimeBatchEditModal.vue",
+      "views/labor/overtime/modals/OvertimeDeleteWarningModal.vue",
+      "views/labor/overtime/modals/OvertimeExportFormatModal.vue",
+      "views/labor/performance/PerformanceChart.vue",
+      "views/labor/performance/PerformanceDetailModal.vue",
+      "views/labor/performance/PerformanceFormModal.vue",
+      "views/labor/performance/PerformanceTable.vue",
+      "views/labor/performance/modals/BatchEditModal.vue",
+      "views/labor/performance/modals/DeleteWarningModal.vue",
+      "views/labor/personnel/PersonnelDetailModal.vue",
+      "views/labor/personnel/PersonnelFilters.vue",
+      "views/labor/personnel/PersonnelFormModal.vue",
+      "views/labor/personnel/PersonnelManagementPage.vue",
+      "views/labor/personnel/PersonnelTable.vue",
+      "views/labor/personnel/StaffManagementPage.vue",
+      "views/labor/piecework/PieceworkBatchEditModal.vue",
+      "views/labor/piecework/PieceworkFormModal.vue",
+      "views/labor/piecework/PieceworkTable.vue",
+      "views/labor/position/modals/PositionBatchEditModal.vue",
+      "views/labor/position/modals/PositionDeleteWarningModal.vue",
+      "views/labor/position/modals/PositionExportFormatModal.vue",
+      "views/labor/position/modals/PositionFormModal.vue",
+      "views/labor/recruitment/RecruitmentBatchEditModal.vue",
+      "views/labor/recruitment/RecruitmentDetailModal.vue",
+      "views/labor/recruitment/RecruitmentFilters.vue",
+      "views/labor/recruitment/RecruitmentFormModal.vue",
+      "views/labor/recruitment/RecruitmentTable.vue",
+      "views/labor/resignation/ResignationTable.vue",
+      "views/labor/resignation/modals/CreateModal.vue",
+      "views/labor/risk/RiskAlertDetailModal.vue",
+      "views/labor/risk/RiskAlertList.vue",
+      "views/labor/risk/RiskBatchEditModal.vue",
+      "views/labor/risk/RiskDashboard.vue",
+      "views/labor/risk/RiskFilters.vue",
+      "views/labor/risk/RiskFormModal.vue",
+      "views/labor/salary/SalaryCalculateModal.vue",
+      "views/labor/salary/SalaryExport.vue",
+      "views/labor/salary/SalaryFilters.vue",
+      "views/labor/salary/SalaryFormModal.vue",
+      "views/labor/salary/SalarySlipModal.vue",
+      "views/labor/salary/SalaryTable.vue",
+      "views/labor/salary/modals/BatchEditModal.vue",
+      "views/labor/schedule/ScheduleTable.vue",
+      "views/labor/schedule/ShiftEditor.vue",
+      "views/labor/schedule/modals/DeleteWarningModal.vue",
+      "views/labor/schedule/modals/ExportFormatModal.vue",
+      "views/labor/skill/SkillFilters.vue",
+      "views/labor/skill/SkillFormModal.vue",
+      "views/labor/skill/SkillMatch.vue",
+      "views/labor/skill/SkillTable.vue",
+      "views/labor/tasks/TaskAttachmentList.vue",
+      "views/labor/tasks/TaskWorkerSelect.vue",
+      "views/labor/tasks/TasksFilters.vue",
+      "views/labor/tasks/TasksTable.vue",
+      "views/labor/team/TeamDetailModal.vue",
+      "views/labor/team/TeamTable.vue",
+      "views/labor/tempTask/TempTaskFilters.vue",
+      "views/labor/tempTask/TempTaskTable.vue",
+      "views/labor/tempWorker/TempWorkerFormModal.vue",
+      "views/labor/tempWorker/TempWorkerTable.vue",
+      "views/labor/worklog/WorkLogTable.vue"
+    ],
+    "mapped": [
+      {
+        "v1": "components/labor/attendance/WorkerAttendanceExport.tsx",
+        "v2": "views/labor/attendance/WorkerAttendanceExport.vue"
+      },
+      {
+        "v1": "components/labor/attendance/WorkerAttendanceFilters.tsx",
+        "v2": "views/labor/WorkerAttendance.vue"
+      },
+      {
+        "v1": "components/labor/attendance/WorkerAttendancePage.tsx",
+        "v2": "views/labor/WorkerAttendance.vue"
+      },
+      {
+        "v1": "components/labor/attendance/WorkerAttendanceTable.tsx",
+        "v2": "views/labor/WorkerAttendance.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/BatchEditModal.tsx",
+        "v2": "views/labor/attendance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/BatchEditModal.tsx",
+        "v2": "views/labor/performance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/BatchEditModal.tsx",
+        "v2": "views/labor/salary/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/attendance/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/budget/BudgetBatchEditModal.tsx",
+        "v2": "views/labor/budget/BudgetBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/budget/BudgetChart.tsx",
+        "v2": "views/labor/budget/BudgetChart.vue"
+      },
+      {
+        "v1": "components/labor/budget/BudgetFormModal.tsx",
+        "v2": "views/labor/budget/BudgetFormModal.vue"
+      },
+      {
+        "v1": "components/labor/budget/BudgetInputForm.tsx",
+        "v2": "views/labor/budget/BudgetInputForm.vue"
+      },
+      {
+        "v1": "components/labor/budget/BudgetPage.tsx",
+        "v2": "views/labor/budget/BudgetPage.vue"
+      },
+      {
+        "v1": "components/labor/budget/BudgetTable.tsx",
+        "v2": "views/labor/budget/BudgetTable.vue"
+      },
+      {
+        "v1": "components/labor/budget/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/budget/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/budget/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/budget/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/budget/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/contract/ContractBatchEditModal.tsx",
+        "v2": "views/labor/contract/ContractBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/contract/ContractFormModal.tsx",
+        "v2": "views/labor/contract/ContractFormModal.vue"
+      },
+      {
+        "v1": "components/labor/contract/ContractRemindModal.tsx",
+        "v2": "views/labor/contract/ContractRemindModal.vue"
+      },
+      {
+        "v1": "components/labor/contract/ContractTable.tsx",
+        "v2": "views/labor/Contract.vue"
+      },
+      {
+        "v1": "components/labor/dispatch/DispatchRecommend.tsx",
+        "v2": "views/labor/dispatch/DispatchRecommend.vue"
+      },
+      {
+        "v1": "components/labor/dispatch/WorkerMatchList.tsx",
+        "v2": "views/labor/dispatch/WorkerMatchList.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/EfficiencyBatchEditModal.tsx",
+        "v2": "views/labor/efficiency/EfficiencyBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/EfficiencyChart.tsx",
+        "v2": "views/labor/efficiency/EfficiencyChart.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/EfficiencyDashboard.tsx",
+        "v2": "views/labor/efficiency/EfficiencyDashboard.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/EfficiencyFilters.tsx",
+        "v2": "views/labor/Efficiency.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/EfficiencyFormModal.tsx",
+        "v2": "views/labor/efficiency/EfficiencyFormModal.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/EfficiencyPage.tsx",
+        "v2": "views/labor/Efficiency.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/EfficiencyTable.tsx",
+        "v2": "views/labor/efficiency/EfficiencyTable.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/efficiency/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/leave/LeaveDetailModal.tsx",
+        "v2": "views/labor/leave/LeaveDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/leave/LeaveFilters.tsx",
+        "v2": "views/labor/leave/LeaveFilters.vue"
+      },
+      {
+        "v1": "components/labor/leave/LeaveFormModal.tsx",
+        "v2": "views/labor/leave/LeaveFormModal.vue"
+      },
+      {
+        "v1": "components/labor/leave/LeavePage.tsx",
+        "v2": "views/labor/Leave.vue"
+      },
+      {
+        "v1": "components/labor/leave/LeaveQuota.tsx",
+        "v2": "views/labor/leave/LeaveQuota.vue"
+      },
+      {
+        "v1": "components/labor/leave/LeaveTable.tsx",
+        "v2": "views/labor/leave/LeaveTable.vue"
+      },
+      {
+        "v1": "components/labor/leave/modals/LeaveBatchEditModal.tsx",
+        "v2": "views/labor/leave/modals/LeaveBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/leave/modals/LeaveDeleteWarningModal.tsx",
+        "v2": "views/labor/leave/modals/LeaveDeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/leave/modals/LeaveExportFormatModal.tsx",
+        "v2": "views/labor/leave/modals/LeaveExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/monthly/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/monthly/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/monthly/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/monthly/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/monthly/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/monthly/MonthlyReportBatchEditModal.tsx",
+        "v2": "views/labor/monthly/MonthlyReportBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/monthly/MonthlyReportChart.tsx",
+        "v2": "views/labor/monthly/MonthlyReportChart.vue"
+      },
+      {
+        "v1": "components/labor/monthly/MonthlyReportFilters.tsx",
+        "v2": "views/labor/monthly/MonthlyReportFilters.vue"
+      },
+      {
+        "v1": "components/labor/monthly/MonthlyReportFormModal.tsx",
+        "v2": "views/labor/monthly/MonthlyReportFormModal.vue"
+      },
+      {
+        "v1": "components/labor/monthly/MonthlyReportPage.tsx",
+        "v2": "views/labor/monthly/MonthlyReportPage.vue"
+      },
+      {
+        "v1": "components/labor/monthly/MonthlyReportTable.tsx",
+        "v2": "views/labor/monthly/MonthlyReportTable.vue"
+      },
+      {
+        "v1": "components/labor/monthly/MonthlyStatsCards.tsx",
+        "v2": "views/labor/monthly/MonthlyStatsCards.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/MyTasksPage.tsx",
+        "v2": "views/labor/myTasks/MyTasksPage.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/ProblemTaskTableRow.tsx",
+        "v2": "views/labor/myTasks/ProblemTaskTableRow.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/ProductionTaskTableRow.tsx",
+        "v2": "views/labor/myTasks/ProductionTaskTableRow.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/TaskDetailModal.tsx",
+        "v2": "views/labor/myTasks/TaskDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/TaskFeedbackModal.tsx",
+        "v2": "views/labor/myTasks/TaskFeedbackModal.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/TaskFilterTabs.tsx",
+        "v2": "views/labor/myTasks/TaskFilterTabs.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/TaskRejectModal.tsx",
+        "v2": "views/labor/myTasks/TaskRejectModal.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/TaskSopModal.tsx",
+        "v2": "views/labor/myTasks/TaskSopModal.vue"
+      },
+      {
+        "v1": "components/labor/myTasks/TempTaskTableRow.tsx",
+        "v2": "views/labor/myTasks/TempTaskTableRow.vue"
+      },
+      {
+        "v1": "components/labor/onboarding/OnboardingBatchEditModal.tsx",
+        "v2": "views/labor/onboarding/OnboardingBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/onboarding/OnboardingForm.tsx",
+        "v2": "views/labor/onboarding/OnboardingForm.vue"
+      },
+      {
+        "v1": "components/labor/onboarding/OnboardingPage.tsx",
+        "v2": "views/labor/Onboarding.vue"
+      },
+      {
+        "v1": "components/labor/overtime/OvertimeDetailModal.tsx",
+        "v2": "views/labor/overtime/OvertimeDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/overtime/OvertimeFilters.tsx",
+        "v2": "views/labor/overtime/OvertimeFilters.vue"
+      },
+      {
+        "v1": "components/labor/overtime/OvertimeFormModal.tsx",
+        "v2": "views/labor/overtime/OvertimeFormModal.vue"
+      },
+      {
+        "v1": "components/labor/overtime/OvertimePage.tsx",
+        "v2": "views/labor/Overtime.vue"
+      },
+      {
+        "v1": "components/labor/overtime/OvertimeTable.tsx",
+        "v2": "views/labor/overtime/OvertimeTable.vue"
+      },
+      {
+        "v1": "components/labor/overtime/modals/OvertimeBatchEditModal.tsx",
+        "v2": "views/labor/overtime/modals/OvertimeBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/overtime/modals/OvertimeDeleteWarningModal.tsx",
+        "v2": "views/labor/overtime/modals/OvertimeDeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/overtime/modals/OvertimeExportFormatModal.tsx",
+        "v2": "views/labor/overtime/modals/OvertimeExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/PerformanceChart.tsx",
+        "v2": "views/labor/performance/PerformanceChart.vue"
+      },
+      {
+        "v1": "components/labor/performance/PerformanceDetailModal.tsx",
+        "v2": "views/labor/performance/PerformanceDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/PerformanceFilters.tsx",
+        "v2": "views/labor/Performance.vue"
+      },
+      {
+        "v1": "components/labor/performance/PerformanceFormModal.tsx",
+        "v2": "views/labor/performance/PerformanceFormModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/PerformancePage.tsx",
+        "v2": "views/labor/Performance.vue"
+      },
+      {
+        "v1": "components/labor/performance/PerformanceTable.tsx",
+        "v2": "views/labor/performance/PerformanceTable.vue"
+      },
+      {
+        "v1": "components/labor/performance/modals/BatchEditModal.tsx",
+        "v2": "views/labor/attendance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/modals/BatchEditModal.tsx",
+        "v2": "views/labor/performance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/modals/BatchEditModal.tsx",
+        "v2": "views/labor/salary/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/performance/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/PersonnelDetailModal.tsx",
+        "v2": "views/labor/personnel/PersonnelDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/PersonnelFilters.tsx",
+        "v2": "views/labor/personnel/PersonnelFilters.vue"
+      },
+      {
+        "v1": "components/labor/personnel/PersonnelFormModal.tsx",
+        "v2": "views/labor/personnel/PersonnelFormModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/PersonnelManagementPage.tsx",
+        "v2": "views/labor/personnel/PersonnelManagementPage.vue"
+      },
+      {
+        "v1": "components/labor/personnel/PersonnelTable.tsx",
+        "v2": "views/labor/personnel/PersonnelTable.vue"
+      },
+      {
+        "v1": "components/labor/personnel/StaffManagementPage.tsx",
+        "v2": "views/labor/personnel/StaffManagementPage.vue"
+      },
+      {
+        "v1": "components/labor/personnel/modals/BatchEditModal.tsx",
+        "v2": "views/labor/attendance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/modals/BatchEditModal.tsx",
+        "v2": "views/labor/performance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/modals/BatchEditModal.tsx",
+        "v2": "views/labor/salary/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/personnel/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/piecework/PieceworkBatchEditModal.tsx",
+        "v2": "views/labor/piecework/PieceworkBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/piecework/PieceworkFormModal.tsx",
+        "v2": "views/labor/piecework/PieceworkFormModal.vue"
+      },
+      {
+        "v1": "components/labor/piecework/PieceworkPage.tsx",
+        "v2": "views/labor/Piecework.vue"
+      },
+      {
+        "v1": "components/labor/piecework/PieceworkTable.tsx",
+        "v2": "views/labor/piecework/PieceworkTable.vue"
+      },
+      {
+        "v1": "components/labor/position/modals/PositionBatchEditModal.tsx",
+        "v2": "views/labor/position/modals/PositionBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/position/modals/PositionDeleteWarningModal.tsx",
+        "v2": "views/labor/position/modals/PositionDeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/position/modals/PositionExportFormatModal.tsx",
+        "v2": "views/labor/position/modals/PositionExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/position/modals/PositionFormModal.tsx",
+        "v2": "views/labor/position/modals/PositionFormModal.vue"
+      },
+      {
+        "v1": "components/labor/recruitment/RecruitmentBatchEditModal.tsx",
+        "v2": "views/labor/recruitment/RecruitmentBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/recruitment/RecruitmentDetailModal.tsx",
+        "v2": "views/labor/recruitment/RecruitmentDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/recruitment/RecruitmentFilters.tsx",
+        "v2": "views/labor/recruitment/RecruitmentFilters.vue"
+      },
+      {
+        "v1": "components/labor/recruitment/RecruitmentFormModal.tsx",
+        "v2": "views/labor/recruitment/RecruitmentFormModal.vue"
+      },
+      {
+        "v1": "components/labor/recruitment/RecruitmentPage.tsx",
+        "v2": "views/labor/Recruitment.vue"
+      },
+      {
+        "v1": "components/labor/recruitment/RecruitmentTable.tsx",
+        "v2": "views/labor/recruitment/RecruitmentTable.vue"
+      },
+      {
+        "v1": "components/labor/risk/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/risk/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/risk/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/risk/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/risk/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/risk/RiskAlertDetailModal.tsx",
+        "v2": "views/labor/risk/RiskAlertDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/risk/RiskAlertList.tsx",
+        "v2": "views/labor/risk/RiskAlertList.vue"
+      },
+      {
+        "v1": "components/labor/risk/RiskBatchEditModal.tsx",
+        "v2": "views/labor/risk/RiskBatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/risk/RiskDashboard.tsx",
+        "v2": "views/labor/risk/RiskDashboard.vue"
+      },
+      {
+        "v1": "components/labor/risk/RiskFilters.tsx",
+        "v2": "views/labor/risk/RiskFilters.vue"
+      },
+      {
+        "v1": "components/labor/risk/RiskFormModal.tsx",
+        "v2": "views/labor/risk/RiskFormModal.vue"
+      },
+      {
+        "v1": "components/labor/risk/RiskPage.tsx",
+        "v2": "views/labor/Risk.vue"
+      },
+      {
+        "v1": "components/labor/salary/SalaryCalculateModal.tsx",
+        "v2": "views/labor/salary/SalaryCalculateModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/SalaryExport.tsx",
+        "v2": "views/labor/salary/SalaryExport.vue"
+      },
+      {
+        "v1": "components/labor/salary/SalaryFilters.tsx",
+        "v2": "views/labor/salary/SalaryFilters.vue"
+      },
+      {
+        "v1": "components/labor/salary/SalaryFormModal.tsx",
+        "v2": "views/labor/salary/SalaryFormModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/SalaryPage.tsx",
+        "v2": "views/labor/Salary.vue"
+      },
+      {
+        "v1": "components/labor/salary/SalarySlipModal.tsx",
+        "v2": "views/labor/salary/SalarySlipModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/SalaryTable.tsx",
+        "v2": "views/labor/salary/SalaryTable.vue"
+      },
+      {
+        "v1": "components/labor/salary/modals/BatchEditModal.tsx",
+        "v2": "views/labor/attendance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/modals/BatchEditModal.tsx",
+        "v2": "views/labor/performance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/modals/BatchEditModal.tsx",
+        "v2": "views/labor/salary/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/salary/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/schedule/ScheduleTable.tsx",
+        "v2": "views/labor/schedule/ScheduleTable.vue"
+      },
+      {
+        "v1": "components/labor/schedule/ShiftEditor.tsx",
+        "v2": "views/labor/schedule/ShiftEditor.vue"
+      },
+      {
+        "v1": "components/labor/schedule/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/attendance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/schedule/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/performance/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/schedule/modals/DeleteWarningModal.tsx",
+        "v2": "views/labor/schedule/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/labor/schedule/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/attendance/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/schedule/modals/ExportFormatModal.tsx",
+        "v2": "views/labor/schedule/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/labor/skill/SkillFilters.tsx",
+        "v2": "views/labor/skill/SkillFilters.vue"
+      },
+      {
+        "v1": "components/labor/skill/SkillFormModal.tsx",
+        "v2": "views/labor/skill/SkillFormModal.vue"
+      },
+      {
+        "v1": "components/labor/skill/SkillMatch.tsx",
+        "v2": "views/labor/skill/SkillMatch.vue"
+      },
+      {
+        "v1": "components/labor/skill/SkillPage.tsx",
+        "v2": "views/labor/Skill.vue"
+      },
+      {
+        "v1": "components/labor/skill/SkillTable.tsx",
+        "v2": "views/labor/skill/SkillTable.vue"
+      },
+      {
+        "v1": "components/labor/tasks/BatchEditModal.tsx",
+        "v2": "views/labor/attendance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/tasks/BatchEditModal.tsx",
+        "v2": "views/labor/performance/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/tasks/BatchEditModal.tsx",
+        "v2": "views/labor/salary/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/labor/tasks/TaskAttachmentList.tsx",
+        "v2": "views/labor/tasks/TaskAttachmentList.vue"
+      },
+      {
+        "v1": "components/labor/tasks/TaskDetailModal.tsx",
+        "v2": "views/labor/myTasks/TaskDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/tasks/TaskWorkerSelect.tsx",
+        "v2": "views/labor/tasks/TaskWorkerSelect.vue"
+      },
+      {
+        "v1": "components/labor/tasks/TasksFilters.tsx",
+        "v2": "views/labor/tasks/TasksFilters.vue"
+      },
+      {
+        "v1": "components/labor/tasks/TasksTable.tsx",
+        "v2": "views/labor/tasks/TasksTable.vue"
+      },
+      {
+        "v1": "components/labor/team/TeamDetailModal.tsx",
+        "v2": "views/labor/team/TeamDetailModal.vue"
+      },
+      {
+        "v1": "components/labor/team/TeamTable.tsx",
+        "v2": "views/labor/team/TeamTable.vue"
+      },
+      {
+        "v1": "components/labor/tempTask/TempTaskFilters.tsx",
+        "v2": "views/labor/tempTask/TempTaskFilters.vue"
+      },
+      {
+        "v1": "components/labor/tempTask/TempTaskTable.tsx",
+        "v2": "views/labor/tempTask/TempTaskTable.vue"
+      },
+      {
+        "v1": "components/labor/tempWorker/TempWorkerFilters.tsx",
+        "v2": "views/labor/TempWorker.vue"
+      },
+      {
+        "v1": "components/labor/tempWorker/TempWorkerFormModal.tsx",
+        "v2": "views/labor/tempWorker/TempWorkerFormModal.vue"
+      },
+      {
+        "v1": "components/labor/tempWorker/TempWorkerPage.tsx",
+        "v2": "views/labor/TempWorker.vue"
+      },
+      {
+        "v1": "components/labor/tempWorker/TempWorkerTable.tsx",
+        "v2": "views/labor/tempWorker/TempWorkerTable.vue"
+      },
+      {
+        "v1": "components/labor/worklog/WorkLogTable.tsx",
+        "v2": "views/labor/worklog/WorkLogTable.vue"
+      },
+      {
+        "v1": "pages/Labor/AnalyticsPage.tsx",
+        "v2": "views/labor/Analytics.vue"
+      },
+      {
+        "v1": "pages/Labor/AttendancePage.tsx",
+        "v2": "views/labor/AttendancePage.vue"
+      },
+      {
+        "v1": "pages/Labor/AttendanceRepairPage.tsx",
+        "v2": "views/labor/attendanceRepair/AttendanceRepairPage.vue"
+      },
+      {
+        "v1": "pages/Labor/CompensationPage.tsx",
+        "v2": "views/labor/Compensation.vue"
+      },
+      {
+        "v1": "pages/Labor/ContractRenewalPage.tsx",
+        "v2": "views/labor/ContractRenewal.vue"
+      },
+      {
+        "v1": "pages/Labor/LeavePage.tsx",
+        "v2": "views/labor/Leave.vue"
+      },
+      {
+        "v1": "pages/Labor/OnboardingPage.tsx",
+        "v2": "views/labor/Onboarding.vue"
+      },
+      {
+        "v1": "pages/Labor/OvertimePage.tsx",
+        "v2": "views/labor/Overtime.vue"
+      },
+      {
+        "v1": "pages/Labor/PersonnelPage.tsx",
+        "v2": "views/labor/Personnel.vue"
+      },
+      {
+        "v1": "pages/Labor/RecruitmentPage.tsx",
+        "v2": "views/labor/Recruitment.vue"
+      },
+      {
+        "v1": "pages/Labor/ResignationPage.tsx",
+        "v2": "views/labor/Resignation.vue"
+      },
+      {
+        "v1": "pages/Labor/SalaryAdjustmentPage.tsx",
+        "v2": "views/labor/SalaryAdjustment.vue"
+      },
+      {
+        "v1": "pages/Labor/SalaryBudgetPage.tsx",
+        "v2": "views/labor/SalaryBudget.vue"
+      },
+      {
+        "v1": "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPage.tsx",
+        "v2": "views/labor/attendanceRepair/AttendanceRepairPage.vue"
+      },
+      {
+        "v1": "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageFilters.tsx",
+        "v2": "views/labor/attendanceRepair/AttendanceRepairPage.vue"
+      },
+      {
+        "v1": "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/AttendanceRepairPage/AttendanceRepairPageTable.tsx",
+        "v2": "views/labor/attendanceRepair/AttendanceRepairPage.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ContractRenewalFilters.tsx",
+        "v2": "views/labor/ContractRenewal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ContractRenewalModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ContractRenewalModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ContractRenewalModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ContractRenewalModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ContractRenewalTable.tsx",
+        "v2": "views/labor/ContractRenewal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/LeaveFilters.tsx",
+        "v2": "views/labor/leave/LeaveFilters.vue"
+      },
+      {
+        "v1": "pages/Labor/components/LeaveModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/LeaveModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/LeaveModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/LeaveModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/LeaveTable.tsx",
+        "v2": "views/labor/leave/LeaveTable.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OnboardingPage/OnboardingPageModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OnboardingPage/OnboardingPageModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OnboardingPage/OnboardingPageModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OnboardingPage/OnboardingPageModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OvertimePage/OvertimePage.tsx",
+        "v2": "views/labor/Overtime.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OvertimePage/OvertimePageModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OvertimePage/OvertimePageModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OvertimePage/OvertimePageModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/OvertimePage/OvertimePageModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/RecruitmentFilters.tsx",
+        "v2": "views/labor/recruitment/RecruitmentFilters.vue"
+      },
+      {
+        "v1": "pages/Labor/components/RecruitmentModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/RecruitmentModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/RecruitmentModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/RecruitmentModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/RecruitmentTable.tsx",
+        "v2": "views/labor/recruitment/RecruitmentTable.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ResignationPage/ResignationPageModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ResignationPage/ResignationPageModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ResignationPage/ResignationPageModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/ResignationPage/ResignationPageModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryAdjustmentFilters.tsx",
+        "v2": "views/labor/SalaryAdjustment.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryAdjustmentModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryAdjustmentModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryAdjustmentModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryAdjustmentModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryAdjustmentTable.tsx",
+        "v2": "views/labor/SalaryAdjustment.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryBudgetFilters.tsx",
+        "v2": "views/labor/SalaryBudget.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryBudgetModals/CreateModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryBudgetModals/CreateModal.tsx",
+        "v2": "views/labor/resignation/modals/CreateModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryBudgetModals/DetailModal.tsx",
+        "v2": "views/labor/attendance/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryBudgetModals/DetailModal.tsx",
+        "v2": "views/labor/attendanceRepair/modals/DetailModal.vue"
+      },
+      {
+        "v1": "pages/Labor/components/SalaryBudgetTable.tsx",
+        "v2": "views/labor/SalaryBudget.vue"
+      }
+    ],
+    "unmapped_v1": [
+      "components/labor/schedule/ScheduleCalendar.tsx",
+      "components/labor/schedule/SchedulePage.tsx",
+      "components/labor/schedule/SwapRequestModal.tsx",
+      "components/labor/schedule/modals/ScheduleAddModal.tsx",
+      "components/labor/schedule/modals/ScheduleBatchEditModal.tsx",
+      "components/labor/skill/SkillBatchEditModal.tsx",
+      "components/labor/skill/SkillDetailModal.tsx",
+      "components/labor/skill/SkillTagSelector.tsx",
+      "components/labor/tasks/TaskFormModal.tsx",
+      "components/labor/tasks/TaskModeBadge.tsx",
+      "components/labor/tasks/TaskPriorityBadge.tsx",
+      "components/labor/tasks/TaskStatusBadge.tsx",
+      "components/labor/tasks/TaskTypeTag.tsx",
+      "components/labor/tasks/TasksPage.tsx",
+      "components/labor/team/TeamAssignModal.tsx",
+      "components/labor/tempTask/TempTaskFormModal.tsx",
+      "components/labor/tempTask/TempTaskPage.tsx",
+      "components/labor/tempWorker/TempWorkerBatchEditModal.tsx",
+      "components/labor/tempWorker/TempWorkerDetailModal.tsx",
+      "components/labor/worklog/WorkLogBatchEditModal.tsx",
+      "components/labor/worklog/WorkLogDetailModal.tsx",
+      "components/labor/worklog/WorkLogFilters.tsx",
+      "components/labor/worklog/WorkLogFormModal.tsx",
+      "components/labor/worklog/WorkLogPage.tsx",
+      "pages/Labor/TaskCenterPage.tsx",
+      "pages/Labor/components/LeaveModals/WithdrawModal.tsx",
+      "pages/Labor/components/OnboardingPage/OnboardingPageFilters.tsx",
+      "pages/Labor/components/OnboardingPage/OnboardingPageTable.tsx",
+      "pages/Labor/components/OvertimePage/OvertimePageFilters.tsx",
+      "pages/Labor/components/OvertimePage/OvertimePageTable.tsx",
+      "pages/Labor/components/ResignationPage/ResignationPageFilters.tsx",
+      "pages/Labor/components/ResignationPage/ResignationPageTable.tsx",
+      "pages/Labor/components/SalaryBudgetModals/SummaryModal.tsx"
+    ],
+    "unmapped_v2": [
+      "views/labor/Attendance.vue",
+      "views/labor/AttendanceRepair.vue",
+      "views/labor/HrApproval.vue",
+      "views/labor/LaborIndex.vue",
+      "views/labor/Staff.vue",
+      "views/labor/attendance/AttendanceTable.vue",
+      "views/labor/attendance/modals/BatchEditAdapter.vue",
+      "views/labor/attendanceRepair/AttendanceRepairTable.vue",
+      "views/labor/components/BudgetApply.vue",
+      "views/labor/components/ContractPanel.vue",
+      "views/labor/components/CostForecast.vue",
+      "views/labor/components/EfficiencyAnalysis.vue",
+      "views/labor/components/LeavePanel.vue",
+      "views/labor/components/MonthlyReport.vue",
+      "views/labor/components/OnboardingPanel.vue",
+      "views/labor/components/OvertimePanel.vue",
+      "views/labor/components/PerformanceReview.vue",
+      "views/labor/components/PieceworkManage.vue",
+      "views/labor/components/RecruitmentApplyPanel.vue",
+      "views/labor/components/RecruitmentPanel.vue",
+      "views/labor/components/ResignationPanel.vue",
+      "views/labor/components/RiskWarning.vue",
+      "views/labor/components/SalaryManage.vue",
+      "views/labor/components/SkillPanel.vue",
+      "views/labor/components/StaffPanel.vue",
+      "views/labor/components/TempWorkerPanel.vue",
+      "views/labor/components/WorkerAttendancePanel.vue",
+      "views/labor/resignation/ResignationTable.vue"
+    ]
+  },
+  "farm": {
+    "v1_total": 218,
+    "v2_total": 166,
+    "mapped_count": 273,
+    "unmapped_v1_count": 77,
+    "unmapped_v2_count": 53,
+    "v1_files": [
+      "components/farm/agriculture/AgricultureRecordPage.tsx",
+      "components/farm/agriculture/components/AgricultureRecordFilterToolbar.tsx",
+      "components/farm/agriculture/components/AgricultureRecordPageHeader.tsx",
+      "components/farm/agriculture/components/AgricultureRecordPagination.tsx",
+      "components/farm/agriculture/components/AgricultureRecordTableToolbar.tsx",
+      "components/farm/agriculture/modals/AddOperationRecordModal.tsx",
+      "components/farm/agriculture/modals/BatchEditModal.tsx",
+      "components/farm/agriculture/modals/DeleteWarningModal.tsx",
+      "components/farm/agriculture/modals/ExportFormatModal.tsx",
+      "components/farm/common/CodeToolbar.tsx",
+      "components/farm/common/CropCodeSelector.tsx",
+      "components/farm/common/FilterToolbar.tsx",
+      "components/farm/common/ImageUploader.tsx",
+      "components/farm/common/ProduceCodeGenerator.tsx",
+      "components/farm/common/StatsCard.tsx",
+      "components/farm/crop-growth/CropGrowthConfigPanel.tsx",
+      "components/farm/crop-variety/CropVarietyDetail.tsx",
+      "components/farm/crop-variety/CropVarietyManagement.tsx",
+      "components/farm/crop-variety/CropVarietyTable.tsx",
+      "components/farm/crop-variety/VarietyTree.tsx",
+      "components/farm/crop-variety/VarietyTreeNode.tsx",
+      "components/farm/crop-variety/components/CropVarietyCodeToolbar.tsx",
+      "components/farm/crop-variety/modals/AddCropVarietyModal.tsx",
+      "components/farm/crop-variety/modals/EditCropVarietyModal.tsx",
+      "components/farm/crop-variety/modals/QuickAddModal.tsx",
+      "components/farm/customer/CustomerModal.tsx",
+      "components/farm/customer/CustomerPage.tsx",
+      "components/farm/fertilizer/FertilizerAddModal.tsx",
+      "components/farm/fertilizer/FertilizerBatchDeleteModal.tsx",
+      "components/farm/fertilizer/FertilizerCodeGenerator.tsx",
+      "components/farm/fertilizer/FertilizerDetailModal.tsx",
+      "components/farm/fertilizer/FertilizerEditModal.tsx",
+      "components/farm/fertilizer/FertilizerExportModal.tsx",
+      "components/farm/fertilizer/FertilizerFilter.tsx",
+      "components/farm/fertilizer/FertilizerPage.tsx",
+      "components/farm/fertilizer/FertilizerStatsPanel.tsx",
+      "components/farm/fertilizer/FertilizerTable.tsx",
+      "components/farm/fertilizer/IotDataIndicator.tsx",
+      "components/farm/harvest/HarvestPage.tsx",
+      "components/farm/harvest/components/HarvestFilterToolbar.tsx",
+      "components/farm/harvest/components/HarvestPageHeader.tsx",
+      "components/farm/harvest/components/HarvestStatsCards.tsx",
+      "components/farm/harvest/components/HarvestTabSwitch.tsx",
+      "components/farm/harvest/components/HarvestTable.tsx",
+      "components/farm/harvest/components/HarvestTableToolbar.tsx",
+      "components/farm/harvest/modals/AddModal.tsx",
+      "components/farm/harvest/modals/BatchEditModal.tsx",
+      "components/farm/harvest/modals/DeleteWarningModal.tsx",
+      "components/farm/harvest/modals/DetailModal.tsx",
+      "components/farm/harvest/modals/ExportFormatModal.tsx",
+      "components/farm/harvest/statusBadgeUtils.tsx",
+      "components/farm/hub/CreateTaskModal.tsx",
+      "components/farm/hub/FarmHubHeader.tsx",
+      "components/farm/hub/InspectionDetailModal.tsx",
+      "components/farm/hub/InspectionTab.tsx",
+      "components/farm/hub/OperationRecordPanel.tsx",
+      "components/farm/hub/ProblemDispatchModal.tsx",
+      "components/farm/hub/ProblemTab.tsx",
+      "components/farm/hub/TaskDetailModal.tsx",
+      "components/farm/hub/TaskTab.tsx",
+      "components/farm/hub/TodayOperationRecords.tsx",
+      "components/farm/hub/VerifyTaskModal.tsx",
+      "components/farm/hub/components/CalendarView.tsx",
+      "components/farm/hub/components/ConfigFieldRenderer.tsx",
+      "components/farm/hub/components/FilterToolbar.tsx",
+      "components/farm/hub/components/InspectionSearch.tsx",
+      "components/farm/hub/components/InspectionToolbar.tsx",
+      "components/farm/hub/components/OvertimeBadge.tsx",
+      "components/farm/hub/components/PageHeader.tsx",
+      "components/farm/hub/components/StatsCards.tsx",
+      "components/farm/hub/components/TaskExecuteCard.tsx",
+      "components/farm/hub/components/TaskProgressTimeline.tsx",
+      "components/farm/hub/components/TaskTable.tsx",
+      "components/farm/hub/components/TaskTableHeader.tsx",
+      "components/farm/hub/components/TaskTableRow.tsx",
+      "components/farm/hub/components/TaskTypeConfigDisplay.tsx",
+      "components/farm/hub/components/TaskTypeConfigPanel.tsx",
+      "components/farm/hub/modals/BatchEditAdapter.tsx",
+      "components/farm/hub/modals/BatchEditModal.tsx",
+      "components/farm/hub/modals/BatchImportModal.tsx",
+      "components/farm/hub/modals/CreateInspectionModal.tsx",
+      "components/farm/hub/modals/CreateTaskModal.tsx",
+      "components/farm/hub/modals/DeleteWarningAdapter.tsx",
+      "components/farm/hub/modals/DeleteWarningModal.tsx",
+      "components/farm/hub/modals/DetailInspectionModal.tsx",
+      "components/farm/hub/modals/ExportFormatAdapter.tsx",
+      "components/farm/hub/modals/ExportFormatModal.tsx",
+      "components/farm/hub/modals/InspectionAcceptanceModal.tsx",
+      "components/farm/hub/modals/OvertimeHandleAdapter.tsx",
+      "components/farm/hub/modals/OvertimeHandleModal.tsx",
+      "components/farm/hub/modals/ReassignTaskAdapter.tsx",
+      "components/farm/hub/modals/ReassignTaskModal.tsx",
+      "components/farm/hub/modals/SelectExecutorModal.tsx",
+      "components/farm/hub/modals/TaskAcceptanceAdapter.tsx",
+      "components/farm/hub/modals/TaskAcceptanceModal.tsx",
+      "components/farm/hub/modals/TempTaskAcceptanceAdapter.tsx",
+      "components/farm/hub/modals/VerifyTaskModal.tsx",
+      "components/farm/hub/modals/WithdrawCancelAdapter.tsx",
+      "components/farm/hub/modals/WithdrawCancelModal.tsx",
+      "components/farm/inspection/InspectionSearch.tsx",
+      "components/farm/inspection/InspectionTable.tsx",
+      "components/farm/inspection/components/InspectionPageHeader.tsx",
+      "components/farm/inspection/components/InspectionToolbar.tsx",
+      "components/farm/inspection/modals/BatchEditModal.tsx",
+      "components/farm/inspection/modals/CreateInspectionModal.tsx",
+      "components/farm/inspection/modals/DeleteWarningModal.tsx",
+      "components/farm/inspection/modals/DetailInspectionModal.tsx",
+      "components/farm/inventory/AddStockModal.tsx",
+      "components/farm/inventory/InventoryDetailModal.tsx",
+      "components/farm/inventory/InventoryFilter.tsx",
+      "components/farm/inventory/InventoryInboundModal.tsx",
+      "components/farm/inventory/InventoryStats.tsx",
+      "components/farm/inventory/InventoryStockTypeCards.tsx",
+      "components/farm/inventory/InventoryTable.tsx",
+      "components/farm/inventory/InventoryTraceModal.tsx",
+      "components/farm/inventory/OutboundExportModal.tsx",
+      "components/farm/inventory/OutboundRecordsComponents.tsx",
+      "components/farm/inventory/UnifiedRowHarvestInboundModal.tsx",
+      "components/farm/order/OrderPage.tsx",
+      "components/farm/order/components/OrderFilter.tsx",
+      "components/farm/order/components/OrderStats.tsx",
+      "components/farm/order/components/OrderTable.tsx",
+      "components/farm/order/modals/AddModal.tsx",
+      "components/farm/order/modals/DetailModal.tsx",
+      "components/farm/order/modals/EditModal.tsx",
+      "components/farm/order/modals/ExportFormatModal.tsx",
+      "components/farm/pest-control/PestControlFilter.tsx",
+      "components/farm/pest-control/PestControlPage.tsx",
+      "components/farm/pest-control/PestControlStatsCards.tsx",
+      "components/farm/pest-control/PestControlTable.tsx",
+      "components/farm/pest-control/modals/AddPestControlModal.tsx",
+      "components/farm/pest-control/modals/BatchDeleteModal.tsx",
+      "components/farm/pest-control/modals/EditPestControlModal.tsx",
+      "components/farm/pest-control/modals/PestControlDetailModal.tsx",
+      "components/farm/pest-control/modals/PestControlExportModal.tsx",
+      "components/farm/pest-control/modals/QuickAddPestDiseaseModal.tsx",
+      "components/farm/pest-control/modals/QuickAddPesticideModal.tsx",
+      "components/farm/planting/PlantingPage.tsx",
+      "components/farm/planting/components/PlantingFilter.tsx",
+      "components/farm/planting/components/PlantingStats.tsx",
+      "components/farm/planting/components/PlantingTable.tsx",
+      "components/farm/planting/modals/AddModal.tsx",
+      "components/farm/planting/modals/DetailModal.tsx",
+      "components/farm/planting/modals/EditModal.tsx",
+      "components/farm/planting/modals/ExportFormatModal.tsx",
+      "components/farm/planting/modals/HarvestModal.tsx",
+      "components/farm/planting/modals/HarvestRecordModal.tsx",
+      "components/farm/planting/modals/ImageLightboxModal.tsx",
+      "components/farm/planting/modals/PlantingLabelDetailModal.tsx",
+      "components/farm/planting/modals/PlantingMarkModal.tsx",
+      "components/farm/planting/modals/PlantingMoveModal.tsx",
+      "components/farm/planting/modals/PlantingMoveRecordsModal.tsx",
+      "components/farm/planting/modals/PrintLabelModal.tsx",
+      "components/farm/problemDispatch/components/ProblemFilterToolbar.tsx",
+      "components/farm/problemDispatch/components/ProblemPageHeader.tsx",
+      "components/farm/problemDispatch/components/ProblemStatsCards.tsx",
+      "components/farm/problemDispatch/components/ProblemTable.tsx",
+      "components/farm/problemDispatch/components/SourceBadge.tsx",
+      "components/farm/problemDispatch/components/SourceCell.tsx",
+      "components/farm/problemDispatch/components/SourceFilter.tsx",
+      "components/farm/problemDispatch/modals/BatchEditModal.tsx",
+      "components/farm/problemDispatch/modals/CreateProblemModal.tsx",
+      "components/farm/problemDispatch/modals/DeleteWarningModal.tsx",
+      "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+      "components/farm/seed-source/SeedSourcePage.tsx",
+      "components/farm/seed-source/components/SeedSourceFilter.tsx",
+      "components/farm/seed-source/components/SeedSourceStats.tsx",
+      "components/farm/seed-source/components/SeedSourceTable.tsx",
+      "components/farm/seed-source/modals/AddModal.tsx",
+      "components/farm/seed-source/modals/CirculationHistoryModal.tsx",
+      "components/farm/seed-source/modals/DetailModal.tsx",
+      "components/farm/seed-source/modals/EditModal.tsx",
+      "components/farm/seed-source/modals/ExportFormatModal.tsx",
+      "components/farm/seed-source/modals/ImageLightboxModal.tsx",
+      "components/farm/seed-source/modals/PrintLabelModal.tsx",
+      "components/farm/seed-source/modals/PropagationRecordModal.tsx",
+      "components/farm/seed-source/modals/PropagationStageModal.tsx",
+      "components/farm/seedling/SeedlingPage.tsx",
+      "components/farm/seedling/components/SeedlingFilter.tsx",
+      "components/farm/seedling/components/SeedlingStats.tsx",
+      "components/farm/seedling/components/SeedlingTable.tsx",
+      "components/farm/seedling/modals/AddModal.tsx",
+      "components/farm/seedling/modals/DailyRecordModal.tsx",
+      "components/farm/seedling/modals/DetailModal.tsx",
+      "components/farm/seedling/modals/EditModal.tsx",
+      "components/farm/seedling/modals/ExportFormatModal.tsx",
+      "components/farm/seedling/modals/ImageLightboxModal.tsx",
+      "components/farm/seedling/modals/PrintLabelModal.tsx",
+      "components/farm/seedling/modals/SeedlingLabelManageModal.tsx",
+      "components/farm/seedling/modals/TransplantHistoryModal.tsx",
+      "components/farm/seedling/modals/TransplantModal.tsx",
+      "components/farm/taskDispatch/components/ConfigFieldRenderer.tsx",
+      "components/farm/taskDispatch/components/FilterToolbar.tsx",
+      "components/farm/taskDispatch/components/OvertimeBadge.tsx",
+      "components/farm/taskDispatch/components/PageHeader.tsx",
+      "components/farm/taskDispatch/components/StatsCards.tsx",
+      "components/farm/taskDispatch/components/TaskExecuteCard.tsx",
+      "components/farm/taskDispatch/components/TaskProgressTimeline.tsx",
+      "components/farm/taskDispatch/components/TaskTable.tsx",
+      "components/farm/taskDispatch/components/TaskTableHeader.tsx",
+      "components/farm/taskDispatch/components/TaskTableRow.tsx",
+      "components/farm/taskDispatch/components/TaskTypeConfigDisplay.tsx",
+      "components/farm/taskDispatch/components/TaskTypeConfigPanel.tsx",
+      "components/farm/taskDispatch/modals/BatchEditModal.tsx",
+      "components/farm/taskDispatch/modals/CreateTaskModal.tsx",
+      "components/farm/taskDispatch/modals/DeleteWarningModal.tsx",
+      "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+      "components/farm/taskDispatch/modals/OvertimeHandleModal.tsx",
+      "components/farm/taskDispatch/modals/ReassignTaskModal.tsx",
+      "components/farm/taskDispatch/modals/TaskAcceptanceModal.tsx",
+      "components/farm/taskDispatch/modals/VerifyTaskModal.tsx",
+      "components/farm/taskDispatch/modals/WithdrawCancelModal.tsx",
+      "components/farm/trace/FlowLogTab.tsx",
+      "components/farm/trace/TraceChain.tsx",
+      "pages/farm/DailyWorkSummary.tsx",
+      "pages/farm/FarmStructureManagement.tsx",
+      "pages/farm/FarmTaskHub.tsx",
+      "pages/farm/TaskCenterPage.tsx"
+    ],
+    "v2_files": [
+      "views/farm/AgricultureRecord.vue",
+      "views/farm/DailyWorkSummary.vue",
+      "views/farm/FarmHub.vue",
+      "views/farm/Inspection.vue",
+      "views/farm/MyTasks.vue",
+      "views/farm/Schedule.vue",
+      "views/farm/SmartDispatch.vue",
+      "views/farm/TaskCenter.vue",
+      "views/farm/Tasks.vue",
+      "views/farm/Team.vue",
+      "views/farm/TempTask.vue",
+      "views/farm/WorkLog.vue",
+      "views/farm/agriculture/AgricultureRecordPage.vue",
+      "views/farm/agriculture/components/AgricultureRecordFilterToolbar.vue",
+      "views/farm/agriculture/components/AgricultureRecordPageHeader.vue",
+      "views/farm/agriculture/components/AgricultureRecordPagination.vue",
+      "views/farm/agriculture/components/AgricultureRecordTableToolbar.vue",
+      "views/farm/agriculture/modals/AddOperationRecordModal.vue",
+      "views/farm/common/CodeToolbar.vue",
+      "views/farm/common/CropCodeSelector.vue",
+      "views/farm/common/FilterToolbar.vue",
+      "views/farm/common/ImageUploader.vue",
+      "views/farm/common/ProduceCodeGenerator.vue",
+      "views/farm/common/StatsCard.vue",
+      "views/farm/components/DispatchMetricsDashboard.vue",
+      "views/farm/components/EnvironmentPanel.vue",
+      "views/farm/components/MaterialEquipmentPanel.vue",
+      "views/farm/components/MyTasksPanel.vue",
+      "views/farm/components/PredictedTasksPanel.vue",
+      "views/farm/components/ScheduleAddModal.vue",
+      "views/farm/components/ScheduleBatchEditModal.vue",
+      "views/farm/components/ScheduleCalendarView.vue",
+      "views/farm/components/ScheduleDeleteWarningModal.vue",
+      "views/farm/components/ScheduleExportFormatModal.vue",
+      "views/farm/components/ScheduleHeader.vue",
+      "views/farm/components/ScheduleShiftEditorModal.vue",
+      "views/farm/components/ScheduleSidebar.vue",
+      "views/farm/components/ScheduleStatsCards.vue",
+      "views/farm/components/ScheduleSwapRequestModal.vue",
+      "views/farm/components/ScheduleTableView.vue",
+      "views/farm/components/SmartDispatchPanel.vue",
+      "views/farm/components/TaskCard.vue",
+      "views/farm/components/TaskExecutePanel.vue",
+      "views/farm/components/TempTaskPanel.vue",
+      "views/farm/components/WorkLogPanel.vue",
+      "views/farm/components/myTasks/ProblemTaskTableRow.vue",
+      "views/farm/components/myTasks/ProductionTaskTableRow.vue",
+      "views/farm/components/myTasks/TaskDetailModal.vue",
+      "views/farm/components/myTasks/TaskFeedbackModal.vue",
+      "views/farm/components/myTasks/TaskFilterTabs.vue",
+      "views/farm/components/myTasks/TaskRejectModal.vue",
+      "views/farm/components/myTasks/TaskSopModal.vue",
+      "views/farm/components/myTasks/TempTaskTableRow.vue",
+      "views/farm/components/tasks/BatchEditModal.vue",
+      "views/farm/components/tasks/DeleteWarningModal.vue",
+      "views/farm/components/tasks/ExportFormatModal.vue",
+      "views/farm/components/tasks/TaskDetailModal.vue",
+      "views/farm/components/tasks/TaskFormModal.vue",
+      "views/farm/components/tasks/TaskPriorityBadge.vue",
+      "views/farm/components/tasks/TaskStatusBadge.vue",
+      "views/farm/components/tasks/TaskTypeTag.vue",
+      "views/farm/components/tempTask/BatchEditModal.vue",
+      "views/farm/components/tempTask/DeleteWarningModal.vue",
+      "views/farm/components/tempTask/ExportFormatModal.vue",
+      "views/farm/components/tempTask/ReassignTaskModal.vue",
+      "views/farm/components/tempTask/TempTaskDetailModal.vue",
+      "views/farm/components/tempTask/TempTaskFilters.vue",
+      "views/farm/components/tempTask/TempTaskFormModal.vue",
+      "views/farm/components/tempTask/TempTaskPage.vue",
+      "views/farm/components/tempTask/TempTaskTable.vue",
+      "views/farm/components/tempTask/WithdrawCancelModal.vue",
+      "views/farm/components/worklog/WorkLogBatchEditModal.vue",
+      "views/farm/components/worklog/WorkLogDetailModal.vue",
+      "views/farm/components/worklog/WorkLogFilters.vue",
+      "views/farm/components/worklog/WorkLogFormModal.vue",
+      "views/farm/components/worklog/WorkLogPage.vue",
+      "views/farm/components/worklog/WorkLogTable.vue",
+      "views/farm/crop-growth/CropGrowthConfigPanel.vue",
+      "views/farm/crop-variety/CropVarietyDetail.vue",
+      "views/farm/crop-variety/CropVarietyManagement.vue",
+      "views/farm/crop-variety/CropVarietyTable.vue",
+      "views/farm/crop-variety/VarietyTree.vue",
+      "views/farm/crop-variety/VarietyTreeNode.vue",
+      "views/farm/crop-variety/components/CropVarietyCodeToolbar.vue",
+      "views/farm/crop-variety/modals/AddCropVarietyModal.vue",
+      "views/farm/crop-variety/modals/EditCropVarietyModal.vue",
+      "views/farm/crop-variety/modals/QuickAddModal.vue",
+      "views/farm/customer/CustomerModal.vue",
+      "views/farm/customer/CustomerPage.vue",
+      "views/farm/fertilizer/FertilizerAddModal.vue",
+      "views/farm/fertilizer/FertilizerBatchDeleteModal.vue",
+      "views/farm/fertilizer/FertilizerCodeGenerator.vue",
+      "views/farm/fertilizer/FertilizerDetailModal.vue",
+      "views/farm/fertilizer/FertilizerEditModal.vue",
+      "views/farm/fertilizer/FertilizerExportModal.vue",
+      "views/farm/fertilizer/FertilizerFilter.vue",
+      "views/farm/fertilizer/FertilizerManagement.vue",
+      "views/farm/fertilizer/FertilizerPage.vue",
+      "views/farm/fertilizer/FertilizerStatsPanel.vue",
+      "views/farm/fertilizer/FertilizerTable.vue",
+      "views/farm/fertilizer/IotDataIndicator.vue",
+      "views/farm/harvest/HarvestPage.vue",
+      "views/farm/harvest/components/HarvestFilterToolbar.vue",
+      "views/farm/harvest/components/HarvestPageHeader.vue",
+      "views/farm/harvest/components/HarvestStatsCards.vue",
+      "views/farm/harvest/components/HarvestTabSwitch.vue",
+      "views/farm/harvest/components/HarvestTable.vue",
+      "views/farm/harvest/components/HarvestTableToolbar.vue",
+      "views/farm/harvest/modals/AddModal.vue",
+      "views/farm/harvest/modals/BatchEditModal.vue",
+      "views/farm/harvest/modals/DetailModal.vue",
+      "views/farm/hub/OperationRecordPanel.vue",
+      "views/farm/hub/TodayOperationRecords.vue",
+      "views/farm/hub/components/CalendarView.vue",
+      "views/farm/hub/components/ConfigFieldRenderer.vue",
+      "views/farm/hub/components/InspectionSearch.vue",
+      "views/farm/hub/components/PageHeader.vue",
+      "views/farm/hub/components/StatsCards.vue",
+      "views/farm/hub/components/TaskExecuteCard.vue",
+      "views/farm/hub/components/TaskTable.vue",
+      "views/farm/hub/components/TaskTypeConfigPanel.vue",
+      "views/farm/hub/modals/BatchEditAdapter.vue",
+      "views/farm/hub/modals/DeleteWarningModal.vue",
+      "views/farm/hub/modals/ExportFormatModal.vue",
+      "views/farm/hub/modals/OvertimeHandleAdapter.vue",
+      "views/farm/hub/modals/ReassignTaskAdapter.vue",
+      "views/farm/hub/modals/TaskAcceptanceAdapter.vue",
+      "views/farm/hub/modals/TaskAcceptanceModal.vue",
+      "views/farm/hub/modals/WithdrawCancelAdapter.vue",
+      "views/farm/inspection/components/InspectionToolbar.vue",
+      "views/farm/inspection/modals/DeleteWarningModal.vue",
+      "views/farm/inspection/modals/DetailInspectionModal.vue",
+      "views/farm/inspection/modals/ExportFormatModal.vue",
+      "views/farm/inventory/InventoryFilter.vue",
+      "views/farm/inventory/InventoryStats.vue",
+      "views/farm/inventory/InventoryStockTypeCards.vue",
+      "views/farm/inventory/InventoryTraceModal.vue",
+      "views/farm/inventory/OutboundExportModal.vue",
+      "views/farm/order/modals/DetailModal.vue",
+      "views/farm/order/modals/ExportFormatModal.vue",
+      "views/farm/pest-control/PestControlPage.vue",
+      "views/farm/pest-control/PestControlStatsCards.vue",
+      "views/farm/pest-control/modals/ExportFormatModal.vue",
+      "views/farm/planting/components/PlantingStats.vue",
+      "views/farm/planting/modals/BatchEditModal.vue",
+      "views/farm/planting/modals/DeleteWarningModal.vue",
+      "views/farm/planting/modals/ExportFormatModal.vue",
+      "views/farm/planting/modals/ImageLightboxModal.vue",
+      "views/farm/planting/modals/PlantingMarkModal.vue",
+      "views/farm/problemDispatch/components/SourceBadge.vue",
+      "views/farm/problemDispatch/components/SourceFilter.vue",
+      "views/farm/seed-source/SeedSourceStats.vue",
+      "views/farm/seed-source/modals/ExportFormatModal.vue",
+      "views/farm/seedling/SeedlingStats.vue",
+      "views/farm/seedling/modals/ExportFormatModal.vue",
+      "views/farm/seedling/modals/TransplantHistoryModal.vue",
+      "views/farm/taskDispatch/components/OvertimeBadge.vue",
+      "views/farm/taskDispatch/components/PageHeader.vue",
+      "views/farm/taskDispatch/components/StatsCards.vue",
+      "views/farm/taskDispatch/components/TaskProgressTimeline.vue",
+      "views/farm/taskDispatch/components/TaskTable.vue",
+      "views/farm/taskDispatch/components/TaskTableHeader.vue",
+      "views/farm/taskDispatch/modals/BatchEditModal.vue",
+      "views/farm/taskDispatch/modals/CreateTaskModal.vue",
+      "views/farm/taskDispatch/modals/VerifyTaskModal.vue",
+      "views/farm/trace/TraceChain.vue"
+    ],
+    "mapped": [
+      {
+        "v1": "components/farm/agriculture/AgricultureRecordPage.tsx",
+        "v2": "views/farm/agriculture/AgricultureRecordPage.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/components/AgricultureRecordFilterToolbar.tsx",
+        "v2": "views/farm/agriculture/components/AgricultureRecordFilterToolbar.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/components/AgricultureRecordPageHeader.tsx",
+        "v2": "views/farm/agriculture/components/AgricultureRecordPageHeader.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/components/AgricultureRecordPagination.tsx",
+        "v2": "views/farm/agriculture/components/AgricultureRecordPagination.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/components/AgricultureRecordTableToolbar.tsx",
+        "v2": "views/farm/agriculture/components/AgricultureRecordTableToolbar.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/AddOperationRecordModal.tsx",
+        "v2": "views/farm/agriculture/modals/AddOperationRecordModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tasks/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tempTask/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/BatchEditModal.tsx",
+        "v2": "views/farm/harvest/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/BatchEditModal.tsx",
+        "v2": "views/farm/planting/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/BatchEditModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tasks/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tempTask/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/hub/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/inspection/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/planting/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/agriculture/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/common/CodeToolbar.tsx",
+        "v2": "views/farm/common/CodeToolbar.vue"
+      },
+      {
+        "v1": "components/farm/common/CropCodeSelector.tsx",
+        "v2": "views/farm/common/CropCodeSelector.vue"
+      },
+      {
+        "v1": "components/farm/common/FilterToolbar.tsx",
+        "v2": "views/farm/common/FilterToolbar.vue"
+      },
+      {
+        "v1": "components/farm/common/ImageUploader.tsx",
+        "v2": "views/farm/common/ImageUploader.vue"
+      },
+      {
+        "v1": "components/farm/common/ProduceCodeGenerator.tsx",
+        "v2": "views/farm/common/ProduceCodeGenerator.vue"
+      },
+      {
+        "v1": "components/farm/common/StatsCard.tsx",
+        "v2": "views/farm/common/StatsCard.vue"
+      },
+      {
+        "v1": "components/farm/crop-growth/CropGrowthConfigPanel.tsx",
+        "v2": "views/farm/crop-growth/CropGrowthConfigPanel.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/CropVarietyDetail.tsx",
+        "v2": "views/farm/crop-variety/CropVarietyDetail.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/CropVarietyManagement.tsx",
+        "v2": "views/farm/crop-variety/CropVarietyManagement.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/CropVarietyTable.tsx",
+        "v2": "views/farm/crop-variety/CropVarietyTable.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/VarietyTree.tsx",
+        "v2": "views/farm/crop-variety/VarietyTree.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/VarietyTreeNode.tsx",
+        "v2": "views/farm/crop-variety/VarietyTreeNode.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/components/CropVarietyCodeToolbar.tsx",
+        "v2": "views/farm/crop-variety/components/CropVarietyCodeToolbar.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/modals/AddCropVarietyModal.tsx",
+        "v2": "views/farm/crop-variety/modals/AddCropVarietyModal.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/modals/EditCropVarietyModal.tsx",
+        "v2": "views/farm/crop-variety/modals/EditCropVarietyModal.vue"
+      },
+      {
+        "v1": "components/farm/crop-variety/modals/QuickAddModal.tsx",
+        "v2": "views/farm/crop-variety/modals/QuickAddModal.vue"
+      },
+      {
+        "v1": "components/farm/customer/CustomerModal.tsx",
+        "v2": "views/farm/customer/CustomerModal.vue"
+      },
+      {
+        "v1": "components/farm/customer/CustomerPage.tsx",
+        "v2": "views/farm/customer/CustomerPage.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerAddModal.tsx",
+        "v2": "views/farm/fertilizer/FertilizerAddModal.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerBatchDeleteModal.tsx",
+        "v2": "views/farm/fertilizer/FertilizerBatchDeleteModal.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerCodeGenerator.tsx",
+        "v2": "views/farm/fertilizer/FertilizerCodeGenerator.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerDetailModal.tsx",
+        "v2": "views/farm/fertilizer/FertilizerDetailModal.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerEditModal.tsx",
+        "v2": "views/farm/fertilizer/FertilizerEditModal.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerExportModal.tsx",
+        "v2": "views/farm/fertilizer/FertilizerExportModal.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerFilter.tsx",
+        "v2": "views/farm/fertilizer/FertilizerFilter.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerPage.tsx",
+        "v2": "views/farm/fertilizer/FertilizerPage.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerStatsPanel.tsx",
+        "v2": "views/farm/fertilizer/FertilizerStatsPanel.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/FertilizerTable.tsx",
+        "v2": "views/farm/fertilizer/FertilizerTable.vue"
+      },
+      {
+        "v1": "components/farm/fertilizer/IotDataIndicator.tsx",
+        "v2": "views/farm/fertilizer/IotDataIndicator.vue"
+      },
+      {
+        "v1": "components/farm/harvest/HarvestPage.tsx",
+        "v2": "views/farm/harvest/HarvestPage.vue"
+      },
+      {
+        "v1": "components/farm/harvest/components/HarvestFilterToolbar.tsx",
+        "v2": "views/farm/harvest/components/HarvestFilterToolbar.vue"
+      },
+      {
+        "v1": "components/farm/harvest/components/HarvestPageHeader.tsx",
+        "v2": "views/farm/harvest/components/HarvestPageHeader.vue"
+      },
+      {
+        "v1": "components/farm/harvest/components/HarvestStatsCards.tsx",
+        "v2": "views/farm/harvest/components/HarvestStatsCards.vue"
+      },
+      {
+        "v1": "components/farm/harvest/components/HarvestTabSwitch.tsx",
+        "v2": "views/farm/harvest/components/HarvestTabSwitch.vue"
+      },
+      {
+        "v1": "components/farm/harvest/components/HarvestTable.tsx",
+        "v2": "views/farm/harvest/components/HarvestTable.vue"
+      },
+      {
+        "v1": "components/farm/harvest/components/HarvestTableToolbar.tsx",
+        "v2": "views/farm/harvest/components/HarvestTableToolbar.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/AddModal.tsx",
+        "v2": "views/farm/harvest/modals/AddModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tasks/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tempTask/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/BatchEditModal.tsx",
+        "v2": "views/farm/harvest/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/BatchEditModal.tsx",
+        "v2": "views/farm/planting/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/BatchEditModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tasks/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tempTask/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/hub/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/inspection/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/planting/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/DetailModal.tsx",
+        "v2": "views/farm/harvest/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/DetailModal.tsx",
+        "v2": "views/farm/order/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/harvest/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/CreateTaskModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/CreateTaskModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/OperationRecordPanel.tsx",
+        "v2": "views/farm/hub/OperationRecordPanel.vue"
+      },
+      {
+        "v1": "components/farm/hub/TaskDetailModal.tsx",
+        "v2": "views/farm/components/myTasks/TaskDetailModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/TaskDetailModal.tsx",
+        "v2": "views/farm/components/tasks/TaskDetailModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/TodayOperationRecords.tsx",
+        "v2": "views/farm/hub/TodayOperationRecords.vue"
+      },
+      {
+        "v1": "components/farm/hub/VerifyTaskModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/VerifyTaskModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/CalendarView.tsx",
+        "v2": "views/farm/hub/components/CalendarView.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/ConfigFieldRenderer.tsx",
+        "v2": "views/farm/hub/components/ConfigFieldRenderer.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/FilterToolbar.tsx",
+        "v2": "views/farm/common/FilterToolbar.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/InspectionSearch.tsx",
+        "v2": "views/farm/hub/components/InspectionSearch.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/InspectionToolbar.tsx",
+        "v2": "views/farm/inspection/components/InspectionToolbar.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/OvertimeBadge.tsx",
+        "v2": "views/farm/taskDispatch/components/OvertimeBadge.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/PageHeader.tsx",
+        "v2": "views/farm/hub/components/PageHeader.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/PageHeader.tsx",
+        "v2": "views/farm/taskDispatch/components/PageHeader.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/StatsCards.tsx",
+        "v2": "views/farm/hub/components/StatsCards.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/StatsCards.tsx",
+        "v2": "views/farm/taskDispatch/components/StatsCards.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/TaskExecuteCard.tsx",
+        "v2": "views/farm/hub/components/TaskExecuteCard.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/TaskProgressTimeline.tsx",
+        "v2": "views/farm/taskDispatch/components/TaskProgressTimeline.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/TaskTable.tsx",
+        "v2": "views/farm/hub/components/TaskTable.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/TaskTable.tsx",
+        "v2": "views/farm/taskDispatch/components/TaskTable.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/TaskTableHeader.tsx",
+        "v2": "views/farm/taskDispatch/components/TaskTableHeader.vue"
+      },
+      {
+        "v1": "components/farm/hub/components/TaskTypeConfigPanel.tsx",
+        "v2": "views/farm/hub/components/TaskTypeConfigPanel.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/BatchEditAdapter.tsx",
+        "v2": "views/farm/hub/modals/BatchEditAdapter.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tasks/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tempTask/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/BatchEditModal.tsx",
+        "v2": "views/farm/harvest/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/BatchEditModal.tsx",
+        "v2": "views/farm/planting/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/BatchEditModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/CreateTaskModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/CreateTaskModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tasks/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tempTask/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/hub/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/inspection/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/planting/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/DetailInspectionModal.tsx",
+        "v2": "views/farm/inspection/modals/DetailInspectionModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/OvertimeHandleAdapter.tsx",
+        "v2": "views/farm/hub/modals/OvertimeHandleAdapter.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ReassignTaskAdapter.tsx",
+        "v2": "views/farm/hub/modals/ReassignTaskAdapter.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/ReassignTaskModal.tsx",
+        "v2": "views/farm/components/tempTask/ReassignTaskModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/TaskAcceptanceAdapter.tsx",
+        "v2": "views/farm/hub/modals/TaskAcceptanceAdapter.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/TaskAcceptanceModal.tsx",
+        "v2": "views/farm/hub/modals/TaskAcceptanceModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/VerifyTaskModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/VerifyTaskModal.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/WithdrawCancelAdapter.tsx",
+        "v2": "views/farm/hub/modals/WithdrawCancelAdapter.vue"
+      },
+      {
+        "v1": "components/farm/hub/modals/WithdrawCancelModal.tsx",
+        "v2": "views/farm/components/tempTask/WithdrawCancelModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/InspectionSearch.tsx",
+        "v2": "views/farm/hub/components/InspectionSearch.vue"
+      },
+      {
+        "v1": "components/farm/inspection/InspectionTable.tsx",
+        "v2": "views/farm/Inspection.vue"
+      },
+      {
+        "v1": "components/farm/inspection/components/InspectionToolbar.tsx",
+        "v2": "views/farm/inspection/components/InspectionToolbar.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tasks/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tempTask/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/BatchEditModal.tsx",
+        "v2": "views/farm/harvest/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/BatchEditModal.tsx",
+        "v2": "views/farm/planting/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/BatchEditModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tasks/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tempTask/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/hub/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/inspection/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/planting/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/inspection/modals/DetailInspectionModal.tsx",
+        "v2": "views/farm/inspection/modals/DetailInspectionModal.vue"
+      },
+      {
+        "v1": "components/farm/inventory/InventoryFilter.tsx",
+        "v2": "views/farm/inventory/InventoryFilter.vue"
+      },
+      {
+        "v1": "components/farm/inventory/InventoryStats.tsx",
+        "v2": "views/farm/inventory/InventoryStats.vue"
+      },
+      {
+        "v1": "components/farm/inventory/InventoryStockTypeCards.tsx",
+        "v2": "views/farm/inventory/InventoryStockTypeCards.vue"
+      },
+      {
+        "v1": "components/farm/inventory/InventoryTraceModal.tsx",
+        "v2": "views/farm/inventory/InventoryTraceModal.vue"
+      },
+      {
+        "v1": "components/farm/inventory/OutboundExportModal.tsx",
+        "v2": "views/farm/inventory/OutboundExportModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/AddModal.tsx",
+        "v2": "views/farm/harvest/modals/AddModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/DetailModal.tsx",
+        "v2": "views/farm/harvest/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/DetailModal.tsx",
+        "v2": "views/farm/order/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/order/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/pest-control/PestControlPage.tsx",
+        "v2": "views/farm/pest-control/PestControlPage.vue"
+      },
+      {
+        "v1": "components/farm/pest-control/PestControlStatsCards.tsx",
+        "v2": "views/farm/pest-control/PestControlStatsCards.vue"
+      },
+      {
+        "v1": "components/farm/planting/components/PlantingStats.tsx",
+        "v2": "views/farm/planting/components/PlantingStats.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/AddModal.tsx",
+        "v2": "views/farm/harvest/modals/AddModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/DetailModal.tsx",
+        "v2": "views/farm/harvest/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/DetailModal.tsx",
+        "v2": "views/farm/order/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/ImageLightboxModal.tsx",
+        "v2": "views/farm/planting/modals/ImageLightboxModal.vue"
+      },
+      {
+        "v1": "components/farm/planting/modals/PlantingMarkModal.tsx",
+        "v2": "views/farm/planting/modals/PlantingMarkModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/components/SourceBadge.tsx",
+        "v2": "views/farm/problemDispatch/components/SourceBadge.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/components/SourceFilter.tsx",
+        "v2": "views/farm/problemDispatch/components/SourceFilter.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tasks/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tempTask/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/harvest/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/planting/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tasks/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tempTask/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/hub/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/inspection/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/planting/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/problemDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/components/SeedSourceStats.tsx",
+        "v2": "views/farm/seed-source/SeedSourceStats.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/AddModal.tsx",
+        "v2": "views/farm/harvest/modals/AddModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/DetailModal.tsx",
+        "v2": "views/farm/harvest/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/DetailModal.tsx",
+        "v2": "views/farm/order/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seed-source/modals/ImageLightboxModal.tsx",
+        "v2": "views/farm/planting/modals/ImageLightboxModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/components/SeedlingStats.tsx",
+        "v2": "views/farm/seedling/SeedlingStats.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/AddModal.tsx",
+        "v2": "views/farm/harvest/modals/AddModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/DetailModal.tsx",
+        "v2": "views/farm/harvest/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/DetailModal.tsx",
+        "v2": "views/farm/order/modals/DetailModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/ImageLightboxModal.tsx",
+        "v2": "views/farm/planting/modals/ImageLightboxModal.vue"
+      },
+      {
+        "v1": "components/farm/seedling/modals/TransplantHistoryModal.tsx",
+        "v2": "views/farm/seedling/modals/TransplantHistoryModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/ConfigFieldRenderer.tsx",
+        "v2": "views/farm/hub/components/ConfigFieldRenderer.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/FilterToolbar.tsx",
+        "v2": "views/farm/common/FilterToolbar.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/OvertimeBadge.tsx",
+        "v2": "views/farm/taskDispatch/components/OvertimeBadge.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/PageHeader.tsx",
+        "v2": "views/farm/hub/components/PageHeader.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/PageHeader.tsx",
+        "v2": "views/farm/taskDispatch/components/PageHeader.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/StatsCards.tsx",
+        "v2": "views/farm/hub/components/StatsCards.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/StatsCards.tsx",
+        "v2": "views/farm/taskDispatch/components/StatsCards.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/TaskExecuteCard.tsx",
+        "v2": "views/farm/hub/components/TaskExecuteCard.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/TaskProgressTimeline.tsx",
+        "v2": "views/farm/taskDispatch/components/TaskProgressTimeline.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/TaskTable.tsx",
+        "v2": "views/farm/hub/components/TaskTable.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/TaskTable.tsx",
+        "v2": "views/farm/taskDispatch/components/TaskTable.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/TaskTableHeader.tsx",
+        "v2": "views/farm/taskDispatch/components/TaskTableHeader.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/components/TaskTypeConfigPanel.tsx",
+        "v2": "views/farm/hub/components/TaskTypeConfigPanel.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tasks/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/components/tempTask/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/harvest/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/planting/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/BatchEditModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/BatchEditModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/CreateTaskModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/CreateTaskModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tasks/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/components/tempTask/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/hub/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/inspection/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/DeleteWarningModal.tsx",
+        "v2": "views/farm/planting/modals/DeleteWarningModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tasks/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/components/tempTask/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/hub/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/inspection/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/order/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/pest-control/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/planting/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seed-source/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ExportFormatModal.tsx",
+        "v2": "views/farm/seedling/modals/ExportFormatModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/ReassignTaskModal.tsx",
+        "v2": "views/farm/components/tempTask/ReassignTaskModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/TaskAcceptanceModal.tsx",
+        "v2": "views/farm/hub/modals/TaskAcceptanceModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/VerifyTaskModal.tsx",
+        "v2": "views/farm/taskDispatch/modals/VerifyTaskModal.vue"
+      },
+      {
+        "v1": "components/farm/taskDispatch/modals/WithdrawCancelModal.tsx",
+        "v2": "views/farm/components/tempTask/WithdrawCancelModal.vue"
+      },
+      {
+        "v1": "components/farm/trace/TraceChain.tsx",
+        "v2": "views/farm/trace/TraceChain.vue"
+      },
+      {
+        "v1": "pages/farm/DailyWorkSummary.tsx",
+        "v2": "views/farm/DailyWorkSummary.vue"
+      },
+      {
+        "v1": "pages/farm/TaskCenterPage.tsx",
+        "v2": "views/farm/TaskCenter.vue"
+      }
+    ],
+    "unmapped_v1": [
+      "components/farm/harvest/statusBadgeUtils.tsx",
+      "components/farm/hub/FarmHubHeader.tsx",
+      "components/farm/hub/InspectionDetailModal.tsx",
+      "components/farm/hub/InspectionTab.tsx",
+      "components/farm/hub/ProblemDispatchModal.tsx",
+      "components/farm/hub/ProblemTab.tsx",
+      "components/farm/hub/TaskTab.tsx",
+      "components/farm/hub/components/TaskTableRow.tsx",
+      "components/farm/hub/components/TaskTypeConfigDisplay.tsx",
+      "components/farm/hub/modals/BatchImportModal.tsx",
+      "components/farm/hub/modals/CreateInspectionModal.tsx",
+      "components/farm/hub/modals/DeleteWarningAdapter.tsx",
+      "components/farm/hub/modals/ExportFormatAdapter.tsx",
+      "components/farm/hub/modals/InspectionAcceptanceModal.tsx",
+      "components/farm/hub/modals/OvertimeHandleModal.tsx",
+      "components/farm/hub/modals/SelectExecutorModal.tsx",
+      "components/farm/hub/modals/TempTaskAcceptanceAdapter.tsx",
+      "components/farm/inspection/components/InspectionPageHeader.tsx",
+      "components/farm/inspection/modals/CreateInspectionModal.tsx",
+      "components/farm/inventory/AddStockModal.tsx",
+      "components/farm/inventory/InventoryDetailModal.tsx",
+      "components/farm/inventory/InventoryInboundModal.tsx",
+      "components/farm/inventory/InventoryTable.tsx",
+      "components/farm/inventory/OutboundRecordsComponents.tsx",
+      "components/farm/inventory/UnifiedRowHarvestInboundModal.tsx",
+      "components/farm/order/OrderPage.tsx",
+      "components/farm/order/components/OrderFilter.tsx",
+      "components/farm/order/components/OrderStats.tsx",
+      "components/farm/order/components/OrderTable.tsx",
+      "components/farm/order/modals/EditModal.tsx",
+      "components/farm/pest-control/PestControlFilter.tsx",
+      "components/farm/pest-control/PestControlTable.tsx",
+      "components/farm/pest-control/modals/AddPestControlModal.tsx",
+      "components/farm/pest-control/modals/BatchDeleteModal.tsx",
+      "components/farm/pest-control/modals/EditPestControlModal.tsx",
+      "components/farm/pest-control/modals/PestControlDetailModal.tsx",
+      "components/farm/pest-control/modals/PestControlExportModal.tsx",
+      "components/farm/pest-control/modals/QuickAddPestDiseaseModal.tsx",
+      "components/farm/pest-control/modals/QuickAddPesticideModal.tsx",
+      "components/farm/planting/PlantingPage.tsx",
+      "components/farm/planting/components/PlantingFilter.tsx",
+      "components/farm/planting/components/PlantingTable.tsx",
+      "components/farm/planting/modals/EditModal.tsx",
+      "components/farm/planting/modals/HarvestModal.tsx",
+      "components/farm/planting/modals/HarvestRecordModal.tsx",
+      "components/farm/planting/modals/PlantingLabelDetailModal.tsx",
+      "components/farm/planting/modals/PlantingMoveModal.tsx",
+      "components/farm/planting/modals/PlantingMoveRecordsModal.tsx",
+      "components/farm/planting/modals/PrintLabelModal.tsx",
+      "components/farm/problemDispatch/components/ProblemFilterToolbar.tsx",
+      "components/farm/problemDispatch/components/ProblemPageHeader.tsx",
+      "components/farm/problemDispatch/components/ProblemStatsCards.tsx",
+      "components/farm/problemDispatch/components/ProblemTable.tsx",
+      "components/farm/problemDispatch/components/SourceCell.tsx",
+      "components/farm/problemDispatch/modals/CreateProblemModal.tsx",
+      "components/farm/seed-source/SeedSourcePage.tsx",
+      "components/farm/seed-source/components/SeedSourceFilter.tsx",
+      "components/farm/seed-source/components/SeedSourceTable.tsx",
+      "components/farm/seed-source/modals/CirculationHistoryModal.tsx",
+      "components/farm/seed-source/modals/EditModal.tsx",
+      "components/farm/seed-source/modals/PrintLabelModal.tsx",
+      "components/farm/seed-source/modals/PropagationRecordModal.tsx",
+      "components/farm/seed-source/modals/PropagationStageModal.tsx",
+      "components/farm/seedling/SeedlingPage.tsx",
+      "components/farm/seedling/components/SeedlingFilter.tsx",
+      "components/farm/seedling/components/SeedlingTable.tsx",
+      "components/farm/seedling/modals/DailyRecordModal.tsx",
+      "components/farm/seedling/modals/EditModal.tsx",
+      "components/farm/seedling/modals/PrintLabelModal.tsx",
+      "components/farm/seedling/modals/SeedlingLabelManageModal.tsx",
+      "components/farm/seedling/modals/TransplantModal.tsx",
+      "components/farm/taskDispatch/components/TaskTableRow.tsx",
+      "components/farm/taskDispatch/components/TaskTypeConfigDisplay.tsx",
+      "components/farm/taskDispatch/modals/OvertimeHandleModal.tsx",
+      "components/farm/trace/FlowLogTab.tsx",
+      "pages/farm/FarmStructureManagement.tsx",
+      "pages/farm/FarmTaskHub.tsx"
+    ],
+    "unmapped_v2": [
+      "views/farm/AgricultureRecord.vue",
+      "views/farm/FarmHub.vue",
+      "views/farm/MyTasks.vue",
+      "views/farm/Schedule.vue",
+      "views/farm/SmartDispatch.vue",
+      "views/farm/Tasks.vue",
+      "views/farm/Team.vue",
+      "views/farm/TempTask.vue",
+      "views/farm/WorkLog.vue",
+      "views/farm/components/DispatchMetricsDashboard.vue",
+      "views/farm/components/EnvironmentPanel.vue",
+      "views/farm/components/MaterialEquipmentPanel.vue",
+      "views/farm/components/MyTasksPanel.vue",
+      "views/farm/components/PredictedTasksPanel.vue",
+      "views/farm/components/ScheduleAddModal.vue",
+      "views/farm/components/ScheduleBatchEditModal.vue",
+      "views/farm/components/ScheduleCalendarView.vue",
+      "views/farm/components/ScheduleDeleteWarningModal.vue",
+      "views/farm/components/ScheduleExportFormatModal.vue",
+      "views/farm/components/ScheduleHeader.vue",
+      "views/farm/components/ScheduleShiftEditorModal.vue",
+      "views/farm/components/ScheduleSidebar.vue",
+      "views/farm/components/ScheduleStatsCards.vue",
+      "views/farm/components/ScheduleSwapRequestModal.vue",
+      "views/farm/components/ScheduleTableView.vue",
+      "views/farm/components/SmartDispatchPanel.vue",
+      "views/farm/components/TaskCard.vue",
+      "views/farm/components/TaskExecutePanel.vue",
+      "views/farm/components/TempTaskPanel.vue",
+      "views/farm/components/WorkLogPanel.vue",
+      "views/farm/components/myTasks/ProblemTaskTableRow.vue",
+      "views/farm/components/myTasks/ProductionTaskTableRow.vue",
+      "views/farm/components/myTasks/TaskFeedbackModal.vue",
+      "views/farm/components/myTasks/TaskFilterTabs.vue",
+      "views/farm/components/myTasks/TaskRejectModal.vue",
+      "views/farm/components/myTasks/TaskSopModal.vue",
+      "views/farm/components/myTasks/TempTaskTableRow.vue",
+      "views/farm/components/tasks/TaskFormModal.vue",
+      "views/farm/components/tasks/TaskPriorityBadge.vue",
+      "views/farm/components/tasks/TaskStatusBadge.vue",
+      "views/farm/components/tasks/TaskTypeTag.vue",
+      "views/farm/components/tempTask/TempTaskDetailModal.vue",
+      "views/farm/components/tempTask/TempTaskFilters.vue",
+      "views/farm/components/tempTask/TempTaskFormModal.vue",
+      "views/farm/components/tempTask/TempTaskPage.vue",
+      "views/farm/components/tempTask/TempTaskTable.vue",
+      "views/farm/components/worklog/WorkLogBatchEditModal.vue",
+      "views/farm/components/worklog/WorkLogDetailModal.vue",
+      "views/farm/components/worklog/WorkLogFilters.vue",
+      "views/farm/components/worklog/WorkLogFormModal.vue",
+      "views/farm/components/worklog/WorkLogPage.vue",
+      "views/farm/components/worklog/WorkLogTable.vue",
+      "views/farm/fertilizer/FertilizerManagement.vue"
+    ]
+  }
+}
