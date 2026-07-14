@@ -22,14 +22,21 @@
             <el-input v-model="record.seedCode" disabled class="bg-gray-50 font-mono" />
           </el-form-item>
 
-          <!-- 作物选择 - 可搜索的下拉选择 -->
+          <!-- 作物选择 - V1.1 CropCodeSelector（4级联动） -->
           <el-form-item label="作物选择" required>
+            <CropCodeSelector
+              :model-value="form.cropCode"
+              @update:model-value="(val) => { form.cropCode = val; handleCropChange(val) }"
+              placeholder="搜索或选择作物品种..."
+              :show-full-path="true"
+            />
+            <!-- 兼容保留旧el-select以备回退 -->
             <el-select
+              v-show="false"
               v-model="form.cropCode"
               filterable
               remote
               reserve-keyword
-              placeholder="搜索或选择作物品种..."
               :remote-method="searchCrops"
               :loading="cropLoading"
               class="w-full"
@@ -176,6 +183,7 @@ import { ref, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Close } from '@element-plus/icons-vue'
 import { useSeedSourceStore } from '@/stores'
+import CropCodeSelector from '@/components/farm/common/CropCodeSelector.vue'
 import { enhancedApiClient } from '@/lib/apiClient'
 
 // 种源类型 → 供应商类型 级联映射

@@ -447,25 +447,10 @@ import {
   Histogram,
   Collection,
   WarnTriangleFilled,
-  Odometer,
-  Setting,
-  Tools,
-  Notebook,
-  House,
-  Grid,
-  Lock,
-  Guide,
-  Goods,
-  Coin,
-  Monitor,
-  VideoCamera,
-  Connection,
-  Download,
-  Lightning,
-  Warning
+  Odometer
 } from '@element-plus/icons-vue'
 
-const props = defineProps({ collapsed: false })
+const props = defineProps({ collapsed: Boolean })
 
 const emit = defineEmits(['update:collapsed', 'menu-select'])
 

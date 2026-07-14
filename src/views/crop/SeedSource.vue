@@ -1,100 +1,114 @@
 <template>
-  <div class="p-6 space-y-4">
+  <!--
+    种源管理主页面（V1.1 1:1 迁移版）
+    V1.1源文件：src/components/farm/seed-source/SeedSourcePage.tsx
+
+    功能：种源列表展示、筛选、新增、编辑、删除、标签打印、图片查看、导出Excel
+    2026-06-25 v3: 种源是纯仓库 — 移除繁殖过程/阶段推进/回流记录弹窗
+    2026-07-07 V3.4：取消「入库登记（外购）」入口
+  -->
+  <div class="space-y-6">
     <!-- 标题卡片 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-          <Package class="w-6 h-6 text-white" />
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+            <el-icon :size="24" class="text-white">
+              <!-- V1.1: 锁形图标（包/package 变体） -->
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </el-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">内部种源</h1>
+            <p class="text-gray-500">管理种源批次、采购入库和库存记录</p>
+          </div>
         </div>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">种源管理</h1>
-          <p class="text-gray-500">管理种源批次、采购入库和库存记录</p>
-        </div>
+        <!-- 2026-07-07：入库汇总跳转入口 — V1.1 绿色 outline 风格 -->
+        <el-button
+          type="success"
+          plain
+          :icon="DataLine"
+          @click="goToInboundSummary"
+        >
+          入库汇总
+        </el-button>
       </div>
     </div>
 
-    <!-- 筛选工具栏 -->
+    <!-- 2026-06-05: 顶部统计卡片已删除（user 要求） -->
+
+    <!-- 筛选器 -->
     <SeedSourceFilter
       :filters="filters"
-      @update:filters="handleFiltersChange"
-      @search="handleSearch"
-      @reset="handleReset"
+      :on-change="setFilters"
+      :on-search="handleSearch"
+      :on-reset="handleReset"
+      :crop-categories="cropCategories"
+      :suppliers="suppliers"
+      :status-options="statusOptions"
     />
 
-    <!-- 数据表格 (操作按钮已移入表格内部) -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <div class="flex items-center gap-3">
-        <div class="w-6 h-6 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-        <span class="text-gray-500">加载中...</span>
-      </div>
-    </div>
+    <!-- 数据表格 -->
     <SeedSourceTable
-      v-show="!loading"
       :data="filteredData"
-      v-model:pagination="pagination"
-      v-model:selected-rows="selectedRows"
+      :pagination="pagination"
+      :selected-rows="selectedRows"
+      :operation-mode="batchOp.mode"
       :export-mode="exportMode"
-      :operation-mode="operationMode"
       :print-mode="printMode"
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
       :can-export="canExport"
       :can-print="canPrint"
-      @selection-change="handleSelectionChange"
+      :loading="isLoading"
+      @update:pagination="setPagination"
+      @update:selected-rows="setSelectedRows"
       @add="handleAdd"
       @edit="handleEdit"
-      @batch-edit="handleBatchEdit"
-      @delete="handleDelete"
       @detail="handleDetail"
-      @export="handleExportClick"
-      @print="handlePrint"
-      @confirm-export="handleExportClickConfirm"
-      @export-cancel="handleExportCancel"
+      @delete="handleDelete"
+      @transfer="handleTransfer"
+      @return="handleReturn"
+      @label-manage="handleLabelManage"
       @operation-mode-change="handleOperationModeChange"
       @print-mode-change="handlePrintModeChange"
       @confirm-print="handlePrintConfirm"
-      @end="handleEnd"
-      @propagation-record="handlePropagationRecord"
-      @propagation-stage="handlePropagationStage"
-      @page-change="handlePageChange"
-      @size-change="handleSizeChange"
+      @export-cancel="handleExportCancel"
+      @confirm-export="handleExportClickConfirm"
     />
 
     <!-- 弹窗 -->
     <AddModal
-      v-model:visible="addModalVisible"
+      v-model:visible="addModalOpen"
+      :units="units"
       @success="loadItems"
     />
 
     <EditModal
       v-if="currentRecord"
-      v-model:visible="editModalVisible"
+      v-model:visible="editModalOpen"
       :record="currentRecord"
       @success="loadItems"
     />
 
-    <BatchEditModal
-      v-model:visible="batchEditModalVisible"
-      :selected-rows="batchSelectedIds"
-      :all-records="items"
-      @success="handleBatchEditSuccess"
-    />
-
     <DetailModal
       v-if="currentRecord"
-      v-model:visible="detailModalVisible"
+      v-model:visible="detailModalOpen"
       :record="currentRecord"
     />
 
     <PrintLabelModal
       v-if="currentRecord"
-      v-model:visible="printModalVisible"
+      v-model:visible="printModalOpen"
       :record="currentRecord"
     />
 
     <ImageLightboxModal
-      v-model:visible="lightboxVisible"
+      v-model:visible="lightboxOpen"
       :images="currentImages"
     />
 
@@ -102,49 +116,101 @@
       v-model:visible="showExportModal"
       :export-file-type="exportFormat"
       :selected-count="selectedRows.length"
-      @confirm="handleConfirmExport"
       @update:export-file-type="exportFormat = $event"
+      @confirm="handleConfirmExport"
     />
 
-    <!-- 繁殖途径弹窗 -->
-    <PropagationRecordModal
-      v-if="propagationRecord"
-      v-model:visible="propagationRecordVisible"
-      :record="propagationRecord"
-      @success="loadItems"
+    <!-- 调拨入库弹窗（append_existing 模式 — 追加到目标种源） -->
+    <el-dialog
+      v-if="transferModal.record"
+      v-model="transferModal.open"
+      :title="`调拨入库 - ${transferModal.record.seedCode}（追加模式）`"
+      width="80%"
+      :show-close="true"
+      @close="handleTransferClose"
+    >
+      <InventoryTransferPanel
+        mode="append_existing"
+        :target-seed-source-id="transferModal.record.id"
+        :target-crop-name="transferModal.record.cropName"
+        :target-crop-variety="transferModal.record.cropVariety || transferModal.record.varietyName"
+        @confirm="handleTransferConfirm"
+      />
+    </el-dialog>
+
+    <!-- 退库弹窗（严格 1:1 关联原库存） -->
+    <el-dialog
+      v-if="returnModal.record"
+      v-model="returnModal.open"
+      :title="`退库 - ${returnModal.record.seedCode}（退回原作物库存）`"
+      width="80%"
+      :show-close="true"
+      @close="handleReturnClose"
+    >
+      <SeedSourceReturnModal
+        :target-seed-source-id="returnModal.record.id"
+        :target-seed-source-code="returnModal.record.seedCode"
+        @confirm="handleReturnConfirm"
+      />
+    </el-dialog>
+
+    <!-- 2026-07-01: 种源标签管理弹窗 -->
+    <SeedSourceLabelManageModal
+      v-if="labelManageModal.record"
+      v-model:visible="labelManageModal.open"
+      :seed-source-id="labelManageModal.record.id"
+      :seed-source-code="labelManageModal.record.seedCode"
+      :unit="labelManageModal.record.unit || '粒'"
     />
 
-    <PropagationStageModal
-      v-if="propagationStageRecord"
-      v-model:visible="propagationStageVisible"
-      :record="propagationStageRecord"
-      @success="loadItems"
+    <!-- 删除确认弹窗（统一为 DeleteConfirmModal，对应V2.0 DeleteWarningModal） -->
+    <DeleteConfirmModal
+      :is-open="showDeleteModal"
+      :selected-count="selectedRows.length"
+      @update:is-open="(v) => showDeleteModal = v"
+      @confirm="handleDeleteConfirm"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { Package } from 'lucide-vue-next'
-import { ElMessage } from 'element-plus'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Goods, DataLine } from '@element-plus/icons-vue'
+
 import SeedSourceFilter from '@/components/farm/seed-source/components/SeedSourceFilter.vue'
 import SeedSourceTable from '@/components/farm/seed-source/components/SeedSourceTable.vue'
-import SeedSourceStats from '@/components/farm/seed-source/components/SeedSourceStats.vue'
 import AddModal from '@/components/farm/seed-source/modals/AddModal.vue'
 import EditModal from '@/components/farm/seed-source/modals/EditModal.vue'
-import BatchEditModal from '@/components/farm/seed-source/modals/BatchEditModal.vue'
 import DetailModal from '@/components/farm/seed-source/modals/DetailModal.vue'
 import PrintLabelModal from '@/components/farm/seed-source/modals/PrintLabelModal.vue'
 import ImageLightboxModal from '@/components/common/ImageLightboxModal.vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
-import PropagationRecordModal from '@/components/farm/seed-source/modals/PropagationRecordModal.vue'
-import PropagationStageModal from '@/components/farm/seed-source/modals/PropagationStageModal.vue'
-import { useSeedSourceStore } from '@/stores'
-import { enhancedApiClient } from '@/lib/apiClient'
-import { SeedSource } from '@/types/crop'
+import SeedSourceReturnModal from '@/components/farm/seed-source/modals/SeedSourceReturnModal.vue'
+import SeedSourceLabelManageModal from '@/components/farm/seed-source/modals/SeedSourceLabelManageModal.vue'
+import InventoryTransferPanel from '@/components/farm/seed-source/modals/InventoryTransferPanel.vue'
+import DeleteConfirmModal from '@/components/common/DeleteWarningModal.vue'
+
+import { useSeedSourceStore } from '@/stores/modules/seedSource'
+import { useUserStore } from '@/stores/modules/user'
+import { seedSourceTransferService } from '@/services/seedSourceTransferService'
+import { computeStockStatus, seedSourceStatusOptions, SOURCE_ORIGINS, SOURCE_TYPES } from '@/constants/seedSourceDict'
+
+// 简易 toast 包装（V2.0 直接用 ElMessage）
+const toast = {
+  success: (msg) => ElMessage.success(msg),
+  error: (msg) => ElMessage.error(msg),
+  warning: (msg) => ElMessage.warning(msg),
+  info: (msg) => ElMessage.info(msg)
+}
+
+// Router
+const router = useRouter()
 
 // Store
 const seedSourceStore = useSeedSourceStore()
+const userStore = useUserStore()
 
 // 权限 - 已取消，所有人可使用所有功能
 const canCreate = ref(true)
@@ -154,15 +220,16 @@ const canExport = ref(true)
 const canPrint = ref(true)
 
 // 数据
-const loading = computed(() => seedSourceStore.isLoading)
+const isLoading = computed(() => seedSourceStore.isLoading)
 const items = computed(() => seedSourceStore.items)
 
-// 筛选条件
+// 筛选条件（V1.1 SeedSourceFilters 1:1）
 const filters = ref({
   cropCategory: '',
   cropName: '',
   seedCode: '',
   sourceType: '',
+  sourceOrigin: '',
   supplierName: '',
   startDate: '',
   endDate: '',
@@ -177,94 +244,109 @@ const filters = ref({
   propagationStatus: undefined
 })
 
+// 选项（V1.1 cropCategories, suppliers, seedSourceStatusOptions）
+const statusOptions = seedSourceStatusOptions
+
+// V1.1 兼容：作物类别（V2.0 暂无 cropData.js，内联最小化）
+const cropCategories = [
+  { value: '蔬菜类', label: '蔬菜类' },
+  { value: '粮食类', label: '粮食类' },
+  { value: '水果类', label: '水果类' },
+  { value: '经济作物', label: '经济作物' }
+]
+// V1.1 兼容：供应商列表（实际由 modal 内部从 /suppliers API 加载，此处仅作占位）
+const suppliers = ref([])
+// V1.1 兼容：单位列表
+const units = [
+  { value: '袋', label: '袋' },
+  { value: '粒', label: '粒' },
+  { value: '颗', label: '颗' },
+  { value: '株', label: '株' },
+  { value: 'kg', label: 'kg' },
+  { value: 'g', label: 'g' }
+]
+
 // 分页
 const pagination = ref({ current: 1, pageSize: 10 })
 
 // 选中行
 const selectedRows = ref([])
 
-// 导出模式
-const exportMode = ref(false)
-const exportFormat = ref('excel')
-const showExportModal = ref(false)
-
 // 弹窗状态
-const addModalVisible = ref(false)
-const editModalVisible = ref(false)
-const batchEditModalVisible = ref(false)
-const detailModalVisible = ref(false)
-const printModalVisible = ref(false)
-const lightboxVisible = ref(false)
-
-// 操作模式状态（用于批量操作：编辑、删除、导出、打印）
-const operationMode = ref('normal')
-
-// 打印模式状态
-const printMode = ref(false)
-const printRecords = ref([])
-
-// 批量编辑选中的ID
-const batchSelectedIds = ref([])
-
-// 繁殖途径弹窗状态
-const propagationRecordVisible = ref(false)
-const propagationStageVisible = ref(false)
-const propagationRecord = ref(null)
-const propagationStageRecord = ref(null)
-
-// 当前记录
+const addModalOpen = ref(false)
+const editModalOpen = ref(false)
+const detailModalOpen = ref(false)
+const printModalOpen = ref(false)
+const lightboxOpen = ref(false)
 const currentRecord = ref(null)
 const currentImages = ref([])
 
-// 筛选后的数据
+// 导出状态
+const exportFormat = ref('xlsx')
+const showExportModal = ref(false)
+const showDeleteModal = ref(false)
+
+// 2026-06-06: 合并 3 个独立 state 为 BatchOpState discriminated union
+const batchOp = ref({ mode: 'normal' })
+const exportMode = computed(() => batchOp.value.mode === 'export')
+const printMode = computed(() => batchOp.value.mode === 'print')
+
+// 打印记录（待打印队列）
+const printRecords = ref([])
+
+// 标签管理弹窗
+const labelManageModal = ref({ open: false, record: null })
+
+// 调拨弹窗
+const transferModal = ref({ open: false, record: null })
+
+// 退库弹窗
+const returnModal = ref({ open: false, record: null })
+
+// 过滤数据（V1.1 useFilteredSeedSources 内联版）
 const filteredData = computed(() => {
-  return items.value.filter(item => {
-    if (filters.value.cropCategory && filters.value.cropCategory !== '__all__' && item.cropCategory !== filters.value.cropCategory) return false
-    if (filters.value.cropName && !item.cropName.includes(filters.value.cropName)) return false
-    if (filters.value.cropType && filters.value.cropType !== '__all__' && item.cropCategory !== filters.value.cropType) return false
-    if (filters.value.seedCode && !item.seedCode.includes(filters.value.seedCode)) return false
-    if (filters.value.sourceType && filters.value.sourceType !== '__all__' && item.sourceType !== filters.value.sourceType) return false
-    if (filters.value.supplierName && filters.value.supplierName !== '__all__' && !item.supplierName.includes(filters.value.supplierName)) return false
-    if (filters.value.status && filters.value.status !== '__all__' && item.status !== filters.value.status) return false
-    if (filters.value.startDate && item.purchaseDate < filters.value.startDate) return false
-    if (filters.value.endDate && item.purchaseDate > filters.value.endDate) return false
-    if (filters.value.createBy && !item.createBy.includes(filters.value.createBy)) return false
-    if (filters.value.surplusMin !== undefined && item.availableCount < filters.value.surplusMin) return false
-    if (filters.value.surplusMax !== undefined && item.availableCount > filters.value.surplusMax) return false
-    if (filters.value.propagationType) {
-      const itemPropType = item.propagationType || 'external'
-      if (itemPropType !== filters.value.propagationType) return false
-    }
-    if (filters.value.propagationStatus) {
-      const itemPropStatus = item.propagationStatus
-      if (itemPropStatus !== filters.value.propagationStatus) return false
-    }
-    return true
-  }).sort((a, b) => {
-    const timeA = a.createTime ? new Date(a.createTime).getTime() : 0
-    const timeB = b.createTime ? new Date(b.createTime).getTime() : 0
-    return timeB - timeA
-  })
-})
+  let data = items.value
+  const f = filters.value
 
-// 统计数据
-const statsData = computed(() => {
-  const now = new Date()
-  const thisMonth = now.getMonth()
-  const thisYear = now.getFullYear()
+  if (f.cropName) {
+    data = data.filter(item => (item.cropName || '').includes(f.cropName))
+  }
+  if (f.seedCode) {
+    data = data.filter(item => (item.seedCode || '').includes(f.seedCode))
+  }
+  if (f.sourceOrigin && f.sourceOrigin !== '__all__') {
+    data = data.filter(item => item.sourceOrigin === f.sourceOrigin)
+  }
+  if (f.sourceType && f.sourceType !== '__all__') {
+    data = data.filter(item => item.sourceType === f.sourceType)
+  }
+  if (f.supplierName && f.supplierName !== '__all__') {
+    data = data.filter(item => (item.supplierName || '').includes(f.supplierName))
+  }
+  if (f.status && f.status !== '__all__') {
+    // 实时计算 status
+    data = data.filter(item => {
+      const live = computeStockStatus(item.availableCount, item.initialCount)
+      return live === f.status
+    })
+  }
+  if (f.startDate) {
+    data = data.filter(item => (item.purchaseDate || item.createTime || '') >= f.startDate)
+  }
+  if (f.endDate) {
+    data = data.filter(item => (item.purchaseDate || item.createTime || '') <= f.endDate)
+  }
+  if (f.createBy) {
+    data = data.filter(item => (item.createBy || '').includes(f.createBy))
+  }
+  if (f.surplusMin !== undefined && f.surplusMin !== null) {
+    data = data.filter(item => (item.availableCount || 0) >= f.surplusMin)
+  }
+  if (f.surplusMax !== undefined && f.surplusMax !== null) {
+    data = data.filter(item => (item.availableCount || 0) <= f.surplusMax)
+  }
 
-  const total = items.value.length
-  const totalQuantity = items.value.reduce((sum, item) => sum + (item.availableCount || 0), 0)
-  const monthCount = items.value.filter(item => {
-    if (!item.createTime) return false
-    const date = new Date(item.createTime)
-    return date.getMonth() === thisMonth && date.getFullYear() === thisYear
-  }).length
-  const alertCount = items.value.filter(item =>
-    item.status === 'low' || item.status === 'depleted'
-  ).length
-
-  return { total, totalQuantity, monthCount, alertCount }
+  return data
 })
 
 // 加载数据
@@ -272,24 +354,30 @@ const loadItems = async () => {
   await seedSourceStore.loadItems()
 }
 
-// 事件处理
-const handleFiltersChange = (newFilters) => {
+// 筛选/分页操作
+const setFilters = (newFilters) => {
   filters.value = newFilters
-  seedSourceStore.setFilters(newFilters)
+}
+const setPagination = (val) => {
+  pagination.value = val
+}
+const setSelectedRows = (val) => {
+  selectedRows.value = val
 }
 
+// 处理搜索
 const handleSearch = () => {
-  pagination.value.current = 1
-  seedSourceStore.setFilters(filters.value)
-  loadItems()
+  pagination.value = { ...pagination.value, current: 1 }
 }
 
+// 处理重置
 const handleReset = () => {
   filters.value = {
     cropCategory: '',
     cropName: '',
     seedCode: '',
     sourceType: '',
+    sourceOrigin: '',
     supplierName: '',
     startDate: '',
     endDate: '',
@@ -303,98 +391,113 @@ const handleReset = () => {
     propagationType: undefined,
     propagationStatus: undefined
   }
-  pagination.value.current = 1
+  pagination.value = { ...pagination.value, current: 1 }
 }
 
+// 新增/编辑/详情/打印
 const handleAdd = () => {
   currentRecord.value = null
-  addModalVisible.value = true
+  addModalOpen.value = true
 }
 
 const handleEdit = (record) => {
   currentRecord.value = record
-  editModalVisible.value = true
-}
-
-// 处理批量编辑
-const handleBatchEdit = (selectedIds) => {
-  // 保存选中的ID到临时变量，防止被后续的selection-change事件清空
-  batchSelectedIds.value = selectedIds
-  selectedRows.value = selectedIds
-  batchEditModalVisible.value = true
+  editModalOpen.value = true
 }
 
 const handleDetail = (record) => {
   currentRecord.value = record
-  detailModalVisible.value = true
+  detailModalOpen.value = true
 }
 
 const handlePrint = (record) => {
   currentRecord.value = record
-  printModalVisible.value = true
+  printModalOpen.value = true
 }
 
-// 处理删除（通过 Store，删除前检查是否有育苗引用）
-const handleDelete = async (ids) => {
-  for (const id of ids) {
-    try {
-      const res = await enhancedApiClient.get(`/seed-sources/${id}/check-deletable`)
-      if (!res?.deletable) {
-        ElMessage.warning(`该种源已被 ${res?.refCount || '多个'} 条育苗记录引用，无法删除。\n请先清理育苗关联后再删除。`)
-        return false
-      }
-    } catch {
-      // 降级策略：检查失败时允许继续删除
-    }
-  }
-  const success = await seedSourceStore.deleteItems(ids)
-  if (success) {
-    selectedRows.value = []
-    ElMessage.success('删除成功')
+const handleImageClick = (images) => {
+  currentImages.value = images
+  lightboxOpen.value = true
+}
+
+// 跳转入库汇总
+const goToInboundSummary = () => {
+  router.push('/crop/seed-source/inbound-summary')
+}
+
+// 调拨
+const handleTransfer = (record) => {
+  transferModal.value = { open: true, record }
+}
+const handleTransferClose = () => {
+  transferModal.value = { open: false, record: null }
+}
+const handleTransferConfirm = async (items) => {
+  const record = transferModal.value.record
+  if (!record) return
+  try {
+    const result = await seedSourceTransferService.appendToExistingSeedSource({
+      targetSeedSourceId: record.id,
+      items,
+      operator: userStore.currentUser
+        ? { id: userStore.currentUser.oid, name: userStore.currentUser.realName || userStore.currentUser.username }
+        : undefined
+    })
+    toast.success(`调拨成功：追加 ${result.appendedCount} ${record.unit}，当前可用 ${result.newAvailableCount}`)
+    handleTransferClose()
     await loadItems()
-    return true
-  } else {
-    ElMessage.error('删除失败')
-    return false
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    await ElMessageBox.alert(`调拨失败：${msg}`, '错误', { type: 'error' })
   }
+}
+
+// 退库
+const handleReturn = (record) => {
+  returnModal.value = { open: true, record }
+}
+const handleReturnClose = () => {
+  returnModal.value = { open: false, record: null }
+}
+const handleReturnConfirm = async (items) => {
+  const record = returnModal.value.record
+  if (!record) return
+  try {
+    const result = await seedSourceTransferService.returnToInventory({
+      targetSeedSourceId: record.id,
+      items,
+      operator: userStore.currentUser
+        ? { id: userStore.currentUser.oid, name: userStore.currentUser.realName || userStore.currentUser.username }
+        : undefined
+    })
+    toast.success(`退库成功：退回 ${result.returnedCount} ${record.unit}，剩余可用 ${result.newSourceRemaining}`)
+    handleReturnClose()
+    await loadItems()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    await ElMessageBox.alert(`退库失败：${msg}`, '错误', { type: 'error' })
+  }
+}
+
+// 标签管理
+const handleLabelManage = (record) => {
+  labelManageModal.value = { open: true, record }
 }
 
 // 操作模式变更
 const handleOperationModeChange = (mode) => {
-  operationMode.value = mode
-
-  // 导出模式
-  if (mode === 'export') {
-    exportMode.value = true
+  batchOp.value = { mode }
+  if (mode === 'export' || mode === 'delete' || mode === 'edit') {
     selectedRows.value = []
-    return
   }
-
-  // 取消导出模式
-  if (mode !== 'export') {
-    exportMode.value = false
-  }
-
-  // 批量编辑模式：多选时打开批量编辑弹窗
-  if (mode === 'edit' && selectedRows.value.length > 1) {
-    batchEditModalVisible.value = true
-    operationMode.value = 'normal'
-    selectedRows.value = []
-    return
-  }
-
-  // 编辑/删除模式不清空选择
-  if (mode === 'edit' || mode === 'delete') {
-    return
-  }
-
-  // 其他模式清空选择
-  selectedRows.value = []
 }
 
-// 打印模式变更
-const handlePrintModeChange = (mode) => {
-  printMode.value = mode
+const handlePrintModeChange = (val) => {
+  if (val) {
+    batchOp.value = { mode: 'print' }
+  } else {
+    batchOp.value = { mode: 'normal' }
+  }
   selectedRows.value = []
 }
 
@@ -406,146 +509,12 @@ const handlePrintConfirm = (records) => {
   }
   printRecords.value = records
   currentRecord.value = records[0]
-  printModalVisible.value = true
-  printMode.value = false
+  printModalOpen.value = true
+  batchOp.value = { mode: 'normal' }
   selectedRows.value = []
 }
 
-// 处理结束（正常/异常）
-const handleEnd = async (record, endType) => {
-  if (!record.productionPlanCode) {
-    ElMessage.warning('该种源没有关联的生产计划，无法结束')
-    return
-  }
-
-  try {
-    const batch = await enhancedApiClient.get(`/crop-batch/code/${record.productionPlanCode}`)
-    if (!batch) {
-      ElMessage.error('未找到关联的生产计划')
-      return
-    }
-
-    if (batch.batchStatus === 'completed') {
-      ElMessage.error('该生产计划已完成结束，不能重复结束')
-      return
-    }
-
-    const completionRate = record.initialCount > 0 ? record.availableCount / record.initialCount : 0
-
-    const isNormal = endType === 'normal'
-    const confirmMsg = isNormal
-      ? `确认正常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后禁止一切入库和补录操作`
-      : `确认异常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后如需补录，需提交审核申请`
-
-    const { ElMessageBox } = await import('element-plus')
-    try {
-      await ElMessageBox.confirm(confirmMsg, '确认结束', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-    } catch {
-      return
-    }
-
-    const result = await enhancedApiClient.put(`/crop-batch/${batch.id}/end`, { endType })
-    if (result) {
-      ElMessage.success(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
-      await loadItems()
-    } else {
-      ElMessage.error('结束失败')
-    }
-  } catch (error) {
-    console.error('结束生产计划失败:', error)
-    ElMessage.error('结束失败')
-  }
-}
-
-// 批量编辑（V1.1逻辑：选择一条记录进行编辑）
-const handleConfirmBatchEdit = () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要编辑的数据')
-    return
-  }
-  const firstSelectedId = selectedRows.value[0]
-  const record = items.value.find(item => item.id === firstSelectedId)
-
-  if (record) {
-    const editRecord = {
-      id: record.id,
-      seedCode: record.seedCode || record.sourceCode || '',
-      sourceType: record.sourceType || 'seed',
-      sourceOrigin: record.sourceOrigin || 'external_purchase',
-      cropCategory: record.cropCategory || '',
-      typeName: record.typeName || '',
-      varietyName: record.varietyName || '',
-      cropName: record.cropName || '',
-      cropVariety: record.cropVariety || '',
-      cropCode: record.cropCode || '',
-      supplierId: record.supplierId || '',
-      supplierName: record.supplierName || '',
-      purchaseDate: record.purchaseDate || '',
-      quantity: record.quantity || 0,
-      unit: record.unit || '',
-      unitPrice: record.unitPrice || 0,
-      initialCount: record.initialCount || 0,
-      availableCount: record.availableCount || 0,
-      pictures: record.pictures || [],
-      remarks: record.remarks || '',
-      status: record.status || 'sufficient'
-    }
-    handleEdit(editRecord)
-  } else {
-    ElMessage.warning('未找到选中的记录')
-  }
-  handleOperationModeChange('normal')
-  selectedRows.value = []
-}
-
-// 批量删除确认
-const handleConfirmDelete = async () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要删除的数据')
-    return
-  }
-  const result = await handleDelete(selectedRows.value)
-  if (result !== false) {
-    handleOperationModeChange('normal')
-  }
-}
-
-// 批量编辑成功
-const handleBatchEditSuccess = () => {
-  handleOperationModeChange('normal')
-  selectedRows.value = []
-  loadItems()
-}
-
-// 处理繁殖过程记录
-const handlePropagationRecord = (record) => {
-  propagationRecord.value = record
-  propagationRecordVisible.value = true
-}
-
-// 处理繁殖阶段推进
-const handlePropagationStage = (record) => {
-  propagationStageRecord.value = record
-  propagationStageVisible.value = true
-}
-
-// 导出相关
-const handleExportClick = () => {
-  exportMode.value = true
-  operationMode.value = 'export'
-  selectedRows.value = []
-}
-
-const handleExportCancel = () => {
-  exportMode.value = false
-  operationMode.value = 'normal'
-  selectedRows.value = []
-}
-
+// 导出
 const handleExportClickConfirm = () => {
   if (selectedRows.value.length === 0) {
     ElMessage.warning('请先选择要导出的数据')
@@ -554,34 +523,42 @@ const handleExportClickConfirm = () => {
   showExportModal.value = true
 }
 
-// 种源类型中英文映射
-const sourceTypeMap = {
-  'seed': '种子',
-  'seedling': '种苗/实生苗',
-  'cutting': '扦插苗',
-  'grafting': '嫁接苗',
-  'tissue_culture': '组培苗',
-  'split': '分株苗',
-  'bulb': '种球/球根',
-  'other': '其他'
+const handleExportCancel = () => {
+  batchOp.value = { mode: 'normal' }
+  selectedRows.value = []
 }
 
-// 来源途径中英文映射
-const sourceOriginMap = {
-  'external_purchase': '外部采购',
-  'self_produced': '自产',
-  'other': '其他'
-}
-
-const handleConfirmExport = () => {
+const handleConfirmExport = async () => {
   const selectedData = filteredData.value.filter(item => selectedRows.value.includes(item.id))
-  const headers = ['种源批号', '种源类型', '来源途径', '作物类别', '作物品种', '供应商', '采购日期', '采购数量', '单位', '单价(元)', '总金额(元)', '初始数量', '可用数量', '库存状态', '创建人', '创建时间', '备注']
+
+  // 导出表头（含图片列，V1.1 20列）
+  const headers = [
+    '种源图片（链接）', '种源批号', '种源类型', '作物类别',
+    '作物品种（最细化）', '作物品种（细分品种）', '品种路径', '供应商',
+    '采购日期', '采购数量', '单位', '单价(元)', '总金额(元)',
+    '初始数量', '可用数量', '库存状态', '溯源码',
+    '创建人', '创建时间', '备注'
+  ]
+
+  // 种源类型中英文映射
+  const sourceTypeMap = {
+    seed: '种子', seedling: '种苗/实生苗', cutting: '扦插苗',
+    grafting: '嫁接苗', tissue_culture: '组培苗', split: '分株苗',
+    bulb: '种球/球根', self_produced: '自繁苗', external: '外购苗'
+  }
+
   const exportData = selectedData.map(record => ({
+    '种源图片': (record.pictures && record.pictures.length > 0) ? record.pictures[0] : '',
     '种源批号': record.seedCode,
     '种源类型': sourceTypeMap[record.sourceType] || record.sourceType || '',
-    '来源途径': sourceOriginMap[record.sourceOrigin] || record.sourceOrigin || '',
     '作物类别': record.cropCategory,
-    '作物品种': record.cropVariety,
+    '作物品种（最细化）': record.cropName,
+    '作物品种（细分品种）': record.cropVariety,
+    '品种路径': [
+      record.cropCategory,
+      record.cropName,
+      record.cropVariety && record.cropVariety !== record.cropName ? record.cropVariety : null
+    ].filter(Boolean).join(' > ') || '-',
     '供应商': record.supplierName,
     '采购日期': record.purchaseDate,
     '采购数量': record.quantity,
@@ -590,65 +567,175 @@ const handleConfirmExport = () => {
     '总金额(元)': record.totalAmount,
     '初始数量': record.initialCount,
     '可用数量': record.availableCount,
-    '库存状态': record.status === 'sufficient' ? '充足' : record.status === 'low' ? '不足' : '耗尽',
+    '库存状态': (() => {
+      const live = computeStockStatus(record.availableCount, record.initialCount)
+      return live === StockStatus.SUFFICIENT ? '充足' : live === StockStatus.LOW ? '不足' : '耗尽'
+    })(),
+    '溯源码': record.traceabilityCode || '',
     '创建人': record.createBy,
     '创建时间': record.createTime,
     '备注': record.remarks || ''
   }))
 
-  let content = ''
-  if (exportFormat.value === 'csv') {
-    content = headers.join(',') + '\n' + exportData.map(row =>
-      headers.map(h => `"${typeof row[h] === 'string' ? row[h].replace(/"/g, '""') : row[h] || ''}"`).join(',')
-    ).join('\n')
-    const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `种源管理_${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-  } else if (exportFormat.value === 'word') {
-    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th style="background-color: #E0E0E0; font-weight: bold;">${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    const blob = new Blob([content], { type: 'application/msword;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `种源管理_${new Date().toISOString().slice(0, 10)}.doc`
-    a.click()
-    URL.revokeObjectURL(url)
-  } else {
-    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    const blob = new Blob([content], { type: 'application/vnd.ms-excel;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `种源管理_${new Date().toISOString().slice(0, 10)}.xls`
-    a.click()
-    URL.revokeObjectURL(url)
+  // 真实 xlsx 导出（V1.1 风格，SheetJS，含图片列 + 错误降级为 xls）
+  try {
+    if (exportFormat.value === 'xlsx' || exportFormat.value === 'excel') {
+      const XLSX = await import('xlsx')
+      const ws = XLSX.utils.json_to_sheet(exportData, { header: headers })
+      // 列宽：图片列宽 30、备注列宽 25、其他列宽 15
+      ws['!cols'] = headers.map((h) => {
+        if (h === '种源图片（链接）') return { wch: 30 }
+        if (h === '备注') return { wch: 25 }
+        return { wch: 15 }
+      })
+      // 嵌入 base64 图片链接到对应单元格
+      selectedData.forEach((record, rowIdx) => {
+        if (record.pictures && record.pictures.length > 0) {
+          const imgData = record.pictures[0]
+          if (imgData.startsWith('data:image/')) {
+            try {
+              const cellRef = XLSX.utils.encode_cell({ r: rowIdx + 1, c: 0 })
+              if (ws[cellRef]) {
+                ws[cellRef].l = { Target: imgData }
+              }
+            } catch { /* 图片嵌入失败不影响导出 */ }
+          }
+        }
+      })
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '种源记录')
+      XLSX.writeFile(wb, `内部种源_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    } else if (exportFormat.value === 'csv') {
+      // CSV 导出（带 BOM 保证中文）
+      const content = headers.join(',') + '\n' + exportData.map(row =>
+        headers.map(h => {
+          const val = row[h] ?? ''
+          return `"${typeof val === 'string' ? val.replace(/"/g, '""') : val}"`
+        }).join(',')
+      ).join('\n')
+      const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `内部种源_${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } else {
+      // xls fallback（HTML 假装 xls）
+      const XLSX = await import('xlsx')
+      const ws = XLSX.utils.json_to_sheet(exportData, { header: headers })
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '种源记录')
+      XLSX.writeFile(wb, `内部种源_${new Date().toISOString().slice(0, 10)}.xls`)
+    }
+    toast.success('导出成功')
+  } catch (err) {
+    console.warn('[SeedSourcePage] 导出失败:', err)
+    toast.error('导出失败：' + (err instanceof Error ? err.message : String(err)))
   }
 
-  exportMode.value = false
-  operationMode.value = 'normal'
+  batchOp.value = { mode: 'normal' }
   selectedRows.value = []
   showExportModal.value = false
-  ElMessage.success('导出成功')
 }
 
-const handlePageChange = (page) => {
-  pagination.value.current = page
+// 删除流程（含引用检查 + 用户选择"删可删的"或"取消"，V1.1 风格）
+const handleDelete = (ids) => {
+  if (!ids || ids.length === 0) {
+    ElMessage.warning('请先选择要删除的记录')
+    return
+  }
+  selectedRows.value = ids
+  showDeleteModal.value = true
 }
 
-const handleSizeChange = (size) => {
-  pagination.value.pageSize = size
-  pagination.value.current = 1
+const handleDeleteConfirm = async () => {
+  const ids = [...selectedRows.value]
+  if (ids.length === 0) return
+
+  // 1. 全部预检
+  const deletable = []
+  const conflicted = []
+  const errored = []
+
+  for (const id of ids) {
+    try {
+      const res = await seedSourceStore.checkDeletable(id)
+      if (res.deletable) {
+        deletable.push(id)
+      } else {
+        conflicted.push({ id, references: res.references })
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      errored.push({ id, error: msg })
+      deletable.push(id) // 检查失败允许继续删除
+    }
+  }
+
+  // 2. 全部可删
+  if (conflicted.length === 0) {
+    showDeleteModal.value = false
+    try {
+      await seedSourceStore.deleteItems(deletable)
+      selectedRows.value = []
+      if (errored.length > 0) {
+        toast.warning(`已删除 ${deletable.length} 个种源（${errored.length} 个引用检查失败，已强行删除）`)
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      await ElMessageBox.alert(`删除失败：${msg}`, '错误', { type: 'error' })
+    }
+    return
+  }
+
+  // 3. 有冲突
+  const sections = conflicted.map(c => {
+    const refCount = c.references.length
+    const refSummary = c.references.slice(0, 3).map(r => r.targetCode || r.targetId || r.code).join('、')
+    return `• 种源 [${c.id}] 被 ${refCount} 条引用：${refSummary}${c.references.length > 3 ? '…' : ''}`
+  })
+
+  try {
+    await ElMessageBox.confirm(
+      `⚠️ 批量删除检测：\n\n` +
+      `• 可删除：${deletable.length} 个\n` +
+      `• 有冲突：${conflicted.length} 个（详见下方）\n` +
+      (errored.length > 0 ? `• 检查失败：${errored.length} 个（将强行删除）\n` : '') +
+      `\n${sections.join('\n')}\n\n` +
+      `点击「确定」删除可删除的 ${deletable.length} 个，跳过有冲突的。\n` +
+      `点击「取消」放弃全部删除。`,
+      '确认删除',
+      { type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' }
+    )
+  } catch {
+    return
+  }
+
+  showDeleteModal.value = false
+  if (deletable.length === 0) {
+    toast.warning(`全部 ${conflicted.length} 个都有冲突，未删除任何记录`)
+    return
+  }
+  try {
+    await seedSourceStore.deleteItems(deletable)
+    selectedRows.value = []
+    toast.success(`已删除 ${deletable.length} 个，跳过 ${conflicted.length} 个有冲突的`)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    await ElMessageBox.alert(`删除失败：${msg}`, '错误', { type: 'error' })
+  }
 }
 
-const handleSelectionChange = (rows) => {
-  selectedRows.value = rows
-}
+// 监听 store error
+watch(() => seedSourceStore.error, (err) => {
+  if (err) {
+    toast.error(`加载种源数据失败：${err}`)
+    seedSourceStore.clearError()
+  }
+})
 
-// 初始化
+// 组件挂载
 onMounted(() => {
   loadItems()
 })
