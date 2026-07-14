@@ -3,6 +3,10 @@
  */
 import { Router } from 'express';
 import { getDatabase, saveDatabase } from '../db/index.js';
+import { queryToObjects } from '../utils/queryHelper.js';
+import { recomputeAndUpdateStockStatus } from '../lib/inventoryStockStatus.js';
+import { generateTransactionId } from '../services/inventory.service.js';
+import { formatLocalDateYYYYMMDD, formatLocalDateISO } from '../utils/dateUtil.js';
 const router = Router();
 // snake_case → camelCase 字段映射（库存表）
 function mapInventoryToCamel(item) {
@@ -382,6 +386,155 @@ router.delete('/:id', (req, res) => {
         res.status(500).json({
             success: false,
             error: '删除库存记录失败'
+        });
+    }
+});
+// ========== 2026-07-14: V3.4 库存调拨入种源（创建新种源）==========
+// POST /api/inventory/transfer-to-source
+// Body: { items: [{sourceStockId, transferQuantity, unit, cropName, cropCode, supplierName}], operatorId, operatorName }
+router.post('/transfer-to-source', async (req, res) => {
+    try {
+        const { items, operatorId, operatorName } = req.body || {};
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ success: false, error: 'items 不能为空' });
+        }
+        const db = getDatabase();
+        const now = new Date().toISOString();
+        const dateStr = formatLocalDateISO();
+        const dateCompact = formatLocalDateYYYYMMDD();
+        const operator = { id: operatorId || '', name: operatorName || 'system' };
+
+        // 1. 查询最大种源编码序号（ZZ + 日期 + - + 3位序号）
+        const codePattern = `ZZ${dateCompact}-%`;
+        const codeRows = queryToObjects(db,
+            `SELECT source_code FROM seed_sources WHERE source_code LIKE ? AND LENGTH(source_code) = 16 ORDER BY source_code DESC LIMIT 1`,
+            [codePattern]
+        );
+        let nextSeq = 1;
+        if (codeRows.length > 0) {
+            const lastCode = String(codeRows[0].source_code || '');
+            const seqStr = lastCode.slice(-3);
+            const lastSeq = parseInt(seqStr, 10);
+            if (!isNaN(lastSeq)) nextSeq = lastSeq + 1;
+        }
+
+        const results = [];
+        for (const item of items) {
+            if (!item.sourceStockId || !item.transferQuantity || !item.unit) {
+                return res.status(400).json({ success: false, error: '每条 item 必须包含 sourceStockId/transferQuantity/unit' });
+            }
+            // 读源库存
+            const stockStmt = db.prepare(`SELECT * FROM inventory_stock WHERE id = ?`);
+            stockStmt.bind([item.sourceStockId]);
+            const stock = stockStmt.step() ? stockStmt.getAsObject() : null;
+            stockStmt.free();
+            if (!stock) {
+                return res.status(404).json({ success: false, error: `源库存不存在: ${item.sourceStockId}` });
+            }
+            const sourceCurrent = Number(stock.current_quantity || 0);
+            const sourceAvailable = Number(stock.available_quantity || 0);
+            const sourceUnit = String(stock.unit || '');
+            const sourceInstanceId = String(stock.instance_id || '');
+            const sourceStockType = String(stock.stock_type || 'seed');
+
+            if (sourceCurrent < item.transferQuantity) {
+                return res.status(400).json({
+                    success: false,
+                    error: `源库存 ${sourceInstanceId} 可用 ${sourceCurrent}${sourceUnit}，需调拨 ${item.transferQuantity}${item.unit}`
+                });
+            }
+            if (sourceUnit !== item.unit) {
+                return res.status(400).json({ success: false, error: `单位不匹配: 源库存 ${sourceUnit} ≠ 调拨 ${item.unit}` });
+            }
+
+            // 1. 扣减源库存
+            const newSourceCurrent = sourceCurrent - item.transferQuantity;
+            const newSourceAvailable = Math.max(0, sourceAvailable - item.transferQuantity);
+            db.run(
+                `UPDATE inventory_stock
+                 SET current_quantity = ?, available_quantity = ?, update_time = ?
+                 WHERE id = ?`,
+                [newSourceCurrent, newSourceAvailable, now, item.sourceStockId]
+            );
+            recomputeAndUpdateStockStatus(db, item.sourceStockId);
+
+            // 2. 写 inventory_transaction (outbound)
+            const outTxId = await generateTransactionId(dateStr);
+            db.run(
+                `INSERT INTO inventory_transaction (
+                    id, transaction_id, instance_id, stock_type, transaction_type, quantity,
+                    balance_before, balance_after, business_id, business_type, business_code,
+                    operator_id, operator_name, operate_date, remarks, create_time
+                ) VALUES (?, ?, ?, ?, 'outbound', ?, ?, ?, ?, 'transfer', ?, ?, ?, ?, ?, ?)`,
+                [
+                    outTxId, outTxId, sourceInstanceId, sourceStockType,
+                    item.transferQuantity, sourceCurrent, newSourceCurrent,
+                    '', '', operator.id, operator.name, dateStr,
+                    `调拨入种源（新建模式）`, now,
+                ]
+            );
+
+            // 3. 创建新种源
+            const seq = String(nextSeq).padStart(3, '0');
+            const newSourceCode = `ZZ${dateCompact}-${seq}`;
+            const newSeedSourceId = `SS${Date.now()}-${seq}`;
+            const cropName = String(item.cropName || stock.crop_name || '');
+            const cropCode = String(item.cropCode || stock.crop_code || '');
+            const supplierName = String(item.supplierName || '');
+            const seedForm = String(stock.product_form || sourceStockType || '');
+            db.run(
+                `INSERT INTO seed_sources (
+                    id, source_code, source_name, source_type, source_origin,
+                    crop_name, crop_variety, crop_code,
+                    supplier_name, quantity, unit, remaining_quantity, used_quantity,
+                    status, seed_form, transferred_from_stock_id, create_time, update_time
+                ) VALUES (?, ?, ?, 'inventory_transfer', 'inventory_transfer', ?, ?, ?, ?, ?, ?, ?, 0, 'active', ?, ?, ?, ?)`,
+                [
+                    newSeedSourceId, newSourceCode, `调拨入库 ${newSourceCode}`, 'inventory_transfer',
+                    cropName, '', cropCode, supplierName,
+                    item.transferQuantity, item.unit, item.transferQuantity,
+                    seedForm, item.sourceStockId, now, now
+                ]
+            );
+            nextSeq += 1;
+
+            // 4. 写 inventory_inbound_records（让退库链路可追溯）
+            const inRecId = `IRA-${dateStr}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+            db.run(
+                `INSERT INTO inventory_inbound_records (
+                    id, record_type, record_date, source_module, source_id, source_code,
+                    stock_type, source_type,
+                    crop_code, crop_name,
+                    quantity, unit,
+                    business_id, notes, operator_name, create_time
+                ) VALUES (?, 'inbound', ?, 'inventory', ?, ?, ?, 'transfer_inbound', ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    inRecId, dateStr, item.sourceStockId, sourceInstanceId, sourceStockType,
+                    cropCode, cropName,
+                    item.transferQuantity, item.unit,
+                    newSeedSourceId,
+                    `调拨入种源 ${newSourceCode}（新建）`,
+                    operator.name, now
+                ]
+            );
+
+            results.push({
+                newSeedSourceId,
+                newSeedSourceCode: newSourceCode,
+                newInventoryStockId: item.sourceStockId,
+                transferredQuantity: item.transferQuantity,
+                unit: item.unit,
+            });
+        }
+
+        saveDatabase();
+        res.json({ success: true, data: results });
+    }
+    catch (error) {
+        console.error('[inventory.transfer-to-source] error:', error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : '调拨失败',
         });
     }
 });

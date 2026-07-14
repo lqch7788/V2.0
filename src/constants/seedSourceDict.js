@@ -57,6 +57,13 @@ export const STOCK_STATUS_MAP = {
   depleted: { label: '耗尽', color: 'bg-red-100 text-red-800' }
 }
 
+// V1.1 StockStatus 枚举对齐（SeedSourcePage 引用）
+export const StockStatus = {
+  SUFFICIENT: 'sufficient',
+  LOW: 'low',
+  DEPLETED: 'depleted'
+}
+
 // 库存状态实时计算
 // V1.1: computeStockStatus(availableCount, initialCount)
 export const LOW_THRESHOLD_RATIO = 0.2

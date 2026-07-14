@@ -1,6 +1,7 @@
 /**
  * 种源路由
  * 精简为直接调用 Controller
+ * 2026-07-14：V3.4 路由补齐 — 调拨/退库/历史/标签/强结/打印
  */
 import { Router } from 'express';
 import { seedSourceController } from '../controllers/seedSource.controller.js';
@@ -18,6 +19,30 @@ router.get('/:id/propagation-records', (req, res, next) => seedSourceController.
 router.post('/:id/propagation-records', (req, res, next) => seedSourceController.addPropagationRecord(req, res, next));
 router.put('/:id/propagation-stage', (req, res, next) => seedSourceController.updatePropagationStage(req, res, next));
 router.post('/:id/complete-propagation', (req, res, next) => seedSourceController.completePropagation(req, res, next));
+// ========== 2026-07-14: V3.4 路由补齐（必须在 /:id 主路由之前）==========
+// 调拨（追加库存入种源）
+router.post('/append-from-inventory', (req, res, next) => seedSourceController.appendFromInventory(req, res, next));
+// 退库（种源退回原入库记录）
+router.post('/return-to-inventory', (req, res, next) => seedSourceController.returnToInventory(req, res, next));
+// 库存调拨入库（批量创建新种源）— 路由前缀 /api/inventory，由 inventory 路由处理
+// 这里仅占位说明，inventoryTransferToSource 路由在 routes/inventory.js 注册
+// 使用记录 Tab
+router.get('/:id/usage-records', (req, res, next) => seedSourceController.listUsageRecords(req, res, next));
+// 历史入库流水 Tab
+router.get('/:id/history-inbound', (req, res, next) => seedSourceController.listHistoryInbound(req, res, next));
+// 可退库流水 Tab
+router.get('/:id/inbound-records', (req, res, next) => seedSourceController.listInboundRecords(req, res, next));
+// 打印记录
+router.get('/:id/print-records', (req, res, next) => seedSourceController.listPrintRecords(req, res, next));
+// 打印（更新 print_count）
+router.post('/:id/print', (req, res, next) => seedSourceController.print(req, res, next));
+// 强结（normal / abnormal）
+router.put('/:id/end', (req, res, next) => seedSourceController.end(req, res, next));
+// 标签管理
+router.get('/:id/labels', (req, res, next) => seedSourceController.listLabels(req, res, next));
+router.post('/:id/labels/batch-generate', (req, res, next) => seedSourceController.batchGenerateLabels(req, res, next));
+router.get('/:id/labels/:labelId/resumes', (req, res, next) => seedSourceController.listLabelResumes(req, res, next));
+router.post('/:id/labels/:labelId/resumes', (req, res, next) => seedSourceController.appendLabelResume(req, res, next));
 // 检查种源是否可删除（被育苗引用则不可删）
 router.get('/:id/check-deletable', (req, res) => {
     try {

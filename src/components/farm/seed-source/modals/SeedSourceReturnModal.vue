@@ -36,7 +36,12 @@
         style="width: 1100px"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column label="原库存单号" prop="sourceCode" min-width="140" show-overflow-tooltip />
+        <!-- P0-11 修复：V1.1 优先显示 sourceInstanceId（physical 库存实例 ID），fallback 到 sourceCode 业务编号 -->
+        <el-table-column label="原库存单号" min-width="160" show-overflow-tooltip>
+          <template #default="{ row }">
+            <code class="text-xs text-gray-700">{{ row.sourceInstanceId || row.sourceCode }}</code>
+          </template>
+        </el-table-column>
         <el-table-column label="类型" min-width="80">
           <template #default="{ row }">
             <el-tag size="small">{{ stockTypeLabel(row.stockType) }}</el-tag>

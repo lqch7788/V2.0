@@ -1,192 +1,263 @@
-<template>
-  <!-- 纯div自定义弹窗 -->
-  <div v-if="visible" class="fixed inset-0 z-[100] flex items-center justify-center">
-    <!-- 遮罩层 -->
-    <div class="absolute inset-0 bg-black/50" @click="handleClose"></div>
+<!--
+  种源编辑弹窗（V1.1 1:1 迁移版）
+  V1.1源文件：D:\TMcrop\yuanxingtu\V1.1\src\components\farm\seed-source\modals\EditModal.tsx
 
-    <!-- 弹窗内容 -->
-    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col">
-      <!-- 头部 -->
-      <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4 flex items-center justify-between">
-        <h3 class="text-lg font-semibold" style="color: white;">编辑种源</h3>
+  V1.1 关键逻辑：
+  1. 使用 el-dialog + v-dialog-draggable（对齐 V1.1 UnifiedModal 的可拖拽行为）
+  2. 必填校验：other 必填 remarks；external_purchase 必填 supplierId；cropCode 必填
+  3. status 改为实时计算（不传 status 字段给后端）
+  4. 数量只读（累计值由入库/调拨动作累加）
+  5. 种源类型→供应商类型级联过滤（seed/seedling/... → SP；other → 全部）
+  6. 字段顺序：批号→作物→类型→来源→供应商→日期→数量+单位→单价→图片→备注
+-->
+<template>
+  <el-dialog
+    :model-value="visible"
+    title="编辑种源"
+    width="1170px"
+    top="5vh"
+    :close-on-click-modal="false"
+    :draggable="true"
+    v-dialog-draggable="'edit-seed-source'"
+    @update:model-value="(v) => !v && handleClose()"
+    @close="handleClose"
+  >
+    <template #header>
+      <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-white">编辑种源</h3>
         <el-button link @click="handleClose" style="color: white;">
           <el-icon :size="20"><Close /></el-icon>
         </el-button>
       </div>
+    </template>
 
-      <!-- 内容区 -->
-      <div class="flex-1 overflow-y-auto p-6">
-        <el-form :model="form" label-width="100px" ref="formRef">
-          <!-- 种源批号 - 只读显示 -->
-          <el-form-item label="种源批号">
-            <el-input :model-value="record.seedCode" disabled class="bg-gray-50 font-mono" />
-          </el-form-item>
+    <el-form :model="form" label-width="110px" ref="formRef">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+        <!-- 种源批号 - 只读显示（V1.1 L252-260） -->
+        <div>
+          <label class="text-gray-900 text-sm font-medium">种源批号</label>
+          <el-input
+            :model-value="record?.seedCode || ''"
+            readonly
+            class="bg-gray-50 font-mono"
+          />
+        </div>
 
-          <!-- 作物选择 - V1.1 CropCodeSelector（4级联动） -->
-          <el-form-item label="作物选择" required>
-            <CropCodeSelector
-              :model-value="form.cropCode"
-              @update:model-value="(val) => { form.cropCode = val; handleCropChange(val) }"
-              placeholder="搜索或选择作物品种..."
-              :show-full-path="true"
+        <!-- 作物选择 - V1.1 CropCodeSelector（4级联动） -->
+        <div>
+          <label class="text-gray-900 text-sm font-medium">
+            <span class="text-red-500">*</span> 作物选择
+          </label>
+          <CropCodeSelector
+            :model-value="form.cropCode"
+            @update:model-value="(val) => { form.cropCode = val }"
+            @change="handleCropCodeChange"
+            placeholder="搜索或选择作物品种..."
+            :show-full-path="true"
+          />
+          <!-- 显示选中作物的详细信息 -->
+          <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
+            <div class="text-emerald-700">
+              {{ selectedCrop.categoryName }} &gt; {{ selectedCrop.typeName }} &gt; {{ selectedCrop.varietyName }}
+              <span v-if="selectedCrop.subVariety1Name"> &gt; {{ selectedCrop.subVariety1Name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 种源类型（V1.1 L286-308） -->
+        <div>
+          <label class="text-gray-900 text-sm font-medium">种源类型</label>
+          <el-select v-model="form.sourceType" placeholder="选择种源类型" class="w-full" @change="handleSourceTypeChange">
+            <el-option label="种子" value="seed" />
+            <el-option label="种苗/实生苗" value="seedling" />
+            <el-option label="扦插苗" value="cutting" />
+            <el-option label="嫁接苗" value="grafting" />
+            <el-option label="组培苗" value="tissue_culture" />
+            <el-option label="分株苗" value="split" />
+            <el-option label="种球/球根" value="bulb" />
+            <el-option label="其他" value="other" />
+          </el-select>
+          <!-- 选择"其他"时显示补充说明输入框 -->
+          <div v-if="form.sourceType === 'other'" class="mt-2">
+            <el-input
+              v-model="form.remarks"
+              type="text"
+              placeholder="请输入其他种源类型的详细说明"
+              class="remarks-other"
             />
-            <!-- 兼容保留旧el-select以备回退 -->
-            <el-select
-              v-show="false"
-              v-model="form.cropCode"
-              filterable
-              remote
-              reserve-keyword
-              :remote-method="searchCrops"
-              :loading="cropLoading"
-              class="w-full"
-              @change="handleCropChange"
-            >
-              <el-option
-                v-for="item in cropOptions"
-                :key="item.cropCode"
-                :label="item.label"
-                :value="item.cropCode"
+            <p class="mt-1 text-xs text-red-500">必填：选择"其他"时必须填写详细说明</p>
+          </div>
+        </div>
+
+        <!-- 来源途径（V1.1 L311-323） -->
+        <div>
+          <label class="text-gray-900 text-sm font-medium">来源途径</label>
+          <el-select v-model="form.sourceOrigin" placeholder="选择来源途径" class="w-full">
+            <el-option label="外部采购" value="external_purchase" />
+            <el-option label="自产" value="self_produced" />
+            <el-option label="其他" value="other" />
+          </el-select>
+          <p v-if="form.sourceOrigin === 'other'" class="mt-1 text-xs text-gray-400">请在备注中说明具体来源</p>
+        </div>
+
+        <!-- 供应商（V1.1 L326-359） - 外部采购时必填，其他来源可选 -->
+        <div>
+          <label class="text-gray-900 text-sm font-medium">
+            <span v-if="form.sourceOrigin === 'external_purchase'" class="text-red-500">*</span>
+            {{ form.sourceOrigin === 'external_purchase' ? '供应商' : '供应商（可选）' }}
+          </label>
+          <el-select
+            v-model="form.supplierId"
+            placeholder="请选择"
+            class="w-full"
+            filterable
+            @change="handleSupplierChange"
+          >
+            <el-option
+              v-for="item in filteredSuppliers"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+            <!-- 内部自留时：显示占位项 -->
+            <el-option
+              v-if="form.sourceOrigin !== 'external_purchase'"
+              value="__none__"
+              label="内部自留/无需填写"
+            />
+            <template #empty>
+              <div v-if="form.sourceOrigin === 'external_purchase'" class="px-4 py-2 text-gray-500 text-sm">
+                当前种源类型下无匹配供应商，请切换种源类型
+              </div>
+              <div v-else class="px-4 py-2 text-gray-500 text-sm">
+                内部自留/无需填写
+              </div>
+            </template>
+          </el-select>
+        </div>
+
+        <!-- 采购/入库日期 - 根据来源途径动态显示标签（V1.1 L362-370） -->
+        <div>
+          <label class="text-gray-900 text-sm font-medium">
+            {{ form.sourceOrigin === 'external_purchase' ? '采购日期' : '入库日期' }}
+          </label>
+          <el-date-picker
+            v-model="form.purchaseDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            class="w-full"
+          />
+        </div>
+
+        <!-- 2026-07-01 P0-4：登记数量改为只读（累计值由入库/调拨动作累加）（V1.1 L373-389） -->
+        <div>
+          <label class="text-gray-900 text-sm font-medium">登记数量（累计）</label>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-700 flex items-center">
+              {{ formatNumber(record?.quantity) }}
+            </div>
+            <el-select v-model="form.unit" placeholder="单位" class="w-full">
+              <el-option label="粒" value="粒" />
+              <el-option label="株" value="株" />
+              <el-option label="kg" value="kg" />
+              <el-option label="g" value="g" />
+              <el-option label="袋" value="袋" />
+            </el-select>
+          </div>
+          <div class="text-xs text-gray-500 mt-1">
+            ⚠️ 累计数量由入库/调拨操作累加，不可直接修改。如需调整，请用"调拨入库"或"商品种源入库"。
+          </div>
+        </div>
+
+        <!-- 单价（V1.1 L391-399） -->
+        <div>
+          <label class="text-gray-900 text-sm font-medium">单价（元）</label>
+          <el-input-number
+            v-model="form.unitPrice"
+            :min="0"
+            :precision="2"
+            class="w-full"
+            style="width: 100%"
+          />
+        </div>
+
+        <!-- 图片上传 - 占两列（V1.1 L401-454） -->
+        <div class="col-span-2">
+          <label class="text-gray-900 text-sm font-medium">图片上传</label>
+          <div class="border-2 border-dashed border-gray-400 rounded-lg p-4 hover:border-emerald-500 transition-colors">
+            <!-- 已上传的图片预览 -->
+            <div v-if="form.pictures.length > 0" class="flex flex-wrap gap-2 mb-3">
+              <div
+                v-for="(pic, index) in form.pictures"
+                :key="index"
+                class="relative group"
               >
-                <div class="py-1">
-                  <div class="text-sm font-medium">{{ item.detailVarietyCode }} - {{ item.varietyName }}</div>
-                  <div class="text-xs text-gray-500">{{ item.categoryName }} > {{ item.typeName }} > {{ item.varietyName }}</div>
-                </div>
-              </el-option>
-            </el-select>
-            <!-- 显示选中作物的详细信息 -->
-            <div v-if="selectedCrop" class="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
-              <div class="text-emerald-700">
-                {{ selectedCrop.categoryName }} > {{ selectedCrop.typeName }} > {{ selectedCrop.varietyName }}
-                <span v-if="selectedCrop.subVariety1Name"> > {{ selectedCrop.subVariety1Name }}</span>
+                <img
+                  :src="pic"
+                  :alt="`预览${index + 1}`"
+                  class="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                />
+                <el-button
+                  type="danger"
+                  circle
+                  size="small"
+                  @click="handleRemovePicture(index)"
+                  class="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style="width: 20px; height: 20px; min-height: 20px;"
+                >
+                  <el-icon :size="12"><Close /></el-icon>
+                </el-button>
               </div>
             </div>
-          </el-form-item>
-
-          <!-- 种源类型 -->
-          <el-form-item label="种源类型">
-            <el-select v-model="form.sourceType" placeholder="请选择" class="w-full" @change="handleSourceTypeChange">
-              <el-option label="种子" value="seed" />
-              <el-option label="种苗/实生苗" value="seedling" />
-              <el-option label="扦插苗" value="cutting" />
-              <el-option label="嫁接苗" value="grafting" />
-              <el-option label="组培苗" value="tissue_culture" />
-              <el-option label="分株苗" value="split" />
-              <el-option label="种球/球根" value="bulb" />
-              <el-option label="其他" value="other" />
-            </el-select>
-            <!-- 选择"其他"时显示补充说明输入框 -->
-            <div v-if="form.sourceType === 'other'" class="mt-2">
-              <el-input
-                v-model="form.remarks"
-                type="text"
-                placeholder="请输入其他种源类型的详细说明"
-                class="border-red-300"
+            <!-- 上传按钮 -->
+            <label class="flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 rounded-lg py-4">
+              <el-icon :size="32" class="text-gray-400 mb-2"><Upload /></el-icon>
+              <span class="text-sm text-gray-500">点击上传图片</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                class="hidden"
+                @change="handleFileChange"
               />
-              <p class="mt-1 text-xs text-red-500">必填：选择"其他"时必须填写详细说明</p>
-            </div>
-          </el-form-item>
+            </label>
+          </div>
+        </div>
 
-          <!-- 来源途径 -->
-          <el-form-item label="来源途径">
-            <el-select v-model="form.sourceOrigin" placeholder="请选择" class="w-full">
-              <el-option label="外部采购" value="external_purchase" />
-              <el-option label="自产" value="self_produced" />
-              <el-option label="其他" value="other" />
-            </el-select>
-            <p v-if="form.sourceOrigin === 'other'" class="mt-1 text-xs text-gray-400">请在备注中说明具体来源</p>
-          </el-form-item>
-
-          <!-- 供应商 - 外部采购时必填 -->
-          <el-form-item label="供应商">
-            <el-select
-              v-model="form.supplierId"
-              placeholder="请选择"
-              class="w-full"
-              filterable
-              @change="handleSupplierChange"
-            >
-              <el-option
-                v-for="item in filteredSuppliers"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              />
-              <template #empty>
-                <div v-if="form.sourceOrigin === 'external_purchase'" class="px-4 py-2 text-gray-500 text-sm">
-                  当前种源类型下无匹配供应商，请切换种源类型
-                </div>
-                <div v-else class="px-4 py-2 text-gray-500 text-sm">
-                  内部自留/无需填写
-                </div>
-              </template>
-            </el-select>
-          </el-form-item>
-
-          <!-- 采购/入库日期 - 根据来源途径动态显示标签 -->
-          <el-form-item :label="form.sourceOrigin === 'external_purchase' ? '采购日期' : '入库日期'">
-            <el-date-picker
-              v-model="form.purchaseDate"
-              type="date"
-              placeholder="选择日期"
-              value-format="YYYY-MM-DD"
-              class="w-full"
-            />
-          </el-form-item>
-
-          <!-- 登记数量 -->
-          <el-form-item label="登记数量">
-            <div class="flex gap-2 w-full">
-              <el-input-number v-model="form.quantity" :min="0" class="flex-1" />
-              <el-select v-model="form.unit" placeholder="单位" class="w-32">
-                <el-option label="粒" value="粒" />
-                <el-option label="株" value="株" />
-                <el-option label="kg" value="kg" />
-                <el-option label="g" value="g" />
-                <el-option label="袋" value="袋" />
-              </el-select>
-            </div>
-          </el-form-item>
-
-          <!-- 单价 -->
-          <el-form-item label="单价（元）">
-            <el-input-number v-model="form.unitPrice" :min="0" :precision="2" class="w-full" />
-          </el-form-item>
-
-          <!-- 图片上传 - 占两列 -->
-          <el-form-item label="图片上传" class="col-span-2">
-            <div class="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center hover:border-emerald-500 transition-colors cursor-pointer">
-              <div class="text-gray-500 text-sm">
-                点击上传或拖拽图片到此处
-              </div>
-            </div>
-          </el-form-item>
-
-          <!-- 备注 - 占两列 -->
-          <el-form-item label="备注" class="col-span-2">
-            <el-input v-model="form.remarks" type="textarea" :rows="3" placeholder="请输入备注信息" />
-          </el-form-item>
-        </el-form>
+        <!-- 备注 - 占两列（V1.1 L456-466） -->
+        <div class="col-span-2">
+          <label class="text-gray-900 text-sm font-medium">备注</label>
+          <el-input
+            v-model="form.remarks"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入备注信息"
+            :class="{ 'remarks-other-textarea': form.sourceType === 'other' }"
+          />
+        </div>
       </div>
+    </el-form>
 
-      <!-- 底部按钮 -->
-      <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+    <template #footer>
+      <div class="px-6 py-3 border-t border-gray-200 flex justify-end gap-3">
         <el-button @click="handleClose">取消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="submitting">保存</el-button>
       </div>
-    </div>
-  </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Close } from '@element-plus/icons-vue'
-import { useSeedSourceStore } from '@/stores'
-import CropCodeSelector from '@/components/farm/common/CropCodeSelector.vue'
+import { Close, Upload } from '@element-plus/icons-vue'
+import { useSeedSourceStore } from '@/stores/modules/seedSource'
+import { useUserStore } from '@/stores/modules/user'
 import { enhancedApiClient } from '@/lib/apiClient'
+import CropCodeSelector from '@/components/farm/common/CropCodeSelector.vue'
 
-// 种源类型 → 供应商类型 级联映射
+/** 种源类型 → 供应商类型 级联映射（V1.1 L27-36） */
 const SOURCE_TYPE_TO_SUPPLIER_TYPE = {
   seed: 'SP',
   seedling: 'SP',
@@ -199,7 +270,7 @@ const SOURCE_TYPE_TO_SUPPLIER_TYPE = {
 }
 
 const props = defineProps({
-  visible: Boolean,
+  visible: { type: Boolean, default: false },
   record: {
     type: Object,
     default: null
@@ -209,89 +280,125 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'success'])
 
 const seedSourceStore = useSeedSourceStore()
+const userStore = useUserStore()
+
+// 当前用户（操作人，V1.1 L60）
+const currentUser = computed(() => userStore.currentUser || null)
 
 const formRef = ref()
 const submitting = ref(false)
 
-// 作物选择相关
-const cropOptions = ref([])
+// 选中作物信息
 const selectedCrop = ref(null)
-const cropLoading = ref(false)
 
-// 供应商列表
+// 供应商列表（V1.1 传入 props，这里需要单独加载）
 const suppliers = ref([])
 
-// 过滤后的供应商（根据种源类型级联过滤）
+/** 过滤后的供应商（V1.1 L117-125）：根据种源类型级联过滤 */
 const filteredSuppliers = computed(() => {
   const targetType = SOURCE_TYPE_TO_SUPPLIER_TYPE[form.value.sourceType]
-  if (!targetType) return suppliers.value // null = 展示全部
+  if (!targetType) {
+    // null = 展示全部（V1.1 L119）
+    return suppliers.value
+  }
+  // 过滤 supplierType === targetType（V1.1 L121-124）
   return suppliers.value.filter(s => s.supplierType === targetType)
 })
 
-const form = ref({
-  seedCode: '',
-  sourceType: 'seed',
-  sourceOrigin: 'external_purchase',
-  cropCategory: '',
-  typeName: '',
-  varietyName: '',
-  cropName: '',
-  cropVariety: '',
-  cropCode: '',
-  supplierId: '',
-  supplierName: '',
-  purchaseDate: '',
-  quantity: 0,
-  unit: '粒',
-  unitPrice: 0,
-  pictures: [],
-  remarks: '',
-  status: 'sufficient'
+// 表单初始值（V1.1 L62-105 buildFormData）
+const buildInitialForm = (record) => ({
+  sourceType: record?.sourceType || 'seed',
+  sourceOrigin: record?.sourceOrigin || 'external_purchase',
+  cropCategory: record?.cropCategory || '',
+  typeName: record?.typeName || '',
+  varietyName: record?.varietyName || '',
+  cropName: record?.cropName || '',
+  cropVariety: record?.cropVariety || '',
+  cropCode: record?.cropCode || '',
+  supplierId: record?.supplierId || '',
+  supplierName: record?.supplierName || '',
+  purchaseDate: record?.purchaseDate || '',
+  // quantity 是累计值，编辑时不可改
+  unit: record?.unit || '粒',
+  unitPrice: Number(record?.unitPrice) || 0,
+  pictures: parsePictures(record?.pictures),
+  remarks: record?.remarks || '',
+  // 繁殖途径字段（V1.1 L86-103 P2 #9 修复）
+  propagationType: record?.propagationType,
+  propagationStatus: record?.propagationStatus,
+  propagationMethod: record?.propagationMethod || '',
+  parentMaleId: record?.parentMaleId || '',
+  parentMaleCode: record?.parentMaleCode || '',
+  parentFemaleId: record?.parentFemaleId || '',
+  parentFemaleCode: record?.parentFemaleCode || '',
+  motherPlantId: record?.motherPlantId || '',
+  motherPlantCode: record?.motherPlantCode || '',
+  linkedPlantingId: record?.linkedPlantingId || '',
+  linkedPlantingCode: record?.linkedPlantingCode || '',
+  propagationStartDate: record?.propagationStartDate || '',
+  expectedHarvestDate: record?.expectedHarvestDate || '',
+  actualHarvestDate: record?.actualHarvestDate || '',
+  breedingLocation: record?.breedingLocation || '',
+  targetTraits: record?.targetTraits || '',
+  generation: record?.generation || ''
 })
 
-// 搜索作物
-const searchCrops = async (query) => {
-  if (!query) {
-    cropOptions.value = []
-    return
+/** 解析 pictures 字段（V1.1 L77-83） */
+const parsePictures = (raw) => {
+  if (Array.isArray(raw)) return raw
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw) } catch { return [] }
   }
-  cropLoading.value = true
+  return []
+}
+
+const form = ref(buildInitialForm(null))
+
+/** 数字本地化（V1.1 L377: toLocaleString） */
+const formatNumber = (n) => {
+  if (n == null) return 0
+  return Number(n).toLocaleString()
+}
+
+// ===== 加载供应商列表 =====
+const loadSuppliers = async () => {
   try {
-    const res = await enhancedApiClient.get('/crop-varieties/search', { keyword: query })
-    cropOptions.value = (res || []).map(item => ({
-      cropCode: item.cropCode || item.code || '',
-      label: `${item.detailVarietyCode || item.cropCode || ''} - ${item.varietyName || ''}`,
-      categoryName: item.categoryName || '',
-      typeName: item.typeName || '',
-      varietyName: item.varietyName || '',
-      subVariety1Name: item.subVariety1Name || ''
+    const res = await enhancedApiClient.get('/suppliers', { page: 1, pageSize: 1000 })
+    const list = res?.list || res?.data || []
+    suppliers.value = list.map(item => ({
+      value: String(item.id),
+      label: item.name,
+      supplierType: item.supplierType || item.type
     }))
   } catch {
-    cropOptions.value = []
-  } finally {
-    cropLoading.value = false
+    suppliers.value = []
   }
 }
 
-// 处理作物选择变化
-const handleCropChange = (cropCode) => {
-  const crop = cropOptions.value.find(c => c.cropCode === cropCode)
-  if (crop) {
-    selectedCrop.value = crop
-    form.value.cropCategory = crop.categoryName
-    form.value.typeName = crop.typeName
-    form.value.varietyName = crop.varietyName
-    form.value.cropName = crop.subVariety1Name || crop.varietyName
-    form.value.cropVariety = crop.subVariety1Name || ''
+// ===== 事件处理 =====
+
+/** 处理作物编码选择（V1.1 L142-157） */
+const handleCropCodeChange = (code, varietyInfo) => {
+  if (varietyInfo) {
+    selectedCrop.value = varietyInfo
+    form.value.cropCategory = varietyInfo.categoryName
+    form.value.typeName = varietyInfo.typeName
+    form.value.varietyName = varietyInfo.varietyName
+    form.value.cropName = varietyInfo.detailVarietyCode && varietyInfo.detailVarietyCode !== '00'
+      ? varietyInfo.varietyName
+      : (varietyInfo.subVariety1Name || varietyInfo.varietyName)
+    form.value.cropVariety = varietyInfo.subVariety1Name || ''
+  } else {
+    selectedCrop.value = null
   }
 }
 
-// 处理种源类型变化 - 清空不匹配的供应商
+/** 处理种源类型变化 - 清空不匹配的供应商（V1.1 L128-139） */
 const handleSourceTypeChange = () => {
   if (form.value.supplierId) {
     const targetType = SOURCE_TYPE_TO_SUPPLIER_TYPE[form.value.sourceType]
     if (targetType) {
-      const currentSupplier = suppliers.value.find(s => String(s.id) === form.value.supplierId)
+      const currentSupplier = suppliers.value.find(s => s.value === form.value.supplierId)
       if (currentSupplier && currentSupplier.supplierType !== targetType) {
         form.value.supplierId = ''
         form.value.supplierName = ''
@@ -300,89 +407,72 @@ const handleSourceTypeChange = () => {
   }
 }
 
-// 处理供应商变化
-const handleSupplierChange = (supplierId) => {
-  const supplier = suppliers.value.find(s => s.id === supplierId)
-  if (supplier) {
-    form.value.supplierName = supplier.name
-  } else {
+/** 处理供应商变化（V1.1 L339） */
+const handleSupplierChange = (val) => {
+  if (val === '__none__') {
+    form.value.supplierId = ''
     form.value.supplierName = ''
+    return
   }
+  const supplier = suppliers.value.find(s => s.value === val)
+  form.value.supplierName = supplier?.label || ''
 }
 
-// 加载供应商列表
-const loadSuppliers = async () => {
-  try {
-    const res = await enhancedApiClient.get('/suppliers', { page: 1, pageSize: 1000 })
-    suppliers.value = (res?.list || res?.data || []).map(item => ({
-      id: String(item.id),
-      name: item.name,
-      code: item.code,
-      supplierType: item.supplierType || item.type
-    }))
-  } catch {
-    suppliers.value = []
-  }
+/** 移除已上传图片（V1.1 L419） */
+const handleRemovePicture = (index) => {
+  form.value.pictures = form.value.pictures.filter((_, i) => i !== index)
 }
 
-// 监听 visible 和 record 变化，确保每次打开都能正确加载数据
-watch([() => props.visible, () => props.record], ([val, record]) => {
-  if (val && record) {
-    form.value = {
-      seedCode: record.seedCode || '',
-      sourceType: record.sourceType || 'seed',
-      sourceOrigin: record.sourceOrigin || 'external_purchase',
-      cropCategory: record.cropCategory || '',
-      typeName: record.typeName || '',
-      varietyName: record.varietyName || '',
-      cropName: record.cropName || '',
-      cropVariety: record.cropVariety || '',
-      cropCode: record.cropCode || '',
-      supplierId: record.supplierId || '',
-      supplierName: record.supplierName || '',
-      purchaseDate: record.purchaseDate || '',
-      quantity: record.quantity || 0,
-      unit: record.unit || '粒',
-      unitPrice: record.unitPrice || 0,
-      pictures: record.pictures || [],
-      remarks: record.remarks || '',
-      status: record.status || 'sufficient'
+/** 处理文件上传（V1.1 L437-450） */
+const handleFileChange = (e) => {
+  const files = e.target.files
+  if (!files) return
+  Array.from(files).forEach(file => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const result = event.target?.result
+      if (typeof result === 'string') {
+        form.value.pictures = [...form.value.pictures, result]
+      }
     }
-    // 如果有cropCode，加载作物信息
-    if (record.cropCode) {
-      searchCrops(record.cropCode).then(() => {
-        const crop = cropOptions.value.find(c => c.cropCode === record.cropCode)
-        if (crop) {
-          selectedCrop.value = crop
-        }
-      })
-    }
-  }
-}, { deep: true })
+    reader.readAsDataURL(file)
+  })
+  e.target.value = ''
+}
 
-// 监听弹窗打开，加载供应商
-watch(() => props.visible, (val) => {
-  if (val) {
-    loadSuppliers()
-  }
-})
+// ===== 生命周期 =====
+
+// 监听 visible + record 变化（V1.1 L109-114）
+watch(
+  [() => props.visible, () => props.record?.id],
+  ([val]) => {
+    if (val && props.record) {
+      form.value = buildInitialForm(props.record)
+      // 重置 selectedCrop（由 CropCodeSelector 内部处理 selectedVariety）
+      selectedCrop.value = null
+      // 加载供应商
+      loadSuppliers()
+    }
+  },
+  { immediate: false }
+)
 
 const handleClose = () => {
   emit('update:visible', false)
 }
 
 const handleSubmit = async () => {
-  // 验证：选择"其他"时备注必填
+  // 校验：选择"其他"时备注必填（V1.1 L161-164）
   if (form.value.sourceType === 'other' && !form.value.remarks.trim()) {
     ElMessage.warning('选择"其他"种源类型时，备注为必填项，请输入详细说明')
     return
   }
-  // 外部采购时供应商必填
+  // 外部采购时供应商必填（V1.1 L166-169）
   if (form.value.sourceOrigin === 'external_purchase' && !form.value.supplierId) {
     ElMessage.warning('请选择供应商')
     return
   }
-  // 作物必填
+  // 作物必填（V1.1 L264 红色星号）
   if (!form.value.cropCode) {
     ElMessage.warning('请选择作物')
     return
@@ -390,20 +480,12 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    // 计算总金额
-    const totalAmount = (form.value.quantity || 0) * (form.value.unitPrice || 0)
+    // 获取供应商名称（V1.1 L172-173）
+    const supplier = suppliers.value.find(s => s.value === form.value.supplierId)
+    const supplierName = supplier?.label || form.value.supplierName
 
-    // 判断库存状态 - 使用 record.initialCount（原始数量）
-    let status = props.record.status
-    if (form.value.quantity === 0) {
-      status = 'depleted'
-    } else if (form.value.quantity < (props.record.initialCount || 0) * 0.2) {
-      status = 'low'
-    } else {
-      status = 'sufficient'
-    }
-
-    await seedSourceStore.updateItem(props.record.id, {
+    // V1.1 L188-227：调用 store.updateItem
+    await seedSourceStore.updateItem(String(props.record.id), {
       sourceType: form.value.sourceType,
       sourceOrigin: form.value.sourceOrigin,
       cropCategory: form.value.cropCategory,
@@ -413,23 +495,56 @@ const handleSubmit = async () => {
       cropVariety: form.value.cropVariety,
       cropCode: form.value.cropCode,
       supplierId: form.value.supplierId,
-      supplierName: form.value.supplierName,
+      supplierName,
       purchaseDate: form.value.purchaseDate,
-      quantity: form.value.quantity,
+      // quantity 不传（累计值由入库/调拨动作累加，V1.1 L201-202）
       unit: form.value.unit,
       unitPrice: form.value.unitPrice,
-      totalAmount,
+      // 总金额 = 单价 × 累计入库量（不随编辑变，V1.1 L203）
+      totalAmount: form.value.unitPrice * (props.record?.quantity || 0),
       pictures: form.value.pictures,
       remarks: form.value.remarks,
-      status
+      // 2026-07-01 P0-6：传 updateBy 让后端记录操作人（V1.1 L207）
+      updateBy: currentUser.value?.realName || currentUser.value?.username || 'system',
+      // status 字段已废弃（2026-06-04，V1.1 L208）— 不传
+      // 繁殖字段（V1.1 L209-226 P2 #9 修复）
+      propagationType: form.value.propagationType,
+      propagationStatus: form.value.propagationStatus,
+      propagationMethod: form.value.propagationMethod,
+      parentMaleId: form.value.parentMaleId,
+      parentMaleCode: form.value.parentMaleCode,
+      parentFemaleId: form.value.parentFemaleId,
+      parentFemaleCode: form.value.parentFemaleCode,
+      motherPlantId: form.value.motherPlantId,
+      motherPlantCode: form.value.motherPlantCode,
+      linkedPlantingId: form.value.linkedPlantingId,
+      linkedPlantingCode: form.value.linkedPlantingCode,
+      propagationStartDate: form.value.propagationStartDate,
+      expectedHarvestDate: form.value.expectedHarvestDate,
+      actualHarvestDate: form.value.actualHarvestDate,
+      breedingLocation: form.value.breedingLocation,
+      targetTraits: form.value.targetTraits,
+      generation: form.value.generation
     })
+
     ElMessage.success('更新成功')
     emit('success')
     handleClose()
-  } catch {
-    ElMessage.error('更新失败')
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : '更新失败，请重试'
+    ElMessage.error(msg)
   } finally {
     submitting.value = false
   }
 }
 </script>
+
+<style scoped>
+/* other 种源类型时的红色边框（V1.1 L301 border-red-300） */
+.remarks-other :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px #fca5a5 inset;
+}
+.remarks-other-textarea :deep(.el-textarea__inner) {
+  border-color: #fca5a5;
+}
+</style>

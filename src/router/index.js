@@ -243,13 +243,6 @@ const routes = [
     component: () => import('@/views/crop/SeedSource.vue'),
     meta: { title: '内部种源' }
   },
-  // V1.1 App.tsx:243 - 2026-07-07新增：种源外购入库按品种汇总报表
-  {
-    path: '/crop/seed-source/inbound-summary',
-    name: 'SeedInboundSummary',
-    component: () => import('@/views/crop/SeedInboundSummary.vue'),
-    meta: { title: '种源入库汇总' }
-  },
   {
     path: '/crop/seedling',
     name: 'Seedling',

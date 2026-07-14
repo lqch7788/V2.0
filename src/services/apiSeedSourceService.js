@@ -397,3 +397,16 @@ export async function getPlantingsForSeedSaving() {
   const data = await enhancedApiClient.get('/seed-sources/available-for-seed-saving');
   return data;
 }
+
+/**
+ * 获取某一种源的使用记录（含被育苗使用 + 种植移入/移出）
+ * V1.1 源：V1.1/src/services/apiSeedSourceService.ts getSeedSourceUsageRecords
+ * 错误直接抛给上层（V2.1 铁律：禁止吞错返回默认值）
+ * @param {string} seedSourceId
+ * @returns {Promise<Object[]>}
+ */
+export async function getSeedSourceUsageRecords(seedSourceId) {
+  if (!seedSourceId) return []
+  const rows = await enhancedApiClient.get(`/seed-sources/${seedSourceId}/usage-records`)
+  return Array.isArray(rows) ? rows : []
+}

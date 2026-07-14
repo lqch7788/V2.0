@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import * as api from '@/api/crop'
 import { enhancedApiClient } from '@/lib/apiClient'
+import { seedSourceTransferService } from '@/services/seedSourceTransferService'
 
 /**
  * 种源 Pinia Store（V1.1 → V2.0 迁移版）
@@ -206,6 +207,19 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     }
   }
 
+  /**
+   * 从调拨创建新种源（V1.1 createFromTransfer）
+   * @param {Array} items - 调拨明细
+   * @param {Object} operator - { id, name }
+   * @returns {Promise<Array<{newSeedSourceId, newSeedSourceCode}>>}
+   */
+  const createFromTransfer = async (items, operator) => {
+    const results = await seedSourceTransferService.createFromTransfer(items, operator)
+    // 创建后刷新列表
+    await loadItems()
+    return results
+  }
+
   return {
     // state
     items,
@@ -221,6 +235,7 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     deleteItems,
     checkDeletable,
     endSeedSource,
+    createFromTransfer,
     clearError
   }
 })

@@ -2985,6 +2985,196 @@ export function initializeDatabase() {
       FOREIGN KEY (fertilizer_id) REFERENCES fertilizer_library(id) ON DELETE CASCADE
     )
   `);
+    // ========== 2026-07-14: 种源模块 V3.4 路由补齐 ==========
+    // inventory_stock：V3.0 统一库存层（与 V1.1 一致）
+    db.run(`
+    CREATE TABLE IF NOT EXISTS inventory_stock (
+      id TEXT PRIMARY KEY,
+      instance_id TEXT UNIQUE NOT NULL,
+      stock_type TEXT,
+      business_id TEXT,
+      business_type TEXT,
+      business_code TEXT,
+      crop_id TEXT,
+      crop_code TEXT,
+      crop_name TEXT,
+      variety_id TEXT,
+      variety_name TEXT,
+      product_form TEXT,
+      current_quantity REAL DEFAULT 0,
+      frozen_quantity REAL DEFAULT 0,
+      available_quantity REAL DEFAULT 0,
+      unit TEXT,
+      warehouse_id TEXT,
+      warehouse_name TEXT,
+      inbound_date TEXT,
+      source_type TEXT,
+      production_plan_code TEXT,
+      source_instance_id TEXT,
+      status TEXT DEFAULT 'in_stock',
+      version INTEGER DEFAULT 1,
+      create_time TEXT,
+      update_time TEXT
+    )
+  `);
+    // inventory_transaction：V3.0 库存流水表（与 V1.1 一致）
+    db.run(`
+    CREATE TABLE IF NOT EXISTS inventory_transaction (
+      id TEXT PRIMARY KEY,
+      transaction_id TEXT UNIQUE NOT NULL,
+      instance_id TEXT,
+      stock_type TEXT,
+      transaction_type TEXT,
+      quantity REAL DEFAULT 0,
+      balance_before REAL DEFAULT 0,
+      balance_after REAL DEFAULT 0,
+      business_id TEXT,
+      business_type TEXT,
+      business_code TEXT,
+      operator_id TEXT,
+      operator_name TEXT,
+      operate_date TEXT,
+      remarks TEXT,
+      create_time TEXT
+    )
+  `);
+    // inventory_inbound_records：V3.0 入库流水（种源调拨、退库追溯用）
+    db.run(`
+    CREATE TABLE IF NOT EXISTS inventory_inbound_records (
+      id TEXT PRIMARY KEY,
+      record_type TEXT DEFAULT 'inbound',
+      record_date TEXT,
+      source_module TEXT,
+      source_id TEXT,
+      source_code TEXT,
+      stock_type TEXT,
+      source_type TEXT,
+      warehouse_id TEXT,
+      warehouse_name TEXT,
+      crop_id TEXT,
+      crop_code TEXT,
+      crop_name TEXT,
+      variety_name TEXT,
+      quantity REAL DEFAULT 0,
+      unit TEXT,
+      unit_price REAL DEFAULT 0,
+      total_amount REAL DEFAULT 0,
+      quality_grade TEXT,
+      supplier_id TEXT,
+      supplier_name TEXT,
+      production_plan_id TEXT,
+      production_plan_code TEXT,
+      business_id TEXT,
+      notes TEXT,
+      operator_name TEXT,
+      returned_quantity REAL DEFAULT 0,
+      create_by TEXT,
+      create_time TEXT,
+      update_time TEXT
+    )
+  `);
+    // seed_source_labels：种源标签管理（V1.1 标签管理按钮）
+    db.run(`
+    CREATE TABLE IF NOT EXISTS seed_source_labels (
+      id TEXT PRIMARY KEY,
+      seed_source_id TEXT NOT NULL,
+      label_code TEXT NOT NULL,
+      status TEXT DEFAULT 'unused',
+      print_count INTEGER DEFAULT 0,
+      area_name TEXT,
+      start_date TEXT,
+      use_time TEXT,
+      last_print_time TEXT,
+      create_time TEXT,
+      update_time TEXT
+    )
+  `);
+    // seed_source_label_resumes：标签履历
+    db.run(`
+    CREATE TABLE IF NOT EXISTS seed_source_label_resumes (
+      id TEXT PRIMARY KEY,
+      label_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      operator TEXT,
+      remark TEXT,
+      action_time TEXT,
+      create_time TEXT
+    )
+  `);
+    // seed_source_print_records：种源打印记录
+    db.run(`
+    CREATE TABLE IF NOT EXISTS seed_source_print_records (
+      id TEXT PRIMARY KEY,
+      seed_source_id TEXT NOT NULL,
+      print_type TEXT,
+      print_count INTEGER DEFAULT 1,
+      operator TEXT,
+      label_numbers TEXT,
+      print_time TEXT,
+      create_time TEXT
+    )
+  `);
+    // crop_circulation_records：回流记录
+    db.run(`
+    CREATE TABLE IF NOT EXISTS crop_circulation_records (
+      id TEXT PRIMARY KEY,
+      circulation_type TEXT,
+      source_module TEXT,
+      source_id TEXT,
+      parent_source_id TEXT,
+      new_source_id TEXT,
+      seed_source_id TEXT,
+      crop_name TEXT,
+      quantity REAL DEFAULT 0,
+      unit TEXT,
+      operator_name TEXT,
+      remarks TEXT,
+      created_at TEXT,
+      updated_at TEXT
+    )
+  `);
+    // audit_logs：审计日志
+    db.run(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY,
+      business_type TEXT,
+      business_id TEXT,
+      action TEXT,
+      operator_name TEXT,
+      old_value TEXT,
+      new_value TEXT,
+      remarks TEXT,
+      created_at TEXT
+    )
+  `);
+    // planting_move_records：种植移入移出记录
+    db.run(`
+    CREATE TABLE IF NOT EXISTS planting_move_records (
+      id TEXT PRIMARY KEY,
+      operation_date TEXT,
+      operation_type TEXT,
+      quantity REAL DEFAULT 0,
+      source_type TEXT,
+      source_id TEXT,
+      source_code TEXT,
+      planting_id TEXT,
+      planting_code TEXT,
+      to_area_id TEXT,
+      to_area_name TEXT,
+      from_area_id TEXT,
+      from_area_name TEXT,
+      operator_name TEXT,
+      remarks TEXT,
+      create_time TEXT
+    )
+  `);
+    // 补 seed_sources 缺失列
+    try { db.run(`ALTER TABLE seed_sources ADD COLUMN transferred_from_stock_id TEXT`); } catch (e) {}
+    try { db.run(`ALTER TABLE seed_sources ADD COLUMN print_count INTEGER DEFAULT 0`); } catch (e) {}
+    try { db.run(`ALTER TABLE seed_sources ADD COLUMN end_time TEXT`); } catch (e) {}
+    try { db.run(`ALTER TABLE seed_sources ADD COLUMN end_type TEXT`); } catch (e) {}
+    try { db.run(`ALTER TABLE seed_sources ADD COLUMN seed_form TEXT`); } catch (e) {}
+    try { db.run(`ALTER TABLE seed_sources ADD COLUMN deleted_at TEXT`); } catch (e) {}
     console.log('数据库表初始化完成');
     // 创建索引
     try {

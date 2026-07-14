@@ -134,7 +134,6 @@ export class InventoryService {
                     : 'IPR';
             // DB 自增序号 + 重试机制（最多5次，避免并发冲突）
             let instanceId;
-            const db = getDatabase();
             for (let attempt = 0; attempt < 5; attempt++) {
                 const rows = queryToObjects(db,
                     `SELECT instance_id FROM inventory_stock WHERE instance_id LIKE ? ORDER BY instance_id DESC LIMIT 1`,
@@ -241,4 +240,24 @@ export class InventoryService {
         return inventoryStockRepository.findAll(query);
     }
 }
+/**
+ * 生成库存流水号（TRX-YYYYMMDD-NNNN）
+ * 2026-07-08 V3.4 流水号规范化：替代 Math.random() 违规格式
+ */
+export async function generateTransactionId(dateStr) {
+  const db = getDatabase();
+  const rows = queryToObjects(db,
+    `SELECT transaction_id FROM inventory_transaction WHERE transaction_id LIKE ? ORDER BY transaction_id DESC LIMIT 1`,
+    [`TRX-${dateStr}-%`]
+  );
+  let trxSeq = 1;
+  if (rows.length > 0) {
+    const lastTrx = rows[0].transaction_id || '';
+    const trxParts = lastTrx.split('-');
+    const lastTrxSeq = parseInt(trxParts[trxParts.length - 1] || '0', 10);
+    if (!isNaN(lastTrxSeq)) trxSeq = lastTrxSeq + 1;
+  }
+  return `TRX-${dateStr}-${String(trxSeq).padStart(4, '0')}`;
+}
+
 export const inventoryService = new InventoryService();

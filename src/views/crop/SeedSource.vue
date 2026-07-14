@@ -26,15 +26,6 @@
             <p class="text-gray-500">管理种源批次、采购入库和库存记录</p>
           </div>
         </div>
-        <!-- 2026-07-07：入库汇总跳转入口 — V1.1 绿色 outline 风格 -->
-        <el-button
-          type="success"
-          plain
-          :icon="DataLine"
-          @click="goToInboundSummary"
-        >
-          入库汇总
-        </el-button>
       </div>
     </div>
 
@@ -120,12 +111,13 @@
       @confirm="handleConfirmExport"
     />
 
-    <!-- 调拨入库弹窗（append_existing 模式 — 追加到目标种源） -->
+    <!-- 调拨入库弹窗（append_existing 模式 — 追加到目标种源，对齐 V1.1 UnifiedModal size=xl 1170px） -->
     <el-dialog
       v-if="transferModal.record"
       v-model="transferModal.open"
       :title="`调拨入库 - ${transferModal.record.seedCode}（追加模式）`"
-      width="80%"
+      width="1170px"
+      v-dialog-draggable
       :show-close="true"
       @close="handleTransferClose"
     >
@@ -138,12 +130,13 @@
       />
     </el-dialog>
 
-    <!-- 退库弹窗（严格 1:1 关联原库存） -->
+    <!-- 退库弹窗（严格 1:1 关联原库存，对齐 V1.1 UnifiedModal size=xl 1170px） -->
     <el-dialog
       v-if="returnModal.record"
       v-model="returnModal.open"
       :title="`退库 - ${returnModal.record.seedCode}（退回原作物库存）`"
-      width="80%"
+      width="1170px"
+      v-dialog-draggable
       :show-close="true"
       @close="handleReturnClose"
     >
@@ -175,9 +168,8 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Goods, DataLine } from '@element-plus/icons-vue'
+import { Goods } from '@element-plus/icons-vue'
 
 import SeedSourceFilter from '@/components/farm/seed-source/components/SeedSourceFilter.vue'
 import SeedSourceTable from '@/components/farm/seed-source/components/SeedSourceTable.vue'
@@ -195,7 +187,7 @@ import DeleteConfirmModal from '@/components/common/DeleteWarningModal.vue'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import { useUserStore } from '@/stores/modules/user'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
-import { computeStockStatus, seedSourceStatusOptions, SOURCE_ORIGINS, SOURCE_TYPES } from '@/constants/seedSourceDict'
+import { computeStockStatus, seedSourceStatusOptions, SOURCE_ORIGINS, SOURCE_TYPES, StockStatus } from '@/constants/seedSourceDict'
 
 // 简易 toast 包装（V2.0 直接用 ElMessage）
 const toast = {
@@ -204,9 +196,6 @@ const toast = {
   warning: (msg) => ElMessage.warning(msg),
   info: (msg) => ElMessage.info(msg)
 }
-
-// Router
-const router = useRouter()
 
 // Store
 const seedSourceStore = useSeedSourceStore()
@@ -267,7 +256,7 @@ const units = [
 ]
 
 // 分页
-const pagination = ref({ current: 1, pageSize: 10 })
+const pagination = ref({ current: 1, pageSize: 20 })
 
 // 选中行
 const selectedRows = ref([])
@@ -418,11 +407,6 @@ const handlePrint = (record) => {
 const handleImageClick = (images) => {
   currentImages.value = images
   lightboxOpen.value = true
-}
-
-// 跳转入库汇总
-const goToInboundSummary = () => {
-  router.push('/crop/seed-source/inbound-summary')
 }
 
 // 调拨
@@ -604,7 +588,8 @@ const handleConfirmExport = async () => {
       })
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, '种源记录')
-      XLSX.writeFile(wb, `内部种源_${new Date().toISOString().slice(0, 10)}.xlsx`)
+      const today = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
+      XLSX.writeFile(wb, `内部种源_${today}.xlsx`)
     } else if (exportFormat.value === 'csv') {
       // CSV 导出（带 BOM 保证中文）
       const content = headers.join(',') + '\n' + exportData.map(row =>
@@ -617,7 +602,8 @@ const handleConfirmExport = async () => {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `内部种源_${new Date().toISOString().slice(0, 10)}.csv`
+      const todayCsv = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
+      a.download = `内部种源_${todayCsv}.csv`
       a.click()
       URL.revokeObjectURL(url)
     } else {
@@ -626,7 +612,8 @@ const handleConfirmExport = async () => {
       const ws = XLSX.utils.json_to_sheet(exportData, { header: headers })
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, '种源记录')
-      XLSX.writeFile(wb, `内部种源_${new Date().toISOString().slice(0, 10)}.xls`)
+      const todayXls = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
+      XLSX.writeFile(wb, `内部种源_${todayXls}.xls`)
     }
     toast.success('导出成功')
   } catch (err) {
