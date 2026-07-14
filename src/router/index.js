@@ -241,13 +241,20 @@ const routes = [
     path: '/crop/seed-source',
     name: 'SeedSource',
     component: () => import('@/views/crop/SeedSource.vue'),
-    meta: { title: '种源管理' }
+    meta: { title: '内部种源' }
+  },
+  // V1.1 App.tsx:243 - 2026-07-07新增：种源外购入库按品种汇总报表
+  {
+    path: '/crop/seed-source/inbound-summary',
+    name: 'SeedInboundSummary',
+    component: () => import('@/views/crop/SeedInboundSummary.vue'),
+    meta: { title: '种源入库汇总' }
   },
   {
     path: '/crop/seedling',
     name: 'Seedling',
     component: () => import('@/views/crop/Seedling.vue'),
-    meta: { title: '品牌管理' }
+    meta: { title: '育苗管理' }
   },
   {
     path: '/crop/planting',
@@ -255,11 +262,12 @@ const routes = [
     component: () => import('@/views/crop/Planting.vue'),
     meta: { title: '种植管理' }
   },
+  // V1.1 App.tsx:247 - 物资流水/流转追溯
   {
-    path: '/crop/harvest',
-    name: 'Harvest',
-    component: () => import('@/views/crop/Harvest.vue'),
-    meta: { title: '收获入库' }
+    path: '/crop/material-flow',
+    name: 'MaterialFlow',
+    component: () => import('@/views/crop/MaterialFlow.vue'),
+    meta: { title: '流转追溯' }
   },
   // 仓库物料模块（路径与V1.1对齐：/warehouse-overview、/warehouse-inbound）
   {
@@ -351,32 +359,32 @@ const routes = [
   },
   {
     path: '/crop/order',
-    name: 'CropOrder',
+    name: 'Order',
     component: () => import('@/views/crop/Order.vue'),
     meta: { title: '订单管理' }
   },
   {
     path: '/crop/customer',
-    name: 'CropCustomer',
+    name: 'Customer',
     component: () => import('@/views/crop/Customer.vue'),
     meta: { title: '客户管理' }
   },
   {
     path: '/crop/fertilizer',
-    name: 'CropFertilizer',
+    name: 'Fertilizer',
     component: () => import('@/views/crop/Fertilizer.vue'),
-    meta: { title: '新闻管理' }
+    meta: { title: '施肥管理' }
   },
   {
     path: '/crop-inventory',
-    name: 'CropInventory',
+    name: 'InventoryV3',
     component: () => import('@/views/crop/CropInventory.vue'),
-    meta: { title: '物料库存' }
+    meta: { title: '作物库存' }
   },
-  // 作物出库记录（V1.1 路径 /crop/outbound-records）
+  // 作物出库记录（V1.1 路径 /crop/outbound-records，导入名 OutboundRecordsPage）
   {
     path: '/crop/outbound-records',
-    name: 'CropOutboundRecords',
+    name: 'OutboundRecordsPage',
     component: () => import('@/views/crop/OutboundRecords.vue'),
     meta: { title: '出库记录' }
   },
@@ -636,12 +644,6 @@ const routes = [
     name: 'EnvironmentMonitor',
     component: () => import('@/views/monitor/EnvironmentMonitor.vue'),
     meta: { title: '环境监控' }
-  },
-  {
-    path: '/harvest',
-    name: 'HarvestOld',
-    component: () => import('@/views/crop/Harvest.vue'),
-    meta: { title: '收获管理' }
   },
   {
     path: '/produce-code-rule',

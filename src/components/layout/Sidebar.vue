@@ -123,7 +123,7 @@
               <li>
                 <router-link to="/crop/seed-source" class="submenu-item" :class="{ active: isActive('/crop/seed-source') }">
                   <el-icon :size="16"><Grape /></el-icon>
-                  <span>种源管理</span>
+                  <span>内部种源</span>
                 </router-link>
               </li>
               <li>
@@ -139,9 +139,21 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/crop/harvest" class="submenu-item" :class="{ active: isActive('/crop/harvest') }">
-                  <el-icon :size="16"><CircleCheck /></el-icon>
-                  <span>采收入库</span>
+                <router-link to="/crop-inventory" class="submenu-item" :class="{ active: isActive('/crop-inventory') }">
+                  <el-icon :size="16"><Box /></el-icon>
+                  <span>作物库存</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/crop/outbound-records" class="submenu-item" :class="{ active: isActive('/crop/outbound-records') }">
+                  <el-icon :size="16"><Document /></el-icon>
+                  <span>出库记录</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/crop/material-flow" class="submenu-item" :class="{ active: isActive('/crop/material-flow') }">
+                  <el-icon :size="16"><TrendCharts /></el-icon>
+                  <span>流转追溯</span>
                 </router-link>
               </li>
               <li>
@@ -154,18 +166,6 @@
                 <router-link to="/pest-control" class="submenu-item" :class="{ active: isActive('/pest-control') }">
                   <el-icon :size="16"><WarnTriangleFilled /></el-icon>
                   <span>病虫害管理</span>
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/crop-inventory" class="submenu-item" :class="{ active: isActive('/crop-inventory') }">
-                  <el-icon :size="16"><Box /></el-icon>
-                  <span>作物库存</span>
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/crop/outbound-records" class="submenu-item" :class="{ active: isActive('/crop/outbound-records') }">
-                  <el-icon :size="16"><Document /></el-icon>
-                  <span>出库记录</span>
                 </router-link>
               </li>
             </ul>

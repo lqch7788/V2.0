@@ -47,13 +47,14 @@ export const menuGroups = [
     label: '作物管理',
     activePrefix: '/crop',
     children: [
-      { icon: 'Grape', label: '种源管理', path: '/crop/seed-source' },
+      { icon: 'Grape', label: '内部种源', path: '/crop/seed-source' },
       { icon: 'Cherry', label: '育苗管理', path: '/crop/seedling' },
       { icon: 'Cherry', label: '种植管理', path: '/crop/planting' },
-      { icon: 'CircleCheck', label: '采收入库', path: '/crop/harvest' },
-      { icon: 'Grape', label: '施肥管理', path: '/crop/fertilizer' },
       { icon: 'Box', label: '作物库存', path: '/crop-inventory' },
-      { icon: 'View', label: '实例追溯', path: '/crop/instance' },
+      { icon: 'Files', label: '出库记录', path: '/crop/outbound-records' },
+      { icon: 'TrendCharts', label: '流转追溯', path: '/crop/material-flow' },
+      { icon: 'Grape', label: '施肥管理', path: '/crop/fertilizer' },
+      { icon: 'Warning', label: '病虫害管理', path: '/pest-control' },
     ],
   },
   {
