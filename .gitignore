@@ -118,3 +118,7 @@ backup/
 # SQLite database (开发用，不入 git)
 server/data/*.db
 server/data/*.db-*
+
+# V2-migration stage 2-3 backups (2026-07)
+.backup-stage2-crop-route-align/
+.backup-stage3-seed-source/
