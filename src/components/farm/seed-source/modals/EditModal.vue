@@ -19,7 +19,7 @@
         <el-form :model="form" label-width="100px" ref="formRef">
           <!-- 种源批号 - 只读显示 -->
           <el-form-item label="种源批号">
-            <el-input v-model="record.seedCode" disabled class="bg-gray-50 font-mono" />
+            <el-input :model-value="record.seedCode" disabled class="bg-gray-50 font-mono" />
           </el-form-item>
 
           <!-- 作物选择 - V1.1 CropCodeSelector（4级联动） -->

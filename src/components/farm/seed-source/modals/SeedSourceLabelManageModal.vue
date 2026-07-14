@@ -409,7 +409,6 @@ const deselectAllExportFields = () => {
 }
 
 const handleConfirmExport = () => {
-  let data = []
   if (exportScope.value === 'selected') {
     data = labels.value.filter(l => selectedIds.value.has(l.id))
   } else if (exportScope.value === 'filtered') {
