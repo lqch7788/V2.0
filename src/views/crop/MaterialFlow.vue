@@ -106,7 +106,6 @@ const ANNUAL_HEADERS = [{key:'flowType',label:'流转环节'},{key:'cropName',la
 const todayLocal = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
 const store = useMaterialFlowStore()
-const { logs, total, loading, traceData, statsData } = store
 
 const activeTab = ref('logs')
 const page = ref(1)
@@ -134,7 +133,7 @@ const subTabs = [
 
 const isStatsTab = computed(() => ['seedling','planting','annual'].includes(activeTab.value))
 const effectiveHasActiveMode = computed(() => isStatsTab.value ? false : (deleteMode.value || exportMode.value))
-const currentRows = computed(() => { if(activeTab.value==='logs') return logs.value; if(activeTab.value==='trace') return traceData.value; return statsData.value })
+const currentRows = computed(() => { if(activeTab.value==='logs') return store.logs; if(activeTab.value==='trace') return store.traceData; return store.statsData })
 const pagedData = computed(() => { if(activeTab.value==='logs') return currentRows.value; const s=(page.value-1)*pageSize.value; return currentRows.value.slice(s,s+pageSize.value) })
 const allSelected = computed(() => !isStatsTab.value && pagedData.value.length>0 && selectedIds.value.length===pagedData.value.length)
 const someSelected = computed(() => !isStatsTab.value && selectedIds.value.length>0 && !allSelected.value)
