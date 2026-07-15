@@ -133,7 +133,7 @@ const subTabs = [
 
 const isStatsTab = computed(() => ['seedling','planting','annual'].includes(activeTab.value))
 const effectiveHasActiveMode = computed(() => isStatsTab.value ? false : (deleteMode.value || exportMode.value))
-const currentRows = computed(() => { if(activeTab.value==='logs') return store.logs; if(activeTab.value==='trace') return store.traceData; return store.statsData })
+const currentRows = computed(() => { if(activeTab.value==='logs') return store.logs || []; if(activeTab.value==='trace') return store.traceData || []; return store.statsData || [] })
 const pagedData = computed(() => { if(activeTab.value==='logs') return currentRows.value; const s=(page.value-1)*pageSize.value; return currentRows.value.slice(s,s+pageSize.value) })
 const allSelected = computed(() => !isStatsTab.value && pagedData.value.length>0 && selectedIds.value.length===pagedData.value.length)
 const someSelected = computed(() => !isStatsTab.value && selectedIds.value.length>0 && !allSelected.value)
