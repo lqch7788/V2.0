@@ -5,12 +5,14 @@
     业务：从作物库存调入种源（append_existing 模式），不创建新种源
   -->
   <div class="inventory-transfer-panel">
-    <!-- 顶部状态条 -->
-    <div class="flex items-center gap-3 px-4 py-2 bg-gray-50 border-b border-gray-200">
-      <el-tag v-if="mode === 'append_existing'" type="success" size="small">追加模式</el-tag>
-      <el-tag v-else type="primary" size="small">新建模式</el-tag>
-      <span class="text-sm text-gray-600">共 {{ total }} 条</span>
-      <span class="text-sm text-emerald-600 ml-2">已选 {{ selectedCount }} 条</span>
+    <!-- 顶部状态条（V1.1: mode badge + 共 X 条 + 已选 X 条）-->
+    <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-200 flex-wrap">
+      <el-tag v-if="mode === 'append_existing'" type="warning" size="small" class="text-xs">
+        模式：追加到现有种源（不创建新记录）
+      </el-tag>
+      <el-tag v-else type="info" size="small" class="text-xs">新建模式</el-tag>
+      <el-tag size="small" class="text-xs">共 {{ total }} 条可调拨</el-tag>
+      <el-tag v-if="selectedCount > 0" type="success" class="text-xs text-white">已选 {{ selectedCount }} 条</el-tag>
     </div>
 
     <!-- 错误 Alert -->
@@ -19,18 +21,21 @@
     <!-- 筛选区 -->
     <div class="px-4 py-3 border-b border-gray-100">
       <div class="flex flex-wrap gap-3 items-end">
-        <!-- stockType 筛选 chips -->
-        <div class="flex gap-1">
-          <el-button
+        <!-- stockType 多选 toggle（V1.1: 自定义 button + ring）-->
+        <div class="flex items-center gap-3 flex-wrap">
+          <label class="text-sm text-gray-700 whitespace-nowrap">库存类型：</label>
+          <button
             v-for="t in stockTypeOptions"
             :key="t.value"
-            :type="stockTypeFilter.includes(t.value) ? 'primary' : 'default'"
-            :plain="!stockTypeFilter.includes(t.value)"
-            size="small"
+            type="button"
+            class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+            :class="stockTypeFilter.includes(t.value)
+              ? `${stockTypeBadge[t.value]} ring-1 ring-offset-1 ring-emerald-300`
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
             @click="toggleStockType(t.value)"
           >
             {{ t.label }}
-          </el-button>
+          </button>
         </div>
         <!-- 关键字 -->
         <el-input
@@ -126,20 +131,19 @@
       </div>
     </div>
 
-    <!-- 底部 sticky 操作栏 -->
-    <div class="sticky bottom-0 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
-      <div class="text-sm text-gray-700">
-        已选 <strong class="text-emerald-600">{{ selectedCount }}</strong> 条
-        <span v-for="(qty, unit) in totalQuantityByUnit" :key="unit" class="ml-3">
-          <el-tag size="small" type="info">{{ qty }} {{ unit }}</el-tag>
+    <!-- 底部 sticky 操作栏（V1.1: bg-emerald-600 绿色确认按钮）-->
+    <div class="sticky bottom-0 px-4 py-3 bg-white border-t border-gray-200 shadow-md flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-sm text-gray-700">
+          已选 <strong class="text-emerald-600">{{ selectedCount }}</strong> 条
+        </span>
+        <span v-for="(qty, unit) in totalQuantityByUnit" :key="unit" class="px-2 py-0.5 border border-gray-300 rounded text-xs">
+          {{ qty }} {{ unit }}
         </span>
       </div>
-      <div>
-        <el-button @click="$emit('cancel')">取消</el-button>
-        <el-button type="primary" :disabled="!canConfirm" :loading="submitting" @click="handleConfirm">
-          确认调拨
-        </el-button>
-      </div>
+      <el-button class="bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600" :disabled="!canConfirm" :loading="submitting" @click="handleConfirm">
+        确认调拨{{ selectedCount > 0 ? ` (${selectedCount})` : '' }}
+      </el-button>
     </div>
   </div>
 </template>
@@ -217,8 +221,14 @@ const totalQuantityByUnit = computed(() => {
 })
 
 const stockTypeLabel = (type) => {
-  const map = { seed: '种子', seedling: '种苗', product: '产品' }
+  const map = { seed: '种源', seedling: '种苗', product: '产品' }
   return map[type] || type
+}
+
+const stockTypeBadge = {
+  seed: 'bg-emerald-100 text-emerald-700',
+  seedling: 'bg-blue-100 text-blue-700',
+  product: 'bg-amber-100 text-amber-700'
 }
 
 const formatSource = (row) => {

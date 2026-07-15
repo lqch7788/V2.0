@@ -5,11 +5,17 @@
     业务：把种源数量退回原作物库存，严格 1:1 关联 inventory_inbound_records
   -->
   <div class="seed-source-return-modal">
-    <!-- 顶部状态条 -->
-    <div class="flex items-center gap-3 px-4 py-2 bg-amber-50 border-b border-amber-200">
-      <el-tag type="warning" size="small">退库模式</el-tag>
-      <span class="text-sm text-gray-600">目标种源：<strong>{{ targetSeedSourceCode }}</strong></span>
-      <span class="text-sm text-gray-600 ml-auto">共 {{ rows.length }} 条，已选 {{ selectedCount }} 条</span>
+    <!-- 顶部状态条（V1.1: 退库模式 Badge + 共 X 条 + 已选 X 条）-->
+    <div class="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200 flex-wrap">
+      <span class="px-2 py-1 rounded-md bg-amber-100 text-amber-800 text-xs">
+        模式：退库到原作物库存（严格 1:1 关联调拨流水）
+      </span>
+      <span class="px-2 py-1 rounded-md border border-gray-300 text-xs text-gray-700">
+        共 {{ rows.length }} 条可退流水
+      </span>
+      <span v-if="selectedCount > 0" class="px-2 py-1 rounded-md bg-emerald-500 text-white text-xs">
+        已选 {{ selectedCount }} 条
+      </span>
     </div>
 
     <!-- 错误 Alert -->
@@ -84,20 +90,19 @@
       </el-table>
     </div>
 
-    <!-- 底部 sticky 操作栏 -->
-    <div class="sticky bottom-0 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
-      <div class="text-sm text-gray-700">
-        已选 <strong class="text-amber-600">{{ selectedCount }}</strong> 条
-        <span v-for="(qty, unit) in totalQuantityByUnit" :key="unit" class="ml-3">
-          <el-tag size="small" type="warning">{{ qty }} {{ unit }}</el-tag>
+    <!-- 底部 sticky 操作栏（V1.1: bg-amber-600 深琥珀确认按钮）-->
+    <div class="sticky bottom-0 px-4 py-3 bg-white border-t border-gray-200 shadow-md flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-sm text-gray-700">
+          已选 <strong class="text-emerald-600">{{ selectedCount }}</strong> 条
+        </span>
+        <span v-for="(qty, unit) in totalQuantityByUnit" :key="unit" class="px-2 py-0.5 border border-gray-300 rounded text-xs">
+          {{ qty }} {{ unit }}
         </span>
       </div>
-      <div>
-        <el-button @click="$emit('cancel')">取消</el-button>
-        <el-button type="warning" :disabled="!canConfirm" :loading="submitting" @click="handleConfirm">
-          确认退库
-        </el-button>
-      </div>
+      <el-button class="bg-amber-600 hover:bg-amber-700 text-white border-amber-600" :disabled="!canConfirm" :loading="submitting" @click="handleConfirm">
+        确认退库{{ selectedCount > 0 ? ` (${selectedCount})` : '' }}
+      </el-button>
     </div>
   </div>
 </template>

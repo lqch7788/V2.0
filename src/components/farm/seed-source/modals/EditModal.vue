@@ -248,7 +248,7 @@
     <template #footer>
       <div class="px-6 py-3 border-t border-gray-200 flex justify-end gap-3">
         <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">保存</el-button>
+        <el-button @click="handleSubmit" :loading="submitting">保存</el-button>
       </div>
     </template>
   </el-dialog>

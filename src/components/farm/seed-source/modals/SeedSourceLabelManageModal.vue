@@ -28,28 +28,8 @@
         </button>
       </div>
     </template>
-    <!-- 顶部统计 -->
-    <div class="grid grid-cols-4 gap-3 mb-4">
-      <div class="bg-emerald-50 p-3 rounded-lg text-center">
-        <div class="text-2xl font-bold text-emerald-600">{{ stats.total }}</div>
-        <div class="text-xs text-gray-600 mt-1">总标签数</div>
-      </div>
-      <div class="bg-blue-50 p-3 rounded-lg text-center">
-        <div class="text-2xl font-bold text-blue-600">{{ stats.printed }}</div>
-        <div class="text-xs text-gray-600 mt-1">已打印</div>
-      </div>
-      <div class="bg-amber-50 p-3 rounded-lg text-center">
-        <div class="text-2xl font-bold text-amber-600">{{ stats.used }}</div>
-        <div class="text-xs text-gray-600 mt-1">已使用</div>
-      </div>
-      <div class="bg-red-50 p-3 rounded-lg text-center">
-        <div class="text-2xl font-bold text-red-600">{{ stats.voided }}</div>
-        <div class="text-xs text-gray-600 mt-1">已作废</div>
-      </div>
-    </div>
-
-    <!-- 主体两栏：左 LabelTable + 右 LabelResumePanel -->
-    <div class="flex gap-4" style="min-height: 500px">
+    <!-- 主体两栏：左 LabelTable + 右 LabelResumePanel（对齐 V1.1，无顶部统计卡片）-->
+    <div class="flex gap-4" style="min-height: 600px">
       <!-- 左：标签列表 -->
       <div class="w-1/2 border border-gray-200 rounded-lg overflow-hidden flex flex-col">
         <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
@@ -121,26 +101,35 @@
       </div>
     </div>
 
-    <!-- 底部操作栏 -->
-    <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-3">
-      <span class="text-sm text-gray-600">
-        已选 <strong class="text-emerald-600">{{ selectedIds.size }}</strong> 个标签
+    <!-- 底部操作栏（1:1 对齐 V1.1：新增履历/补充生成/导出/批量作废/关闭）-->
+    <div class="mt-4 p-4 border-t border-gray-200 flex justify-between items-center flex-shrink-0">
+      <span class="text-xs text-gray-400">
+        共 {{ filteredLabels.length }} 个标签
       </span>
-      <div class="flex gap-2">
-        <el-button @click="showBatchGenerate = true" type="primary">
+      <div class="flex items-center gap-2">
+        <el-button
+          @click="showAddResume = true"
+          :disabled="!selectedLabelId || selectedLabelStatus === 'voided' || selectedIds.size > 0"
+          type="default"
+          size="small"
+        >
+          新增履历
+        </el-button>
+        <el-button @click="showBatchGenerate = true" type="primary" size="small">
           补充生成
         </el-button>
-        <el-button @click="showExportModal = true" :disabled="labels.length === 0">
+        <el-button @click="showExportModal = true" :disabled="labels.length === 0" type="primary" size="small">
           导出
         </el-button>
         <el-button
           type="danger"
           :disabled="selectedIds.size === 0"
           @click="showBatchVoid = true"
+          size="small"
         >
-          批量作废
+          批量作废{{ selectedIds.size > 0 ? ` (${selectedIds.size})` : '' }}
         </el-button>
-        <el-button @click="handleClose">关闭</el-button>
+        <el-button @click="handleClose" type="danger" size="small">关闭</el-button>
       </div>
     </div>
 
@@ -186,14 +175,24 @@
       </template>
     </el-dialog>
 
-    <!-- 批量作废弹窗 -->
-    <el-dialog v-model="showBatchVoid" title="批量作废标签" width="500px" append-to-body>
+    <!-- 批量作废弹窗（V1.1 红色 header 1:1 对齐）-->
+    <el-dialog v-model="showBatchVoid" :show-close="false" width="500px" append-to-body>
+      <template #header>
+        <div class="bg-gradient-to-r from-red-500 to-red-600 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+          <h3 class="text-base font-semibold text-white flex items-center gap-2">
+            批量作废 {{ selectedIds.size }} 个标签
+          </h3>
+          <button type="button" class="text-white hover:bg-red-700 rounded p-1 transition-colors" @click="showBatchVoid = false">
+            <X :size="18" />
+          </button>
+        </div>
+      </template>
       <el-alert type="warning" :closable="false" class="mb-3">
-        即将作废 <strong>{{ selectedIds.size }}</strong> 个标签，此操作不可恢复
+        即将作废 <strong>{{ selectedIds.size }}</strong> 个标签，操作后标签状态变为"已作废"且不可再添加履历
       </el-alert>
       <el-form :model="voidForm" label-width="80px">
         <el-form-item label="作废原因" required>
-          <el-input v-model="voidForm.reason" type="textarea" :rows="3" placeholder="请填写作废原因" />
+          <el-input v-model="voidForm.reason" type="textarea" :rows="3" placeholder="如：标签重复、录入错误等" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -202,8 +201,18 @@
       </template>
     </el-dialog>
 
-    <!-- 导出弹窗 -->
-    <el-dialog v-model="showExportModal" title="导出标签" width="600px" append-to-body>
+    <!-- 导出弹窗（V1.1 蓝色 header 1:1 对齐）-->
+    <el-dialog v-model="showExportModal" :show-close="false" width="600px" append-to-body>
+      <template #header>
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+          <h3 class="text-base font-semibold text-white flex items-center gap-2">
+            选择导出内容
+          </h3>
+          <button type="button" class="text-white hover:bg-blue-700 rounded p-1 transition-colors" @click="showExportModal = false">
+            <X :size="18" />
+          </button>
+        </div>
+      </template>
       <el-form label-width="100px">
         <el-form-item label="导出范围">
           <el-radio-group v-model="exportScope">
