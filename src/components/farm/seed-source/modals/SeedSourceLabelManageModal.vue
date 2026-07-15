@@ -7,12 +7,27 @@
   <el-dialog
     :model-value="visible"
     :title="`种源标签管理 - ${seedSourceCode}`"
-    width="90%"
+    width="1350px"
     top="5vh"
     :close-on-click-modal="false"
+    v-dialog-draggable
     @update:model-value="(v) => $emit('update:visible', v)"
     @close="handleClose"
   >
+    <!-- 2026-07-15: 自定义绿色渐变 header 1:1 对齐 V1.1 UnifiedModal 默认 header -->
+    <template #header>
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-white">{{ `种源标签管理 - ${seedSourceCode}` }}</h3>
+        <button
+          type="button"
+          class="text-white hover:bg-emerald-700 rounded p-1 transition-colors"
+          aria-label="关闭"
+          @click="handleClose"
+        >
+          <X :size="20" />
+        </button>
+      </div>
+    </template>
     <!-- 顶部统计 -->
     <div class="grid grid-cols-4 gap-3 mb-4">
       <div class="bg-emerald-50 p-3 rounded-lg text-center">
@@ -218,6 +233,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { X } from 'lucide-vue-next'
 import { enhancedApiClient } from '@/lib/apiClient'
 
 const props = defineProps({

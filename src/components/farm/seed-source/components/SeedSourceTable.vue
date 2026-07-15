@@ -31,7 +31,7 @@
           <el-button v-if="canCreate && onAdd" type="primary" :icon="Plus" size="small" @click="onAdd">新增</el-button>
           <el-button v-if="canDelete" type="danger" :icon="Delete" size="small" @click="onOperationModeChange('delete')">删除</el-button>
           <el-button v-if="canExport" type="success" :icon="Download" size="small" @click="onOperationModeChange('export')">导出</el-button>
-          <el-button v-if="canPrint" type="primary" plain :icon="Printer" size="small" @click="onPrintModeChange(true)">标签打印</el-button>
+          <el-button v-if="canPrint" :icon="Printer" size="small" class="sst-btn-print" @click="onPrintModeChange(true)">标签打印</el-button>
         </template>
       </div>
     </div>
@@ -332,4 +332,16 @@ const onPrintModeChange = (val) => emit('print-mode-change', val)
 /* 复选框 */
 .sst-th-check input[type="checkbox"],
 .sst-td-check input[type="checkbox"] { border-radius: 0.25rem; border: 1px solid #d1d5db; }
+
+/* ===== 顶部按钮：标签打印 1:1 对齐 V1.1 variant="purple" ===== */
+.sst-btn-print {
+  background-color: #9333ea !important;
+  border-color: #9333ea !important;
+  color: #ffffff !important;
+}
+.sst-btn-print:hover {
+  background-color: #7e22ce !important;
+  border-color: #7e22ce !important;
+  color: #ffffff !important;
+}
 </style>

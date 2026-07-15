@@ -118,9 +118,23 @@
       :title="`调拨入库 - ${transferModal.record.seedCode}（追加模式）`"
       width="1170px"
       v-dialog-draggable
-      :show-close="true"
+      :show-close="false"
       @close="handleTransferClose"
     >
+      <!-- 2026-07-15: 1:1 对齐 V1.1 UnifiedModal 绿色渐变 header -->
+      <template #header>
+        <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-white">{{ `调拨入库 - ${transferModal.record.seedCode}（追加模式）` }}</h3>
+          <button
+            type="button"
+            class="text-white hover:bg-emerald-700 rounded p-1 transition-colors"
+            aria-label="关闭"
+            @click="handleTransferClose"
+          >
+            <X :size="20" />
+          </button>
+        </div>
+      </template>
       <InventoryTransferPanel
         mode="append_existing"
         :target-seed-source-id="transferModal.record.id"
@@ -137,9 +151,23 @@
       :title="`退库 - ${returnModal.record.seedCode}（退回原作物库存）`"
       width="1170px"
       v-dialog-draggable
-      :show-close="true"
+      :show-close="false"
       @close="handleReturnClose"
     >
+      <!-- 2026-07-15: 1:1 对齐 V1.1 UnifiedModal 绿色渐变 header -->
+      <template #header>
+        <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-white">{{ `退库 - ${returnModal.record.seedCode}（退回原作物库存）` }}</h3>
+          <button
+            type="button"
+            class="text-white hover:bg-emerald-700 rounded p-1 transition-colors"
+            aria-label="关闭"
+            @click="handleReturnClose"
+          >
+            <X :size="20" />
+          </button>
+        </div>
+      </template>
       <SeedSourceReturnModal
         :target-seed-source-id="returnModal.record.id"
         :target-seed-source-code="returnModal.record.seedCode"
@@ -170,6 +198,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Goods } from '@element-plus/icons-vue'
+import { X } from 'lucide-vue-next'
 
 import SeedSourceFilter from '@/components/farm/seed-source/components/SeedSourceFilter.vue'
 import SeedSourceTable from '@/components/farm/seed-source/components/SeedSourceTable.vue'

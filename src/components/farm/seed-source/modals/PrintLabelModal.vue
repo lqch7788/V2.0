@@ -14,6 +14,21 @@
     v-dialog-draggable
     @close="handleClose"
   >
+    <!-- 2026-07-15: 自定义 header 绿色渐变 1:1 对齐 V1.1 Modal 默认 header（#10b981 → #059669） -->
+    <template #header>
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-white">标签打印与导出</h3>
+        <button
+          type="button"
+          class="text-white hover:bg-emerald-700 rounded p-1 transition-colors"
+          aria-label="关闭"
+          @click="handleClose"
+        >
+          <X :size="20" />
+        </button>
+      </div>
+    </template>
+
     <div v-if="record" class="space-y-4">
       <!-- 打印模式选择 — 卡片按钮风格 -->
       <div class="bg-blue-50 rounded-lg p-4">
@@ -175,7 +190,7 @@
           <el-button type="primary" :loading="loading" @click="handleExportExcel">
             <el-icon><Download /></el-icon>导出 Excel
           </el-button>
-          <el-button type="success" :loading="loading" @click="handlePrint">
+          <el-button :loading="loading" @click="handlePrint">
             <el-icon><Printer /></el-icon>{{ loading ? '处理中...' : '打印' }}
           </el-button>
         </div>
@@ -191,6 +206,7 @@
  */
 import { ref, computed, watch, onMounted } from 'vue'
 import { Download, Printer } from '@element-plus/icons-vue'
+import { X } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import QrCode from '@/components/common/QrCode.vue'
 import { enhancedApiClient } from '@/lib/apiClient'

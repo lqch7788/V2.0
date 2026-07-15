@@ -22,12 +22,18 @@
     @update:model-value="(v) => !v && handleClose()"
     @close="handleClose"
   >
+    <!-- 2026-07-15: 自定义绿色渐变 header 1:1 对齐 V1.1 UnifiedModal 默认 header -->
     <template #header>
-      <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
         <h3 class="text-lg font-semibold text-white">编辑种源</h3>
-        <el-button link @click="handleClose" style="color: white;">
-          <el-icon :size="20"><Close /></el-icon>
-        </el-button>
+        <button
+          type="button"
+          class="text-white hover:bg-emerald-700 rounded p-1 transition-colors"
+          aria-label="关闭"
+          @click="handleClose"
+        >
+          <X :size="20" />
+        </button>
       </div>
     </template>
 
@@ -252,6 +258,7 @@
 import { ref, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Close, Upload } from '@element-plus/icons-vue'
+import { X } from 'lucide-vue-next'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import { useUserStore } from '@/stores/modules/user'
 import { enhancedApiClient } from '@/lib/apiClient'
