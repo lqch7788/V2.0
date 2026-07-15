@@ -255,7 +255,7 @@ const routes = [
     component: () => import('@/views/crop/Planting.vue'),
     meta: { title: '种植管理' }
   },
-  // V1.1 App.tsx:247 - 物资流水/流转追溯
+  // V1.1 App.tsx:247 - 物料流转追溯（MaterialFlowPage.tsx 1:1 对齐）
   {
     path: '/crop/material-flow',
     name: 'MaterialFlow',
@@ -482,13 +482,7 @@ const routes = [
         component: () => import('@/views/summary/Indicators.vue'),
         meta: { title: '指标看板' }
       },
-      {
-        path: 'chain-traceability',
-        name: 'ChainTraceability',
-        component: () => import('@/views/summary/sub/ChainTraceability.vue'),
-        meta: { title: '全链条追溯' }
-      }
-    ]
+          ]
   },
   {
     path: '/system',

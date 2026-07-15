@@ -32,6 +32,7 @@ import customerRouter from './customer.js';
 import productionPlanRouter from './productionPlan.js';
 import techSolutionRouter from './techSolution.js';
 import summaryRouter from './summary.js';
+import materialFlowLogRouter from './materialFlowLog.js';
 import materialCostRouter from './materialCost.js';
 import materialReturnRouter from './materialReturn.js';
 import materialExecuteRouter from './materialExecute.js';
@@ -152,6 +153,8 @@ router.use('/production/plans', requireAuth, productionPlanRouter);
 router.use('/tech-solutions', requireAuth, techSolutionRouter);
 // 生产汇总统计路由 - 需要认证
 router.use('/summary', requireAuth, summaryRouter);
+// 物料流转追溯路由 - 需要认证（V1.1 → V2.0 移植）
+router.use('/material-flow-log', requireAuth, materialFlowLogRouter);
 // 成本管理路由（物料成本 + 能源成本）- 需要认证
 router.use('/material-costs', requireAuth, materialCostRouter);
 router.use('/material-returns', requireAuth, materialReturnRouter);

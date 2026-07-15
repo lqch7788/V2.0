@@ -151,7 +151,7 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/summary/chain-traceability" class="submenu-item" :class="{ active: isActive('/summary/chain-traceability') }">
+                <router-link to="/crop/material-flow" class="submenu-item" :class="{ active: isActive('/crop/material-flow') }">
                   <el-icon :size="16"><TrendCharts /></el-icon>
                   <span>流转追溯</span>
                 </router-link>
