@@ -481,6 +481,12 @@ const routes = [
         name: 'SummaryIndicators',
         component: () => import('@/views/summary/Indicators.vue'),
         meta: { title: '指标看板' }
+      },
+      {
+        path: 'chain-traceability',
+        name: 'ChainTraceability',
+        component: () => import('@/views/summary/sub/ChainTraceability.vue'),
+        meta: { title: '全链条追溯' }
       }
     ]
   },
