@@ -9,8 +9,8 @@
     </div>
     <div class="flex items-center gap-2">
       <span v-if="selectedIds.length > 0" class="text-xs text-gray-500">已选 {{ selectedIds.length }} 项</span>
-      <el-button v-if="!deleteMode && !exportMode" size="small" @click="$emit('delete')"><DeleteIcon :size="14" class="mr-1" />删除</el-button>
-      <el-button v-if="!deleteMode && !exportMode" size="small" @click="$emit('export')"><DownloadIcon :size="14" class="mr-1" />导出</el-button>
+      <el-button v-if="!deleteMode && !exportMode" size="small" @click="$emit('delete')">删除</el-button>
+      <el-button v-if="!deleteMode && !exportMode" size="small" @click="$emit('export')">导出</el-button>
       <template v-if="deleteMode">
         <el-button type="danger" size="small" :disabled="selectedIds.length === 0" @click="$emit('confirm-delete')">确认删除</el-button>
         <el-button size="small" @click="$emit('cancel-delete')">取消</el-button>
@@ -24,8 +24,6 @@
 </template>
 
 <script setup>
-import { DeleteIcon, DownloadIcon } from '@element-plus/icons-vue'
-
 defineProps({
   title: { type: [String, Object], default: '' },
   deleteMode: { type: Boolean, default: false },

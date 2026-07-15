@@ -8,8 +8,6 @@
       :page-sizes="[10, 20, 50, 100]"
       :total="total"
       layout="sizes, prev, pager, next"
-      @size-change="onSizeChange"
-      @current-change="onPageChange"
     />
   </div>
 </template>
