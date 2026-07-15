@@ -92,6 +92,10 @@ login-flow-test.js
 # V1.1→V2.0 sync backup files
 *.db.before-sync
 *.before-sync
+# V1.1→V2.0 同步备份（syncFromV1.cjs 自动生成，保留最近 5 个）
+*.db.bak
+server/data/yuanxingtu_pre_sync_*.db.bak
+server/data/yuanxingtu.db.sync-marker
 
 # Tool/agent directories (development tools, not source code)
 .mavis/
