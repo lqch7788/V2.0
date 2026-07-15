@@ -84,6 +84,12 @@ class ApiClient {
         return result;
       }
 
+      // 防御性检查：result 必须是对象（不是 null / string）
+      if (!result || typeof result !== 'object') {
+        console.warn('[apiClient] 后端返回非对象:', result);
+        return result;
+      }
+
       // 如果是标准格式 {success, data, meta}，检查 success
       if ('success' in result) {
         if (!result.success) {

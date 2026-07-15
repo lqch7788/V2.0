@@ -60,7 +60,7 @@ const fetchAdapter = async (config) => {
   } catch (error) {
     if (timeoutId) clearTimeout(timeoutId)
     if (error && error.name === 'AbortError') {
-      throw new Error('timeout of ' + config.timeout + 'ms exceeded')
+      throw new Error('timeout of ' + config.timeout + 'ms exceeded', { cause: error })
     }
     throw error
   }
@@ -129,12 +129,17 @@ request.interceptors.response.use(
     // loadingInstance?.close()
 
     // V1.1/V2.0 后端返回格式: { success: true, data } 或 { success: true, message, data }
-    // 也可能返回没有success字段的格式（如直接返回数组）
-    const hasSuccessField = 'success' in response.data
+    // 也可能返回没有success字段的格式（如直接返回数组、空响应、Vite 错误页等）
+    // 防御性检查：response.data 必须是对象（不是 null / undefined / string / 数组）
+    const hasSuccessField = response.data
+      && typeof response.data === 'object'
+      && !Array.isArray(response.data)
+      && 'success' in response.data
 
     if (!hasSuccessField) {
-      // 没有success字段，说明后端返回的不是标准格式，直接返回整个响应数据
+      // 没有success字段或不是对象（可能是旧版API、HTML 错误页、字符串等），直接返回整个响应数据
       // 这可能是旧版API或其他格式的数据
+      console.warn('[request] 后端返回非标准格式:', response.data)
       return response.data
     }
 
