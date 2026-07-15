@@ -100,17 +100,19 @@
             <td class="sst-td" :title="row.createBy">{{ truncateText(row.createBy) }}</td>
             <td class="sst-td sst-td-op">
               <div class="flex gap-1">
+                <!-- 2026-07-15: 操作列图标 lucide-vue-next 1:1 对齐 V1.1（Tag/Edit2/ArrowLeftRight/Undo2） -->
+                <!-- 颜色由 .sst-op-* 类名控制（text-purple-600 / text-emerald-600 / text-amber-600 / text-blue-600）-->
                 <button v-if="onLabelManage" type="button" class="sst-op-btn sst-op-tag" title="标签管理" @click="onLabelManage(row)">
-                  <el-icon :size="16"><PriceTag /></el-icon>
+                  <Tag :size="16" />
                 </button>
                 <button v-if="canEdit" type="button" class="sst-op-btn sst-op-edit" title="编辑" @click="onEdit(row)">
-                  <el-icon :size="16"><Edit /></el-icon>
+                  <Edit2 :size="16" />
                 </button>
                 <button type="button" class="sst-op-btn sst-op-transfer" title="调拨入库（从作物库存追加）" @click="onTransfer(row)">
-                  <el-icon :size="16"><Sort /></el-icon>
+                  <ArrowLeftRight :size="16" />
                 </button>
                 <button v-if="onReturn" type="button" class="sst-op-btn sst-op-return" title="退库（退回原作物库存）" @click="onReturn(row)">
-                  <el-icon :size="16"><RefreshLeft /></el-icon>
+                  <Undo2 :size="16" />
                 </button>
               </div>
             </td>
@@ -137,7 +139,9 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { Plus, Delete, Download, Printer, Close, Edit, RefreshLeft, PriceTag, Sort } from '@element-plus/icons-vue'
+import { Plus, Delete, Download, Printer, Close } from '@element-plus/icons-vue'
+// 操作列图标 1:1 对齐 V1.1 lucide-react 图标（Tag / Edit2 / ArrowLeftRight / Undo2）
+import { Tag, Edit2, ArrowLeftRight, Undo2 } from 'lucide-vue-next'
 import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, computeStockStatus } from '@/constants/seedSourceDict'
 import { getAllVarieties } from '@/services/cropVarietyService'
 import { ElMessage } from 'element-plus'
@@ -300,25 +304,30 @@ const onPrintModeChange = (val) => emit('print-mode-change', val)
 .sst-link { color: #059669; text-decoration: none; font-weight: 500; background: none; border: none; padding: 0; cursor: pointer; font-size: 0.875rem; }
 .sst-link:hover { text-decoration: underline; }
 
-/* ===== 操作列按钮（对齐 V1.1 ActionIconButton 圆形彩色背景 w-4 h-4 图标）====== */
+/* ===== 操作列按钮（1:1 对齐 V1.1 ActionIconButton ghost + 彩色图标 + hover 浅色背景）====== */
+/* V1.1 源：src/constants/actionIconTokens.ts
+ *   tag      → text-purple-600 hover:text-purple-700 hover:bg-purple-50
+ *   transfer → text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50
+ *   return_  → text-amber-600 hover:text-amber-700 hover:bg-amber-50
+ *   edit     → text-blue-600 hover:text-blue-700 hover:bg-blue-50
+ */
 .sst-op-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border-radius: 9999px;
+  border-radius: 6px;
   border: none;
+  background: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #ffffff;
-  transition: opacity 0.15s;
+  transition: background-color 0.15s, color 0.15s;
 }
-.sst-op-btn:hover { opacity: 0.85; }
-.sst-op-tag { background-color: #10b981; }
-.sst-op-edit { background-color: #1d4ed8; }
-.sst-op-transfer { background-color: #0ea5e9; }
-.sst-op-return { background-color: #f59e0b; }
+.sst-op-tag      { color: #9333ea; } .sst-op-tag:hover      { color: #7e22ce; background-color: #faf5ff; }
+.sst-op-transfer { color: #059669; } .sst-op-transfer:hover { color: #047857; background-color: #ecfdf5; }
+.sst-op-return   { color: #d97706; } .sst-op-return:hover   { color: #b45309; background-color: #fffbeb; }
+.sst-op-edit     { color: #2563eb; } .sst-op-edit:hover     { color: #1d4ed8; background-color: #eff6ff; }
 
 /* 复选框 */
 .sst-th-check input[type="checkbox"],
