@@ -8,7 +8,7 @@
     <!-- 页面头部（V1.1 L280-286） -->
     <div v-if="!hideHeader" class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-sm">
-        <el-icon :size="24" color="white"><Link /></el-icon>
+        <Link :size="24" class="text-white" />
       </div>
       <div>
         <h1 class="text-xl font-bold text-gray-900">全链条追溯</h1>
@@ -16,51 +16,35 @@
       </div>
     </div>
 
-    <!-- 概览 KPI（V1.1 L289-318） -->
+    <!-- 概览 KPI（V1.1 L289-318） - KpiCard 使用 #icon slot 传入 lucide 图标 -->
     <KpiCardGrid :columns="4" :compact="true">
-      <KpiCard
-        :icon="Layers"
-        label="追踪批次数"
-        :value="totalBatches"
-        color-scheme="teal"
-        :compact="true"
-      />
-      <KpiCard
-        :icon="CheckCircle2"
-        label="已完成"
-        :value="completedBatches"
-        color-scheme="emerald"
-        :compact="true"
-      />
-      <KpiCard
-        :icon="Clock"
-        label="进行中"
-        :value="inProgressBatches"
-        color-scheme="blue"
-        :compact="true"
-      />
-      <KpiCard
-        :icon="Link"
-        label="追溯环节"
-        :value="6"
-        color-scheme="purple"
-        :compact="true"
-      />
+      <KpiCard label="追踪批次数" :value="totalBatches" color-scheme="teal" :compact="true">
+        <template #icon><Layers :size="16" class="text-white" /></template>
+      </KpiCard>
+      <KpiCard label="已完成" :value="completedBatches" color-scheme="emerald" :compact="true">
+        <template #icon><CheckCircle2 :size="16" class="text-white" /></template>
+      </KpiCard>
+      <KpiCard label="进行中" :value="inProgressBatches" color-scheme="blue" :compact="true">
+        <template #icon><Clock :size="16" class="text-white" /></template>
+      </KpiCard>
+      <KpiCard label="追溯环节" :value="6" color-scheme="purple" :compact="true">
+        <template #icon><Link :size="16" class="text-white" /></template>
+      </KpiCard>
     </KpiCardGrid>
 
     <!-- 错误提示（V1.1 L321-326） -->
     <div v-if="error" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 text-red-700">
-      <el-icon :size="20"><Warning /></el-icon>
+      <Warning :size="20" />
       <span class="text-sm">数据加载失败：{{ error }}</span>
     </div>
 
     <!-- Sankey 流程示意（V1.1 L329-335） -->
     <div v-if="isLoading" class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 flex items-center justify-center">
-      <el-icon class="is-loading" :size="32" color="#14b8a6"><Loading /></el-icon>
+      <Loader :size="32" class="text-teal-600 animate-spin" />
     </div>
     <div v-else class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 overflow-x-auto">
       <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <el-icon :size="20" color="#0d9488"><Link /></el-icon>
+        <Link :size="20" class="text-teal-600" />
         全链条流程示意
       </h3>
       <div class="flex items-start gap-0 min-w-[900px] py-4">
@@ -72,9 +56,7 @@
               :style="{ background: `linear-gradient(to bottom right, ${stage.colorStart}, ${stage.colorEnd})` }"
             >
               <div class="text-center">
-                <el-icon :size="24" class="mb-1">
-                  <component :is="stage.icon" />
-                </el-icon>
+                <component :is="stage.icon" :size="24" class="mb-1 mx-auto" />
                 <p class="text-xs font-semibold">{{ stage.label }}</p>
               </div>
             </div>
@@ -95,7 +77,7 @@
           </div>
           <!-- 箭头连接（V1.1 L114-118） -->
           <div v-if="idx < stageStats.length - 1" class="flex items-center pt-10 flex-shrink-0">
-            <el-icon :size="20" color="#d1d5db"><ArrowRightBold /></el-icon>
+            <ArrowRightBold :size="20" class="text-gray-300" />
           </div>
         </div>
       </div>
@@ -115,9 +97,7 @@
             class="w-8 h-8 rounded-lg flex items-center justify-center text-white"
             :style="{ background: `linear-gradient(to bottom right, ${stage.colorStart}, ${stage.colorEnd})` }"
           >
-            <el-icon :size="16" color="white">
-              <component :is="stage.icon" />
-            </el-icon>
+            <component :is="stage.icon" :size="16" class="text-white" />
           </div>
           <div>
             <h3 class="font-semibold text-gray-900">{{ stage.label }}</h3>
@@ -148,7 +128,7 @@
                 >
                   {{ STATUS_LABEL[batch.status] || batch.status }}
                 </span>
-                <el-icon :size="16" color="#d1d5db"><ArrowRightBold /></el-icon>
+                <ArrowRightBold :size="16" class="text-gray-300" />
               </div>
             </button>
             <!-- 环节记录卡片（种源/育苗/种植/采收/库存 V1.1 L176-201） -->
@@ -210,9 +190,7 @@
                 class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
                 :style="{ backgroundColor: getBatchStageInfo(row).bgColor, color: getBatchStageInfo(row).textColor }"
               >
-                <el-icon :size="12">
-                  <component :is="getBatchStageInfo(row).icon" />
-                </el-icon>
+                <component :is="getBatchStageInfo(row).icon" :size="12" />
                 {{ getBatchStageInfo(row).label }}
               </div>
             </template>
@@ -292,9 +270,7 @@
               class="w-10 h-10 rounded-xl flex items-center justify-center text-white"
               :style="{ background: `linear-gradient(to bottom right, ${getBatchStageInfo(selectedBatch).colorStart}, ${getBatchStageInfo(selectedBatch).colorEnd})` }"
             >
-              <el-icon :size="20" color="white">
-                <component :is="getBatchStageInfo(selectedBatch).icon" />
-              </el-icon>
+              <component :is="getBatchStageInfo(selectedBatch).icon" :size="20" class="text-white" />
             </div>
             <div>
               <p :class="['text-sm font-semibold', getBatchStageInfo(selectedBatch).textColorClass]">
@@ -396,7 +372,8 @@ import {
   Warehouse,        // lucide
   ClipboardList,    // lucide
   AlertCircle as Warning,
-  ArrowRight as ArrowRightBold
+  ArrowRight as ArrowRightBold,
+  Loader
 } from 'lucide-vue-next'
 import { useSummaryStore } from '@/stores/modules/summary'
 import KpiCard from '@/components/summary/KpiCard.vue'
