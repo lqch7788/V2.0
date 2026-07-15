@@ -6,20 +6,35 @@
  * 完整对齐待阶段2完成
  */
 
-// 来源途径（9 枚举）
+// 来源途径（V1.1+V2.0 合并版，确保 V1.1 数据 sync 后全部显示中文）
+// V1.1 seedData.ts:2449-2456 + seedBasicData.ts:766,876 + sourceCategoryMapper.ts
 export const SOURCE_ORIGINS = [
+  // V1.1 实际数据库值（sync 后种源主要用这些）
+  { value: 'planting_self_kept', label: '种植自留种' },
+  { value: 'inventory_transfer', label: '库存调拨' },
   { value: 'external_purchase', label: '外部采购' },
   { value: 'self_produced', label: '自产' },
+  { value: 'internal_seed', label: '内部育种/留种' },
+  { value: 'commissioned', label: '委托生产' },
+  { value: 'gift', label: '赠送/受赠' },
+  { value: 'direct_seedling', label: '直接育苗' },
+  { value: 'direct_planting', label: '直接定植' },
+  { value: 'external_harvest', label: '外部采收' },
+  { value: 'grafting', label: '嫁接' },
+  { value: 'cutting', label: '扦插' },
+  { value: 'seedling_split', label: '分株' },
+  { value: 'tissue_culture', label: '组培' },
+  // V2.0 旧版 enum（保留以兼容）
   { value: 'internal_transfer', label: '内部调拨' },
   { value: 'donation', label: '捐赠' },
   { value: 'wild_collection', label: '野外采集' },
   { value: 'inheritance', label: '留种继承' },
   { value: 'purchased_seedling', label: '外购种苗' },
-  { value: 'external_harvest', label: '外购成品' },
   { value: 'other', label: '其他' }
 ]
 
 // 种源类型（形态）
+// V1.1 seedData.ts:2438-2446 + V1.1 实际数据库值
 export const SOURCE_TYPES = [
   { value: 'seed', label: '种子' },
   { value: 'seedling', label: '种苗/实生苗' },
@@ -28,6 +43,11 @@ export const SOURCE_TYPES = [
   { value: 'tissue_culture', label: '组培苗' },
   { value: 'split', label: '分株苗' },
   { value: 'bulb', label: '种球/球根' },
+  // V1.1 实际数据库值（sync 后种源 source_type 用到）
+  { value: 'transfer', label: '调拨种源' },
+  { value: 'external_seed', label: '外购种子' },
+  { value: 'seedling_split', label: '分株' },
+  // 兼容
   { value: 'other', label: '其他' }
 ]
 
@@ -74,4 +94,37 @@ export function computeStockStatus(availableCount, initialCount) {
   if (ratio === 0) return 'depleted'
   if (ratio < LOW_THRESHOLD_RATIO) return 'low'
   return 'sufficient'
+}
+
+/**
+ * 防御性查找：即使 key 不在字典里，也返回中文 label 而不是英文原值
+ * 用法：safeLabel(SOURCE_ORIGIN_MAP, rawValue, '其他来源')
+ * @param {Object} map - 字典映射表
+ * @param {string} rawValue - 原始 enum 值
+ * @param {string} fallback - 完全没匹配时的兜底文案
+ */
+export function safeLabel(map, rawValue, fallback = '-') {
+  if (rawValue == null || rawValue === '') return fallback
+  if (map && map[rawValue]) return map[rawValue].label
+  // 未匹配的英文 enum 值：尝试友好转换
+  // 例：inventory_transfer → 库存调拨
+  const friendly = FRIENDLY_MAP[rawValue]
+  if (friendly) return friendly
+  return rawValue
+}
+
+// 兜底友好映射（处理 V1.1 数据 sync 后未登记的 enum 值）
+const FRIENDLY_MAP = {
+  planting_self_kept: '种植自留种',
+  inventory_transfer: '库存调拨',
+  external_purchase: '外部采购',
+  self_produced: '自产',
+  internal_seed: '内部育种/留种',
+  commissioned: '委托生产',
+  gift: '赠送/受赠',
+  direct_seedling: '直接育苗',
+  direct_planting: '直接定植',
+  external_harvest: '外部采收',
+  external_seed: '外购种子',
+  seedling_split: '分株'
 }

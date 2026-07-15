@@ -82,7 +82,7 @@
             <td class="sst-td">
               <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-xs rounded-full font-medium whitespace-nowrap">{{ truncateText(resolveForm(row)) }}</span>
             </td>
-            <td class="sst-td" :title="SOURCE_ORIGIN_MAP[row.sourceOrigin]?.label || row.sourceOrigin">{{ truncateText(SOURCE_ORIGIN_MAP[row.sourceOrigin]?.label || row.sourceOrigin) }}</td>
+            <td class="sst-td" :title="safeLabel(SOURCE_ORIGIN_MAP, row.sourceOrigin, '其他')">{{ truncateText(safeLabel(SOURCE_ORIGIN_MAP, row.sourceOrigin, '其他')) }}</td>
             <td class="sst-td" :title="row.supplierName || undefined">{{ truncateText(row.supplierName) }}</td>
             <td class="sst-td" :title="row.purchaseDate || row.createTime">{{ truncateText(row.purchaseDate || row.createTime) }}</td>
             <td class="sst-td sst-num" title="种源入库数量">{{ row.quantity?.toLocaleString() ?? row.initialCount.toLocaleString() }}</td>
@@ -142,7 +142,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { Plus, Delete, Download, Printer, Close } from '@element-plus/icons-vue'
 // 操作列图标 1:1 对齐 V1.1 lucide-react 图标（Tag / Edit2 / ArrowLeftRight / Undo2）
 import { Tag, Edit2, ArrowLeftRight, Undo2 } from 'lucide-vue-next'
-import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, computeStockStatus } from '@/constants/seedSourceDict'
+import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, computeStockStatus, safeLabel } from '@/constants/seedSourceDict'
 import { getAllVarieties } from '@/services/cropVarietyService'
 import { ElMessage } from 'element-plus'
 
@@ -209,8 +209,12 @@ const getVarietyPath = (record) => {
 }
 const getStandardCropCode = (record) => getVarietyByAny(record)?.cropCode || record.cropCode || ''
 const getCropVarietyName = (record) => { const v = getVarietyByAny(record); return v ? (v.subVariety1Name || v.varietyName || record.cropName || '') : (record.cropVariety || record.cropName || '') }
-const resolveForm = (record) => { const sf = record.seedForm; if (sf && SOURCE_TYPE_MAP[sf]) return SOURCE_TYPE_MAP[sf].label; const st = record.sourceType; if (st && SOURCE_TYPE_MAP[st]) return SOURCE_TYPE_MAP[st].label; return '其他' }
-const formatUnit = (unit) => SOURCE_TYPE_MAP[unit]?.label || unit || ''
+const resolveForm = (record) => {
+  // 优先 seedForm（V1.1 已是中文：种子/种苗/花朵/枝条/其他），其次 sourceType
+  if (record.seedForm) return record.seedForm
+  return safeLabel(SOURCE_TYPE_MAP, record.sourceType, '其他')
+}
+const formatUnit = (unit) => safeLabel(SOURCE_TYPE_MAP, unit, unit || '')
 const truncateText = (text, maxLen = 16) => { if (text == null || text === '') return '-'; const s = String(text); return s.length <= maxLen ? s : `${s.slice(0, maxLen)}…` }
 
 const showCheckbox = computed(() => props.operationMode !== 'normal' || props.exportMode || props.printMode)

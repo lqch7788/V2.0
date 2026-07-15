@@ -303,7 +303,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { Download, Shop, Sort, Sunny } from '@element-plus/icons-vue'
 import { enhancedApiClient } from '@/lib/apiClient'
 import { getSeedSourceUsageRecords } from '@/services/apiSeedSourceService'
-import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, computeStockStatus } from '@/constants/seedSourceDict'
+import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, computeStockStatus, safeLabel } from '@/constants/seedSourceDict'
 import * as XLSX from 'xlsx'
 
 const props = defineProps({
@@ -351,7 +351,7 @@ const varietyPath = computed(() => {
 })
 const sourceOriginLabel = computed(() => {
   if (!props.record) return ''
-  return SOURCE_ORIGIN_MAP[originKey.value]?.label || modeConfig.value.label
+  return safeLabel(SOURCE_ORIGIN_MAP, originKey.value, modeConfig.value.label)
 })
 
 const statusInfo = computed(() => {
@@ -362,7 +362,7 @@ const statusInfo = computed(() => {
 const statusLabel = computed(() => statusInfo.value.label)
 const statusTagType = computed(() => statusInfo.value.tagType)
 
-const formatUnit = (unit) => SOURCE_TYPE_MAP[unit]?.label || unit || ''
+const formatUnit = (unit) => safeLabel(SOURCE_TYPE_MAP, unit, unit || '')
 
 // ===== 入库记录 =====
 const inboundRecords = ref([])
