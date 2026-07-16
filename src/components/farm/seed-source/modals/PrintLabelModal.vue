@@ -9,6 +9,7 @@
     v-model="visible"
     title="标签打印与导出"
     width="1170px"
+    height="650px"
     top="5vh"
     :close-on-click-modal="false"
     v-dialog-draggable
@@ -275,7 +276,10 @@ const currentQrCodeValue = computed(() => previewLabel.value ? getQrCodeValue(pr
 const loadLabels = async () => {
   if (!props.record?.id) return
   try {
-    const res = await enhancedApiClient.get(`/seed-sources/${props.record.id}/labels`)
+    // V1.1 一致：走 usePlantLabelStore.loadLabels({seedSourceId})
+    const { usePlantLabelStore } = await import('@/stores/modules/plantLabel')
+    const plantLabelStore = usePlantLabelStore()
+    const res = await plantLabelStore.loadLabels({ seedSourceId: props.record.id })
     const labels = res?.data || res || []
     const numbers = (Array.isArray(labels) ? labels : []).map(l => l.labelCode || l.labelNumber || l.label_number)
     if (numbers.length > 0) {

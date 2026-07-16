@@ -168,7 +168,8 @@ const emit = defineEmits([
   'export-cancel', 'confirm-export', 'print-mode-change', 'confirm-print'
 ])
 
-const localPagination = ref({ current: 1, pageSize: 20, ...props.pagination })
+// V1.1 SeedSourcePage.tsx L86: pageSize=10（表格自身默认也对齐）
+const localPagination = ref({ current: 1, pageSize: 10, ...props.pagination })
 watch(() => props.pagination, (val) => { localPagination.value = { ...val } }, { deep: true })
 
 // 选中状态（使用 Set 实现 O(1) 查找，对齐 V1.1 selectedRows.includes）

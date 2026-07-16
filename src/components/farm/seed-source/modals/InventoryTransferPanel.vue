@@ -79,7 +79,7 @@
         style="width: 1100px"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column label="库存编号" prop="businessCode" min-width="140" show-overflow-tooltip />
+        <el-table-column label="库存编号" prop="instanceId" min-width="140" show-overflow-tooltip />
         <el-table-column label="类型" min-width="80">
           <template #default="{ row }">
             <el-tag size="small">{{ stockTypeLabel(row.stockType) }}</el-tag>
@@ -93,7 +93,7 @@
         <el-table-column label="形态" prop="productForm" min-width="80" show-overflow-tooltip />
         <el-table-column label="可用数量" min-width="100" align="right">
           <template #default="{ row }">
-            <span class="text-emerald-600 font-medium">{{ row.availableQuantity }} {{ row.unit }}</span>
+            <span class="text-emerald-600 font-medium">{{ row.currentQuantity }} {{ row.unit }}</span>
           </template>
         </el-table-column>
         <el-table-column label="调拨数量" min-width="160">
@@ -102,7 +102,7 @@
               :model-value="selectedMap.get(row.id)?.quantity || 0"
               @update:model-value="(v) => updateQuantity(row.id, v)"
               :min="0"
-              :max="row.availableQuantity"
+              :max="row.currentQuantity"
               :step="1"
               size="small"
               :disabled="!selectedIds.includes(row.id)"
@@ -154,7 +154,8 @@ import { ElMessage } from 'element-plus'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
 
 const props = defineProps({
-  mode: { type: String, default: 'append_existing' },
+  // V1.1: InventoryTransferPanel.tsx L94 默认 mode='create_new'
+  mode: { type: String, default: 'create_new' },
   targetSeedSourceId: { type: String, default: '' },
   targetCropName: { type: String, default: '' },
   targetCropVariety: { type: String, default: '' }
@@ -281,7 +282,7 @@ const handleSelectionChange = (selected) => {
   // 新增的行：默认 quantity = availableQuantity
   for (const row of selected) {
     if (!selectedMap.value.has(row.id)) {
-      selectedMap.value.set(row.id, { quantity: row.availableQuantity, unit: row.unit })
+      selectedMap.value.set(row.id, { quantity: row.currentQuantity, unit: row.unit })
     }
   }
   // 取消选中：从 Map 移除
@@ -313,7 +314,7 @@ const handleConfirm = () => {
       const sel = selectedMap.value.get(id)
       const stock = rows.value.find(r => r.id === id)
       if (!sel || sel.quantity <= 0) return null
-      if (sel.quantity > (stock?.availableQuantity || 0)) {
+      if (sel.quantity > (stock?.currentQuantity || 0)) {
         error.value = `调拨数量超出可用库存：${stock?.businessCode || id}`
         return null
       }

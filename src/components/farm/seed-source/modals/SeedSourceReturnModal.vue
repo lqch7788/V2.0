@@ -53,7 +53,12 @@
             <el-tag size="small">{{ stockTypeLabel(row.stockType) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="作物" prop="cropName" min-width="120" show-overflow-tooltip />
+        <!-- V1.1 1:1：列名"作物 / 品种"显示 cropName + cropVariety -->
+        <el-table-column label="作物 / 品种" min-width="160" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ [row.cropName, row.cropVariety].filter(Boolean).join(' / ') || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="仓库" prop="warehouseName" min-width="100" show-overflow-tooltip />
         <el-table-column label="原始数量" min-width="100" align="right">
           <template #default="{ row }">

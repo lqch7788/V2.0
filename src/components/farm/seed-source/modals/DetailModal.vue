@@ -8,7 +8,8 @@
   <el-dialog
     v-model="visible"
     title="种源详情"
-    width="1152px"
+    width="1350px"
+    height="700px"
     top="5vh"
     :close-on-click-modal="false"
     v-dialog-draggable

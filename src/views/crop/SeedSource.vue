@@ -284,8 +284,8 @@ const units = [
   { value: 'g', label: 'g' }
 ]
 
-// 分页
-const pagination = ref({ current: 1, pageSize: 20 })
+// 分页（V1.1 SeedSourcePage.tsx L86: pageSize=10）
+const pagination = ref({ current: 1, pageSize: 10 })
 
 // 选中行
 const selectedRows = ref([])
