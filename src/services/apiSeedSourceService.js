@@ -410,3 +410,22 @@ export async function getSeedSourceUsageRecords(seedSourceId) {
   const rows = await enhancedApiClient.get(`/seed-sources/${seedSourceId}/usage-records`)
   return Array.isArray(rows) ? rows : []
 }
+
+/**
+ * 获取某种源的入库历史（外购入库 + 库存调拨 + 追加入库 全流水）
+ * V1.1 源：V1.1/src/services/apiSeedSourceService.ts getSeedSourceInboundHistory
+ * 数据来源：GET /api/seed-sources/:id/history-inbound
+ *   查 inventory_inbound_records 表 WHERE (source_id=? AND source_module='seed_source') OR business_id=?
+ *   - 商品种源入库（SeedSourceInboundModal）→ inventoryInboundFromSource.service.ts 写 source_id=种源ID
+ *   - 调拨入种源（executeTransferToSource）→ 写 business_id=种源ID, source_module='inventory'
+ *   - 追加调拨入库（append-from-inventory）→ 写 business_id=种源ID, source_module='inventory'
+ * 三条入库路径都覆盖，详情弹窗能完整看到所有入库流水
+ * 错误直接抛给上层（V2.1 铁律：禁止吞错返回默认值）
+ * @param {string} seedSourceId
+ * @returns {Promise<Object[]>}
+ */
+export async function getSeedSourceInboundHistory(seedSourceId) {
+  if (!seedSourceId) return []
+  const rows = await enhancedApiClient.get(`/seed-sources/${seedSourceId}/history-inbound`)
+  return Array.isArray(rows) ? rows : []
+}

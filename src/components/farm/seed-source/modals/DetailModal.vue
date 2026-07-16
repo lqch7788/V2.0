@@ -1,13 +1,16 @@
 <!--
   种源详情弹窗 — V1.1 DetailModal.tsx 1:1 对齐版
-  V1.1 源文件：src/components/farm/seed-source/modals/DetailModal.tsx
-  V2.0 风格：el-dialog + el-tabs + el-descriptions（参考订单管理 DetailModal pattern）
-  4 Tab：基本信息 / 调拨来源（条件）/ 入库记录 / 使用记录
+  V1.1 源文件：D:\TMcrop\yuanxingtu\V1.1\src\components\farm\seed-source\modals\DetailModal.tsx
+
+  Tab 结构（V1.1 EntityDetailModal 风格）：
+  - 基本信息（始终显示，含模式 badge + 库存信息 + 其他信息）
+  - 调拨来源（条件显示，仅库存调拨入库的种源）
+  - 入库记录（始终显示，来自 inventory_inbound_records）
+  - 使用记录（始终显示，来自 GET /api/seed-sources/:id/usage-records）
 -->
 <template>
   <el-dialog
-    v-model="visible"
-    title="种源详情"
+    :model-value="visible"
     width="1350px"
     height="700px"
     top="5vh"
@@ -17,128 +20,241 @@
     v-dialog-maximizable
     @close="handleClose"
   >
+    <!-- 2026-07-15: 自定义绿色渐变 header（与 EditModal 一致） -->
     <template #header>
-      <div class="flex items-center gap-3 pr-12">
-        <span class="text-lg font-semibold">种源详情</span>
-        <!-- 入库模式 badge（对齐 V1.1 MODE_CONFIG） -->
-        <span
-          v-if="modeConfig"
-          :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-current', modeConfig.color]"
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-white">种源详情</h3>
+        <button
+          type="button"
+          class="text-white hover:bg-emerald-500 rounded p-1 transition-colors"
+          aria-label="关闭"
+          @click="handleClose"
         >
-          <el-icon :size="14"><component :is="modeConfig.icon" /></el-icon>
-          {{ modeConfig.label }}
-        </span>
+          <X :size="20" />
+        </button>
       </div>
     </template>
 
     <el-tabs v-model="activeTab" v-if="record">
-      <!-- Tab 1: 基本信息 -->
+      <!-- Tab 1: 基本信息（始终显示） -->
       <el-tab-pane label="基本信息" name="info">
-        <!-- 基本信息 -->
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="种源批号">
-            <span class="font-mono text-blue-600">{{ record.seedCode }}</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="作物编码">
-            <span class="font-mono text-orange-600">{{ record.cropCode || '—' }}</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="作物品种">
-            {{ record.cropName }}{{ record.cropVariety ? `（${record.cropVariety}）` : '' }}
-          </el-descriptions-item>
-          <el-descriptions-item label="品种路径">
-            {{ varietyPath }}
-          </el-descriptions-item>
-          <el-descriptions-item label="来源途径">
-            {{ sourceOriginLabel }}
-          </el-descriptions-item>
-          <el-descriptions-item label="形态">
-            {{ record.seedForm || '—' }}
-          </el-descriptions-item>
-        </el-descriptions>
+        <!-- P0-DETAIL-040：space-y-6 + h4 + 两列 flex grid（对齐 V1.1 SeedSourceBasicInfo） -->
+        <div class="space-y-6">
+          <!-- P0-DETAIL-008：模式 badge 在内容顶部（不是 header），16px，padding px-3 py-1.5 rounded-lg text-sm font-semibold 无边框 -->
+          <div v-if="modeConfig" :class="['inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold', modeConfig.color]">
+            <component :is="modeConfig.icon" :size="16" />
+            {{ modeConfig.label }}
+          </div>
 
-        <!-- 库存信息 -->
-        <el-descriptions :column="2" border class="mt-4" title="库存信息">
-          <el-descriptions-item label="入库日期">{{ record.purchaseDate || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="入库数量">
-            {{ record.quantity.toLocaleString() }} {{ formatUnit(record.unit) }}
-          </el-descriptions-item>
-          <template v-if="isExternal">
-            <el-descriptions-item label="单价">¥{{ record.unitPrice }}/{{ formatUnit(record.unit) }}</el-descriptions-item>
-            <el-descriptions-item label="总金额">¥{{ (record.totalAmount || 0).toLocaleString() }}</el-descriptions-item>
-            <el-descriptions-item label="供应商">{{ record.supplierName || '—' }}</el-descriptions-item>
-          </template>
-          <el-descriptions-item label="可用数量">
-            <span class="font-medium text-emerald-600">{{ record.availableCount.toLocaleString() }} {{ formatUnit(record.unit) }}</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="库存状态">
-            <el-tag :type="statusTagType" size="small">{{ statusLabel }}</el-tag>
-          </el-descriptions-item>
-        </el-descriptions>
+          <!-- 基本信息 -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">基本信息</h4>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">种源批号：</span>
+                <span class="text-sm font-mono text-blue-600">{{ record.seedCode }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">作物编码：</span>
+                <span class="text-sm font-mono text-orange-600">{{ record.cropCode || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">作物品种：</span>
+                <span class="text-sm text-gray-900">{{ record.cropName }}{{ record.cropVariety ? `（${record.cropVariety}）` : '' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">品种路径：</span>
+                <span class="text-sm text-gray-600">{{ varietyPath }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">来源途径：</span>
+                <!-- P0-DETAIL-006：SOURCE_ORIGIN_MAP[originKey]?.label -->
+                <span class="text-sm text-gray-900">{{ SOURCE_ORIGIN_MAP[originKey]?.label || modeConfig.label }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">形态：</span>
+                <span class="text-sm text-gray-900">{{ record.seedForm || '—' }}</span>
+              </div>
+            </div>
+          </div>
 
-        <!-- 种植留种信息（条件显示） -->
-        <el-descriptions v-if="isPlantingKept" :column="2" border class="mt-4" title="种植留种信息">
-          <el-descriptions-item label="关联种植">{{ record.linkedPlantingCode || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="世代">{{ record.generation || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="采收形态">{{ record.seedForm || '—' }}</el-descriptions-item>
-        </el-descriptions>
+          <!-- 库存信息 -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">库存信息</h4>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">入库日期：</span>
+                <span class="text-sm text-gray-900">{{ record.purchaseDate || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">入库数量：</span>
+                <!-- P0-DETAIL-005：UNIT_MAP -->
+                <span class="text-sm text-gray-900">{{ record.quantity.toLocaleString() }} {{ UNIT_MAP[record.unit] || record.unit }}</span>
+              </div>
+              <template v-if="isExternal">
+                <div class="flex items-center">
+                  <span class="text-sm text-gray-500 w-24">单价：</span>
+                  <span class="text-sm text-gray-900">¥{{ record.unitPrice }}/{{ UNIT_MAP[record.unit] || record.unit }}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="text-sm text-gray-500 w-24">总金额：</span>
+                  <span class="text-sm text-gray-900">¥{{ (record.totalAmount || 0).toLocaleString() }}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="text-sm text-gray-500 w-24">供应商：</span>
+                  <span class="text-sm text-gray-900">{{ record.supplierName || '—' }}</span>
+                </div>
+              </template>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">可用数量：</span>
+                <span class="text-sm font-medium text-emerald-600">{{ record.availableCount.toLocaleString() }} {{ UNIT_MAP[record.unit] || record.unit }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">库存状态：</span>
+                <!-- P0-DETAIL-007：status.color 直接渲染 -->
+                <span :class="['px-2 py-1 rounded text-xs font-medium', statusInfo.color]">{{ statusInfo.label }}</span>
+              </div>
+            </div>
+          </div>
 
-        <!-- 其他信息 -->
-        <el-descriptions :column="2" border class="mt-4" title="其他信息">
-          <el-descriptions-item label="创建人">{{ record.createBy || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ record.createTime }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ record.updateTime }}</el-descriptions-item>
-          <el-descriptions-item label="打印次数">{{ record.printCount || 0 }} 次</el-descriptions-item>
-          <el-descriptions-item v-if="record.remarks" label="备注" :span="2">{{ record.remarks }}</el-descriptions-item>
-        </el-descriptions>
+          <!-- 种植留种信息（条件显示） -->
+          <div v-if="isPlantingKept">
+            <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">种植留种信息</h4>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">关联种植：</span>
+                <span class="text-sm font-mono text-gray-900">{{ record.linkedPlantingCode || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">世代：</span>
+                <span class="text-sm text-gray-900">{{ record.generation || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">采收形态：</span>
+                <span class="text-sm text-gray-900">{{ record.seedForm || '—' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 其他信息 -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">其他信息</h4>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">创建人：</span>
+                <span class="text-sm text-gray-900">{{ record.createBy || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">创建时间：</span>
+                <span class="text-sm text-gray-900">{{ record.createTime }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">更新时间：</span>
+                <span class="text-sm text-gray-900">{{ record.updateTime }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-24">打印次数：</span>
+                <span class="text-sm text-gray-900">{{ record.printCount || 0 }} 次</span>
+              </div>
+              <div v-if="record.remarks" class="col-span-2 flex items-start">
+                <span class="text-sm text-gray-500 w-24 flex-shrink-0">备注：</span>
+                <span class="text-sm text-gray-900">{{ record.remarks }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </el-tab-pane>
 
       <!-- Tab 2: 调拨来源（条件显示） -->
       <el-tab-pane v-if="hasTransferSource" label="调拨来源" name="transfer-source">
-        <el-descriptions :column="2" border title="原库存信息">
-          <el-descriptions-item label="原库存 ID">
-            <code class="text-xs font-mono text-gray-700">{{ record.transferredFromStockId }}</code>
-          </el-descriptions-item>
-          <el-descriptions-item label="来源业务类型">{{ record.transferredFromBusinessType || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="来源业务 ID">
-            <code class="text-xs font-mono text-gray-700">{{ record.transferredFromBusinessId || '—' }}</code>
-          </el-descriptions-item>
-          <el-descriptions-item label="原始入库日期">{{ record.originalInboundDate || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="原始来源模块">{{ record.originalSourceModule || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="原始来源 ID">
-            <code class="text-xs font-mono text-gray-700">{{ record.originalSourceId || '—' }}</code>
-          </el-descriptions-item>
-        </el-descriptions>
-
-        <el-descriptions :column="2" border class="mt-4" title="作物 / 品种 / 价格">
-          <el-descriptions-item label="原始作物">{{ record.originalCropName || record.cropName || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="原始品种">{{ record.originalVarietyName || record.cropVariety || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="原始单位">{{ record.originalUnit || record.unit || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="原始单价">
-            {{ record.originalUnitPrice != null ? `¥${record.originalUnitPrice}` : '—' }}
-          </el-descriptions-item>
-          <el-descriptions-item label="原始供应商">{{ record.originalSupplierName || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="原始生产计划">
-            <code class="text-xs font-mono text-gray-700">{{ record.originalProductionPlanCode || '—' }}</code>
-          </el-descriptions-item>
-        </el-descriptions>
-
-        <el-alert
-          v-if="record.originalHarvestRecordId"
-          type="info"
-          :closable="false"
-          class="mt-4"
-        >
-          <strong>采收记录：</strong>
-          <code class="font-mono">{{ record.originalHarvestRecordId }}</code>
-          <span class="ml-2">（调拨前的入库来源）</span>
-        </el-alert>
+        <div class="space-y-6">
+          <div>
+            <!-- P0-DETAIL-045：调拨来源标题图标 ArrowLeftRight emerald -->
+            <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200 flex items-center gap-2">
+              <ArrowLeftRight :size="16" class="text-emerald-600" />
+              调拨来源（原库存信息）
+            </h4>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原库存 ID：</span>
+                <code class="text-xs font-mono text-gray-700">{{ record.transferredFromStockId }}</code>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">来源业务类型：</span>
+                <span class="text-sm text-gray-900">{{ record.transferredFromBusinessType || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">来源业务 ID：</span>
+                <code class="text-xs font-mono text-gray-700">{{ record.transferredFromBusinessId || '—' }}</code>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始入库日期：</span>
+                <span class="text-sm text-gray-900">{{ record.originalInboundDate || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始来源模块：</span>
+                <span class="text-sm text-gray-900">{{ record.originalSourceModule || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始来源 ID：</span>
+                <code class="text-xs font-mono text-gray-700">{{ record.originalSourceId || '—' }}</code>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">作物 / 品种 / 价格</h4>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始作物：</span>
+                <span class="text-sm text-gray-900">{{ record.originalCropName || record.cropName || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始品种：</span>
+                <span class="text-sm text-gray-900">{{ record.originalVarietyName || record.cropVariety || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始单位：</span>
+                <span class="text-sm text-gray-900">{{ record.originalUnit || record.unit || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始单价：</span>
+                <span class="text-sm text-gray-900">{{ record.originalUnitPrice != null ? `¥${record.originalUnitPrice}` : '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始供应商：</span>
+                <span class="text-sm text-gray-900">{{ record.originalSupplierName || '—' }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-gray-500 w-28">原始生产计划：</span>
+                <code class="text-xs font-mono text-gray-700">{{ record.originalProductionPlanCode || '—' }}</code>
+              </div>
+            </div>
+          </div>
+          <div v-if="record.originalHarvestRecordId" class="text-xs text-gray-500 bg-amber-50 border border-amber-200 rounded p-3">
+            <strong>采收记录：</strong>
+            <code class="font-mono">{{ record.originalHarvestRecordId }}</code>
+            <span class="ml-2">（调拨前的入库来源）</span>
+          </div>
+        </div>
       </el-tab-pane>
 
-      <!-- Tab 3: 入库记录（对齐 V1.1 InboundRecordsPanel） -->
+      <!-- Tab 3: 入库记录（始终显示） -->
       <el-tab-pane label="入库记录" name="inbound-records">
         <div v-if="inboundLoading" class="text-center py-8 text-gray-500">加载中…</div>
         <el-alert v-else-if="inboundError" :title="inboundError" type="error" :closable="false" show-icon class="mb-3" />
         <template v-else-if="inboundRecords.length > 0">
+          <!-- P0-DETAIL-013：先标题/导出按钮，再汇总条（V1.1 L484-486 L303-305 顺序） -->
+          <div class="flex items-center justify-between mb-3">
+            <!-- P0-DETAIL-045：标题 Package emerald 图标 -->
+            <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Package :size="16" class="text-emerald-600" />
+              入库记录（共 {{ inboundRecords.length }} 条）
+            </h4>
+            <el-button size="small" class="!bg-emerald-600 !hover:bg-emerald-700 !text-white" @click="exportInboundExcel">
+              <el-icon class="mr-1"><Download /></el-icon>导出 Excel
+            </el-button>
+          </div>
+
           <!-- 顶部汇总条 -->
           <div class="grid grid-cols-4 gap-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg mb-3">
             <div>
@@ -166,16 +282,6 @@
                 {{ inboundSummary.totalReturnable.toLocaleString() }} <span class="text-xs font-normal">{{ inboundSummary.unit }}</span>
               </div>
             </div>
-          </div>
-
-          <!-- 操作栏 -->
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              入库记录（共 {{ inboundRecords.length }} 条）
-            </h4>
-            <el-button size="small" class="!bg-emerald-600 !text-white" @click="exportInboundExcel">
-              <el-icon class="mr-1"><Download /></el-icon>导出 Excel
-            </el-button>
           </div>
 
           <!-- 表格 -->
@@ -233,17 +339,24 @@
             </table>
           </div>
         </template>
-        <el-empty v-else description="暂无入库记录" />
+        <!-- P0-DETAIL-015：空态用虚线边框文本块（不用 el-empty） -->
+        <div v-else class="text-center py-12 text-gray-500 border border-dashed border-gray-200 rounded-lg">
+          暂无入库记录
+        </div>
       </el-tab-pane>
 
-      <!-- Tab 4: 使用记录（对齐 V1.1 UsageRecordsPanel） -->
+      <!-- Tab 4: 使用记录（始终显示） -->
       <el-tab-pane label="使用记录" name="usage-records">
         <div v-if="usageLoading" class="text-center py-8 text-gray-500">加载中…</div>
         <el-alert v-else-if="usageError" :title="usageError" type="error" :closable="false" show-icon class="mb-3" />
         <template v-else-if="usageRecords.length > 0">
           <div class="flex items-center justify-between mb-3">
-            <h4 class="text-sm font-semibold text-gray-900">使用记录（共 {{ usageRecords.length }} 条）</h4>
-            <el-button size="small" class="!bg-emerald-600 !text-white" @click="exportUsageExcel">
+            <!-- P0-DETAIL-045：标题 MoveRight emerald 图标 -->
+            <h4 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <MoveRight :size="16" class="text-emerald-600" />
+              使用记录（共 {{ usageRecords.length }} 条）
+            </h4>
+            <el-button size="small" class="!bg-emerald-600 !hover:bg-emerald-700 !text-white" @click="exportUsageExcel">
               <el-icon class="mr-1"><Download /></el-icon>导出 Excel
             </el-button>
           </div>
@@ -286,12 +399,17 @@
             </table>
           </div>
         </template>
-        <el-empty v-else description="暂无使用记录" />
+        <!-- P0-DETAIL-015：空态用虚线边框文本块 -->
+        <div v-else class="text-center py-12 text-gray-500 border border-dashed border-gray-200 rounded-lg">
+          暂无使用记录
+        </div>
       </el-tab-pane>
     </el-tabs>
 
     <template #footer>
-      <el-button @click="handleClose">关闭</el-button>
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex justify-end">
+        <el-button @click="handleClose">关闭</el-button>
+      </div>
     </template>
   </el-dialog>
 </template>
@@ -299,37 +417,32 @@
 <script setup>
 /**
  * 种源详情弹窗 — V1.1 DetailModal.tsx 1:1 对齐
- * 使用 Element Plus 内置组件（el-dialog + el-tabs + el-descriptions）
- * 参考 V2.0 订单管理 DetailModal 的极简 pattern
+ * 4 Tab 结构：基本信息 / 调拨来源（条件）/ 入库记录 / 使用记录
  */
 import { ref, computed, watch, onMounted } from 'vue'
-import { Download, Shop, Sort, Sunny } from '@element-plus/icons-vue'
-import { enhancedApiClient } from '@/lib/apiClient'
-import { getSeedSourceUsageRecords } from '@/services/apiSeedSourceService'
-import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, computeStockStatus, safeLabel } from '@/constants/seedSourceDict'
+import { Download } from '@element-plus/icons-vue'
+import { ArrowLeftRight, MoveRight, Package, Sprout, Store } from 'lucide-vue-next'
+import { X } from 'lucide-vue-next'
+import { getSeedSourceUsageRecords, getSeedSourceInboundHistory } from '@/services/apiSeedSourceService'
+import { UNIT_MAP, SOURCE_ORIGIN_MAP, STOCK_STATUS_MAP, computeStockStatus } from '@/constants/seedSourceDict'
 import * as XLSX from 'xlsx'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
-  record: { type: Object, default: null }
+  // P0-DETAIL-018：nullable record 保护（默认空对象避免 undefined 访问崩溃）
+  record: { type: Object, default: () => ({}) }
 })
 const emit = defineEmits(['update:visible', 'close'])
 
-// v-model 兼容（对齐订单管理 DetailModal pattern）
-const visible = computed({
-  get: () => props.visible,
-  set: (v) => emit('update:visible', v)
-})
-
 const activeTab = ref('info')
 
-// ===== 入库模式配置（对齐 V1.1 MODE_CONFIG）=====
+// ===== 入库模式配置（对齐 V1.1 MODE_CONFIG L26-32） =====
 const MODE_CONFIG = {
-  planting_self_kept:      { label: '种植留种', color: 'text-green-700 bg-green-50 border-green-300', icon: Sunny },
-  inventory_transfer:      { label: '库存调拨', color: 'text-cyan-700 bg-cyan-50 border-cyan-300', icon: Sort },
-  transfer_from_inventory: { label: '库存调拨', color: 'text-cyan-700 bg-cyan-50 border-cyan-300', icon: Sort },
-  external_purchase:       { label: '外购入库', color: 'text-blue-700 bg-blue-50 border-blue-300', icon: Shop },
-  external:                { label: '外购入库', color: 'text-blue-700 bg-blue-50 border-blue-300', icon: Shop }
+  planting_self_kept:      { label: '种植留种', color: 'text-green-700 bg-green-50', icon: Sprout },
+  inventory_transfer:      { label: '库存调拨', color: 'text-cyan-700 bg-cyan-50', icon: ArrowLeftRight },
+  transfer_from_inventory: { label: '库存调拨', color: 'text-cyan-700 bg-cyan-50', icon: ArrowLeftRight },
+  external_purchase:       { label: '外购入库', color: 'text-blue-700 bg-blue-50', icon: Store },
+  external:                { label: '外购入库', color: 'text-blue-700 bg-blue-50', icon: Store }
 }
 
 const SOURCE_MODULE_MAP = {
@@ -352,20 +465,13 @@ const varietyPath = computed(() => {
   if (r.typeName && r.varietyName) return `${r.typeName} › ${r.varietyName}`
   return r.varietyName || r.typeName || '—'
 })
-const sourceOriginLabel = computed(() => {
-  if (!props.record) return ''
-  return safeLabel(SOURCE_ORIGIN_MAP, originKey.value, modeConfig.value.label)
-})
 
+// P0-DETAIL-007：状态色直接 status.color 渲染（不读 tagType）
 const statusInfo = computed(() => {
-  if (!props.record) return { label: '-', tagType: 'info' }
+  if (!props.record) return { label: '-', color: 'bg-gray-100 text-gray-800' }
   const key = computeStockStatus(props.record.availableCount, props.record.initialCount)
-  return { label: STOCK_STATUS_MAP[key]?.label || key, tagType: STOCK_STATUS_MAP[key]?.tagType || 'info' }
+  return STOCK_STATUS_MAP[key] || { label: key || '-', color: 'bg-gray-100 text-gray-800' }
 })
-const statusLabel = computed(() => statusInfo.value.label)
-const statusTagType = computed(() => statusInfo.value.tagType)
-
-const formatUnit = (unit) => safeLabel(SOURCE_TYPE_MAP, unit, unit || '')
 
 // ===== 入库记录 =====
 const inboundRecords = ref([])
@@ -381,14 +487,17 @@ const inboundSummary = computed(() => {
   return { totalOriginal, totalReturned, totalReturnable, unit, count: records.length }
 })
 
+// P0-DETAIL-041：改用 getSeedSourceInboundHistory service 函数
 const fetchInboundRecords = async () => {
   if (!props.record?.id) return
   inboundLoading.value = true
   inboundError.value = null
   try {
-    const data = await enhancedApiClient.get(`/seed-sources/${props.record.id}/history-inbound`)
-    inboundRecords.value = Array.isArray(data) ? data : (data?.data || [])
+    const data = await getSeedSourceInboundHistory(props.record.id)
+    inboundRecords.value = Array.isArray(data) ? data : []
   } catch (e) {
+    // P0-DETAIL-042：catch 加 console.error
+    console.error('[DetailModal] 入库记录加载失败:', e)
     inboundError.value = (e && e.message) || '加载失败'
   } finally {
     inboundLoading.value = false
@@ -408,6 +517,7 @@ const fetchUsageRecords = async () => {
     const data = await getSeedSourceUsageRecords(props.record.id)
     usageRecords.value = Array.isArray(data) ? data : []
   } catch (e) {
+    console.error('[DetailModal] 使用记录加载失败:', e)
     usageError.value = (e && e.message) || '加载失败'
   } finally {
     usageLoading.value = false
@@ -450,19 +560,32 @@ const exportUsageExcel = () => {
   XLSX.writeFile(wb, `使用记录_${todayLocal().replace(/-/g, '')}_${usageRecords.value.length}条.xlsx`)
 }
 
-// ===== 加载数据 =====
-const fetchAllData = () => {
-  fetchInboundRecords()
-  fetchUsageRecords()
-}
+// ===== 加载数据（按 Tab 激活懒加载，P0-DETAIL-043） =====
+// 监听 Tab 切换
+watch(activeTab, (val) => {
+  if (!props.record?.id) return
+  if (val === 'inbound-records' && inboundRecords.value.length === 0 && !inboundLoading.value) {
+    fetchInboundRecords()
+  }
+  if (val === 'usage-records' && usageRecords.value.length === 0 && !usageLoading.value) {
+    fetchUsageRecords()
+  }
+})
 
-watch(() => [props.visible, props.record?.id], ([visible, id]) => {
-  if (visible && id) {
-    fetchAllData()
+// 打开时加载基础 Tab 数据（info Tab 无需异步加载）
+watch(() => props.visible, (val) => {
+  if (val && props.record?.id) {
+    // 重置状态
+    inboundRecords.value = []
+    usageRecords.value = []
+    // 默认加载 info（无数据请求）
+    // 用户切换 Tab 时再加载对应数据
   }
 })
 
 onMounted(() => {
-  if (props.visible && props.record?.id) fetchAllData()
+  if (props.visible && props.record?.id) {
+    // 初次打开不在 onMounted 加载，按 Tab 切换懒加载
+  }
 })
 </script>

@@ -97,12 +97,17 @@
           </div>
         </div>
 
-        <!-- 来源途径（V1.1 L311-323） -->
+        <!-- 来源途径（V1.1 L302-315 DictSelect source_origin 等价硬编码） -->
         <div>
           <label class="text-gray-900 text-sm font-medium">来源途径</label>
           <el-select v-model="form.sourceOrigin" placeholder="选择来源途径" class="w-full">
             <el-option label="外部采购" value="external_purchase" />
             <el-option label="自产" value="self_produced" />
+            <el-option label="种植留种" value="planting_self_kept" />
+            <el-option label="库存调拨" value="inventory_transfer" />
+            <el-option label="调拨入种源" value="transfer_from_inventory" />
+            <el-option label="商品种源入库" value="seed_source" />
+            <el-option label="种苗入库" value="seedling" />
             <el-option label="其他" value="other" />
           </el-select>
           <p v-if="form.sourceOrigin === 'other'" class="mt-1 text-xs text-gray-400">请在备注中说明具体来源</p>
@@ -166,11 +171,18 @@
               {{ formatNumber(record?.quantity) }}
             </div>
             <el-select v-model="form.unit" placeholder="单位" class="w-full">
+              <el-option label="千克" value="千克" />
+              <el-option label="公斤" value="公斤" />
+              <el-option label="吨" value="吨" />
+              <el-option label="亩" value="亩" />
               <el-option label="粒" value="粒" />
               <el-option label="株" value="株" />
               <el-option label="kg" value="kg" />
               <el-option label="g" value="g" />
               <el-option label="袋" value="袋" />
+              <el-option label="包" value="包" />
+              <el-option label="箱" value="箱" />
+              <el-option label="盒" value="盒" />
             </el-select>
           </div>
           <div class="text-xs text-gray-500 mt-1">
@@ -539,8 +551,8 @@ const handleSubmit = async () => {
       totalAmount: form.value.unitPrice * (props.record?.quantity || 0),
       pictures: form.value.pictures,
       remarks: form.value.remarks,
-      // 2026-07-01 P0-6：传 updateBy 让后端记录操作人（V1.1 L207）
-      updateBy: currentUser.value?.realName || currentUser.value?.username || 'system',
+      // 2026-07-01 P0-6：传 updateBy 让后端记录操作人（V1.1 L198）
+      updateBy: currentUser.value?.name || 'system',
       // status 字段已废弃（2026-06-04，V1.1 L208）— 不传
       // 繁殖字段（V1.1 L209-226 P2 #9 修复）
       propagationType: form.value.propagationType,
