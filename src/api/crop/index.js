@@ -57,6 +57,82 @@ export function completePropagation(seedSourceId, quantity) {
   return post(`/seed-sources/${seedSourceId}/complete-propagation`, { quantity })
 }
 
+// 关键字搜索种源
+export function searchSeedSources(keyword) {
+  return get('/seed-sources/search', { keyword })
+}
+
+// 批量按 ID 获取种源
+export function getSeedSourcesByIds(ids) {
+  const idsStr = Array.isArray(ids) ? ids.join(',') : ids
+  return get('/seed-sources/batch', { ids: idsStr })
+}
+
+// 扣减可用库存
+export function decreaseAvailableCount(id, qty) {
+  return post(`/seed-sources/${id}/decrease-available`, { quantity: qty })
+}
+
+// 获取指定日期的最大批号流水号
+export function getTodayMaxSeedCodeSerial(date) {
+  return get('/seed-sources/max-serial', { date })
+}
+
+// 自动生成下一个种源批号
+export function generateSeedCode(date) {
+  return get('/seed-sources/generate-code', { date })
+}
+
+// 检查种源批号是否已存在
+export function checkSourceCodeExists(code) {
+  return get('/seed-sources/check-source-code', { code })
+}
+
+// 更新繁殖过程记录
+export function updatePropagationRecord(seedSourceId, recordId, data) {
+  return put(`/seed-sources/${seedSourceId}/propagation-records/${recordId}`, data)
+}
+
+// 删除繁殖过程记录
+export function deletePropagationRecord(seedSourceId, recordId) {
+  return del(`/seed-sources/${seedSourceId}/propagation-records/${recordId}`)
+}
+
+// 获取所有种源的繁殖过程记录
+export function getAllPropagationRecords(params) {
+  return get('/seed-sources/propagation-records', params)
+}
+
+// 打印标签（增加打印计数）
+export function printLabel(id, count, mode) {
+  return post(`/seed-sources/${id}/print`, { count, mode })
+}
+
+// 创建标签打印记录
+export function createPrintRecord(id, data) {
+  return post(`/seed-sources/${id}/print-records`, data)
+}
+
+// 获取标签打印记录
+export function getPrintRecords(id) {
+  return get(`/seed-sources/${id}/print-records`)
+}
+
+// 可用种源查询（按库存查找可调拨的）
+export function lookupAvailableSeedSources(params) {
+  return get('/seed-sources/lookup', params)
+}
+
+// 获取种源使用记录（被哪些播种/育苗引用）
+export function getSeedSourceUsageRecords(id) {
+  return get(`/seed-sources/${id}/usage-records`)
+}
+
+// 获取种源入库历史（采购/调拨入库明细）
+export function getSeedSourceInboundHistory(id) {
+  return get(`/seed-sources/${id}/inbound-records`)
+}
+
 // ========== 育苗管理 API ==========
 
 // 获取育苗列表
@@ -165,6 +241,21 @@ export const cropApi = {
   getPropagationRecords,
   updatePropagationStage,
   completePropagation,
+  searchSeedSources,
+  getSeedSourcesByIds,
+  decreaseAvailableCount,
+  getTodayMaxSeedCodeSerial,
+  generateSeedCode,
+  checkSourceCodeExists,
+  updatePropagationRecord,
+  deletePropagationRecord,
+  getAllPropagationRecords,
+  printLabel,
+  createPrintRecord,
+  getPrintRecords,
+  lookupAvailableSeedSources,
+  getSeedSourceUsageRecords,
+  getSeedSourceInboundHistory,
   // 育苗管理
   getSeedlingList,
   getSeedlingDetail,

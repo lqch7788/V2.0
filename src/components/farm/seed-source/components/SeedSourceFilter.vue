@@ -129,7 +129,7 @@
 
       <!-- 按钮行：重置、搜索 — ml-auto 推到最右，与 V1.1 一致 -->
       <div class="flex gap-2 items-end flex-shrink-0 ml-auto">
-        <el-button :icon="RefreshRight" @click="onReset" type="warning" plain>重置</el-button>
+        <el-button :icon="Refresh" @click="onReset" type="warning" plain>重置</el-button>
         <el-button :icon="Search" @click="onSearch">搜索</el-button>
       </div>
     </div>
@@ -146,7 +146,7 @@
  * 通过 <style scoped> + :deep() 把 Element Plus 默认 32px 的 el-input / el-select 强制对齐 V1.1 的 40px。
  */
 import { computed } from 'vue'
-import { Search, RefreshRight } from '@element-plus/icons-vue'
+import { Search, Refresh } from '@element-plus/icons-vue'
 import { SOURCE_ORIGINS, SOURCE_TYPES } from '@/constants/seedSourceDict'
 
 // Props（V1.1 SeedSourceFilterProps 1:1）
@@ -170,12 +170,36 @@ const dateRange = computed(() => {
   return []
 })
 
+/**
+ * 今日本地日期字符串（YYYY-MM-DD，避免时区漂移，与 V1.1 一致）
+ */
+const todayLocal = () => {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 const handleDateChange = (val) => {
   const [start, end] = val || []
+  const today = todayLocal()
+  // V1.1 时区归一化：保证日期字符串为 YYYY-MM-DD 且不会因为 UTC 漂移到下一天
+  const safeDate = (d) => {
+    if (!d) return ''
+    // 处理 Date 对象
+    if (d instanceof Date) {
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${y}-${m}-${day}`
+    }
+    return String(d)
+  }
   props.onChange({
     ...props.filters,
-    startDate: start || '',
-    endDate: end || ''
+    startDate: safeDate(start),
+    endDate: safeDate(end) || (start ? today : '')
   })
 }
 </script>

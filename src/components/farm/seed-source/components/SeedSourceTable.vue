@@ -13,6 +13,7 @@
       <h3 class="text-lg font-semibold text-gray-900">种源列表</h3>
       <div class="flex items-center gap-2">
         <template v-if="exportMode">
+          <el-button size="small" @click="onExportSelectAll">全选</el-button>
           <span class="text-sm text-gray-500 mr-2">已选择 {{ selectedRows.length }} 项</span>
           <el-button type="primary" :icon="Download" size="small" :disabled="selectedRows.length === 0" @click="onConfirmExport">确认导出</el-button>
           <el-button :icon="Close" size="small" @click="handleExportCancel">取消</el-button>
@@ -30,7 +31,7 @@
         <template v-else>
           <el-button v-if="canCreate && onAdd" type="primary" :icon="Plus" size="small" @click="onAdd">新增</el-button>
           <el-button v-if="canDelete" type="danger" :icon="Delete" size="small" @click="onOperationModeChange('delete')">删除</el-button>
-          <el-button v-if="canExport" type="success" :icon="Download" size="small" @click="onOperationModeChange('export')">导出</el-button>
+          <el-button v-if="canExport" class="sst-btn-export" :icon="Download" size="small" @click="onOperationModeChange('export')">导出</el-button>
           <el-button v-if="canPrint" :icon="Printer" size="small" class="sst-btn-print" @click="onPrintModeChange(true)">标签打印</el-button>
         </template>
       </div>
@@ -82,11 +83,11 @@
             <td class="sst-td">
               <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-xs rounded-full font-medium whitespace-nowrap">{{ truncateText(resolveForm(row)) }}</span>
             </td>
-            <td class="sst-td" :title="safeLabel(SOURCE_ORIGIN_MAP, row.sourceOrigin, '其他')">{{ truncateText(safeLabel(SOURCE_ORIGIN_MAP, row.sourceOrigin, '其他')) }}</td>
+            <td class="sst-td" :title="SOURCE_ORIGIN_MAP[row.sourceOrigin]?.label || row.sourceOrigin">{{ truncateText(SOURCE_ORIGIN_MAP[row.sourceOrigin]?.label || row.sourceOrigin) }}</td>
             <td class="sst-td" :title="row.supplierName || undefined">{{ truncateText(row.supplierName) }}</td>
             <td class="sst-td" :title="row.purchaseDate || row.createTime">{{ truncateText(row.purchaseDate || row.createTime) }}</td>
-            <td class="sst-td sst-num" title="种源入库数量">{{ row.quantity?.toLocaleString() ?? row.initialCount.toLocaleString() }}</td>
-            <td class="sst-td sst-num">{{ row.availableCount.toLocaleString() }}</td>
+            <td class="sst-td sst-num" title="种源入库数量（采购/调拨一次性入库）">{{ row.quantity?.toLocaleString() ?? row.initialCount.toLocaleString() }}</td>
+            <td class="sst-td sst-num" title="当前可用库存 = 入库数量 - 已使用">{{ row.availableCount.toLocaleString() }}</td>
             <td class="sst-td sst-center">{{ formatUnit(row.unit) || '-' }}</td>
             <td class="sst-td">
               <span class="px-2 py-1 rounded-full text-xs font-medium" :class="STOCK_STATUS_MAP[computeStockStatus(row.availableCount, row.initialCount)]?.color || ''">
@@ -142,7 +143,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { Plus, Delete, Download, Printer, Close } from '@element-plus/icons-vue'
 // 操作列图标 1:1 对齐 V1.1 lucide-react 图标（Tag / Edit2 / ArrowLeftRight / Undo2）
 import { Tag, Edit2, ArrowLeftRight, Undo2 } from 'lucide-vue-next'
-import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, computeStockStatus, safeLabel } from '@/constants/seedSourceDict'
+import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, UNIT_MAP, computeStockStatus, safeLabel } from '@/constants/seedSourceDict'
 import { getAllVarieties } from '@/services/cropVarietyService'
 import { ElMessage } from 'element-plus'
 
@@ -165,7 +166,8 @@ const emit = defineEmits([
   'update:pagination', 'update:selected-rows', 'selection-change',
   'add', 'edit', 'detail', 'delete', 'print', 'image-click',
   'transfer', 'return', 'label-manage', 'operation-mode-change',
-  'export-cancel', 'confirm-export', 'print-mode-change', 'confirm-print'
+  'export-cancel', 'confirm-export', 'print-mode-change', 'confirm-print',
+  'export-select-all'
 ])
 
 // V1.1 SeedSourcePage.tsx L86: pageSize=10（表格自身默认也对齐）
@@ -212,10 +214,14 @@ const getStandardCropCode = (record) => getVarietyByAny(record)?.cropCode || rec
 const getCropVarietyName = (record) => { const v = getVarietyByAny(record); return v ? (v.subVariety1Name || v.varietyName || record.cropName || '') : (record.cropVariety || record.cropName || '') }
 const resolveForm = (record) => {
   // 优先 seedForm（V1.1 已是中文：种子/种苗/花朵/枝条/其他），其次 sourceType
-  if (record.seedForm) return record.seedForm
-  return safeLabel(SOURCE_TYPE_MAP, record.sourceType, '其他')
+  // 返回中文 label 字符串以兼容 truncateText 调用
+  const sf = record.seedForm
+  if (sf && SOURCE_TYPE_MAP[sf]) return SOURCE_TYPE_MAP[sf].label || sf
+  const st = record.sourceType
+  if (st && SOURCE_TYPE_MAP[st]) return SOURCE_TYPE_MAP[st].label || st
+  return '其他'
 }
-const formatUnit = (unit) => safeLabel(SOURCE_TYPE_MAP, unit, unit || '')
+const formatUnit = (unit) => UNIT_MAP[unit] || unit || ''
 const truncateText = (text, maxLen = 16) => { if (text == null || text === '') return '-'; const s = String(text); return s.length <= maxLen ? s : `${s.slice(0, maxLen)}…` }
 
 const showCheckbox = computed(() => props.operationMode !== 'normal' || props.exportMode || props.printMode)
@@ -237,7 +243,19 @@ const cancelPrintMode = () => { emit('print-mode-change', false); emit('update:s
 const confirmPrint = () => { if (props.selectedRows.length === 0) { ElMessage.warning('请先选择要打印的记录'); return } emit('confirm-print', props.data.filter(item => props.selectedRows.includes(item.id))); emit('print-mode-change', false); emit('update:selected-rows', []) }
 const handleExportCancel = () => { emit('export-cancel'); emit('update:selected-rows', []) }
 const onAdd = () => emit('add')
-const onEdit = (row) => emit('edit', row)
+const onEdit = (row) => {
+  // V1.1 L218-246：多选编辑时，仅取第一条进行编辑
+  if (Array.isArray(row)) {
+    const first = getFirstSelectedRecord(row)
+    if (!first) {
+      ElMessage.warning('请选择一条记录进行编辑')
+      return
+    }
+    emit('edit', first)
+    return
+  }
+  emit('edit', row)
+}
 const onDetail = (row) => emit('detail', row)
 const onDelete = (ids) => emit('delete', ids)
 const onTransfer = (row) => emit('transfer', row)
@@ -246,6 +264,32 @@ const onLabelManage = (row) => emit('label-manage', row)
 const onConfirmExport = () => emit('confirm-export')
 const onOperationModeChange = (mode) => emit('operation-mode-change', mode)
 const onPrintModeChange = (val) => emit('print-mode-change', val)
+const onExportSelectAll = () => emit('export-select-all')
+
+/**
+ * 多选编辑时获取第一条选中的记录（V1.1 SeedSourceTable.tsx L218-226 兼容）
+ * @param {Array|string} ids - 选中的 id 数组或单条 id
+ * @returns {Object|null}
+ */
+const getFirstSelectedRecord = (ids) => {
+  if (!Array.isArray(ids) || ids.length === 0) return null
+  const firstId = ids[0]
+  return props.data.find(r => r.id === firstId) || null
+}
+
+/**
+ * 批量操作执行器（V1.1 L228-246）：多选时给出提示；单选时正常执行
+ * @param {Object} row - 单条记录
+ * @param {string} action - 'edit' | 'detail' | 'transfer' | 'return' | 'label-manage' 等
+ */
+const executeOperation = (row, action) => {
+  if (Array.isArray(row) && row.length > 1) {
+    ElMessage.warning(`批量 ${action} 仅支持单条操作，已选择 ${row.length} 条，请重新选择 1 条`)
+    return false
+  }
+  emit(action, Array.isArray(row) ? row[0] : row)
+  return true
+}
 </script>
 
 <style scoped>
@@ -347,6 +391,18 @@ const onPrintModeChange = (val) => emit('print-mode-change', val)
 .sst-btn-print:hover {
   background-color: #7e22ce !important;
   border-color: #7e22ce !important;
+  color: #ffffff !important;
+}
+
+/* ===== 顶部按钮：导出 1:1 对齐 V1.1 variant="blue" ===== */
+.sst-btn-export {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+.sst-btn-export:hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 </style>

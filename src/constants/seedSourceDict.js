@@ -89,11 +89,20 @@ export const StockStatus = {
 export const LOW_THRESHOLD_RATIO = 0.2
 
 export function computeStockStatus(availableCount, initialCount) {
-  if (initialCount === 0 || initialCount == null) return 'depleted'
+  // V1.1 风格：未入库或初始数为 0 → 视为"充足"（无库存可消耗）
+  if (!initialCount || initialCount <= 0) return 'sufficient'
   const ratio = availableCount / initialCount
   if (ratio === 0) return 'depleted'
   if (ratio < LOW_THRESHOLD_RATIO) return 'low'
   return 'sufficient'
+}
+
+// 单位字典（SeedSourceTable 形态列/单位列共用）
+export const UNIT_MAP = {
+  seed: '粒', seedling: '株', cutting: '株', grafting: '株',
+  tissue_culture: '株', split: '株', bulb: '球',
+  transfer: '袋', external_seed: '袋', seedling_split: '株',
+  other: ''
 }
 
 /**

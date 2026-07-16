@@ -13,13 +13,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
-            <el-icon :size="24" class="text-white">
-              <!-- V1.1: 锁形图标（包/package 变体） -->
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            </el-icon>
+            <Package :size="24" class="text-white" />
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">内部种源</h1>
@@ -70,6 +64,7 @@
       @confirm-print="handlePrintConfirm"
       @export-cancel="handleExportCancel"
       @confirm-export="handleExportClickConfirm"
+      @export-select-all="handleExportSelectAll"
     />
 
     <!-- 弹窗 -->
@@ -198,7 +193,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Goods } from '@element-plus/icons-vue'
-import { X } from 'lucide-vue-next'
+import { Package, X } from 'lucide-vue-next'
 
 import SeedSourceFilter from '@/components/farm/seed-source/components/SeedSourceFilter.vue'
 import SeedSourceTable from '@/components/farm/seed-source/components/SeedSourceTable.vue'
@@ -216,6 +211,7 @@ import DeleteConfirmModal from '@/components/common/DeleteWarningModal.vue'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import { useUserStore } from '@/stores/modules/user'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
+import { exportCsv, exportXlsx } from '@/services/exporters'
 import { computeStockStatus, seedSourceStatusOptions, SOURCE_ORIGINS, SOURCE_TYPES, StockStatus } from '@/constants/seedSourceDict'
 
 // 简易 toast 包装（V2.0 直接用 ElMessage）
@@ -363,8 +359,14 @@ const filteredData = computed(() => {
   if (f.surplusMax !== undefined && f.surplusMax !== null) {
     data = data.filter(item => (item.availableCount || 0) <= f.surplusMax)
   }
+  if (f.cropCategory) data = data.filter(item => item.cropCategory === f.cropCategory)
+  if (f.cropType) data = data.filter(item => (item.cropType || '') === f.cropType)
+  if (f.recorderId) data = data.filter(item => (item.createBy || '').includes(f.recorderId))
+  if (f.propagationType) data = data.filter(item => item.propagationType === f.propagationType)
+  if (f.propagationStatus) data = data.filter(item => item.propagationStatus === f.propagationStatus)
 
-  return data
+  // createTime 倒序（最新在前，与 V1.1 一致）
+  return [...data].sort((a, b) => (b.createTime || '').localeCompare(a.createTime || ''))
 })
 
 // 加载数据
@@ -620,29 +622,13 @@ const handleConfirmExport = async () => {
       const today = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
       XLSX.writeFile(wb, `内部种源_${today}.xlsx`)
     } else if (exportFormat.value === 'csv') {
-      // CSV 导出（带 BOM 保证中文）
-      const content = headers.join(',') + '\n' + exportData.map(row =>
-        headers.map(h => {
-          const val = row[h] ?? ''
-          return `"${typeof val === 'string' ? val.replace(/"/g, '""') : val}"`
-        }).join(',')
-      ).join('\n')
-      const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
+      // CSV 导出（用公共函数，含 BOM 保证中文）
       const todayCsv = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
-      a.download = `内部种源_${todayCsv}.csv`
-      a.click()
-      URL.revokeObjectURL(url)
+      exportCsv(exportData, headers, `内部种源_${todayCsv}.csv`)
     } else {
-      // xls fallback（HTML 假装 xls）
-      const XLSX = await import('xlsx')
-      const ws = XLSX.utils.json_to_sheet(exportData, { header: headers })
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, '种源记录')
+      // xls fallback（用公共函数，HTML 假装 xls）
       const todayXls = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
-      XLSX.writeFile(wb, `内部种源_${todayXls}.xls`)
+      exportXlsx(exportData, headers, `内部种源_${todayXls}.xls`)
     }
     toast.success('导出成功')
   } catch (err) {
@@ -655,7 +641,7 @@ const handleConfirmExport = async () => {
   showExportModal.value = false
 }
 
-// 删除流程（含引用检查 + 用户选择"删可删的"或"取消"，V1.1 风格）
+// 删除流程（V2.0 简化版：直接调 store.deleteItems，由服务端做引用检查并返回 409 → throw）
 const handleDelete = (ids) => {
   if (!ids || ids.length === 0) {
     ElMessage.warning('请先选择要删除的记录')
@@ -668,79 +654,20 @@ const handleDelete = (ids) => {
 const handleDeleteConfirm = async () => {
   const ids = [...selectedRows.value]
   if (ids.length === 0) return
-
-  // 1. 全部预检
-  const deletable = []
-  const conflicted = []
-  const errored = []
-
-  for (const id of ids) {
-    try {
-      const res = await seedSourceStore.checkDeletable(id)
-      if (res.deletable) {
-        deletable.push(id)
-      } else {
-        conflicted.push({ id, references: res.references })
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      errored.push({ id, error: msg })
-      deletable.push(id) // 检查失败允许继续删除
-    }
-  }
-
-  // 2. 全部可删
-  if (conflicted.length === 0) {
-    showDeleteModal.value = false
-    try {
-      await seedSourceStore.deleteItems(deletable)
-      selectedRows.value = []
-      if (errored.length > 0) {
-        toast.warning(`已删除 ${deletable.length} 个种源（${errored.length} 个引用检查失败，已强行删除）`)
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      await ElMessageBox.alert(`删除失败：${msg}`, '错误', { type: 'error' })
-    }
-    return
-  }
-
-  // 3. 有冲突
-  const sections = conflicted.map(c => {
-    const refCount = c.references.length
-    const refSummary = c.references.slice(0, 3).map(r => r.targetCode || r.targetId || r.code).join('、')
-    return `• 种源 [${c.id}] 被 ${refCount} 条引用：${refSummary}${c.references.length > 3 ? '…' : ''}`
-  })
-
-  try {
-    await ElMessageBox.confirm(
-      `⚠️ 批量删除检测：\n\n` +
-      `• 可删除：${deletable.length} 个\n` +
-      `• 有冲突：${conflicted.length} 个（详见下方）\n` +
-      (errored.length > 0 ? `• 检查失败：${errored.length} 个（将强行删除）\n` : '') +
-      `\n${sections.join('\n')}\n\n` +
-      `点击「确定」删除可删除的 ${deletable.length} 个，跳过有冲突的。\n` +
-      `点击「取消」放弃全部删除。`,
-      '确认删除',
-      { type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' }
-    )
-  } catch {
-    return
-  }
-
   showDeleteModal.value = false
-  if (deletable.length === 0) {
-    toast.warning(`全部 ${conflicted.length} 个都有冲突，未删除任何记录`)
-    return
-  }
   try {
-    await seedSourceStore.deleteItems(deletable)
+    await seedSourceStore.deleteItems(ids)
     selectedRows.value = []
-    toast.success(`已删除 ${deletable.length} 个，跳过 ${conflicted.length} 个有冲突的`)
+    toast.success(`已删除 ${ids.length} 条种源记录`)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    await ElMessageBox.alert(`删除失败：${msg}`, '错误', { type: 'error' })
+    toast.error(`删除失败：${msg}`)
   }
+}
+
+// 全选当前过滤结果（导出模式用）
+const handleExportSelectAll = () => {
+  selectedRows.value = filteredData.value.map(item => item.id)
 }
 
 // 监听 store error
