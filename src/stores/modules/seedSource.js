@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import * as api from '@/api/crop'
 import { enhancedApiClient } from '@/lib/apiClient'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
-import { useInventoryStore } from '@/stores/modules/inventory'
+import { useCropInventoryStore } from '@/stores/modules/inventory/useCropInventoryStore'
 
 /**
  * 种源 Pinia Store（V1.1 → V2.0 迁移版）
@@ -265,7 +265,7 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     // 创建后刷新列表（当前页 + 跨页通知 inventory 刷新）
     await loadItems()
     try {
-      const inventoryStore = useInventoryStore()
+      const inventoryStore = useCropInventoryStore()
       if (inventoryStore && typeof inventoryStore.notifyChange === 'function') {
         inventoryStore.notifyChange()
       }
