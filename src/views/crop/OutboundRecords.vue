@@ -490,11 +490,11 @@ const OUTBOUND_BUSINESS_TYPE_META = {
 const businessTypeOptions = Object.entries(OUTBOUND_BUSINESS_TYPE_META)
   .map(([value, meta]) => ({ value, label: meta.label }))
 
-/** 库存类型标签映射 */
+/** 库存类型标签映射 — 深色底色 + 白色文字（保证可读性） */
 const STOCK_TYPE_LABEL_MAP = {
-  seed: { label: '种源', color: 'bg-amber-500' },
-  seedling: { label: '种苗', color: 'bg-green-500' },
-  product: { label: '成品', color: 'bg-emerald-500' },
+  seed: { label: '种源', color: 'bg-amber-700' },
+  seedling: { label: '种苗', color: 'bg-green-700' },
+  product: { label: '成品', color: 'bg-emerald-700' },
 }
 
 /** 品质等级映射 */
