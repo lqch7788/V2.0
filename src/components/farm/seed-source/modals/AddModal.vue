@@ -18,14 +18,14 @@
     v-dialog-maximizable
     :model-value="visible"
     width="1170px"
+    height="780px"
     top="5vh"
     :close-on-click-modal="true"
-    @update:model-value="(v) => !v && handleClose()"
     @close="handleClose"
   >
     <template #header>
       <!-- V1.1 V3.4：渐变 header（emerald-500 → emerald-600）+ 白色文字（参考 V1.1 UnifiedModal header 风格） -->
-      <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 -m-4 px-6 py-3 flex items-center justify-between rounded-t-lg">
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -m-4 px-6 py-3 flex items-center justify-between rounded-t-xl">
         <h3 class="text-lg font-semibold text-white">新增种源</h3>
         <el-button link @click="handleClose" style="color: white;">
           <el-icon :size="20"><Close /></el-icon>
@@ -47,15 +47,15 @@
           <label class="text-gray-900 text-sm font-medium">入库方式</label>
           <!-- V1.1 V3.4：取消外购入库选项，仅保留库存调拨 -->
           <div class="grid grid-cols-1 gap-2">
-            <div
+            <el-button
               v-for="opt in propagationOptions"
               :key="opt.value"
               @click="handlePropagationTypeChange(opt.value)"
               :class="[
-                'p-2 border-2 cursor-pointer rounded-lg text-left transition-all',
+                'p-2 border-2 rounded-lg text-left w-full h-auto justify-start transition-all',
                 form.propagationType === opt.value
-                  ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-200'
-                  : 'border-gray-200 bg-white hover:border-gray-400'
+                  ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-200 hover:bg-emerald-50'
+                  : 'border-gray-200 bg-white hover:border-gray-400 hover:bg-white'
               ]"
             >
               <div class="flex items-center gap-1.5">
@@ -65,7 +65,7 @@
                 <span class="text-sm font-medium text-gray-900">{{ opt.label }}</span>
                 <span class="text-xs text-gray-400">· {{ opt.desc }}</span>
               </div>
-            </div>
+            </el-button>
           </div>
         </div>
 
@@ -116,8 +116,8 @@
     </el-form>
 
     <template #footer>
-      <!-- 2026-07-07 V3.4：库存调拨模式下隐藏底部保存按钮（已在调拨面板的"确认调拨"自动提交） -->
-      <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+      <!-- 2026-07-07 V3.4：库存调拨模式下隐藏底部 footer（V1.1 showFooter=false，V2.0 1:1 对齐） -->
+      <div v-if="false" class="px-6 py-3 border-t border-gray-200 flex items-center justify-between">
         <span class="text-xs text-gray-400">种源仅支持"库存调拨"入库方式</span>
         <div class="flex gap-3">
           <el-button @click="handleClose" :disabled="submitting">取消</el-button>
@@ -129,8 +129,9 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Close, Refresh, ShoppingCart } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Close, Refresh } from '@element-plus/icons-vue'
+import { ArrowLeftRight } from 'lucide-vue-next'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import { useUserStore } from '@/stores/modules/user'
 import { generateSeedCode } from '@/services/apiSeedSourceService'
@@ -143,18 +144,25 @@ const propagationOptions = [
     value: 'transfer_from_inventory',
     label: '库存调拨',
     desc: '从作物库存调入',
-    icon: ShoppingCart
+    icon: ArrowLeftRight
   }
 ]
 
 const props = defineProps({
-  visible: { type: Boolean, default: false }
+  visible: { type: Boolean, default: false },
+  units: { type: Array, default: () => [] }
 })
 const emit = defineEmits(['update:visible', 'close', 'success'])
 
 // Stores
 const seedSourceStore = useSeedSourceStore()
 const userStore = useUserStore()
+
+// 本地日期工具（V1.1 todayLocal 等价）
+const todayLocal = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 // State
 const submitting = ref(false)
@@ -171,24 +179,25 @@ const form = ref({
   sourceOrigin: 'inventory_transfer'
 })
 
-// 当前用户（操作人）—— 对齐 V1.1 L56-77 currentUser 推导逻辑
+// 当前用户（操作人）—— 对齐 V1.1 L55-73 currentUser 推导逻辑
+// V1.1 useAuthStore.currentUser 等价于 V2.0 useUserStore().userInfo
 const currentUser = computed(() => {
-  // V2.0 当前激活用户（useUserStore 暴露为 userInfo / 直接 currentUser 字段）
-  const u = userStore.userInfo || userStore.currentUser
+  // V2.0 当前激活用户（userInfo 字段）
+  const u = userStore.userInfo
   if (u) {
     return {
-      id: u.oid || u.id,
+      id: u.id || u.oid,
       name: u.realName || u.username || '',
-      department: u.orgOid || u.department || '生产部',
+      department: u.department || u.orgOid || '生产部',
     }
   }
   // 兜底：用 users 列表第一项（演示模式）
   if (userStore.users && userStore.users.length > 0) {
     const first = userStore.users[0]
     return {
-      id: first.oid || first.id,
+      id: first.id || first.oid,
       name: first.realName || first.name || first.username || '',
-      department: first.orgOid || first.department || '生产部',
+      department: first.department || first.orgOid || '生产部',
     }
   }
   // P1-8：auth + users 都拿不到时直接拒绝
@@ -210,32 +219,29 @@ const handlePropagationTypeChange = (value) => {
   submitError.value = ''
 }
 
-// 生成种源批号（V1.1 L223-234 对齐：调用服务端 generateSeedCode）
+// 生成种源批号（V1.1 L218-225 对齐：调用服务端 generateSeedCode）
 const handleGenerateSeedCode = async () => {
+  // V1.1：日期源 = formData.purchaseDate || todayLocal()（V1.1 L222）
   // 2026-07-06 fix（来自 V1.1）：用本地日期避免 UTC 时区差（中国早上 0:00-8:00 UTC 还是昨天）
-  const dateStr = (() => {
-    const d = new Date()
-    return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
-  })()
+  const dateStr = (form.value.purchaseDate || todayLocal()).replace(/-/g, '')
   generatingSeedCode.value = true
   try {
     const newCode = await generateSeedCode(dateStr)
-    if (!newCode) {
-      ElMessage.error('生成种源批号失败')
-      return
-    }
+    // V1.1：成功直接赋值（生成失败由 service 抛错，alert 弹窗显示）
     form.value.seedCode = newCode
     showSeedCodeWarn.value = false
   } catch (e) {
-    ElMessage.error(e instanceof Error ? `生成失败：${e.message}` : '生成种源批号失败')
+    // V1.1：失败 throw 让 alert 显示
+    await ElMessageBox.alert(e instanceof Error ? `生成失败：${e.message}` : '生成种源批号失败', '错误', { type: 'error' })
+    throw e
   } finally {
     generatingSeedCode.value = false
   }
 }
 
 // 关闭弹窗
+// V1.1 P0-2 修复：删除 submitting 守卫（finally 中已重置，submitting 不会阻塞 close）
 const handleClose = () => {
-  if (submitting.value) return
   emit('update:visible', false)
   emit('close')
   resetForm()
@@ -264,21 +270,13 @@ const handleSubmit = async (overrideItems) => {
     return
   }
 
-  // V1.1：库存调拨分支 — 完全独立的提交路径
+  // V1.1：库存调拨分支 — 完全独立的提交路径（V1.1 L235-259）
   if (form.value.propagationType === 'transfer_from_inventory') {
-    // V1.1 seedCode 校验（V3.4 调拨模式下也要求 seedCode 必填，保持与 V1.1 一致）
-    if (!form.value.seedCode) {
-      showSeedCodeWarn.value = true
-      submitError.value = '请先生成种源批号'
-      ElMessage.warning(submitError.value)
-      return
-    }
-
     // V1.1 P0-3 修复：接受 overrideItems 参数，避免 React state 闭包过期问题
     const items = overrideItems ?? transferItems.value
     if (items.length === 0) {
       submitError.value = '请先在调拨面板选择至少 1 条库存'
-      ElMessage.warning(submitError.value)
+      await ElMessageBox.alert(submitError.value, '提示', { type: 'warning' })
       return
     }
 
@@ -295,8 +293,11 @@ const handleSubmit = async (overrideItems) => {
       const results = await seedSourceStore.createFromTransfer(items, operator)
       const list = Array.isArray(results) ? results : []
 
-      ElMessage.success(
+      // V1.1 L244-248：阻塞式 alert（ElMessageBox.alert）展示成功结果
+      await ElMessageBox.alert(
         `调拨成功！共生成 ${list.length} 条新种源：\n${list.map((r) => r.newSeedSourceCode).join('\n')}`,
+        '成功',
+        { type: 'success' }
       )
       transferItems.value = []
       // V1.1 P1-4：调拨成功后重置表单，避免重开 modal 见脏数据
@@ -304,10 +305,10 @@ const handleSubmit = async (overrideItems) => {
       emit('success')
       handleClose()
     } catch (err) {
-      // V1.1 L264-266：明确错误处理 + showAlert
+      // V1.1 L254-257：明确错误处理 + alert 弹窗
       const msg = err instanceof Error ? err.message : '调拨失败'
       submitError.value = `调拨失败：${msg}`
-      ElMessage.error(submitError.value)
+      await ElMessageBox.alert(submitError.value, '错误', { type: 'error' })
     } finally {
       submitting.value = false
     }

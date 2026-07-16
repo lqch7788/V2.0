@@ -11,7 +11,7 @@
         模式：退库到原作物库存（严格 1:1 关联调拨流水）
       </span>
       <span class="px-2 py-1 rounded-md border border-gray-300 text-xs text-gray-700">
-        共 {{ rows.length }} 条可退流水
+        {{ loading ? '加载中…' : `共 ${rows.length} 条可退流水` }}
       </span>
       <span v-if="selectedCount > 0" class="px-2 py-1 rounded-md bg-emerald-500 text-white text-xs">
         已选 {{ selectedCount }} 条
@@ -102,11 +102,11 @@
           已选 <strong class="text-emerald-600">{{ selectedCount }}</strong> 条
         </span>
         <span v-for="(qty, unit) in totalQuantityByUnit" :key="unit" class="px-2 py-0.5 border border-gray-300 rounded text-xs">
-          {{ qty }} {{ unit }}
+          {{ qty.toFixed(2) }} {{ unit }}
         </span>
       </div>
       <el-button class="bg-amber-600 hover:bg-amber-700 text-white border-amber-600" :disabled="!canConfirm" :loading="submitting" @click="handleConfirm">
-        确认退库{{ selectedCount > 0 ? ` (${selectedCount})` : '' }}
+        <el-icon><Undo2 /></el-icon>确认退库{{ selectedCount > 0 ? ` (${selectedCount})` : '' }}
       </el-button>
     </div>
   </div>
@@ -115,6 +115,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Undo2 } from '@element-plus/icons-vue'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
 
 const props = defineProps({
@@ -154,7 +155,7 @@ const totalQuantityByUnit = computed(() => {
 })
 
 const stockTypeLabel = (type) => {
-  const map = { seed: '种子', seedling: '种苗', product: '产品' }
+  const map = { seed: '种源', seedling: '种苗', product: '成品' }
   return map[type] || type
 }
 
@@ -207,19 +208,30 @@ const handleConfirm = () => {
     ElMessage.warning('单次最多退库 100 条')
     return
   }
+  // P0-F-RETURN-01：聚合所有错误，不静默跳过
   const items = []
+  const errors = []
   for (const id of selectedIds.value) {
     const sel = selectedMap.value.get(id)
-    if (!sel || sel.quantity <= 0) continue
-    if (isOverLimitById(id)) {
-      error.value = '退库数量超出可退范围'
-      return
+    const row = rows.value.find(r => r.id === id)
+    if (!sel || sel.quantity <= 0) {
+      errors.push(`${row?.sourceCode || id}: 退库数量必须大于 0`)
+      continue
+    }
+    const max = row?.returnableQuantity || ((row?.quantity || 0) - (row?.returnedQuantity || 0))
+    if (sel.quantity > max) {
+      errors.push(`${row?.sourceCode || id}: 退库 ${sel.quantity} 超过可退 ${max}`)
+      continue
     }
     items.push({
       inboundRecordId: id,
       quantity: sel.quantity,
       unit: sel.unit
     })
+  }
+  if (errors.length > 0) {
+    ElMessage.warning(`校验失败：${errors.join('；')}`)
+    return
   }
   if (items.length === 0) {
     ElMessage.warning('请填写有效的退库数量')

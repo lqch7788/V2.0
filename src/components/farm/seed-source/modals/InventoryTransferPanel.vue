@@ -11,7 +11,7 @@
         模式：追加到现有种源（不创建新记录）
       </el-tag>
       <el-tag v-else type="info" size="small" class="text-xs">新建模式</el-tag>
-      <el-tag size="small" class="text-xs">共 {{ total }} 条可调拨</el-tag>
+      <el-tag size="small" class="text-xs">{{ loading ? '加载中…' : `共 ${rows.length} 条可调拨` }}</el-tag>
       <el-tag v-if="selectedCount > 0" type="success" class="text-xs text-white">已选 {{ selectedCount }} 条</el-tag>
     </div>
 
@@ -40,11 +40,15 @@
         <!-- 关键字 -->
         <el-input
           v-model="keywordInput"
-          placeholder="搜索库存编号/品种..."
+          placeholder="搜索品种/作物名/库存编号"
           clearable
           size="default"
           style="width: 220px"
-        />
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
         <!-- 日期起止 -->
         <el-date-picker
           v-model="dateRange"
@@ -54,8 +58,8 @@
           end-placeholder="结束日期"
           value-format="YYYY-MM-DD"
           size="default"
+          @change="handleFilterChange"
         />
-        <el-button type="primary" @click="handleFilterChange" size="default">查询</el-button>
       </div>
     </div>
 
@@ -76,9 +80,10 @@
         @selection-change="handleSelectionChange"
         :row-key="(row) => row.id"
         border
+        :header-cell-style="{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', color: '#ffffff', fontWeight: 600, fontSize: '14px' }"
         style="width: 1100px"
       >
-        <el-table-column type="selection" width="55" />
+        <el-table-column type="selection" width="40" />
         <el-table-column label="库存编号" prop="instanceId" min-width="140" show-overflow-tooltip />
         <el-table-column label="类型" min-width="80">
           <template #default="{ row }">
@@ -134,15 +139,16 @@
     <!-- 底部 sticky 操作栏（V1.1: bg-emerald-600 绿色确认按钮）-->
     <div class="sticky bottom-0 px-4 py-3 bg-white border-t border-gray-200 shadow-md flex items-center justify-between gap-4 flex-wrap">
       <div class="flex items-center gap-3 flex-wrap">
-        <span class="text-sm text-gray-700">
+        <span class="text-sm text-gray-700 flex items-center gap-1">
+          <el-icon class="text-emerald-500"><CheckCircle2 /></el-icon>
           已选 <strong class="text-emerald-600">{{ selectedCount }}</strong> 条
         </span>
         <span v-for="(qty, unit) in totalQuantityByUnit" :key="unit" class="px-2 py-0.5 border border-gray-300 rounded text-xs">
-          {{ qty }} {{ unit }}
+          {{ qty.toFixed(2) }} {{ unit }}
         </span>
       </div>
       <el-button class="bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600" :disabled="!canConfirm" :loading="submitting" @click="handleConfirm">
-        确认调拨{{ selectedCount > 0 ? ` (${selectedCount})` : '' }}
+        <el-icon><ArrowLeftRight /></el-icon>确认调拨{{ selectedCount > 0 ? ` (${selectedCount})` : '' }}
       </el-button>
     </div>
   </div>
@@ -151,6 +157,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Search, CheckCircle2, ArrowLeftRight } from '@element-plus/icons-vue'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
 
 const props = defineProps({
@@ -261,7 +268,7 @@ const loadRows = async () => {
       keyword: keywordDebounced.value || undefined,
       dateFrom: dateRange.value?.[0],
       dateTo: dateRange.value?.[1],
-      limit: 200
+      limit: 500
     }
     if (props.mode === 'append_existing') {
       if (props.targetCropName) filters.cropName = props.targetCropName
@@ -270,8 +277,8 @@ const loadRows = async () => {
     const data = await seedSourceTransferService.listTransferableSources(filters)
     rows.value = Array.isArray(data) ? data : []
   } catch (e) {
+    // P0-REG-TRANSFER-03：只设置 error 让模板 Alert 显示，避免双重提示
     error.value = e instanceof Error ? e.message : '加载可调拨库存失败'
-    ElMessage.error(error.value)
   } finally {
     loading.value = false
   }
@@ -309,25 +316,33 @@ const handleConfirm = () => {
     ElMessage.warning('单次最多调拨 100 条')
     return
   }
-  const items = selectedIds.value
-    .map(id => {
-      const sel = selectedMap.value.get(id)
-      const stock = rows.value.find(r => r.id === id)
-      if (!sel || sel.quantity <= 0) return null
-      if (sel.quantity > (stock?.currentQuantity || 0)) {
-        error.value = `调拨数量超出可用库存：${stock?.businessCode || id}`
-        return null
-      }
-      return {
-        sourceStockId: id,
-        transferQuantity: sel.quantity,
-        unit: sel.unit,
-        seedForm: stock?.productForm
-      }
+  // P0-F-TRANSFER-02：聚合所有错误，不静默过滤
+  const items = []
+  const errors = []
+  for (const id of selectedIds.value) {
+    const sel = selectedMap.value.get(id)
+    const stock = rows.value.find(r => r.id === id)
+    if (!sel || sel.quantity <= 0) {
+      errors.push(`${stock?.businessCode || id}: 调拨数量必须大于 0`)
+      continue
+    }
+    if (sel.quantity > (stock?.currentQuantity || 0)) {
+      errors.push(`${stock?.businessCode || id}: 调拨数量超出可用库存`)
+      continue
+    }
+    items.push({
+      sourceStockId: id,
+      transferQuantity: sel.quantity,
+      unit: sel.unit,
+      seedForm: stock?.productForm
     })
-    .filter(Boolean)
+  }
+  if (errors.length > 0) {
+    error.value = `校验失败：${errors.join('；')}`
+    return
+  }
   if (items.length === 0) {
-    if (!error.value) ElMessage.warning('请填写有效的调拨数量')
+    error.value = '没有可调拨的有效记录'
     return
   }
   emit('confirm', items)

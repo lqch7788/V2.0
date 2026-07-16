@@ -15,13 +15,13 @@
     :model-value="visible"
     title="编辑种源"
     width="1170px"
+    height="600px"
     top="5vh"
     :close-on-click-modal="true"
     :draggable="true"
     v-dialog-draggable="'edit-seed-source'"
     v-dialog-resizable
     v-dialog-maximizable
-    @update:model-value="(v) => !v && handleClose()"
     @close="handleClose"
   >
     <!-- 2026-07-15: 自定义绿色渐变 header 1:1 对齐 V1.1 UnifiedModal 默认 header -->
@@ -30,7 +30,7 @@
         <h3 class="text-lg font-semibold text-white">编辑种源</h3>
         <button
           type="button"
-          class="text-white hover:bg-emerald-700 rounded p-1 transition-colors"
+          class="text-white hover:bg-emerald-500 rounded p-1 transition-colors"
           aria-label="关闭"
           @click="handleClose"
         >
@@ -184,7 +184,6 @@
           <el-input-number
             v-model="form.unitPrice"
             :min="0"
-            :precision="2"
             class="w-full"
             style="width: 100%"
           />
@@ -206,16 +205,14 @@
                   :alt="`预览${index + 1}`"
                   class="w-20 h-20 object-cover rounded-lg border border-gray-200"
                 />
-                <el-button
-                  type="danger"
-                  circle
-                  size="small"
+                <button
+                  type="button"
                   @click="handleRemovePicture(index)"
-                  class="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style="width: 20px; height: 20px; min-height: 20px;"
+                  class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
+                  aria-label="删除图片"
                 >
-                  <el-icon :size="12"><Close /></el-icon>
-                </el-button>
+                  <X :size="12" />
+                </button>
               </div>
             </div>
             <!-- 上传按钮 -->
@@ -248,9 +245,9 @@
     </el-form>
 
     <template #footer>
-      <div class="px-6 py-3 border-t border-gray-200 flex justify-end gap-3">
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex justify-end gap-3">
         <el-button @click="handleClose">取消</el-button>
-        <el-button @click="handleSubmit" :loading="submitting">保存</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitting">保存</el-button>
       </div>
     </template>
   </el-dialog>
@@ -282,7 +279,12 @@ const props = defineProps({
   visible: { type: Boolean, default: false },
   record: {
     type: Object,
-    default: null
+    default: () => ({})
+  },
+  // V1.1 L34：父组件传入供应商列表（可为空，内部兜底加载）
+  suppliers: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -291,8 +293,26 @@ const emit = defineEmits(['update:visible', 'success'])
 const seedSourceStore = useSeedSourceStore()
 const userStore = useUserStore()
 
-// 当前用户（操作人，V1.1 L60）
-const currentUser = computed(() => userStore.currentUser || null)
+// 当前用户（操作人，V1.1 L51 useAuthStore.currentUser 等价于 V2.0 useUserStore().userInfo）
+const currentUser = computed(() => {
+  const u = userStore.userInfo
+  if (u) {
+    return {
+      id: u.id || u.oid,
+      name: u.realName || u.username || '',
+      department: u.department || u.orgOid || '生产部',
+    }
+  }
+  if (userStore.users && userStore.users.length > 0) {
+    const first = userStore.users[0]
+    return {
+      id: first.id || first.oid,
+      name: first.realName || first.name || first.username || '',
+      department: first.department || first.orgOid || '生产部',
+    }
+  }
+  return null
+})
 
 const formRef = ref()
 const submitting = ref(false)
@@ -301,23 +321,23 @@ const submitting = ref(false)
 const selectedCrop = ref(null)
 
 // 供应商列表（V1.1 传入 props，这里需要单独加载）
-const suppliers = ref([])
+const supplierList = ref([])
 
 /** 过滤后的供应商（V1.1 L117-125）：根据种源类型级联过滤 */
 const filteredSuppliers = computed(() => {
   const targetType = SOURCE_TYPE_TO_SUPPLIER_TYPE[form.value.sourceType]
   if (!targetType) {
     // null = 展示全部（V1.1 L119）
-    return suppliers.value
+    return supplierList.value
   }
   // 过滤 supplierType === targetType（V1.1 L121-124）
-  return suppliers.value.filter(s => s.supplierType === targetType)
+  return supplierList.value.filter(s => s.supplierType === targetType)
 })
 
-// 表单初始值（V1.1 L62-105 buildFormData）
+// 表单初始值（V1.1 L54-94 buildFormData）
 const buildInitialForm = (record) => ({
-  sourceType: record?.sourceType || 'seed',
-  sourceOrigin: record?.sourceOrigin || 'external_purchase',
+  sourceType: record?.sourceType || '',
+  sourceOrigin: record?.sourceOrigin || '',
   cropCategory: record?.cropCategory || '',
   typeName: record?.typeName || '',
   varietyName: record?.varietyName || '',
@@ -328,8 +348,8 @@ const buildInitialForm = (record) => ({
   supplierName: record?.supplierName || '',
   purchaseDate: record?.purchaseDate || '',
   // quantity 是累计值，编辑时不可改
-  unit: record?.unit || '粒',
-  unitPrice: Number(record?.unitPrice) || 0,
+  unit: record?.unit || '',
+  unitPrice: record?.unitPrice ?? 0,
   pictures: parsePictures(record?.pictures),
   remarks: record?.remarks || '',
   // 繁殖途径字段（V1.1 L86-103 P2 #9 修复）
@@ -369,18 +389,23 @@ const formatNumber = (n) => {
   return Number(n).toLocaleString()
 }
 
-// ===== 加载供应商列表 =====
+// ===== 加载供应商列表（V1.1 service 风格：URLSearchParams + camelCase 字段 supplierName）=====
 const loadSuppliers = async () => {
   try {
-    const res = await enhancedApiClient.get('/suppliers', { page: 1, pageSize: 1000 })
-    const list = res?.list || res?.data || []
-    suppliers.value = list.map(item => ({
+    // V1.1 L107-116：使用 URLSearchParams 拼接 page/limit（pageSize → limit 兼容）
+    const params = new URLSearchParams({ page: '1', limit: '1000' })
+    const res = await enhancedApiClient.get(`/suppliers?${params.toString()}`)
+    // V1.1 后端返回 { success, data: [...] }，camelCase 中间件转换后字段是 supplierName
+    const list = res?.data || res?.list || []
+    supplierList.value = list.map(item => ({
       value: String(item.id),
-      label: item.name,
+      label: item.supplierName || item.name,
       supplierType: item.supplierType || item.type
     }))
-  } catch {
-    suppliers.value = []
+  } catch (e) {
+    console.error('[EditModal] 供应商加载失败:', e)
+    ElMessage.error('供应商加载失败：' + (e instanceof Error ? e.message : '未知错误'))
+    supplierList.value = []
   }
 }
 
@@ -407,7 +432,7 @@ const handleSourceTypeChange = () => {
   if (form.value.supplierId) {
     const targetType = SOURCE_TYPE_TO_SUPPLIER_TYPE[form.value.sourceType]
     if (targetType) {
-      const currentSupplier = suppliers.value.find(s => s.value === form.value.supplierId)
+      const currentSupplier = supplierList.value.find(s => s.value === form.value.supplierId)
       if (currentSupplier && currentSupplier.supplierType !== targetType) {
         form.value.supplierId = ''
         form.value.supplierName = ''
@@ -423,7 +448,7 @@ const handleSupplierChange = (val) => {
     form.value.supplierName = ''
     return
   }
-  const supplier = suppliers.value.find(s => s.value === val)
+  const supplier = supplierList.value.find(s => s.value === val)
   form.value.supplierName = supplier?.label || ''
 }
 
@@ -471,26 +496,27 @@ const handleClose = () => {
 }
 
 const handleSubmit = async () => {
+  // V1.1 L150-160 + P0-EDIT-013 nullable record 保护
+  if (!props.record?.id) {
+    ElMessage.error('记录不存在，无法保存')
+    return
+  }
   // 校验：选择"其他"时备注必填（V1.1 L161-164）
   if (form.value.sourceType === 'other' && !form.value.remarks.trim()) {
     ElMessage.warning('选择"其他"种源类型时，备注为必填项，请输入详细说明')
     return
   }
-  // 外部采购时供应商必填（V1.1 L166-169）
+  // 外部采购时供应商必填（V1.1 L157-160）
   if (form.value.sourceOrigin === 'external_purchase' && !form.value.supplierId) {
     ElMessage.warning('请选择供应商')
     return
   }
-  // 作物必填（V1.1 L264 红色星号）
-  if (!form.value.cropCode) {
-    ElMessage.warning('请选择作物')
-    return
-  }
+  // V1.1 不阻断作物必填（仅显示红星，不强制）
 
   submitting.value = true
   try {
     // 获取供应商名称（V1.1 L172-173）
-    const supplier = suppliers.value.find(s => s.value === form.value.supplierId)
+    const supplier = supplierList.value.find(s => s.value === form.value.supplierId)
     const supplierName = supplier?.label || form.value.supplierName
 
     // V1.1 L188-227：调用 store.updateItem
@@ -536,12 +562,13 @@ const handleSubmit = async () => {
       generation: form.value.generation
     })
 
-    ElMessage.success('更新成功')
+    // V1.1 L227-228：成功不显示 toast，直接关闭弹窗 + 刷新
     emit('success')
     handleClose()
   } catch (err) {
-    const msg = err instanceof Error ? err.message : '更新失败，请重试'
-    ElMessage.error(msg)
+    // V1.1 L220-223：失败 console.error + alert 弹窗
+    console.error('[EditModal] 更新种源失败:', err)
+    ElMessage.error(err instanceof Error ? err.message : '更新失败，请重试')
   } finally {
     submitting.value = false
   }

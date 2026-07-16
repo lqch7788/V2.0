@@ -28,26 +28,61 @@ export const usePlantLabelStore = defineStore('plantLabel', () => {
   /**
    * 加载标签列表
    * @param {Object} params - 查询参数，支持 seedling_id 或 planting_id
+   * @returns {Promise<Array>} 标签列表（V1.1 一致：返回数据让调用方可立即使用）
    */
   const loadLabels = async (params = {}) => {
     labelsLoading.value = true
     try {
       const res = await api.getPlantLabelList({ limit: 200, ...params })
       // API 返回的数据结构处理
+      let list = []
       if (Array.isArray(res)) {
-        labels.value = res
+        list = res
       } else if (res && Array.isArray(res.data)) {
-        labels.value = res.data
+        list = res.data
       } else if (res && Array.isArray(res.items)) {
-        labels.value = res.items
-      } else {
-        labels.value = []
+        list = res.items
       }
+      labels.value = list
+      return list
     } catch (error) {
       console.error('获取标签数据失败:', error)
       labels.value = []
+      return []
     } finally {
       labelsLoading.value = false
+    }
+  }
+
+  /**
+   * P0 修复：批量入库标签（V1.1 usePlantLabelStore.batchCreateLabels 1:1 对齐）
+   * 用于种源标签打印 — 在批量生成前先持久化 labelNumber 到 plant_labels 表
+   * @param {Array} newLabels 标签数组，每项含 labelNumber/seedlingId/plantingId/seedSourceId/moveInAreaName/moveInDate/quantity
+   * @returns {Promise<{inserted:number, insertedIds:number[]}|null>} 成功返回 inserted 数据，失败返回 null
+   */
+  const batchCreateLabels = async (newLabels) => {
+    try {
+      const { enhancedApiClient } = await import('@/lib/apiClient')
+      const res = await enhancedApiClient.post('/plant-labels/batch-create', {
+        labels: newLabels.map(l => ({
+          labelNumber: l.labelNumber,
+          seedlingId: l.seedlingId || null,
+          plantingId: l.plantingId || null,
+          seedSourceId: l.seedSourceId || null,
+          moveInAreaName: l.moveInAreaName || null,
+          moveInDate: l.moveInDate || null,
+          quantity: l.quantity != null ? l.quantity : 1
+        }))
+      })
+      if (res && typeof res.inserted === 'number' && res.inserted > 0) {
+        // 入库成功 — 刷新 Store
+        await loadLabels()
+        return res
+      }
+      return null
+    } catch (error) {
+      console.error('[usePlantLabelStore] batchCreateLabels 失败:', error)
+      return null
     }
   }
 
@@ -147,6 +182,7 @@ export const usePlantLabelStore = defineStore('plantLabel', () => {
     loadLabels,
     loadResumes,
     loadResumesForLabels,
-    loadMarks
+    loadMarks,
+    batchCreateLabels
   }
 })

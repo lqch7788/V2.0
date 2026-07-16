@@ -189,9 +189,11 @@
       <div class="flex items-center justify-between px-4 py-3 border-t border-gray-200">
         <div></div>
         <div class="flex gap-2">
-          <el-button @click="handleClose">取消</el-button>
+          <el-button @click="handleClose">
+            <el-icon><Close /></el-icon>取消
+          </el-button>
           <el-button type="primary" :loading="loading" @click="handleExportExcel">
-            <el-icon><Download /></el-icon>导出 Excel
+            <el-icon><Download /></el-icon>导出Excel
           </el-button>
           <el-button :loading="loading" @click="handlePrint">
             <el-icon><Printer /></el-icon>{{ loading ? '处理中...' : '打印' }}
@@ -208,11 +210,10 @@
  * 使用 el-dialog 包装（参考 V2.0 订单管理 pattern）
  */
 import { ref, computed, watch, onMounted } from 'vue'
-import { Download, Printer } from '@element-plus/icons-vue'
+import { Download, Printer, Close } from '@element-plus/icons-vue'
 import { X } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import QrCode from '@/components/common/QrCode.vue'
-import { enhancedApiClient } from '@/lib/apiClient'
 import { useUserStore } from '@/stores/modules/user'
 
 // 本地日期（避免 UTC 时区 bug）
@@ -237,9 +238,9 @@ const userStore = useUserStore()
 
 const MAX_LABEL_DISPLAY = 200
 const PRINT_MODES = [
-  { value: 'single', label: '单标签打印', sublabel: '重打 1 个已存在', desc: '从已有标签中选择 1 个重新打印', icon: '🏷️' },
-  { value: 'multi',  label: '多标签打印', sublabel: '批量勾选已存在', desc: '从已有标签列表中勾选多个一并打印', icon: '📋' },
-  { value: 'batch',  label: '批量生成',   sublabel: '生成新标签',      desc: '系统生成新的标签编号 + 同步入库 + 打印', icon: '✨' }
+  { value: 'single', label: '单标签打印', sublabel: '重打 1 个已存在', desc: '从已有标签中选择 1 个重新打印（适合标签褪色/丢失后补打）', icon: '🏷️' },
+  { value: 'multi',  label: '多标签打印', sublabel: '批量勾选已存在', desc: '从已有标签列表中勾选多个一并打印（适合整批补打）', icon: '📋' },
+  { value: 'batch',  label: '批量生成',   sublabel: '生成新标签',      desc: '系统生成新的标签编号 + 同步入库 + 打印（适合首次打标签）', icon: '✨' }
 ]
 
 const template = ref('detail')
@@ -333,9 +334,47 @@ const handlePrint = async () => {
     if (selectedLabels.value.length === 0) { ElMessage.warning('请选择要打印的标签'); return }
     labelsToPrint = [...selectedLabels.value]
   } else {
-    const startIdx = allLabelNumbers.value.length
+    // 批量生成：先持久化到 plant_labels，再打印（V1.1 1:1 对齐）
+    const { usePlantLabelStore } = await import('@/stores/modules/plantLabel')
+    const plantLabelStore = usePlantLabelStore()
+
+    // P0-F-PRINT-02：先 await loadLabels 刷新，确保 store 是最新状态（避免多用户/快速点击序号跳号）
+    await plantLabelStore.loadLabels({ seedSourceId: props.record.id })
+    const existingLabels = plantLabelStore.labels.filter(
+      (l) => String(l.seedSourceId) === String(props.record.id)
+    )
+    const startIdx = existingLabels.length
+
+    const newLabels = []
     for (let i = 0; i < printCount.value; i++) {
-      labelsToPrint.push(`${props.record.seedCode}-${String(startIdx + i + 1).padStart(4, '0')}`)
+      const labelNumber = `${props.record.seedCode}-${String(startIdx + i + 1).padStart(4, '0')}`
+      labelsToPrint.push(labelNumber)
+      newLabels.push({
+        labelNumber,
+        seedSourceId: props.record.id,
+        moveInAreaName: props.record.supplierName || null,
+        moveInDate: props.record.purchaseDate || null,
+        quantity: 1
+      })
+    }
+
+    // P0-F-PRINT-01：同步入库到 plant_labels 表
+    if (newLabels.length > 0) {
+      const result = await plantLabelStore.batchCreateLabels(newLabels)
+      if (!result) {
+        ElMessage.error('标签入库失败，打印已中止')
+        return
+      }
+      // 刷新本地标签列表
+      const refreshedLabels = plantLabelStore.labels.filter(
+        (l) => String(l.seedSourceId) === String(props.record.id)
+      )
+      if (refreshedLabels.length > 0) {
+        allLabelNumbers.value = refreshedLabels
+          .map(l => l.labelCode || l.labelNumber || l.label_number)
+          .filter(Boolean)
+          .slice(0, MAX_LABEL_DISPLAY)
+      }
     }
   }
   printLabels.value = labelsToPrint
@@ -380,7 +419,7 @@ const handleExportExcel = () => {
 </style></head><body>
   <div class="no-print" style="text-align:center;padding:10px;">
     <button class="print-btn" onclick="window.print()">打印此页</button>
-    <span style="color:#666;font-size:12px;">共 ${rows.length} 个标签</span>
+    <span style="color:#666;font-size:12px;">共 ${rows.length} 个标签 | 扫描功能码为URL链接，可用在线工具生成QR码</span>
   </div>
   <table>
     <thead><tr>
