@@ -11,8 +11,10 @@
     width="1350px"
     height="700px"
     top="5vh"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
     v-dialog-draggable
+    v-dialog-resizable
+    v-dialog-maximizable
     @close="handleClose"
   >
     <template #header>

@@ -11,8 +11,10 @@
     width="1170px"
     height="650px"
     top="5vh"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
     v-dialog-draggable
+    v-dialog-resizable
+    v-dialog-maximizable
     @close="handleClose"
   >
     <!-- 2026-07-15: 自定义 header 绿色渐变 1:1 对齐 V1.1 Modal 默认 header（#10b981 → #059669） -->

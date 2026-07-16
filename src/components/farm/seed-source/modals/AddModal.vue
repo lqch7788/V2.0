@@ -14,10 +14,12 @@
   -->
   <el-dialog
     v-dialog-draggable
+    v-dialog-resizable
+    v-dialog-maximizable
     :model-value="visible"
     width="1170px"
     top="5vh"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
     @update:model-value="(v) => !v && handleClose()"
     @close="handleClose"
   >

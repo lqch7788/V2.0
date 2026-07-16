@@ -16,9 +16,11 @@
     title="编辑种源"
     width="1170px"
     top="5vh"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
     :draggable="true"
     v-dialog-draggable="'edit-seed-source'"
+    v-dialog-resizable
+    v-dialog-maximizable
     @update:model-value="(v) => !v && handleClose()"
     @close="handleClose"
   >

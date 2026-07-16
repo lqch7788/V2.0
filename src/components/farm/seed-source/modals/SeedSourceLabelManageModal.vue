@@ -9,8 +9,10 @@
     :title="`种源标签管理 - ${seedSourceCode}`"
     width="1350px"
     top="5vh"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
     v-dialog-draggable
+    v-dialog-resizable
+    v-dialog-maximizable
     @update:model-value="(v) => $emit('update:visible', v)"
     @close="handleClose"
   >
