@@ -115,7 +115,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Undo2 } from '@element-plus/icons-vue'
+import { Undo2 } from 'lucide-vue-next'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
 
 const props = defineProps({
