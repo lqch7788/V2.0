@@ -157,7 +157,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search, CheckCircle2, ArrowLeftRight } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
+import { CheckCircle2, ArrowLeftRight } from 'lucide-vue-next'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
 
 const props = defineProps({
