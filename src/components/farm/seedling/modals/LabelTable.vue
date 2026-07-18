@@ -34,7 +34,7 @@
         <el-icon class="animate-spin text-emerald-500" :size="24"><Loading /></el-icon>
       </div>
       <div v-else-if="labels.length === 0" class="py-12 text-center text-gray-400">
-        <el-icon class="mx-auto mb-2 text-gray-300" :size="40"><Tag /></el-icon>
+        <span class="text-3xl text-gray-300">#</span>
         <p class="text-sm">暂无标签数据</p>
       </div>
       <table v-else class="w-full text-sm">
@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { Search, Tag, Loading } from '@element-plus/icons-vue'
+import { Search, Loading } from '@element-plus/icons-vue'
 import LabelBadge from './LabelBadge.vue'
 
 defineProps({

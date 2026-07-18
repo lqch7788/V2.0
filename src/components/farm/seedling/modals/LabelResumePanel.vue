@@ -5,7 +5,7 @@
 -->
 <template>
   <div v-if="!selectedLabel" class="py-12 text-center text-gray-400">
-    <el-icon class="mx-auto mb-3 text-gray-300" :size="48"><Tag /></el-icon>
+    <span class="text-4xl text-gray-300 mb-3 block text-center">#</span>
     <p>请在左侧选择一个标签查看履历</p>
   </div>
   <div v-else-if="loading" class="flex items-center justify-center py-12">
@@ -110,7 +110,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Tag, Loading, Clock, List } from '@element-plus/icons-vue'
+import { Loading, Clock, List } from '@element-plus/icons-vue'
 
 // 操作类型中文映射（与 V1.1 LabelResumePanel L13-18 1:1）
 const OP_LABEL = {
