@@ -245,7 +245,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Printer, Close, Download } from '@element-plus/icons-vue'
 import QRCode from 'qrcode'
@@ -352,6 +352,13 @@ const toggleSelectAll = () => {
 const handleClose = () => {
   emit('update:visible', false)
 }
+
+// ESC 键关闭（对齐 V1.1 behavior）
+const handleKeydown = (e) => {
+  if (e.key === 'Escape') handleClose()
+}
+onMounted(() => window.addEventListener('keydown', handleKeydown))
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 
 // 打印处理
 const handlePrint = async () => {
