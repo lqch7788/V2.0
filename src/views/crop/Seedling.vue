@@ -21,7 +21,7 @@
       :crop-names="cropNames"
       :seedling-types="seedlingTypes"
       :sites="sites"
-      :status-options="statusOptions"
+      :status-options="seedlingStatusOptions"
       @update:filters="handleFiltersChange"
       @search="handleSearch"
       @reset="handleReset"
@@ -203,7 +203,7 @@
 /**
  * 育苗管理主页面
  */
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Sugar } from '@element-plus/icons-vue'
 import SeedlingStats from '@/components/farm/seedling/components/SeedlingStats.vue'
@@ -221,6 +221,9 @@ import { useSeedlingStore } from '@/stores/modules/seedling'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import * as cropBatchService from '@/services/apiCropBatchService'
 import * as cropVarietyService from '@/services/cropVarietyService'
+import { getDictItems } from '@/stores/modules/dictionary'
+import { useRoute } from 'vue-router'
+import { enhancedApiClient } from '@/lib/apiClient'
 
 // 权限检查 - 已取消，所有人可使用所有功能
 const canCreate = true
@@ -232,6 +235,7 @@ const canPrint = true
 // Store
 const seedlingStore = useSeedlingStore()
 const seedSourceStore = useSeedSourceStore()
+const route = useRoute()
 
 // 状态
 const loading = computed(() => seedlingStore.isLoading)
@@ -324,30 +328,80 @@ const operationMode = ref('normal') // 'normal' | 'edit' | 'delete' | 'export' |
 
 // 打印模式状态
 const printMode = ref(false)
+// 多记录打印时使用（对齐 V1.1 L242）
+const printRecords = ref([])
 
-// 育苗方式选项
-const seedlingTypes = ref([
-  { value: '穴盘育苗', label: '穴盘育苗' },
-  { value: '嫁接育苗', label: '嫁接育苗' },
-  { value: '组培育苗', label: '组培育苗' },
-  { value: '直播育苗', label: '直播育苗' }
+// 育苗方式选项（对齐 V1.1 L106-115：从字典 seedling_type 读取，去重）
+const seedlingTypes = ref([])
+const loadSeedlingTypes = () => {
+  try {
+    const items = getDictItems('seedling_type').map(d => ({ value: d.dictCode, label: d.dictLabel }))
+    const seen = new Set()
+    seedlingTypes.value = items.filter(t => {
+      if (seen.has(t.value)) return false
+      seen.add(t.value)
+      return true
+    })
+    if (seedlingTypes.value.length === 0) {
+      // 字典未加载时降级用硬编码
+      seedlingTypes.value = [
+        { value: '穴盘育苗', label: '穴盘育苗' },
+        { value: '嫁接育苗', label: '嫁接育苗' },
+        { value: '组培育苗', label: '组培育苗' },
+        { value: '直播育苗', label: '直播育苗' }
+      ]
+    }
+  } catch {
+    seedlingTypes.value = [
+      { value: '穴盘育苗', label: '穴盘育苗' },
+      { value: '嫁接育苗', label: '嫁接育苗' },
+      { value: '组培育苗', label: '组培育苗' },
+      { value: '直播育苗', label: '直播育苗' }
+    ]
+  }
+}
+
+// 场地选项（对齐 V1.1 L118-127：从字典 seedling_site 读取，去重）
+const sites = ref([])
+const loadSites = () => {
+  try {
+    const items = getDictItems('seedling_site').map(d => ({ value: d.dictCode, label: d.dictLabel }))
+    const seen = new Set()
+    sites.value = items.filter(s => {
+      if (seen.has(s.value)) return false
+      seen.add(s.value)
+      return true
+    })
+    if (sites.value.length === 0) {
+      sites.value = [
+        { value: '1号大棚', label: '1号大棚' },
+        { value: '2号大棚', label: '2号大棚' },
+        { value: '3号大棚', label: '3号大棚' },
+        { value: '露天场地', label: '露天场地' }
+      ]
+    }
+  } catch {
+    sites.value = [
+      { value: '1号大棚', label: '1号大棚' },
+      { value: '2号大棚', label: '2号大棚' },
+      { value: '3号大棚', label: '3号大棚' },
+      { value: '露天场地', label: '露天场地' }
+    ]
+  }
+}
+
+// 状态选项（对齐 V1.1 SeedlingPage.tsx L130-137 — 6 状态：sown/in_progress/transplant_ready/completed/cancelled/abnormal）
+const seedlingStatusOptions = ref([
+  { value: 'sown', label: '已播种' },
+  { value: 'in_progress', label: '生长中' },
+  { value: 'transplant_ready', label: '待出圃' },
+  { value: 'completed', label: '已出圃' },
+  { value: 'cancelled', label: '已取消' },
+  { value: 'abnormal', label: '异常结束' }
 ])
 
-// 场地选项
-const sites = ref([
-  { value: '1号大棚', label: '1号大棚' },
-  { value: '2号大棚', label: '2号大棚' },
-  { value: '3号大棚', label: '3号大棚' },
-  { value: '露天场地', label: '露天场地' }
-])
-
-// 状态选项
-const statusOptions = ref([
-  { value: 'in_progress', label: '进行中' },
-  { value: 'transplant_ready', label: '待定植' },
-  { value: 'completed', label: '已完成' },
-  { value: 'abnormal', label: '异常' }
-])
+// 兼容旧引用
+const statusOptions = seedlingStatusOptions
 
 // 筛选后的数据
 const filteredData = computed(() => {
@@ -593,14 +647,14 @@ const handleExportClickConfirm = () => {
   showExportModal.value = true
 }
 
-// 确认打印处理
+// 确认打印处理（对齐 V1.1 L461-477：单条直接打印，多条设置 printRecords 走批量）
 const handleConfirmPrint = (records) => {
-  if (records.length === 0) {
+  if (!records || records.length === 0) {
     ElMessage.warning('请先选择要打印的记录')
     return
   }
+  printRecords.value = records
   if (records.length === 1) {
-    // 单条记录直接打印
     currentRecord.value = records[0]
     printModalVisible.value = true
   } else {
@@ -773,9 +827,31 @@ const handleConfirmExport = async () => {
 
 // 初始化
 onMounted(async () => {
+  // 加载字典（育苗方式/场地/单位等）— 对齐 V1.1 L53-60
+  loadSeedlingTypes()
+  loadSites()
   // 加载育苗数据
   await loadItems()
   // 加载种源数据（用于新增弹窗的关联种源选择）
   await loadSeedSources()
+
+  // URL ?labelNumber= 扫码跳转 — 对齐 V1.1 L178-213
+  const labelNumber = route.query.labelNumber
+  if (labelNumber) {
+    try {
+      const label = await enhancedApiClient.get(`/plant-labels/by-number/${encodeURIComponent(String(labelNumber))}`)
+      const lbl = label?.label || label
+      if (lbl && lbl.seedlingId) {
+        // 从 labelNumber 提取 seedlingCode（格式：{seedlingCode}-{4位序号}）
+        const parts = String(labelNumber).split('-')
+        const seedlingCode = parts.length > 1 ? parts.slice(0, -1).join('-') : String(labelNumber)
+        labelManageRecord.value = { id: String(lbl.seedlingId), seedlingCode }
+        autoSelectLabelNumber.value = String(labelNumber)
+        labelManageModalVisible.value = true
+      }
+    } catch {
+      // 扫码查询失败，静默处理
+    }
+  }
 })
 </script>
