@@ -146,34 +146,214 @@ export const AsexualMethod = {
   LAYERING: 'layering',               // 压条
 }
 
-/** 繁殖过程记录 */
+/**
+ * 繁殖过程记录（V1.1 types/crop.ts PropagationRecord 1:1 迁移）
+ * @typedef {Object} PropagationRecord
+ * @property {string} id - 记录ID
+ * @property {string} seedSourceId - 关联种源ID
+ * @property {string} [seedSourceCode] - 关联种源批号
+ * @property {PropagationType} propagationType - 繁殖途径
+ * @property {PropagationStatus} [propagationStatus] - 繁殖阶段
+ * @property {string} [propagationMethod] - 繁殖方法（自由文本）
+ * @property {string} [parentMaleId] - 父本（雄）种源ID
+ * @property {string} [parentMaleCode] - 父本（雄）种源批号
+ * @property {string} [parentFemaleId] - 母本（雌）种源ID
+ * @property {string} [parentFemaleCode] - 母本（雌）种源批号
+ * @property {string} [motherPlantId] - 母株ID
+ * @property {string} [motherPlantCode] - 母株批号
+ * @property {string} [linkedPlantingId] - 关联种植记录ID
+ * @property {string} [linkedPlantingCode] - 关联种植编号
+ * @property {string} [propagationStartDate] - 繁殖开始日期（YYYY-MM-DD）
+ * @property {string} [expectedHarvestDate] - 预计采收日期（YYYY-MM-DD）
+ * @property {string} [actualHarvestDate] - 实际采收日期（YYYY-MM-DD）
+ * @property {string} [breedingLocation] - 育种位置
+ * @property {string} [targetTraits] - 目标性状
+ * @property {string} [generation] - 世代（如 F1/F2）
+ * @property {string} [remarks] - 备注
+ * @property {string} [createBy] - 创建人
+ * @property {string} [createTime] - 创建时间（ISO 8601）
+ * @property {string} [updateTime] - 更新时间（ISO 8601）
+ */
 export const PropagationRecord = {}
 
-/** 种源记录 */
+/**
+ * 种源记录（V1.1 types/crop.ts SeedSource 1:1 迁移 + 内部仓库模式调整）
+ * - V1.1 v3.4 后：种源是纯仓库，不区分繁殖细节
+ * - 状态（status）改为实时计算（基于 availableCount / initialCount）
+ * @typedef {Object} SeedSource
+ * @property {string} id - 唯一ID
+ * @property {string} seedCode - 种源批号（格式：ZZ + YYYYMMDD + - + 流水号）
+ * @property {SourceType} sourceType - 物质分类（种子/种苗/扦插苗/...）
+ * @property {SourceOrigin} sourceOrigin - 来源途径
+ * @property {string} [seedForm] - 入库物理形态（V1.1 seedFormDict）
+ * @property {string} cropCategory - 作物类别
+ * @property {string} [typeName] - 类型名称
+ * @property {string} [varietyName] - 品种名称
+ * @property {string} cropName - 作物名称（最细化）
+ * @property {string} [cropVariety] - 子品种名称
+ * @property {string} [cropCode] - 标准作物编码
+ * @property {string} [supplierId] - 供应商ID
+ * @property {string} [supplierName] - 供应商名称
+ * @property {string} purchaseDate - 采购/入库日期（YYYY-MM-DD）
+ * @property {number} quantity - 入库数量
+ * @property {string} unit - 单位
+ * @property {number} unitPrice - 单价（元）
+ * @property {number} [totalAmount] - 总金额（元）= quantity * unitPrice
+ * @property {number} initialCount - 初始数量（= quantity）
+ * @property {number} availableCount - 当前可用数量（= initialCount - 已使用）
+ * @property {string[]} [pictures] - 种源图片（base64 / URL）
+ * @property {string} [remarks] - 备注
+ * @property {string} [traceabilityCode] - 溯源码（TR + YYYYMMDD + cropName 前2字）
+ * @property {number} [printCount] - 已打印次数
+ * @property {string} createBy - 创建人
+ * @property {string} createTime - 创建时间（ISO 8601）
+ * @property {string} [updateTime] - 更新时间（ISO 8601）
+ * @property {string} [productionPlanId] - 关联生产计划ID
+ * @property {string} [productionPlanCode] - 关联生产计划编号
+ * @property {PropagationType} [propagationType] - 繁殖途径（V1.1 字段保留）
+ * @property {PropagationStatus} [propagationStatus] - 繁殖阶段（V1.1 字段保留）
+ * @property {string} [endTime] - 强结时间（normal/abnormal 结束后填充）
+ * @property {string} [endType] - 强结类型（normal | abnormal）
+ */
 export const SeedSource = {}
 
-/** 每日记录（育苗管理） */
+/**
+ * 每日记录（育苗管理 - V1.1 types/crop.ts DailyRecord 1:1 迁移）
+ * @typedef {Object} DailyRecord
+ * @property {string} id - 记录ID
+ * @property {string} seedlingId - 关联育苗批次ID
+ * @property {string} recordDate - 记录日期（YYYY-MM-DD）
+ * @property {number} [temperature] - 温度（℃）
+ * @property {number} [humidity] - 湿度（%）
+ * @property {number} [height] - 株高（cm）
+ * @property {number} [leafCount] - 叶片数
+ * @property {string} [growthStatus] - 生长状态描述
+ * @property {string[]} [pictures] - 现场照片
+ * @property {string} [remarks] - 备注
+ * @property {string} [createBy] - 创建人
+ * @property {string} [createTime] - 创建时间
+ */
 export const DailyRecord = {}
 
-/** 标签打印记录 */
+/**
+ * 标签打印记录（V1.1 types/crop.ts PrintRecord 1:1 迁移）
+ * @typedef {Object} PrintRecord
+ * @property {string} id - 记录ID
+ * @property {string} [seedSourceId] - 关联种源ID
+ * @property {string} [seedlingId] - 关联育苗ID
+ * @property {string} [labelCode] - 标签编号
+ * @property {number} printCount - 打印份数
+ * @property {PrintTemplate} [template] - 打印模板（small/large/detail）
+ * @property {LabelPrintType} [printType] - 打印类型（新建/重打/批量）
+ * @property {string} [printTime] - 打印时间（ISO 8601）
+ * @property {string} [operator] - 操作人
+ * @property {string} [remarks] - 备注
+ */
 export const PrintRecord = {}
 
-/** 栽种记录 */
+/**
+ * 栽种记录（V1.1 types/crop.ts TransplantRecord 1:1 迁移）
+ * @typedef {Object} TransplantRecord
+ * @property {string} id - 记录ID
+ * @property {string} [seedlingId] - 关联育苗ID
+ * @property {string} [plantingId] - 关联种植ID
+ * @property {string} [labelId] - 关联标签ID
+ * @property {TransplantAction} action - 栽种操作（移入/移出/定植/标记）
+ * @property {number} quantity - 操作数量
+ * @property {string} [fromLocation] - 源位置
+ * @property {string} [toLocation] - 目标位置
+ * @property {string} [operator] - 操作人
+ * @property {string} [operateTime] - 操作时间
+ * @property {TransplantRecordStatus} [status] - 栽种后状态
+ * @property {string} [remarks] - 备注
+ */
 export const TransplantRecord = {}
 
-/** 栽种历史条目 */
+/**
+ * 栽种历史条目（V1.1 types/crop.ts TransplantHistoryItem 1:1 迁移）
+ * @typedef {Object} TransplantHistoryItem
+ * @property {string} id - 条目ID
+ * @property {string} [date] - 日期
+ * @property {string} [action] - 操作描述
+ * @property {string} [operator] - 操作人
+ * @property {number} [quantity] - 数量
+ * @property {string} [location] - 位置
+ * @property {string} [remarks] - 备注
+ */
 export const TransplantHistoryItem = {}
 
-/** 栽种历史 */
+/**
+ * 栽种历史（V1.1 types/crop.ts TransplantHistory 1:1 迁移）
+ * @typedef {Object} TransplantHistory
+ * @property {string} targetId - 关联实体ID（种源/育苗/标签）
+ * @property {string} targetType - 关联实体类型
+ * @property {TransplantHistoryItem[]} items - 历史条目列表
+ */
 export const TransplantHistory = {}
 
-/** 育苗记录 */
+/**
+ * 育苗记录（V1.1 types/crop.ts Seedling 1:1 迁移）
+ * @typedef {Object} Seedling
+ * @property {string} id - 育苗ID
+ * @property {string} seedlingCode - 育苗批号
+ * @property {string} cropCategory - 作物类别
+ * @property {string} cropName - 作物名称
+ * @property {string} [cropVariety] - 作物品种
+ * @property {string} [seedSourceId] - 关联种源ID
+ * @property {string} [seedSourceCode] - 关联种源批号
+ * @property {SeedlingStatus} status - 育苗状态
+ * @property {SeedlingPlanType} [planType] - 育苗计划类型
+ * @property {SeedlingCalculateMode} [calculateMode] - 计算模式
+ * @property {number} plannedCount - 计划数量
+ * @property {number} currentCount - 当前数量
+ * @property {number} [transplantedCount] - 已定植数量
+ * @property {string} [unit] - 单位
+ * @property {string} [startDate] - 育苗开始日期（YYYY-MM-DD）
+ * @property {string} [expectedTransplantDate] - 预计定植日期
+ * @property {string} [actualTransplantDate] - 实际定植日期
+ * @property {string} [greenhouseName] - 温室/大棚名称
+ * @property {string} [seedlingForm] - 种苗形态（穴盘苗/杯苗/裸根苗/...）
+ * @property {string} [remarks] - 备注
+ * @property {string} [createBy] - 创建人
+ * @property {string} [createTime] - 创建时间
+ * @property {string} [updateTime] - 更新时间
+ */
 export const Seedling = {}
 
-/** 种源筛选条件 */
+/**
+ * 种源筛选条件（V1.1 SeedSourceFilters 1:1 迁移）
+ * 12+ 项过滤维度
+ * @typedef {Object} SeedSourceFilters
+ * @property {string} [cropCategory] - 作物类别
+ * @property {string} [cropName] - 作物名称（模糊匹配）
+ * @property {string} [cropType] - 作物类型（兼容字段）
+ * @property {string} [seedCode] - 种源批号（模糊匹配）
+ * @property {SourceType|string} [sourceType] - 物质分类
+ * @property {SourceOrigin|string} [sourceOrigin] - 来源途径
+ * @property {string} [supplierName] - 供应商名称（模糊匹配）
+ * @property {StockStatus|string} [status] - 库存状态（实时计算）
+ * @property {string} [startDate] - 入库起始日期
+ * @property {string} [endDate] - 入库结束日期
+ * @property {string} [createBy] - 创建人（模糊匹配）
+ * @property {string} [recorderId] - 记录人ID（级联解析为名称）
+ * @property {number} [surplusMin] - 剩余数量下限
+ * @property {number} [surplusMax] - 剩余数量上限
+ * @property {PropagationType} [propagationType] - 繁殖途径
+ * @property {PropagationStatus} [propagationStatus] - 繁殖阶段
+ */
 export const SeedSourceFilters = {}
 
-/** 育苗筛选条件 */
+/**
+ * 育苗筛选条件（V1.1 SeedlingFilters 1:1 迁移）
+ * @typedef {Object} SeedlingFilters
+ * @property {string} [cropCategory] - 作物类别
+ * @property {string} [cropName] - 作物名称
+ * @property {string} [seedSourceCode] - 关联种源批号
+ * @property {SeedlingStatus} [status] - 育苗状态
+ * @property {string} [startDate] - 起始日期
+ * @property {string} [endDate] - 结束日期
+ * @property {string} [createBy] - 创建人
+ */
 export const SeedlingFilters = {}
 
 /**

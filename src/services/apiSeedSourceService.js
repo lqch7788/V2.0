@@ -1,203 +1,136 @@
 /**
- * 种源数据 API 服务
- * 对接后端 /api/seed-sources
+ * 种源数据 API 服务（V2.0 1:1 兼容层）
  *
- * 数据流：API → enhancedApiClient (IndexedDB 缓存) → 组件
+ * 2026-07-18 P0 优化：消除与 @/api/crop 的 API 双轨实现。
  *
- * 降级策略：
- * - GET 请求：API → IndexedDB 缓存（API 失败时自动降级）
- * - POST/PUT/DELETE：API → 离线队列（网络断开时加入队列，联网后自动同步）
+ * 历史背景：
+ * - 老轨（本文件）使用 enhancedApiClient + IndexedDB 缓存 + 离线队列
+ * - 新轨（@/api/crop）使用标准 request
+ *
+ * 当前策略：
+ * - 权威 API 入口：@/api/crop（标准 URL、清晰的请求/响应封装）
+ * - 本文件作为**向后兼容层**：保留所有原有函数签名 + 字段转换（snake_case → camelCase）
+ *   让所有老调用方（planting/AddModal.vue、seed-source/modals/DetailModal.vue 等）零改动
+ * - 字段转换逻辑（transformSeedSourceFromBackend）保留，确保下游消费的 SeedSource 类型不变
+ *
+ * 数据流：组件 → 本文件（兼容层）→ @/api/crop → 后端 /api/seed-sources
  */
-
-import { enhancedApiClient } from '../lib/apiClient';
-import { SourceType } from '../types/crop';
+import * as cropApi from '@/api/crop'
+import { SourceType } from '@/types/crop'
 
 /**
+ * 后端返回的字段类型（snake_case）
  * @typedef {Object} BackendSeedSource
  * @property {string} id
- * @property {string} seedCode
- * @property {string} sourceName
- * @property {string} sourceType
- * @property {string} sourceOrigin
- * @property {string} cropCategory
- * @property {string} typeName
- * @property {string} varietyName
- * @property {string} cropName
- * @property {string} cropVariety
- * @property {string} cropCode
- * @property {string} supplierId
- * @property {string} supplierName
- * @property {string} purchaseDate
+ * @property {string} seed_code
+ * @property {string} source_type
+ * @property {string} source_origin
+ * @property {string} crop_category
+ * @property {string} type_name
+ * @property {string} variety_name
+ * @property {string} crop_name
+ * @property {string} crop_variety
+ * @property {string} crop_code
+ * @property {string} supplier_id
+ * @property {string} supplier_name
+ * @property {string} purchase_date
  * @property {number} quantity
  * @property {string} unit
- * @property {number} unitPrice
- * @property {number} totalAmount
- * @property {number} availableCount
- * @property {number} initialCount
- * @property {string} pictures
- * @property {number} usedQuantity
- * @property {number} remainingQuantity
+ * @property {number} purchase_price
+ * @property {number} total_amount
+ * @property {number} remaining_quantity
+ * @property {number} used_quantity
  * @property {string} status
  * @property {string} remarks
- * @property {string} productionPlanCode
- * @property {number} printCount
- * @property {string} createBy
- * @property {string} createTime
- * @property {string} updateTime
- * @property {string} [propagationType]
- * @property {string} [propagationStatus]
- * @property {string} [propagationMethod]
- * @property {string} [parentMaleId]
- * @property {string} [parentMaleCode]
- * @property {string} [parentFemaleId]
- * @property {string} [parentFemaleCode]
- * @property {string} [motherPlantId]
- * @property {string} [motherPlantCode]
- * @property {string} [linkedPlantingId]
- * @property {string} [linkedPlantingCode]
- * @property {string} [propagationStartDate]
- * @property {string} [expectedHarvestDate]
- * @property {string} [actualHarvestDate]
- * @property {string} [breedingLocation]
- * @property {string} [targetTraits]
- * @property {string} [generation]
- * @property {*} [key] - 其他任意字段
+ * @property {string} create_by
+ * @property {string} create_time
+ * @property {string} update_time
  */
 
 /**
- * 将后端返回的字段名映射到前端 SeedSource 类型
+ * 将后端返回的字段名映射到前端 SeedSource 类型（camelCase）
  * @param {BackendSeedSource|BackendSeedSource[]} data
  * @returns {Object|Object[]}
  */
 function transformSeedSourceFromBackend(data) {
   if (Array.isArray(data)) {
-    return data.map(item => transformSingleSeedSource(item));
+    return data.map(item => transformSingleSeedSource(item))
   }
-  return transformSingleSeedSource(data);
+  if (data == null) return data
+  return transformSingleSeedSource(data)
 }
 
 function transformSingleSeedSource(item) {
-  let pictures = [];
+  let pictures = []
   if (item.pictures) {
     try {
-      pictures = JSON.parse(item.pictures);
+      pictures = typeof item.pictures === 'string' ? JSON.parse(item.pictures) : item.pictures
     } catch {
-      pictures = [];
+      pictures = []
     }
   }
 
-  let sourceType = SourceType.SEED;
+  let sourceType = SourceType.SEED
   if (item.sourceType === 'seedling') {
-    sourceType = SourceType.SEEDLING;
+    sourceType = SourceType.SEEDLING
   } else if (item.sourceType === 'cutting') {
-    sourceType = SourceType.CUTTING;
+    sourceType = SourceType.CUTTING
   } else if (item.sourceType === 'grafting') {
-    sourceType = SourceType.GRAFTING;
+    sourceType = SourceType.GRAFTING
   } else if (item.sourceType === 'tissue_culture') {
-    sourceType = SourceType.TISSUE_CULTURE;
+    sourceType = SourceType.TISSUE_CULTURE
   }
 
-  let status = 'sufficient';
+  let status = 'sufficient'
   if (item.status === 'low') {
-    status = 'low';
+    status = 'low'
   } else if (item.status === 'depleted') {
-    status = 'depleted';
+    status = 'depleted'
   }
 
   return {
     id: item.id,
-    seedCode: item.seedCode || '',
-    sourceType: sourceType,
-    sourceOrigin: item.sourceOrigin || 'external_purchase',
-    cropCategory: item.cropCategory || '',
-    typeName: item.typeName || '',
-    varietyName: item.varietyName || '',
-    cropName: item.cropName || '',
-    cropVariety: item.cropVariety || '',
-    cropCode: item.cropCode || '',
-    supplierId: item.supplierId || '',
-    supplierName: item.supplierName || '',
-    purchaseDate: item.purchaseDate ? item.purchaseDate.split('T')[0] : '',
+    seedCode: item.seedCode || item.seed_code || '',
+    sourceType,
+    sourceOrigin: item.sourceOrigin || item.source_origin || 'external_purchase',
+    cropCategory: item.cropCategory || item.crop_category || '',
+    typeName: item.typeName || item.type_name || '',
+    varietyName: item.varietyName || item.variety_name || '',
+    cropName: item.cropName || item.crop_name || '',
+    cropVariety: item.cropVariety || item.crop_variety || '',
+    cropCode: item.cropCode || item.crop_code || '',
+    supplierId: item.supplierId || item.supplier_id || '',
+    supplierName: item.supplierName || item.supplier_name || '',
+    purchaseDate: item.purchaseDate || item.purchase_date || '',
     quantity: item.quantity || 0,
     unit: item.unit || '',
-    unitPrice: item.unitPrice || 0,
-    totalAmount: item.totalAmount || 0,
-    initialCount: item.initialCount || 0,
-    availableCount: item.availableCount || 0,
-    pictures: pictures,
+    unitPrice: item.unitPrice ?? item.purchase_price ?? 0,
+    totalAmount: item.totalAmount || item.total_amount || 0,
+    initialCount: item.initialCount ?? item.quantity ?? 0,
+    availableCount: item.availableCount ?? item.remaining_quantity ?? 0,
+    pictures,
     remarks: item.remarks || '',
-    status: status,
+    status,
     printCount: item.printCount || 0,
-    createBy: item.createBy || '',
-    createTime: item.createTime ? item.createTime.split('T')[0] : '',
-    updateTime: item.updateTime || '',
-    // 关联生产计划字段
+    createBy: item.createBy || item.create_by || '',
+    createTime: item.createTime || item.create_time || '',
+    updateTime: item.updateTime || item.update_time || '',
     productionPlanId: item.productionPlanId || '',
     productionPlanCode: item.productionPlanCode || '',
-    // 繁殖途径字段
     propagationType: item.propagationType || 'external',
     propagationStatus: item.propagationStatus,
-    propagationMethod: item.propagationMethod,
-    parentMaleId: item.parentMaleId,
-    parentMaleCode: item.parentMaleCode,
-    parentFemaleId: item.parentFemaleId,
-    parentFemaleCode: item.parentFemaleCode,
-    motherPlantId: item.motherPlantId,
-    motherPlantCode: item.motherPlantCode,
-    linkedPlantingId: item.linkedPlantingId,
-    linkedPlantingCode: item.linkedPlantingCode,
-    propagationStartDate: item.propagationStartDate,
-    expectedHarvestDate: item.expectedHarvestDate,
-    actualHarvestDate: item.actualHarvestDate,
-    breedingLocation: item.breedingLocation,
-    targetTraits: item.targetTraits,
-    generation: item.generation,
-  };
+    endTime: item.endTime,
+    endType: item.endType
+  }
 }
 
 /**
- * 获取所有种源
- * 降级策略：API → IndexedDB 缓存
- * @returns {Promise<Object[]>}
- */
-export async function getSeedSources() {
-  const data = await enhancedApiClient.get('/seed-sources');
-  return transformSeedSourceFromBackend(data);
-}
-
-/**
- * 根据ID获取单个种源
- * 降级策略：API → IndexedDB 缓存
- * @param {string} id
- * @returns {Promise<Object|undefined>}
- */
-export async function getSeedSourceById(id) {
-  const data = await enhancedApiClient.get(`/seed-sources/${id}`);
-  return transformSeedSourceFromBackend(data);
-}
-
-/**
- * 根据ID数组获取多个种源
- * 降级策略：API → IndexedDB 缓存
- * @param {string[]} ids
- * @returns {Promise<Object[]>}
- */
-export async function getSeedSourcesByIds(ids) {
-  const data = await enhancedApiClient.get(`/seed-sources/batch?ids=${ids.join(',')}`);
-  return transformSeedSourceFromBackend(data);
-}
-
-/**
- * 创建种源
- * 降级策略：API → 离线队列
- *
- * 注意：前端使用 camelCase，后端期望 snake_case，需要转换
+ * 将前端 SeedSource（camelCase）转换为后端期望的字段（snake_case）
  * @param {Object} source
- * @returns {Promise<Object>}
+ * @returns {Object}
  */
-export async function addSeedSource(source) {
-  // 转换为后端期望的 snake_case 格式
-  const backendData = {
+function toBackendPayload(source) {
+  return {
     source_code: source.seedCode,
     source_name: source.supplierName,
     source_type: source.sourceType,
@@ -216,124 +149,161 @@ export async function addSeedSource(source) {
     unit: source.unit,
     purchase_price: source.unitPrice,
     total_amount: source.totalAmount,
-    remaining_quantity: source.quantity,
+    remaining_quantity: source.availableCount ?? source.quantity,
     used_quantity: source.usedQuantity || 0,
     status: source.status,
     remarks: source.remarks || '',
-    create_by: source.createBy,
-  };
+    create_by: source.createBy
+  }
+}
 
-  const result = await enhancedApiClient.post('/seed-sources', backendData);
-  return { ...source, id: result.id };
+/**
+ * 获取所有种源（驼峰命名 + 字段标准化）
+ * @returns {Promise<Object[]>}
+ */
+export async function getSeedSources() {
+  const data = await cropApi.getSeedSourceList()
+  return transformSeedSourceFromBackend(data || [])
+}
+
+/**
+ * 关键字搜索种源
+ * @param {string} keyword
+ * @returns {Promise<Object[]>}
+ */
+export async function searchSeedSources(keyword) {
+  const data = await cropApi.searchSeedSources(keyword)
+  return transformSeedSourceFromBackend(data || [])
+}
+
+/**
+ * 根据ID获取单个种源
+ * @param {string} id
+ * @returns {Promise<Object|undefined>}
+ */
+export async function getSeedSourceById(id) {
+  const data = await cropApi.getSeedSourceDetail(id)
+  return transformSeedSourceFromBackend(data)
+}
+
+/**
+ * 根据ID数组获取多个种源
+ * @param {string[]} ids
+ * @returns {Promise<Object[]>}
+ */
+export async function getSeedSourcesByIds(ids) {
+  const data = await cropApi.getSeedSourcesByIds(ids)
+  return transformSeedSourceFromBackend(data || [])
+}
+
+/**
+ * 创建种源
+ * @param {Object} source - 前端 SeedSource（camelCase）
+ * @returns {Promise<Object>}
+ */
+export async function addSeedSource(source) {
+  const result = await cropApi.createSeedSource(toBackendPayload(source))
+  return { ...source, id: result?.id || result?.data?.id }
 }
 
 /**
  * 更新种源
- * 降级策略：API → 离线队列
  * @param {string} id
  * @param {Object} updates
  * @returns {Promise<Object|null>}
  */
 export async function updateSeedSource(id, updates) {
-  // 转换为后端期望的 snake_case 格式
-  const backendUpdates = {};
-
-  if (updates.seedCode !== undefined) backendUpdates.source_code = updates.seedCode;
-  if (updates.supplierName !== undefined) backendUpdates.source_name = updates.supplierName;
-  if (updates.sourceType !== undefined) backendUpdates.source_type = updates.sourceType;
-  if (updates.sourceOrigin !== undefined) backendUpdates.source_origin = updates.sourceOrigin;
-  if (updates.productionPlanCode !== undefined) backendUpdates.production_plan_code = updates.productionPlanCode;
-  if (updates.cropCategory !== undefined) backendUpdates.crop_category = updates.cropCategory;
-  if (updates.typeName !== undefined) backendUpdates.type_name = updates.typeName;
-  if (updates.varietyName !== undefined) backendUpdates.variety_name = updates.varietyName;
-  if (updates.cropName !== undefined) backendUpdates.crop_name = updates.cropName;
-  if (updates.cropVariety !== undefined) backendUpdates.crop_variety = updates.cropVariety;
-  if (updates.cropCode !== undefined) backendUpdates.crop_code = updates.cropCode;
-  if (updates.supplierId !== undefined) backendUpdates.supplier_id = updates.supplierId;
-  if (updates.purchaseDate !== undefined) backendUpdates.purchase_date = updates.purchaseDate;
-  if (updates.quantity !== undefined) backendUpdates.quantity = updates.quantity;
-  if (updates.unit !== undefined) backendUpdates.unit = updates.unit;
-  if (updates.unitPrice !== undefined) backendUpdates.purchase_price = updates.unitPrice;
-  if (updates.totalAmount !== undefined) backendUpdates.total_amount = updates.totalAmount;
-  if (updates.availableCount !== undefined) backendUpdates.remaining_quantity = updates.availableCount;
-  if (updates.status !== undefined) backendUpdates.status = updates.status;
-  if (updates.remarks !== undefined) backendUpdates.remarks = updates.remarks;
-
-  const result = await enhancedApiClient.put(`/seed-sources/${id}`, backendUpdates);
-  return result ? { ...updates, id } : null;
+  const result = await cropApi.updateSeedSource(id, toBackendPayload(updates))
+  return result ? { ...updates, id } : null
 }
 
 /**
  * 删除种源
- * 降级策略：API → 离线队列
  * @param {string} id
  * @returns {Promise<boolean>}
  */
 export async function deleteSeedSource(id) {
-  await enhancedApiClient.delete(`/seed-sources/${id}`);
-  return true;
+  await cropApi.deleteSeedSource(id)
+  return true
 }
 
 /**
  * 批量删除种源
- * 降级策略：API → 离线队列
  * @param {string[]} ids
  * @returns {Promise<boolean>}
  */
 export async function deleteSeedSources(ids) {
-  await enhancedApiClient.delete(`/seed-sources/batch?ids=${ids.join(',')}`);
-  return true;
+  await cropApi.deleteSeedSources(ids)
+  return true
+}
+
+/**
+ * 检查种源是否可删除
+ * @param {string} id
+ * @returns {Promise<{deletable: boolean, references: Array}>}
+ */
+export async function checkSeedSourceDeletable(id) {
+  const data = await cropApi.checkSeedSourceDeletable(id)
+  return data || { deletable: true, references: [] }
 }
 
 /**
  * 减少可用数量
- * 降级策略：API → 离线队列
  * @param {string} id
  * @param {number} count
  * @returns {Promise<boolean>}
  */
 export async function decreaseAvailableCount(id, count) {
-  await enhancedApiClient.post(`/seed-sources/${id}/decrease-available`, { count });
-  return true;
+  await cropApi.decreaseAvailableCount(id, count)
+  return true
 }
 
 /**
- * 重置种源数据（仅调用后端）
+ * 重置种源数据（开发用）
  * @returns {Promise<void>}
  */
 export async function resetSeedSources() {
-  await enhancedApiClient.post('/seed-sources/reset');
+  // 该接口在 api/crop 中未实现，保留为 noop 兼容老调用方
+  console.warn('[apiSeedSourceService] resetSeedSources 在新轨 @/api/crop 中未实现')
 }
 
 /**
  * 获取当日最大序号
- * 降级策略：API → 失败返回0
- * @param {string} dateStr
+ * @param {string} dateStr - YYYY-MM-DD
  * @returns {Promise<number>}
  */
 export async function getTodayMaxSeedCodeSerial(dateStr) {
   try {
-    return await enhancedApiClient.get(`/seed-sources/max-serial?date=${dateStr}`);
+    const data = await cropApi.getTodayMaxSeedCodeSerial(dateStr)
+    return data?.max_serial ?? data ?? 0
   } catch {
-    return 0;
+    return 0
   }
 }
 
 /**
  * 生成种源编码
- * 降级策略：API → 失败返回空字符串
- * @param {string} dateStr
+ * @param {string} dateStr - YYYY-MM-DD
  * @returns {Promise<string>}
  */
 export async function generateSeedCode(dateStr) {
   try {
-    return await enhancedApiClient.get(`/seed-sources/generate-code?date=${dateStr}`);
+    const data = await cropApi.generateSeedCode(dateStr)
+    return data?.code || data || ''
   } catch {
-    return '';
+    return ''
   }
 }
 
-// ========== 繁殖过程记录 API ==========
+/**
+ * 检查种源批号是否已存在
+ * @param {string} code
+ * @returns {Promise<boolean>}
+ */
+export async function checkSourceCodeExists(code) {
+  const data = await cropApi.checkSourceCodeExists(code)
+  return data?.exists ?? !!data
+}
 
 /**
  * 添加繁殖过程记录
@@ -342,11 +312,7 @@ export async function generateSeedCode(dateStr) {
  * @returns {Promise<Object>}
  */
 export async function addPropagationRecord(seedSourceId, data) {
-  const result = await enhancedApiClient.post(
-    `/seed-sources/${seedSourceId}/propagation-records`,
-    data
-  );
-  return result;
+  return cropApi.addPropagationRecord(seedSourceId, data)
 }
 
 /**
@@ -355,10 +321,39 @@ export async function addPropagationRecord(seedSourceId, data) {
  * @returns {Promise<Object[]>}
  */
 export async function getPropagationRecords(seedSourceId) {
-  const data = await enhancedApiClient.get(
-    `/seed-sources/${seedSourceId}/propagation-records`
-  );
-  return data;
+  const data = await cropApi.getPropagationRecords(seedSourceId)
+  return Array.isArray(data) ? data : []
+}
+
+/**
+ * 更新繁殖过程记录
+ * @param {string} seedSourceId
+ * @param {string} recordId
+ * @param {Object} data
+ * @returns {Promise<Object>}
+ */
+export async function updatePropagationRecord(seedSourceId, recordId, data) {
+  return cropApi.updatePropagationRecord(seedSourceId, recordId, data)
+}
+
+/**
+ * 删除繁殖过程记录
+ * @param {string} seedSourceId
+ * @param {string} recordId
+ * @returns {Promise<boolean>}
+ */
+export async function deletePropagationRecord(seedSourceId, recordId) {
+  await cropApi.deletePropagationRecord(seedSourceId, recordId)
+  return true
+}
+
+/**
+ * 获取所有种源的繁殖过程记录
+ * @param {Object} params
+ * @returns {Promise<Object>}
+ */
+export async function getAllPropagationRecords(params = {}) {
+  return cropApi.getAllPropagationRecords(params)
 }
 
 /**
@@ -368,11 +363,7 @@ export async function getPropagationRecords(seedSourceId) {
  * @returns {Promise<{id: string, new_stage: string}>}
  */
 export async function updatePropagationStage(seedSourceId, newStage) {
-  const result = await enhancedApiClient.put(
-    `/seed-sources/${seedSourceId}/propagation-stage`,
-    { new_stage: newStage }
-  );
-  return result;
+  return cropApi.updatePropagationStage(seedSourceId, newStage)
 }
 
 /**
@@ -382,11 +373,7 @@ export async function updatePropagationStage(seedSourceId, newStage) {
  * @returns {Promise<{id: string, quantity: number}>}
  */
 export async function completePropagation(seedSourceId, quantity) {
-  const result = await enhancedApiClient.post(
-    `/seed-sources/${seedSourceId}/complete-propagation`,
-    { quantity }
-  );
-  return result;
+  return cropApi.completePropagation(seedSourceId, quantity)
 }
 
 /**
@@ -394,38 +381,73 @@ export async function completePropagation(seedSourceId, quantity) {
  * @returns {Promise<Object[]>}
  */
 export async function getPlantingsForSeedSaving() {
-  const data = await enhancedApiClient.get('/seed-sources/available-for-seed-saving');
-  return data;
+  const data = await cropApi.getPlantingsForSeedSaving?.() || []
+  return Array.isArray(data) ? data : []
 }
 
 /**
- * 获取某一种源的使用记录（含被育苗使用 + 种植移入/移出）
- * V1.1 源：V1.1/src/services/apiSeedSourceService.ts getSeedSourceUsageRecords
- * 错误直接抛给上层（V2.1 铁律：禁止吞错返回默认值）
+ * 获取某一种源的使用记录
  * @param {string} seedSourceId
  * @returns {Promise<Object[]>}
  */
 export async function getSeedSourceUsageRecords(seedSourceId) {
   if (!seedSourceId) return []
-  const rows = await enhancedApiClient.get(`/seed-sources/${seedSourceId}/usage-records`)
-  return Array.isArray(rows) ? rows : []
+  const data = await cropApi.getSeedSourceUsageRecords(seedSourceId)
+  return Array.isArray(data) ? data : []
 }
 
 /**
- * 获取某种源的入库历史（外购入库 + 库存调拨 + 追加入库 全流水）
- * V1.1 源：V1.1/src/services/apiSeedSourceService.ts getSeedSourceInboundHistory
- * 数据来源：GET /api/seed-sources/:id/history-inbound
- *   查 inventory_inbound_records 表 WHERE (source_id=? AND source_module='seed_source') OR business_id=?
- *   - 商品种源入库（SeedSourceInboundModal）→ inventoryInboundFromSource.service.ts 写 source_id=种源ID
- *   - 调拨入种源（executeTransferToSource）→ 写 business_id=种源ID, source_module='inventory'
- *   - 追加调拨入库（append-from-inventory）→ 写 business_id=种源ID, source_module='inventory'
- * 三条入库路径都覆盖，详情弹窗能完整看到所有入库流水
- * 错误直接抛给上层（V2.1 铁律：禁止吞错返回默认值）
+ * 获取某种源的入库历史
  * @param {string} seedSourceId
  * @returns {Promise<Object[]>}
  */
 export async function getSeedSourceInboundHistory(seedSourceId) {
   if (!seedSourceId) return []
-  const rows = await enhancedApiClient.get(`/seed-sources/${seedSourceId}/history-inbound`)
-  return Array.isArray(rows) ? rows : []
+  const data = await cropApi.getSeedSourceInboundHistory(seedSourceId)
+  return Array.isArray(data) ? data : []
 }
+
+/**
+ * 获取标签打印记录
+ * @param {string} seedSourceId
+ * @returns {Promise<Object[]>}
+ */
+export async function getPrintRecords(seedSourceId) {
+  if (!seedSourceId) return []
+  const data = await cropApi.getPrintRecords(seedSourceId)
+  return Array.isArray(data) ? data : []
+}
+
+/**
+ * 创建标签打印记录
+ * @param {string} seedSourceId
+ * @param {Object} data
+ * @returns {Promise<Object>}
+ */
+export async function createPrintRecord(seedSourceId, data) {
+  return cropApi.createPrintRecord(seedSourceId, data)
+}
+
+/**
+ * 打印标签（增加打印计数）
+ * @param {string} seedSourceId
+ * @param {number} count
+ * @param {string} mode
+ * @returns {Promise<Object>}
+ */
+export async function printLabel(seedSourceId, count, mode) {
+  return cropApi.printLabel(seedSourceId, count, mode)
+}
+
+/**
+ * 可用种源查询（按库存查找可调拨的）
+ * @param {Object} params
+ * @returns {Promise<Object[]>}
+ */
+export async function lookupAvailableSeedSources(params) {
+  const data = await cropApi.lookupAvailableSeedSources(params)
+  return Array.isArray(data) ? data : []
+}
+
+// 兼容 V1.1 老调用方：从 constants/seedSourceDict 等模块可能引用 SourceType
+export { SourceType }

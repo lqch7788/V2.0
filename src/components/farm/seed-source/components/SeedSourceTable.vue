@@ -57,7 +57,24 @@
             <th class="sst-th">入库数量</th>
             <th class="sst-th">剩余数量</th>
             <th class="sst-th">单位</th>
-            <th class="sst-th"><span class="sst-help">状态<span class="sst-sup">?</span></span></th>
+            <th class="sst-th">
+              <!-- 2026-07-18 P0-DIFF-001 修复：状态列补 V1.1 Tooltip 显示判定规则（基于 LOW_THRESHOLD_RATIO 派生文案） -->
+              <el-tooltip
+                placement="bottom"
+                :show-after="100"
+                popper-class="sst-status-tooltip"
+              >
+                <template #content>
+                  <div class="text-left space-y-1">
+                    <div class="font-medium border-b border-white/30 pb-1 mb-1">状态判定规则</div>
+                    <div>· 剩余率 = 0% → <span class="text-red-200 font-semibold">耗尽</span></div>
+                    <div>· 剩余率 &lt; {{ lowThresholdPercent }}% → <span class="text-amber-200 font-semibold">不足</span></div>
+                    <div>· 剩余率 ≥ {{ lowThresholdPercent }}% → <span class="text-white font-semibold">充足</span></div>
+                  </div>
+                </template>
+                <span class="sst-help">状态<span class="sst-sup">?</span></span>
+              </el-tooltip>
+            </th>
             <th class="sst-th">备注</th>
             <th class="sst-th">创建人</th>
             <th class="sst-th sst-th-op">操作</th>
@@ -143,7 +160,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { Plus, Delete, Download, Printer, Close } from '@element-plus/icons-vue'
 // 操作列图标 1:1 对齐 V1.1 lucide-react 图标（Tag / Edit2 / ArrowLeftRight / Undo2）
 import { Tag, Edit2, ArrowLeftRight, Undo2 } from 'lucide-vue-next'
-import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, UNIT_MAP, computeStockStatus, safeLabel } from '@/constants/seedSourceDict'
+import { STOCK_STATUS_MAP, SOURCE_TYPE_MAP, SOURCE_ORIGIN_MAP, UNIT_MAP, computeStockStatus, safeLabel, LOW_THRESHOLD_RATIO } from '@/constants/seedSourceDict'
 import { getAllVarieties } from '@/services/cropVarietyService'
 import { ElMessage } from 'element-plus'
 
@@ -223,6 +240,9 @@ const resolveForm = (record) => {
 }
 const formatUnit = (unit) => UNIT_MAP[unit] || unit || ''
 const truncateText = (text, maxLen = 16) => { if (text == null || text === '') return '-'; const s = String(text); return s.length <= maxLen ? s : `${s.slice(0, maxLen)}…` }
+
+// 2026-07-18 P0-DIFF-001：状态判定阈值百分比（与 V1.1 LOW_THRESHOLD_RATIO 同步）
+const lowThresholdPercent = computed(() => Math.round(LOW_THRESHOLD_RATIO * 100))
 
 const showCheckbox = computed(() => props.operationMode !== 'normal' || props.exportMode || props.printMode)
 const currentData = computed(() => { const s = (localPagination.value.current - 1) * localPagination.value.pageSize; return props.data.slice(s, Math.min(s + localPagination.value.pageSize, props.data.length)) })
@@ -314,6 +334,21 @@ const executeOperation = (row, action) => {
 /* ===== 状态列帮助图标（对齐 V1.1）====== */
 .sst-help { cursor: help; border-bottom: 1px dotted rgba(255, 255, 255, 0.5); }
 .sst-sup { font-size: 0.625rem; opacity: 0.7; margin-left: 0.125rem; vertical-align: super; }
+
+/* ===== 2026-07-18 P0-DIFF-001 修复：状态判定规则 Tooltip（对齐 V1.1 Tooltip bg-emerald-800）====== */
+:deep(.sst-status-tooltip) {
+  background-color: #065f46 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 10px 12px !important;
+  max-width: 260px !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+:deep(.sst-status-tooltip .el-popper__arrow::before) {
+  background-color: #065f46 !important;
+  border-color: #065f46 !important;
+}
 
 /* ===== 操作列表头（对齐 V1.1 sticky right-0 bg-blue-700 shadow z-20）====== */
 .sst-th-op {
