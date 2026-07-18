@@ -37,6 +37,33 @@ export const SOURCE_ORIGIN_MAP = {
   external_harvest: '外购入库',
 }
 
+// ========== 2026-07-18 P0-DETAIL-002：种源详情「来源业务类型」字典 ==========
+// 应用场景：SeedSourceDetailModal 调拨来源 Tab 的"来源业务类型"字段
+// V1.1 源：src/constants/cropConstants.ts L70-77
+// 数据源：inventoryTransfer.service.ts / inventoryInboundFromSource.service.ts 写入 transferred_from_business_type 字段
+export const TRANSFERRED_FROM_BUSINESS_TYPE_MAP = {
+  harvest: '采收',
+  purchase: '外购入库',
+  transfer: '库存调拨',
+  inbound: '入库',
+  external: '外部',
+  manual: '手动'
+}
+
+// ========== 2026-07-18 P0-DETAIL-003：种源详情「原始来源模块」字典 ==========
+// 应用场景：SeedSourceDetailModal 调拨来源 Tab 的"原始来源模块"字段
+// V1.1 源：src/constants/cropConstants.ts L82-90
+// 数据源：inventoryTransfer.service.ts 写入 original_source_module 字段
+export const ORIGINAL_SOURCE_MODULE_MAP = {
+  seed_source: '种源',
+  seedling: '种苗',
+  planting: '种植',
+  harvest: '采收',
+  inventory: '库存',
+  manual: '手动',
+  inbound: '入库'
+}
+
 // ========== 单位映射（英文→中文） ==========
 export const UNIT_MAP = {
   g: '克',
