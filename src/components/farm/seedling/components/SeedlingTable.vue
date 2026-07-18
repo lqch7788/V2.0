@@ -261,7 +261,7 @@ const handleCurrentChange = (page) => { localPagination.value.current = page; em
 const cancelOperation = () => { emit('operation-mode-change', 'normal'); emit('update:selected-rows', []) }
 const cancelPrintMode = () => { emit('print-mode-change', false); emit('update:selected-rows', []) }
 const confirmPrint = () => { if (props.selectedRows.length === 0) { ElMessage.warning('请先选择要打印的记录'); return } emit('confirm-print', props.data.filter(item => props.selectedRows.includes(item.id))); emit('print-mode-change', false); emit('update:selected-rows', []) }
-const handleExportCancel = () => { emit('export-cancel'); emit('update:selected-rows', []) }
+const handleExportCancel = () => { emit('cancel-export'); emit('update:selected-rows', []) }
 const onAdd = () => emit('add')
 const onEdit = (row) => emit('edit', row)
 const onDetail = (row) => emit('detail', row)
