@@ -142,3 +142,55 @@ export async function deleteInventoryBatch(ids) {
     return false;
   }
 }
+
+/**
+ * 行级采收入库（统一入库端点 - 对齐 V1.1 UnifiedRowHarvestInboundModal）
+ * POST /api/inventory/inbound-from-source
+ * @param {Object} input
+ * @param {string} input.stockType - 库存类型 'seed' | 'seedling' | 'product'
+ * @param {string} input.sourceModule - 来源模块 'seedling' | 'planting'
+ * @param {string} input.sourceId - 来源记录 ID
+ * @param {string} input.harvestDate - 采收日期 YYYY-MM-DD
+ * @param {string} input.warehouseId - 仓库 ID
+ * @param {string} input.warehouseName - 仓库名称
+ * @param {string[]} input.harvesterIds - 采收员 IDs
+ * @param {string} input.operator - 操作员（审核员）
+ * @param {string} input.remarks - 备注
+ * @param {string} input.unit - 单位
+ * @param {boolean} input.isSupplementary - 是否补录
+ * @param {string} input.supplementaryReason - 补录原因
+ * @param {Array} input.products - 产品明细 [{ cropCode, cropName, harvestQuantity, unit, grade, sourceForm, productForm }]
+ */
+export async function submitUnifiedInbound(input) {
+  try {
+    const result = await enhancedApiClient.post('/inventory/inbound-from-source', input);
+    return result;
+  } catch (error) {
+    console.error('submitUnifiedInbound failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取仓库列表
+ * GET /api/inventory/warehouses
+ */
+export async function getWarehouses() {
+  try {
+    return await enhancedApiClient.get('/inventory/warehouses');
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 获取采收历史记录
+ * GET /api/inventory/harvest-records?sourceModule=...&sourceId=...
+ */
+export async function getHarvestRecords(sourceModule, sourceId) {
+  try {
+    return await enhancedApiClient.get(`/inventory/harvest-records?sourceModule=${sourceModule}&sourceId=${sourceId}`);
+  } catch {
+    return [];
+  }
+}

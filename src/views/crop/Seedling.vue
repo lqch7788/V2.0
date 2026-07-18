@@ -130,72 +130,62 @@
       @confirm="handleConfirmExport"
       @update:export-file-type="exportFormat = $event"
     />
-    <!-- 2026-07-18 P0-DIFF：补 V1.1 删除确认弹窗 -->
-    <el-dialog
-      v-model="showDeleteModal"
-      title="确认删除"
-      width="420px"
-      :close-on-click-modal="false"
-    >
-      <p class="text-sm text-gray-700">确定要删除选中的 <strong class="text-red-600">{{ pendingDeleteIds.length }}</strong> 条育苗记录吗？此操作不可撤销。</p>
-      <template #footer>
-        <el-button @click="showDeleteModal = false">取消</el-button>
-        <el-button type="danger" @click="handleDeleteConfirm">确认删除</el-button>
-      </template>
-    </el-dialog>
-    <!-- 2026-07-18 P0-DIFF：补 V1.1 出圃入库弹窗（UnifiedRowHarvestInboundModal 替代）-->
-    <el-dialog
+    <!-- 删除确认弹窗（对齐 V1.1 DeleteConfirmModal UI 库组件） -->
+    <DeleteConfirmModal
+      :is-open="showDeleteModal"
+      :selected-count="pendingDeleteIds.length"
+      :on-close="() => { showDeleteModal = false; pendingDeleteIds = [] }"
+      :on-confirm="handleDeleteConfirm"
+      title="删除警告"
+    />
+
+    <!-- 出圃入库弹窗（对齐 V1.1 UnifiedRowHarvestInboundModal 共享组件） -->
+    <UnifiedRowHarvestInboundModal
       v-if="inboundModal.record"
-      v-model="inboundModal.open"
-      :title="`出圃入库 - ${inboundModal.record.seedlingCode}`"
-      width="900px"
-      :close-on-click-modal="false"
-      @close="inboundModal = { open: false, record: null }"
-    >
-      <div class="space-y-4">
-        <el-alert type="info" :closable="false" show-icon>
-          <template #title>育苗批号：{{ inboundModal.record.seedlingCode }} | 作物：{{ inboundModal.record.cropName }}</template>
-        </el-alert>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="text-sm text-gray-700">采收数量</label>
-            <el-input-number v-model="inboundModal.quantity" :min="1" class="w-full" />
-          </div>
-          <div>
-            <label class="text-sm text-gray-700">入库仓库</label>
-            <el-input v-model="inboundModal.warehouseName" placeholder="请输入仓库名称" />
+      :is-open="inboundModal.open"
+      :on-close="() => { inboundModal = { open: false, record: null } }"
+      :on-success="handleInboundSuccess"
+      stock-type="seedling"
+      source-module="seedling"
+      :source-record="{
+        id: inboundModal.record.id,
+        code: inboundModal.record.seedlingCode,
+        cropName: inboundModal.record.cropName || '',
+        cropVariety: inboundModal.record.cropVariety || '',
+        cropCode: inboundModal.record.cropCode || '',
+        unit: '株',
+        endTime: inboundModal.record.endTime,
+        status: inboundModal.record.status,
+      }"
+    />
+    <!-- 结束育苗确认弹窗（对齐 V1.1 L782-818 inline div + AlertTriangle） -->
+    <div v-if="endConfirm.record" class="fixed inset-0 z-[70] flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/50" @click="endConfirm = { record: null }"></div>
+      <div class="relative bg-white rounded-xl w-full max-w-md shadow-xl flex flex-col">
+        <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-red-500 to-red-600 rounded-t-xl">
+          <h3 class="text-base font-semibold text-white flex items-center gap-2">
+            <el-icon :size="20" style="color: white;"><WarningFilled /></el-icon> 确认结束育苗记录
+          </h3>
+          <el-button link size="small" class="!text-white hover:!bg-red-700" @click="endConfirm = { record: null }">
+            <el-icon><Close /></el-icon>
+          </el-button>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+            <div class="text-sm font-semibold text-red-800">⚠️ 结束育苗记录</div>
+            <div class="text-xs text-red-700 mt-1">
+              结束后将锁定日常运维操作（移栽、出圃、修改等）。<br />
+              <span class="font-semibold">仍可补录遗漏的库存</span>（通过"出圃入库"按钮，必填补录原因）。<br />
+              <span class="font-semibold">此操作不可撤销！</span>
+            </div>
           </div>
         </div>
-        <el-input v-model="inboundModal.remarks" type="textarea" :rows="2" placeholder="备注（可选）" />
+        <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+          <el-button size="small" @click="endConfirm = { record: null }">取消</el-button>
+          <el-button size="small" type="danger" @click="executeEnd">确认结束</el-button>
+        </div>
       </div>
-      <template #footer>
-        <el-button @click="inboundModal = { open: false, record: null }">取消</el-button>
-        <el-button type="primary" @click="handleInboundSuccess">确认入库</el-button>
-      </template>
-    </el-dialog>
-    <!-- 2026-07-18 P0-DIFF：补 V1.1 结束育苗确认弹窗 -->
-    <el-dialog
-      v-if="endConfirm.record"
-      v-model="endConfirm.open"
-      title="确认结束育苗记录"
-      width="480px"
-      :close-on-click-modal="false"
-    >
-      <div class="space-y-3">
-        <el-alert type="warning" :closable="false" show-icon>
-          <template #title>⚠️ 结束育苗记录</template>
-          <div class="text-xs text-red-700 mt-1">
-            结束后将锁定日常运维操作（移栽、出圃、修改等）。<br>
-            <span class="font-semibold">仍可补录遗漏的库存</span>（通过"出圃入库"按钮，必填补录原因）。<br>
-            <span class="font-semibold">此操作不可撤销！</span>
-          </div>
-        </el-alert>
-      </div>
-      <template #footer>
-        <el-button @click="endConfirm = { record: null }">取消</el-button>
-        <el-button type="danger" @click="executeEnd">确认结束</el-button>
-      </template>
-    </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -217,6 +207,8 @@ import PrintLabelModal from '@/components/farm/seedling/modals/PrintLabelModal.v
 import SeedlingLabelManageModal from '@/components/farm/seedling/modals/SeedlingLabelManageModal.vue'
 import ImageLightboxModal from '@/components/common/ImageLightboxModal.vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
+import DeleteConfirmModal from '@/components/ui/DeleteConfirmModal.vue'
+import UnifiedRowHarvestInboundModal from '@/components/farm/inventory/UnifiedRowHarvestInboundModal.vue'
 import { useSeedlingStore } from '@/stores/modules/seedling'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import * as cropBatchService from '@/services/apiCropBatchService'
@@ -550,8 +542,8 @@ const handleInbound = (record) => {
   inboundModal.value = { open: true, record, quantity: 1, warehouseName: '', remarks: '' }
 }
 const handleInboundSuccess = async () => {
-  ElMessage.success('出圃入库成功')
-  inboundModal.value = { open: false, record: null, quantity: 1, warehouseName: '', remarks: '' }
+  // 对齐 V1.1 L307-310：入库成功后立即刷新列表（让列表的 harvestStockedCount 实时更新）
+  inboundModal.value = { open: false, record: null }
   await loadItems()
 }
 
