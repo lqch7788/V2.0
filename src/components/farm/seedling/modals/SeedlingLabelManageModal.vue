@@ -12,6 +12,12 @@
         </el-button>
       </div>
 
+      <!-- readOnly 模式横幅（对齐 V1.1 L140-155） -->
+      <div v-if="readOnly" class="px-4 py-2 bg-amber-50 border-b border-amber-200 flex items-center gap-2 flex-shrink-0">
+        <el-icon :size="16" class="text-amber-600"><Lock /></el-icon>
+        <span class="text-sm text-amber-700">该育苗已结束，标签管理处于<strong>只读模式</strong>（可查看、导出、打印，不可编辑）</span>
+      </div>
+
       <!-- 工具栏: 搜索 + 导出 -->
       <div class="px-4 py-3 border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
         <el-input
@@ -142,14 +148,18 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Close, Search, Download, PriceTag, Loading } from '@element-plus/icons-vue'
+import { Close, Search, Download, PriceTag, Loading, Lock } from '@element-plus/icons-vue'
 import { usePlantLabelStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   visible: Boolean,
   seedlingId: String,
-  seedlingCode: String
+  seedlingCode: String,
+  // 2026-07-18：对齐 V1.1 readOnly 模式（已结束的记录禁用写操作）
+  readOnly: { type: Boolean, default: false },
+  // 2026-07-18：对齐 V1.1 autoSelectLabelNumber（扫码跳转自动选中）
+  autoSelectLabelNumber: { type: String, default: undefined }
 })
 
 const emit = defineEmits(['update:visible'])

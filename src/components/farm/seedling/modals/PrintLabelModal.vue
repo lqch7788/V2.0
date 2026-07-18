@@ -20,18 +20,22 @@
       <!-- 内容区域 -->
       <div class="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
         <div class="space-y-4" v-if="record">
-          <!-- 打印模式选择 -->
+          <!-- 打印模式选择（对齐 V1.1 L26-46 PRINT_MODE_MAP 卡片按钮风格） -->
           <div class="bg-blue-50 rounded-lg p-4">
-            <div class="flex gap-4 mb-4">
-              <label class="flex items-center gap-2">
-                <el-radio v-model="printMode" value="single">单标签打印</el-radio>
-              </label>
-              <label class="flex items-center gap-2">
-                <el-radio v-model="printMode" value="multi">多标签打印</el-radio>
-              </label>
-              <label class="flex items-center gap-2">
-                <el-radio v-model="printMode" value="batch">批量生成</el-radio>
-              </label>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <button
+                v-for="mode in [{value:'single',icon:'🏷️',label:'单标签打印',sublabel:'重打 1 个已存在',desc:'从已有标签中选择 1 个重新打印'},{value:'multi',icon:'📋',label:'多标签打印',sublabel:'批量勾选已存在',desc:'从已有标签列表中勾选多个一并打印'},{value:'batch',icon:'✨',label:'批量生成',sublabel:'生成新标签',desc:'系统生成新的标签编号 + 同步入库 + 打印'}]"
+                :key="mode.value"
+                type="button"
+                class="p-3 border-2 rounded-lg text-left cursor-pointer transition-all"
+                :class="printMode === mode.value ? 'border-blue-500 bg-blue-100 shadow-sm' : 'border-gray-200 bg-white hover:border-blue-300'"
+                @click="printMode = mode.value"
+              >
+                <div class="text-lg mb-1">{{ mode.icon }}</div>
+                <div class="text-sm font-semibold text-gray-900">{{ mode.label }}</div>
+                <div class="text-xs text-gray-500">{{ mode.sublabel }}</div>
+                <div class="text-[10px] text-gray-400 mt-1 leading-tight">{{ mode.desc }}</div>
+              </button>
             </div>
 
             <!-- 单标签模式 -->
