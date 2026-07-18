@@ -8,7 +8,7 @@
     width="900px"
     top="5vh"
     :close-on-click-modal="true"
-    @close="handleClose"
+    @update:model-value="emit('update:visible', $event)"
   >
     <template #header>
       <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-4 -mt-4 px-6 py-3 flex items-center justify-between rounded-t-xl">
