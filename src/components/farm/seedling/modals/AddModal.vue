@@ -40,7 +40,7 @@
                   @change="handleSourceChange"
                 >
                   <el-option
-                    v-for="source in seedSources"
+                    v-for="source in filteredSeedSources"
                     :key="source.id"
                     :label="`${source.seedCode} - ${source.cropName}`"
                     :value="source.id"
@@ -86,6 +86,53 @@
                   class="w-full !bg-gray-100"
                 />
               </div>
+              <!-- P0-MD-002：品种路径 4 段只读展示 -->
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">品种路径</label>
+                <div class="flex items-center gap-1 px-3 py-2 bg-gray-50 rounded text-sm">
+                  <span class="text-gray-400">{{ formData.categoryName || '-' }}</span>
+                  <span class="text-gray-300">-</span>
+                  <span class="text-gray-700">{{ formData.typeName || '-' }}</span>
+                  <span class="text-gray-300">-</span>
+                  <span class="text-gray-700">{{ formData.varietyName || '-' }}</span>
+                  <span class="text-gray-300">-</span>
+                  <span class="text-gray-900 font-medium">{{ formData.subVarietyName || '-' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== 第零区：繁殖模式（P0-MD-001，建档后锁定） ========== -->
+          <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <el-icon :size="16" style="color: #4f46e5;"><Connection /></el-icon>
+              <h3 class="text-sm font-semibold text-indigo-900">
+                繁殖模式 <span class="text-red-500">*</span>
+                <span class="text-xs text-gray-500 ml-2 font-normal">建档后不可修改</span>
+              </h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <label
+                v-for="mode in PROPAGATION_MODES"
+                :key="mode.value"
+                class="flex items-start gap-2 p-3 border rounded-lg cursor-pointer transition-colors"
+                :class="formData.propagationMode === mode.value
+                  ? 'border-indigo-500 bg-indigo-100 ring-2 ring-indigo-200'
+                  : 'border-gray-300 bg-white hover:border-indigo-300'"
+              >
+                <input
+                  type="radio"
+                  name="propagationMode"
+                  :value="mode.value"
+                  :checked="formData.propagationMode === mode.value"
+                  @change="handlePropagationModeChange(mode.value)"
+                  class="mt-1"
+                />
+                <div class="flex-1">
+                  <div class="text-sm font-medium text-gray-900">{{ mode.label }}</div>
+                  <div class="text-xs text-gray-500 mt-0.5">{{ mode.desc }}</div>
+                </div>
+              </label>
             </div>
           </div>
 
@@ -113,12 +160,18 @@
                   </el-button>
                 </div>
               </div>
-              <!-- 关联生产计划 -->
+              <!-- 关联生产计划（P0-MD-007：选了种源后联动过滤） -->
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-1">关联生产计划</label>
-                <el-select v-model="formData.productionPlanId" placeholder="不关联（独立批次）" clearable class="w-full">
+                <el-select
+                  v-model="formData.productionPlanId"
+                  placeholder="不关联（独立批次）"
+                  clearable
+                  class="w-full"
+                  @change="handleProductionPlanChange"
+                >
                   <el-option
-                    v-for="plan in productionPlans"
+                    v-for="plan in filteredProductionPlans"
                     :key="plan.batchCode"
                     :label="`[${plan.planTypeName || '育苗计划'}] ${plan.batchCode} - ${plan.cropName}`"
                     :value="plan.batchCode"
@@ -143,12 +196,16 @@
                   <el-option v-for="type in seedlingTypeOptions" :key="type.value" :label="type.label" :value="type.value" />
                 </el-select>
               </div>
-              <!-- 计划类型 -->
+              <!-- P0-MD-005：计划类型（字典驱动，fallback 静态选项） -->
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-1">计划类型</label>
                 <el-select v-model="formData.planType" placeholder="请选择" class="w-full">
-                  <el-option label="常规" value="routine" />
-                  <el-option label="加急" value="urgent" />
+                  <el-option
+                    v-for="t in planTypeOptions"
+                    :key="t.value"
+                    :label="t.label"
+                    :value="t.value"
+                  />
                 </el-select>
               </div>
               <!-- 开始日期 -->
@@ -218,6 +275,33 @@
                 <label class="block text-sm font-medium text-gray-900 mb-1">负责人</label>
                 <el-input v-model="formData.chargePerson" placeholder="请输入" class="w-full" />
               </div>
+              <!-- P0-MD-003：种苗形态（V1.1 SEEDLING_FORM_MAP） -->
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-1">种苗形态</label>
+                <el-select v-model="formData.seedlingForm" placeholder="请选择种苗形态（可选）" clearable class="w-full">
+                  <el-option label="不指定" value="" />
+                  <el-option
+                    v-for="form in SEEDLING_FORM_OPTIONS"
+                    :key="form.value"
+                    :label="form.label"
+                    :value="form.value"
+                  />
+                </el-select>
+              </div>
+              <!-- P0-MD-004：单位 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-1">
+                  单位 <span class="text-red-500">*</span>
+                </label>
+                <el-select v-model="formData.unit" placeholder="选择单位" class="w-full">
+                  <el-option
+                    v-for="u in unitOptions"
+                    :key="u.value"
+                    :label="u.label"
+                    :value="u.value"
+                  />
+                </el-select>
+              </div>
             </div>
           </div>
 
@@ -232,6 +316,24 @@
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-1">备注</label>
                 <el-input v-model="formData.remarks" type="textarea" :rows="3" placeholder="请输入备注信息" />
+              </div>
+              <!-- P0-MD-013：是否补录 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-1">是否补录</label>
+                <el-checkbox v-model="formData.isSupplementary">是（该育苗记录将提交审批审核）</el-checkbox>
+                <p class="mt-1 text-xs text-amber-500">选择"是"时，该育苗记录将提交审批审核</p>
+              </div>
+              <!-- P0-MD-013：补录原因（仅当勾选补录时显示） -->
+              <div v-if="formData.isSupplementary">
+                <label class="block text-sm font-medium text-gray-900 mb-1">
+                  补录原因 <span class="text-red-500">*</span>
+                </label>
+                <el-input
+                  v-model="formData.supplementaryReason"
+                  type="textarea"
+                  :rows="2"
+                  placeholder="请输入补录原因，说明为什么需要补录此育苗记录"
+                />
               </div>
               <!-- 图片上传 -->
               <div>
@@ -269,10 +371,15 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  Plus, Close, Refresh, Link, Location, DataAnalysis, Document
+  Plus, Close, Refresh, Link, Location, DataAnalysis, Document, Connection
 } from '@element-plus/icons-vue'
 import { useSeedlingStore, useSeedSourceStore, useProductionPlanStore } from '@/stores'
+import { useApprovalStore } from '@/stores/modules/approval'
 import * as cropVarietyService from '@/services/cropVarietyService'
+import { addSeedlingWithDeduct } from '@/services/apiSeedlingService'
+import { useTasks } from '@/composables/useTasks'
+import { getDictItems } from '@/stores/modules/dictionary'
+import { ApprovalType, ApprovalStatus } from '@/types/approval'
 
 const props = defineProps({
   visible: Boolean
@@ -283,6 +390,8 @@ const emit = defineEmits(['update:visible', 'success'])
 const seedlingStore = useSeedlingStore()
 const seedSourceStore = useSeedSourceStore()
 const productionPlanStore = useProductionPlanStore()
+const approvalStore = useApprovalStore()
+const tasksHook = useTasks()
 
 const submitting = ref(false)
 const seedSources = ref([])
@@ -304,6 +413,54 @@ const siteOptions = [
   { value: '3号大棚', label: '3号大棚' },
   { value: '露天场地', label: '露天场地' }
 ]
+
+// P0-MD-001：繁殖模式选项（V1.1 L131-134 1:1对齐）
+const PROPAGATION_MODES = [
+  { value: 'one_to_one', label: '1:1 育苗', desc: '一对一（种子 / 嫁接 / 单种球）' },
+  { value: 'one_to_many', label: '1:多 育苗', desc: '母株+子苗（匍匐茎 / 组培 / 扦插 / 分株 / 块茎 / 枝条）' }
+]
+
+// P0-MD-003：种苗形态选项（V1.1 SEEDLING_FORM_MAP 对齐）
+const SEEDLING_FORM_OPTIONS = [
+  { value: 'flower', label: '花朵' },
+  { value: 'branch', label: '枝条' },
+  { value: 'bare_root', label: '裸根苗' },
+  { value: 'plug', label: '穴盘苗' },
+  { value: 'cup', label: '杯苗' },
+  { value: 'potted', label: '盆栽苗' },
+  { value: 'balled', label: '土球苗' },
+  { value: 'seedling', label: '实生苗' },
+  { value: 'other', label: '其他' }
+]
+
+// P0-MD-004：单位选项（V1.1 DictSelect category="unit" 对齐）
+const unitOptions = [
+  { value: '株', label: '株' },
+  { value: '盆', label: '盆' },
+  { value: '袋', label: '袋' },
+  { value: '盒', label: '盒' }
+]
+
+// P0-MD-005：计划类型选项（字典驱动 seedling_plan_type）
+const planTypeOptions = ref([
+  { value: 'routine', label: '常规' },
+  { value: 'urgent', label: '加急' }
+])
+
+// 加载计划类型字典
+const loadPlanTypeOptions = () => {
+  try {
+    const items = getDictItems('seedling_plan_type')
+    if (items && items.length > 0) {
+      planTypeOptions.value = items.map(d => ({
+        value: d.dictCode || d.code,
+        label: d.dictLabel || d.name
+      }))
+    }
+  } catch {
+    // 字典加载失败时使用默认选项
+  }
+}
 
 // 作物品种选项（从品种库服务获取）
 const cropOptions = ref([])
@@ -327,7 +484,7 @@ const loadCropOptions = async () => {
   }
 }
 
-// 表单数据 - 与V1.1保持一致
+// 表单数据 - 对齐 V1.1 AddModal.tsx 全部字段（P0-MD-001~013）
 const formData = ref({
   seedlingCode: '',
   productionPlanId: '',
@@ -338,6 +495,10 @@ const formData = ref({
   cropCode: '',
   cropName: '',
   cropVariety: '',
+  categoryName: '',  // P0-MD-002：品种路径
+  typeName: '',
+  varietyName: '',
+  subVarietyName: '',
   seedlingType: '',
   siteId: '',
   siteName: '',
@@ -348,7 +509,17 @@ const formData = ref({
   chargePerson: '',
   remarks: '',
   workHours: 0,
-  planType: 'routine'
+  planType: 'routine',
+  propagationMode: 'one_to_one',  // P0-MD-001/006：繁殖模式默认 1:1
+  seedlingForm: '',  // P0-MD-003：种苗形态
+  unit: '株',  // P0-MD-004：单位
+  // P0-MD-010：5 个数量体系字段
+  motherPlantCount: 0, expandedPlantCount: 0, scionCount: 0,
+  propagationMultiple: 0, customMultiple: 0, theoreticalYield: 0,
+  motherLossCount: 0, seedlingLossCount: 0, harvestStockedCount: 0, replantCount: 0,
+  // --- P0-MD-013：补录字段 ---
+  isSupplementary: false,
+  supplementaryReason: ''
 })
 
 // 作物名称显示（只读，格式：cropName - cropVariety）
@@ -369,6 +540,41 @@ const targetSurvivalCount = computed(() => {
   return 0
 })
 
+// P0-MD-007：联动过滤 — 选了种源后，生产计划下拉只显示同品种的计划
+const productionPlanVarietyFilter = computed(() => {
+  if (!formData.value.sourceId) return null
+  const source = seedSources.value.find(s => s.id === formData.value.sourceId)
+  return source?.cropName || null
+})
+
+const filteredProductionPlans = computed(() => {
+  if (!productionPlanVarietyFilter.value) return productionPlans.value
+  return productionPlans.value.filter(p =>
+    p.variety === productionPlanVarietyFilter.value || p.cropName === productionPlanVarietyFilter.value
+  )
+})
+
+// P0-MD-007：联动过滤 — 选了生产计划后，种源下拉只显示同品种的种源
+const productionPlanVarietyFilterFromPlan = computed(() => {
+  if (!formData.value.productionPlanId) return null
+  const plan = productionPlans.value.find(p => p.batchCode === formData.value.productionPlanId)
+  return plan?.variety || plan?.cropName || null
+})
+
+const filteredSeedSources = computed(() => {
+  let list = seedSources.value || []
+  if (productionPlanVarietyFilterFromPlan.value) {
+    list = list.filter(s => s.cropName === productionPlanVarietyFilterFromPlan.value)
+  }
+  return list
+})
+
+// P0-MD-009：种源可用数量（用于数量上限校验）
+const sourceAvailableCount = computed(() => {
+  const source = seedSources.value.find(s => s.id === formData.value.sourceId)
+  return source?.availableCount ?? 0
+})
+
 // 加载数据
 const loadData = async () => {
   await seedSourceStore.loadItems()
@@ -380,6 +586,8 @@ const loadData = async () => {
   )
   // 加载作物品种数据
   await loadCropOptions()
+  // P0-MD-005：加载计划类型字典
+  loadPlanTypeOptions()
 }
 
 // 监听弹窗打开
@@ -403,18 +611,70 @@ const handleGenerateCode = () => {
 }
 
 /**
- * 选择种源后自动填充 - V1.1逻辑
+ * P0-MD-001：繁殖模式切换 — 自动联动 calculateMode
+ */
+const handlePropagationModeChange = (mode) => {
+  formData.value.propagationMode = mode
+  formData.value.calculateMode = mode === 'one_to_many' ? 'propagation' : 'single'
+  formData.value.initialCount = 0
+  formData.value.motherPlantCount = 0
+  formData.value.expandedPlantCount = 0
+  formData.value.scionCount = 0
+}
+
+/**
+ * P0-MD-007：生产计划切换 — 联动过滤种源 + P0-MD-008 一致性校验
+ */
+const handleProductionPlanChange = (planId) => {
+  if (!planId) return
+  // 一致性校验：已选种源则检查品种是否匹配
+  if (formData.value.sourceId) {
+    const plan = productionPlans.value.find(p => p.batchCode === planId)
+    const source = seedSources.value.find(s => s.id === formData.value.sourceId)
+    if (plan && source && source.cropName !== (plan.variety || plan.cropName)) {
+      formData.value.sourceId = ''
+      formData.value.sourceCode = ''
+      formData.value.sourceType = ''
+      formData.value.supplierName = ''
+      ElMessage.warning(`已选种源 [${source.seedCode}] 为 ${source.cropName}，与新生产计划不匹配，已自动清空关联种源。`)
+    }
+  }
+}
+
+/**
+ * P0-MD-008：选择种源后自动填充 + 品种一致性校验
  * 自动带入：sourceCode, sourceType, supplierName, cropCode, cropName, cropVariety
  */
 const handleSourceChange = (sourceId) => {
   const source = seedSources.value.find(s => s.id === sourceId)
   if (source) {
+    // P0-MD-008：一致性校验 — 选种源后，若已选生产计划不匹配则清空
+    const currentPlanId = formData.value.productionPlanId
+    let shouldClearPlan = false
+    let mismatchPlan = null
+    if (currentPlanId) {
+      const plan = productionPlans.value.find(p => p.batchCode === currentPlanId)
+      if (plan && (plan.variety || plan.cropName) !== source.cropName) {
+        shouldClearPlan = true
+        mismatchPlan = { batchCode: plan.batchCode, variety: plan.variety || plan.cropName }
+      }
+    }
+
     formData.value.sourceCode = source.seedCode || ''
     formData.value.sourceType = source.sourceType || ''
     formData.value.supplierName = source.supplierName || '无'
     formData.value.cropCode = source.cropCode || ''
     formData.value.cropName = source.cropName || ''
     formData.value.cropVariety = source.cropVariety || ''
+    formData.value.categoryName = source.categoryName || ''
+    formData.value.typeName = source.typeName || ''
+    formData.value.varietyName = source.varietyName || ''
+    formData.value.subVarietyName = source.subVarietyName || ''
+    formData.value.productionPlanId = shouldClearPlan ? '' : formData.value.productionPlanId
+
+    if (shouldClearPlan && mismatchPlan) {
+      ElMessage.warning(`已选生产计划 [${mismatchPlan.batchCode}] 品种为 ${mismatchPlan.variety}，与新种源 ${source.cropName} 不一致，已自动清空关联计划。`)
+    }
   }
 }
 
@@ -426,6 +686,11 @@ const handleCropChange = (cropCode) => {
   if (crop) {
     formData.value.cropName = crop.cropName
     formData.value.cropVariety = ''
+    // P0-MD-002：自动填充品种路径
+    formData.value.categoryName = crop.categoryName || ''
+    formData.value.typeName = crop.typeName || ''
+    formData.value.varietyName = crop.varietyName || ''
+    formData.value.subVarietyName = crop.subVariety1Name || ''
   }
 }
 
@@ -452,27 +717,80 @@ const handleClose = () => {
 }
 
 /**
- * 提交表单 - V1.1逻辑
+ * 提交表单 - V1.1逻辑（P0-MD-009/010/011/012/013 完整实现）
  */
 const handleSubmit = async () => {
   // 基本验证
-  if (!formData.value.sourceId || !formData.value.cropName || !formData.value.siteId) {
-    ElMessage.warning('请填写完整信息：关联种源、作物品种、育苗区域为必填项')
+  if (!formData.value.sourceId) {
+    ElMessage.warning('请先选择种源')
     return
   }
-
+  if (!formData.value.cropName || !formData.value.siteId) {
+    ElMessage.warning('请填写完整信息：作物品种、育苗区域为必填项')
+    return
+  }
   if (!formData.value.seedlingCode) {
     ElMessage.warning('请先生成育苗批次号')
     return
   }
-
-  if (!formData.value.initialCount || formData.value.initialCount <= 0) {
-    ElMessage.warning('请输入初始数量')
+  if (!formData.value.startDate) {
+    ElMessage.warning('请选择开始日期')
     return
   }
 
-  if (!formData.value.startDate) {
-    ElMessage.warning('请选择开始日期')
+  // 根据 calculateMode 分别校验（与V1.1 L365-392对齐）
+  if (formData.value.calculateMode === 'single') {
+    if (!formData.value.initialCount || formData.value.initialCount <= 0) {
+      ElMessage.warning('请输入初始数量')
+      return
+    }
+    if (formData.value.sourceId && formData.value.initialCount > sourceAvailableCount.value) {
+      ElMessage.warning(`初始数量 ${formData.value.initialCount} 超过种源可用数量 ${sourceAvailableCount.value}，请调整`)
+      return
+    }
+  }
+  if (formData.value.calculateMode === 'propagation') {
+    if (!formData.value.motherPlantCount || formData.value.motherPlantCount <= 0) {
+      ElMessage.warning('请输入母株数量')
+      return
+    }
+    if (formData.value.sourceId && formData.value.motherPlantCount > sourceAvailableCount.value) {
+      ElMessage.warning(`母株数量 ${formData.value.motherPlantCount} 超过种源可用数量 ${sourceAvailableCount.value}，请调整`)
+      return
+    }
+    if (formData.value.propagationMultiple === 0) {
+      if (!formData.value.customMultiple || formData.value.customMultiple <= 0) {
+        ElMessage.warning('请输入扩繁倍数')
+        return
+      }
+    }
+  }
+
+  // P0-MD-009：两池分离校验
+  if (formData.value.propagationMode === 'one_to_many') {
+    if ((formData.value.motherPlantCount || 0) < 0) {
+      ElMessage.warning('母株数量不能为负数')
+      return
+    }
+    if (formData.value.motherLossCount > formData.value.motherPlantCount) {
+      ElMessage.warning('母株损耗不能超过母株总数')
+      return
+    }
+  } else {
+    if ((formData.value.initialCount || 0) <= 0) {
+      ElMessage.warning('请输入初始数量')
+      return
+    }
+    const totalLoss = (formData.value.motherLossCount || 0) + (formData.value.seedlingLossCount || 0)
+    if (totalLoss > formData.value.initialCount) {
+      ElMessage.warning('母株损耗 + 小苗损耗不能超过初始数量')
+      return
+    }
+  }
+
+  // P0-MD-013：补录原因校验
+  if (formData.value.isSupplementary && !formData.value.supplementaryReason.trim()) {
+    ElMessage.warning('请填写补录原因')
     return
   }
 
@@ -482,45 +800,154 @@ const handleSubmit = async () => {
     const site = siteOptions.find(s => s.value === formData.value.siteId)
     const siteName = site?.label || ''
 
-    // 获取种源批号
+    // 获取种源
     const source = seedSources.value.find(s => s.id === formData.value.sourceId)
     const sourceCode = source?.seedCode || ''
 
-    // 构建提交数据 - snake_case格式（与V1.1一致）
-    const submitData = {
-      seedling_code: formData.value.seedlingCode,
-      source_id: formData.value.sourceId,
-      source_code: sourceCode,
-      crop_name: formData.value.cropName,
-      crop_variety: formData.value.cropVariety,
-      crop_code: formData.value.cropCode,
-      seedling_type: formData.value.seedlingType,
-      site_id: formData.value.siteId,
-      site_name: siteName,
-      start_date: formData.value.startDate,
-      expected_end_date: formData.value.expectedEndDate || undefined,
-      initial_count: formData.value.initialCount,
-      survival_count: 0,
-      planted_count: 0,
-      survival_rate: 0,
-      loss_count: 0,
-      loss_rate: 0,
-      is_finished: false,
+    // P0-MD-010：根据 propagationMode 决定 finalInitialCount（V1.1 L415-418）
+    const isOneToMany = formData.value.propagationMode === 'one_to_many'
+    const finalInitialCount = isOneToMany
+      ? formData.value.motherPlantCount
+      : formData.value.initialCount
+
+    // 计算实际扩繁倍数
+    const actualMultiple = formData.value.calculateMode === 'propagation'
+      ? (formData.value.propagationMultiple === 0 ? formData.value.customMultiple : formData.value.propagationMultiple)
+      : undefined
+
+    // P0-MD-010：构建完整提交数据（对齐 V1.1 L427-469 全部字段，camelCase for with-deduct）
+    const seedlingData = {
+      seedlingCode: formData.value.seedlingCode,
+      sourceId: formData.value.sourceId,
+      sourceCode: sourceCode,
+      productionPlanCode: formData.value.productionPlanId || '',
+      cropName: formData.value.cropName,
+      cropVariety: formData.value.cropVariety,
+      cropCode: formData.value.cropCode,
+      unit: formData.value.unit || '株',
+      seedlingType: formData.value.seedlingType,
+      siteId: formData.value.siteId,
+      siteName: siteName,
+      startDate: formData.value.startDate,
+      expectedEndDate: formData.value.expectedEndDate || undefined,
+      initialCount: finalInitialCount,
+      survivalCount: 0,
+      survivalRate: 0,
+      lossCount: 0,
+      lossRate: 0,
+      isFinished: false,
       status: 'in_progress',
-      daily_records: [],
+      dailyRecords: [],
       pictures: pictureList.value.map(f => f.url || ''),
-      print_count: 0,
+      printCount: 0,
       remarks: formData.value.remarks,
-      create_by: localStorage.getItem('username') || '管理员',
-      plan_type: formData.value.planType,
-      target_survival_rate: formData.value.targetSurvivalRate,
-      target_survival_count: targetSurvivalCount.value,
-      charge_person: formData.value.chargePerson || undefined,
-      production_plan_code: formData.value.productionPlanId || undefined,
-      work_hours: formData.value.workHours || undefined
+      createBy: localStorage.getItem('username') || '管理员',
+      planType: formData.value.planType,
+      targetSurvivalRate: formData.value.targetSurvivalRate,
+      targetSurvivalCount: targetSurvivalCount.value,
+      chargePerson: formData.value.chargePerson || undefined,
+      workHours: formData.value.workHours || undefined,
+      calculateMode: formData.value.calculateMode,
+      propagationMultiple: actualMultiple,
+      theoreticalYield: formData.value.calculateMode === 'propagation' ? ((formData.value.motherPlantCount * (actualMultiple || 0)) || 0) : undefined,
+      propagationMode: formData.value.propagationMode,
+      motherPlantCount: finalInitialCount,
+      expandedPlantCount: formData.value.expandedPlantCount || 0,
+      scionCount: formData.value.scionCount || 0,
+      motherLossCount: formData.value.motherLossCount || 0,
+      seedlingLossCount: formData.value.seedlingLossCount || 0,
+      harvestStockedCount: formData.value.harvestStockedCount || 0,
+      customMultiple: formData.value.customMultiple || 0,
+      seedlingForm: formData.value.seedlingForm || undefined
     }
 
-    await seedlingStore.addItem(submitData)
+    // P0-MD-011：使用 with-deduct 原子端点（扣减种源 + 创建育苗）
+    let addedSeedlingId = null
+    try {
+      const deductCount = finalInitialCount
+      const result = await addSeedlingWithDeduct({
+        sourceId: formData.value.sourceId,
+        count: deductCount,
+        seedling: seedlingData
+      })
+      addedSeedlingId = result?.id || result?.data?.id || null
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error)
+      ElMessage.error(`保存失败：${msg}`)
+      return
+    }
+
+    // P0-MD-012：创建草稿任务（供任务中心分派执行人）
+    if (addedSeedlingId) {
+      try {
+        const unitLabel = formData.value.unit || '株'
+        const workContent = `作物品种：${formData.value.cropVariety || formData.value.cropName}
+育苗方式：${formData.value.seedlingType}
+初始数量：${formData.value.initialCount}${unitLabel}
+目标成活率：${formData.value.targetSurvivalRate}%
+目标成活数量：${targetSurvivalCount.value}${unitLabel}
+${formData.value.calculateMode === 'propagation' ? `扩繁模式：母株${formData.value.motherPlantCount}${unitLabel} × ${actualMultiple}倍` : ''}`
+
+        await tasksHook.createTask({
+          title: `【育苗】${formData.value.cropName}-${formData.value.seedlingCode}`,
+          type: 'seedling',
+          typeName: '育苗任务',
+          sourceType: 'dispatch',
+          sourceId: addedSeedlingId,
+          sourceCode: formData.value.seedlingCode,
+          remarks: workContent,
+          siteName: siteName,
+          startDate: formData.value.startDate,
+          endDate: formData.value.expectedEndDate,
+          initialCount: formData.value.initialCount,
+          targetSurvivalCount: targetSurvivalCount.value
+        }, 'farm', 'draft')
+      } catch (taskError) {
+        console.warn('[AddModal] 创建草稿任务失败（不影响育苗创建）:', taskError)
+      }
+    }
+
+    // P0-MD-013：补录审批流程
+    if (formData.value.isSupplementary && addedSeedlingId) {
+      try {
+        const approvalSuffix = crypto.randomUUID().slice(0, 8)
+        const now = new Date()
+        const approvalCode = `YM-SUP-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${approvalSuffix}`
+        const approval = {
+          id: `APPROVAL-${approvalSuffix}`,
+          code: approvalCode,
+          type: ApprovalType.SEEDLING_SUPPLEMENTARY,
+          title: `育苗补录申请 - ${formData.value.seedlingCode}`,
+          description: `育苗补录申请：${formData.value.cropName}，初始数量：${formData.value.initialCount}${formData.value.unit}，育苗区域：${siteName}，补录原因：${formData.value.supplementaryReason}`,
+          status: ApprovalStatus.PENDING,
+          applicantId: localStorage.getItem('userOid') || 'U013',
+          applicantName: localStorage.getItem('username') || '未知用户',
+          applicantDept: '生产部',
+          createTime: now.toLocaleString('zh-CN'),
+          updateTime: now.toLocaleString('zh-CN'),
+          steps: [
+            { id: 'STEP-001', name: '生产主管', status: 'pending', order: 1 },
+            { id: 'STEP-002', name: '基地负责人', status: 'pending', order: 2 }
+          ],
+          currentStep: 1,
+          businessLink: {
+            type: 'seedling',
+            requestCode: formData.value.seedlingCode,
+            requestId: addedSeedlingId
+          },
+          supplementaryData: {
+            reason: formData.value.supplementaryReason,
+            quantity: formData.value.initialCount,
+            cropName: formData.value.cropName,
+            siteName: siteName
+          }
+        }
+        await approvalStore.addApproval(approval)
+      } catch (approvalError) {
+        console.warn('[AddModal] 创建补录审批失败（不影响育苗创建）:', approvalError)
+      }
+    }
+
     ElMessage.success('创建成功')
     emit('success')
     handleClose()

@@ -1,264 +1,188 @@
 <template>
+  <!--
+    育苗数据表格组件（V1.1 1:1 迁移版）
+    V1.1源文件：src/components/farm/seedling/components/SeedlingTable.tsx
+    使用原生 HTML table（对齐 V1.1 原生 table 结构，列宽完全内容自适应）
+    操作列 fixed 对齐 V1.1：sticky right-0 + 渐变背景 + 阴影
+    2026-07-25 修复：完全照搬 SeedSourceTable layout 方案（w-full + CSS sticky）
+  -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <!-- 表格工具栏 -->
-    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+    <!-- 右上角操作按钮栏 -->
+    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
       <h3 class="text-lg font-semibold text-gray-900">育苗列表</h3>
-
       <div class="flex items-center gap-2">
-        <!-- 导出模式 -->
         <template v-if="exportMode">
+          <el-button size="small" @click="onExportSelectAll">全选</el-button>
           <span class="text-sm text-gray-500 mr-2">已选择 {{ selectedRows.length }} 项</span>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
-            :disabled="selectedRows.length === 0"
-            @click="$emit('confirmExport')"
-          >
-            <Download class="w-4 h-4" />
-            确认导出
-          </button>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
-            @click="handleExportCancel"
-          >
-            取消
-          </button>
+          <el-button type="primary" :icon="Download" size="small" :disabled="selectedRows.length === 0" @click="onConfirmExport">确认导出</el-button>
+          <el-button :icon="Close" size="small" @click="handleExportCancel">取消</el-button>
         </template>
-
-        <!-- 编辑模式 -->
-        <template v-else-if="operationMode === 'edit'">
-          <span class="text-sm text-gray-500 mr-2">请在表格中选择一条记录</span>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-            :disabled="selectedRows.length === 0"
-            @click="handleConfirmEdit"
-          >
-            <Edit2 class="w-4 h-4" />
-            确认编辑
-          </button>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
-            @click="handleCancelOperation"
-          >
-            取消
-          </button>
-        </template>
-
-        <!-- 删除模式 -->
         <template v-else-if="operationMode === 'delete'">
           <span class="text-sm text-gray-500 mr-2">已选择 {{ selectedRows.length }} 项</span>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-            :disabled="selectedRows.length === 0"
-            @click="handleConfirmDelete"
-          >
-            <Trash2 class="w-4 h-4" />
-            确认删除
-          </button>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
-            @click="handleCancelOperation"
-          >
-            取消
-          </button>
+          <el-button type="danger" :icon="Delete" size="small" :disabled="selectedRows.length === 0" @click="onDelete(selectedRows)">确认删除</el-button>
+          <el-button :icon="Close" size="small" @click="cancelOperation">取消</el-button>
         </template>
-
-        <!-- 打印模式 -->
         <template v-else-if="printMode">
           <span class="text-sm text-gray-500 mr-2">已选择 {{ selectedRows.length }} 项</span>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
-            :disabled="selectedRows.length === 0"
-            @click="handleConfirmPrint"
-          >
-            <Printer class="w-4 h-4" />
-            确认打印
-          </button>
-          <button
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-900 hover:bg-gray-200"
-            @click="handleCancelPrint"
-          >
-            取消
-          </button>
+          <el-button type="primary" :icon="Printer" size="small" :disabled="selectedRows.length === 0" @click="confirmPrint">确认打印</el-button>
+          <el-button :icon="Close" size="small" @click="cancelPrintMode">取消</el-button>
         </template>
-
-        <!-- 正常模式 -->
         <template v-else>
-          <button
-            v-if="canCreate"
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-            @click="$emit('add')"
-          >
-            <Plus class="w-4 h-4" />
-            新增
-          </button>
-          <button
-            v-if="canEdit"
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
-            @click="() => props.onOperationModeChange?.('edit')"
-          >
-            <Edit2 class="w-4 h-4" />
-            编辑
-          </button>
-          <button
-            v-if="canDelete"
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700"
-            @click="() => props.onOperationModeChange?.('delete')"
-          >
-            <Trash2 class="w-4 h-4" />
-            删除
-          </button>
-          <button
-            v-if="canExport"
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-            @click="() => props.onOperationModeChange?.('export')"
-          >
-            <Download class="w-4 h-4" />
-            导出
-          </button>
-          <button
-            v-if="canPrint"
-            class="h-8 px-3 rounded-md text-xs inline-flex items-center justify-center gap-2 bg-purple-600 text-white hover:bg-purple-700"
-            @click="() => props.onPrintModeChange?.(true)"
-          >
-            <Printer class="w-4 h-4" />
-            标签打印
-          </button>
+          <el-button v-if="canCreate && onAdd" type="primary" :icon="Plus" size="small" @click="onAdd">新增</el-button>
+          <el-button v-if="canDelete" type="danger" :icon="Delete" size="small" @click="onOperationModeChange('delete')">删除</el-button>
+          <el-button v-if="canExport" class="slt-btn-export" :icon="Download" size="small" @click="onOperationModeChange('export')">导出</el-button>
+          <el-button v-if="canPrint" :icon="Printer" size="small" class="slt-btn-print" @click="onPrintModeChange(true)">标签打印</el-button>
         </template>
       </div>
     </div>
 
-    <!-- 表格 -->
-    <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-380px)]">
-      <table class="min-w-[1600px] w-full table-fixed">
+    <!-- 表格（对齐 V1.1 L442-454：固定宽度 2400px + 强制横向滚动 + colgroup 百分比分配）-->
+    <div class="overflow-x-auto" style="overflow-x: auto; width: 100%;">
+      <table style="width: 2400px; table-layout: fixed; min-width: 2400px;" class="text-sm">
+        <!-- 列宽分配（对齐 V1.1 L454：121% 触发横向滚动）
+             基本9列 64% + 数值4列 32% + 完成6% + 状态5% + 操作14% + checkbox 2.5% -->
         <colgroup>
-          <col v-if="showCheckbox" class="w-12" />
-          <col class="w-44" />
-          <col class="w-36" />
-          <col class="w-52" />
-          <col class="w-36" />
-          <col class="w-28" />
-          <col class="w-52" />
-          <col class="w-28" />
-          <col class="w-16" />
-          <col class="w-20" />
-          <col class="w-20" />
-          <col class="w-20" />
-          <col class="w-16" />
-          <col class="w-40" />
+          <col v-if="showCheckbox" class="slt-col" style="width: 2.5%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 5%;" />
+          <col class="slt-col" style="width: 6%;" />
+          <col class="slt-col" style="width: 10%;" />
+          <col class="slt-col" style="width: 9%;" />
+          <col class="slt-col" style="width: 6%;" />
+          <col class="slt-col" style="width: 9%;" />
+          <col class="slt-col" style="width: 7%;" />
+          <col class="slt-col" style="width: 4%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 8%;" />
+          <col class="slt-col" style="width: 6%;" />
+          <col class="slt-col slt-col-op" style="width: 14%;" />
         </colgroup>
-        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white sticky top-0 z-10">
-          <tr>
-            <th v-if="showCheckbox" class="px-4 py-3 text-center text-sm font-semibold text-white whitespace-nowrap w-12">
-              <el-checkbox
-                :model-value="selectedRows.length === data.length && data.length > 0"
-                class="seed-checkbox"
-                @change="onSelectAllChange"
-              />
+        <!-- 表头（对齐 V1.1 L455-486）-->
+        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <tr class="slt-thead-tr">
+            <th v-if="showCheckbox" class="slt-th slt-th-check">
+              <input type="checkbox" :checked="currentData.length > 0 && currentData.every(r => selectedIds.has(r.id))" @change="togglePageSelection" class="w-4 h-4 rounded border-gray-300" />
             </th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-44">育苗批号</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-36">关联生产计划</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-52">关联种源</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-36">作物编码</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-28">作物品种</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-52">品种路径</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-28">场地</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-16">成苗率</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-20">入库数量</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-20">剩余总数</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-20">完成比例</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-16">状态</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-40">操作</th>
+            <th class="slt-th">育苗批号</th>
+            <th class="slt-th">繁殖模式</th>
+            <th class="slt-th">关联生产计划</th>
+            <th class="slt-th">关联种源</th>
+            <th class="slt-th">作物编码</th>
+            <th class="slt-th">作物品种</th>
+            <th class="slt-th">品种路径</th>
+            <th class="slt-th">育苗区域</th>
+            <th class="slt-th">单位</th>
+            <!-- ===== 母株池（4 列） — 蓝色半透明背景 ===== -->
+            <th class="slt-th slt-th-pond" title="母株池初始数量（建档时投入）">初始数量</th>
+            <th class="slt-th slt-th-pond" title="母株池当前存活数">母株存活数</th>
+            <th class="slt-th slt-th-pond" title="母株池累计损耗">母株累计损耗</th>
+            <th class="slt-th slt-th-pond" title="母株池累计补栽">补苗累计</th>
+            <!-- ===== 小苗池（5 列） — 绿色半透明背景 ===== -->
+            <th class="slt-th slt-th-seedling" title="小苗池累计产出">小苗累计产出</th>
+            <th class="slt-th slt-th-seedling" title="小苗池累计损耗">小苗累计损耗</th>
+            <th class="slt-th slt-th-seedling" title="小苗池剩余 = 产出 - 损耗 - 采收入库">小苗剩余数量</th>
+            <!-- ===== 派生 ===== -->
+            <th class="slt-th">目标成苗数</th>
+            <th class="slt-th" title="完成比例 = (小苗累计产出 − 小苗累计损耗) / 目标成苗数">完成比例</th>
+            <th class="slt-th">状态</th>
+            <!-- 操作列 sticky right-0 -->
+            <th class="slt-th slt-th-op">操作</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-300">
-          <tr v-if="paginatedData.length === 0">
-            <td :colspan="showCheckbox ? 14 : 13" class="px-4 py-8 text-center text-gray-500">
-              暂无数据
-            </td>
+        <!-- 表体 -->
+        <tbody>
+          <tr v-if="currentData.length === 0">
+            <td :colspan="showCheckbox ? 21 : 20" class="px-4 py-8 text-center text-gray-500">暂无数据</td>
           </tr>
-          <tr
-            v-for="record in paginatedData"
-            :key="record.id"
-            class="hover:bg-emerald-50 transition-colors"
-          >
-            <td v-if="showCheckbox" class="px-4 py-3 text-center w-12">
-              <el-checkbox
-                :model-value="selectedRows.includes(record.id)"
-                class="seed-checkbox"
-                @change="(val) => handleSelectChange(record.id, val)"
-              />
+          <tr v-for="row in currentData" :key="row.id" class="slt-tr">
+            <td v-if="showCheckbox" class="slt-td slt-td-check">
+              <input type="checkbox" :checked="selectedIds.has(row.id)" @change="toggleRow(row.id, $event)" class="w-4 h-4 rounded border-gray-300" />
             </td>
-            <td class="px-4 py-3 text-sm w-44 whitespace-nowrap">
-              <button class="text-sm text-blue-600 hover:text-blue-800 hover:underline" title="点击查看详情" @click="$emit('detail', record)">
-                {{ record.seedlingCode }}
-              </button>
+            <!-- 1. 育苗批号 -->
+            <td class="slt-td">
+              <button type="button" class="slt-link" @click="onDetail(row)" :title="`${row.seedlingCode}（点击详情）`">{{ truncateText(row.seedlingCode) }}</button>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap w-36 truncate">
-              <span v-if="record.productionPlanCode" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">
-                {{ record.productionPlanCode }}
-              </span>
+            <!-- 2. 繁殖模式 -->
+            <td class="slt-td">
+              <span :class="['px-1.5 py-0.5 rounded text-xs font-medium', getPropagationModeClass(row.propagationMode)]">{{ getPropagationModeLabel(row.propagationMode) }}</span>
+            </td>
+            <!-- 3. 关联生产计划 -->
+            <td class="slt-td" :title="row.productionPlanCode || undefined">
+              <span v-if="row.productionPlanCode" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">{{ row.productionPlanCode }}</span>
               <span v-else>-</span>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap w-52">{{ record.sourceCode }}</td>
-            <td class="px-4 py-3 text-sm w-36 whitespace-nowrap">
-              <span class="font-mono text-orange-600">{{ record.cropCode || '-' }}</span>
+            <!-- 4. 关联种源 -->
+            <td class="slt-td" :title="row.sourceCode || undefined">{{ row.sourceCode || '-' }}</td>
+            <!-- 5. 作物编码 -->
+            <td class="slt-td">
+              <span class="font-mono text-orange-600">{{ truncateText(row.cropCode) }}</span>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-900 truncate w-28" :title="record.cropVariety || record.cropName">
-              {{ getCropVarietyName(record) }}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis w-52" v-html="getCropVarietyPath(record)">
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap w-28">{{ record.siteName }}</td>
-            <td class="px-4 py-3 text-sm text-emerald-600 font-medium w-16">{{ record.survivalRate }}%</td>
-            <td class="px-4 py-3 text-sm text-blue-600 font-medium w-20">
-              {{ (record.survivalCount || 0).toLocaleString() }}
-            </td>
-            <td class="px-4 py-3 text-sm text-purple-600 font-medium w-20">
-              {{ (record.initialCount - record.lossCount).toLocaleString() }}
-            </td>
-            <td class="px-4 py-3 text-sm whitespace-nowrap w-20">
-              <span v-if="record.targetSurvivalCount > 0" :class="getCompletionRateClass(record)">
-                {{ Math.round((record.survivalCount || 0) / record.targetSurvivalCount * 100) }}%
-              </span>
+            <!-- 6. 作物品种（对齐 V1.1 L200-214：优先 subVarietyName → varietyName → cropVariety）-->
+            <td class="slt-td" :title="getCropVarietyName(row)">{{ truncateText(getCropVarietyName(row)) }}</td>
+            <!-- 7. 品种路径（对齐 V1.1 L554-568：category-type-variety-subVariety 四段式）-->
+            <td class="slt-td" :title="getCropVarietyPathText(row)">{{ truncateText(getCropVarietyPathText(row)) }}</td>
+            <!-- 8. 育苗区域 -->
+            <td class="slt-td" :title="row.siteName || undefined">{{ row.siteName || '-' }}</td>
+            <!-- 9. 单位 -->
+            <td class="slt-td">{{ row.unit || '-' }}</td>
+            <!-- 10. 初始数量（母株池，对齐 V1.1 L574-576：toLocaleString 千位分隔）-->
+            <td class="slt-td slt-num">{{ (row.initialCount || 0).toLocaleString() }}</td>
+            <!-- 11. 母株存活数（对齐 V1.1 L577-579：motherPlantCount）-->
+            <td class="slt-td slt-num">{{ (row.motherPlantCount || 0).toLocaleString() }}</td>
+            <!-- 12. 母株累计损耗（对齐 V1.1 L581-583：motherLossCount）-->
+            <td class="slt-td slt-num text-red-600">{{ (row.motherLossCount || 0).toLocaleString() }}</td>
+            <!-- 13. 补苗累计（对齐 V1.1 L585-587：replantCount）-->
+            <td class="slt-td slt-num text-emerald-600">{{ (row.replantCount || 0).toLocaleString() }}</td>
+            <!-- 14. 小苗累计产出（对齐 V1.1 L590-592：expandedPlantCount）-->
+            <td class="slt-td slt-num">{{ (row.expandedPlantCount || 0).toLocaleString() }}</td>
+            <!-- 15. 小苗累计损耗（对齐 V1.1 L594-596：seedlingLossCount）-->
+            <td class="slt-td slt-num text-red-600">{{ (row.seedlingLossCount || 0).toLocaleString() }}</td>
+            <!-- 16. 小苗剩余数量（对齐 V1.1 L598-606：expanded - loss - harvest 派生）-->
+            <td class="slt-td slt-num text-emerald-600">{{ Math.max(0, (row.expandedPlantCount || 0) - (row.seedlingLossCount || 0) - (row.harvestStockedCount || 0)).toLocaleString() }}</td>
+            <!-- 17. 目标成苗数（对齐 V1.1 L609-611）-->
+            <td class="slt-td slt-num">{{ (row.targetSurvivalCount ?? 0).toLocaleString() }}</td>
+            <!-- 18. 完成比例（对齐 V1.1 L614-625：(累计产出 - 累计损耗) / 目标成苗数）-->
+            <td class="slt-td">
+              <span v-if="row.targetSurvivalCount > 0" :class="getCompletionRateClass(row)">{{ Math.round(Math.max(0, Math.min((row.expandedPlantCount || 0) - (row.seedlingLossCount || 0), 9.99 * row.targetSurvivalCount) / row.targetSurvivalCount * 100)) }}%</span>
               <span v-else class="text-gray-400">-</span>
             </td>
-            <td class="px-4 py-3 text-sm w-16">
-              <el-tag :type="getStatusType(record.status)" size="small">
-                {{ getStatusLabel(record.status) }}
-              </el-tag>
+            <!-- 19. 状态 -->
+            <td class="slt-td">
+              <div class="flex items-center gap-1.5 justify-center">
+                <span class="px-2 py-1 rounded text-xs font-medium" :class="getStatusClass(row.status)">{{ getStatusLabel(row.status) }}</span>
+                <span v-if="row.endTime" class="px-2 py-1 rounded text-xs font-medium" :class="row.endType === 'abnormal' ? 'text-red-700 bg-red-100' : 'text-gray-500 bg-gray-100'" :title="`${row.endType === 'abnormal' ? '异常' : '正常'}结束于 ${row.endTime}`">{{ row.endType === 'abnormal' ? '已异常结束' : '已结束' }}</span>
+              </div>
             </td>
-            <td class="px-4 py-3 w-40 whitespace-nowrap">
-              <div class="flex items-center gap-1">
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="每日记录" @click="$emit('dailyRecord', record)">
-                  <Calendar class="w-4 h-4" />
+            <!-- 20. 操作列：sticky right-0，宽度 14% = 336px 容纳所有图标 -->
+            <td class="slt-td slt-td-op">
+              <div class="flex gap-1 flex-wrap">
+                <button v-if="row.pictures && row.pictures.length > 0" type="button" class="slt-op-btn slt-op-image" title="查看图片" @click="onImageClick(row.pictures)">
+                  <Image :size="16" />
                 </button>
-                <button
-                  v-if="record.status === 'transplant_ready'"
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                  @click="$emit('transplant', record)"
-                  title="定植操作"
-                >
-                  <RotateCw class="w-4 h-4" />
+                <button type="button" class="slt-op-btn slt-op-record" :title="`每日记录${isEnded(row)?'（只读）':''}`" @click="onDailyRecord(row)">
+                  <Calendar :size="16" />
                 </button>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="打印标签" @click="$emit('print', record)">
-                  <Printer class="w-4 h-4" />
+                <button v-if="row.propagationMode === 'one_to_many'" type="button" class="slt-op-btn slt-op-breeding" :title="`无性繁殖记录${isEnded(row)?'（只读）':''}`" @click="onPropagation(row)">
+                  <GitBranch :size="16" />
                 </button>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="标签管理" @click="$emit('labelManage', record)">
-                  <Tags class="w-4 h-4" />
+                <button type="button" class="slt-op-btn slt-op-tag" :title="`标签管理${isEnded(row)?'（只读）':''}`" @click="onLabelManage(row)">
+                  <Tag :size="16" />
                 </button>
-                <button
-                  v-if="record.pictures && record.pictures.length > 0"
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                  @click="$emit('imageClick', record.pictures)"
-                  title="查看图片"
-                >
-                  <Image class="w-4 h-4" />
+                <button type="button" class="slt-op-btn slt-op-edit" :class="isEnded(row) ? 'slt-op-disabled' : ''" :title="isEnded(row) ? '已结束，禁止编辑' : '编辑'" :disabled="isEnded(row)" @click="!isEnded(row) && onEdit(row)">
+                  <Pencil :size="16" />
                 </button>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors" title="正常结束" @click="$emit('end', record, 'normal')">
-                  <CircleCheck class="w-4 h-4" />
+                <button v-if="!row.isHarvestLocked" type="button" class="slt-op-btn slt-op-inbound" :title="row.endType === 'abnormal' ? '出圃入库（补录）' : row.status === 'cancelled' ? '出圃入库（已取消，仅查看）' : '出圃入库 / 采收'" @click="onInbound(row)">
+                  <Package :size="16" />
                 </button>
-                <button class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="异常结束" @click="$emit('end', record, 'abnormal')">
-                  <XCircle class="w-4 h-4" />
+                <button v-if="!isEnded(row)" type="button" class="slt-op-btn slt-op-end" title="结束" @click="onEnd(row)">
+                  <StopCircle :size="16" />
                 </button>
               </div>
             </td>
@@ -267,361 +191,186 @@
       </table>
     </div>
 
-    <!-- 分页 -->
+    <!-- Pagination -->
     <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-100 rounded-b-xl">
-      <!-- 操作模式下显示选择状态和全选按钮 -->
-      <div class="flex items-center gap-4" v-if="showCheckbox">
-        <el-button link type="primary" size="small" @click="handleSelectAll">
-          {{ selectedRows.length === data.length ? '全不选' : '全选' }}
-        </el-button>
-        <span class="text-sm text-gray-500">已选择 {{ selectedRows.length }} 项</span>
-      </div>
-      <div v-else></div>
       <el-pagination
-        v-model:current-page="internalCurrentPage"
-        v-model:page-size="internalPageSize"
+        v-model:current-page="localPagination.current"
+        v-model:page-size="localPagination.pageSize"
         :page-sizes="[10, 20, 50]"
         :total="data.length"
         layout="total, sizes, prev, pager, next, jumper"
+        background
         @size-change="handleSizeChange"
-        @current-change="handlePageChange"
+        @current-change="handleCurrentChange"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { Plus, Delete, Download, Printer, Close } from '@element-plus/icons-vue'
+import { Image, Calendar, GitBranch, Tag, Pencil, Package, StopCircle } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
-import {
-  Plus, Download, Calendar, RotateCw, Printer, Image, CircleCheck, XCircle,
-  Edit2, Trash2, Tags, X
-} from 'lucide-vue-next'
 
 const props = defineProps({
-  data: {
-    type: Array,
-    default: () => []
-  },
-  pagination: {
-    type: Object,
-    default: () => ({ current: 1, pageSize: 10 })
-  },
-  selectedRows: {
-    type: Array,
-    default: () => []
-  },
-  loading: Boolean,
-  // 操作模式状态
-  operationMode: {
-    type: String,
-    default: 'normal' // 'normal' | 'edit' | 'delete' | 'export' | 'print'
-  },
-  onOperationModeChange: Function,
-  // 导出模式
-  exportMode: Boolean,
-  onExportSelectAll: Function,
-  onExportCancel: Function,
-  // 打印模式
-  printMode: Boolean,
-  onPrintModeChange: Function,
-  onConfirmPrint: Function,
-  // 权限控制
-  canCreate: Boolean,
-  canEdit: Boolean,
-  canDelete: Boolean,
-  canExport: Boolean,
-  canPrint: Boolean
-})
-
-// 品种数据缓存
-const varietyCache = ref(new Map())
-
-// 加载品种数据
-const loadVarieties = async () => {
-  try {
-    const { getAllVarieties } = await import('@/services/cropVarietyService')
-    const varieties = await getAllVarieties()
-    const cache = new Map()
-    varieties.forEach(v => {
-      const key1 = v.subVariety1Name || ''
-      if (key1 && !cache.has(key1)) {
-        cache.set(key1, v)
-      }
-      const key2 = v.varietyName || ''
-      if (key2 && !cache.has(key2)) {
-        cache.set(key2, v)
-      }
-      const key3 = v.cropCode || ''
-      if (key3 && !cache.has(key3)) {
-        cache.set(key3, v)
-      }
-    })
-    varietyCache.value = cache
-  } catch (error) {
-    console.error('获取品种数据失败:', error)
-  }
-}
-
-onMounted(() => {
-  loadVarieties()
+  data: { type: Array, default: () => [] },
+  pagination: { type: Object, required: true },
+  selectedRows: { type: Array, default: () => [] },
+  operationMode: { type: String, default: 'normal' },
+  exportMode: { type: Boolean, default: false },
+  printMode: { type: Boolean, default: false },
+  canCreate: { type: Boolean, default: true },
+  canEdit: { type: Boolean, default: true },
+  canDelete: { type: Boolean, default: true },
+  canExport: { type: Boolean, default: true },
+  canPrint: { type: Boolean, default: true },
+  loading: { type: Boolean, default: false }
 })
 
 const emit = defineEmits([
-  'selectionChange', 'pageChange', 'sizeChange', 'add', 'edit', 'delete',
-  'detail', 'export', 'print', 'confirmExport', 'cancelExport',
-  'dailyRecord', 'transplant', 'labelManage', 'imageClick', 'end'
+  'update:pagination', 'update:selected-rows', 'selection-change',
+  'add', 'edit', 'detail', 'delete', 'print', 'image-click',
+  'propagation', 'label-manage', 'operation-mode-change',
+  'export-cancel', 'confirm-export', 'print-mode-change', 'confirm-print',
+  'export-select-all', 'end', 'inbound', 'daily-record', 'transplant'
 ])
 
-// 是否显示复选框列（编辑、删除、导出、打印模式下显示）
-const showCheckbox = computed(() => {
-  return props.operationMode !== 'normal' || props.exportMode || props.printMode
+const localPagination = ref({ current: 1, pageSize: 10, ...props.pagination })
+watch(() => props.pagination, (val) => { localPagination.value = { ...val } }, { deep: true })
+
+const selectedIds = computed(() => new Set(props.selectedRows))
+
+const showCheckbox = computed(() => props.operationMode !== 'normal' || props.exportMode || props.printMode)
+const currentData = computed(() => {
+  const s = (localPagination.value.current - 1) * localPagination.value.pageSize
+  return props.data.slice(s, Math.min(s + localPagination.value.pageSize, props.data.length))
 })
 
-// 获取选中的第一条记录
-const getFirstSelectedRecord = () => {
-  if (props.selectedRows.length === 0) return null
-  return props.data.find(r => r.id === props.selectedRows[0]) || null
+const isEnded = (r) => (r.status==='completed'||r.status==='abnormal'||r.status==='cancelled'||r.endType==='normal'||r.endType==='abnormal')
+
+const togglePageSelection = (e) => {
+  const ids = currentData.value.map(r => r.id)
+  if (e.target.checked) { emit('update:selected-rows', [...new Set([...props.selectedRows, ...ids])]) } else { emit('update:selected-rows', props.selectedRows.filter(id => !ids.includes(id))) }
 }
-
-// 确认编辑
-const handleConfirmEdit = () => {
-  const record = getFirstSelectedRecord()
-  if (!record) {
-    ElMessage.warning('请先在表格中选择一条记录')
-    return
-  }
-  emit('edit', record) // 触发编辑事件
-  props.onOperationModeChange?.('normal')
-  emit('selectionChange', [])
+const toggleRow = (id, e) => {
+  if (e.target.checked) { emit('update:selected-rows', [...props.selectedRows, id]) } else { emit('update:selected-rows', props.selectedRows.filter(x => x !== id)) }
 }
+const handleSizeChange = (size) => { localPagination.value.pageSize = size; localPagination.value.current = 1; emit('update:pagination', { ...localPagination.value }) }
+const handleCurrentChange = (page) => { localPagination.value.current = page; emit('update:pagination', { ...localPagination.value }) }
+const cancelOperation = () => { emit('operation-mode-change', 'normal'); emit('update:selected-rows', []) }
+const cancelPrintMode = () => { emit('print-mode-change', false); emit('update:selected-rows', []) }
+const confirmPrint = () => { if (props.selectedRows.length === 0) { ElMessage.warning('请先选择要打印的记录'); return } emit('confirm-print', props.data.filter(item => props.selectedRows.includes(item.id))); emit('print-mode-change', false); emit('update:selected-rows', []) }
+const handleExportCancel = () => { emit('export-cancel'); emit('update:selected-rows', []) }
+const onAdd = () => emit('add')
+const onEdit = (row) => emit('edit', row)
+const onDetail = (row) => emit('detail', row)
+const onDelete = (ids) => emit('delete', ids)
+const onImageClick = (images) => emit('image-click', images)
+const onDailyRecord = (row) => emit('daily-record', row)
+const onPropagation = (row) => emit('propagation', row)
+const onLabelManage = (row) => emit('label-manage', row)
+const onEnd = (row) => emit('end', row)
+const onInbound = (row) => emit('inbound', row)
+const onConfirmExport = () => emit('confirm-export')
+const onOperationModeChange = (mode) => emit('operation-mode-change', mode)
+const onPrintModeChange = (val) => emit('print-mode-change', val)
+const onExportSelectAll = () => emit('export-select-all')
 
-// 确认删除
-const handleConfirmDelete = () => {
-  if (props.selectedRows.length === 0) {
-    ElMessage.warning('请先选择要删除的记录')
-    return
-  }
-  emit('delete', props.selectedRows)
-  props.onOperationModeChange?.('normal')
-  emit('selectionChange', [])
+// 作物品种名（对齐 V1.1 L200-214：优先 subVarietyName → varietyName → cropVariety）
+const getCropVarietyName = (record) => record.subVarietyName || record.varietyName || record.cropVariety || record.cropName || '-'
+// 品种路径 4 段式（对齐 V1.1 L165-191：category-type-variety-subVariety，用 '-' 分隔）
+const getCropVarietyPathText = (record) => {
+  const parts = [record.categoryName, record.typeName, record.varietyName, record.subVarietyName].filter(Boolean)
+  return parts.length > 0 ? parts.join('-') : (record.cropVariety || '-')
 }
-
-// 取消操作
-const handleCancelOperation = () => {
-  props.onOperationModeChange?.('normal')
-  emit('selectionChange', [])
+const truncateText = (text, maxLen = 16) => { if (text == null || text === '') return '-'; const s = String(text); return s.length <= maxLen ? s : `${s.slice(0, maxLen)}…` }
+// 完成比例颜色（对齐 V1.1 L622-624）
+const getCompletionRateClass = (record) => {
+  if (!record.targetSurvivalCount || record.targetSurvivalCount <= 0) return 'text-gray-400';
+  const available = Math.max(0, (record.expandedPlantCount || 0) - (record.seedlingLossCount || 0));
+  const ratio = available / record.targetSurvivalCount;
+  return ratio >= 0.8 ? 'text-green-600' : ratio >= 0.5 ? 'text-amber-600' : 'text-red-600'
 }
-
-// 确认导出
-const handleExportCancel = () => {
-  props.onOperationModeChange?.('normal')
-  emit('cancelExport')
-  emit('selectionChange', [])
+// 状态样式（对齐 V1.1 L228-237：6态完整映射）
+const getStatusClass = (status) => {
+  const map = {
+    'sown': 'bg-blue-100 text-blue-700',
+    'in_progress': 'bg-amber-100 text-amber-700',
+    'transplant_ready': 'bg-emerald-100 text-emerald-700',
+    'completed': 'bg-green-100 text-green-700',
+    'cancelled': 'bg-gray-100 text-gray-600',
+    'abnormal': 'bg-red-100 text-red-700'
+  };
+  return map[status] || 'bg-gray-100 text-gray-500'
 }
-
-// 确认打印
-const handleConfirmPrint = () => {
-  if (props.selectedRows.length === 0) {
-    ElMessage.warning('请先选择要打印的记录')
-    return
-  }
-  const selectedRecords = props.data.filter(item => props.selectedRows.includes(item.id))
-  props.onConfirmPrint?.(selectedRecords)
-  props.onPrintModeChange?.(false)
-  emit('selectionChange', [])
-}
-
-// 取消打印
-const handleCancelPrint = () => {
-  props.onPrintModeChange?.(false)
-  emit('selectionChange', [])
-}
-
-// 内部分页状态
-const internalCurrentPage = ref(1)
-const internalPageSize = ref(10)
-
-// 监听 props.pagination 变化
-watch(() => props.pagination, (newVal) => {
-  if (newVal) {
-    internalCurrentPage.value = newVal.current || 1
-    internalPageSize.value = newVal.pageSize || 10
-  }
-}, { immediate: true, deep: true })
-
-// 分页后的数据
-const paginatedData = computed(() => {
-  const start = (internalCurrentPage.value - 1) * internalPageSize.value
-  const end = start + internalPageSize.value
-  return props.data.slice(start, end)
-})
-
-// 处理选择变化
-const handleSelectChange = (id, checked) => {
-  let newSelectedRows = [...props.selectedRows]
-  if (checked) {
-    if (!newSelectedRows.includes(id)) {
-      newSelectedRows.push(id)
-    }
-  } else {
-    newSelectedRows = newSelectedRows.filter(rowId => rowId !== id)
-  }
-  emit('selectionChange', newSelectedRows)
-}
-
-// 全选/取消全选
-const handleSelectAll = () => {
-  if (props.selectedRows.length === props.data.length) {
-    emit('selectionChange', [])
-  } else {
-    emit('selectionChange', props.data.map(item => item.id))
-  }
-}
-
-// 同步全选状态变化（用于表头复选框）
-const onSelectAllChange = (checked) => {
-  if (checked) {
-    emit('selectionChange', props.data.map(item => item.id))
-  } else {
-    emit('selectionChange', [])
-  }
-}
-
-// 右上角打印按钮点击处理 - 获取选中的第一条记录
-const handlePrintClick = () => {
-  if (props.selectedRows.length > 0) {
-    const firstSelectedId = props.selectedRows[0]
-    const record = props.data.find(item => item.id === firstSelectedId)
-    if (record) {
-      emit('print', record)
-    }
-  }
-}
-
-// 分页处理
-const handlePageChange = (page) => {
-  internalCurrentPage.value = page
-  emit('pageChange', page)
-}
-
-const handleSizeChange = (size) => {
-  internalPageSize.value = size
-  internalCurrentPage.value = 1
-  emit('sizeChange', size)
-}
-
-// 获取状态标签
+// 状态标签（对齐 V1.1 L228-237：6态完整映射）
 const getStatusLabel = (status) => {
   const map = {
-    'in_progress': '进行中',
-    'transplant_ready': '待定植',
-    'completed': '已完成',
-    'abnormal': '异常'
-  }
-  return map[status] || status
+    'sown': '已播种',
+    'in_progress': '生长中',
+    'transplant_ready': '待出圃',
+    'completed': '已出圃',
+    'cancelled': '已取消',
+    'abnormal': '异常结束'
+  };
+  return map[status] || '未知'
 }
-
-// 获取状态类型
-const getStatusType = (status) => {
-  const map = {
-    'in_progress': 'primary',
-    'transplant_ready': 'warning',
-    'completed': 'success',
-    'abnormal': 'danger'
-  }
-  return map[status] || 'info'
-}
-
-// 根据 cropCode 或 cropName 获取品种信息
-const getVarietyByCodeOrName = (cropCode, cropName) => {
-  if (!varietyCache.value || varietyCache.value.size === 0) {
-    return null
-  }
-  if (cropCode) {
-    const variety = varietyCache.value.get(cropCode)
-    if (variety) return variety
-    if (cropCode.length >= 9) {
-      const prefix9 = cropCode.substring(0, 9)
-      for (const [key, v] of varietyCache.value.entries()) {
-        const keySub = key.substring(0, Math.min(9, key.length))
-        if (key.startsWith(prefix9) || prefix9.startsWith(keySub)) {
-          return v
-        }
-      }
-    }
-  }
-  if (cropName) {
-    const variety = varietyCache.value.get(cropName)
-    if (variety) return variety
-    for (const [key, v] of varietyCache.value.entries()) {
-      if (key === cropName || v.varietyName === cropName || v.subVariety1Name === cropName) {
-        return v
-      }
-    }
-  }
-  return null
-}
-
-// 获取作物品种（最细分）
-const getCropVarietyName = (record) => {
-  if (record.subVarietyName) {
-    return record.subVarietyName
-  }
-  if (record.varietyName) {
-    return record.varietyName
-  }
-  const variety = getVarietyByCodeOrName(record.cropCode, record.cropName)
-  if (variety) {
-    return variety.subVariety1Name || variety.varietyName || record.cropVariety || ''
-  }
-  return record.cropVariety || record.cropName || ''
-}
-
-// 获取品种路径
-const getCropVarietyPath = (record) => {
-  // 优先使用后端直接返回的品种路径字段
-  if (record.categoryName || record.typeName || record.varietyName) {
-    const parts = []
-    if (record.categoryName) parts.push(`<span class="text-gray-400">${record.categoryName}</span>`)
-    if (record.typeName) parts.push(`<span class="text-gray-400 mx-0.5">-</span><span class="text-gray-700">${record.typeName}</span>`)
-    if (record.varietyName) parts.push(`<span class="text-gray-400 mx-0.5">-</span><span class="text-gray-700">${record.varietyName}</span>`)
-    if (record.subVarietyName) parts.push(`<span class="text-gray-400 mx-0.5">-</span><span class="text-gray-900 font-medium">${record.subVarietyName}</span>`)
-    else if (record.cropName) parts.push(`<span class="text-gray-400 mx-0.5">-</span><span class="text-gray-900 font-medium">${record.cropName}</span>`)
-    return parts.join('')
-  }
-  // 如果后端没有返回品种路径，则通过 cropCode 或 cropName 查询品种库
-  const variety = getVarietyByCodeOrName(record.cropCode, record.cropName)
-  if (variety && variety.categoryName) {
-    const parts = []
-    if (variety.categoryName) parts.push(`<span class="text-gray-400">${variety.categoryName}</span>`)
-    if (variety.typeName) parts.push(`<span class="text-gray-400 mx-0.5">-</span><span class="text-gray-700">${variety.typeName}</span>`)
-    if (variety.varietyName) parts.push(`<span class="text-gray-400 mx-0.5">-</span><span class="text-gray-700">${variety.varietyName}</span>`)
-    if (variety.subVariety1Name) parts.push(`<span class="text-gray-400 mx-0.5">-</span><span class="text-gray-900 font-medium">${variety.subVariety1Name}</span>`)
-    return parts.join('')
-  }
-  return record.cropVariety || '-'
-}
-
-// 获取完成比例样式
-const getCompletionRateClass = (record) => {
-  // targetSurvivalCount 可能不存在，使用 initialCount 作为备选
-  const target = record.targetSurvivalCount || record.initialCount || 0
-  if (target === 0) return 'text-gray-400'
-  const rate = (record.survivalCount || 0) / target
-  if (rate >= 0.8) return 'text-green-600 font-medium'
-  if (rate >= 0.5) return 'text-amber-600 font-medium'
-  return 'text-red-600 font-medium'
-}
+/** 繁殖模式 label（对齐 V1.1 L529-532）*/
+const getPropagationModeLabel = (mode) => mode === 'one_to_many' ? '1:多' : '1:1'
+const getPropagationModeClass = (mode) => mode === 'one_to_many' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'
 </script>
 
 <style scoped>
-/* 加深复选框默认边框颜色 */
-:deep(.seed-checkbox .el-checkbox__inner) {
-  border-color: #374151;
-}
+/* ===== 表格 colgroup 基础样式 ===== */
+.slt-col { background: transparent; }
 
-:deep(.seed-checkbox:hover .el-checkbox__inner) {
-  border-color: #059669;
-}
+/* ===== 表头整行渐变 ===== */
+.slt-thead-tr { background: linear-gradient(to right, #3b82f6, #2563eb); color: #ffffff; }
+
+/* ===== 表头单元格 ===== */
+.slt-th { padding: 0.75rem 1rem; text-align: left; font-size: 0.875rem; font-weight: 600; white-space: nowrap; color: #ffffff; border-bottom: none; }
+.slt-th-check { width: 3rem; }
+
+/* ===== 双池列头（对齐 V1.1 L473-480）====== */
+.slt-th-pond { background: rgba(99, 102, 241, 0.3); }
+.slt-th-seedling { background: rgba(16, 185, 129, 0.3); }
+
+/* ===== 操作列表头（sticky right-0，对齐 V1.1 + SeedSourceTable）====== */
+.slt-th-op { position: sticky; right: 0; background: #1d4ed8; box-shadow: -2px 0 4px rgba(0, 0, 0, 0.15); z-index: 20; }
+
+/* ===== 表格行 ===== */
+.slt-tr { border-bottom: 1px solid #d1d5db; transition: background-color 0.15s; }
+.slt-tr:hover { background-color: #ecfdf5; }
+
+/* ===== 单元格 ===== */
+.slt-td { padding: 0.75rem 1rem; font-size: 0.875rem; white-space: nowrap; vertical-align: middle; }
+.slt-td-check { width: 3rem; }
+.slt-num { text-align: right; color: #2563eb; font-weight: 500; }
+
+/* ===== 操作列固定（sticky right-0，对齐 V1.1 + SeedSourceTable）====== */
+.slt-td-op { position: sticky; right: 0; background: #ffffff; box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05); z-index: 10; }
+.slt-tr:hover .slt-td-op { background: #f9fafb; }
+
+/* ===== 链接按钮 ===== */
+.slt-link { color: #059669; text-decoration: none; font-weight: 500; background: none; border: none; padding: 0; cursor: pointer; font-size: 0.875rem; }
+.slt-link:hover { text-decoration: underline; }
+
+/* ===== 操作列按钮（对齐 SeedSourceTable 风格）====== */
+.slt-op-btn { width: 32px; height: 32px; padding: 0; border-radius: 6px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 0.15s, color 0.15s; }
+.slt-op-image { color: #6b7280; } .slt-op-image:hover { color: #3b82f6; background-color: #eff6ff; }
+.slt-op-record { color: #3b82f6; } .slt-op-record:hover { color: #2563eb; background-color: #eff6ff; }
+.slt-op-breeding { color: #059669; } .slt-op-breeding:hover { color: #047857; background-color: #ecfdf5; }
+.slt-op-tag { color: #9333ea; } .slt-op-tag:hover { color: #7e22ce; background-color: #faf5ff; }
+.slt-op-edit { color: #3b82f6; } .slt-op-edit:hover { color: #2563eb; background-color: #eff6ff; }
+.slt-op-inbound { color: #059669; } .slt-op-inbound:hover { color: #047857; background-color: #ecfdf5; }
+.slt-op-end { color: #dc2626; } .slt-op-end:hover { color: #b91c1c; background-color: #fef2f2; }
+.slt-op-disabled { color: #9ca3af !important; cursor: not-allowed !important; opacity: 0.4; }
+.slt-op-disabled:hover { background-color: transparent !important; color: #9ca3af !important; }
+
+/* ===== 顶部按钮 ===== */
+.slt-btn-print { background-color: #9333ea !important; border-color: #9333ea !important; color: #ffffff !important; }
+.slt-btn-print:hover { background-color: #7e22ce !important; border-color: #7e22ce !important; color: #ffffff !important; }
+.slt-btn-export { background-color: #2563eb !important; border-color: #2563eb !important; color: #ffffff !important; }
+.slt-btn-export:hover { background-color: #1d4ed8 !important; border-color: #1d4ed8 !important; color: #ffffff !important; }
 </style>

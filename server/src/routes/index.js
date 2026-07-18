@@ -5,6 +5,7 @@ import { Router } from 'express';
 import cropVarietyRouter from './cropVariety.js';
 import inventoryRouter from './inventory.js';
 import seedlingRouter from './seedling.js';
+import seedlingPropagationRecordsRouter from './seedlingPropagationRecords.js';
 import seedSourceRouter from './seedSource.js';
 import plantingRouter from './planting.js';
 import harvestRouter from './harvest.js';
@@ -97,6 +98,7 @@ router.use('/crop-varieties', requireAuth, cropVarietyRouter);
 router.use('/inventory', requireAuth, inventoryRouter);
 // 育苗管理路由 - 需要认证
 router.use('/seedlings', requireAuth, seedlingRouter);
+router.use('/seedlings', requireAuth, seedlingPropagationRecordsRouter);
 // 种源管理路由 - 需要认证
 router.use('/seed-sources', requireAuth, seedSourceRouter);
 // 种植管理路由 - 需要认证

@@ -33,16 +33,16 @@
             基本信息
           </button>
           <button
-            @click="activeTab = 'trace'"
+            @click="activeTab = 'history'"
             :class="[
               'pb-2 px-4 text-sm font-medium border-b-2 -mb-px rounded-none flex items-center gap-1 transition-colors',
-              activeTab === 'trace'
+              activeTab === 'history'
                 ? 'border-emerald-500 text-emerald-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             ]"
           >
             <el-icon :size="16"><Clock /></el-icon>
-            追溯链路
+            操作历史
           </button>
         </div>
 
@@ -71,7 +71,7 @@
                 </div>
                 <div class="flex items-center">
                   <span class="text-sm text-gray-500 w-24">育苗方式：</span>
-                  <span class="text-sm text-gray-900">{{ record.seedlingType || '-' }}</span>
+                  <span class="text-sm text-gray-900">{{ seedlingTypeLabel }}</span>
                 </div>
                 <div class="flex items-center">
                   <span class="text-sm text-gray-500 w-24">温室场地：</span>
@@ -146,12 +146,42 @@
                 </div>
                 <div class="flex items-center" v-if="record.qualityGrade">
                   <span class="text-sm text-gray-500 w-24">品质等级：</span>
-                  <span class="text-sm text-gray-900">{{ record.qualityGrade }}</span>
+                  <span class="text-sm text-gray-900">{{ qualityGradeLabel }}</span>
                 </div>
                 <div class="flex items-center" v-if="record.chargePerson">
                   <span class="text-sm text-gray-500 w-24">负责人：</span>
                   <span class="text-sm text-gray-900">{{ record.chargePerson }}</span>
                 </div>
+              </div>
+
+              <!-- 数量统计区（对齐 V1.1 L133-161）-->
+              <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <h5 class="text-sm font-semibold text-amber-900 mb-2">数量统计（自动累加，对应 DB 字段）</h5>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div class="flex items-center">
+                    <span class="text-sm text-gray-500 w-32">母株累计损耗：</span>
+                    <span class="text-sm text-red-500 font-medium">{{ (record.motherLossCount || 0).toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center">
+                    <span class="text-sm text-gray-500 w-32">小苗累计产出：</span>
+                    <span class="text-sm text-emerald-600 font-medium">{{ (record.expandedPlantCount || 0).toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center">
+                    <span class="text-sm text-gray-500 w-32">小苗累计损耗：</span>
+                    <span class="text-sm text-red-500 font-medium">{{ (record.seedlingLossCount || 0).toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center">
+                    <span class="text-sm text-gray-500 w-32">采收入库累计：</span>
+                    <span class="text-sm text-purple-600 font-medium">{{ (record.harvestStockedCount || 0).toLocaleString() }}</span>
+                  </div>
+                  <div class="flex items-center">
+                    <span class="text-sm text-gray-500 w-32">补苗累计：</span>
+                    <span class="text-sm text-emerald-600 font-medium">{{ (record.replantCount || 0).toLocaleString() }}</span>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                  累计损耗 = 母株累计损耗 + 小苗累计损耗 = {{ ((record.motherLossCount || 0) + (record.seedlingLossCount || 0)).toLocaleString() }} 株
+                </p>
               </div>
             </div>
 
@@ -279,17 +309,18 @@
             </div>
           </div>
 
-          <!-- 追溯链路标签页 -->
-          <div v-show="activeTab === 'trace'" class="py-2">
-            <div v-if="record.instanceId" class="text-center py-12">
-              <p class="text-gray-500">追溯链路功能开发中</p>
-              <p class="text-xs text-gray-400 mt-1">业务ID: {{ record.instanceId }}</p>
+          <!-- 操作历史标签页（对齐 V1.1 EntityDetailModal 内置操作历史 Tab L238-266）-->
+          <div v-show="activeTab === 'history'" class="py-2">
+            <div v-if="entityHistory.length > 0" class="space-y-3">
+              <div v-for="item in entityHistory" :key="item.id" class="flex items-start gap-3 pb-3 border-b border-gray-100">
+                <div class="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                <div>
+                  <p class="text-sm text-gray-900">{{ item.action }}</p>
+                  <p class="text-xs text-gray-500">{{ item.createTime }} · {{ item.createBy }}</p>
+                </div>
+              </div>
             </div>
-            <div v-else class="text-center py-12">
-              <el-icon :size="48" class="text-gray-300 mb-3"><Clock /></el-icon>
-              <p class="text-gray-500">暂无库存实例</p>
-              <p class="text-xs text-gray-400 mt-1">该育苗尚未接入库存服务</p>
-            </div>
+            <div v-else class="text-center py-8 text-gray-500">暂无操作历史</div>
           </div>
         </div>
       </div>
@@ -305,14 +336,31 @@
 <script setup>
 /**
  * 育苗详情弹窗组件
- * 功能：展示育苗详细信息，支持基本信息查看和追溯链路切换
+ * 功能：展示育苗详细信息，支持基本信息查看和操作历史切换
  */
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { View, Close, Clock } from '@element-plus/icons-vue'
 
 const props = defineProps({
   visible: Boolean,
   record: Object
+})
+
+// 育苗方式字典翻译（对齐 V1.1 SEEDLING_TYPE_MAP 主要 4 项）
+const seedlingTypeLabel = computed(() => {
+  const map = { 'plug': '穴盘育苗', 'plug_seedling': '穴盘育苗', 'grafting': '嫁接育苗', 'tissue_culture': '组培育苗', 'tissue': '组培育苗', 'direct_seeding': '直播育苗', 'direct': '直播育苗' }
+  return map[props.record?.seedlingType] || props.record?.seedlingType || '-'
+})
+
+// 品质等级字典翻译（对齐 V1.1 QUALITY_GRADE_MAP）
+const qualityGradeLabel = computed(() => {
+  const map = { 'special': '特优', 'excellent': '优', 'good': '良', 'qualified': '合格', 'unqualified': '不合格', 'A': 'A级', 'B': 'B级', 'C': 'C级', 'D': '次品' }
+  return map[props.record?.qualityGrade] || props.record?.qualityGrade || '-'
+})
+
+// 操作历史数据（对齐 V1.1 EntityDetailModal 内置操作历史 Tab）
+const entityHistory = computed(() => {
+  return props.record?.operationHistory || []
 })
 
 const emit = defineEmits(['update:visible'])

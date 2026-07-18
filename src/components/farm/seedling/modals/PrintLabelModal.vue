@@ -77,7 +77,16 @@
 
             <!-- 批量生成模式 -->
             <div v-if="printMode === 'batch'" class="space-y-2">
-              <div class="flex items-center gap-4">
+              <!-- 2026-07-18 P0-DIFF-004：标签类型（批量/逐株，V1.1 L59 labelType 1:1） -->
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">标签类型</label>
+                <el-radio-group v-model="labelType">
+                  <el-radio value="batch">批量（统一数量）</el-radio>
+                  <el-radio value="per_plant">逐株（每行单独指定）</el-radio>
+                </el-radio-group>
+              </div>
+              <!-- 批量模式：统一数量 -->
+              <div v-if="labelType === 'batch'" class="flex items-center gap-4">
                 <div>
                   <label class="block text-xs text-gray-600 mb-1">生成数量</label>
                   <el-input-number
@@ -90,6 +99,25 @@
                 <div class="text-xs text-gray-500">
                   将生成 {{ printCount }} 个标签（剩余：{{ remainingCount }}，已打印：{{ allLabelNumbers.length }}）
                 </div>
+                <!-- 2026-07-18 P0-DIFF-004：每标签株数（V1.1 L61 labelQuantity） -->
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">每标签株数</label>
+                  <el-input-number v-model="labelQuantity" :min="1" class="w-20" />
+                </div>
+              </div>
+              <!-- 逐株模式：每行单独指定数量（V1.1 L63 mixedQuantities 1:1） -->
+              <div v-else class="space-y-2">
+                <label class="block text-xs text-gray-600">逐株数量配置</label>
+                <div
+                  v-for="(num, idx) in perPlantRows"
+                  :key="idx"
+                  class="flex items-center gap-2"
+                >
+                  <span class="text-xs text-gray-500 w-16">第 {{ idx + 1 }} 株</span>
+                  <el-input-number v-model="perPlantRows[idx]" :min="1" class="w-20" />
+                  <span class="text-xs text-gray-500">株</span>
+                </div>
+                <el-button size="small" @click="perPlantRows.push(1)">+ 添加一行</el-button>
               </div>
             </div>
           </div>
@@ -228,6 +256,10 @@ const emit = defineEmits(['update:visible'])
 const loading = ref(false)
 const printMode = ref('single')
 const printCount = ref(1)
+// 2026-07-18 P0-DIFF-004：逐株模式字段（V1.1 labelType / labelQuantity / mixedQuantities 1:1）
+const labelType = ref('batch')
+const labelQuantity = ref(1)
+const perPlantRows = ref([1, 1, 1])
 const selectedLabels = ref([])
 const previewLabel = ref('')
 const allLabelNumbers = ref([])

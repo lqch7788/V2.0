@@ -49,8 +49,8 @@
         :can-print="canPrint"
         @add="handleAdd"
         @detail="handleDetail"
+        @edit="handleEdit"
         @daily-record="handleDailyRecord"
-        @transplant="handleTransplant"
         @print="handlePrint"
         @delete="handleDelete"
         @export="handleExportClick"
@@ -62,6 +62,8 @@
         @label-manage="handleLabelManage"
         @image-click="handleImageClick"
         @end="handleEnd"
+        @inbound="handleInbound"
+        @propagation="handlePropagation"
       />
     </div>
 
@@ -88,14 +90,15 @@
       v-if="currentRecord"
       v-model:visible="dailyRecordModalVisible"
       :record="currentRecord"
+      :read-only="Boolean(currentRecord.status === 'completed' || currentRecord.status === 'abnormal' || currentRecord.status === 'cancelled' || currentRecord.endType === 'normal' || currentRecord.endType === 'abnormal')"
       @success="handleDailyRecordSuccess"
     />
-
-    <!-- 定植弹窗 -->
-    <TransplantModal
+    <!-- 2026-07-18 P0-DIFF：补 V1.1 无性繁殖记录弹窗（独立入口，only 1:多）-->
+    <SeedlingPropagationModal
       v-if="currentRecord"
-      v-model:visible="transplantModalVisible"
+      v-model:visible="propagationModalVisible"
       :record="currentRecord"
+      :read-only="Boolean(currentRecord.status === 'completed' || currentRecord.status === 'abnormal' || currentRecord.endType === 'normal' || currentRecord.endType === 'abnormal')"
       @success="loadItems"
     />
 
@@ -115,6 +118,8 @@
       v-model:visible="labelManageModalVisible"
       :seedling-id="labelManageRecord.id"
       :seedling-code="labelManageRecord.seedlingCode"
+      :auto-select-label-number="autoSelectLabelNumber"
+      :read-only="Boolean(labelManageRecord.status === 'completed' || labelManageRecord.status === 'abnormal' || labelManageRecord.endType === 'normal' || labelManageRecord.endType === 'abnormal')"
     />
 
     <!-- 导出格式选择弹窗 -->
@@ -125,6 +130,72 @@
       @confirm="handleConfirmExport"
       @update:export-file-type="exportFormat = $event"
     />
+    <!-- 2026-07-18 P0-DIFF：补 V1.1 删除确认弹窗 -->
+    <el-dialog
+      v-model="showDeleteModal"
+      title="确认删除"
+      width="420px"
+      :close-on-click-modal="false"
+    >
+      <p class="text-sm text-gray-700">确定要删除选中的 <strong class="text-red-600">{{ pendingDeleteIds.length }}</strong> 条育苗记录吗？此操作不可撤销。</p>
+      <template #footer>
+        <el-button @click="showDeleteModal = false">取消</el-button>
+        <el-button type="danger" @click="handleDeleteConfirm">确认删除</el-button>
+      </template>
+    </el-dialog>
+    <!-- 2026-07-18 P0-DIFF：补 V1.1 出圃入库弹窗（UnifiedRowHarvestInboundModal 替代）-->
+    <el-dialog
+      v-if="inboundModal.record"
+      v-model="inboundModal.open"
+      :title="`出圃入库 - ${inboundModal.record.seedlingCode}`"
+      width="900px"
+      :close-on-click-modal="false"
+      @close="inboundModal = { open: false, record: null }"
+    >
+      <div class="space-y-4">
+        <el-alert type="info" :closable="false" show-icon>
+          <template #title>育苗批号：{{ inboundModal.record.seedlingCode }} | 作物：{{ inboundModal.record.cropName }}</template>
+        </el-alert>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-gray-700">采收数量</label>
+            <el-input-number v-model="inboundModal.quantity" :min="1" class="w-full" />
+          </div>
+          <div>
+            <label class="text-sm text-gray-700">入库仓库</label>
+            <el-input v-model="inboundModal.warehouseName" placeholder="请输入仓库名称" />
+          </div>
+        </div>
+        <el-input v-model="inboundModal.remarks" type="textarea" :rows="2" placeholder="备注（可选）" />
+      </div>
+      <template #footer>
+        <el-button @click="inboundModal = { open: false, record: null }">取消</el-button>
+        <el-button type="primary" @click="handleInboundSuccess">确认入库</el-button>
+      </template>
+    </el-dialog>
+    <!-- 2026-07-18 P0-DIFF：补 V1.1 结束育苗确认弹窗 -->
+    <el-dialog
+      v-if="endConfirm.record"
+      v-model="endConfirm.open"
+      title="确认结束育苗记录"
+      width="480px"
+      :close-on-click-modal="false"
+    >
+      <div class="space-y-3">
+        <el-alert type="warning" :closable="false" show-icon>
+          <template #title>⚠️ 结束育苗记录</template>
+          <div class="text-xs text-red-700 mt-1">
+            结束后将锁定日常运维操作（移栽、出圃、修改等）。<br>
+            <span class="font-semibold">仍可补录遗漏的库存</span>（通过"出圃入库"按钮，必填补录原因）。<br>
+            <span class="font-semibold">此操作不可撤销！</span>
+          </div>
+        </el-alert>
+      </div>
+      <template #footer>
+        <el-button @click="endConfirm = { record: null }">取消</el-button>
+        <el-button type="danger" @click="executeEnd">确认结束</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -142,7 +213,6 @@ import AddModal from '@/components/farm/seedling/modals/AddModal.vue'
 import EditModal from '@/components/farm/seedling/modals/EditModal.vue'
 import DetailModal from '@/components/farm/seedling/modals/DetailModal.vue'
 import DailyRecordModal from '@/components/farm/seedling/modals/DailyRecordModal.vue'
-import TransplantModal from '@/components/farm/seedling/modals/TransplantModal.vue'
 import PrintLabelModal from '@/components/farm/seedling/modals/PrintLabelModal.vue'
 import SeedlingLabelManageModal from '@/components/farm/seedling/modals/SeedlingLabelManageModal.vue'
 import ImageLightboxModal from '@/components/common/ImageLightboxModal.vue'
@@ -228,11 +298,17 @@ const addModalVisible = ref(false)
 const editModalVisible = ref(false)
 const detailModalVisible = ref(false)
 const dailyRecordModalVisible = ref(false)
-const transplantModalVisible = ref(false)
+const propagationModalVisible = ref(false)
 const printModalVisible = ref(false)
 const lightboxVisible = ref(false)
 const labelManageModalVisible = ref(false)
 const showExportModal = ref(false)
+// 2026-07-18 P0-DIFF：补 V1.1 缺失的删除/出圃/结束状态
+const showDeleteModal = ref(false)
+const pendingDeleteIds = ref([])
+const inboundModal = ref({ open: false, record: null, quantity: 1, warehouseName: '', remarks: '' })
+const endConfirm = ref({ record: null })
+const autoSelectLabelNumber = ref(undefined)
 
 // 当前操作的记录
 const currentRecord = ref(null)
@@ -395,6 +471,35 @@ const handleDailyRecord = (record) => {
   currentRecord.value = record
   dailyRecordModalVisible.value = true
 }
+// 2026-07-18 P0-DIFF：补 V1.1 无性繁殖记录触发
+const handlePropagation = (record) => {
+  currentRecord.value = record
+  propagationModalVisible.value = true
+}
+// 2026-07-18 P0-DIFF：补 V1.1 DeleteConfirmModal 弹窗式删除（与 V1.1 对齐）
+const handleDeleteConfirm = async () => {
+  const ids = [...pendingDeleteIds.value]
+  if (ids.length === 0) return
+  showDeleteModal.value = false
+  try {
+    await seedlingStore.deleteItems(ids)
+    selectedRows.value = []
+    pendingDeleteIds.value = []
+    ElMessage.success(`已删除 ${ids.length} 条育苗记录`)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    ElMessage.error(`删除失败：${msg}`)
+  }
+}
+// 2026-07-18 P0-DIFF：补 V1.1 出圃入库（V2.0 用简化版 ElDialog 替代 UnifiedRowHarvestInboundModal）
+const handleInbound = (record) => {
+  inboundModal.value = { open: true, record, quantity: 1, warehouseName: '', remarks: '' }
+}
+const handleInboundSuccess = async () => {
+  ElMessage.success('出圃入库成功')
+  inboundModal.value = { open: false, record: null, quantity: 1, warehouseName: '', remarks: '' }
+  await loadItems()
+}
 
 // 每日记录保存成功后刷新数据
 const handleDailyRecordSuccess = async () => {
@@ -407,37 +512,20 @@ const handleDailyRecordSuccess = async () => {
     }
   }
 }
-
-// 定植
-const handleTransplant = (record) => {
-  currentRecord.value = record
-  transplantModalVisible.value = true
-}
-
 // 打印
 const handlePrint = (record) => {
   currentRecord.value = record
   printModalVisible.value = true
 }
 
-// 删除
-const handleDelete = async (ids) => {
-  try {
-    await ElMessageBox.confirm('确定要删除选中的育苗记录吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    const success = await seedlingStore.deleteItems(ids)
-    if (success) {
-      ElMessage.success('删除成功')
-      selectedRows.value = []
-    } else {
-      ElMessage.error('删除失败')
-    }
-  } catch {
-    // 用户取消
+// 删除（2026-07-18 P0-DIFF：改为弹窗确认以对齐 V1.1 DeleteConfirmModal）
+const handleDelete = (ids) => {
+  if (!ids || ids.length === 0) {
+    ElMessage.warning('请先选择要删除的记录')
+    return
   }
+  pendingDeleteIds.value = ids
+  showDeleteModal.value = true
 }
 
 // 操作模式变化
@@ -656,21 +744,12 @@ const handleConfirmExport = async () => {
   }))
 
   // 创建内容
-  let content = ''
-  let mimeType = ''
-  let extension = ''
-
-  if (exportFormat.value === 'csv') {
-    content = headers.join(',') + '\n' + exportData.map(row =>
-      headers.map(h => `"${row[h] || ''}"`).join(',')
-    ).join('\n')
-    mimeType = 'text/csv;charset=utf-8'
-    extension = 'csv'
-  } else {
-    content = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-    mimeType = 'application/vnd.ms-excel;charset=utf-8'
-    extension = 'xls'
-  }
+  const isCsv = exportFormat.value === 'csv'
+  const content = isCsv
+    ? headers.join(',') + '\n' + exportData.map(row => headers.map(h => `"${row[h] || ''}"`).join(',')).join('\n')
+    : `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${exportData.map(row => `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`).join('')}</table></body></html>`
+  const mimeType = isCsv ? 'text/csv;charset=utf-8' : 'application/vnd.ms-excel;charset=utf-8'
+  const extension = isCsv ? 'csv' : 'xls'
 
   const fileName = `育苗管理_${new Date().toISOString().slice(0, 10)}.${extension}`
 
