@@ -1,21 +1,26 @@
 <template>
-  <!-- 纯div自定义弹窗 -->
-  <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
-    <!-- 遮罩层 -->
-    <div class="fixed inset-0 bg-black/50" @click="handleClose"></div>
-
-    <!-- 弹窗主体 -->
-    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-      <!-- 头部 - 使用渐变色 -->
-      <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4 flex items-center justify-between">
+  <!-- 对齐 V1.1 UnifiedModal + el-dialog 拖拽/最大化/调整大小 -->
+  <el-dialog
+    v-dialog-draggable
+    v-dialog-resizable
+    v-dialog-maximizable
+    :model-value="visible"
+    width="900px"
+    top="5vh"
+    :close-on-click-modal="true"
+    @close="handleClose"
+  >
+    <template #header>
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-4 -mt-4 px-6 py-3 flex items-center justify-between rounded-t-xl">
         <div class="flex items-center gap-3">
           <el-icon :size="20" style="color: white;"><Edit /></el-icon>
           <h3 class="text-lg font-semibold text-white">编辑育苗</h3>
         </div>
-        <el-button circle text @click="handleClose" class="!text-white hover:!bg-white/20">
-          <el-icon :size="20" style="color: white;"><Close /></el-icon>
+        <el-button link @click="handleClose" style="color: white;">
+          <el-icon :size="20"><Close /></el-icon>
         </el-button>
       </div>
+    </template>
 
       <!-- 内容区域 -->
       <div class="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
@@ -278,13 +283,13 @@
         </div>
       </div>
 
-      <!-- 底部按钮 -->
-      <div class="border-t border-gray-200 px-6 py-4 flex justify-end gap-3 bg-gray-50">
+    <template #footer>
+      <div class="flex justify-end gap-3">
         <el-button @click="handleClose">取消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="submitting">保存</el-button>
       </div>
-    </div>
-  </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
