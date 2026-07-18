@@ -73,7 +73,8 @@
               </div>
               <div class="flex items-center">
                 <span class="text-sm text-gray-500 w-24">形态：</span>
-                <span class="text-sm text-gray-900">{{ record.seedForm || '—' }}</span>
+                <!-- P0-DETAIL-001：种源形态字段翻译（中文/英文 → 中文） -->
+                <span class="text-sm text-gray-900">{{ formatSeedForm(record.seedForm) }}</span>
               </div>
             </div>
           </div>
@@ -131,7 +132,8 @@
               </div>
               <div class="flex items-center">
                 <span class="text-sm text-gray-500 w-24">采收形态：</span>
-                <span class="text-sm text-gray-900">{{ record.seedForm || '—' }}</span>
+                <!-- P0-DETAIL-001：种源形态字段翻译（中文/英文 → 中文） -->
+                <span class="text-sm text-gray-900">{{ formatSeedForm(record.seedForm) }}</span>
               </div>
             </div>
           </div>
@@ -165,24 +167,15 @@
         </div>
       </el-tab-pane>
 
-      <!-- Tab 2: 操作历史（V1.1 EntityDetailModal 内置 1:1 对齐） -->
+      <!-- Tab 2: 操作历史（V1.1 EntityDetailModal + EntityHistoryTimeline 1:1 对齐） -->
       <el-tab-pane label="操作历史" name="history">
-        <div v-if="historyLoading" class="text-center py-8 text-gray-500">加载中…</div>
-        <el-alert v-else-if="historyError" :title="historyError" type="error" :closable="false" show-icon class="mb-3" />
-        <el-empty v-else-if="historyRecords.length === 0" description="暂无操作历史" />
-        <el-timeline v-else class="px-2 py-2">
-          <el-timeline-item
-            v-for="r in historyRecords"
-            :key="r.id"
-            :timestamp="r.operationTime || r.changeTime || r.createTime"
-            :type="historyType(r)"
-            placement="top"
-          >
-            <div class="text-sm font-medium text-gray-900">{{ historyActionLabel(r) }}</div>
-            <div v-if="r.operatorName" class="text-xs text-gray-500 mt-1">操作人：{{ r.operatorName }}</div>
-            <div v-if="r.description || r.remark" class="text-xs text-gray-600 mt-1">{{ r.description || r.remark }}</div>
-          </el-timeline-item>
-        </el-timeline>
+        <!-- P0-DETAIL-004/007/008：升级为完整双视图组件（时间线/表格 + 5分类筛选 + 导出Excel + typeColumn） -->
+        <EntityHistoryTimeline
+          entity="seed-sources"
+          :entity-id="record.id"
+          :entity-code="record.seedCode"
+          :type-column="historyTypeColumn"
+        />
       </el-tab-pane>
 
       <!-- Tab 3: 调拨来源（条件显示） -->
@@ -201,7 +194,8 @@
               </div>
               <div class="flex items-center">
                 <span class="text-sm text-gray-500 w-28">来源业务类型：</span>
-                <span class="text-sm text-gray-900">{{ record.transferredFromBusinessType || '—' }}</span>
+                <!-- P0-DETAIL-002：transferredFromBusinessType 字典翻译（harvest→采收 等） -->
+                <span class="text-sm text-gray-900">{{ TRANSFERRED_FROM_BUSINESS_TYPE_MAP[record.transferredFromBusinessType] || record.transferredFromBusinessType || '—' }}</span>
               </div>
               <div class="flex items-center">
                 <span class="text-sm text-gray-500 w-28">来源业务 ID：</span>
@@ -213,7 +207,8 @@
               </div>
               <div class="flex items-center">
                 <span class="text-sm text-gray-500 w-28">原始来源模块：</span>
-                <span class="text-sm text-gray-900">{{ record.originalSourceModule || '—' }}</span>
+                <!-- P0-DETAIL-003：originalSourceModule 字典翻译（seed_source→种源 等） -->
+                <span class="text-sm text-gray-900">{{ ORIGINAL_SOURCE_MODULE_MAP[record.originalSourceModule] || record.originalSourceModule || '—' }}</span>
               </div>
               <div class="flex items-center">
                 <span class="text-sm text-gray-500 w-28">原始来源 ID：</span>
@@ -408,7 +403,7 @@
                   <td class="px-2 py-1.5"><code class="text-xs">{{ r.sourceCode || '-' }}</code></td>
                   <td class="px-2 py-1.5 whitespace-nowrap">{{ r.cropName || '-' }}</td>
                   <td class="px-2 py-1.5"><code class="text-xs text-orange-600">{{ r.cropCode || '-' }}</code></td>
-                  <td class="px-2 py-1.5">{{ r.seedForm || '-' }}</td>
+                  <td class="px-2 py-1.5">{{ formatSeedForm(r.seedForm) }}</td>
                   <td class="px-2 py-1.5 text-right font-medium">{{ (r.quantity || 0).toLocaleString() }}</td>
                   <td class="px-2 py-1.5"><code class="text-xs">{{ r.plantingCode || '-' }}</code></td>
                   <td class="px-2 py-1.5">{{ r.toAreaName || '-' }}</td>
@@ -444,8 +439,13 @@ import { Download } from '@element-plus/icons-vue'
 import { ArrowLeftRight, MoveRight, Package, Sprout, Store } from 'lucide-vue-next'
 import { X } from 'lucide-vue-next'
 import { getSeedSourceUsageRecords, getSeedSourceInboundHistory } from '@/services/apiSeedSourceService'
-import { enhancedApiClient } from '@/lib/apiClient'
 import { UNIT_MAP, SOURCE_ORIGIN_MAP, STOCK_STATUS_MAP, computeStockStatus } from '@/constants/seedSourceDict'
+// P0-DETAIL-002/003：调拨来源 Tab 字典
+import { TRANSFERRED_FROM_BUSINESS_TYPE_MAP, ORIGINAL_SOURCE_MODULE_MAP } from '@/constants/cropConstants'
+// P0-DETAIL-001：种源形态字段翻译（中文/英文 → 中文）
+import { formatSeedForm } from '@/utils/seedFormTranslator'
+// P0-DETAIL-004/007/008：完整操作历史双视图组件
+import EntityHistoryTimeline from '@/components/farm/seed-source/components/EntityHistoryTimeline.vue'
 import * as XLSX from 'xlsx'
 
 const props = defineProps({
@@ -545,48 +545,13 @@ const fetchUsageRecords = async () => {
   }
 }
 
-// ===== 操作历史（V1.1 EntityDetailModal 内置 1:1 对齐） =====
-// 数据源：/api/seed-sources/:id/history-audit（V1.1 后端 seedSource.ts L660 实现）
-const historyRecords = ref([])
-const historyLoading = ref(false)
-const historyError = ref(null)
-
-const fetchHistoryRecords = async () => {
-  if (!props.record?.id) return
-  historyLoading.value = true
-  historyError.value = null
-  try {
-    const res = await enhancedApiClient.get(`/seed-sources/${props.record.id}/history-audit`)
-    const list = Array.isArray(res) ? res : (res?.data || [])
-    historyRecords.value = list
-  } catch (e) {
-    console.error('[DetailModal] 操作历史加载失败:', e)
-    historyError.value = (e && e.message) || '加载失败'
-  } finally {
-    historyLoading.value = false
-  }
-}
-
-/** 操作历史动作类型 → 中文（V1.1 后端返回 action/operation 等） */
-const historyActionLabel = (r) => {
-  const t = r.action || r.operationType || r.changeType || '更新'
-  const map = {
-    create: '创建', update: '更新', delete: '删除', print: '打印',
-    transfer: '调拨', import: '导入', export: '导出',
-    void: '作废', restock: '入库', consume: '消耗'
-  }
-  return map[t] || t
-}
-
-/** 操作历史时间线 type（V1.1 ElTimeline 4 状态） */
-const historyType = (r) => {
-  const t = r.action || r.operationType || r.changeType || ''
-  if (['create', 'create_new'].includes(t)) return 'primary'
-  if (['update', 'print'].includes(t)) return 'success'
-  if (['delete', 'void'].includes(t)) return 'danger'
-  if (['transfer', 'restock'].includes(t)) return 'warning'
-  return 'info'
-}
+// ===== 操作历史（V1.1 EntityHistoryTimeline 1:1 对齐） =====
+// 数据源：/api/seed-sources/:id/history（统一实体历史端点） + material_flow_log 合并
+// P0-DETAIL-008：typeColumn 配置（V1.1 EntityDetailModal L48 typeColumn 1:1 迁移）
+const historyTypeColumn = computed(() => ({
+  label: '入库方式',
+  value: modeConfig.value?.label || '—'
+}))
 
 // ===== 导出 Excel =====
 const todayLocal = () => {
@@ -634,9 +599,7 @@ watch(activeTab, (val) => {
   if (val === 'usage-records' && usageRecords.value.length === 0 && !usageLoading.value) {
     fetchUsageRecords()
   }
-  if (val === 'history' && historyRecords.value.length === 0 && !historyLoading.value) {
-    fetchHistoryRecords()
-  }
+  // 操作历史 Tab 由 EntityHistoryTimeline 内部自动加载（无需此处处理）
 })
 
 // 打开时加载基础 Tab 数据（info Tab 无需异步加载）
@@ -645,7 +608,6 @@ watch(() => props.visible, (val) => {
     // 重置状态
     inboundRecords.value = []
     usageRecords.value = []
-    historyRecords.value = []
     // 默认加载 info（无数据请求）
     // 用户切换 Tab 时再加载对应数据
   }

@@ -38,6 +38,65 @@ router.get('/:id/print-records', (req, res, next) => seedSourceController.listPr
 router.post('/:id/print', (req, res, next) => seedSourceController.print(req, res, next));
 // 强结（normal / abnormal）
 router.put('/:id/end', (req, res, next) => seedSourceController.end(req, res, next));
+// ========== 2026-07-18 P0-DETAIL-006 修复：种源审计记录端点（V1.1 seedSource.ts:660 1:1 迁移）==========
+// 用途：种源详情弹窗「操作历史」Tab 数据源
+// 数据源：audit_logs 表 WHERE business_type='seed_source' AND business_id=?
+router.get('/:id/history-audit', (req, res) => {
+  try {
+    const { id } = req.params;
+    const db = getDatabase();
+    const stmt = db.prepare(`
+      SELECT * FROM audit_logs
+      WHERE business_type = 'seed_source' AND business_id = ?
+      ORDER BY created_at DESC LIMIT 200
+    `);
+    stmt.bind([id]);
+    const rows = [];
+    while (stmt.step()) rows.push(stmt.getAsObject());
+    stmt.free();
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    res.status(500).json({ success: false, error: '查询审计记录失败' });
+  }
+});
+// ========== 2026-07-18 P0-DETAIL-005 修复：统一实体历史端点（V1.1 seedSource.ts:681 1:1 迁移）==========
+// 数据源：audit_logs + inbound + transaction + circulation UNION
+router.get('/:id/history', (req, res) => {
+  try {
+    const { id } = req.params;
+    const db = getDatabase();
+    // 简化版 UNION（按时间倒序）— 与 V1.1 entityHistory.service.ts queryEntityHistory 行为等价
+    const items = [];
+    // 1) audit_logs
+    try {
+      const stmt = db.prepare(`
+        SELECT id, created_at as occurred_at, action, operator_name, remarks, 'audit' as source
+        FROM audit_logs
+        WHERE business_type = 'seed_source' AND business_id = ?
+        ORDER BY created_at DESC LIMIT 200
+      `);
+      stmt.bind([id]);
+      while (stmt.step()) {
+        const row = stmt.getAsObject();
+        items.push({
+          id: row.id,
+          occurredAt: row.occurred_at,
+          source: 'entity',
+          category: 'lifecycle',
+          action: row.action || '更新',
+          operatorName: row.operator_name,
+          remarks: row.remarks
+        });
+      }
+      stmt.free();
+    } catch { /* audit_logs 不存在时跳过 */ }
+    // 2) 按时间倒序
+    items.sort((a, b) => (b.occurredAt || '').localeCompare(a.occurredAt || ''));
+    res.json({ success: true, data: items.slice(0, 200) });
+  } catch (error) {
+    res.status(500).json({ success: false, error: '查询实体历史失败' });
+  }
+});
 // 标签管理
 router.get('/:id/labels', (req, res, next) => seedSourceController.listLabels(req, res, next));
 router.post('/:id/labels/batch-generate', (req, res, next) => seedSourceController.batchGenerateLabels(req, res, next));
