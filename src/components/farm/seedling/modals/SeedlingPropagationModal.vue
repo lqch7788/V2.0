@@ -17,7 +17,14 @@
     height="700px"
     top="5vh"
     :close-on-click-modal="true"
-    @update:model-value="(v) => emit('update:visible', v)"
+    :close-on-press-escape="true"
+    :show-close="false"
+    class="print-label-modal"
+    style="max-width: calc(100vw - 40px); height: auto;"
+    v-dialog-draggable
+    v-dialog-resizable
+    v-dialog-maximizable
+    @update:model-value="onModelValueChange"
     @close="handleClose"
   >
     <div class="space-y-6">
@@ -276,6 +283,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:visible', 'success'])
+
+// 2026-07-19 修复：el-dialog modelValue 变化处理
+const onModelValueChange = (val) => {
+  if (!val) emit('update:visible', false)
+}
 
 const records = ref([])
 const loading = ref(false)

@@ -1,14 +1,20 @@
 <template>
   <!-- 对齐 V1.1 UnifiedModal + el-dialog 拖拽/最大化/调整大小 -->
   <el-dialog
-    v-dialog-draggable
-    v-dialog-resizable
-    v-dialog-maximizable
     :model-value="visible"
+    title="育苗详情"
     width="900px"
     top="5vh"
     :close-on-click-modal="true"
-    @update:model-value="emit('update:visible', $event)"
+    :close-on-press-escape="true"
+    :show-close="false"
+    class="print-label-modal"
+    style="max-width: calc(100vw - 40px)"
+    v-dialog-draggable
+    v-dialog-resizable
+    v-dialog-maximizable
+    @update:model-value="onModelValueChange"
+    @close="handleClose"
   >
     <template #header>
       <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-4 -mt-4 px-6 py-3 flex items-center justify-between rounded-t-xl">
@@ -16,9 +22,9 @@
           <el-icon :size="20" style="color: white;"><View /></el-icon>
           <h3 class="text-lg font-semibold text-white">育苗详情</h3>
         </div>
-        <el-button link @click="handleClose" style="color: white;">
+        <button type="button" class="text-white hover:bg-emerald-700 rounded p-1 transition-colors" aria-label="关闭" @click="handleClose">
           <el-icon :size="20"><Close /></el-icon>
-        </el-button>
+        </button>
       </div>
     </template>
 
@@ -369,6 +375,11 @@ const entityHistory = computed(() => {
 })
 
 const emit = defineEmits(['update:visible'])
+
+// 2026-07-19 修复：el-dialog modelValue 变化处理
+const onModelValueChange = (val) => {
+  if (!val) emit('update:visible', false)
+}
 
 // 标签页状态
 const activeTab = ref('info')

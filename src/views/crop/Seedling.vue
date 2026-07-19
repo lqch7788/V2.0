@@ -687,51 +687,47 @@ const handleImageClick = (images) => {
   lightboxVisible.value = true
 }
 
-// 结束计划
-const handleEnd = async (record, endType) => {
-  // 检查是否有关联的生产计划
-  const planCode = record.productionPlanCode
-  if (!planCode || planCode.trim() === '') {
-    ElMessage.warning('该育苗没有关联的生产计划，无法结束')
+// 结束育苗（对齐 V1.1 L341-396：单态结束，只更新 seedling 自己的状态）
+const handleEnd = (record, endType = 'normal') => {
+  // 检查是否已结束
+  if (record.status === 'completed' || record.endType === 'normal' || record.endType === 'abnormal') {
+    ElMessage.warning('该育苗记录已结束，不能再次操作')
     return
   }
+  // 设置 endConfirm 显示自定义确认弹窗（不再用 ElMessageBox）
+  endConfirm.value = { record, endType }
+}
 
-  // 获取生产计划batch信息
-  const batch = await cropBatchService.getCropBatchByCode(planCode)
-  if (!batch) {
-    ElMessage.warning('未找到关联的生产计划 [' + planCode + ']，请检查生产计划是否存在')
-    return
-  }
-
-  // 检查batch状态
-  if (batch.batchStatus === 'completed') {
-    ElMessage.warning('该生产计划已完成结束，不能重复结束')
-    return
-  }
-
-  // 计算完成率
-  const completionRate = cropBatchService.getCompletionRate(batch, record.survivalCount || 0)
-  const isNormal = endType === 'normal'
-  const confirmMsg = isNormal
-    ? `确认正常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后禁止一切入库和补录操作`
-    : `确认异常结束此生产计划？\n\n入库完成比例：${Math.round(completionRate * 100)}%\n结束后如需补录，需提交审核申请`
+// 执行结束操作（用户在自定义弹窗点"确认结束"时调用）
+const executeEnd = async () => {
+  if (!endConfirm.value?.record) return
+  const record = endConfirm.value.record
+  const endType = endConfirm.value.endType || 'normal'
 
   try {
-    await ElMessageBox.confirm(confirmMsg, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    // 调用 cropBatchService 结束生产计划
-    const success = await cropBatchService.endCropBatch(batch.id, endType)
+    // 2026-07-19 P0-FIX：直接更新 seedling 自己的状态（对齐 V1.1 L349-378）
+    const seedlingStore = useSeedlingStore()
+    const updatedRecord = {
+      ...record,
+      status: 'completed',
+      endType,
+      endTime: new Date().toISOString(),
+      isFinished: true,
+      isHarvestLocked: 0  // 允许补录
+    }
+
+    // 调用 Store 更新
+    const success = await seedlingStore.updateItem(record.id, updatedRecord)
     if (success) {
-      ElMessage.success(isNormal ? '生产计划已正常结束' : '生产计划已异常结束')
+      ElMessage.success('育苗记录已结束（仍可补录遗漏库存）')
+      endConfirm.value = { record: null }
       await loadItems()
     } else {
-      ElMessage.error('结束生产计划失败')
+      ElMessage.error('结束失败')
     }
-  } catch {
-    // 用户取消
+  } catch (error) {
+    console.error('[handleEnd] 结束育苗失败:', error)
+    ElMessage.error('结束失败：' + (error.message || '未知错误'))
   }
 }
 

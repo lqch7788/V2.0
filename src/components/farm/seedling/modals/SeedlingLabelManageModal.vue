@@ -292,6 +292,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible'])
 
+// 2026-07-19 修复：el-dialog modelValue 变化处理
+const onModelValueChange = (val) => {
+  if (!val) emit('update:visible', false)
+}
+
 // ---------- Store ----------
 const plantLabelStore = usePlantLabelStore()
 const userStore = useUserStore()

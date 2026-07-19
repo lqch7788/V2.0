@@ -1,46 +1,59 @@
 <template>
-  <!-- 对齐 V1.1 UnifiedModal + 种源模块 el-dialog 拖拽/最大化/调整大小 -->
+  <!-- 2026-07-19 修复：用原生 el-dialog 关闭按钮（避免 v-dialog-draggable 拦截 mousedown） -->
   <el-dialog
+    :model-value="visible"
+    title="标签打印与导出"
+    width="1170px"
+    top="5vh"
+    :close-on-click-modal="true"
+    :close-on-press-escape="true"
+    :show-close="true"
+    close-icon="Close"
+    class="print-label-modal"
+    style="max-width: calc(100vw - 40px)"
     v-dialog-draggable
     v-dialog-resizable
     v-dialog-maximizable
-    :model-value="visible"
-    width="900px"
-    top="5vh"
-    :close-on-click-modal="true"
-    @update:model-value="emit('update:visible', $event)"
+    @update:model-value="onModelValueChange"
+    @close="handleClose"
   >
     <template #header>
-      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-4 -mt-4 px-6 py-3 flex items-center justify-between rounded-t-xl">
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <el-icon :size="20" style="color: white;"><Printer /></el-icon>
           <h3 class="text-lg font-semibold text-white">标签打印与导出</h3>
         </div>
-        <el-button link @click="handleClose" style="color: white;">
-          <el-icon :size="20"><Close /></el-icon>
-        </el-button>
       </div>
     </template>
 
     <!-- 内容区域 -->
     <div class="overflow-y-auto p-2">
         <div class="space-y-4" v-if="record">
-          <!-- 打印模式选择（对齐 V1.1 L26-46 PRINT_MODE_MAP 卡片按钮风格） -->
+          <!-- 打印模式选择（对齐 V1.1 L381-410 PRINT_MODE_MAP 卡片按钮风格，emerald 主题色 + gap-2） -->
           <div class="bg-blue-50 rounded-lg p-4">
-            <div class="grid grid-cols-3 gap-3 mb-4">
-              <button
-                v-for="mode in [{value:'single',icon:'🏷️',label:'单标签打印',sublabel:'重打 1 个已存在',desc:'从已有标签中选择 1 个重新打印'},{value:'multi',icon:'📋',label:'多标签打印',sublabel:'批量勾选已存在',desc:'从已有标签列表中勾选多个一并打印'},{value:'batch',icon:'✨',label:'批量生成',sublabel:'生成新标签',desc:'系统生成新的标签编号 + 同步入库 + 打印'}]"
+            <div class="grid grid-cols-3 gap-2 mb-4">
+              <div
+                v-for="mode in PRINT_MODES"
                 :key="mode.value"
-                type="button"
-                class="p-3 border-2 rounded-lg text-left cursor-pointer transition-all"
-                :class="printMode === mode.value ? 'border-blue-500 bg-blue-100 shadow-sm' : 'border-gray-200 bg-white hover:border-blue-300'"
-                @click="printMode = mode.value"
+                @click="setPrintMode(mode.value)"
+                :class="[
+                  'px-3 py-2 rounded-lg border-2 text-left cursor-pointer transition-all',
+                  printMode === mode.value
+                    ? 'border-emerald-500 bg-emerald-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/30'
+                ]"
+                :title="mode.desc"
               >
-                <div class="text-lg mb-1">{{ mode.icon }}</div>
-                <div class="text-sm font-semibold text-gray-900">{{ mode.label }}</div>
-                <div class="text-xs text-gray-500">{{ mode.sublabel }}</div>
-                <div class="text-[10px] text-gray-400 mt-1 leading-tight">{{ mode.desc }}</div>
-              </button>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-base">{{ mode.icon }}</span>
+                  <span :class="['text-sm', printMode === mode.value ? 'font-semibold text-emerald-800' : 'font-medium text-gray-700']">
+                    {{ mode.label }}
+                  </span>
+                </div>
+                <div :class="['text-xs mt-0.5', printMode === mode.value ? 'text-emerald-700' : 'text-gray-500']">
+                  {{ mode.sublabel }}
+                </div>
+              </div>
             </div>
 
             <!-- 单标签模式 -->
@@ -59,7 +72,7 @@
               <div class="text-xs text-gray-500">共 {{ allLabelNumbers.length }} 个标签</div>
             </div>
 
-            <!-- 多标签模式 -->
+            <!-- 多标签模式（对齐 V1.1 grid grid-cols-4 gap-1） -->
             <div v-if="printMode === 'multi'">
               <div class="flex items-center justify-between mb-2">
                 <label class="text-xs text-gray-600">选择标签（已选 {{ selectedLabels.length }} 个）</label>
@@ -68,16 +81,21 @@
                 </el-button>
               </div>
               <div class="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 bg-white">
-                <el-checkbox-group v-model="selectedLabels">
-                  <el-checkbox
+                <div class="grid grid-cols-4 gap-1">
+                  <label
                     v-for="label in allLabelNumbers.slice(0, 100)"
                     :key="label"
-                    :label="label"
-                    class="block w-full"
+                    :class="['flex items-center gap-1 p-1 rounded cursor-pointer text-xs', selectedLabels.includes(label) ? 'bg-blue-100' : 'hover:bg-gray-50']"
                   >
-                    {{ label }}
-                  </el-checkbox>
-                </el-checkbox-group>
+                    <input
+                      type="checkbox"
+                      :checked="selectedLabels.includes(label)"
+                      @change="toggleLabel(label)"
+                      class="w-3 h-3"
+                    />
+                    <span class="truncate">{{ label }}</span>
+                  </label>
+                </div>
                 <div v-if="allLabelNumbers.length > 100" class="text-xs text-gray-500 mt-2">
                   共 {{ allLabelNumbers.length }} 个标签，已显示前100个
                 </div>
@@ -139,7 +157,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">模板选择</label>
-              <el-select v-model="template" class="w-full" @change="generatePreviewQrCode">
+              <el-select v-model="selectedTemplate" class="w-full" @change="onTemplateChange">
                 <el-option label="小标签" value="small" />
                 <el-option label="大标签" value="large" />
                 <el-option label="详情标签" value="detail" />
@@ -147,14 +165,14 @@
             </div>
           </div>
 
-          <!-- 标签预览 -->
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+          <!-- 标签预览（对齐 V1.1 border-dashed border-gray-400） -->
+          <div class="border-2 border-dashed border-gray-400 rounded-lg p-4 bg-gray-50">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-700">标签预览 {{ previewLabel && `- ${previewLabel}` }}</span>
             </div>
             <div class="flex justify-center">
               <!-- 小标签 -->
-              <div v-if="template === 'small'" class="flex flex-col items-center print-label">
+              <div v-if="selectedTemplate === 'small'" class="flex flex-col items-center print-label">
                 <div class="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
                   <img v-if="previewQrCodeUrl" :src="previewQrCodeUrl" class="w-20 h-20" alt="QR Code" />
                   <div v-else class="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
@@ -168,7 +186,7 @@
               </div>
 
               <!-- 大标签 -->
-              <div v-else-if="template === 'large'" class="flex flex-col items-center print-label">
+              <div v-else-if="selectedTemplate === 'large'" class="flex flex-col items-center print-label">
                 <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
                   <img v-if="previewQrCodeUrl" :src="previewQrCodeUrl" class="w-24 h-24" alt="QR Code" />
                   <div v-else class="w-24 h-24 bg-gray-200 flex items-center justify-center text-xs text-gray-500">
@@ -221,16 +239,19 @@
       </div>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button @click="handleExportExcel" :loading="loading">
-          <el-icon style="color: inherit;"><Download /></el-icon>
-          导出Excel
-        </el-button>
-        <el-button type="primary" @click="handlePrint" :loading="loading">
-          <el-icon style="color: inherit;"><Printer /></el-icon>
-          打印
-        </el-button>
+      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+        <div></div>
+        <div class="flex gap-2">
+          <el-button @click="handleClose">取消</el-button>
+          <el-button type="primary" plain @click="handleExportExcel" :loading="loading">
+            <el-icon style="color: inherit;"><Download /></el-icon>
+            导出Excel
+          </el-button>
+          <el-button type="primary" @click="handlePrint" :loading="loading">
+            <el-icon style="color: inherit;"><Printer /></el-icon>
+            {{ loading ? '处理中...' : '打印' }}
+          </el-button>
+        </div>
       </div>
     </template>
   </el-dialog>
@@ -250,17 +271,24 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Printer, Close, Download } from '@element-plus/icons-vue'
 import QRCode from 'qrcode'
 
 const props = defineProps({
-  visible: Boolean,
-  record: Object
+  visible: { type: Boolean, default: false },
+  record: { type: Object, default: null }
 })
 
-const emit = defineEmits(['update:visible'])
+const emit = defineEmits(['update:visible', 'close'])
+
+// el-dialog modelValue 变化处理（v-model="visible" 改为 :model-value + @update:model-value）
+const onModelValueChange = (val) => {
+  if (!val) {
+    emit('update:visible', false)
+  }
+}
 
 const loading = ref(false)
 const printMode = ref('single')
@@ -272,7 +300,8 @@ const perPlantRows = ref([1, 1, 1])
 const selectedLabels = ref([])
 const previewLabel = ref('')
 const allLabelNumbers = ref([])
-const template = ref('detail')
+// 2026-07-19 修复：变量名 template 与 Vue 3 reserved word 冲突，改名为 selectedTemplate
+const selectedTemplate = ref('detail')
 const currentOperator = ref(localStorage.getItem('username') || '系统管理员')
 const previewQrCodeUrl = ref('')
 const showPrintContainer = ref(false)
@@ -285,6 +314,19 @@ const QR_CODE_OPTIONS = {
     dark: '#000000',
     light: '#ffffff'
   }
+}
+
+// 打印模式字典（对齐 V1.1 PRINT_MODE_MAP）
+const PRINT_MODES = [
+  { value: 'single', label: '单标签打印', sublabel: '重打 1 个已存在', desc: '从已有标签中选择 1 个重新打印（适合标签褪色/丢失后补打）', icon: '🏷️' },
+  { value: 'multi',  label: '多标签打印', sublabel: '批量勾选已存在', desc: '从已有标签列表中勾选多个一并打印（适合整批补打）', icon: '📋' },
+  { value: 'batch',  label: '批量生成',   sublabel: '生成新标签',      desc: '系统生成新的标签编号 + 同步入库 + 打印（适合首次打标签）', icon: '✨' }
+]
+
+// 切换打印模式（同时清空已选标签，对齐 V1.1）
+const setPrintMode = (mode) => {
+  printMode.value = mode
+  selectedLabels.value = []
 }
 
 // 剩余数量
@@ -306,6 +348,11 @@ const getQrCodeValue = (label) => {
   })
 }
 
+// 模板切换（@change 事件）
+const onTemplateChange = () => {
+  generatePreviewQrCode()
+}
+
 // 生成预览二维码
 const generatePreviewQrCode = async () => {
   if (!previewLabel.value) {
@@ -314,7 +361,7 @@ const generatePreviewQrCode = async () => {
   }
   try {
     const value = getQrCodeValue(previewLabel.value)
-    const size = template.value === 'small' ? 80 : template.value === 'large' ? 100 : 100
+    const size = selectedTemplate.value === 'small' ? 80 : selectedTemplate.value === 'large' ? 100 : 100
     const url = await QRCode.toDataURL(value, { ...QR_CODE_OPTIONS, width: size })
     previewQrCodeUrl.value = url
   } catch (error) {
@@ -333,7 +380,8 @@ watch(() => props.visible, async (val) => {
       labels.push(`${props.record.seedlingCode}-${String(i + 1).padStart(4, '0')}`)
     }
     allLabelNumbers.value = labels
-    previewLabel.value = labels[0] || ''
+    // 2026-07-19 修复：即使 survivalCount=0 也要显示预览二维码（用 seedlingCode 兜底）
+    previewLabel.value = labels[0] || `${props.record.seedlingCode}-0001`
     selectedLabels.value = []
     printMode.value = 'single'
     printCount.value = 1
@@ -353,17 +401,17 @@ const toggleSelectAll = () => {
   }
 }
 
-// 关闭弹窗
+// 单个标签切换（对齐 V1.1 toggleLabel）
+const toggleLabel = (label) => {
+  selectedLabels.value = selectedLabels.value.includes(label)
+    ? selectedLabels.value.filter(l => l !== label)
+    : [...selectedLabels.value, label]
+}
+
+// 关闭弹窗（统一入口：右上角 X / footer 取消 / ESC / 遮罩 都走这里）
 const handleClose = () => {
   emit('update:visible', false)
 }
-
-// ESC 键关闭（对齐 V1.1 behavior）
-const handleKeydown = (e) => {
-  if (e.key === 'Escape') handleClose()
-}
-onMounted(() => window.addEventListener('keydown', handleKeydown))
-onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 
 // 打印处理
 const handlePrint = async () => {
@@ -522,7 +570,32 @@ const handleExportExcel = async () => {
 }
 </script>
 
-<style scoped>
+<style>
+/* 2026-07-19 修复：Footer 固定在弹窗底部（对齐 V1.1 Modal.tsx 的 flex-shrink-0 行为）
+   注意：必须用非 scoped，因为 el-dialog Teleport 到 body 后脱离了组件作用域 */
+.print-label-modal.el-dialog {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 90vh !important;
+}
+.print-label-modal .el-dialog__body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;  /* 关键：让 flex 子项能被压缩 */
+  padding: 16px 24px !important;
+}
+.print-label-modal .el-dialog__footer {
+  flex-shrink: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+  padding: 12px 24px !important;
+  margin: 0 !important;
+}
+.print-label-modal .el-dialog__header {
+  flex-shrink: 0 !important;
+  padding: 0 !important;
+}
+
 /* 打印样式 */
 @media print {
   @page {
