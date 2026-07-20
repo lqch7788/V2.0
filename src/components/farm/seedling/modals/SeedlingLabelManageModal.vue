@@ -1,15 +1,23 @@
 <template>
   <!-- 育苗标签管理弹窗 -->
   <div v-if="visible" class="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center">
-    <div class="bg-white rounded-xl w-full max-w-6xl shadow-xl max-h-[85vh] flex flex-col">
-      <!-- 标题栏 -->
-      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl flex-shrink-0">
+    <div class="bg-white rounded-xl w-full seedling-label-dialog shadow-xl max-h-[85vh] flex flex-col">
+      <!-- 标题栏（2026-07-20：添加拖拽/最大化/缩放/关闭按钮，对齐 el-dialog 头部） -->
+      <div
+        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 rounded-t-xl flex-shrink-0 cursor-move"
+        @mousedown="startDrag"
+      >
         <h3 class="text-lg font-semibold text-white">
           育苗标签管理 - {{ seedlingCode }}
         </h3>
-        <el-button circle text @click="handleClose" class="!text-white hover:!bg-white/20">
-          <el-icon :size="20"><Close /></el-icon>
-        </el-button>
+        <div class="flex items-center gap-1">
+          <el-button circle text @click="toggleMaximize" class="!text-white hover:!bg-white/20" title="最大化/还原">
+            <el-icon :size="18"><FullScreen v-if="!isMaximized" /><Aim v-else /></el-icon>
+          </el-button>
+          <el-button circle text @click="handleClose" class="!text-white hover:!bg-white/20" title="关闭 (Esc)">
+            <el-icon :size="20"><Close /></el-icon>
+          </el-button>
+        </div>
       </div>
 
       <!-- readOnly 模式横幅（对齐 V1.1 L140-155） -->
@@ -270,7 +278,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Close, Download, Plus, Delete, Lock } from '@element-plus/icons-vue'
+import { Close, Download, Plus, Delete, Lock, FullScreen, Aim } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { usePlantLabelStore } from '@/stores'
 import { useUserStore } from '@/stores/modules/user'
@@ -295,6 +303,63 @@ const emit = defineEmits(['update:visible'])
 // 2026-07-19 修复：el-dialog modelValue 变化处理
 const onModelValueChange = (val) => {
   if (!val) emit('update:visible', false)
+}
+
+// 2026-07-20：拖拽/最大化支持（对齐 el-dialog 的 v-dialog-draggable/maximizable）
+const isMaximized = ref(false)
+const savedRect = ref({ left: 0, top: 0, width: '', height: '' })
+const dragOffset = ref({ x: 0, y: 0 })
+
+const startDrag = (e) => {
+  if (isMaximized.value) return
+  // 找到外层 div
+  const dialogEl = e.currentTarget.closest('.fixed.inset-0 > div')
+  if (!dialogEl) return
+  const rect = dialogEl.getBoundingClientRect()
+  dragOffset.value = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+
+  const onMove = (ev) => {
+    const newLeft = ev.clientX - dragOffset.value.x
+    const newTop = ev.clientY - dragOffset.value.y
+    dialogEl.style.position = 'fixed'
+    dialogEl.style.left = `${newLeft}px`
+    dialogEl.style.top = `${newTop}px`
+    dialogEl.style.margin = '0'
+  }
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+  }
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
+
+const toggleMaximize = () => {
+  const dialogEl = document.querySelector('.seedling-label-dialog')
+  if (!dialogEl) return
+  if (!isMaximized.value) {
+    savedRect.value = {
+      left: dialogEl.offsetLeft,
+      top: dialogEl.offsetTop,
+      width: dialogEl.style.width,
+      height: dialogEl.style.height
+    }
+    dialogEl.style.position = 'fixed'
+    dialogEl.style.left = '0'
+    dialogEl.style.top = '0'
+    dialogEl.style.width = '100vw'
+    dialogEl.style.height = '100vh'
+    dialogEl.style.maxHeight = '100vh'
+    dialogEl.style.borderRadius = '0'
+    isMaximized.value = true
+  } else {
+    dialogEl.style.left = `${savedRect.value.left}px`
+    dialogEl.style.top = `${savedRect.value.top}px`
+    dialogEl.style.width = savedRect.value.width
+    dialogEl.style.height = savedRect.value.height
+    dialogEl.style.borderRadius = ''
+    isMaximized.value = false
+  }
 }
 
 // ---------- Store ----------

@@ -206,6 +206,8 @@ import DetailModal from '@/components/farm/seedling/modals/DetailModal.vue'
 import DailyRecordModal from '@/components/farm/seedling/modals/DailyRecordModal.vue'
 import PrintLabelModal from '@/components/farm/seedling/modals/PrintLabelModal.vue'
 import SeedlingLabelManageModal from '@/components/farm/seedling/modals/SeedlingLabelManageModal.vue'
+// 2026-07-20：补缺失的 import（修复浏览器报错 "Failed to resolve component: SeedlingPropagationModal"）
+import SeedlingPropagationModal from '@/components/farm/seedling/modals/SeedlingPropagationModal.vue'
 import ImageLightboxModal from '@/components/common/ImageLightboxModal.vue'
 import ExportFormatModal from '@/components/common/ExportFormatModal.vue'
 import DeleteConfirmModal from '@/components/ui/DeleteConfirmModal.vue'

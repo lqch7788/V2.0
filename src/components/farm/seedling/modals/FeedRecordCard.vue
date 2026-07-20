@@ -33,7 +33,7 @@
       <div class="grid grid-cols-2 gap-3">
         <!-- 名称 -->
         <div>
-          <label class="text-xs text-gray-700">名称</label>
+          <label class="text-xs text-gray-700">名称 <span class="text-red-500">*</span></label>
           <el-input v-model="localValue.name" placeholder="请输入名称" size="small" />
         </div>
 
@@ -59,10 +59,10 @@
           </el-select>
         </div>
 
-        <!-- 稀释倍数（仅药剂） -->
-        <div v-if="mode === 'pesticide'">
-          <label class="text-xs text-gray-700">稀释倍数</label>
-          <el-input v-model.number="localValue.dilution" type="number" placeholder="如：1000" size="small" />
+        <!-- 稀释倍数 -->
+        <div>
+          <label class="text-xs text-gray-700">稀释倍数 {{ localValue.dilutionType === 'dry' ? '（干施不需要）' : '' }}</label>
+          <el-input v-model.number="localValue.dilution" type="number" :disabled="localValue.dilutionType === 'dry'" placeholder="如：1000" size="small" />
         </div>
 
         <!-- 施用方式 -->
@@ -83,6 +83,28 @@
         <div v-if="mode === 'pesticide'">
           <label class="text-xs text-gray-700">防治对象</label>
           <el-input v-model="localValue.targetPest" placeholder="如：蚜虫" size="small" />
+        </div>
+      </div>
+
+      <!-- 2026-07-20：施肥模式品牌+单价+费用展示行（对齐 V1.1 L334-355） -->
+      <div v-if="mode === 'fertilizer' && localValue.name" class="grid grid-cols-3 gap-2 bg-amber-50/50 border border-amber-100 rounded-lg px-3 py-2">
+        <div class="text-xs">
+          <span class="text-gray-500">品牌：</span>
+          <span class="text-gray-800 font-medium">{{ localValue.brandName || '-' }}</span>
+        </div>
+        <div class="text-xs">
+          <span class="text-gray-500">单价：</span>
+          <span class="text-amber-700 font-medium">
+            {{ localValue.unitPrice ? `¥${Number(localValue.unitPrice).toFixed(2)}` : '-' }}
+          </span>
+        </div>
+        <div class="text-xs">
+          <span class="text-gray-500">费用：</span>
+          <span class="text-emerald-700 font-bold">
+            {{ localValue.amount && localValue.unitPrice
+              ? `¥${(localValue.amount * localValue.unitPrice).toFixed(2)}`
+              : '-' }}
+          </span>
         </div>
       </div>
 

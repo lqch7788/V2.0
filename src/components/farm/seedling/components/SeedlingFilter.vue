@@ -52,9 +52,9 @@
         />
       </div>
 
-      <!-- 温室场地 -->
+      <!-- 育苗区域（V1.1 L99-116：育苗区域） -->
       <div class="min-w-[120px]">
-        <label class="block text-sm font-medium text-gray-700 mb-1">温室场地</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">育苗区域</label>
         <el-select v-model="localFilters.siteName" placeholder="全部" clearable class="w-full">
           <el-option label="全部" value="__all__" />
           <el-option
@@ -66,15 +66,17 @@
         </el-select>
       </div>
 
-      <!-- 状态 -->
+      <!-- 状态（V1.1 L118-135：6 态动态加载，对齐 V1.1 改为 props.statusOptions） -->
       <div class="min-w-[120px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
         <el-select v-model="localFilters.status" placeholder="全部" clearable class="w-full">
           <el-option label="全部" value="__all__" />
-          <el-option label="进行中" value="in_progress" />
-          <el-option label="待定植" value="transplant_ready" />
-          <el-option label="已完成" value="completed" />
-          <el-option label="异常" value="abnormal" />
+          <el-option
+            v-for="item in statusOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
       </div>
 

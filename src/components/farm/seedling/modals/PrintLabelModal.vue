@@ -9,8 +9,7 @@
     :close-on-press-escape="true"
     :show-close="true"
     close-icon="Close"
-    class="print-label-modal"
-    style="max-width: calc(100vw - 40px)"
+    class="print-label-modal seedling-dialog"
     v-dialog-draggable
     v-dialog-resizable
     v-dialog-maximizable
@@ -18,7 +17,7 @@
     @close="handleClose"
   >
     <template #header>
-      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 px-6 py-3 flex items-center justify-between cursor-move">
         <div class="flex items-center gap-3">
           <el-icon :size="20" style="color: white;"><Printer /></el-icon>
           <h3 class="text-lg font-semibold text-white">标签打印与导出</h3>

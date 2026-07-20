@@ -8,8 +8,7 @@
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     :show-close="false"
-    class="print-label-modal"
-    style="max-width: calc(100vw - 40px)"
+    class="print-label-modal seedling-dialog"
     v-dialog-draggable
     v-dialog-resizable
     v-dialog-maximizable
@@ -17,7 +16,7 @@
     @close="handleClose"
   >
     <template #header>
-      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-4 -mt-4 px-6 py-3 flex items-center justify-between rounded-t-xl">
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 px-6 py-3 flex items-center justify-between rounded-t-xl cursor-move">
         <div class="flex items-center gap-3">
           <el-icon :size="20" style="color: white;"><View /></el-icon>
           <h3 class="text-lg font-semibold text-white">育苗详情</h3>
@@ -53,7 +52,7 @@
             ]"
           >
             <el-icon :size="16"><Clock /></el-icon>
-            操作历史
+            追溯时间线
           </button>
         </div>
 
@@ -320,8 +319,13 @@
             </div>
           </div>
 
-          <!-- 操作历史标签页（对齐 V1.1 EntityDetailModal 内置操作历史 Tab L238-266）-->
+          <!-- 追溯时间线标签页（V1.1 EntityDetailModal 内置，含"种苗类型"列）-->
           <div v-show="activeTab === 'history'" class="py-2">
+            <!-- 2026-07-20 P0-Detail-002：种苗类型（数据源 seedling_form，SEEDLING_FORM_MAP 翻译）-->
+            <div class="mb-4 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
+              <el-icon class="text-emerald-600"><Sugar /></el-icon>
+              <span class="text-sm text-emerald-700">种苗类型：<strong>{{ seedlingFormLabel }}</strong></span>
+            </div>
             <div v-if="entityHistory.length > 0" class="space-y-3">
               <div v-for="item in entityHistory" :key="item.id" class="flex items-start gap-3 pb-3 border-b border-gray-100">
                 <div class="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
@@ -331,7 +335,7 @@
                 </div>
               </div>
             </div>
-            <div v-else class="text-center py-8 text-gray-500">暂无操作历史</div>
+            <div v-else class="text-center py-8 text-gray-500">暂无追溯记录</div>
           </div>
         </div>
       </div>
@@ -361,6 +365,19 @@ const props = defineProps({
 const seedlingTypeLabel = computed(() => {
   const map = { 'plug': '穴盘育苗', 'plug_seedling': '穴盘育苗', 'grafting': '嫁接育苗', 'tissue_culture': '组培育苗', 'tissue': '组培育苗', 'direct_seeding': '直播育苗', 'direct': '直播育苗' }
   return map[props.record?.seedlingType] || props.record?.seedlingType || '-'
+})
+
+// 2026-07-20 P0-Detail-002：种苗形态翻译（SEEDLING_FORM_MAP，9 种）
+const seedlingFormLabel = computed(() => {
+  const map = { flower: '花朵', branch: '枝条', bare_root: '裸根苗', plug: '穴盘苗', cup: '杯苗', potted: '盆栽苗', balled: '土球苗', seedling: '实生苗', other: '其他' }
+  const sf = props.record?.seedlingForm
+  if (sf && map[sf]) return map[sf]
+  // fallback 到 seedlingType
+  const st = props.record?.seedlingType
+  if (st && map[st]) return map[st]
+  if (sf) return sf
+  if (st) return st
+  return '-'
 })
 
 // 品质等级字典翻译（对齐 V1.1 QUALITY_GRADE_MAP）

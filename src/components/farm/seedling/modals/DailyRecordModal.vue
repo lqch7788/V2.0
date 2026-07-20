@@ -8,8 +8,7 @@
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     :show-close="false"
-    class="print-label-modal"
-    style="max-width: calc(100vw - 40px)"
+    class="print-label-modal seedling-dialog"
     v-dialog-draggable
     v-dialog-resizable
     v-dialog-maximizable
@@ -17,7 +16,7 @@
     @close="handleClose"
   >
     <template #header>
-      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-4 -mt-4 px-6 py-3 flex items-center justify-between rounded-t-xl">
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 px-6 py-3 flex items-center justify-between rounded-t-xl cursor-move">
         <div class="flex items-center gap-3">
           <el-icon :size="20" style="color: white;"><Calendar /></el-icon>
           <h3 class="text-lg font-semibold text-white">每日记录 - {{ record?.seedlingCode }}</h3>
@@ -63,6 +62,19 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">湿度（%）</label>
                 <el-input-number v-model="formData.humidity" :min="0" :step="0.1" class="w-full" placeholder="如：60" />
               </div>
+              <!-- 第一行：操作人员（V1.1 第1行：日期+人员+异常，对齐 P0-MD-004）-->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">操作人员</label>
+                <el-select v-model="formData.operator" placeholder="请选择操作人员" clearable class="w-full">
+                  <el-option
+                    v-for="op in operatorOptions"
+                    :key="op.value"
+                    :label="op.label"
+                    :value="op.value"
+                  />
+                </el-select>
+              </div>
+              <!-- 第二行：pH值 -->
               <!-- 第二行：pH值 -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">pH值</label>
@@ -73,36 +85,29 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">EC值（mS/cm）</label>
                 <el-input-number v-model="formData.ecValue" :min="0" :step="0.1" :precision="1" class="w-full" placeholder="如：2.0" />
               </div>
-              <!-- 第二行：是否浇水 -->
+              <!-- 第二行：异常情况（V1.1 第1行：日期+人员+异常） -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">是否浇水</label>
-                <div class="flex items-center h-full">
-                  <el-checkbox v-model="formData.watering" class="h-full flex items-center">
-                    {{ formData.watering ? '是' : '否' }}
-                  </el-checkbox>
-                </div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">异常情况</label>
+                <el-input v-model="formData.abnormality" placeholder="无异常请留空" />
               </div>
-              <!-- 2026-07-18 P0-DIFF-003：浇水方式（仅当勾选浇水时显示） -->
-              <div v-if="formData.watering">
-                <label class="block text-sm font-medium text-gray-700 mb-1">浇水方式</label>
-                <el-select v-model="formData.wateringMethod" placeholder="请选择" clearable class="w-full">
-                  <el-option label="喷淋" value="spray" />
-                  <el-option label="滴灌" value="drip" />
-                  <el-option label="浇灌" value="flood" />
-                  <el-option label="喷雾" value="mist" />
+              <!-- 2026-07-20 P0-MD-007：浇水字段（V1.1 行为：填了方式/量就算浇了，watering 字段自动联动） -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  浇水方式
+                  <span v-if="formData.wateringMethod || formData.wateringAmount != null" class="text-xs text-cyan-600 ml-1">（已自动标记浇水）</span>
+                </label>
+                <el-select v-model="formData.wateringMethod" placeholder="请选择浇水方式（可选）" clearable class="w-full" @change="autoSetWatering">
+                  <el-option v-for="(label, key) in WATERING_METHOD_MAP" :key="key" :label="label" :value="key" />
                 </el-select>
               </div>
-              <div v-if="formData.watering">
+              <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">浇水量</label>
-                <el-input-number v-model="formData.wateringAmount" :min="0" :step="0.1" :precision="1" class="w-full" />
-              </div>
-              <div v-if="formData.watering">
-                <label class="block text-sm font-medium text-gray-700 mb-1">浇水单位</label>
-                <el-select v-model="formData.wateringUnit" placeholder="请选择" clearable class="w-full">
-                  <el-option label="L" value="L" />
-                  <el-option label="mL" value="mL" />
-                  <el-option label="kg" value="kg" />
-                </el-select>
+                <div class="flex gap-2">
+                  <el-input-number v-model="formData.wateringAmount" :min="0" :step="0.1" :precision="1" class="flex-1" placeholder="如：5（可选）" @change="autoSetWatering" />
+                  <el-select v-model="formData.wateringUnit" placeholder="单位" clearable class="!w-24">
+                    <el-option v-for="(label, key) in WATERING_UNIT_MAP" :key="key" :label="label" :value="key" />
+                  </el-select>
+                </div>
               </div>
               <!-- 第三行：成活变化 -->
               <div>
@@ -460,20 +465,17 @@ const props = defineProps({
   }
 })
 
-// 2026-07-18 P0-MD-028：浇水方式/单位字典（对齐 V1.1 constants/cropConstants）
+// 2026-07-20 P0-MD-001/002：浇水方式/单位字典（对齐 V1.1 constants/cropConstants 16 种浇水方式 + 完整单位）
 const WATERING_METHOD_MAP = {
-  spray: '喷淋',
-  drip: '滴灌',
-  flood: '浇灌',
-  mist: '喷雾',
-  dip: '蘸根',
-  pot: '盆浇'
+  spray: '喷淋', drip: '滴灌', flood: '浇灌', mist: '喷雾',
+  dip: '蘸根', pot: '盆浇', sprinkler: '喷灌', furrow: '沟灌',
+  manual: '人工浇', drip_tape: '滴灌带', micro_spray: '微喷',
+  flood_drain: '漫灌', root_dip: '浸根', soaking: '浸种',
+  foliar: '叶面喷', overhead: '顶喷'
 }
 const WATERING_UNIT_MAP = {
-  L: 'L',
-  mL: 'mL',
-  kg: 'kg',
-  pot: '盆'
+  L: 'L', ml: 'mL', kg: 'kg', pot: '盆', ton: '吨',
+  gram: '克', mu_li: '亩·厘', mm: '毫米'
 }
 
 const emit = defineEmits(['update:visible', 'success'])
@@ -511,6 +513,10 @@ const makeEmptyFeedRecord = (mode) => ({
 const handleAddFertilizer = () => {
   formData.value.fertilizerRecords = [makeEmptyFeedRecord('fertilizer'), ...(formData.value.fertilizerRecords || [])]
 }
+// 2026-07-20 P0-MD-007：浇水业务逻辑（V1.1 L251：填了方式/量就算浇了，watering 自动联动）
+const autoSetWatering = () => {
+  formData.value.watering = !!(formData.value.wateringMethod || formData.value.wateringAmount != null)
+}
 const handleAddPesticide = () => {
   formData.value.pesticideRecords = [makeEmptyFeedRecord('pesticide'), ...(formData.value.pesticideRecords || [])]
 }
@@ -535,6 +541,21 @@ const handleRemovePesticide = (idx) => {
 const editingId = ref(null)
 const editingRow = ref({})
 
+// 2026-07-20 P0-MD-003：操作人员字典（从 getDictItems('operator') 读取，fallback 硬编码）
+const operatorOptions = ref([
+  { value: '系统管理员', label: '系统管理员' },
+  { value: '操作员A', label: '操作员A' },
+  { value: '操作员B', label: '操作员B' }
+])
+// 尝试从字典读取
+try {
+  const { getDictItems } = await import('@/stores/modules/dictionary')
+  const dictOps = getDictItems('operator')
+  if (dictOps && dictOps.length > 0) {
+    operatorOptions.value = dictOps.map(d => ({ value: d.dictCode, label: d.dictLabel }))
+  }
+} catch {}
+
 // 计算属性：获取最新的历史记录
 const latestDailyRecords = computed(() => {
   if (!props.record) return []
@@ -547,14 +568,17 @@ const formData = ref({
   recordDate: new Date().toISOString().split('T')[0],
   temperature: undefined,
   humidity: undefined,
+  // 2026-07-20 P0-MD-007：浇水业务逻辑（V1.1：填了方式/量就算浇了，不再需要勾选 watering 字段）
+  // watering 字段仍保留以兼容历史数据，但不再控制方式/量字段的显示
   watering: false,
   // 2026-07-18 P0-DIFF-003：补 V1.1 浇水细粒度字段
   wateringMethod: undefined,
   wateringAmount: undefined,
   wateringUnit: undefined,
   abnormality: '',
+  // 2026-07-20 P0-MD-009/010：删除 V1.1 已删除的 plantedCountChange 字段
+  // survivalCountChange 在 1:多 模式 = 母株损耗；1:1 模式 = 0（死字段）
   survivalCountChange: undefined,
-  plantedCountChange: undefined,
   lossCountChange: undefined,
   // 2026-07-18 P0-DIFF-003：补苗/匍匐茎增加
   replantChange: undefined,
@@ -581,7 +605,6 @@ watch(() => props.visible, (val) => {
       wateringUnit: undefined,
       abnormality: '',
       survivalCountChange: undefined,
-      plantedCountChange: undefined,
       lossCountChange: undefined,
       replantChange: undefined,
       runnerIncreaseCount: undefined,

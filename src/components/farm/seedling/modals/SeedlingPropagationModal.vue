@@ -19,14 +19,25 @@
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     :show-close="false"
-    class="print-label-modal"
-    style="max-width: calc(100vw - 40px); height: auto;"
+    class="print-label-modal seedling-dialog"
     v-dialog-draggable
     v-dialog-resizable
     v-dialog-maximizable
     @update:model-value="onModelValueChange"
     @close="handleClose"
   >
+    <template #header>
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 px-6 py-3 flex items-center justify-between rounded-t-xl cursor-move">
+        <div class="flex items-center gap-3">
+          <el-icon :size="20" style="color: white;"><Share /></el-icon>
+          <h3 class="text-lg font-semibold text-white">无性繁殖记录 - {{ record?.seedlingCode }}{{ readOnly ? '（只读）' : '' }}</h3>
+        </div>
+        <button type="button" class="text-white hover:bg-emerald-700 rounded p-1 transition-colors" aria-label="关闭" @click="handleClose">
+          <el-icon :size="20"><Close /></el-icon>
+        </button>
+      </div>
+    </template>
+
     <div class="space-y-6">
       <!-- 只读模式横幅 -->
       <div v-if="readOnly" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg flex items-center gap-2">

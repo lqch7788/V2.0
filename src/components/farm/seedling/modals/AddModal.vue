@@ -8,8 +8,7 @@
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     :show-close="false"
-    class="print-label-modal"
-    style="max-width: calc(100vw - 40px)"
+    class="print-label-modal seedling-dialog"
     v-dialog-draggable
     v-dialog-resizable
     v-dialog-maximizable
@@ -17,7 +16,7 @@
     @close="handleClose"
   >
     <template #header>
-      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 px-6 py-3 flex items-center justify-between cursor-move">
         <div class="flex items-center gap-3">
           <el-icon :size="20" style="color: white;"><Plus /></el-icon>
           <h3 class="text-lg font-semibold text-white">新增育苗</h3>
@@ -38,25 +37,29 @@
               <h3 class="text-sm font-semibold text-purple-900">关联种源信息</h3>
             </div>
             <div class="grid grid-cols-2 gap-4">
-              <!-- 关联种源（可搜索filterable el-select） -->
+              <!-- 关联种源（V1.1 L813-925 combogrid 4 列表格 popover，对齐 P0-Add-008 失效种源禁用） -->
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-1">
                   关联种源 <span class="text-red-500">*</span>
                 </label>
                 <el-select
                   v-model="formData.sourceId"
-                  placeholder="请选择"
+                  placeholder="请选择（搜索种源批号或作物名称）"
                   filterable
                   class="w-full"
                   @change="handleSourceChange"
                 >
-                  <el-option
-                    v-for="source in filteredSeedSources"
-                    :key="source.id"
-                    :label="`${source.seedCode} - ${source.cropName}`"
-                    :value="source.id"
-                  />
+                  <template v-for="source in filteredSeedSources" :key="source.id">
+                    <el-option
+                      :label="`${source.seedCode} - ${source.cropName}（采购 ${source.quantity || 0}${source.unit || ''} / 剩余 ${source.availableCount || 0}${source.unit || ''}）${source.propagationStatus === 'failed' ? ' [已失败]' : ''}`"
+                      :value="source.id"
+                      :disabled="source.propagationStatus === 'failed' || (source.availableCount || 0) <= 0"
+                    />
+                  </template>
                 </el-select>
+                <p v-if="filteredSeedSources.length === 0" class="mt-1 text-xs text-gray-500">
+                  请前往「种源管理」添加种源后，再返回此处选择。
+                </p>
               </div>
               <!-- 来源类型（只读自动带入） -->
               <div>
@@ -171,7 +174,7 @@
                   </el-button>
                 </div>
               </div>
-              <!-- 关联生产计划（P0-MD-007：选了种源后联动过滤） -->
+              <!-- 关联生产计划（V1.1 L796：显示 variety 字段而非 cropName） -->
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-1">关联生产计划</label>
                 <el-select
@@ -181,10 +184,12 @@
                   class="w-full"
                   @change="handleProductionPlanChange"
                 >
+                  <!-- 2026-07-20：固定"不关联"选项（V1.1 L791-792） -->
+                  <el-option label="不关联（独立批次）" value="__none__" />
                   <el-option
                     v-for="plan in filteredProductionPlans"
                     :key="plan.batchCode"
-                    :label="`[${plan.planTypeName || '育苗计划'}] ${plan.batchCode} - ${plan.cropName}`"
+                    :label="`[${plan.planTypeName || '育苗计划'}] ${plan.batchCode} - ${plan.variety || plan.cropName || ''}`"
                     :value="plan.batchCode"
                   />
                 </el-select>
@@ -243,6 +248,26 @@
                   class="w-full"
                 />
               </div>
+              <!-- 2026-07-20 P0-Add-013：实际结束日期（V1.1 有此字段） -->
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-1">实际结束日期</label>
+                <el-date-picker
+                  v-model="formData.endDate"
+                  type="date"
+                  placeholder="选择日期"
+                  value-format="YYYY-MM-DD"
+                  class="w-full"
+                />
+              </div>
+              <!-- 2026-07-20 P0-Add-007：育苗周期（自动计算，只读） -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">育苗周期（天）</label>
+                <el-input
+                  :model-value="seedlingCycle > 0 ? `${seedlingCycle}天` : '请选择日期'"
+                  readonly
+                  class="w-full !bg-gray-100"
+                />
+              </div>
               <!-- 工时（小时） -->
               <div>
                 <label class="block text-sm font-medium text-gray-900 mb-1">工时（小时）</label>
@@ -258,12 +283,34 @@
               <h3 class="text-sm font-semibold text-emerald-900">数量与品质</h3>
             </div>
             <div class="grid grid-cols-2 gap-4">
-              <!-- 初始数量 -->
-              <div>
+              <!-- 2026-07-20 P0-Add-012：1:多 模式：母株数量（V1.1 L1004-1021） -->
+              <div v-if="formData.propagationMode === 'one_to_many'">
+                <label class="block text-sm font-medium text-gray-900 mb-1">
+                  母株数量 <span class="text-red-500">*</span>
+                  <span class="text-xs text-gray-500 ml-1">（匍匐茎/组培/扦插/分株）</span>
+                </label>
+                <el-input-number
+                  v-model="formData.motherPlantCount"
+                  :min="0"
+                  :class="['w-full', motherCountExceeds ? '!border-red-500' : '']"
+                />
+                <p v-if="motherCountExceeds" class="text-xs text-red-500 mt-1">
+                  超过种源可用数量（{{ sourceAvailableCount }}）
+                </p>
+              </div>
+              <!-- 初始数量（1:1 模式） -->
+              <div v-else>
                 <label class="block text-sm font-medium text-gray-900 mb-1">
                   初始数量 <span class="text-red-500">*</span>
                 </label>
-                <el-input-number v-model="formData.initialCount" :min="0" class="w-full" />
+                <el-input-number
+                  v-model="formData.initialCount"
+                  :min="0"
+                  :class="['w-full', initialCountExceeds ? '!border-red-500' : '']"
+                />
+                <p v-if="initialCountExceeds" class="text-xs text-red-500 mt-1">
+                  超过种源可用数量（{{ sourceAvailableCount }}）
+                </p>
               </div>
               <!-- 目标成苗率(%) -->
               <div>
@@ -271,6 +318,37 @@
                   目标成苗率(%) <span class="text-red-500">*</span>
                 </label>
                 <el-input-number v-model="formData.targetSurvivalRate" :min="0" :max="100" :precision="1" class="w-full" />
+              </div>
+              <!-- 2026-07-20 P0-Add-004：扩繁倍数（1:多 模式） -->
+              <div v-if="formData.propagationMode === 'one_to_many'">
+                <label class="block text-sm font-medium text-gray-900 mb-1">
+                  扩繁倍数 <span class="text-red-500">*</span>
+                </label>
+                <el-select v-model="formData.propagationMultiple" class="w-full" @change="handlePropagationMultipleChange">
+                  <el-option
+                    v-for="p in PROPAGATION_MULTIPLES"
+                    :key="p.value"
+                    :label="`${p.label} - ${p.description}`"
+                    :value="p.value"
+                  />
+                </el-select>
+              </div>
+              <!-- 2026-07-20 P0-Add-005：自定义扩繁倍数（仅当选择"自定义"时显示） -->
+              <div v-if="formData.propagationMode === 'one_to_many' && formData.propagationMultiple === 0">
+                <label class="block text-sm font-medium text-gray-900 mb-1">
+                  自定义扩繁倍数 <span class="text-red-500">*</span>
+                </label>
+                <el-input-number v-model="formData.customMultiple" :min="0" :precision="2" class="w-full" />
+              </div>
+              <!-- 2026-07-20 P0-Add-006：理论产量（自动计算，只读） -->
+              <div v-if="formData.propagationMode === 'one_to_many'">
+                <label class="block text-sm font-medium text-gray-700 mb-1">理论产量（株）</label>
+                <el-input
+                  :model-value="theoreticalYield > 0 ? theoreticalYield.toLocaleString() : '-'"
+                  readonly
+                  class="w-full !bg-gray-100"
+                />
+                <p class="text-xs text-gray-500 mt-1">母株数量 × 扩繁倍数</p>
               </div>
               <!-- 目标成苗数（自动计算，只读） -->
               <div>
@@ -520,6 +598,8 @@ const formData = ref({
   siteName: '',
   startDate: '',
   expectedEndDate: '',
+  // 2026-07-20 P0-Add-013：实际结束日期（V1.1 有此字段）
+  endDate: '',
   initialCount: 0,
   targetSurvivalRate: 90,
   chargePerson: '',
@@ -531,12 +611,25 @@ const formData = ref({
   unit: '株',  // P0-MD-004：单位
   // P0-MD-010：5 个数量体系字段
   motherPlantCount: 0, expandedPlantCount: 0, scionCount: 0,
-  propagationMultiple: 0, customMultiple: 0, theoreticalYield: 0,
+  // 2026-07-20 P0-Add-004~006：扩繁倍数字段
+  propagationMultiple: 1,
+  customMultiple: 0,
+  theoreticalYield: 0,
   motherLossCount: 0, seedlingLossCount: 0, harvestStockedCount: 0, replantCount: 0,
   // --- P0-MD-013：补录字段 ---
   isSupplementary: false,
   supplementaryReason: ''
 })
+
+// 2026-07-20 P0-Add-004：扩繁倍数选项（V1.1 L1117-1129 对齐）
+const PROPAGATION_MULTIPLES = [
+  { value: 1, label: '1 倍', description: '母株原样产出' },
+  { value: 2, label: '2 倍', description: '母株 × 2' },
+  { value: 3, label: '3 倍', description: '母株 × 3' },
+  { value: 5, label: '5 倍', description: '母株 × 5' },
+  { value: 10, label: '10 倍', description: '母株 × 10' },
+  { value: 0, label: '自定义', description: '手动输入倍数' }
+]
 
 // 作物名称显示（只读，格式：cropName - cropVariety）
 const cropDisplayName = computed(() => {
@@ -555,6 +648,42 @@ const targetSurvivalCount = computed(() => {
   }
   return 0
 })
+
+// 2026-07-20 P0-Add-007：育苗周期（自动计算）= 预计结束日期 - 开始日期
+const seedlingCycle = computed(() => {
+  if (!formData.value.startDate || !formData.value.expectedEndDate) return 0
+  const start = new Date(formData.value.startDate)
+  const end = new Date(formData.value.expectedEndDate)
+  const diff = Math.round((end - start) / (1000 * 60 * 60 * 24))
+  return diff > 0 ? diff : 0
+})
+
+// 2026-07-20 P0-Add-010/011：初始数量超限（1:1 模式）
+const initialCountExceeds = computed(() => {
+  if (formData.value.propagationMode === 'one_to_many') return false
+  return formData.value.initialCount > sourceAvailableCount.value
+})
+
+// 2026-07-20 P0-Add-011：母株数量超限（1:多 模式）
+const motherCountExceeds = computed(() => {
+  if (formData.value.propagationMode !== 'one_to_many') return false
+  return formData.value.motherPlantCount > sourceAvailableCount.value
+})
+
+// 2026-07-20 P0-Add-006：理论产量（1:多 模式）= 母株数量 × 扩繁倍数
+const theoreticalYield = computed(() => {
+  if (formData.value.propagationMode !== 'one_to_many') return 0
+  const multiple = formData.value.propagationMultiple === 0
+    ? (formData.value.customMultiple || 0)
+    : (formData.value.propagationMultiple || 0)
+  return Math.round((formData.value.motherPlantCount || 0) * multiple)
+})
+
+// 2026-07-20 P0-Add-004：扩繁倍数变化时同步到 theoreticalYield
+const handlePropagationMultipleChange = (val) => {
+  formData.value.propagationMultiple = val
+  formData.value.theoreticalYield = theoreticalYield.value
+}
 
 // P0-MD-007：联动过滤 — 选了种源后，生产计划下拉只显示同品种的计划
 const productionPlanVarietyFilter = computed(() => {

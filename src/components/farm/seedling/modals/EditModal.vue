@@ -8,8 +8,7 @@
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     :show-close="false"
-    class="print-label-modal"
-    style="max-width: calc(100vw - 40px)"
+    class="print-label-modal seedling-dialog"
     v-dialog-draggable
     v-dialog-resizable
     v-dialog-maximizable
@@ -17,7 +16,7 @@
     @close="handleClose"
   >
     <template #header>
-      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-4 -mt-4 px-6 py-3 flex items-center justify-between rounded-t-xl">
+      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 px-6 py-3 flex items-center justify-between rounded-t-xl cursor-move">
         <div class="flex items-center gap-3">
           <el-icon :size="20" style="color: white;"><Edit /></el-icon>
           <h3 class="text-lg font-semibold text-white">编辑育苗</h3>
@@ -71,13 +70,21 @@
                         v-for="source in filteredSeedSources"
                         :key="source.id"
                         @click="handleSourceSelect(source)"
-                        class="grid grid-cols-4 gap-2 px-3 py-2 text-sm border-b border-gray-100 cursor-pointer hover:bg-emerald-50 transition-colors"
-                        :class="{ 'bg-emerald-100': formData.sourceId === source.id }"
+                        :class="[
+                          'grid grid-cols-4 gap-2 px-3 py-2 text-sm border-b border-gray-100 cursor-pointer hover:bg-emerald-50 transition-colors',
+                          source.isFailed || (source.availableCount || 0) <= 0
+                            ? 'bg-gray-100 cursor-not-allowed opacity-60'
+                            : (formData.sourceId === source.id ? 'bg-emerald-100' : '')
+                        ]"
+                        :title="source.isFailed ? '该种源已标记为失败，不能用于育苗' : ((source.availableCount || 0) <= 0 ? '该种源可用余量为 0' : '')"
                       >
-                        <div class="truncate font-medium text-gray-800">{{ source.cropName }}</div>
-                        <div class="truncate text-emerald-700">{{ source.seedCode }}</div>
+                        <div :class="['truncate font-medium', source.isFailed || (source.availableCount || 0) <= 0 ? 'text-gray-400' : 'text-gray-800']">
+                          {{ source.cropName }}
+                          <span v-if="source.isFailed" class="ml-1 text-xs text-red-500">[已失败]</span>
+                        </div>
+                        <div :class="['truncate', source.isFailed || (source.availableCount || 0) <= 0 ? 'text-gray-400' : 'text-emerald-700']">{{ source.seedCode }}</div>
                         <div class="text-gray-600">{{ source.quantity }} {{ source.unit }}</div>
-                        <div class="font-medium" :class="getAvailableCountClass(source.availableCount)">
+                        <div :class="['font-medium', (source.availableCount || 0) <= 0 ? 'text-red-500' : (source.availableCount || 0) < 10 ? 'text-amber-500' : 'text-gray-700']">
                           {{ source.availableCount }} {{ source.unit }}
                         </div>
                       </div>
@@ -88,6 +95,30 @@
                   </div>
                 </template>
               </el-select>
+            </div>
+          </div>
+
+          <!-- 2026-07-20 P0-Edit-001/002：来源类型 + 供应商（只读自动带入） -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">来源类型</label>
+            <el-input :model-value="formData.sourceType || '请先选择种源'" readonly class="w-full !bg-gray-100" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
+            <el-input :model-value="formData.supplierName || '请先选择种源'" readonly class="w-full !bg-gray-100" />
+          </div>
+
+          <!-- 2026-07-20 P0-Edit-003：品种路径 4 段（只读自动带入） -->
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">品种路径</label>
+            <div class="flex items-center gap-1 px-3 py-2 bg-gray-50 rounded text-sm">
+              <span class="text-gray-400">{{ formData.categoryName || '-' }}</span>
+              <span class="text-gray-300">-</span>
+              <span class="text-gray-700">{{ formData.typeName || '-' }}</span>
+              <span class="text-gray-300">-</span>
+              <span class="text-gray-700">{{ formData.varietyName || '-' }}</span>
+              <span class="text-gray-300">-</span>
+              <span class="text-gray-900 font-medium">{{ formData.subVarietyName || '-' }}</span>
             </div>
           </div>
 
@@ -216,6 +247,22 @@
             <el-input-number v-model="formData.initialCount" :min="0" class="w-full" />
           </div>
 
+          <!-- 2026-07-20 P0-Edit-007：目标成苗率 -->
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">目标成苗率（%）</label>
+            <el-input-number v-model="formData.targetSurvivalRate" :min="0" :max="100" :precision="2" class="w-full" />
+          </div>
+
+          <!-- 2026-07-20 P0-Edit-004：育苗周期（自动计算）-->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">育苗周期（天）</label>
+            <el-input
+              :model-value="seedlingCycle > 0 ? `${seedlingCycle}天` : '请选择日期'"
+              readonly
+              class="w-full !bg-gray-100"
+            />
+          </div>
+
           <!-- 成活数量（只读，对齐 V1.1 L470 bg-gray-100）-->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">成活数量</label>
@@ -286,6 +333,24 @@
             <label class="block text-sm font-medium text-gray-900 mb-1">备注</label>
             <el-input v-model="formData.remarks" type="textarea" :rows="3" placeholder="请输入备注信息" />
           </div>
+
+          <!-- 2026-07-20 P0-Edit-005：是否补录（字典驱动，fallback 静态选项） -->
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">是否补录</label>
+            <el-select v-model="formData.isSupplementary" placeholder="选择是否补录" class="w-full" clearable>
+              <el-option label="是" :value="true" />
+              <el-option label="否" :value="false" />
+            </el-select>
+            <p class="text-xs text-amber-500 mt-1">选择"是"时，该育苗记录将提交审批审核</p>
+          </div>
+
+          <!-- 2026-07-20 P0-Edit-006：补录原因（仅当勾选补录时显示） -->
+          <div v-if="formData.isSupplementary" class="col-span-2">
+            <label class="block text-sm font-medium text-gray-900 mb-1">
+              补录原因 <span class="text-red-500">*</span>
+            </label>
+            <el-input v-model="formData.supplementaryReason" type="textarea" :rows="2" placeholder="请输入补录原因，说明为什么需要补录此育苗记录" />
+          </div>
         </div>
       </div>
 
@@ -344,10 +409,18 @@ const sites = [
 const formData = ref({
   sourceId: '',
   sourceCode: '',
+  // 2026-07-20 P0-Edit-001/002：来源类型 + 供应商（只读自动带入）
+  sourceType: '',
+  supplierName: '',
   selectedCropCode: '', // 作物编码
   cropName: '',
   cropVariety: '',
   cropCode: '',
+  // 2026-07-20 P0-Edit-003：品种路径 4 段
+  categoryName: '',
+  typeName: '',
+  varietyName: '',
+  subVarietyName: '',
   seedlingType: '',
   // 2026-07-18 P0-DIFF-002：补 V1.1 育苗方式其他字段
   seedlingTypeOther: '',
@@ -384,7 +457,19 @@ const formData = ref({
   expandedPlantCount: 0,
   seedlingLossCount: 0,
   harvestStockedCount: 0,
-  replantCount: 0
+  replantCount: 0,
+  // 2026-07-20 P0-Edit-005/006：补录字段
+  isSupplementary: false,
+  supplementaryReason: ''
+})
+
+// 2026-07-20 P0-Edit-004：育苗周期（自动计算）= 预计结束日期 - 开始日期
+const seedlingCycle = computed(() => {
+  if (!formData.value.startDate || !formData.value.expectedEndDate) return 0
+  const start = new Date(formData.value.startDate)
+  const end = new Date(formData.value.expectedEndDate)
+  const diff = Math.round((end - start) / (1000 * 60 * 60 * 24))
+  return diff > 0 ? diff : 0
 })
 
 // 扩繁倍数预设选项（V1.1 seedFormDict / propagationConstants 对齐）
