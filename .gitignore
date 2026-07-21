@@ -127,3 +127,4 @@ server/data/*.db-*
 .backup-stage2-crop-route-align/
 .backup-stage3-seed-source/
 .backup-stage4-inbound-summary/
+.gstack/
