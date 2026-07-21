@@ -29,6 +29,7 @@
         </template>
         <template v-else>
           <el-button v-if="canCreate && onAdd" type="primary" :icon="Plus" size="small" @click="onAdd">新增</el-button>
+          <el-button v-if="canEdit" type="primary" plain :icon="Edit" size="small" @click="onOperationModeChange('edit')">编辑</el-button>
           <el-button v-if="canDelete" type="danger" :icon="Delete" size="small" @click="onOperationModeChange('delete')">删除</el-button>
           <el-button v-if="canExport" class="slt-btn-export" :icon="Download" size="small" @click="onOperationModeChange('export')">导出</el-button>
           <el-button v-if="canPrint" :icon="Printer" size="small" class="slt-btn-print" @click="onPrintModeChange(true)">标签打印</el-button>
@@ -115,11 +116,11 @@
             </td>
             <!-- 3. 关联生产计划 -->
             <td class="slt-td" :title="row.productionPlanCode || undefined">
-              <span v-if="row.productionPlanCode" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">{{ row.productionPlanCode }}</span>
+              <span v-if="row.productionPlanCode" class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">{{ truncateText(row.productionPlanCode) }}</span>
               <span v-else>-</span>
             </td>
             <!-- 4. 关联种源 -->
-            <td class="slt-td" :title="row.sourceCode || undefined">{{ row.sourceCode || '-' }}</td>
+            <td class="slt-td" :title="row.sourceCode || undefined">{{ truncateText(row.sourceCode) }}</td>
             <!-- 5. 作物编码 -->
             <td class="slt-td">
               <span class="font-mono text-orange-600">{{ truncateText(row.cropCode) }}</span>
@@ -129,9 +130,9 @@
             <!-- 7. 品种路径（对齐 V1.1 L554-568：category-type-variety-subVariety 四段式）-->
             <td class="slt-td" :title="getCropVarietyPathText(row)">{{ truncateText(getCropVarietyPathText(row)) }}</td>
             <!-- 8. 育苗区域 -->
-            <td class="slt-td" :title="row.siteName || undefined">{{ row.siteName || '-' }}</td>
+            <td class="slt-td" :title="row.siteName || undefined">{{ truncateText(row.siteName) }}</td>
             <!-- 9. 单位 -->
-            <td class="slt-td">{{ row.unit || '-' }}</td>
+            <td class="slt-td">{{ truncateText(row.unit) }}</td>
             <!-- 10. 初始数量（母株池，对齐 V1.1 L574-576：toLocaleString 千位分隔）-->
             <td class="slt-td slt-num">{{ (row.initialCount || 0).toLocaleString() }}</td>
             <!-- 11. 母株存活数（对齐 V1.1 L577-579：motherPlantCount）-->
@@ -160,29 +161,30 @@
                 <span v-if="row.endTime" class="px-2 py-1 rounded text-xs font-medium" :class="row.endType === 'abnormal' ? 'text-red-700 bg-red-100' : 'text-gray-500 bg-gray-100'" :title="`${row.endType === 'abnormal' ? '异常' : '正常'}结束于 ${row.endTime}`">{{ row.endType === 'abnormal' ? '已异常结束' : '已结束' }}</span>
               </div>
             </td>
-            <!-- 20. 操作列：sticky right-0，宽度 14% = 336px 容纳所有图标 -->
+            <!-- 20. 操作列：sticky right-0，宽度 14% = 336px 容纳所有图标
+                 2026-07-21 v3：完全简化 @click 直接调用 onXxx 函数，移除中间函数包装 -->
             <td class="slt-td slt-td-op">
-              <div class="flex gap-1 flex-wrap">
-                <button v-if="row.pictures && row.pictures.length > 0" type="button" class="slt-op-btn slt-op-image" title="查看图片" @click="onImageClick(row.pictures)">
-                  <Image :size="16" />
+              <div class="flex gap-1 justify-center">
+                <button v-if="row.pictures && row.pictures.length > 0" type="button" class="slt-op-btn slt-op-image" title="查看图片" @click.stop="onImageClick(row.pictures)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 </button>
-                <button type="button" class="slt-op-btn slt-op-record" :title="`每日记录${isEnded(row)?'（只读）':''}`" @click="onDailyRecord(row)">
-                  <Calendar :size="16" />
+                <button type="button" class="slt-op-btn slt-op-record" :class="isEnded(row) ? 'slt-op-ended' : ''" :title="`每日记录${isEnded(row)?'（只读）':''}`" @click.stop="onDailyRecord(row)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 </button>
-                <button v-if="row.propagationMode === 'one_to_many'" type="button" class="slt-op-btn slt-op-breeding" :title="`无性繁殖记录${isEnded(row)?'（只读）':''}`" @click="onPropagation(row)">
-                  <GitBranch :size="16" />
+                <button v-if="row.propagationMode === 'one_to_many'" type="button" class="slt-op-btn slt-op-breeding" :class="isEnded(row) ? 'slt-op-ended' : ''" :title="`无性繁殖记录${isEnded(row)?'（只读）':''}`" @click.stop="onPropagation(row)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
                 </button>
-                <button type="button" class="slt-op-btn slt-op-tag" :title="`标签管理${isEnded(row)?'（只读）':''}`" @click="onLabelManage(row)">
-                  <Tag :size="16" />
+                <button type="button" class="slt-op-btn slt-op-tag" :title="`标签管理${isEnded(row)?'（只读）':''}`" @click.stop="onLabelManage(row)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                 </button>
-                <button type="button" class="slt-op-btn slt-op-edit" :class="isEnded(row) ? 'slt-op-disabled' : ''" :title="isEnded(row) ? '已结束，禁止编辑' : '编辑'" :disabled="isEnded(row)" @click="!isEnded(row) && onEdit(row)">
-                  <Pencil :size="16" />
+                <button type="button" class="slt-op-btn slt-op-edit" :class="isEnded(row) ? 'slt-op-disabled' : ''" :title="isEnded(row) ? '已结束，禁止编辑' : '编辑'" :disabled="isEnded(row)" @click.stop="onEdit(row)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
                 </button>
-                <button v-if="!row.isHarvestLocked" type="button" class="slt-op-btn slt-op-inbound" :title="row.endType === 'abnormal' ? '出圃入库（补录）' : row.status === 'cancelled' ? '出圃入库（已取消，仅查看）' : '出圃入库 / 采收'" @click="onInbound(row)">
-                  <Package :size="16" />
+                <button v-if="!row.isHarvestLocked" type="button" class="slt-op-btn slt-op-inbound" :title="row.endType === 'abnormal' ? '出圃入库（补录）' : '出圃入库 / 采收'" @click.stop="onInbound(row)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                 </button>
-                <button v-if="!isEnded(row)" type="button" class="slt-op-btn slt-op-end" title="结束" @click="onEnd(row)">
-                  <StopCircle :size="16" />
+                <button v-if="!isEnded(row)" type="button" class="slt-op-btn slt-op-end" title="结束" @click.stop="onEnd(row)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                 </button>
               </div>
             </td>
@@ -209,8 +211,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Plus, Delete, Download, Printer, Close } from '@element-plus/icons-vue'
-import { Image, Calendar, GitBranch, Tag, Pencil, Package, StopCircle } from 'lucide-vue-next'
+import { Plus, Delete, Download, Printer, Close, Edit } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
@@ -265,13 +266,19 @@ const handleExportCancel = () => { emit('cancel-export'); emit('update:selected-
 const onAdd = () => emit('add')
 const onEdit = (row) => emit('edit', row)
 const onDetail = (row) => emit('detail', row)
-const onDelete = (ids) => emit('delete', ids)
-const onImageClick = (images) => emit('image-click', images)
-const onDailyRecord = (row) => emit('daily-record', row)
-const onPropagation = (row) => emit('propagation', row)
-const onLabelManage = (row) => emit('label-manage', row)
-const onEnd = (row) => emit('end', row)
-const onInbound = (row) => emit('inbound', row)
+const onDelete = (ids) => {
+  // 对齐 V1.1 SeedlingTable.tsx L248-265 executeOperation：emit delete 后立即 reset
+  // 否则弹窗打开期间顶部按钮栏仍停留在"已选择 X 项"状态，与 V1.1 行为不一致
+  emit('delete', ids)
+  emit('operation-mode-change', 'normal')
+  emit('update:selected-rows', [])
+}
+const onImageClick = (images) => { console.log('[SeedlingTable] onImageClick', images); emit('image-click', images) }
+const onDailyRecord = (row) => { console.log('[SeedlingTable] onDailyRecord', row.id, row.seedlingCode); emit('daily-record', row) }
+const onPropagation = (row) => { console.log('[SeedlingTable] onPropagation', row.id); emit('propagation', row) }
+const onLabelManage = (row) => { console.log('[SeedlingTable] onLabelManage', row.id); emit('label-manage', row) }
+const onEnd = (row) => { console.log('[SeedlingTable] onEnd', row.id); emit('end', row) }
+const onInbound = (row) => { console.log('[SeedlingTable] onInbound', row.id); emit('inbound', row) }
 const onConfirmExport = () => emit('confirm-export')
 const onOperationModeChange = (mode) => emit('operation-mode-change', mode)
 const onPrintModeChange = (val) => emit('print-mode-change', val)
@@ -319,6 +326,44 @@ const getStatusLabel = (status) => {
 /** 繁殖模式 label（对齐 V1.1 L529-532）*/
 const getPropagationModeLabel = (mode) => mode === 'one_to_many' ? '1:多' : '1:1'
 const getPropagationModeClass = (mode) => mode === 'one_to_many' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'
+
+// ========== 2026-07-21 操作列守卫逻辑（严格对齐 V1.1 SeedlingTable.tsx L663-677） ==========
+// 写读分离：写操作（编辑/结束）在结束态灰显+禁用；读操作（每日记录/标签/繁殖）始终可用
+const isNormalEnded = (r) => r.status === 'completed' || r.endType === 'normal'
+const isAbnormalEnded = (r) => r.status === 'abnormal' || r.endType === 'abnormal'
+const isCancelled = (r) => r.status === 'cancelled'
+// isEnded 函数已在 L250 定义：包含 3 种结束态（normal/abnormal/cancelled）
+
+// 锁定原因文案（对齐 V1.1 L668）
+const lockReasonText = (r) => {
+  if (isCancelled(r)) return '已取消，禁止编辑/新增'
+  if (isNormalEnded(r)) return '已正常结束，禁止编辑/新增'
+  return '已异常结束，禁止编辑/新增'
+}
+
+// 编辑守卫（对齐 V1.1 L670-677 guardClick）
+// 正常结束/已取消 → 弹提示并阻止；异常结束 → 写操作可正常通过
+const guardEdit = (r, action) => {
+  if (isNormalEnded(r) || isCancelled(r)) {
+    ElMessage.warning(lockReasonText(r))
+    return
+  }
+  action && action(r)
+}
+
+// 入库按钮样式（对齐 V1.1 L734-738）
+const getInboundClass = (r) => {
+  if (isAbnormalEnded(r)) return 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+  if (isCancelled(r)) return 'text-gray-400 hover:text-gray-500 hover:bg-gray-50'
+  return ''
+}
+
+// 入库按钮标题（对齐 V1.1 L739）
+const getInboundTitle = (r) => {
+  if (isAbnormalEnded(r)) return '出圃入库（补录）'
+  if (isCancelled(r)) return '出圃入库（已取消，仅查看）'
+  return '出圃入库 / 采收'
+}
 </script>
 
 <style scoped>
@@ -367,6 +412,8 @@ const getPropagationModeClass = (mode) => mode === 'one_to_many' ? 'bg-pink-100 
 .slt-op-end { color: #dc2626; } .slt-op-end:hover { color: #b91c1c; background-color: #fef2f2; }
 .slt-op-disabled { color: #9ca3af !important; cursor: not-allowed !important; opacity: 0.4; }
 .slt-op-disabled:hover { background-color: transparent !important; color: #9ca3af !important; }
+/* 已结束态的读操作按钮（每日记录/繁殖）颜色淡化（对齐 V1.1 text-blue-400 / text-emerald-400）*/
+.slt-op-ended { opacity: 0.6; }
 
 /* ===== 顶部按钮 ===== */
 .slt-btn-print { background-color: #9333ea !important; border-color: #9333ea !important; color: #ffffff !important; }

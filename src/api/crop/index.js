@@ -155,14 +155,16 @@ export function updateSeedling(id, data) {
   return put(`/seedlings/${id}`, data)
 }
 
-// 删除育苗
-export function deleteSeedling(id) {
-  return del(`/seedlings/${id}`)
+// 删除育苗（对齐 V1.1 apiSeedlingService.ts deleteSeedling：强制返回 boolean）
+export async function deleteSeedling(id) {
+  await del(`/seedlings/${id}`)
+  return true
 }
 
-// 批量删除育苗
-export function deleteSeedlings(ids) {
-  return del(`/seedlings/batch?ids=${Array.isArray(ids) ? ids.join(',') : ids}`)
+// 批量删除育苗（对齐 V1.1 apiSeedlingService.ts deleteSeedlings：强制返回 boolean）
+export async function deleteSeedlings(ids) {
+  await del(`/seedlings/batch?ids=${Array.isArray(ids) ? ids.join(',') : ids}`)
+  return true
 }
 
 // 结束育苗（正常结束/异常结束）

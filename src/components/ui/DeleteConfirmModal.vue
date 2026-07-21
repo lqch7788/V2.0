@@ -1,71 +1,38 @@
+<!--
+  删除确认弹窗（重写 - 对齐 V1.1 DeleteConfirmModal.tsx）
+-->
 <template>
-  <!--
-    统一删除警告弹窗组件
-    V1.1 → V2.0 1:1 移植（src/components/ui/DeleteConfirmModal.tsx）
-    2026-07-08 V3.4：影响提示（追溯链破坏风险等）
-  -->
-  <div v-if="isOpen" class="fixed inset-0 z-50">
-    <!-- 遮罩层 - 点击关闭 -->
-    <div class="absolute inset-0 bg-black/50" @click="onClose"></div>
-    <!-- 弹窗本体 - 居中显示 -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl w-96 shadow-xl flex flex-col max-h-[90vh]">
-      <!-- 标题区 - 绿色渐变背景 -->
-      <div class="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 flex-shrink-0 rounded-t-xl">
+  <div v-if="visible" class="fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50" @click="$emit('close')"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl w-96 shadow-xl flex flex-col">
+      <div class="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 rounded-t-xl">
         <div class="flex items-center gap-2 text-white">
-          <el-icon :size="20" style="color: white;">
-            <WarningFilled />
-          </el-icon>
-          <h3 class="text-lg font-semibold text-white">{{ title }}</h3>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <h3 class="text-base font-semibold">{{ title }}</h3>
         </div>
-        <el-button v-if="onClose" link size="small" class="!text-white hover:!bg-emerald-500" @click="onClose">
-          <el-icon :size="20" style="color: white;"><Close /></el-icon>
-        </el-button>
+        <button type="button" class="text-white hover:bg-red-700 rounded p-1" @click="$emit('close')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
-
-      <!-- 内容区 -->
-      <div class="px-6 py-5 text-sm text-gray-600 space-y-2 flex-1">
-        <p v-if="description" class="whitespace-pre-line">{{ description }}</p>
-        <template v-else>
-          <p>确定要删除选中的 <strong class="text-red-600">{{ selectedCount }}</strong> 个项目吗？</p>
-          <p>此操作 <strong class="text-red-600">无法恢复</strong>，删除后数据将永久丢失。</p>
-        </template>
-
-        <!-- 2026-07-08 V3.4：业务影响提示 -->
-        <div v-if="impactHint" class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2">
-          <el-icon :size="16" class="text-amber-600 flex-shrink-0 mt-0.5"><InfoFilled /></el-icon>
-          <span class="flex-1">{{ impactHint }}</span>
-        </div>
+      <div class="p-6">
+        <p class="text-sm text-gray-700">
+          确定要删除 <strong class="text-red-600">{{ selectedCount }}</strong> 条记录吗？此操作不可撤销！
+        </p>
       </div>
-
-      <!-- 底部 footer -->
-      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
-        <el-button size="small" @click="onClose">
-          <el-icon><Close /></el-icon> 取消
-        </el-button>
-        <el-button type="danger" size="small" @click="onConfirm">
-          <el-icon><Delete /></el-icon> 确认删除
-        </el-button>
+      <div class="px-6 pb-4 flex justify-end gap-2">
+        <button type="button" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50" @click="$emit('close')">取消</button>
+        <button type="button" class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700" @click="$emit('confirm')">确认删除</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-/**
- * 统一删除警告弹窗组件
- * V1.1 → V2.0 1:1 移植
- */
-import { WarningFilled, Close, InfoFilled, Delete } from '@element-plus/icons-vue'
-
 defineProps({
-  isOpen: { type: Boolean, required: true },
+  visible: { type: Boolean, default: false },
   selectedCount: { type: Number, default: 0 },
-  onClose: { type: Function, default: null },
-  onConfirm: { type: Function, required: true },
-  title: { type: String, default: '删除警告' },
-  description: { type: String, default: null },
-  impactHint: { type: String, default: null }
+  title: { type: String, default: '删除警告' }
 })
 
-defineOptions({ name: 'DeleteConfirmModal' })
+defineEmits(['close', 'confirm'])
 </script>

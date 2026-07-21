@@ -1,561 +1,160 @@
+<!--
+  编辑育苗弹窗（完全重写 - 1:1 对齐 V1.1 EditModal.tsx）
+-->
 <template>
-  <!-- 对齐 V1.1 UnifiedModal + el-dialog 拖拽/最大化/调整大小 -->
-  <el-dialog
-    :model-value="visible"
+  <SimpleModal
+    :visible="visible"
     title="编辑育苗"
     width="900px"
-    top="5vh"
-    :close-on-click-modal="true"
-    :close-on-press-escape="true"
-    :show-close="false"
-    class="print-label-modal seedling-dialog"
-    v-dialog-draggable
-    v-dialog-resizable
-    v-dialog-maximizable
-    @update:model-value="onModelValueChange"
-    @close="handleClose"
+    :show-footer="false"
+    @close="$emit('close')"
   >
-    <template #header>
-      <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 px-6 py-3 flex items-center justify-between rounded-t-xl cursor-move">
-        <div class="flex items-center gap-3">
-          <el-icon :size="20" style="color: white;"><Edit /></el-icon>
-          <h3 class="text-lg font-semibold text-white">编辑育苗</h3>
-        </div>
-        <button type="button" class="text-white hover:bg-emerald-700 rounded p-1 transition-colors" aria-label="关闭" @click="handleClose">
-          <el-icon :size="20"><Close /></el-icon>
-        </button>
+
+    <div class="space-y-4">
+      <!-- 繁殖模式 banner -->
+      <div class="col-span-2 mb-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span class="text-sm text-blue-700">繁殖模式：<strong>{{ formData.propagationMode === 'one_to_many' ? '1:多' : '1:1' }}</strong>（建档后锁定，不可修改）</span>
       </div>
-    </template>
 
-      <!-- 内容区域 -->
-      <div class="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
-        <div class="grid grid-cols-2 gap-4">
-          <!-- 繁殖模式 banner（对齐 V1.1 L267-288）-->
-          <div class="col-span-2 mb-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-            <el-icon :size="16" class="text-blue-600"><InfoFilled /></el-icon>
-            <span class="text-sm text-blue-700">
-              繁殖模式：<strong>{{ formData.propagationMode === 'one_to_many' ? '1:多' : '1:1' }}</strong>（建档后锁定，不可修改）
-            </span>
-          </div>
+      <div class="grid grid-cols-2 gap-4">
+        <!-- 关联种源 -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-900 mb-1">关联种源</label>
+          <select v-model="formData.sourceId" @change="handleSourceChange" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
+            <option value="">请选择</option>
+            <option v-for="s in seedSources" :key="s.id" :value="s.id">{{ s.seedCode }} - {{ s.cropName }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">来源类型</label>
+          <input :model-value="formData.sourceType || '请先选择种源'" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
+          <input :model-value="formData.supplierName || '请先选择种源'" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100" />
+        </div>
 
-          <!-- 关联种源 - 可搜索下拉表格 -->
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-900 mb-1">关联种源</label>
-            <div class="relative">
-              <el-select
-                v-model="formData.sourceId"
-                placeholder="搜索种源批号或作物名称..."
-                filterable
-                :filter-method="filterSeedSources"
-                class="w-full"
-                @change="handleSourceChange"
-                ref="sourceSelectRef"
-                @focus="sourceSearch = ''"
-              >
-                <template #empty>
-                  <div class="p-2">
-                    <!-- 表头 -->
-                    <div class="grid grid-cols-4 gap-2 px-3 py-2 bg-gray-50 text-xs font-semibold text-gray-600 border-b">
-                      <div>作物名称</div>
-                      <div>种源批号</div>
-                      <div>采购数量</div>
-                      <div>可用数量</div>
-                    </div>
-                    <!-- 选项列表 -->
-                    <div class="max-h-48 overflow-y-auto">
-                      <div v-if="filteredSeedSources.length === 0" class="px-3 py-4 text-sm text-gray-400 text-center">
-                        无匹配种源
-                      </div>
-                      <div
-                        v-for="source in filteredSeedSources"
-                        :key="source.id"
-                        @click="handleSourceSelect(source)"
-                        :class="[
-                          'grid grid-cols-4 gap-2 px-3 py-2 text-sm border-b border-gray-100 cursor-pointer hover:bg-emerald-50 transition-colors',
-                          source.isFailed || (source.availableCount || 0) <= 0
-                            ? 'bg-gray-100 cursor-not-allowed opacity-60'
-                            : (formData.sourceId === source.id ? 'bg-emerald-100' : '')
-                        ]"
-                        :title="source.isFailed ? '该种源已标记为失败，不能用于育苗' : ((source.availableCount || 0) <= 0 ? '该种源可用余量为 0' : '')"
-                      >
-                        <div :class="['truncate font-medium', source.isFailed || (source.availableCount || 0) <= 0 ? 'text-gray-400' : 'text-gray-800']">
-                          {{ source.cropName }}
-                          <span v-if="source.isFailed" class="ml-1 text-xs text-red-500">[已失败]</span>
-                        </div>
-                        <div :class="['truncate', source.isFailed || (source.availableCount || 0) <= 0 ? 'text-gray-400' : 'text-emerald-700']">{{ source.seedCode }}</div>
-                        <div class="text-gray-600">{{ source.quantity }} {{ source.unit }}</div>
-                        <div :class="['font-medium', (source.availableCount || 0) <= 0 ? 'text-red-500' : (source.availableCount || 0) < 10 ? 'text-amber-500' : 'text-gray-700']">
-                          {{ source.availableCount }} {{ source.unit }}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="px-3 py-1.5 bg-gray-50 border-t border-gray-200 text-xs text-gray-400">
-                      共 {{ filteredSeedSources.length }} 条 | 点击行选择
-                    </div>
-                  </div>
-                </template>
-              </el-select>
-            </div>
-          </div>
-
-          <!-- 2026-07-20 P0-Edit-001/002：来源类型 + 供应商（只读自动带入） -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">来源类型</label>
-            <el-input :model-value="formData.sourceType || '请先选择种源'" readonly class="w-full !bg-gray-100" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
-            <el-input :model-value="formData.supplierName || '请先选择种源'" readonly class="w-full !bg-gray-100" />
-          </div>
-
-          <!-- 2026-07-20 P0-Edit-003：品种路径 4 段（只读自动带入） -->
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">品种路径</label>
-            <div class="flex items-center gap-1 px-3 py-2 bg-gray-50 rounded text-sm">
-              <span class="text-gray-400">{{ formData.categoryName || '-' }}</span>
-              <span class="text-gray-300">-</span>
-              <span class="text-gray-700">{{ formData.typeName || '-' }}</span>
-              <span class="text-gray-300">-</span>
-              <span class="text-gray-700">{{ formData.varietyName || '-' }}</span>
-              <span class="text-gray-300">-</span>
-              <span class="text-gray-900 font-medium">{{ formData.subVarietyName || '-' }}</span>
-            </div>
-          </div>
-
-          <!-- 作物品种 - 使用CropCodeSelector组件 -->
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-900 mb-1">作物品种</label>
-            <CropCodeSelector
-              v-model="formData.selectedCropCode"
-              size="md"
-              @change="handleCropCodeChange"
-            />
-          </div>
-
-          <!-- 育苗方式 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">育苗方式</label>
-            <el-select v-model="formData.seedlingType" placeholder="请选择" class="w-full">
-              <el-option v-for="type in seedlingTypes" :key="type.value" :label="type.label" :value="type.value" />
-            </el-select>
-          </div>
-
-          <!-- 温室场地 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">温室场地</label>
-            <el-select v-model="formData.siteId" placeholder="请选择" class="w-full" @change="handleSiteChange">
-              <el-option v-for="site in sites" :key="site.value" :label="site.label" :value="site.value" />
-            </el-select>
-          </div>
-
-          <!-- 开始日期 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">开始日期</label>
-            <el-date-picker
-              v-model="formData.startDate"
-              type="date"
-              placeholder="选择日期"
-              value-format="YYYY-MM-DD"
-              class="w-full"
-            />
-          </div>
-
-          <!-- 预计结束日期 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">预计结束日期</label>
-            <el-date-picker
-              v-model="formData.expectedEndDate"
-              type="date"
-              placeholder="选择日期"
-              value-format="YYYY-MM-DD"
-              class="w-full"
-            />
-          </div>
-          <!-- 2026-07-18 P0-DIFF-002：实际结束日期（V1.1 有此字段）-->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">实际结束日期</label>
-            <el-date-picker
-              v-model="formData.endDate"
-              type="date"
-              placeholder="选择日期"
-              value-format="YYYY-MM-DD"
-              class="w-full"
-            />
-          </div>
-
-          <!-- 2026-07-18 P0-DIFF-002：计算模式 -->
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-900 mb-1">计算模式</label>
-            <el-radio-group v-model="formData.calculateMode">
-              <el-radio value="single">穴盘育苗（单株）</el-radio>
-              <el-radio value="propagation">扩繁育苗（母株 × 倍数）</el-radio>
-            </el-radio-group>
-          </div>
-
-          <!-- 2026-07-18 P0-DIFF-002：计划类型 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">计划类型</label>
-            <el-select v-model="formData.planType" placeholder="请选择" class="w-full">
-              <el-option label="常规" value="routine" />
-              <el-option label="加急" value="urgent" />
-              <el-option label="实验" value="experiment" />
-            </el-select>
-          </div>
-
-          <!-- 2026-07-18 P0-DIFF-002：关联生产计划 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">关联生产计划</label>
-            <el-select v-model="formData.productionPlanId" placeholder="不关联（独立批次）" clearable class="w-full">
-              <el-option
-                v-for="plan in productionPlans"
-                :key="plan.batchCode"
-                :label="`${plan.batchCode} - ${plan.cropName}`"
-                :value="plan.batchCode"
-              />
-            </el-select>
-          </div>
-
-          <!-- 扩繁模式专属字段：母株数量 / 倍数 -->
-          <template v-if="formData.calculateMode === 'propagation'">
-            <div>
-              <label class="block text-sm font-medium text-gray-900 mb-1">母株数量 <span class="text-red-500">*</span></label>
-              <el-input-number v-model="formData.motherPlantCount" :min="0" class="w-full" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-900 mb-1">扩繁倍数 <span class="text-red-500">*</span></label>
-              <el-select v-model="formData.propagationMultiple" class="w-full">
-                <el-option v-for="m in PROPAGATION_MULTIPLES" :key="m.value" :label="m.label" :value="m.value" />
-              </el-select>
-            </div>
-            <div v-if="formData.propagationMultiple === 0">
-              <label class="block text-sm font-medium text-gray-900 mb-1">自定义倍数 <span class="text-red-500">*</span></label>
-              <el-input-number v-model="formData.customMultiple" :min="1" class="w-full" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">理论产量（株）</label>
-              <el-input
-                :model-value="theoreticalYield > 0 ? theoreticalYield.toLocaleString() : '-'"
-                readonly
-                class="w-full !bg-gray-100"
-              />
-            </div>
-          </template>
-
-          <!-- 初始数量 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">初始数量</label>
-            <el-input-number v-model="formData.initialCount" :min="0" class="w-full" />
-          </div>
-
-          <!-- 2026-07-20 P0-Edit-007：目标成苗率 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">目标成苗率（%）</label>
-            <el-input-number v-model="formData.targetSurvivalRate" :min="0" :max="100" :precision="2" class="w-full" />
-          </div>
-
-          <!-- 2026-07-20 P0-Edit-004：育苗周期（自动计算）-->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">育苗周期（天）</label>
-            <el-input
-              :model-value="seedlingCycle > 0 ? `${seedlingCycle}天` : '请选择日期'"
-              readonly
-              class="w-full !bg-gray-100"
-            />
-          </div>
-
-          <!-- 成活数量（只读，对齐 V1.1 L470 bg-gray-100）-->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">成活数量</label>
-            <el-input :value="(formData.survivalCount || 0).toLocaleString()" disabled class="w-full" />
-          </div>
-
-          <!-- 已定植数量 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">已定植数量</label>
-            <el-input-number v-model="formData.plantedCount" :min="0" class="w-full" />
-          </div>
-
-          <!-- 负责人 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">负责人</label>
-            <el-input v-model="formData.chargePerson" placeholder="请输入" class="w-full" />
-          </div>
-
-          <!-- 工时 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">工时（小时）</label>
-            <el-input-number v-model="formData.workHours" :min="0" :step="0.5" class="w-full" />
-          </div>
-
-          <!-- 目标成活数量 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">目标成活数量</label>
-            <el-input-number v-model="formData.targetSurvivalCount" :min="0" class="w-full" />
-          </div>
-
-          <!-- 品质等级（字典选择 A/B/C/D，对齐 V1.1 QUALITY_GRADE_MAP）-->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">品质等级</label>
-            <el-select v-model="formData.qualityGrade" placeholder="请选择" class="w-full" clearable>
-              <el-option label="A级" value="A" />
-              <el-option label="B级" value="B" />
-              <el-option label="C级" value="C" />
-              <el-option label="D级（次品）" value="D" />
-            </el-select>
-          </div>
-
-          <!-- 数量统计只读面板（对齐 V1.1 L479-525）-->
-          <div class="col-span-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <h4 class="text-sm font-semibold text-amber-900 mb-3">数量统计（只读，自动累加）</h4>
-            <div class="grid grid-cols-2 gap-3 text-sm">
-              <div class="flex justify-between"><span class="text-gray-500">母株累计损耗：</span><span class="text-red-600">{{ (formData.motherLossCount || 0).toLocaleString() }}</span></div>
-              <div class="flex justify-between"><span class="text-gray-500">小苗累计产出：</span><span class="text-emerald-600">{{ (formData.expandedPlantCount || 0).toLocaleString() }}</span></div>
-              <div class="flex justify-between"><span class="text-gray-500">小苗累计损耗：</span><span class="text-red-600">{{ (formData.seedlingLossCount || 0).toLocaleString() }}</span></div>
-              <div class="flex justify-between"><span class="text-gray-500">采收入库累计：</span><span class="text-blue-600">{{ (formData.harvestStockedCount || 0).toLocaleString() }}</span></div>
-              <div class="flex justify-between"><span class="text-gray-500">补苗累计：</span><span class="text-emerald-600">{{ (formData.replantCount || 0).toLocaleString() }}</span></div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">
-              累计损耗 = 母株累计损耗 + 小苗累计损耗 = {{ ((formData.motherLossCount || 0) + (formData.seedlingLossCount || 0)).toLocaleString() }} 株
-            </p>
-          </div>
-
-          <!-- 是否结束 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">是否结束</label>
-            <el-select v-model="formData.isFinished" placeholder="选择是否结束" class="w-full">
-              <el-option label="是" :value="true" />
-              <el-option label="否" :value="false" />
-            </el-select>
-          </div>
-
-          <!-- 备注 -->
-          <div class="col-span-2">
-            <label class="block text-sm font-medium text-gray-900 mb-1">备注</label>
-            <el-input v-model="formData.remarks" type="textarea" :rows="3" placeholder="请输入备注信息" />
-          </div>
-
-          <!-- 2026-07-20 P0-Edit-005：是否补录（字典驱动，fallback 静态选项） -->
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-1">是否补录</label>
-            <el-select v-model="formData.isSupplementary" placeholder="选择是否补录" class="w-full" clearable>
-              <el-option label="是" :value="true" />
-              <el-option label="否" :value="false" />
-            </el-select>
-            <p class="text-xs text-amber-500 mt-1">选择"是"时，该育苗记录将提交审批审核</p>
-          </div>
-
-          <!-- 2026-07-20 P0-Edit-006：补录原因（仅当勾选补录时显示） -->
-          <div v-if="formData.isSupplementary" class="col-span-2">
-            <label class="block text-sm font-medium text-gray-900 mb-1">
-              补录原因 <span class="text-red-500">*</span>
-            </label>
-            <el-input v-model="formData.supplementaryReason" type="textarea" :rows="2" placeholder="请输入补录原因，说明为什么需要补录此育苗记录" />
+        <!-- 品种路径 -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">品种路径</label>
+          <div class="flex items-center gap-1 px-3 py-2 bg-gray-50 rounded text-sm">
+            <span class="text-gray-400">{{ formData.categoryName || '-' }}</span>
+            <span class="text-gray-300">-</span>
+            <span class="text-gray-700">{{ formData.typeName || '-' }}</span>
+            <span class="text-gray-300">-</span>
+            <span class="text-gray-700">{{ formData.varietyName || '-' }}</span>
+            <span class="text-gray-300">-</span>
+            <span class="text-gray-900 font-medium">{{ formData.subVarietyName || '-' }}</span>
           </div>
         </div>
+
+        <!-- 育苗方式 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">育苗方式</label>
+          <select v-model="formData.seedlingType" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
+            <option value="">请选择</option>
+            <option v-for="t in seedlingTypes" :key="t.value" :value="t.value">{{ t.label }}</option>
+          </select>
+        </div>
+        <!-- 温室场地 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">温室场地</label>
+          <select v-model="formData.siteId" @change="handleSiteChange" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
+            <option value="">请选择</option>
+            <option v-for="s in sites" :key="s.value" :value="s.value">{{ s.label }}</option>
+          </select>
+        </div>
+        <!-- 开始日期 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">开始日期</label>
+          <input v-model="formData.startDate" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 预计结束日期 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">预计结束日期</label>
+          <input v-model="formData.expectedEndDate" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 实际结束日期 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">实际结束日期</label>
+          <input v-model="formData.endDate" type="date" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 目标成苗率 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">目标成苗率 (%)</label>
+          <input v-model.number="formData.targetSurvivalRate" type="number" min="0" max="100" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 负责人 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">负责人</label>
+          <input v-model="formData.chargePerson" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 单位 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">单位</label>
+          <select v-model="formData.unit" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
+            <option value="株">株</option><option value="粒">粒</option><option value="颗">颗</option><option value="盆">盆</option>
+          </select>
+        </div>
+        <!-- 备注 -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-900 mb-1">备注</label>
+          <textarea v-model="formData.remarks" rows="2" placeholder="请输入备注信息" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
       </div>
+    </div>
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">保存</el-button>
+        <button type="button" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50" @click="$emit('close')">取消</button>
+        <button type="button" class="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700" :disabled="submitting" @click="handleSubmit">
+          {{ submitting ? '保存中...' : '保存' }}
+        </button>
       </div>
     </template>
-  </el-dialog>
+  </SimpleModal>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Edit, Close, InfoFilled } from '@element-plus/icons-vue'
-import { useSeedlingStore, useSeedSourceStore } from '@/stores'
-import CropCodeSelector from '@/components/crop/CropCodeSelector.vue'
+import SimpleModal from '@/components/common/SimpleModal.vue'
+import { useSeedlingStore } from '@/stores/modules/seedling'
+import { useSeedSourceStore } from '@/stores/modules/seedSource'
 
 const props = defineProps({
   visible: Boolean,
-  record: Object
+  record: Object,
+  cropVarietyOptions: { type: Array, default: () => [] },
+  seedlingTypes: { type: Array, default: () => [] },
+  sites: { type: Array, default: () => [] }
 })
 
-const emit = defineEmits(['update:visible', 'success'])
-
-// 2026-07-19 修复：el-dialog modelValue 变化处理
-const onModelValueChange = (val) => {
-  if (!val) emit('update:visible', false)
-}
+const emit = defineEmits(['close', 'success'])
 
 const seedlingStore = useSeedlingStore()
 const seedSourceStore = useSeedSourceStore()
-
 const submitting = ref(false)
 const seedSources = ref([])
-const filteredSeedSources = ref([])
-const sourceSearch = ref('')
-const sourceSelectRef = ref(null)
 
-const seedlingTypes = [
-  { value: '穴盘育苗', label: '穴盘育苗' },
-  { value: '嫁接育苗', label: '嫁接育苗' },
-  { value: '组培育苗', label: '组培育苗' },
-  { value: '直播育苗', label: '直播育苗' }
-]
-
-const sites = [
-  { value: '1号大棚', label: '1号大棚' },
-  { value: '2号大棚', label: '2号大棚' },
-  { value: '3号大棚', label: '3号大棚' },
-  { value: '露天场地', label: '露天场地' }
-]
-
-// 表单数据 - 与V1.1保持一致
 const formData = ref({
-  sourceId: '',
-  sourceCode: '',
-  // 2026-07-20 P0-Edit-001/002：来源类型 + 供应商（只读自动带入）
-  sourceType: '',
-  supplierName: '',
-  selectedCropCode: '', // 作物编码
-  cropName: '',
-  cropVariety: '',
-  cropCode: '',
-  // 2026-07-20 P0-Edit-003：品种路径 4 段
-  categoryName: '',
-  typeName: '',
-  varietyName: '',
-  subVarietyName: '',
-  seedlingType: '',
-  // 2026-07-18 P0-DIFF-002：补 V1.1 育苗方式其他字段
-  seedlingTypeOther: '',
-  siteId: '',
-  siteName: '',
-  startDate: '',
-  expectedEndDate: '',
-  endDate: '',
-  initialCount: 0,
-  survivalCount: 0,
-  plantedCount: 0,
-  // 2026-07-18 P0-DIFF-002：补 V1.1 育苗计算模式
-  calculateMode: 'single',
-  motherPlantCount: 0,
-  propagationMultiple: 1,
-  customMultiple: 0,
-  theoreticalYield: 0,
-  targetSurvivalRate: 90,
-  targetSurvivalCount: 0,
-  remarks: '',
-  qualityGrade: '',
-  isFinished: false,
-  chargePerson: '',
-  // 2026-07-18 P0-DIFF-002：补计划类型 / 生产计划
-  planType: 'routine',
-  productionPlanId: '',
-  workHours: 0,
-  // 繁殖模式（建档后锁定）
-  propagationMode: 'one_to_one',
-  // 单位（从字典获取）
-  unit: '株',
-  // 数量统计只读字段（对齐 V1.1 数量体系）
-  motherLossCount: 0,
-  expandedPlantCount: 0,
-  seedlingLossCount: 0,
-  harvestStockedCount: 0,
-  replantCount: 0,
-  // 2026-07-20 P0-Edit-005/006：补录字段
-  isSupplementary: false,
-  supplementaryReason: ''
+  sourceId: '', sourceCode: '', sourceType: '', supplierName: '',
+  selectedCropCode: '', cropName: '', cropVariety: '',
+  categoryName: '', typeName: '', varietyName: '', subVarietyName: '',
+  seedlingType: '', siteId: '', siteName: '',
+  startDate: '', expectedEndDate: '', endDate: '',
+  initialCount: 0, survivalCount: 0, plantedCount: 0,
+  calculateMode: 'single', motherPlantCount: 0, propagationMultiple: 1,
+  customMultiple: 0, theoreticalYield: 0, targetSurvivalRate: 90,
+  targetSurvivalCount: 0, remarks: '', qualityGrade: '',
+  isFinished: false, chargePerson: '', planType: 'routine',
+  productionPlanId: '', workHours: 0, propagationMode: 'one_to_one',
+  unit: '株', motherLossCount: 0, expandedPlantCount: 0,
+  seedlingLossCount: 0, harvestStockedCount: 0, replantCount: 0
 })
 
-// 2026-07-20 P0-Edit-004：育苗周期（自动计算）= 预计结束日期 - 开始日期
-const seedlingCycle = computed(() => {
-  if (!formData.value.startDate || !formData.value.expectedEndDate) return 0
-  const start = new Date(formData.value.startDate)
-  const end = new Date(formData.value.expectedEndDate)
-  const diff = Math.round((end - start) / (1000 * 60 * 60 * 24))
-  return diff > 0 ? diff : 0
-})
-
-// 扩繁倍数预设选项（V1.1 seedFormDict / propagationConstants 对齐）
-const PROPAGATION_MULTIPLES = [
-  { value: 1, label: '1 倍' },
-  { value: 2, label: '2 倍' },
-  { value: 3, label: '3 倍' },
-  { value: 5, label: '5 倍' },
-  { value: 10, label: '10 倍' },
-  { value: 0, label: '自定义' }
-]
-
-// 加载种源数据
-const loadSeedSources = async () => {
-  await seedSourceStore.loadItems()
-  seedSources.value = seedSourceStore.items
-  filteredSeedSources.value = seedSourceStore.items
-}
-
-// 过滤种源搜索（el-select filterable回调）
-const filterSeedSources = (val) => {
-  sourceSearch.value = val
-  if (!val) {
-    filteredSeedSources.value = seedSources.value
-    return
-  }
-  const q = val.toLowerCase()
-  filteredSeedSources.value = seedSources.value.filter(s =>
-    s.seedCode?.toLowerCase().includes(q) ||
-    s.cropName?.toLowerCase().includes(q) ||
-    s.cropVariety?.toLowerCase().includes(q)
-  )
-}
-
-// 获取可用数量样式类
-const getAvailableCountClass = (count) => {
-  if (count <= 0) return 'text-red-500'
-  if (count < 10) return 'text-amber-500'
-  return 'text-gray-700'
-}
-
-// 选择种源
-const handleSourceSelect = (source) => {
-  formData.value.sourceId = source.id
-  formData.value.sourceCode = source.seedCode
-  formData.value.cropName = source.cropName
-  formData.value.cropVariety = source.cropVariety
-  formData.value.cropCode = source.cropCode
-  // 关闭下拉
-  sourceSelectRef.value?.blur()
-}
-
-// 兼容原来的handleSourceChange
-const handleSourceChange = (sourceId) => {
-  const source = seedSources.value.find(s => s.id === sourceId)
-  if (source) {
-    formData.value.sourceCode = source.seedCode
-    formData.value.cropName = source.cropName
-    formData.value.cropVariety = source.cropVariety
-    formData.value.cropCode = source.cropCode
-  }
-}
-
-// 选择作物品种 - 适配CropCodeSelector的change事件(cropCode, varietyInfo)
-const handleCropCodeChange = (cropCode, varietyInfo) => {
-  formData.value.selectedCropCode = cropCode
-  formData.value.cropCode = cropCode
-  if (varietyInfo) {
-    formData.value.cropName = varietyInfo.varietyName || ''
-    formData.value.cropVariety = varietyInfo.subVariety1Name || varietyInfo.varietyName || ''
-  }
-}
-
-// 选择场地
-const handleSiteChange = (siteId) => {
-  const site = sites.find(s => s.value === siteId)
-  formData.value.siteName = site?.label || ''
-}
-
-// 监听弹窗打开和记录变化
-watch(() => props.visible, (val) => {
-  if (val) {
-    loadSeedSources()
-  }
-})
-
+// 监听 record 变化填充表单
 watch(() => props.record, (record) => {
   if (record) {
     formData.value = {
@@ -565,12 +164,16 @@ watch(() => props.record, (record) => {
       cropName: record.cropName || '',
       cropVariety: record.cropVariety || '',
       cropCode: record.cropCode || '',
+      categoryName: record.categoryName || '',
+      typeName: record.typeName || '',
+      varietyName: record.varietyName || '',
+      subVarietyName: record.subVarietyName || '',
       seedlingType: record.seedlingType || '',
       siteId: record.siteId || '',
       siteName: record.siteName || '',
       startDate: record.startDate || '',
       expectedEndDate: record.expectedEndDate || '',
-      endDate: record.endDate || '', // V1.1有此字段
+      endDate: record.endDate || '',
       initialCount: record.initialCount || 0,
       survivalCount: record.survivalCount || 0,
       plantedCount: record.plantedCount || 0,
@@ -591,16 +194,24 @@ watch(() => props.record, (record) => {
   }
 }, { immediate: true, deep: true })
 
-// 关闭弹窗
-const handleClose = () => {
-  emit('update:visible', false)
+const handleSourceChange = () => {
+  const source = seedSources.value.find(s => s.id === formData.value.sourceId)
+  if (source) {
+    formData.value.sourceCode = source.seedCode || ''
+    formData.value.cropName = source.cropName || ''
+    formData.value.cropVariety = source.cropVariety || ''
+    formData.value.cropCode = source.cropCode || ''
+  }
 }
 
-// 提交表单
+const handleSiteChange = () => {
+  const site = props.sites.find(s => s.value === formData.value.siteId)
+  formData.value.siteName = site?.label || ''
+}
+
 const handleSubmit = async () => {
   submitting.value = true
   try {
-    // 计算成苗率和损耗
     const initialCount = formData.value.initialCount
     const survivalCount = formData.value.survivalCount
     const survivalRate = initialCount > 0 ? Math.round((survivalCount / initialCount) * 100) : 0
@@ -608,7 +219,6 @@ const handleSubmit = async () => {
     const lossRate = initialCount > 0 ? Math.round((lossCount / initialCount) * 100) : 0
 
     await seedlingStore.updateItem(props.record.id, {
-      // 后端期望 snake_case 格式
       source_id: formData.value.sourceId,
       source_name: formData.value.sourceCode,
       crop_name: formData.value.cropName,
@@ -636,12 +246,19 @@ const handleSubmit = async () => {
 
     ElMessage.success('更新成功')
     emit('success')
-    handleClose()
   } catch (error) {
-    console.error('更新育苗记录失败:', error)
+    console.error('[EditModal] error:', error)
     ElMessage.error('更新失败')
   } finally {
     submitting.value = false
   }
 }
+
+// 加载种源
+watch(() => props.visible, async (val) => {
+  if (val) {
+    await seedSourceStore.loadItems()
+    seedSources.value = seedSourceStore.items
+  }
+})
 </script>
