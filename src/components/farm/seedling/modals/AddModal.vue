@@ -157,7 +157,32 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-900 mb-1">负责人</label>
-            <input v-model="formData.chargePerson" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            <select v-model="formData.chargePerson" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
+              <option value="">请选择负责人</option>
+              <option v-for="op in OPERATORS" :key="op" :value="op">{{ op }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">种苗形态</label>
+            <select v-model="formData.seedlingForm" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
+              <option value="">请选择</option>
+              <option value="plug">穴盘苗</option>
+              <option value="bare_root">裸根苗</option>
+              <option value="cutting">插穗苗</option>
+              <option value="grafted">嫁接苗</option>
+              <option value="tissue_culture">组培苗</option>
+              <option value="bulb">球茎苗</option>
+              <option value="branch">枝条苗</option>
+              <option value="flower">花朵苗</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">目标成苗数量</label>
+            <input v-model.number="formData.targetSurvivalCount" type="number" min="0" placeholder="自动计算" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 mb-1">育苗工时（小时）</label>
+            <input v-model.number="formData.workHours" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
           </div>
           <div class="col-span-2">
             <label class="block text-sm font-medium text-gray-900 mb-1">备注</label>
@@ -188,6 +213,7 @@ import { generateSeedlingCodeByDate } from '@/services/apiSeedlingService'
 import { addSeedlingWithDeduct } from '@/services/apiSeedlingService'
 import * as cropVarietyService from '@/services/cropVarietyService'
 import { todayLocal } from '@/lib/dateUtils'
+import { OPERATORS } from '@/views/material/utils/materialReturnConfig'
 
 const props = defineProps({
   visible: Boolean,
