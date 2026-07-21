@@ -85,6 +85,11 @@
           <label class="block text-sm font-medium text-gray-900 mb-1">目标成苗率 (%)</label>
           <input v-model.number="formData.targetSurvivalRate" type="number" min="0" max="100" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
         </div>
+        <!-- 目标成苗数量 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">目标成苗数量</label>
+          <input v-model.number="formData.targetSurvivalCount" type="number" min="0" placeholder="请输入目标成苗数量" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
         <!-- 负责人 -->
         <div>
           <label class="block text-sm font-medium text-gray-900 mb-1">负责人</label>
@@ -97,6 +102,61 @@
             <option value="株">株</option><option value="粒">粒</option><option value="颗">颗</option><option value="盆">盆</option>
           </select>
         </div>
+        <!-- 品质等级 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">品质等级</label>
+          <select v-model="formData.qualityGrade" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
+            <option value="">请选择</option>
+            <option value="A级">A级</option><option value="B级">B级</option><option value="C级">C级</option>
+          </select>
+        </div>
+        <!-- 是否结束 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">是否结束</label>
+          <select :value="formData.isFinished ? 'yes' : 'no'" @change="formData.isFinished = $event.target.value === 'yes'" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
+            <option value="no">否</option>
+            <option value="yes">是</option>
+          </select>
+        </div>
+        <!-- 育苗工时 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">育苗工时（小时）</label>
+          <input v-model.number="formData.workHours" type="number" min="0" step="0.5" placeholder="请输入" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+
+        <!-- 数量统计（自动累加，可手动纠错） — 对齐 V1.1 EditModal L487-539 -->
+        <div class="col-span-2 bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+          <div class="flex items-center gap-2 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 12l4-4 4 4 6-6"/></svg>
+            <span class="text-sm font-semibold text-amber-900">数量统计（自动累加，可手动纠错）</span>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">母株累计损耗</label>
+              <input v-model.number="formData.motherLossCount" type="number" min="0" title="从每日记录累加" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">小苗累计产出</label>
+              <input v-model.number="formData.expandedPlantCount" type="number" min="0" title="从每日记录累加" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">小苗累计损耗</label>
+              <input v-model.number="formData.seedlingLossCount" type="number" min="0" title="从每日记录累加" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">采收入库累计</label>
+              <input v-model.number="formData.harvestStockedCount" type="number" min="0" title="从每日记录累加" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">补苗累计</label>
+              <input v-model.number="formData.replantCount" type="number" min="0" title="从每日记录累加" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+            </div>
+          </div>
+          <p class="text-xs text-gray-600 mt-2">
+            母株池剩余 = {{ Math.max(0, (formData.motherPlantCount || 0) - (formData.motherLossCount || 0) + (formData.replantCount || 0)).toLocaleString() }} 株 | 小苗池剩余 = {{ Math.max(0, (formData.expandedPlantCount || 0) - (formData.seedlingLossCount || 0) - (formData.harvestStockedCount || 0)).toLocaleString() }} 株
+          </p>
+        </div>
+
         <!-- 备注 -->
         <div class="col-span-2">
           <label class="block text-sm font-medium text-gray-900 mb-1">备注</label>
