@@ -67,15 +67,8 @@
           <!-- 单位 -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">单位 <span class="text-red-500">*</span></label>
-            <el-select v-model="unit" class="w-full">
-              <el-option label="克" value="克" />
-              <el-option label="公斤" value="公斤" />
-              <el-option label="升" value="升" />
-              <el-option label="毫升" value="毫升" />
-              <el-option label="株" value="株" />
-              <el-option label="袋" value="袋" />
-              <el-option label="盒" value="盒" />
-              <el-option label="包" value="包" />
+            <el-select v-model="unit" class="w-full" placeholder="选择单位">
+              <el-option v-for="u in UNIT_OPTIONS" :key="u.value" :label="u.label" :value="u.value" />
             </el-select>
           </div>
         </div>
@@ -110,15 +103,15 @@
                   </td>
                   <td class="px-2 py-2"><el-input v-model="p.unit" size="small" /></td>
                   <td class="px-2 py-2">
-                    <el-select v-model="p.grade" size="small" class="!w-full">
-                      <el-option label="特优" value="special" />
-                      <el-option label="优" value="excellent" />
-                      <el-option label="良" value="good" />
-                      <el-option label="合格" value="qualified" />
-                      <el-option label="不合格" value="unqualified" />
+                    <el-select v-model="p.grade" size="small" class="!w-full" placeholder="选择品质">
+                      <el-option v-for="g in QUALITY_GRADE_OPTIONS" :key="g.value" :label="g.label" :value="g.value" />
                     </el-select>
                   </td>
-                  <td class="px-2 py-2"><el-input v-model="p.sourceForm" size="small" placeholder="果实/籽/枝条" /></td>
+                  <td class="px-2 py-2">
+                    <el-select v-model="p.sourceForm" size="small" class="!w-full" placeholder="选择采收形态">
+                      <el-option v-for="f in HARVEST_FORM_OPTIONS" :key="f.value" :label="f.label" :value="f.value" />
+                    </el-select>
+                  </td>
                   <td v-if="stockType !== 'seed' && stockType !== 'seedling'" class="px-2 py-2 text-center">
                     <el-button v-if="products.length > 1" link type="danger" size="small" @click="handleRemoveProduct(idx)">
                       <el-icon><Delete /></el-icon>
@@ -198,6 +191,30 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete, Close, WarningFilled, Sugar, Folder, Goods } from '@element-plus/icons-vue'
 import { submitUnifiedInbound, getWarehouses, getHarvestRecords } from '@/services/apiInventoryService'
+import { HARVEST_FORM_OPTIONS } from '@/constants/seedFormDict'
+import { QUALITY_GRADE_MAP } from '@/constants/cropConstants'
+import { useUserStore } from '@/stores/modules/user'
+
+// 单位字典（V2.0 端 hardcoded list — 与 V1.1 inventory 相关弹窗一致）
+const UNIT_OPTIONS = Object.freeze([
+  { value: '克', label: '克' },
+  { value: '公斤', label: '公斤' },
+  { value: '升', label: '升' },
+  { value: '毫升', label: '毫升' },
+  { value: '株', label: '株' },
+  { value: '袋', label: '袋' },
+  { value: '盒', label: '盒' },
+  { value: '包', label: '包' }
+])
+
+// 品质等级字典（V1.1 useQualityGrade 5 项 → V2.0 沿用 5 项）
+const QUALITY_GRADE_OPTIONS = Object.freeze([
+  { value: 'special', label: '特优' },
+  { value: 'excellent', label: '优' },
+  { value: 'good', label: '良' },
+  { value: 'qualified', label: '合格' },
+  { value: 'unqualified', label: '不合格' }
+])
 
 const props = defineProps({
   isOpen: { type: Boolean, required: true },
@@ -276,21 +293,36 @@ const handleRemoveProduct = (idx) => {
 
 // 加载数据
 const loadWarehouses = async () => {
-  warehouses.value = await getWarehouses()
+  try {
+    const list = await getWarehouses()
+    warehouses.value = Array.isArray(list) ? list : []
+  } catch (err) {
+    console.error('[UnifiedRowHarvestInboundModal] loadWarehouses error:', err)
+    warehouses.value = []
+  }
 }
 const loadHarvestRecords = async () => {
   if (!props.sourceRecord?.id) return
-  harvestRecords.value = await getHarvestRecords(props.sourceModule, props.sourceRecord.id)
+  try {
+    const list = await getHarvestRecords(props.sourceModule, props.sourceRecord.id)
+    harvestRecords.value = Array.isArray(list) ? list : []
+  } catch {
+    harvestRecords.value = []
+  }
 }
 const loadUsers = async () => {
   try {
-    const mod = await import('@/stores/modules/user')
-    users.value = mod.useUserStore?.getState?.()?.users || []
-    if (!users.value.length && mod.useUserStore?.getState?.()?.loadUsers) {
-      await mod.useUserStore.getState().loadUsers()
-      users.value = mod.useUserStore.getState().users || []
+    const userStore = useUserStore()
+    // 优先使用 Pinia store 的 reactive state
+    if (userStore.users && userStore.users.length > 0) {
+      users.value = userStore.activeUsers || userStore.users
+    } else {
+      // store 为空时主动 loadUsers
+      await userStore.loadUsers()
+      users.value = userStore.activeUsers || userStore.users || []
     }
-  } catch {
+  } catch (err) {
+    console.error('[UnifiedRowHarvestInboundModal] loadUsers error:', err)
     users.value = []
   }
 }
