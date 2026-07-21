@@ -112,7 +112,8 @@ const stats = ref({ controlCount: 0, diseaseCount: 0, pesticideUsed: 0, lossRate
 
 // 加载数据
 const loadItems = async () => {
-  pestStore.pagination = { ...pestStore.pagination, page: pagination.value.page, limit: pagination.value.limit }
+  pestStore.pagination.page = pagination.value.page
+  pestStore.pagination.limit = pagination.value.limit
   await pestStore.loadItems()
   pagination.value.total = pestStore.pagination.total
 }

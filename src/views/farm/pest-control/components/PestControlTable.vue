@@ -25,7 +25,7 @@
     <!-- 表格（对齐 V1.1 Table L155-560）-->
     <div class="overflow-x-auto">
       <table class="w-full text-sm" style="table-layout: auto;">
-        <thead class="bg-gradient-to-r from-red-500 to-rose-600 text-white">
+        <thead class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
           <tr>
             <th v-if="operationMode === 'delete'" class="slt-th-check px-3 py-2 w-10">
               <input type="checkbox" :checked="currentData.length > 0 && currentData.every(r => selectedIds.has(r.id))" @change="togglePageSelection" class="w-4 h-4 rounded border-gray-300" />
