@@ -7,17 +7,17 @@
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     <!-- 顶部按钮栏（对齐 V1.1 Page L62-89）-->
     <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-900">防治记录列表</h3>
+      <h3 class="text-lg font-semibold text-gray-900">防治记录列表 <span class="text-xs text-gray-500 font-normal">（点击展开查看多药剂/肥料详情）</span></h3>
       <div class="flex items-center gap-2">
         <template v-if="operationMode === 'delete'">
           <span class="text-sm text-gray-500 mr-2">已选择 {{ selectedRows.length }} 项</span>
-          <el-button type="danger" :icon="Delete" size="small" :disabled="selectedRows.length === 0" @click="onDelete(selectedRows)">确认删除</el-button>
+          <el-button type="danger" :icon="Delete" size="small" :disabled="selectedRows.length === 0" @click="emit('delete', selectedRows)">确认删除</el-button>
           <el-button :icon="Close" size="small" @click="emit('operation-mode-change', 'normal'); emit('update:selected-rows', [])">取消</el-button>
         </template>
         <template v-else>
-          <el-button v-if="canCreate" type="primary" :icon="Plus" size="small" @click="emit('add')">新增防治</el-button>
-          <el-button v-if="canDelete" type="danger" plain :icon="Delete" size="small" @click="emit('operation-mode-change', 'delete')">删除</el-button>
-          <el-button v-if="canExport" :icon="Download" size="small" @click="emit('export')">导出</el-button>
+          <el-button v-if="canCreate" type="success" :icon="Plus" size="small" @click="emit('add')">新增防治</el-button>
+          <el-button v-if="canDelete" type="danger" :icon="Delete" size="small" @click="emit('operation-mode-change', 'delete')">批量删除</el-button>
+          <el-button v-if="canExport" style="background-color: #374151; border-color: #374151; color: #fff;" :icon="Download" size="small" @click="emit('export')">导出</el-button>
         </template>
       </div>
     </div>
@@ -46,7 +46,7 @@
         </thead>
         <tbody>
           <template v-for="record in currentData" :key="record.id">
-            <tr class="border-b border-gray-200 hover:bg-gray-50">
+            <tr class="border-b border-gray-200 hover:bg-emerald-50/40 transition-colors">
               <td v-if="operationMode === 'delete'" class="px-3 py-2 text-center">
                 <input type="checkbox" :checked="selectedIds.has(record.id)" @change="toggleRow(record.id, $event)" class="w-4 h-4 rounded border-gray-300" />
               </td>

@@ -8,17 +8,17 @@
     <!-- 标题卡片 -->
     <div class="bg-white rounded-xl p-6 shadow-none">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
           <el-icon :size="24" style="color: white;"><WarnTriangleFilled /></el-icon>
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">病虫害管理</h1>
-          <p class="text-gray-500">记录和管理农作物病虫害防治情况</p>
+          <p class="text-gray-500">管理化学/生物/物理防治记录</p>
         </div>
       </div>
     </div>
 
-    <!-- 统计卡片（对齐 V1.1 Page）-->
+    <!-- 统计卡片（对齐 V1.1 Page：标题 → 统计 → 筛选 → 表格）-->
     <PestControlStatsCards
       :control-count="stats.controlCount"
       :disease-count="stats.diseaseCount"
@@ -107,8 +107,21 @@ const detailModalVisible = ref(false)
 const currentRecord = ref(null)
 const operationMode = ref('normal')
 
-// 统计
+// 统计（对齐 V1.1 Page L60-62：仅 total，但 UI 展示 4 卡片，本月=本月记录数）
 const stats = ref({ controlCount: 0, diseaseCount: 0, pesticideUsed: 0, lossRate: 0 })
+
+const loadStats = async () => {
+  const now = new Date()
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+  const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-31`
+  const monthItems = items.value.filter(i => (i.sprayTime || '').slice(0, 7) === monthStart.slice(0, 7))
+  stats.value = {
+    controlCount: monthItems.length,
+    diseaseCount: items.value.filter(i => (i.pesticideType || []).length > 0).length,
+    pesticideUsed: items.value.reduce((sum, i) => sum + (i.dosage || 0), 0),
+    lossRate: 0
+  }
+}
 
 // 加载数据
 const loadItems = async () => {
@@ -118,26 +131,20 @@ const loadItems = async () => {
   pagination.value.total = pestStore.pagination.total
 }
 
-const loadStats = async () => {
-  stats.value = {
-    controlCount: items.value.length,
-    diseaseCount: items.value.filter(i => (i.pesticideType || []).length > 0).length,
-    pesticideUsed: items.value.reduce((sum, i) => sum + (i.dosage || 0), 0),
-    lossRate: 0
-  }
-}
-
 // 操作
 const handleSearch = () => {
   pagination.value.page = 1
-  pestStore.filters = { ...filters.value }
+  pestStore.pagination.page = 1
+  // 同步 store filters（保持响应式 + store 内 loadItems 用最新值）
+  Object.assign(pestStore.filters, filters.value)
   loadItems()
 }
 
 const handleReset = () => {
   filters.value = { pesticideType: '', cropName: '', greenhouseName: '', targetPest: '', startDate: '', endDate: '', operatorName: '' }
-  pestStore.resetFilters()
+  Object.assign(pestStore.filters, filters.value)
   pagination.value.page = 1
+  pestStore.pagination.page = 1
   loadItems()
 }
 

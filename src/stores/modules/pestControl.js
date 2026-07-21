@@ -23,12 +23,13 @@ export const usePestControlStore = defineStore('pestControl', () => {
 
   const pagination = reactive({ page: 1, limit: 20, total: 0 })
 
-  /** 加载列表 */
-  const loadItems = async () => {
+  /** 加载列表（可接受覆盖 filters，对齐 V1.1 store.fetchItems(filters)） */
+  const loadItems = async (overrideFilters) => {
     isLoading.value = true
     try {
+      const activeFilters = overrideFilters || filters
       const cleanFilters = Object.fromEntries(
-        Object.entries(filters).filter(([_, v]) => v != null && v !== '')
+        Object.entries(activeFilters).filter(([_, v]) => v != null && v !== '')
       )
       const res = await apiPestControlService.list(cleanFilters, pagination.page, pagination.limit)
       items.value = res.items || []
