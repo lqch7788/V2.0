@@ -180,7 +180,7 @@
                 <button type="button" class="slt-op-btn slt-op-edit" :class="isEnded(row) ? 'slt-op-disabled' : ''" :title="isEnded(row) ? '已结束，禁止编辑' : '编辑'" :disabled="isEnded(row)" @click.stop="onEdit(row)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
                 </button>
-                <button v-if="!row.isHarvestLocked" type="button" class="slt-op-btn slt-op-inbound" :title="row.endType === 'abnormal' ? '出圃入库（补录）' : '出圃入库 / 采收'" @click.stop="onInbound(row)">
+                <button v-if="!row.isHarvestLocked" type="button" class="slt-op-btn slt-op-inbound" :class="{ 'abnormal': row.endType === 'abnormal', 'cancelled': row.status === 'cancelled' }" :title="getInboundTitle(row)" @click.stop="onInbound(row)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                 </button>
                 <button v-if="!isEnded(row)" type="button" class="slt-op-btn slt-op-end" title="结束" @click.stop="onEnd(row)">
@@ -408,8 +408,10 @@ const getInboundTitle = (r) => {
 .slt-op-breeding { color: #059669; } .slt-op-breeding:hover { color: #047857; background-color: #ecfdf5; }
 .slt-op-tag { color: #9333ea; } .slt-op-tag:hover { color: #7e22ce; background-color: #faf5ff; }
 .slt-op-edit { color: #3b82f6; } .slt-op-edit:hover { color: #2563eb; background-color: #eff6ff; }
-.slt-op-inbound { color: #059669; } .slt-op-inbound:hover { color: #047857; background-color: #ecfdf5; }
-.slt-op-end { color: #dc2626; } .slt-op-end:hover { color: #b91c1c; background-color: #fef2f2; }
+.slt-op-inbound { color: #f97316; } .slt-op-inbound:hover { color: #ea580c; background-color: #fff7ed; }
+.slt-op-inbound.abnormal { color: #6b7280; } .slt-op-inbound.abnormal:hover { color: #2563eb; background-color: #eff6ff; }
+.slt-op-inbound.cancelled { color: #9ca3af; } .slt-op-inbound.cancelled:hover { color: #6b7280; background-color: #f3f4f6; }
+.slt-op-end { color: #4b5563; } .slt-op-end:hover { color: #374151; background-color: #f3f4f6; }
 .slt-op-disabled { color: #9ca3af !important; cursor: not-allowed !important; opacity: 0.4; }
 .slt-op-disabled:hover { background-color: transparent !important; color: #9ca3af !important; }
 /* 已结束态的读操作按钮（每日记录/繁殖）颜色淡化（对齐 V1.1 text-blue-400 / text-emerald-400）*/
