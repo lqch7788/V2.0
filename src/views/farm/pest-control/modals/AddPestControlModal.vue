@@ -83,7 +83,7 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-700 mb-1">类型</label>
-              <el-input :model-value="p.pesticideType" placeholder="杀虫剂/杀菌剂" readonly />
+              <el-input :model-value="(p.pesticideTypes || []).join('/')" placeholder="杀虫剂/杀菌剂" readonly />
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-700 mb-1">含量/规格</label>
@@ -105,9 +105,22 @@
               <label class="block text-xs font-medium text-gray-700 mb-1">稀释比例</label>
               <el-input v-model="p.dilutionRatio" placeholder="如 1:1000" />
             </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">施用方法</label>
+              <el-select v-model="p.applicationMethod" class="w-full" clearable placeholder="选择方法">
+                <el-option label="喷雾" value="spray" /><el-option label="喷粉" value="dust" />
+                <el-option label="灌根" value="soil_drench" /><el-option label="熏蒸" value="fumigation" />
+                <el-option label="拌种" value="seed_treatment" /><el-option label="滴灌" value="irrigation" />
+                <el-option label="毒饵" value="bait" />
+              </el-select>
+            </div>
             <div class="flex items-end justify-end">
               <el-button type="danger" link size="small" @click="formData.pesticideList.splice(idx, 1)">删除</el-button>
             </div>
+          </div>
+          <div class="mt-2">
+            <label class="block text-xs font-medium text-gray-700 mb-1">备注</label>
+            <el-input v-model="p.remarks" placeholder="选填" size="small" />
           </div>
         </div>
       </section>
@@ -189,7 +202,11 @@ const INITIAL_FORM = () => ({
   greenhouseName: '',
   applicationMethod: '',
   targetPest: [],
-  pesticideList: [{ pesticideId: '', pesticideName: '', pesticideType: '', specContent: '', manufacturer: '', dosage: 0, unit: '', dilutionRatio: '' }],
+  pesticideList: [{
+    pesticideId: '', pesticideName: '', pesticideTypes: [],
+    specId: '', specContent: '', formulation: '', manufacturer: '', brandName: '',
+    dosage: 0, unit: '', dilutionRatio: '', applicationMethod: '', remarks: ''
+  }],
   useLeafFertilizer: false,
   leafFertilizerList: [],
   description: ''
@@ -222,14 +239,26 @@ const toggleTargetPest = (name, checked) => {
 }
 
 const addPesticide = () => {
-  formData.value.pesticideList.push({ pesticideId: '', pesticideName: '', pesticideType: '', specContent: '', manufacturer: '', dosage: 0, unit: '', dilutionRatio: '' })
+  formData.value.pesticideList.push({
+    pesticideId: '', pesticideName: '', pesticideTypes: [],
+    specId: '', specContent: '', formulation: '', manufacturer: '', brandName: '',
+    dosage: 0, unit: '', dilutionRatio: '', applicationMethod: '', remarks: ''
+  })
 }
 
 const handlePesticideSelect = (idx, id) => {
   const p = pesticides.value.find(x => x.id === id)
   if (p) {
     formData.value.pesticideList[idx].pesticideName = p.pesticideName
-    formData.value.pesticideList[idx].pesticideType = p.controlType || ''
+    // V1.1 PesticidePoolItem 用 pesticideTypes[] 数组（非 controlType 字符串）
+    formData.value.pesticideList[idx].pesticideTypes = Array.isArray(p.pesticideTypes) ? p.pesticideTypes : (p.controlType ? [p.controlType] : [])
+    formData.value.pesticideList[idx].pesticideCode = p.pesticideCode || ''
+    // 自动用规格默认值
+    formData.value.pesticideList[idx].specContent = p.specContent || ''
+    formData.value.pesticideList[idx].manufacturer = p.manufacturer || ''
+    formData.value.pesticideList[idx].dosage = p.suggestedDosage ?? 0
+    formData.value.pesticideList[idx].unit = p.dosageUnit || ''
+    formData.value.pesticideList[idx].dilutionRatio = p.suggestedRatio || ''
   }
 }
 
@@ -244,11 +273,55 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
+    // V1.1 对齐：合并所有药剂的 pesticideTypes 数组去重
+    const allPesticideTypes = [...new Set(
+      formData.value.pesticideList.flatMap(p => p.pesticideTypes || []).filter(Boolean)
+    )]
+    // 取第一个药剂作为记录级兼容字段
+    const first = formData.value.pesticideList[0]
+    // 序列化 pesticideList 为 JSON
+    const pesticideListJson = JSON.stringify(
+      formData.value.pesticideList.map(it => ({
+        name: it.pesticideName,
+        pesticideId: it.pesticideId,
+        pesticideCode: it.pesticideCode,
+        specId: it.specId,
+        specContent: it.specContent,
+        formulation: it.formulation,
+        manufacturer: it.manufacturer,
+        brandName: it.brandName,
+        pesticideTypes: it.pesticideTypes || [],
+        dosage: it.dosage,
+        unit: it.unit,
+        ratio: it.dilutionRatio,
+        applicationMethod: it.applicationMethod,
+        remarks: it.remarks
+      }))
+    )
+
     const payload = {
       ...formData.value,
-      targetPest: formData.value.targetPest,
-      pesticideType: [...new Set(formData.value.pesticideList.map(p => p.pesticideType).filter(Boolean))]
+      pesticideList: pesticideListJson,
+      pesticideType: allPesticideTypes,
+      // V1.1 兼容字段（取池中第一个药剂，覆盖 formData 中的同名字段）
+      pesticideName: first?.pesticideName,
+      dosage: first?.dosage ? Number(first.dosage) : undefined,
+      dosageUnit: first?.unit,
+      dilutionRatio: first?.dilutionRatio,
+      applicationMethod: first?.applicationMethod,
+      // targetPest 序列化为 JSON 数组
+      targetPest: formData.value.targetPest.length > 0 ? JSON.stringify(formData.value.targetPest) : undefined,
+      // 肥料池序列化为 JSON
+      useLeafFertilizer: formData.value.leafFertilizerList.length > 0 ? 'yes' : 'no',
+      leafFertilizerList: formData.value.leafFertilizerList.length > 0 ? JSON.stringify(formData.value.leafFertilizerList) : null,
+      leafFertilizerName: formData.value.leafFertilizerList[0]?.fertilizerName,
+      leafFertilizerDosage: formData.value.leafFertilizerList[0]?.dosage ? Number(formData.value.leafFertilizerList[0].dosage) : undefined,
+      leafFertilizerUnit: formData.value.leafFertilizerList[0]?.unit,
+      // 兼容空列表字段
+      bioAgentList: JSON.stringify([]),
+      equipmentList: JSON.stringify([])
     }
+    delete payload.pesticideList_raw  // 清理 V2.0 临时字段
     await pestStore.addItem(payload)
     ElMessage.success('新增防治记录成功')
     emit('success')

@@ -75,7 +75,7 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-700 mb-1">类型</label>
-              <el-input v-model="p.pesticideType" readonly />
+              <el-input :model-value="(p.pesticideTypes || []).join('/')" readonly />
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-700 mb-1">含量/规格</label>
@@ -163,7 +163,11 @@ const targetPestList = ref([])
 const INITIAL_FORM = () => ({
   id: '', recordCode: '', sprayTime: '', operatorName: '', cropName: '',
   greenhouseName: '', applicationMethod: '', targetPest: [],
-  pesticideList: [{ pesticideId: '', pesticideName: '', pesticideType: '', specContent: '', manufacturer: '', dosage: 0, unit: '', dilutionRatio: '' }],
+  pesticideList: [{
+    pesticideId: '', pesticideName: '', pesticideTypes: [],
+    specId: '', specContent: '', formulation: '', manufacturer: '', brandName: '',
+    dosage: 0, unit: '', dilutionRatio: '', applicationMethod: '', remarks: ''
+  }],
   useLeafFertilizer: false, leafFertilizerList: [], description: ''
 })
 
@@ -184,29 +188,47 @@ watch(() => props.visible, async (val) => {
       try { const p = JSON.parse(r.targetPest); targetPest = Array.isArray(p) ? p : [r.targetPest] } catch { targetPest = [r.targetPest] }
     }
 
-    // pesticideList 回填
+    // pesticideList 回填（对齐 V1.1 PesticidePoolItem 完整字段）
     let pesticideList
     if (Array.isArray(r.pesticideList) && r.pesticideList.length > 0) {
       pesticideList = r.pesticideList.map(p => ({
         pesticideId: p.pesticideId || '',
         pesticideName: p.name || p.pesticideName || '',
-        pesticideType: p.pesticideType || p.type || '',
-        specContent: p.specContent || p.specId || '',
+        pesticideTypes: Array.isArray(p.pesticideTypes) ? p.pesticideTypes : (p.type ? [p.type] : []),
+        pesticideCode: p.pesticideCode || '',
+        specId: p.specId || '',
+        specContent: p.specContent || '',
+        formulation: p.formulation || '',
         manufacturer: p.manufacturer || '',
+        brandName: p.brandName || '',
         dosage: p.dosage ?? 0,
         unit: p.unit || p.dosageUnit || '',
-        dilutionRatio: p.dilutionRatio || ''
+        dilutionRatio: p.dilutionRatio || p.ratio || '',
+        applicationMethod: p.applicationMethod || '',
+        remarks: p.remarks || ''
       }))
     } else if (r.pesticideName) {
       pesticideList = [{
         pesticideId: r.pesticideId || '',
         pesticideName: r.pesticideName,
-        pesticideType: Array.isArray(r.pesticideType) ? r.pesticideType[0] : (r.pesticideType || ''),
-        specContent: r.specContent || '', manufacturer: '',
-        dosage: r.dosage ?? 0, unit: r.dosageUnit || '', dilutionRatio: r.dilutionRatio || ''
+        pesticideTypes: Array.isArray(r.pesticideType) ? r.pesticideType : (r.pesticideType ? [r.pesticideType] : []),
+        pesticideCode: r.pesticideCode || '',
+        specId: r.specId || '',
+        specContent: r.specContent || '',
+        formulation: r.formulation || '',
+        manufacturer: '', brandName: '',
+        dosage: r.dosage ?? 0,
+        unit: r.dosageUnit || '',
+        dilutionRatio: r.dilutionRatio || '',
+        applicationMethod: r.applicationMethod || '',
+        remarks: ''
       }]
     } else {
-      pesticideList = [{ pesticideId: '', pesticideName: '', pesticideType: '', specContent: '', manufacturer: '', dosage: 0, unit: '', dilutionRatio: '' }]
+      pesticideList = [{
+        pesticideId: '', pesticideName: '', pesticideTypes: [],
+        specId: '', specContent: '', formulation: '', manufacturer: '', brandName: '',
+        dosage: 0, unit: '', dilutionRatio: '', applicationMethod: '', remarks: ''
+      }]
     }
 
     // leafFertilizerList 回填
@@ -254,7 +276,13 @@ const handlePesticideSelect = (idx, id) => {
   const p = pesticides.value.find(x => x.id === id)
   if (p) {
     formData.value.pesticideList[idx].pesticideName = p.pesticideName
-    formData.value.pesticideList[idx].pesticideType = p.controlType || ''
+    formData.value.pesticideList[idx].pesticideTypes = Array.isArray(p.pesticideTypes) ? p.pesticideTypes : (p.controlType ? [p.controlType] : [])
+    formData.value.pesticideList[idx].pesticideCode = p.pesticideCode || ''
+    formData.value.pesticideList[idx].specContent = p.specContent || ''
+    formData.value.pesticideList[idx].manufacturer = p.manufacturer || ''
+    formData.value.pesticideList[idx].dosage = p.suggestedDosage ?? 0
+    formData.value.pesticideList[idx].unit = p.dosageUnit || ''
+    formData.value.pesticideList[idx].dilutionRatio = p.suggestedRatio || ''
   }
 }
 
@@ -269,9 +297,47 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
+    const allPesticideTypes = [...new Set(
+      formData.value.pesticideList.flatMap(p => p.pesticideTypes || []).filter(Boolean)
+    )]
+    const first = formData.value.pesticideList[0]
+    const pesticideListJson = JSON.stringify(
+      formData.value.pesticideList.map(it => ({
+        name: it.pesticideName,
+        pesticideId: it.pesticideId,
+        pesticideCode: it.pesticideCode,
+        specId: it.specId,
+        specContent: it.specContent,
+        formulation: it.formulation,
+        manufacturer: it.manufacturer,
+        brandName: it.brandName,
+        pesticideTypes: it.pesticideTypes || [],
+        dosage: it.dosage,
+        unit: it.unit,
+        ratio: it.dilutionRatio,
+        applicationMethod: it.applicationMethod,
+        remarks: it.remarks
+      }))
+    )
+
     const payload = {
       ...formData.value,
-      pesticideType: [...new Set(formData.value.pesticideList.map(p => p.pesticideType).filter(Boolean))]
+      pesticideList: pesticideListJson,
+      pesticideType: allPesticideTypes,
+      pesticideName: first?.pesticideName,
+      pesticideId: first?.pesticideId,
+      dosage: first?.dosage ? Number(first.dosage) : undefined,
+      dosageUnit: first?.unit,
+      dilutionRatio: first?.dilutionRatio,
+      applicationMethod: first?.applicationMethod,
+      targetPest: formData.value.targetPest.length > 0 ? JSON.stringify(formData.value.targetPest) : undefined,
+      useLeafFertilizer: formData.value.leafFertilizerList.length > 0 ? 'yes' : 'no',
+      leafFertilizerList: formData.value.leafFertilizerList.length > 0 ? JSON.stringify(formData.value.leafFertilizerList) : null,
+      leafFertilizerName: formData.value.leafFertilizerList[0]?.fertilizerName,
+      leafFertilizerDosage: formData.value.leafFertilizerList[0]?.dosage ? Number(formData.value.leafFertilizerList[0].dosage) : undefined,
+      leafFertilizerUnit: formData.value.leafFertilizerList[0]?.unit,
+      bioAgentList: JSON.stringify([]),
+      equipmentList: JSON.stringify([])
     }
     await pestStore.updateItem(formData.value.id, payload)
     ElMessage.success('更新成功')
