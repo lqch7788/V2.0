@@ -40,12 +40,14 @@ export const SeedType = {
   SEEDLING: 'seedling'
 }
 
-/** 育苗状态 */
+/** 育苗状态（对齐 V1.1 types/crop.ts L55-62，6 状态全映射）*/
 export const SeedlingStatus = {
-  IN_PROGRESS: 'in_progress',      // 进行中
-  TRANSPLANT_READY: 'transplant_ready',  // 待定植
-  COMPLETED: 'completed',          // 已完成
-  ABNORMAL: 'abnormal'             // 异常
+  SOWN: 'sown',                    // 已播种（建档后默认）
+  IN_PROGRESS: 'in_progress',      // 苗床生长中
+  TRANSPLANT_READY: 'transplant_ready',  // 待出圃
+  COMPLETED: 'completed',          // 已完成（已出圃入库）
+  CANCELLED: 'cancelled',          // 已取消
+  ABNORMAL: 'abnormal'             // 异常结束
 }
 
 /** 育苗计划类型 */

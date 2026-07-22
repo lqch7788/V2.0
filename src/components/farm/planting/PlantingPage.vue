@@ -58,6 +58,9 @@
       :on-move="handleMove"
       :on-mark="handleMark"
       :on-seed-saving="handleSeedSaving"
+      :on-daily-record="handleDailyRecord"
+      :on-inbound="handleInbound"
+      :on-view-move-records="handleViewMoveRecords"
       :operation-mode="operationMode"
       :on-operation-mode-change="setOperationMode"
       :export-mode="exportMode"
@@ -179,6 +182,35 @@
       }))"
       :on-submit="handleMarkSubmit"
     />
+
+    <!-- 2026-07-22 P0 修复：每日记录弹窗（1:1 对齐 V1.1 PlantingPage.tsx L685-699）-->
+    <DailyRecordModal
+      v-if="dailyRecordModal.open"
+      :is-open="dailyRecordModal.open"
+      :on-close="closeDailyRecord"
+      :record="dailyRecordModal.record"
+      :on-success="handleDailyRecordSuccess"
+      :read-only="isReadOnly(dailyRecordModal.record)"
+    />
+
+    <!-- 2026-07-22 P0 修复：行级采收入库弹窗（1:1 对齐 V1.1）-->
+    <UnifiedRowHarvestInboundModal
+      v-if="inboundUnifiedOpen && inboundUnifiedRecord"
+      :is-open="inboundUnifiedOpen"
+      :on-close="closeInboundUnified"
+      :source-record="inboundUnifiedRecord"
+      stock-type="planting"
+      source-module="planting"
+      :on-success="handleInboundSuccess"
+    />
+
+    <!-- 2026-07-22 P0 修复：移入/移出记录查看弹窗 -->
+    <PlantingMoveRecordsModal
+      v-if="moveRecordsOpen && currentRecord"
+      :is-open="moveRecordsOpen"
+      :on-close="() => setMoveRecordsOpen(false)"
+      :planting="currentRecord"
+    />
   </div>
 </template>
 
@@ -205,6 +237,10 @@ import {
   LabelDetailModal,
   MoveModal,
   MarkModal,
+  // 2026-07-22 P0 修复：补全缺失的弹窗
+  DailyRecordModal,
+  UnifiedRowHarvestInboundModal,
+  PlantingMoveRecordsModal,
 } from './modals'
 import { useDictionaryStore, getDictItems } from '@/stores/modules/dictionary'
 import { usePlantingStore, PlantingStatus, SourceType } from '@/stores/modules/planting'
@@ -355,7 +391,8 @@ const filters = ref({
 const setFilters = (v) => { filters.value = v }
 
 // ==================== 分页状态 ====================
-const pagination = ref({ current: 1, pageSize: 10 })
+// 2026-07-22 P0 修复：V1.1 PlantingPage.tsx L83 默认 pageSize=20
+const pagination = ref({ current: 1, pageSize: 20 })
 const setPagination = (v) => { pagination.value = v }
 
 // ==================== 选中状态 ====================
@@ -395,6 +432,15 @@ const setMoveModalOpen = (v) => { moveModalOpen.value = v }
 const setMarkModalOpen = (v) => { markModalOpen.value = v }
 /** @type {import('vue').Ref<Planting | null>} */
 const currentLabelPlanting = ref(null)
+
+// 2026-07-22 P0 修复：补全缺失的弹窗状态
+/** @type {import('vue').Ref<{open: boolean, record: Planting | null}>} */
+const dailyRecordModal = ref({ open: false, record: null })
+const inboundUnifiedOpen = ref(false)
+/** @type {import('vue').Ref<{id: string, plantCode: string, cropName?: string, cropVariety?: string, cropCode?: string, unit?: string, plantingMode?: string, endTime?: string, status?: string} | null>} */
+const inboundUnifiedRecord = ref(null)
+const moveRecordsOpen = ref(false)
+const setMoveRecordsOpen = (v) => { moveRecordsOpen.value = v }
 
 // 导出状态
 const exportMode = ref(false)
@@ -598,6 +644,62 @@ async function handleMarkSubmit(markId, labelIds) {
     await showAlert('标记分配失败')
   }
   return ok
+}
+
+// 2026-07-22 P0 修复：每日记录弹窗操作（1:1 对齐 V1.1 PlantingPage.tsx L173-188）
+function handleDailyRecord(record) {
+  dailyRecordModal.value = { open: true, record }
+}
+function closeDailyRecord() {
+  dailyRecordModal.value = { open: false, record: null }
+}
+function handleDailyRecordSuccess() {
+  // Store action 内部已 await loadItems()，列表会实时刷新
+  // 不调用 closeDailyRecord — 弹窗只在用户主动关闭时才关闭
+}
+
+// 2026-07-22 P0 修复：行级采收入库弹窗操作（1:1 对齐 V1.1 PlantingPage.tsx L142-155）
+function handleInbound(record) {
+  // 实时从 store 取最新 record（避免 stale 快照）
+  const latest = plantingStore.plantings?.find?.((i) => i.id === record.id) || record
+  inboundUnifiedRecord.value = {
+    id: String(latest.id),
+    plantCode: latest.plantCode,
+    cropName: latest.cropName || '',
+    cropVariety: latest.cropVariety || '',
+    cropCode: latest.cropCode || '',
+    unit: latest.unit || '株',
+    plantingMode: latest.plantingMode,
+    endTime: latest.endTime,
+    status: latest.status
+  }
+  inboundUnifiedOpen.value = true
+}
+function closeInboundUnified() {
+  inboundUnifiedOpen.value = false
+  inboundUnifiedRecord.value = null
+}
+async function handleInboundSuccess() {
+  closeInboundUnified()
+  await loadItems()
+}
+
+// 2026-07-22 P0 修复：移入/移出记录查看
+function handleViewMoveRecords(record) {
+  currentRecord.value = record
+  setMoveRecordsOpen(true)
+}
+
+// 2026-07-22 P0 修复：只读判断（用于 DailyRecordModal）
+const isReadOnly = (r) => {
+  if (!r) return false
+  return Boolean(
+    r.status === PlantingStatus.ENDED ||
+    r.status === PlantingStatus.HARVESTED ||
+    r.status === 'cancelled' ||
+    r.endType === 'normal' ||
+    r.endType === 'abnormal'
+  )
 }
 
 // ==================== 搜索/重置 ====================

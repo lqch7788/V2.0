@@ -368,3 +368,15 @@ export async function resetPlantings() {
     method: 'post'
   })
 }
+
+/**
+ * 2026-07-22 P0 修复：获取种植移入/移出履历（1:1 迁移自 V1.1 apiPlantingService.ts L495-498）
+ * @param {string} plantingId
+ * @returns {Promise<Array>}
+ */
+export async function getPlantingMoveRecords(plantingId) {
+  return await request({
+    url: `/plantings/${plantingId}/move-records`,
+    method: 'get'
+  })
+}

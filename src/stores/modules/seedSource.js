@@ -276,6 +276,35 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     return results
   }
 
+  /**
+   * 2026-07-22 P0：冲销入库流水（V1.1 useSeedSourceStore.reverseInbound 1:1 迁移）
+   * 用于 DetailModal 入库记录 Tab 撤销按钮
+   * @param {string} seedSourceId
+   * @param {{inboundRecordId: string, reason: string}} payload
+   */
+  const reverseInbound = async (seedSourceId, payload) => {
+    try {
+      await enhancedApiClient.post(`/seed-sources/${seedSourceId}/reverse-inbound`, payload)
+    } catch (e) {
+      console.error('[reverseInbound] 冲销失败:', e)
+      throw e
+    }
+  }
+
+  /**
+   * 2026-07-22 P0：撤销留种回流（V1.1 useSeedSourceStore.revokeCirculation 1:1 迁移）
+   * 用于 DetailModal 入库记录 Tab 撤销回流按钮
+   * @param {{circulationId: string, reason: string}} payload
+   */
+  const revokeCirculation = async (payload) => {
+    try {
+      await enhancedApiClient.post(`/seed-sources/circulation/${payload.circulationId}/revoke`, { reason: payload.reason })
+    } catch (e) {
+      console.error('[revokeCirculation] 撤销失败:', e)
+      throw e
+    }
+  }
+
   return {
     // state
     items,
@@ -292,6 +321,8 @@ export const useSeedSourceStore = defineStore('seedSource', () => {
     checkDeletable,
     endSeedSource,
     createFromTransfer,
+    reverseInbound,
+    revokeCirculation,
     clearError
   }
 })

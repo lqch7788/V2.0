@@ -208,7 +208,8 @@
 /**
  * 育苗管理主页面（完全重写 - 1:1 对齐 V1.1 SeedlingPage.tsx）
  */
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import SeedlingFilter from '@/components/farm/seedling/components/SeedlingFilter.vue'
 import SeedlingTable from '@/components/farm/seedling/components/SeedlingTable.vue'
@@ -351,6 +352,15 @@ const loadDictItems = () => {
   } catch {}
 }
 
+// 2026-07-22 P0-修复：添加 `areas` 选项（对齐 V1.1 L139-141，从 planting_area 字典获取，用于定植操作）
+const areas = computed(() => {
+  try {
+    return getDictItems('planting_area').map(d => ({ value: d.dictCode, label: d.dictLabel }))
+  } catch {
+    return []
+  }
+})
+
 // ========== 操作处理（严格对齐 V1.1） ==========
 
 const handleAdd = () => {
@@ -415,6 +425,8 @@ const handleInbound = (record) => {
 }
 
 const handleInboundSuccess = async () => {
+  // 对齐 V1.1 L304-307：toast 提示入库成功
+  ElMessage.success('入库成功')
   inboundModal.value = { open: false, record: null }
   await loadItems()
 }
@@ -566,5 +578,41 @@ onMounted(async () => {
   loadDictItems()
   await loadItems()
   await loadSeedSources()
+  // 2026-07-22 P0-修复：扫码跳转 — 解析 URL ?labelNumber= 参数，自动打开标签管理弹窗
+  // 对齐 V1.1 L177-211
+  await handleLabelNumberScan()
 })
+
+// 2026-07-22 P0-修复：扫码跳转（对齐 V1.1 L177-211）
+const route = useRoute()
+const router = useRouter()
+// labelManageRecord / autoSelectLabelNumber 已在 L281-282 声明，此处复用
+
+const handleLabelNumberScan = async () => {
+  const labelNumber = route.query.labelNumber
+  if (!labelNumber) return
+  let cancelled = false
+  try {
+    // 使用 enhancedApiClient（V1.1 useSearchParams 扫码跳转逻辑）
+    const { enhancedApiClient } = await import('@/lib/apiClient')
+    const res = await enhancedApiClient.get(`/plant-labels/by-number/${encodeURIComponent(String(labelNumber))}`)
+    const label = res?.label || res
+    if (!label || !label.seedlingId || cancelled) return
+    // 从 labelNumber 提取 seedlingCode（格式：{seedlingCode}-{4位序号}）
+    const parts = String(labelNumber).split('-')
+    const seedlingCode = parts.length > 1 ? parts.slice(0, -1).join('-') : labelNumber
+    // 从 store 中查找对应记录
+    const targetRecord = seedlingStore.items.find(s => s.id === String(label.seedlingId))
+    labelManageRecord.value = targetRecord || { id: String(label.seedlingId), seedlingCode }
+    autoSelectLabelNumber.value = String(labelNumber)
+    labelManageModalVisible.value = true
+    // 清理 URL 参数，避免刷新重复打开
+    const nextQuery = { ...route.query }
+    delete nextQuery.labelNumber
+    router.replace({ query: nextQuery })
+  } catch {
+    // 扫码查询失败，静默处理
+  }
+  onUnmounted(() => { cancelled = true })
+}
 </script>

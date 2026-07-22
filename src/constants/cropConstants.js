@@ -218,3 +218,87 @@ export const STOCK_STATUS_MAP = {
 
 // ========== 默认作物编码（兜底值） ==========
 export const DEFAULT_CROP_CODE = 'OT0000000000'
+
+// ========== 2026-07-22 1:1 迁移自 V1.1 cropConstants.ts：每日记录字段映射 ==========
+
+// 浇水方式映射（16 种主流浇水方式，覆盖人工/滴灌/喷灌/漫灌/其他 5 类）
+export const WATERING_METHOD_MAP = {
+  // 人工类
+  manual_watering: '人工浇水',
+  water_pot: '浇水壶',
+  manual_dip: '人工浸盆',
+  // 滴灌类
+  drip_irrigation: '滴灌',
+  drip_tube: '滴管',
+  drip_emitter: '滴箭',
+  drip_tape: '滴灌带',
+  // 喷灌类
+  sprinkler: '喷灌',
+  spray: '喷淋',
+  mist: '喷雾',
+  micro_sprinkler: '微喷',
+  atomization: '雾化',
+  // 漫灌/沟灌类
+  flood: '漫灌',
+  furrow: '沟灌',
+  basin: '淹灌',
+  // 其他
+  seepage: '渗灌',
+  root_dip: '蘸根'
+}
+
+// 浇水量单位映射（7 种单位覆盖小量到大宗）
+export const WATERING_UNIT_MAP = {
+  ml: '毫升',
+  L: '升',
+  kg: '公斤',
+  pot: '瓢',
+  barrel: '桶',
+  ton: '吨',
+  m3: '立方米'
+}
+
+// 施肥类型映射
+export const FERTILIZER_CATEGORY_MAP = {
+  foliar: '叶面肥',
+  base: '基肥',
+  top: '追肥',
+  dressing: '冲施肥',
+  organic: '有机肥',
+  compound: '复合肥',
+  other: '其他'
+}
+
+// 药剂类型映射
+export const PESTICIDE_CATEGORY_MAP = {
+  fungicide: '杀菌剂',
+  insecticide: '杀虫剂',
+  herbicide: '除草剂',
+  acaricide: '杀螨剂',
+  bio: '生物制剂',
+  other: '其他'
+}
+
+// 施用方式映射（施肥/用药共用）
+export const APPLICATION_METHOD_MAP = {
+  spray: '喷雾',
+  pour: '浇灌',
+  dip: '蘸根',
+  spread: '撒施',
+  dust: '喷粉',
+  other: '其他'
+}
+
+// 稀释方式映射
+export const DILUTION_TYPE_MAP = {
+  dilute: '稀释',
+  dry: '干施'
+}
+
+// 用量单位映射（施肥/用药共用，4 种标准重量/体积单位）
+export const FEED_UNIT_MAP = {
+  kg: '千克(kg)',
+  g: '克(g)',
+  L: '升(L)',
+  ml: '毫升(ml)'
+}

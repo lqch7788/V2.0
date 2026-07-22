@@ -170,6 +170,69 @@ export const usePlantLabelStore = defineStore('plantLabel', () => {
     }
   }
 
+  /**
+   * 2026-07-22 P0 修复：实现 submitMove 真正逻辑（V1.1 usePlantLabelStore.submitMove 1:1 对齐）
+   * 移入/移出标签操作 — POST /plant-labels/:id/move
+   * @param {string} labelId - 标签ID
+   * @param {Object} payload - { operationType: 'move_in'|'move_out', labelNumber, targetArea, operationDate, remarks }
+   * @returns {Promise<boolean>} 成功返回 true
+   */
+  const submitMove = async (labelId, payload) => {
+    try {
+      const { enhancedApiClient } = await import('@/lib/apiClient')
+      const res = await enhancedApiClient.post(`/plant-labels/${labelId}/move`, {
+        operationType: payload.operationType,
+        targetArea: payload.targetArea,
+        operationDate: payload.operationDate,
+        remarks: payload.remarks
+      })
+      if (res && (res.success || res.id || res === true)) {
+        // 刷新该标签的履历
+        if (labelId) {
+          const resumeRes = await api.getPlantLabelResumes(labelId)
+          let resumeList = []
+          if (Array.isArray(resumeRes)) resumeList = resumeRes
+          else if (resumeRes && Array.isArray(resumeRes.data)) resumeList = resumeRes.data
+          else if (resumeRes && Array.isArray(resumeRes.items)) resumeList = resumeRes.items
+          resumeMap.value = { ...resumeMap.value, [labelId]: resumeList }
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('[usePlantLabelStore] submitMove 失败:', error)
+      return false
+    }
+  }
+
+  /**
+   * 2026-07-22 P0 修复：实现 submitMark 真正逻辑（V1.1 usePlantLabelStore.submitMark 1:1 对齐）
+   * 给标签分配标记 — POST /plant-labels/marks/assign
+   * @param {string} markId - 标记ID
+   * @param {string[]} labelIds - 标签ID列表
+   * @returns {Promise<boolean>} 成功返回 true
+   */
+  const submitMark = async (markId, labelIds) => {
+    try {
+      const { enhancedApiClient } = await import('@/lib/apiClient')
+      const res = await enhancedApiClient.post('/plant-labels/marks/assign', {
+        mark_id: markId,
+        label_ids: Array.isArray(labelIds) ? labelIds : [labelIds]
+      })
+      if (res && (res.success || res.id || res === true)) {
+        // 刷新相关标签的履历
+        if (Array.isArray(labelIds) && labelIds.length > 0) {
+          await loadResumesForLabels(labelIds)
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('[usePlantLabelStore] submitMark 失败:', error)
+      return false
+    }
+  }
+
   return {
     // 状态
     labels,
@@ -183,6 +246,9 @@ export const usePlantLabelStore = defineStore('plantLabel', () => {
     loadResumes,
     loadResumesForLabels,
     loadMarks,
-    batchCreateLabels
+    batchCreateLabels,
+    // 2026-07-22 新增：移入/移出 + 标记分配
+    submitMove,
+    submitMark
   }
 })

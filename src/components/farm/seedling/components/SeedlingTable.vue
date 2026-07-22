@@ -60,9 +60,8 @@
           <col class="slt-col" style="width: 8%;" />
           <col class="slt-col" style="width: 8%;" />
           <col class="slt-col" style="width: 8%;" />
-          <col class="slt-col" style="width: 8%;" />
-          <col class="slt-col" style="width: 8%;" />
           <col class="slt-col" style="width: 6%;" />
+          <col class="slt-col" style="width: 5%;" />
           <col class="slt-col slt-col-op" style="width: 14%;" />
         </colgroup>
         <!-- 表头（对齐 V1.1 L455-486）-->
@@ -198,7 +197,7 @@
       <el-pagination
         v-model:current-page="localPagination.current"
         v-model:page-size="localPagination.pageSize"
-        :page-sizes="[10, 20, 50]"
+        :page-sizes="[10, 20, 50, 100]"
         :total="data.length"
         layout="total, sizes, prev, pager, next, jumper"
         background
@@ -386,7 +385,7 @@ const getInboundTitle = (r) => {
 
 /* ===== 表格行 ===== */
 .slt-tr { border-bottom: 1px solid #d1d5db; transition: background-color 0.15s; }
-.slt-tr:hover { background-color: #ecfdf5; }
+.slt-tr:hover { background-color: #f9fafb; }
 
 /* ===== 单元格 ===== */
 .slt-td { padding: 0.75rem 1rem; font-size: 0.875rem; white-space: nowrap; vertical-align: middle; }

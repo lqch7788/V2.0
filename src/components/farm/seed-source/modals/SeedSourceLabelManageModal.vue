@@ -1,25 +1,33 @@
+<!--
+  种源标签管理弹窗（V1.1 1:1 重写版）
+  V1.1 源文件：src/components/farm/seed-source/modals/SeedSourceLabelManageModal.tsx（643 行）
+  迁移目标：1:1 保留 V1.1 所有字段、事件、数据展示、交互流程
+  迁移规范：
+    - V1.1 UnifiedModal → V2.0 el-dialog + 自定义绿色渐变 header
+    - V1.1 LabelTable → 直接复用 @/components/farm/seedling/modals/LabelTable.vue（结构完全一致）
+    - V1.1 LabelResumePanel → 直接复用 @/components/farm/seedling/modals/LabelResumePanel.vue
+    - V1.1 AddResumeForm → 直接复用 @/components/farm/seedling/modals/AddResumeForm.vue
+    - V1.1 showAlert → V2.0 ElMessage/ElMessageBox
+    - V1.1 useAuthStore → V2.0 useUserStore（V2.0 统一用户 store）
+    - V1.1 usePlantLabelStore.generateBatchLabels → V2.0 enhancedApiClient.post('/plant-labels/generate-batch')
+  功能：标签列表/搜索/分页、履历（时间线+表格）、新增履历（移入/移出/打标记/作废）、
+        补充生成、批量作废、导出（可选字段+可选范围）
+-->
 <template>
-  <!--
-    种源标签管理弹窗（V1.1 1:1 迁移版）
-    V1.1源文件：src/components/farm/seed-source/modals/SeedSourceLabelManageModal.tsx
-    功能：种源标签全生命周期管理（两栏布局：标签列表 + 履历面板）
-  -->
   <el-dialog
-    :model-value="visible"
-    :title="`种源标签管理 - ${seedSourceCode}`"
+    v-model="dialogVisible"
     width="1350px"
     top="5vh"
     :close-on-click-modal="true"
-    v-dialog-draggable
-    v-dialog-resizable
-    v-dialog-maximizable
-    @update:model-value="(v) => $emit('update:visible', v)"
+    :show-close="false"
     @close="handleClose"
   >
-    <!-- 2026-07-15: 自定义绿色渐变 header 1:1 对齐 V1.1 UnifiedModal 默认 header（最大化 + 关闭）-->
+    <!-- 自定义绿色渐变 header 1:1 对齐 V1.1 UnifiedModal（最大化 + 关闭） -->
     <template #header>
       <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-white">{{ `种源标签管理 - ${seedSourceCode}` }}</h3>
+        <h3 class="text-lg font-semibold text-white">
+          {{ `种源标签管理 - ${seedSourceCode}` }}
+        </h3>
         <div class="flex items-center gap-1">
           <button
             type="button"
@@ -41,278 +49,62 @@
         </div>
       </div>
     </template>
-    <!-- 主体两栏：左 LabelTable + 右 LabelResumePanel（对齐 V1.1，无顶部统计卡片）-->
+
+    <!-- 主体：左侧标签列表 + 右侧履历（V1.1 1:1：UnifiedModal enableDrag/enableResize/showMaximize/size="xxxl"/showFooter={false}） -->
     <div class="flex gap-4" style="min-height: 600px">
-      <!-- 左：标签列表（V1.1 1:1：4 列 + 搜索框带图标 + 选中行绿色高亮）-->
-      <div class="w-1/2 border border-gray-200 rounded-lg overflow-hidden flex flex-col">
-        <div class="px-3 py-2 border-b border-gray-200 flex items-center gap-2">
-          <div class="relative flex-1">
-            <el-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"><Search /></el-icon>
-            <input
-              v-model="searchText"
-              type="text"
-              placeholder="搜索标签编号..."
-              class="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-          <el-button size="small" :disabled="selectedIds.size === 0" @click="clearSelection">取消选择</el-button>
-        </div>
-        <el-table
-          v-loading="loading"
-          :data="pagedLabels"
-          :row-key="(row) => row.id"
-          :row-class-name="labelRowClass"
-          @row-click="handleSelectLabel"
-          @selection-change="handleSelectionChange"
-          height="450"
-          size="small"
-          :row-style="{ cursor: 'pointer' }"
-        >
-          <el-table-column type="selection" width="40" />
-          <el-table-column label="标签编号" prop="labelNumber" min-width="160" show-overflow-tooltip />
-          <el-table-column label="移入位置" min-width="140" show-overflow-tooltip>
-            <template #default="{ row }">
-              <span class="inline-flex items-center gap-1">
-                <span>{{ row.moveInAreaName || '-' }}</span>
-                <span
-                  v-if="row.moveInAreaName"
-                  class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-blue-100 text-blue-600 text-[9px] font-bold cursor-help"
-                  title="种源标签所在的具体仓库位置"
-                >?</span>
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="移入日期" prop="moveInDate" min-width="110" />
-          <el-table-column label="数量/状态" min-width="100" align="right">
-            <template #default="{ row }">
-              <span class="font-medium">{{ row.quantity || 0 }} {{ unit || '粒' }}</span>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div class="px-3 py-2 border-t border-gray-200 flex items-center justify-end">
-          <el-pagination
-            v-model:current-page="labelPage"
-            :page-size="20"
-            :total="filteredLabels.length"
-            layout="total, prev, pager, next"
-            small
-            background
+      <!-- 左：标签列表（V1.1 LabelTable 1:1：搜索 + 多选 + 分页 + 选中行绿色高亮） -->
+      <div class="w-1/2 border border-gray-200 rounded-lg overflow-hidden">
+        <LabelTable
+          :labels="paginatedLabels"
+          :selected-label-id="selectedLabelId"
+          :search-text="searchText"
+          :page="labelPage"
+          :total-pages="labelTotalPages"
+          :loading="labelsLoading"
+          :selected-ids="selectedIds"
+          :unit="unit"
+          @update:search-text="handleSearchChange"
+          @select-label="handleSelectLabel"
+          @page-change="(p) => (labelPage = p)"
+          @toggle-select="toggleSelectLabel"
+          @toggle-select-all="toggleSelectAll"
+          @clear-selection="clearSelection"
+        />
+      </div>
+
+      <!-- 右：履历面板（V1.1 LabelResumePanel 1:1：selectedLabel + resumes + loading） -->
+      <div class="w-1/2 border border-gray-200 rounded-lg overflow-hidden">
+        <div class="flex-1 overflow-y-auto p-3">
+          <LabelResumePanel
+            :selected-label="selectedLabel"
+            :resumes="selectedResumes"
+            :loading="resumeLoading"
           />
         </div>
       </div>
-
-      <!-- 右：履历面板（V1.1 1:1：时间线/表格切换，无"新增履历"按钮）-->
-      <div class="w-1/2 border border-gray-200 rounded-lg flex flex-col">
-        <div class="px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-          <span class="text-sm font-semibold">
-            履历记录（{{ resumes.length }} 条）
-          </span>
-          <!-- V1.1 1:1：时间线/表格 切换按钮组 -->
-          <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
-            <button
-              type="button"
-              class="flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors"
-              :class="resumeViewMode === 'timeline' ? 'bg-white shadow text-emerald-700 font-medium' : 'text-gray-500 hover:text-gray-700'"
-              @click="resumeViewMode = 'timeline'"
-            >
-              <el-icon><Clock /></el-icon> 时间线
-            </button>
-            <button
-              type="button"
-              class="flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors"
-              :class="resumeViewMode === 'table' ? 'bg-white shadow text-emerald-700 font-medium' : 'text-gray-500 hover:text-gray-700'"
-              @click="resumeViewMode = 'table'"
-            >
-              <el-icon><List /></el-icon> 表格
-            </button>
-          </div>
-        </div>
-        <div class="flex-1 overflow-y-auto p-3">
-          <!-- 未选择标签：地图标记 + 提示（V1.1 风格）-->
-          <div v-if="!selectedLabelId" class="py-12 text-center text-gray-400">
-            <el-icon :size="48" class="mb-3 text-gray-300"><MapPin /></el-icon>
-            <p>请在左侧选择一个标签查看履历</p>
-          </div>
-          <!-- 选中标签无履历：地图标记 + 暂无履历记录 -->
-          <div v-else-if="resumes.length === 0" class="py-12 text-center text-gray-400">
-            <el-icon :size="48" class="mb-3 text-gray-300"><MapPin /></el-icon>
-            <p>暂无履历记录</p>
-          </div>
-          <!-- 时间线视图 -->
-          <el-timeline v-else-if="resumeViewMode === 'timeline'">
-            <el-timeline-item
-              v-for="r in resumes"
-              :key="r.id"
-              :timestamp="r.operationDate"
-              :type="resumeType(r.operationType)"
-            >
-              <strong>{{ resumeActionLabel(r.operationType) }}</strong>
-              <span v-if="r.operatorName" class="ml-2 text-gray-500">操作人：{{ r.operatorName }}</span>
-              <span v-if="r.toAreaName" class="ml-2 text-gray-500">→ {{ r.toAreaName }}</span>
-              <span v-if="r.fromAreaName" class="ml-2 text-gray-500">从 {{ r.fromAreaName }}</span>
-              <div v-if="r.reason" class="text-sm text-gray-600 mt-1">{{ r.reason }}</div>
-            </el-timeline-item>
-          </el-timeline>
-          <!-- 表格视图（V1.1 1:1：9 列详细表格）-->
-          <div v-else class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
-            <table class="w-full text-xs">
-              <thead class="bg-blue-500 text-white sticky top-0">
-                <tr>
-                  <th class="px-2 py-2 text-left whitespace-nowrap">日期</th>
-                  <th class="px-2 py-2 text-left whitespace-nowrap">操作</th>
-                  <th class="px-2 py-2 text-left">从区域</th>
-                  <th class="px-2 py-2 text-left">到区域</th>
-                  <th class="px-2 py-2 text-right whitespace-nowrap">数量变化</th>
-                  <th class="px-2 py-2 text-right whitespace-nowrap">剩余</th>
-                  <th class="px-2 py-2 text-left">标记</th>
-                  <th class="px-2 py-2 text-left">操作员</th>
-                  <th class="px-2 py-2 text-left">备注</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <tr v-for="r in resumes" :key="r.id" class="hover:bg-gray-50 align-top">
-                  <td class="px-2 py-1.5 whitespace-nowrap">{{ r.operationDate || '-' }}</td>
-                  <td class="px-2 py-1.5">
-                    <span class="inline-block px-1.5 py-0.5 rounded text-xs font-medium" :class="resumeOpClass(r.operationType)">
-                      {{ resumeActionLabel(r.operationType) }}
-                    </span>
-                  </td>
-                  <td class="px-2 py-1.5 text-gray-600">{{ r.fromAreaName || '-' }}</td>
-                  <td class="px-2 py-1.5 text-gray-600">{{ r.toAreaName || '-' }}</td>
-                  <td class="px-2 py-1.5 text-right">
-                    <span v-if="r.quantityChange != null" :class="r.quantityChange > 0 ? 'text-emerald-600' : 'text-orange-600'">
-                      {{ r.quantityChange > 0 ? '+' : '' }}{{ r.quantityChange }}
-                    </span>
-                    <span v-else>-</span>
-                  </td>
-                  <td class="px-2 py-1.5 text-right text-gray-600">{{ r.quantityAfter != null ? r.quantityAfter : '-' }}</td>
-                  <td class="px-2 py-1.5">
-                    <span v-if="r.markName" class="inline-block px-1.5 py-0.5 rounded text-xs text-white" :style="{ backgroundColor: r.markColor || '#9ca3af' }">
-                      {{ r.markName }}
-                    </span>
-                    <span v-else>-</span>
-                  </td>
-                  <td class="px-2 py-1.5 text-gray-600">{{ r.operatorName || '-' }}</td>
-                  <td class="px-2 py-1.5 text-gray-500 max-w-[160px] truncate" :title="r.reason || ''">{{ r.reason || '-' }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- V1.1 1:1：新增履历内嵌表单（绿色背景栏，在底部操作栏上方）-->
-    <div v-if="showAddResume" class="px-4 py-3 border-t border-emerald-200 bg-emerald-50 flex-shrink-0">
-      <div class="text-xs font-semibold text-emerald-900 mb-2">
-        新增履历 — 当前标签：{{ selectedLabel?.labelNumber || '-' }}
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <!-- 4 个操作类型 Tab（移入/移出/打标记/作废） -->
-        <button
-          v-for="opt in ADD_OP_TYPE_OPTIONS"
-          :key="opt.v"
-          type="button"
-          class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium"
-          :class="addOpType === opt.v
-            ? opt.cls + ' ring-2 ring-offset-1 ring-emerald-400'
-            : 'bg-white text-gray-600 border border-gray-300'"
-          @click="handleOpTypeChange(opt.v)"
-        >
-          <component :is="opt.icon" class="w-3 h-3" />{{ opt.label }}
-        </button>
+    <!-- V1.1 1:1：新增履历表单（V1.1 用 <AddResumeForm> 组件，V2.0 直接复用 AddResumeForm.vue） -->
+    <AddResumeForm
+      v-if="showAddResume"
+      :selected-label="selectedLabel"
+      @submitted="handleResumeSubmitted"
+      @cancel="showAddResume = false"
+    />
 
-        <!-- 操作日期 -->
-        <input
-          v-model="addOpDate"
-          type="date"
-          class="px-2 py-1 border border-gray-300 rounded text-xs h-7"
-        />
-
-        <!-- 区域输入（移入/移出用） -->
-        <input
-          v-if="addOpType !== 'mark' && addOpType !== 'void'"
-          v-model="addAreaName"
-          type="text"
-          :placeholder="addOpType === 'move_in' ? '移入到哪个区域（如：东区-A区）' : '移出到哪个区域（如：隔离区）'"
-          class="px-2 py-1 border border-gray-300 rounded text-xs h-7 w-48"
-        />
-
-        <!-- 标记选择（打标记用） -->
-        <div v-if="addOpType === 'mark'" class="flex gap-1">
-          <button
-            v-for="m in MARK_OPTIONS"
-            :key="m.id"
-            type="button"
-            class="px-2 py-1 rounded text-xs font-medium text-white"
-            :class="addMarkId === m.id ? 'ring-2 ring-offset-1 ring-emerald-400' : 'opacity-70'"
-            :style="{ backgroundColor: m.color }"
-            @click="addMarkId = m.id"
-          >{{ m.name }}</button>
-        </div>
-
-        <!-- 数量变更（非标记操作时显示） -->
-        <input
-          v-if="addOpType !== 'mark'"
-          v-model="quantityChange"
-          type="number"
-          placeholder="数量变更（如：-5, +3）"
-          class="px-2 py-1 border border-gray-300 rounded text-xs h-7 w-36"
-        />
-
-        <!-- 原因（非标记操作时显示） -->
-        <input
-          v-if="addOpType !== 'mark'"
-          v-model="reason"
-          type="text"
-          placeholder="原因（如：移栽损耗）"
-          class="px-2 py-1 border border-gray-300 rounded text-xs h-7 flex-1 min-w-[120px]"
-        />
-
-        <!-- 备注（通用） -->
-        <input
-          v-model="addRemarks"
-          type="text"
-          placeholder="备注（可选）"
-          class="px-2 py-1 border border-gray-300 rounded text-xs h-7 flex-1 min-w-[120px]"
-        />
-
-        <!-- 拍照按钮 -->
-        <input ref="photoInputRef" type="file" accept="image/*" capture="environment" class="hidden" @change="handlePhotoChange" />
-        <el-button size="small" :title="addPhotoBase64 ? '已附图' : '拍照/选择图片'" @click="photoInputRef?.click()">
-          <el-icon><Camera /></el-icon>
-          {{ addPhotoBase64 ? '已附图' : '拍照' }}
-        </el-button>
-
-        <!-- 提交/取消按钮 -->
-        <el-button size="small" :loading="addSubmitting" @click="handleAddResume">
-          {{ addSubmitting ? '提交中...' : '确认' }}
-        </el-button>
-        <el-button size="small" @click="closeAddResume">取消</el-button>
-      </div>
-
-      <!-- 图片预览 -->
-      <div v-if="addPhotoBase64" class="mt-2 flex items-center gap-2">
-        <img :src="addPhotoBase64" alt="预览" class="w-16 h-16 object-cover rounded border border-gray-300" />
-        <button type="button" class="text-xs text-red-500 hover:text-red-700" @click="addPhotoBase64 = null">
-          删除图片
-        </button>
-      </div>
-    </div>
-
-    <!-- V1.1 1:1：补充生成内嵌表单（蓝色背景栏，不是 el-dialog） -->
+    <!-- V1.1 1:1：补充生成表单（内嵌蓝色背景栏，V1.1 L430-459 1:1） -->
     <div v-if="showBatchGenerate" class="px-4 py-3 border-t border-blue-200 bg-blue-50 flex-shrink-0">
       <div class="text-xs font-semibold text-blue-900 mb-2">补充生成标签</div>
       <div class="flex flex-wrap items-center gap-2">
         <input
-          v-model="generateForm.count"
+          v-model="batchCount"
           type="number"
           placeholder="生成数量"
           class="px-2 py-1 border border-gray-300 rounded text-xs h-7 w-24"
         />
         <div class="flex items-center gap-1">
           <input
-            v-model="generateForm.areaName"
+            v-model="batchAreaName"
             type="text"
             placeholder="区域（如：A区-1号架）"
             class="px-2 py-1 border border-gray-300 rounded text-xs h-7 w-40"
@@ -322,56 +114,201 @@
             title="该种源标签所在的具体仓库位置（如：A区-1号架-3层），非育苗温室区域"
           >?</span>
         </div>
-        <el-button size="small" :loading="batchGenerating" :disabled="batchGenerating" @click="handleBatchGenerate">
+        <el-button
+          size="small"
+          :loading="batchGenerating"
+          :disabled="batchGenerating"
+          class="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600"
+          @click="handleBatchGenerate"
+        >
           {{ batchGenerating ? '生成中...' : '生成' }}
         </el-button>
-        <el-button size="small" @click="showBatchGenerate = false; generateForm.areaName = ''">取消</el-button>
+        <el-button
+          size="small"
+          class="!bg-red-600 hover:!bg-red-700 !text-white !border-red-600"
+          @click="showBatchGenerate = false"
+        >
+          取消
+        </el-button>
       </div>
     </div>
 
-    <!-- V1.1 1:1：底部操作栏（4 个按钮实色，关闭由 el-dialog 自带 X 处理）-->
+    <!-- V1.1 1:1：底部操作栏（5 个按钮：新增履历 / 补充生成 / 导出 / 批量作废 / 关闭） -->
     <div class="mt-4 p-4 border-t border-gray-200 flex justify-between items-center flex-shrink-0">
       <span class="text-xs text-gray-400">
         共 {{ filteredLabels.length }} 个标签
       </span>
       <div class="flex items-center gap-2">
+        <!-- V1.1 1:1：新增履历按钮 disabled 逻辑 -->
         <el-button
-          @click="showAddResume = !showAddResume"
-          :disabled="!selectedLabelId || selectedLabelStatus === 'voided' || selectedIds.size > 0"
-          :title="!selectedLabelId ? '请先在左侧选择标签' : selectedLabelStatus === 'voided' ? '已作废标签无法添加履历' : selectedIds.size > 0 ? '多选模式下请先取消勾选' : ''"
           size="small"
+          :disabled="!selectedLabelId || selectedLabel?.status === 'voided' || selectedIds.size > 0"
+          :title="selectedIds.size > 0 ? '多选模式下请先取消勾选，再点击行选择单个标签' : !selectedLabelId ? '请先在左侧选择标签' : selectedLabel?.status === 'voided' ? '已作废标签无法添加履历' : '为当前标签新增履历'"
+          @click="showAddResume = !showAddResume"
         >
           <el-icon><Plus /></el-icon>
           新增履历
         </el-button>
-        <el-button @click="showBatchGenerate = !showBatchGenerate" size="small" class="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600">
+        <!-- V1.1 1:1：补充生成按钮 -->
+        <el-button
+          size="small"
+          class="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600"
+          @click="showBatchGenerate = !showBatchGenerate"
+        >
           <el-icon><Plus /></el-icon>
           补充生成
         </el-button>
-        <el-button @click="showExportModal = true" :disabled="labels.length === 0" size="small" class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !border-emerald-600">
+        <!-- V1.1 1:1：导出按钮 -->
+        <el-button
+          size="small"
+          class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !border-emerald-600"
+          @click="handleOpenExport"
+        >
+          <el-icon><Download /></el-icon>
           导出
         </el-button>
+        <!-- V1.1 1:1：批量作废按钮（带计数 + title 提示） -->
         <el-button
-          :disabled="selectedIds.size === 0"
-          @click="showBatchVoid = true"
           size="small"
           class="!bg-red-600 hover:!bg-red-700 !text-white !border-red-600"
+          :disabled="selectedIds.size === 0"
+          :title="selectedIds.size === 0 ? '请先勾选标签' : `批量作废已选 ${selectedIds.size} 个标签`"
+          @click="handleOpenBatchVoid"
         >
+          <el-icon><Trash2 /></el-icon>
           批量作废{{ selectedIds.size > 0 ? ` (${selectedIds.size})` : '' }}
         </el-button>
-        <!-- V1.1 1:1：关闭按钮（红色实色 + X 图标）-->
-        <el-button size="small" class="!bg-red-600 hover:!bg-red-700 !text-white !border-red-600" @click="handleClose">
+        <!-- V1.1 1:1：关闭按钮（红色实色 + X 图标） -->
+        <el-button
+          size="small"
+          class="!bg-red-600 hover:!bg-red-700 !text-white !border-red-600"
+          @click="handleClose"
+        >
           <el-icon><X /></el-icon>
           关闭
         </el-button>
       </div>
     </div>
 
-    <!-- 批量作废弹窗（V1.1 红色 header 1:1 对齐）-->
-    <el-dialog v-model="showBatchVoid" :show-close="false" width="500px" append-to-body>
+    <!-- V1.1 1:1：导出弹窗（蓝色 header + 字段多选 + 范围 radio） -->
+    <el-dialog
+      v-model="exportModalOpen"
+      :show-close="false"
+      width="500px"
+      append-to-body
+    >
+      <template #header>
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
+          <h3 class="text-base font-semibold text-white flex items-center gap-2">
+            <el-icon><Download /></el-icon>
+            选择导出内容
+          </h3>
+          <button type="button" class="text-white hover:bg-blue-700 rounded p-1 transition-colors" @click="exportModalOpen = false">
+            <X :size="18" />
+          </button>
+        </div>
+      </template>
+      <div class="space-y-4">
+        <!-- V1.1 1:1：导出字段（多选 + 全选/全不选） -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold text-gray-700">导出字段（可多选）</span>
+            <div class="flex gap-1">
+              <el-button size="small" link type="primary" @click="selectAllExportFields">全选</el-button>
+              <el-button size="small" link @click="deselectAllExportFields">全不选</el-button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
+            <label
+              v-for="f in EXPORT_FIELDS"
+              :key="f.key"
+              :class="['flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm hover:bg-blue-50 transition-colors',
+                selectedExportFields.has(f.key) ? 'bg-blue-50' : '']"
+            >
+              <input
+                type="checkbox"
+                :checked="selectedExportFields.has(f.key)"
+                class="w-4 h-4 text-blue-600 rounded"
+                @change="toggleExportField(f.key)"
+              />
+              <span class="text-gray-700">{{ f.label }}</span>
+            </label>
+          </div>
+          <div class="text-xs text-gray-500 mt-1">
+            已选 {{ selectedExportFields.size }} / {{ EXPORT_FIELDS.length }} 个字段
+          </div>
+        </div>
+
+        <!-- V1.1 1:1：导出范围（已选 / 当前筛选 / 当前页） -->
+        <div>
+          <span class="text-sm font-semibold text-gray-700 block mb-2">导出范围</span>
+          <div class="flex gap-2">
+            <label :class="['flex-1 flex items-center gap-2 px-3 py-2 rounded border cursor-pointer transition-colors',
+              exportScope === 'selected' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50']">
+              <input
+                type="radio"
+                name="exportScope"
+                :checked="exportScope === 'selected'"
+                :disabled="selectedIds.size === 0"
+                class="w-4 h-4 text-blue-600"
+                @change="exportScope = 'selected'"
+              />
+              <div class="flex-1">
+                <div class="text-sm text-gray-700">已选标签</div>
+                <div class="text-xs text-gray-500">{{ selectedIds.size > 0 ? `共 ${selectedIds.size} 条` : '请先在左侧勾选标签' }}</div>
+              </div>
+            </label>
+            <label :class="['flex-1 flex items-center gap-2 px-3 py-2 rounded border cursor-pointer transition-colors',
+              exportScope === 'filtered' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50']">
+              <input
+                type="radio"
+                name="exportScope"
+                :checked="exportScope === 'filtered'"
+                class="w-4 h-4 text-blue-600"
+                @change="exportScope = 'filtered'"
+              />
+              <div class="flex-1">
+                <div class="text-sm text-gray-700">当前筛选结果</div>
+                <div class="text-xs text-gray-500">共 {{ filteredLabels.length }} 条</div>
+              </div>
+            </label>
+            <label :class="['flex-1 flex items-center gap-2 px-3 py-2 rounded border cursor-pointer transition-colors',
+              exportScope === 'currentPage' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50']">
+              <input
+                type="radio"
+                name="exportScope"
+                :checked="exportScope === 'currentPage'"
+                class="w-4 h-4 text-blue-600"
+                @change="exportScope = 'currentPage'"
+              />
+              <div class="flex-1">
+                <div class="text-sm text-gray-700">当前页</div>
+                <div class="text-xs text-gray-500">最多 {{ PAGE_SIZE }} 条</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="exportModalOpen = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmExport">
+          <el-icon><Download /></el-icon>
+          确认导出
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- V1.1 1:1：批量作废弹窗（红色 header + 作废原因 textarea + 提示） -->
+    <el-dialog
+      v-model="showBatchVoid"
+      :show-close="false"
+      width="500px"
+      append-to-body
+    >
       <template #header>
         <div class="bg-gradient-to-r from-red-500 to-red-600 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
           <h3 class="text-base font-semibold text-white flex items-center gap-2">
+            <el-icon><Trash2 /></el-icon>
             批量作废 {{ selectedIds.size }} 个标签
           </h3>
           <button type="button" class="text-white hover:bg-red-700 rounded p-1 transition-colors" @click="showBatchVoid = false">
@@ -379,472 +316,490 @@
           </button>
         </div>
       </template>
-      <el-alert type="warning" :closable="false" class="mb-3">
-        即将作废 <strong>{{ selectedIds.size }}</strong> 个标签，操作后标签状态变为"已作废"且不可再添加履历
-      </el-alert>
-      <el-form :model="voidForm" label-width="80px">
-        <el-form-item label="作废原因" required>
-          <el-input v-model="voidForm.reason" type="textarea" :rows="3" placeholder="如：标签重复、录入错误等" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showBatchVoid = false">取消</el-button>
-        <el-button type="danger" :loading="batchVoiding" :disabled="!voidForm.reason" @click="handleBatchVoid">确认作废</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 导出弹窗（V1.1 蓝色 header 1:1 对齐）-->
-    <el-dialog v-model="showExportModal" :show-close="false" width="600px" append-to-body>
-      <template #header>
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 -mx-6 -mt-4 px-6 py-3 flex items-center justify-between">
-          <h3 class="text-base font-semibold text-white flex items-center gap-2">
-            选择导出内容
-          </h3>
-          <button type="button" class="text-white hover:bg-blue-700 rounded p-1 transition-colors" @click="showExportModal = false">
-            <X :size="18" />
-          </button>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">作废原因 <span class="text-red-500">*</span></label>
+          <input
+            v-model="batchVoidReason"
+            type="text"
+            placeholder="如：标签重复、录入错误等"
+            class="px-3 py-2 border border-gray-400 rounded-lg text-sm w-full"
+          />
         </div>
-      </template>
-      <el-form label-width="100px">
-        <el-form-item label="导出范围">
-          <el-radio-group v-model="exportScope">
-            <el-radio value="selected">已选 ({{ selectedIds.size }})</el-radio>
-            <el-radio value="filtered">筛选结果 ({{ filteredLabels.length }})</el-radio>
-            <el-radio value="all">全部 ({{ labels.length }})</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="导出字段">
-          <div class="flex gap-2 mb-2">
-            <el-button size="small" @click="selectAllExportFields">全选</el-button>
-            <el-button size="small" @click="deselectAllExportFields">全不选</el-button>
-          </div>
-          <el-checkbox-group v-model="selectedExportFields">
-            <el-checkbox v-for="f in exportFieldOptions" :key="f.value" :value="f.value" :label="f.label" />
-          </el-checkbox-group>
-        </el-form-item>
-      </el-form>
+        <div class="text-sm text-gray-500">
+          将对已选的 {{ selectedIds.size }} 个标签执行作废操作，操作后标签状态变为"已作废"且不可再添加履历。
+        </div>
+      </div>
       <template #footer>
-        <el-button @click="showExportModal = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmExport">确认导出</el-button>
+        <el-button :disabled="batchVoiding" @click="showBatchVoid = false">取消</el-button>
+        <el-button
+          type="danger"
+          :loading="batchVoiding"
+          :disabled="batchVoiding || !batchVoidReason.trim()"
+          @click="handleBatchVoid"
+        >
+          {{ batchVoiding ? '作废中...' : '确认作废' }}
+        </el-button>
       </template>
     </el-dialog>
   </el-dialog>
 </template>
 
 <script setup>
+/**
+ * 种源标签管理弹窗 — 编排层
+ * 2026-07-01: 从育苗标签管理弹窗适配，支持种源标签全生命周期管理
+ * 功能：标签列表/搜索/分页、履历（时间线+表格）、新增履历（移入/移出/打标记/作废）、
+ *        补充生成、批量作废、导出（可选字段+可选范围）
+ */
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { X, Camera, ArrowRight, ArrowLeft, Stamp, Trash2, Search, Clock, List, MapPin, Maximize2, Minimize2 } from 'lucide-vue-next'
-import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { X, Download, Plus, Trash2, Maximize2, Minimize2 } from 'lucide-vue-next'
+import { todayLocal } from '@/lib/dateUtils'
 import { enhancedApiClient } from '@/lib/apiClient'
+import { usePlantLabelStore } from '@/stores/modules/plantLabel'
 import { useUserStore } from '@/stores/modules/user'
+// 复用 V1.1 1:1 三个组件（结构与 V1.1 完全一致）
+import LabelTable from '@/components/farm/seedling/modals/LabelTable.vue'
+import LabelResumePanel from '@/components/farm/seedling/modals/LabelResumePanel.vue'
+import AddResumeForm from '@/components/farm/seedling/modals/AddResumeForm.vue'
 
-/** 本地日期 YYYY-MM-DD（V1.1 todayLocal 替代） */
-function todayLocal() {
-  const d = new Date()
-  const pad = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+// V1.1 1:1：分页大小
+const PAGE_SIZE = 20
+
+// V1.1 1:1：导出可选字段（labelNumber/moveInAreaName/moveInDate/moveOutAreaName/moveOutDate/quantity/status/createTime/resumes）
+const EXPORT_FIELDS = [
+  { key: 'labelNumber', label: '标签编号', defaultChecked: true },
+  { key: 'moveInAreaName', label: '移入位置', defaultChecked: true },
+  { key: 'moveInDate', label: '移入日期', defaultChecked: true },
+  { key: 'moveOutAreaName', label: '移出位置', defaultChecked: true },
+  { key: 'moveOutDate', label: '移出日期', defaultChecked: true },
+  { key: 'quantity', label: '数量', defaultChecked: true },
+  { key: 'status', label: '状态', defaultChecked: false },
+  { key: 'createTime', label: '创建时间', defaultChecked: true },
+  { key: 'resumes', label: '履历记录（移入/移出/标记）', defaultChecked: false }
+]
+
+// V1.1 1:1：状态中文映射
+const STATUS_LABEL_MAP = {
+  active: '在用',
+  void: '已作废',
+  voided: '已作废',
+  printed: '已打印',
+  archived: '已归档',
+  disabled: '已停用'
 }
 
-/** V1.1 一致：标记选项（与后端 plant_marks 默认数据一致） */
-const MARK_OPTIONS = [
-  { id: 1, name: '正常', color: '#22c55e' },
-  { id: 2, name: '关注', color: '#f59e0b' },
-  { id: 3, name: '问题', color: '#ef4444' },
-  { id: 4, name: '优质', color: '#3b82f6' },
-]
-
-/** V1.1 一致：4 个操作类型 Tab 配置 */
-const ADD_OP_TYPE_OPTIONS = [
-  { v: 'move_in',  label: '移入',   icon: ArrowRight, cls: 'bg-emerald-100 text-emerald-700' },
-  { v: 'move_out', label: '移出',   icon: ArrowLeft,  cls: 'bg-orange-100 text-orange-700' },
-  { v: 'mark',     label: '打标记', icon: Stamp,      cls: 'bg-purple-100 text-purple-700' },
-  { v: 'void',     label: '作废',   icon: Trash2,     cls: 'bg-gray-100 text-gray-700' },
-]
+// V1.1 1:1：履历操作类型中文映射
+const OPERATION_TYPE_MAP = {
+  move_in: '移入',
+  move_out: '移出',
+  mark: '标记',
+  void: '作废'
+}
 
 const props = defineProps({
-  visible: { type: Boolean, default: false },
+  // V1.1 props 1:1
+  isOpen: { type: Boolean, default: false },
   seedSourceId: { type: String, required: true },
   seedSourceCode: { type: String, default: '' },
+  /** 标签单位（默认"粒"，种源可能为"粒/颗/kg"等） */
   unit: { type: String, default: '粒' },
-  autoSelectLabelNumber: { type: String, default: '' }
+  /** 扫码跳转时自动选中指定编号的标签 */
+  autoSelectLabelNumber: { type: String, default: '' },
+  /** 只读模式（V1.1 props 中存在，V2.0 保留以对齐 1:1） */
+  readOnly: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['update:visible', 'close'])
+const emit = defineEmits(['close', 'update:isOpen', 'success'])
 
-const loading = ref(false)
+// V1.1 1:1：Store 解构（V1.1 usePlantLabelStore 提供 labels/labelsLoading/resumeMap/resumeLoading/loadLabels/loadResumesForLabels）
+const {
+  labels,
+  labelsLoading,
+  resumeMap,
+  resumeLoading,
+  loadLabels,
+  loadResumesForLabels
+} = usePlantLabelStore()
+
+// V1.1 1:1：当前登录用户（V1.1 用 useAuthStore，V2.0 用 useUserStore 替代）
+const userStore = useUserStore()
+const currentUser = computed(() => userStore.userInfo || userStore.currentUser || {})
+
+// V1.1 1:1：el-dialog 双向绑定
+const dialogVisible = computed({
+  get: () => props.isOpen,
+  set: (v) => emit('update:isOpen', v)
+})
+
+// ---------- V1.1 1:1：标签列表状态 ----------
 const searchText = ref('')
 const labelPage = ref(1)
 const selectedLabelId = ref(null)
-const selectedLabelStatus = ref('')
 const selectedIds = ref(new Set())
-const labels = ref([])
-const resumes = ref([])
-
 const showAddResume = ref(false)
-// V1.1 1:1：履历面板视图模式（时间线 / 表格切换）
-const resumeViewMode = ref('timeline')
-// V1.1 1:1：弹窗最大化状态（顶部 header 最大化按钮）
+const showBatchVoid = ref(false)
+const batchVoidReason = ref('')
+const batchVoiding = ref(false)
+
+// ---------- V1.1 1:1：补充生成状态 ----------
+const showBatchGenerate = ref(false)
+const batchCount = ref('10')
+const batchAreaName = ref('')
+const batchGenerating = ref(false)
+
+// ---------- V1.1 1:1：导出弹窗状态 ----------
+const exportModalOpen = ref(false)
+const selectedExportFields = ref(
+  new Set(EXPORT_FIELDS.filter((f) => f.defaultChecked).map((f) => f.key))
+)
+const exportScope = ref('filtered') // 'selected' | 'filtered' | 'currentPage'
+
+// ---------- V1.1 1:1：弹窗最大化状态（顶部 header 按钮触发） ----------
 const isMaximized = ref(false)
-/** 切换最大化（仅顶部 header 按钮触发，el-dialog 内部宽度/高度自适应） */
 const toggleMaximize = () => {
   isMaximized.value = !isMaximized.value
 }
-// V1.1 1:1：4 Tab 切换 + 动态字段状态（替代 V2.0 原简化 resumeForm）
-const addOpType = ref('move_in')
-const addOpDate = ref(todayLocal())
-const addAreaName = ref('')
-const addMarkId = ref(2) // 默认关注
-const addRemarks = ref('')
-const quantityChange = ref('')
-const reason = ref('')
-const addPhotoBase64 = ref(null)
-const addSubmitting = ref(false)
-const photoInputRef = ref(null)
 
-const showBatchGenerate = ref(false)
-// V1.1 1:1：补充生成只暴露"数量 + 区域"2 个字段，start_date 由 todayLocal() 自动填
-const generateForm = ref({ count: 10, areaName: '' })
-const batchGenerating = ref(false)
+// ---------- V1.1 1:1：自动选中 ref（扫码跳转，仅执行一次） ----------
+const hasAutoSelected = ref(false)
 
-const showBatchVoid = ref(false)
-const voidForm = ref({ reason: '' })
-const batchVoiding = ref(false)
-
-const showExportModal = ref(false)
-const exportScope = ref('filtered')
-// V1.1 真实字段：labelNumber / status / quantity / createTime / moveInDate 等
-const selectedExportFields = ref(['labelNumber', 'status', 'quantity', 'createTime'])
-const exportFieldOptions = [
-  { value: 'labelNumber', label: '标签编号' },
-  { value: 'status', label: '状态' },
-  { value: 'quantity', label: '数量' },
-  { value: 'createTime', label: '创建时间' },
-  { value: 'moveInDate', label: '移入日期' },
-  { value: 'moveInAreaName', label: '所在区域' }
-]
-
-// V1.1 数据库真实状态：active / moved_out / voided
-const stats = computed(() => ({
-  total: labels.value.length,
-  active: labels.value.filter(l => l.status === 'active').length,
-  movedOut: labels.value.filter(l => l.status === 'moved_out').length,
-  voided: labels.value.filter(l => l.status === 'voided').length
-}))
-
-const filteredLabels = computed(() => {
-  if (!searchText.value) return labels.value
-  return labels.value.filter(l => (l.labelNumber || '').toLowerCase().includes(searchText.value.toLowerCase()))
-})
-
-const pagedLabels = computed(() => {
-  const start = (labelPage.value - 1) * 20
-  return filteredLabels.value.slice(start, start + 20)
-})
-
-// V1.1 数据库真实状态：active / moved_out / voided（不是 pending/printed/used）
-const statusLabel = (s) => ({ active: '正常', moved_out: '已移出', voided: '已作废' }[s] || s)
-const statusTagType = (s) => ({ active: 'success', moved_out: 'info', voided: 'danger' }[s] || '')
-
-// V1.1 真实 operation_type：move_in / move_out / void（mark 走 assign 接口不进 resume 表）
-const resumeActionLabel = (a) => ({ move_in: '移入', move_out: '移出', mark: '打标记', void: '作废', create: '创建' }[a] || a)
-const resumeType = (a) => ({ move_in: 'success', move_out: 'warning', mark: 'primary', void: 'danger', create: 'info' }[a] || '')
-// 表格视图操作类型色块（V1.1 LabelResumePanel 1:1）
-const resumeOpClass = (a) => (
-  a === 'move_in' ? 'bg-emerald-100 text-emerald-700' :
-  a === 'move_out' ? 'bg-orange-100 text-orange-700' :
-  a === 'mark' ? 'bg-purple-100 text-purple-700' :
-  'bg-red-100 text-red-700'
+// ---------- V1.1 1:1：打开弹窗时加载标签 ----------
+watch(
+  () => props.isOpen,
+  (val) => {
+    if (val && props.seedSourceId) {
+      loadLabels({ seedSourceId: props.seedSourceId })
+      hasAutoSelected.value = false
+    }
+  }
 )
 
-const labelRowClass = ({ row }) => {
-  // V1.1 1:1：选中行绿色高亮（emerald-50）
-  if (selectedLabelId.value === row.id) return '!bg-emerald-50'
-  return ''
-}
-
-const loadLabels = async () => {
-  loading.value = true
-  try {
-    // V1.1 一致：标签列表走 /plant-labels?seed_source_id=...
-    const res = await enhancedApiClient.get(`/plant-labels?seed_source_id=${props.seedSourceId}&limit=200`)
-    const list = Array.isArray(res) ? res : (res?.data || [])
-    labels.value = list
-    // 自动选中
-    if (props.autoSelectLabelNumber) {
-      const idx = labels.value.findIndex(l => l.labelNumber === props.autoSelectLabelNumber)
-      if (idx >= 0) {
-        labelPage.value = Math.floor(idx / 20) + 1
-        nextTick(() => {
-          selectedLabelId.value = labels.value[idx].id
-          selectedLabelStatus.value = labels.value[idx].status
-          loadResumes()
-        })
+// ---------- V1.1 1:1：自动选中指定编号标签 ----------
+watch(
+  [() => props.isOpen, () => props.autoSelectLabelNumber, labels],
+  () => {
+    if (props.isOpen && props.autoSelectLabelNumber && labels.value.length > 0 && !hasAutoSelected.value) {
+      const idx = labels.value.findIndex((l) => l.labelNumber === props.autoSelectLabelNumber)
+      if (idx !== -1) {
+        hasAutoSelected.value = true
+        const label = labels.value[idx]
+        selectedLabelId.value = label.id
+        labelPage.value = Math.floor(idx / PAGE_SIZE) + 1
+        loadResumesForLabels([label.id])
       }
     }
-  } catch (e) {
-    console.error('[LabelManage] 加载标签失败:', e)
-  } finally {
-    loading.value = false
   }
+)
+
+// ---------- V1.1 1:1：派生数据 ----------
+// V1.1 L126: const seedSourceLabels = labels
+const seedSourceLabels = labels
+
+// V1.1 L128-133: filteredLabels
+const filteredLabels = computed(() => {
+  if (!searchText.value) return seedSourceLabels.value
+  const q = searchText.value.toLowerCase()
+  return seedSourceLabels.value.filter((l) =>
+    (l.labelNumber || '').toLowerCase().includes(q)
+  )
+})
+
+// V1.1 L135-138: paginatedLabels
+const paginatedLabels = computed(() => {
+  const start = (labelPage.value - 1) * PAGE_SIZE
+  return filteredLabels.value.slice(start, start + PAGE_SIZE)
+})
+
+// V1.1 L140: labelTotalPages
+const labelTotalPages = computed(() =>
+  Math.max(1, Math.ceil(filteredLabels.value.length / PAGE_SIZE))
+)
+
+// V1.1 L142-144: selectedLabel
+const selectedLabel = computed(() =>
+  seedSourceLabels.value.find((l) => l.id === selectedLabelId.value)
+)
+
+// V1.1 L146-149: selectedResumes
+const selectedResumes = computed(() => {
+  if (selectedLabelId.value === null) return []
+  return resumeMap.value[selectedLabelId.value] || []
+})
+
+// ---------- V1.1 1:1：事件处理 ----------
+// V1.1 L152-158: handleSelectLabel
+const handleSelectLabel = async (labelId) => {
+  selectedLabelId.value = labelId
+  await loadResumesForLabels([labelId])
 }
 
-const loadResumes = async () => {
-  if (!selectedLabelId.value) return
-  try {
-    // V1.1 一致：履历端点 /plant-labels/:id/resumes
-    const res = await enhancedApiClient.get(`/plant-labels/${selectedLabelId.value}/resumes`)
-    resumes.value = res?.data || res?.items || []
-  } catch (e) {
-    console.error('[LabelManage] 加载履历失败:', e)
-  }
+// V1.1 L160-167: toggleSelectLabel
+const toggleSelectLabel = (labelId) => {
+  const next = new Set(selectedIds.value)
+  if (next.has(labelId)) next.delete(labelId)
+  else next.add(labelId)
+  selectedIds.value = next
 }
 
-const handleSelectLabel = (row) => {
-  selectedLabelId.value = row.id
-  selectedLabelStatus.value = row.status
-  showAddResume.value = false
-  loadResumes()
-}
-
-const handleSelectionChange = (rows) => {
-  selectedIds.value = new Set(rows.map(r => r.id))
-  if (rows.length > 1) {
-    showAddResume.value = false
-  }
-}
-
+// V1.1 L169: clearSelection
 const clearSelection = () => {
-  selectedIds.value.clear()
+  selectedIds.value = new Set()
 }
 
-const handleAddResume = async () => {
-  // V1.1 1:1：4 Tab 分支（move_in/move_out 走 resumes，mark 走 assign，void 走 resumes）
-  const labelId = selectedLabelId.value
-  if (!labelId) { ElMessage.warning('请先选择左侧标签'); return }
-  if (addOpType.value !== 'mark' && addOpType.value !== 'void' && !addAreaName.value.trim()) {
-    ElMessage.warning('请输入区域名称')
+// V1.1 L171-183: toggleSelectAll
+const toggleSelectAll = () => {
+  const pageIds = new Set(paginatedLabels.value.map((l) => l.id))
+  const allSelected = paginatedLabels.value.every((l) => selectedIds.value.has(l.id))
+  if (allSelected) {
+    const next = new Set(selectedIds.value)
+    pageIds.forEach((id) => next.delete(id))
+    selectedIds.value = next
+  } else {
+    selectedIds.value = new Set([...selectedIds.value, ...pageIds])
+  }
+}
+
+// V1.1 L186-220: handleBatchVoid（核心逻辑 1:1 — 逐个 POST /plant-labels/:id/resumes）
+const handleBatchVoid = async () => {
+  if (selectedIds.value.size === 0) {
+    ElMessage.warning('请先勾选要作废的标签')
     return
   }
-  addSubmitting.value = true
+  if (!batchVoidReason.value.trim()) {
+    ElMessage.warning('请填写作废原因')
+    return
+  }
+  batchVoiding.value = true
+  let success = 0
+  let fail = 0
   try {
-    // 操作人：从 userStore 推导（V1.1 风格）
-    const userStore = useUserStore()
-    const u = userStore.userInfo || userStore.currentUser || {}
-    const operatorName = u.realName || u.username || 'system'
-
-    // V1.1 一致：4 Tab 全部走 /plant-labels/:id/resumes 统一接口（V1.1 后端 plantLabelResumes.ts 接收 mark_id/name/color + operation_type='mark'）
-    // 避免 /plant-labels/assign 端点路由注册冲突问题
-    const markInfo = MARK_OPTIONS.find(m => m.id === addMarkId.value)
-    const payload = {
-      operation_type: addOpType.value,
-      operation_date: addOpDate.value,
-      operator_name: operatorName,
-      remarks: addRemarks.value.trim() || null,
-      image_base64: addPhotoBase64.value || null
-    }
-    // 移入/移出 需要 to_area_name（mark / void 不需要）
-    if (addOpType.value !== 'mark' && addOpType.value !== 'void') {
-      payload.to_area_name = addAreaName.value.trim()
-    }
-    // 标记需要 mark_id/name/color（V1.1 后端 resume 表字段）
-    if (addOpType.value === 'mark') {
-      payload.mark_id = addMarkId.value
-      payload.mark_name = markInfo?.name || ''
-      payload.mark_color = markInfo?.color || ''
-    }
-    // 数量变更（可选）+ 乐观锁 expected_quantity（非 mark Tab）
-    if (addOpType.value !== 'mark' && quantityChange.value !== '' && quantityChange.value !== null) {
-      payload.quantity_change = Number(quantityChange.value)
-      if (selectedLabel.value?.quantity !== undefined) {
-        payload.expected_quantity = selectedLabel.value.quantity
+    for (const labelId of selectedIds.value) {
+      try {
+        await enhancedApiClient.post(`/plant-labels/${labelId}/resumes`, {
+          operation_type: 'void',
+          operation_date: todayLocal(),
+          operator_name: currentUser.value?.realName || 'system',
+          reason: batchVoidReason.value.trim(),
+          quantity_change: 0
+        })
+        success++
+      } catch {
+        fail++
       }
     }
-    // 原因（可选，非 mark Tab）
-    if (addOpType.value !== 'mark' && reason.value.trim()) {
-      payload.reason = reason.value.trim()
+    ElMessage.success(`批量作废完成：成功 ${success} 个${fail > 0 ? `，失败 ${fail} 个` : ''}`)
+    showBatchVoid.value = false
+    batchVoidReason.value = ''
+    selectedIds.value = new Set()
+    await loadLabels({ seedSourceId: props.seedSourceId })
+    if (selectedLabelId.value && selectedIds.value.has(selectedLabelId.value)) {
+      selectedLabelId.value = null
     }
-
-    const res = await enhancedApiClient.post(`/plant-labels/${labelId}/resumes`, payload)
-    if (res && res.success === false) {
-      ElMessage.error('录入失败：' + (res.error || '未知错误'))
-      return
-    }
-
-    ElMessage.success('履历已添加')
-    closeAddResume()
-    await loadResumes()
-    await loadLabels()
   } catch (e) {
-    console.error('[SeedSourceLabelManageModal] 新增履历失败:', e)
-    ElMessage.error('网络错误：' + (e?.message || String(e)))
+    console.error('[SeedSourceLabelManageModal] 批量作废失败:', e)
+    const msg = e instanceof Error ? e.message : String(e)
+    ElMessage.error('网络错误：' + msg)
   } finally {
-    addSubmitting.value = false
+    batchVoiding.value = false
   }
 }
 
+// V1.1 L222-225: handleSearchChange
+const handleSearchChange = (v) => {
+  searchText.value = v
+  labelPage.value = 1
+}
+
+// V1.1 L228-231: 切换标签时收起表单
+watch(selectedLabelId, () => {
+  showAddResume.value = false
+  showBatchGenerate.value = false
+})
+
+// V1.1 L234-239: handleResumeSubmitted
+const handleResumeSubmitted = async () => {
+  if (selectedLabelId.value !== null) {
+    await loadResumesForLabels([selectedLabelId.value])
+  }
+  showAddResume.value = false
+}
+
+// ---------- V1.1 1:1：导出 ----------
+// V1.1 L242: handleOpenExport
+const handleOpenExport = () => {
+  exportModalOpen.value = true
+}
+
+// V1.1 L244-251: toggleExportField
+const toggleExportField = (key) => {
+  const next = new Set(selectedExportFields.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  selectedExportFields.value = next
+}
+
+// V1.1 L253-255: selectAllExportFields
+const selectAllExportFields = () => {
+  selectedExportFields.value = new Set(EXPORT_FIELDS.map((f) => f.key))
+}
+
+// V1.1 L257-259: deselectAllExportFields
+const deselectAllExportFields = () => {
+  selectedExportFields.value = new Set()
+}
+
+// V1.1 L498-502: handleOpenBatchVoid（V1.1 1:1：打开前校验 + 清空原因）
+const handleOpenBatchVoid = () => {
+  if (selectedIds.value.size === 0) {
+    ElMessage.warning('请先勾选要作废的标签')
+    return
+  }
+  batchVoidReason.value = ''
+  showBatchVoid.value = true
+}
+
+// V1.1 L261-342: handleConfirmExport（核心逻辑 1:1 — 数据源选择 + 字段映射 + 履历拼接 + Blob 下载）
+const handleConfirmExport = async () => {
+  if (selectedExportFields.value.size === 0) {
+    ElMessage.warning('请至少选择一个导出字段')
+    return
+  }
+
+  let dataSource
+  if (exportScope.value === 'selected') {
+    dataSource = filteredLabels.value.filter((l) => selectedIds.value.has(l.id))
+  } else if (exportScope.value === 'currentPage') {
+    dataSource = paginatedLabels.value
+  } else {
+    dataSource = filteredLabels.value
+  }
+  if (dataSource.length === 0) {
+    ElMessage.warning('无数据可导出')
+    return
+  }
+
+  const selectedFields = EXPORT_FIELDS.filter((f) => selectedExportFields.value.has(f.key))
+  const headers = selectedFields.map((f) => f.label)
+
+  const needResumes = selectedExportFields.value.has('resumes')
+  let resumeMapForExport = resumeMap.value
+  if (needResumes && dataSource.length > 0) {
+    const labelIds = dataSource.map((l) => l.id)
+    await loadResumesForLabels(labelIds)
+    // 重新读取 Pinia store 的最新 resumeMap
+    resumeMapForExport = usePlantLabelStore().resumeMap
+  }
+
+  const rows = dataSource.map((l) => {
+    const resumeText = needResumes
+      ? (resumeMapForExport[l.id] || [])
+          .map((r) => {
+            const opTypeCn = OPERATION_TYPE_MAP[r.operationType] || r.operationType || '-'
+            const fromArea = r.fromAreaName || '-'
+            const toArea = r.toAreaName || '-'
+            const date = r.operationDate || ''
+            const markName = r.markName || ''
+            const qtyChange =
+              r.quantityChange != null
+                ? `(数量${r.quantityChange > 0 ? '+' : ''}${r.quantityChange}${
+                    r.quantityAfter != null ? `→剩${r.quantityAfter}` : ''
+                  })`
+                : ''
+            const reason = r.reason ? ` 备注:${r.reason}` : ''
+            const operator = r.operatorName ? ` 操作人:${r.operatorName}` : ''
+            if (r.operationType === 'mark') {
+              return `${opTypeCn} ${markName || '-'}${qtyChange}${operator}${reason}`
+            }
+            return `${opTypeCn} ${fromArea}→${toArea} ${date}${qtyChange}${operator}${reason}`
+          })
+          .join('; ')
+      : ''
+
+    return selectedFields.map((f) => {
+      switch (f.key) {
+        case 'labelNumber': return l.labelNumber || ''
+        case 'moveInAreaName': return l.moveInAreaName || ''
+        case 'moveInDate': return l.moveInDate || ''
+        case 'moveOutAreaName': return l.moveOutAreaName || ''
+        case 'moveOutDate': return l.moveOutDate || ''
+        case 'quantity': return l.quantity ?? ''
+        case 'status': return STATUS_LABEL_MAP[l.status] || l.status || ''
+        case 'createTime': return l.createTime || ''
+        case 'resumes': return resumeText
+        default: return ''
+      }
+    })
+  })
+
+  // V1.1 L329-332: HTML 表格模板（带绿色表头 #059669）
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>种源标签数据</title>
+<style>table{border-collapse:collapse}th,td{border:1px solid #999;padding:6px 10px}th{background:#059669;color:#fff}</style>
+</head><body><table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr></thead>
+<tbody>${rows.map((r) => `<tr>${r.map((v) => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`
+
+  // V1.1 L334: 带 BOM 的 Blob（Excel 正确识别中文）
+  const blob = new Blob(['﻿' + html], { type: 'application/vnd.ms-excel;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `种源标签_${props.seedSourceCode}_${todayLocal()}.xls`
+  a.click()
+  URL.revokeObjectURL(url)
+  exportModalOpen.value = false
+}
+
+// ---------- V1.1 1:1：补充生成 ----------
+// V1.1 L345-372: handleBatchGenerate（核心逻辑 1:1 — store.generateBatchLabels → V2.0 enhancedApiClient POST /plant-labels/generate-batch）
 const handleBatchGenerate = async () => {
-  // V1.1 一致：前端校验 count
-  const count = parseInt(generateForm.value.count, 10)
+  const count = parseInt(batchCount.value, 10)
   if (!count || count < 1) {
     ElMessage.warning('请输入有效的生成数量')
     return
   }
   batchGenerating.value = true
   try {
-    // V1.1 端点：POST /plant-labels/generate-batch（通过 seed_source_id 过滤种源）
-    // V1.1 store 主动传 start_date=todayLocal()，对齐此行为
-    const data = await enhancedApiClient.post('/plant-labels/generate-batch', {
+    // V1.1 L350-356: store.generateBatchLabels 调用
+    // V2.0 适配：直接走 enhancedApiClient POST /plant-labels/generate-batch（V2.0 plantLabel.js store 中尚未封装此方法）
+    const result = await enhancedApiClient.post('/plant-labels/generate-batch', {
       seed_source_id: props.seedSourceId,
       count,
-      area_name: (generateForm.value.areaName || '').trim() || undefined,
+      area_name: batchAreaName.value.trim() || undefined,
       start_date: todayLocal()
     })
-    if (data && typeof data === 'object' && 'labels' in data) {
-      ElMessage.success(`已生成 ${data.totalPrinted || count} 个标签`)
+    if (result && (result.totalPrinted || result.labels || result)) {
+      const totalPrinted = result.totalPrinted || count
+      ElMessage.success(`成功生成 ${totalPrinted} 个标签`)
+      await loadLabels({ seedSourceId: props.seedSourceId })
       showBatchGenerate.value = false
-      generateForm.value = { count: 10, areaName: '' }
-      await loadLabels()
+      batchAreaName.value = ''
     } else {
       ElMessage.error('生成失败，请重试')
     }
   } catch (e) {
     console.error('[SeedSourceLabelManageModal] 补充生成失败:', e)
-    ElMessage.error('生成失败：' + (e?.message || '网络错误'))
+    const msg = e instanceof Error ? e.message : String(e)
+    ElMessage.error('网络错误：' + msg)
   } finally {
     batchGenerating.value = false
   }
 }
 
-/** V1.1 一致：当前选中的标签对象（用于显示标签编号 + 数量） */
-const selectedLabel = computed(() => {
-  if (!selectedLabelId.value) return null
-  return labels.value.find(l => l.id === selectedLabelId.value) || null
-})
-
-/** V1.1 一致：Tab 切换时清空关联字段 */
-const handleOpTypeChange = (t) => {
-  addOpType.value = t
-  addAreaName.value = ''
-  if (t === 'mark') {
-    quantityChange.value = ''
-    reason.value = ''
-    addPhotoBase64.value = null
-  }
-}
-
-/** V1.1 一致：选择图片 → Base64 预览（限制 2MB） */
-const handlePhotoChange = (e) => {
-  const file = e.target.files?.[0]
-  if (!file) return
-  if (file.size > 2 * 1024 * 1024) {
-    ElMessage.warning('图片不能超过 2MB')
-    e.target.value = ''
-    return
-  }
-  const reader = new FileReader()
-  reader.onload = (ev) => { addPhotoBase64.value = ev.target?.result || null }
-  reader.readAsDataURL(file)
-  e.target.value = ''
-}
-
-/** V1.1 一致：关闭新增履历表单（清图 + 重置） */
-const closeAddResume = () => {
-  showAddResume.value = false
-  addPhotoBase64.value = null
-  addAreaName.value = ''
-  addRemarks.value = ''
-  quantityChange.value = ''
-  reason.value = ''
-}
-
-const handleBatchVoid = async () => {
-  if (!voidForm.value.reason) {
-    ElMessage.warning('请填写作废原因')
-    return
-  }
-  batchVoiding.value = true
-  // 操作人从 userStore 推导
-  const userStore = useUserStore()
-  const u = userStore.userInfo || userStore.currentUser || {}
-  const operatorName = u.realName || u.username || 'system'
-  let success = 0, failed = 0
-  for (const id of selectedIds.value) {
-    try {
-      // V1.1 一致：批量作废走 /plant-labels/:id/resumes，snake_case 字段
-      await enhancedApiClient.post(`/plant-labels/${id}/resumes`, {
-        operation_type: 'void',
-        operation_date: todayLocal(),
-        operator_name: operatorName,
-        reason: voidForm.value.reason
-      })
-      success++
-    } catch (e) {
-      failed++
-    }
-  }
-  batchVoiding.value = false
-  showBatchVoid.value = false
-  voidForm.value.reason = ''
-  ElMessage.success(`作废完成：成功 ${success}，失败 ${failed}`)
-  await loadLabels()
-  if (selectedLabelId.value) await loadResumes()
-}
-
-const selectAllExportFields = () => {
-  selectedExportFields.value = exportFieldOptions.map(f => f.value)
-}
-const deselectAllExportFields = () => {
-  selectedExportFields.value = []
-}
-
-const handleConfirmExport = () => {
-  let data
-  if (exportScope.value === 'selected') {
-    data = labels.value.filter(l => selectedIds.value.has(l.id))
-  } else if (exportScope.value === 'filtered') {
-    data = filteredLabels.value
-  } else {
-    data = labels.value
-  }
-  if (data.length === 0) {
-    ElMessage.warning('没有可导出的数据')
-    return
-  }
-  const headers = selectedExportFields.value
-  const rows = data.map(l => headers.map(h => {
-    if (h === 'status') return statusLabel(l[h])
-    return l[h] || ''
-  }))
-  // 带 BOM 的 HTML（保证 Excel 正确识别中文）
-  const html = `<html><head><meta charset="utf-8"></head><body><table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></body></html>`
-  const blob = new Blob(['﻿' + html], { type: 'application/vnd.ms-excel' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `种源标签_${props.seedSourceCode}_${new Date().toISOString().slice(0, 10)}.xls`
-  a.click()
-  URL.revokeObjectURL(url)
-  showExportModal.value = false
-  ElMessage.success('导出成功')
-}
-
+// ---------- V1.1 1:1：关闭 ----------
+// V1.1 L375-376: if (!isOpen) return null → V2.0 el-dialog 自动处理
 const handleClose = () => {
-  emit('update:visible', false)
   emit('close')
+  emit('update:isOpen', false)
 }
 
-watch(() => props.visible, (val) => {
-  if (val) {
-    loadLabels()
-  } else {
-    selectedLabelId.value = null
-    resumes.value = []
-    selectedIds.value = new Set()
-  }
-})
+// 兼容 V1.1 onSuccess 回调（V2.0 emit('success')）
+const emitSuccess = () => emit('success')
 
-onMounted(() => {
-  if (props.visible) loadLabels()
-})
+// 暴露方法给父组件（V2.0 兼容）
+defineExpose({ emitSuccess })
 </script>
+
+<style scoped>
+/* V1.1 1:1：保留默认 Tailwind 样式（V1.1 中所有样式来自 Tailwind className，无需额外 CSS） */
+</style>

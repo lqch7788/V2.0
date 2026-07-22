@@ -10,3 +10,8 @@ export { default as ExportFormatModal } from './ExportFormatModal.vue'
 export { default as LabelDetailModal } from './LabelDetailModal.vue'
 export { default as MoveModal } from './MoveModal.vue'
 export { default as MarkModal } from './MarkModal.vue'
+// 2026-07-22 P0 修复：补全缺失的弹窗（1:1 对齐 V1.1 PlantingPage.tsx）
+export { default as DailyRecordModal } from './DailyRecordModal.vue'
+export { default as UnifiedRowHarvestInboundModal } from '@/components/farm/inventory/UnifiedRowHarvestInboundModal.vue'
+export { default as PlantingMoveRecordsModal } from './PlantingMoveRecordsModal.vue'
+export { default as MergePreview } from './MergePreview.vue'

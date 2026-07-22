@@ -11,11 +11,13 @@
 
 import { enhancedApiClient } from '../lib/apiClient';
 
-// SeedlingStatus 枚举映射
+// SeedlingStatus 枚举映射（对齐 V1.1 apiSeedlingService.ts L93-107）
 const SEEDLING_STATUS = {
+  SOWN: 'sown',
   IN_PROGRESS: 'in_progress',
   TRANSPLANT_READY: 'transplant_ready',
   COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
   ABNORMAL: 'abnormal',
 }
 
@@ -40,14 +42,19 @@ function transformSingleSeedling(item) {
   }
 
   let status = SEEDLING_STATUS.IN_PROGRESS;
-  if (item.status === 'transplant_ready') {
+  // 对齐 V1.1 apiSeedlingService.ts L93-107：6 状态全映射（sown/cancelled 漏映射会导致取消后闪现又变回 in_progress）
+  if (item.status === 'sown') {
+    status = SEEDLING_STATUS.SOWN;
+  } else if (item.status === 'in_progress') {
+    status = SEEDLING_STATUS.IN_PROGRESS;
+  } else if (item.status === 'transplant_ready') {
     status = SEEDLING_STATUS.TRANSPLANT_READY;
   } else if (item.status === 'completed') {
     status = SEEDLING_STATUS.COMPLETED;
   } else if (item.status === 'abnormal') {
     status = SEEDLING_STATUS.ABNORMAL;
   } else if (item.status === 'cancelled') {
-    status = 'cancelled';
+    status = SEEDLING_STATUS.CANCELLED;
   }
 
   let survivalRate = item.survivalRate;
