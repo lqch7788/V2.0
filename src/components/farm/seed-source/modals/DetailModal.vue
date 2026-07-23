@@ -25,9 +25,9 @@
     width="1350px"
     top="5vh"
     :close-on-click-modal="true"
-    v-dialog-draggable
-    v-dialog-resizable
-    v-dialog-maximizable
+    <!-- v-dialog-draggable disabled for el-dialog -->
+    <!-- v-dialog-resizable disabled for el-dialog -->
+    <!-- v-dialog-maximizable disabled for el-dialog -->
     @close="handleClose"
   >
     <!-- 2026-07-15: 自定义绿色渐变 header（与 EditModal 一致） -->

@@ -33,8 +33,8 @@
     :close-on-click-modal="true"
     :draggable="true"
     v-dialog-draggable="'edit-seed-source'"
-    v-dialog-resizable
-    v-dialog-maximizable
+    <!-- v-dialog-resizable disabled for el-dialog -->
+    <!-- v-dialog-maximizable disabled for el-dialog -->
     @close="handleClose"
   >
     <!-- 2026-07-15: 自定义绿色渐变 header 1:1 对齐 V1.1 UnifiedModal 默认 header -->
@@ -450,7 +450,8 @@
  */
 import { ref, watch, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Upload, ChevronDown, ChevronRight } from '@element-plus/icons-vue'
+import { Upload, CaretBottom, CaretRight } from '@element-plus/icons-vue'
+import { ChevronDown, ChevronRight } from 'lucide-vue-next'
 import { X } from 'lucide-vue-next'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import { useUserStore } from '@/stores/modules/user'
@@ -459,7 +460,7 @@ import { todayLocal } from '@/lib/dateUtils'
 import { showAlert } from '@/lib/dialogService'
 import CropCodeSelector from '@/components/farm/common/CropCodeSelector.vue'
 import { SOURCE_TYPE_MAP } from '@/constants/cropConstants'
-import { SOURCE_TYPE_TO_SUPPLIER_TYPE } from '@/constants/seedSourceDict'
+import { ADD_SOURCE_TYPE_TO_SUPPLIER_TYPE } from '@/constants/seedSourceDict'
 import { SEED_FORM_OPTIONS } from '@/constants/seedFormDict'
 import { useSeedSourceVarietyPath } from '@/hooks/useSeedSourceVarietyPath'
 
@@ -578,7 +579,7 @@ const allSuppliersFromStore = ref([])
 const filteredSuppliers = computed(() => {
   // 优先用 props 传入的 suppliers（V1.1 L141）
   const baseList = props.suppliers && props.suppliers.length > 0 ? props.suppliers : allSuppliersFromStore.value
-  const targetType = SOURCE_TYPE_TO_SUPPLIER_TYPE[props.record?.sourceType]
+  const targetType = ADD_SOURCE_TYPE_TO_SUPPLIER_TYPE[props.record?.sourceType]
   if (!targetType) {
     // null = 展示全部（V1.1 L119）
     return baseList
@@ -672,7 +673,7 @@ const handleCropCodeChange = (code, varietyInfo) => {
 /** 处理种源类型变化 - 清空不匹配的供应商（V1.1 L128-139 备份逻辑） */
 const handleSourceTypeChange = () => {
   if (form.value.supplierId) {
-    const targetType = SOURCE_TYPE_TO_SUPPLIER_TYPE[props.record?.sourceType]
+    const targetType = ADD_SOURCE_TYPE_TO_SUPPLIER_TYPE[props.record?.sourceType]
     if (targetType) {
       const currentSupplier = (props.suppliers && props.suppliers.length > 0 ? props.suppliers : allSuppliersFromStore.value)
         .find(s => s.value === form.value.supplierId)

@@ -274,6 +274,7 @@ const lightboxVisible = ref(false)
 const labelManageModalVisible = ref(false)
 const showExportModal = ref(false)
 const showDeleteModal = ref(false)
+const exportFormat = ref('xlsx')
 
 // 当前操作的记录
 const currentRecord = ref(null)

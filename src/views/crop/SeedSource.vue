@@ -211,7 +211,7 @@ import DeleteConfirmModal from '@/components/common/DeleteWarningModal.vue'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import { useUserStore } from '@/stores/modules/user'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
-import { exportCsv, exportXlsx } from '@/services/exporters'
+import { exportCsv, exportXlsx } from '@/utils/exporter'
 import { computeStockStatus, seedSourceStatusOptions, SOURCE_ORIGINS, SOURCE_TYPES, StockStatus } from '@/constants/seedSourceDict'
 
 // 简易 toast 包装（V2.0 直接用 ElMessage）

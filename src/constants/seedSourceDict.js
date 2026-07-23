@@ -137,3 +137,56 @@ const FRIENDLY_MAP = {
   external_seed: '外购种子',
   seedling_split: '分株'
 }
+
+// 2026-07-22 1:1 迁移自 V1.1 seedSourceDict.ts L40-50
+// 种源类型 → 供应商类型缩写（AddModal 专用）
+export const ADD_SOURCE_TYPE_TO_SUPPLIER_TYPE = {
+  seed: 'SP',              // 种子 → 原材料供应
+  seedling: 'SP',          // 种苗 → 原材料供应
+  cutting: 'SP',           // 扦插苗 → 原材料供应
+  grafting: 'SP',          // 嫁接苗 → 原材料供应
+  tissue_culture: 'SP',    // 组培苗 → 原材料供应
+  split: 'SP',             // 分株苗 → 原材料供应
+  bulb: 'SP',              // 种球 → 原材料供应
+  other: null              // 其他 → 显示全部供应商
+}
+
+// 2026-07-22 1:1 迁移自 V1.1 seedSourceDict.ts
+// 原始来源模块映射（DetailModal 显示调拨来源）
+export const ORIGINAL_SOURCE_MODULE_MAP = {
+  inventory: '作物库存',
+  planting: '种植管理',
+  seedling: '育苗管理',
+  seedSource: '内部种源',
+  manual: '手动录入',
+  transfer: '调拨入库',
+  other: '其他'
+}
+
+// 2026-07-22 1:1 迁移自 V1.1 seedSourceDict.ts
+// 调拨来源业务类型映射
+export const TRANSFERRED_FROM_BUSINESS_TYPE_MAP = {
+  harvest: '采收入库',
+  purchase: '外部采购',
+  manual: '手动录入',
+  transfer: '调拨入库',
+  seed_source: '内部种源',
+  seedling: '种苗',
+  planting: '种植',
+  other: '其他'
+}
+
+// 2026-07-22 1:1 迁移自 V1.1 seedSourceDict.ts L52-70
+// 种源形态 → 简化标签
+export const PROPAGATION_FORM_LABELS = {
+  seed: '种子',
+  seedling: '种苗',
+  cutting: '扦插苗',
+  grafting: '嫁接苗',
+  tissue_culture: '组培苗',
+  split: '分株苗',
+  bulb: '种球',
+  flower: '花朵',
+  scion: '穗条',
+  branch: '枝条'
+}

@@ -12,9 +12,9 @@
     height="650px"
     top="5vh"
     :close-on-click-modal="true"
-    v-dialog-draggable
-    v-dialog-resizable
-    v-dialog-maximizable
+    <!-- v-dialog-draggable disabled for el-dialog -->
+    <!-- v-dialog-resizable disabled for el-dialog -->
+    <!-- v-dialog-maximizable disabled for el-dialog -->
     @close="handleClose"
   >
     <!-- 2026-07-15: 自定义 header 绿色渐变 1:1 对齐 V1.1 Modal 默认 header（#10b981 → #059669） -->
@@ -241,7 +241,7 @@ import { useUserStore } from '@/stores/modules/user'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
 import { usePlantLabelStore } from '@/stores/modules/plantLabel'
 import { generateBatchLabels, printLabel } from '@/api/crop'
-import { exportCsv, exportXlsx } from '@/services/exporters'
+import { exportCsv, exportXlsx } from '@/utils/exporter'
 import { todayLocal } from '@/lib/dateUtils'
 
 // ========== Props & Emits ==========

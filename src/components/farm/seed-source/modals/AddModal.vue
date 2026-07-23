@@ -29,9 +29,6 @@
 -->
 <template>
   <el-dialog
-    v-dialog-draggable
-    v-dialog-resizable
-    v-dialog-maximizable
     :model-value="visible"
     width="1170px"
     height="780px"
