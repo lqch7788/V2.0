@@ -234,7 +234,7 @@
  * 数据流：useAuthStore/useUserStore 获取操作员 → usePlantLabelStore.loadLabels/batchCreateLabels → 打印
  */
 import { ref, computed, watch, onMounted } from 'vue'
-import { Download, Printer, Close, X } from '@element-plus/icons-vue'
+import { Download, Printer, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import QrCode from '@/components/common/QrCode.vue'
 import { useUserStore } from '@/stores/modules/user'

@@ -42,7 +42,7 @@
       </div>
       <div class="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200">
         <div class="p-2 rounded-lg bg-emerald-50">
-          <el-icon :size="20" color="#10b981"><Coin /></el-icon>
+          <el-icon :size="20" color="#10b981"><Money /></el-icon>
         </div>
         <div>
           <p class="text-xs text-gray-500">总工资</p>
@@ -51,7 +51,7 @@
       </div>
       <div class="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200">
         <div class="p-2 rounded-lg bg-purple-50">
-          <el-icon :size="20" color="#a855f7"><Coin /></el-icon>
+          <el-icon :size="20" color="#a855f7"><Money /></el-icon>
         </div>
         <div>
           <p class="text-xs text-gray-500">人均工资</p>
@@ -247,7 +247,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Box, User, Coin, View, Edit, Delete, Select } from '@element-plus/icons-vue'
+import { Box, User, Money, View, Edit, Delete, Select } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLaborStore } from '@/stores/modules/labor'
 import { useExport } from '@/composables/useExport'

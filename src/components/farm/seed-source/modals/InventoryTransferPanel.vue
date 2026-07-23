@@ -266,7 +266,7 @@
         <div class="flex items-center gap-3 flex-wrap">
           <div class="flex items-center gap-1 text-sm text-gray-700">
             <el-icon class="w-4 h-4 text-emerald-500">
-              <CheckCircle2 />
+              <Check />
             </el-icon>
             <span>已选 <strong class="text-emerald-600">{{ totalCount }}</strong> 条</span>
           </div>
@@ -317,7 +317,7 @@
  */
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search, CheckCircle2, RotateCcw } from '@element-plus/icons-vue'
+import { Search, Check, RotateCcw } from '@element-plus/icons-vue'
 import { ArrowLeftRight } from 'lucide-vue-next'
 import { seedSourceTransferService } from '@/services/seedSourceTransferService'
 

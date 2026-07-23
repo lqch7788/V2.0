@@ -46,7 +46,7 @@
         </div>
         <div class="bg-blue-50 rounded-xl p-4">
           <div class="flex items-center gap-2 mb-2">
-            <el-icon :size="20" color="#3b82f6"><Coin /></el-icon>
+            <el-icon :size="20" color="#3b82f6"><Money /></el-icon>
             <span class="text-sm font-medium text-gray-700">总产值</span>
           </div>
           <p class="text-2xl font-bold text-gray-800">¥{{ report.yield?.amount?.toLocaleString() || 0 }}</p>
@@ -202,7 +202,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Memo, TrendCharts, Coin, Check, Wallet } from '@element-plus/icons-vue'
+import { Memo, TrendCharts, Money, Check, Wallet } from '@element-plus/icons-vue'
 
 /** 表格表头蓝色渐变样式（与V1.1一致） */
 

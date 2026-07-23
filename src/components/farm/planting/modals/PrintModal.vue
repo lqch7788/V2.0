@@ -170,7 +170,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Printer, Close, Coin } from '@element-plus/icons-vue'
+import { Printer, Close, Money } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
