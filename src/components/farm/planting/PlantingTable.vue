@@ -162,7 +162,10 @@
             <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">已采收</th>
             <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-24">完成比例</th>
             <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-16">状态</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold text-white whitespace-nowrap w-80">操作</th>
+            <!-- ★ 操作列：sticky right-0 + 深蓝背景，对齐 SeedSourceTable 风格 -->
+            <th class="px-4 py-3 text-center text-sm font-bold text-white whitespace-nowrap w-80 ptt-th-op">
+              <span class="ptt-th-op-text">操作</span>
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-300">
@@ -248,16 +251,26 @@
                 {{ statusMap[record.status]?.label || record.status }}
               </span>
             </td>
-            <td class="px-4 py-3 w-80 whitespace-nowrap">
+            <td class="px-4 py-3 w-80 whitespace-nowrap ptt-td-op">
               <div class="flex items-center gap-1">
-                <!-- 采收登记 - 未采收显示 -->
+                <!-- 采收登记 - 未采收时显示（V1.1 alignment: onEndV2） -->
                 <button
                   v-if="!record.isHarvest"
                   class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
                   title="采收登记"
-                  @click="$emit('harvest', record)"
+                  @click="() => onHarvest && onHarvest(record)"
                 >
                   <CheckCircle class="w-4 h-4" />
+                </button>
+
+                <!-- 采收记录（只读） - 已结束/已取消显示（V1.1 alignment: onInbound） -->
+                <button
+                  v-if="onInbound && (record.status === 'harvested' || record.status === 'cancelled')"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  title="采收记录（只读）"
+                  @click="() => onInbound && onInbound(record)"
+                >
+                  <Package class="w-4 h-4" />
                 </button>
 
                 <!-- 查看图片 -->
@@ -270,62 +283,67 @@
                   <ImageIcon class="w-4 h-4" />
                 </button>
 
-                <!-- 正常结束 - 1:1 V1.1 用 CheckCircle 图标（与采收登记通过位置+颜色区分：采收=emerald，结束=green） -->
+                <!-- 每日记录（行级，对齐 V1.1: onDailyRecord，结束态变只读） -->
                 <button
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors"
-                  title="正常结束"
-                  @click="$emit('end', record, 'normal')"
+                  v-if="onDailyRecord"
+                  class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                  :class="isEnded(record) ? 'text-blue-400 opacity-60' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'"
+                  :title="`每日记录${isEnded(record) ? '（只读）' : ''}`"
+                  @click="() => onDailyRecord && onDailyRecord(record)"
                 >
-                  <CheckCircle class="w-4 h-4" />
+                  <Calendar class="w-4 h-4" />
                 </button>
 
-                <!-- 异常结束 -->
-                <button
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
-                  title="异常结束"
-                  @click="$emit('end', record, 'abnormal')"
-                >
-                  <XCircle class="w-4 h-4" />
-                </button>
-
-                <!-- 标签详情 -->
+                <!-- 标签管理（行级，对齐 V1.1: onLabelManage = PlantLabelManageModal） -->
                 <button
                   v-if="onLabelDetail"
                   class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-colors"
-                  title="标签详情"
-                  @click="$emit('label-detail', record)"
+                  :title="`标签管理${isEnded(record) ? '（只读）' : ''}`"
+                  @click="() => onLabelDetail && onLabelDetail(record)"
                 >
                   <Tag class="w-4 h-4" />
                 </button>
 
-                <!-- 移入/移出 - 未采收显示 -->
+                <!-- 移入/移出 - 未采收显示，结束态禁用 -->
                 <button
                   v-if="onMove && !record.isHarvest"
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                  title="移入/移出"
-                  @click="$emit('move', record)"
+                  class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                  :class="isEnded(record) ? 'text-gray-400 cursor-not-allowed opacity-40' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'"
+                  :title="isEnded(record) ? '已结束，禁止移入/移出' : '移入/移出'"
+                  :disabled="isEnded(record)"
+                  @click="() => !isEnded(record) && onMove && onMove(record)"
                 >
                   <MoveRight class="w-4 h-4" />
                 </button>
 
-                <!-- 标记管理 -->
+                <!-- 育种记录（条件） - 当 record.isBreeding 时显示 -->
                 <button
-                  v-if="onMark"
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                  title="标记管理"
-                  @click="$emit('mark', record)"
-                >
-                  <Bookmark class="w-4 h-4" />
-                </button>
-
-                <!-- 留种 - 已采收显示 -->
-                <button
-                  v-if="onSeedSaving && record.status === 'harvested'"
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-yellow-600 hover:bg-yellow-50 transition-colors"
-                  title="留种"
-                  @click="$emit('seed-saving', record)"
+                  v-if="record.isBreeding && onBreedingRecord"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                  :title="`育种记录${isEnded(record) ? '（只读）' : ''}`"
+                  @click="() => onBreedingRecord && onBreedingRecord(record)"
                 >
                   <Sprout class="w-4 h-4" />
+                </button>
+
+                <!-- 留种记录（条件） - 当 record.isSeedSaving 时显示 -->
+                <button
+                  v-if="record.isSeedSaving && onSeedSavingRecord"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                  :title="`留种记录${isEnded(record) ? '（只读）' : ''}`"
+                  @click="() => onSeedSavingRecord && onSeedSavingRecord(record)"
+                >
+                  <Wheat class="w-4 h-4" />
+                </button>
+
+                <!-- 结束（单态按钮，对齐 V1.1: StopCircle icon + onEnd） - 仅进行中显示 -->
+                <button
+                  v-if="!isEnded(record) && onEnd"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
+                  title="结束"
+                  @click="() => onEnd && onEnd(record)"
+                >
+                  <StopCircle class="w-4 h-4" />
                 </button>
               </div>
             </td>
@@ -364,12 +382,15 @@
 <script setup>
 /**
  * 种植数据表格组件
+ * 2026-07-24 R-strict: 严格 1:1 对齐 V1.1 操作列按钮 + 全部回调事件
  * 1:1 翻译自 V1.1 src/components/farm/planting/components/PlantingTable.tsx
  */
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 // 1:1 恢复 V1.1 lucide-react 图标体系（V2.0 旧版用 emoji 字符，UI 风格严重偏离）
-import { CheckCircle, XCircle, Image as ImageIcon, Tag, MoveRight, Bookmark, Sprout } from 'lucide-vue-next'
+// 2026-07-24: 1:1 对齐 V1.1 图标
+// V1.1 用 lucide-react: Image, Calendar, Tag, Package, MoveRight, Sprout, Wheat, StopCircle, Plus, Download, Edit2, Trash2, Printer, Eye
+import { CheckCircle, Image as ImageIcon, Calendar, Tag, MoveRight, Package, Sprout, Wheat, StopCircle } from 'lucide-vue-next'
 
 /**
  * @typedef {Object} Planting
@@ -470,10 +491,13 @@ const props = defineProps({
   onConfirmExport: { type: Function, default: null },
   onPrintModeChange: { type: Function, default: null },
   onConfirmPrint: { type: Function, default: null },
-  onLabelDetail: { type: Function, default: null },
+  // 2026-07-24: 1:1 对齐 V1.1 PlantingTable 全部回调
+  onLabelDetail: { type: Function, default: null },     // = V1.1 onLabelManage
   onMove: { type: Function, default: null },
-  onMark: { type: Function, default: null },
-  onSeedSaving: { type: Function, default: null }
+  onInbound: { type: Function, default: null },          // 采收记录只读
+  onDailyRecord: { type: Function, default: null },     // 行级每日记录
+  onBreedingRecord: { type: Function, default: null },  // 育种记录（条件）
+  onSeedSavingRecord: { type: Function, default: null } // 留种记录（条件）
 })
 
 const emit = defineEmits([
@@ -485,6 +509,13 @@ const emit = defineEmits([
   'delete',
   'image-click',
   'end',
+  // 2026-07-24: 新增事件对齐 V1.1
+  'daily-record',
+  'inbound',
+  'move',
+  'breeding-record',
+  'seed-saving-record',
+  'label-detail',
   'page-change',
   'page-size-change',
   'selection-change',
@@ -502,6 +533,14 @@ const statusMap = {
   growing: { label: '生长期', color: 'text-amber-600 bg-amber-50' },
   harvested: { label: '已采收', color: 'text-green-600 bg-green-50' },
   cancelled: { label: '已取消', color: 'text-gray-600 bg-gray-50' }
+}
+
+/**
+ * 2026-07-24: 统一"是否已结束"判定 — 对齐 V1.1 L546-549
+ * 条件: status === 'ended' 或 status === 'cancelled' 或 endType 存在
+ */
+function isEnded(r) {
+  return r.status === 'ended' || r.status === 'cancelled' || r.endType === 'normal' || r.endType === 'abnormal'
 }
 
 // ============== 品种数据缓存（与 V1.1 一致） ==============
@@ -543,7 +582,7 @@ const loadVarieties = async () => {
     varietyCache.value = cache
   } catch (err) {
     // 加载失败时静默退化，品种相关列将回退到原始名称
-    // eslint-disable-next-line no-console
+     
     console.warn('[PlantingTable] loadVarieties failed:', err)
   }
 }
@@ -805,5 +844,50 @@ const confirmPrint = () => {
 
 :deep(.plant-checkbox:hover .el-checkbox__inner) {
   border-color: #059669;
+}
+
+/* ★ 操作列表头（sticky right-0，对齐 SeedSourceTable + V1.1 SeedlingTable 风格） */
+.ptt-th-op {
+  position: sticky;
+  right: 0;
+  background: #1d4ed8 !important;
+  box-shadow: -3px 0 6px rgba(0, 0, 0, 0.35);
+  z-index: 30;
+  text-align: center;
+}
+.ptt-th-op-text {
+  display: inline-block;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ★ 操作列单元格（sticky right-0，固定在视窗右侧） */
+.ptt-td-op {
+  position: sticky;
+  right: 0;
+  background: #ffffff;
+  box-shadow: -3px 0 6px rgba(0, 0, 0, 0.18);
+  z-index: 20;
+}
+tr:hover .ptt-td-op {
+  background: #f9fafb;
+}
+
+/* 按钮圆圈样式（已经是 lucide 图标，无需替换） */
+.ptt-op-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
 }
 </style>

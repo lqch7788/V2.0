@@ -100,6 +100,95 @@
             <el-input-number v-model="formData.soilEC" :min="0" :precision="2" class="w-full" />
           </div>
 
+          <!-- 已定植数量 + 日期（对齐 V1.1 EditModal L50-51） -->
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">已定植数量</label>
+            <el-input-number v-model="formData.transplantCount" :min="0" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">已定植日期</label>
+            <el-date-picker
+              v-model="formData.transplantDate"
+              type="date"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              placeholder="选择日期"
+              class="w-full"
+            />
+          </div>
+
+          <!-- 目标产量 + 单位（对齐 V1.1 L52-53） -->
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">目标产量</label>
+            <el-input-number v-model="formData.targetYield" :min="0" :precision="2" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">目标产量单位</label>
+            <el-select v-model="formData.targetYieldUnit" placeholder="选择单位" class="w-full">
+              <el-option label="克" value="克" />
+              <el-option label="千克" value="千克" />
+              <el-option label="吨" value="吨" />
+              <el-option label="株" value="株" />
+              <el-option label="个" value="个" />
+            </el-select>
+          </div>
+
+          <!-- 损耗数量 + 补苗数量（对齐 V1.1 L64-65） -->
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">损耗数量</label>
+            <el-input-number v-model="formData.lossCount" :min="0" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">补苗数量</label>
+            <el-input-number v-model="formData.supplementCount" :min="0" class="w-full" />
+          </div>
+
+          <!-- 育种模式（对齐 V1.1 L55-61） -->
+          <div class="col-span-2">
+            <el-checkbox v-model="formData.isBreeding">育种模式（勾选后填写下方育种信息）</el-checkbox>
+          </div>
+          <template v-if="formData.isBreeding">
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">父本批号</label>
+              <el-input v-model="formData.parentMaleCode" placeholder="父本（雄）种源批号" />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">母本批号</label>
+              <el-input v-model="formData.parentFemaleCode" placeholder="母本（雌）种源批号" />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">世代</label>
+              <el-input v-model="formData.generation" placeholder="如 F1/F2/BC1/G1" />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">育种方法</label>
+              <el-input v-model="formData.breedingMethod" placeholder="杂交/选育/回交..." />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">育种位置</label>
+              <el-input v-model="formData.breedingLocation" placeholder="育种场地" />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">目标性状</label>
+              <el-input v-model="formData.targetTraits" placeholder="高产/抗病/耐寒..." />
+            </div>
+          </template>
+
+          <!-- 留种模式（对齐 V1.1 L62-63） -->
+          <div class="col-span-2">
+            <el-checkbox v-model="formData.isSeedSaving">种植留种（勾选后填写种子标识）</el-checkbox>
+          </div>
+          <div v-if="formData.isSeedSaving" class="col-span-2">
+            <label class="block text-gray-700 text-sm mb-2 font-medium">种子植株标识</label>
+            <el-input v-model="formData.seedPlantMarker" placeholder="留种植株的标记/编号" />
+          </div>
+
+          <!-- 关联生产计划（对齐 V1.1 L66-67） -->
+          <div class="col-span-2">
+            <label class="block text-gray-700 text-sm mb-2 font-medium">关联生产计划</label>
+            <el-input v-model="formData.productionPlanCode" placeholder="关联生产计划批次号（只读）" disabled />
+          </div>
+
           <!-- 备注 - 跨两列 -->
           <div class="col-span-2">
             <label class="block text-gray-700 text-sm mb-2 font-medium">备注</label>
@@ -147,13 +236,35 @@ const formData = ref({
   selectedCropCode: '',
   cropName: '',
   cropVariety: '',
+  categoryName: '',
+  typeName: '',
+  varietyName: '',
+  subVarietyName: '',
   areaId: '',
   areaName: '',
+  unit: '株',
   plantingCount: 0,
   plantingDate: '',
   attritionRate: 0,
   soilPH: null,
   soilEC: null,
+  transplantCount: 0,
+  transplantDate: '',
+  targetYield: 0,
+  targetYieldUnit: '克',
+  lossCount: 0,
+  supplementCount: 0,
+  isBreeding: false,
+  parentMaleCode: '',
+  parentFemaleCode: '',
+  generation: '',
+  breedingMethod: '',
+  breedingLocation: '',
+  targetTraits: '',
+  isSeedSaving: false,
+  seedPlantMarker: '',
+  productionPlanId: '',
+  productionPlanCode: '',
   remarks: ''
 })
 
@@ -180,13 +291,35 @@ watch(() => [props.isOpen, props.record], ([val, record]) => {
       selectedCropCode: record.cropCode || '',
       cropName: record.cropName || '',
       cropVariety: record.cropVariety || '',
+      categoryName: record.categoryName || '',
+      typeName: record.typeName || '',
+      varietyName: record.varietyName || '',
+      subVarietyName: record.subVarietyName || '',
       areaId: record.areaId || '',
       areaName: record.areaName || '',
+      unit: record.unit || '株',
       plantingCount: record.plantingCount || 0,
       plantingDate: record.plantingDate || '',
       attritionRate: record.attritionRate ?? 0,
       soilPH: record.soilPH || null,
       soilEC: record.soilEC || null,
+      transplantCount: record.transplantCount || 0,
+      transplantDate: record.transplantDate || '',
+      targetYield: record.targetYield || 0,
+      targetYieldUnit: record.targetYieldUnit || '克',
+      lossCount: record.lossCount || 0,
+      supplementCount: record.supplementCount || 0,
+      isBreeding: record.isBreeding || false,
+      parentMaleCode: record.parentMaleCode || '',
+      parentFemaleCode: record.parentFemaleCode || '',
+      generation: record.generation || '',
+      breedingMethod: record.breedingMethod || '',
+      breedingLocation: record.breedingLocation || '',
+      targetTraits: record.targetTraits || '',
+      isSeedSaving: record.isSeedSaving || false,
+      seedPlantMarker: record.seedPlantMarker || '',
+      productionPlanId: record.productionPlanId || '',
+      productionPlanCode: record.productionPlanCode || '',
       remarks: record.remarks || ''
     }
   }
@@ -210,18 +343,41 @@ const handleSubmit = () => {
     return
   }
 
-  // 构建提交数据 - V1.1一致的结构
+  // 构建提交数据 - 1:1 对齐 V1.1 EditModal.tsx 含育种/留种/目标产量等
   const submitData = {
     cropCode: formData.value.selectedCropCode,
     cropName: formData.value.cropName,
     cropVariety: formData.value.cropVariety,
+    categoryName: formData.value.categoryName || undefined,
+    typeName: formData.value.typeName || undefined,
+    varietyName: formData.value.varietyName || undefined,
+    subVarietyName: formData.value.subVarietyName || undefined,
     areaId: formData.value.areaId,
     areaName: formData.value.areaName,
+    unit: formData.value.unit || '株',
     plantingCount: formData.value.plantingCount,
     plantingDate: formData.value.plantingDate,
     soilPH: formData.value.soilPH,
     soilEC: formData.value.soilEC,
     attritionRate: formData.value.attritionRate,
+    // 2026-07-24: 新增 13 字段
+    transplantCount: formData.value.transplantCount,
+    transplantDate: formData.value.transplantDate || '',
+    targetYield: formData.value.targetYield || 0,
+    targetYieldUnit: formData.value.targetYieldUnit || '克',
+    lossCount: formData.value.lossCount || 0,
+    supplementCount: formData.value.supplementCount || 0,
+    isBreeding: formData.value.isBreeding,
+    parentMaleCode: formData.value.parentMaleCode || undefined,
+    parentFemaleCode: formData.value.parentFemaleCode || undefined,
+    generation: formData.value.generation || undefined,
+    breedingMethod: formData.value.breedingMethod || undefined,
+    breedingLocation: formData.value.breedingLocation || undefined,
+    targetTraits: formData.value.targetTraits || undefined,
+    isSeedSaving: formData.value.isSeedSaving,
+    seedPlantMarker: formData.value.seedPlantMarker || undefined,
+    productionPlanId: formData.value.productionPlanId || undefined,
+    productionPlanCode: formData.value.productionPlanCode || undefined,
     remarks: formData.value.remarks
   }
 

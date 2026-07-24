@@ -92,6 +92,18 @@
           />
         </div>
 
+        <!-- 2026-07-24 补充：移动数量（对齐 V1.1 MoveFormData.quantity） -->
+        <div>
+          <label class="block text-sm text-gray-700 mb-1">移动数量 <span class="text-red-500">*</span></label>
+          <el-input-number
+            v-model="form.quantity"
+            :min="1"
+            :max="9999"
+            :disabled="isHarvested"
+            class="w-full"
+          />
+        </div>
+
         <!-- 备注 -->
         <div>
           <label class="block text-sm text-gray-700 mb-1">备注</label>
@@ -201,6 +213,7 @@ function makeDefaultForm() {
     labelNumber: '',
     targetArea: '',
     operationDate: new Date().toISOString().split('T')[0],
+    quantity: 1,  // 2026-07-24: 对齐 V1.1 quantity 字段
     remarks: '',
   }
 }
@@ -235,6 +248,11 @@ async function handleSubmit() {
   // V1.1: !form.targetArea → '请选择目标区域'
   if (!form.value.targetArea) {
     ElMessage.warning('请选择目标区域')
+    return
+  }
+  // 2026-07-24: 校验数量（对齐 V1.1）
+  if (!form.value.quantity || form.value.quantity <= 0) {
+    ElMessage.warning('请输入正确的移动数量')
     return
   }
 

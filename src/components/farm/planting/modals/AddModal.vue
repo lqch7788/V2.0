@@ -103,6 +103,72 @@
             <el-input-number v-model="formData.soilEC" :min="0" :precision="2" class="w-full" />
           </div>
 
+          <!-- 种植批号（对齐 V1.1 AddModal.tsx L148 生成逻辑） -->
+          <div class="col-span-2">
+            <label class="block text-gray-700 text-sm mb-2 font-medium">种植批号 <span class="text-red-500">*</span></label>
+            <div class="flex gap-2">
+              <el-input v-model="formData.plantCode" placeholder="点击生成获取批号" class="flex-1" />
+              <el-button @click="handleGeneratePlantCode">生成</el-button>
+            </div>
+          </div>
+
+          <!-- 2026-06-18 目标产量（完成比例 = harvestToInventoryQty / target_yield） -->
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">目标产量</label>
+            <el-input-number v-model="formData.targetYield" :min="0" :precision="2" class="w-full" />
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm mb-2 font-medium">目标产量单位</label>
+            <el-select v-model="formData.targetYieldUnit" placeholder="选择单位" class="w-full">
+              <el-option label="克" value="克" />
+              <el-option label="千克" value="千克" />
+              <el-option label="吨" value="吨" />
+              <el-option label="株" value="株" />
+              <el-option label="个" value="个" />
+              <el-option label="颗" value="颗" />
+            </el-select>
+          </div>
+
+          <!-- 2026-06-25 育种模式（与生产计划"育种计划"对齐） -->
+          <div class="col-span-2">
+            <el-checkbox v-model="formData.isBreeding">育种模式（勾选后填写下方育种信息）</el-checkbox>
+          </div>
+          <template v-if="formData.isBreeding">
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">父本批号</label>
+              <el-input v-model="formData.parentMaleCode" placeholder="父本（雄）种源批号" />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">母本批号</label>
+              <el-input v-model="formData.parentFemaleCode" placeholder="母本（雌）种源批号" />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">世代</label>
+              <el-input v-model="formData.generation" placeholder="如 F1/F2/BC1/G1" />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">育种方法</label>
+              <el-input v-model="formData.breedingMethod" placeholder="杂交/选育/回交..." />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">育种位置</label>
+              <el-input v-model="formData.breedingLocation" placeholder="育种场地" />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm mb-2 font-medium">目标性状</label>
+              <el-input v-model="formData.targetTraits" placeholder="高产/抗病/耐寒..." />
+            </div>
+          </template>
+
+          <!-- 2026-06-24 种植留种（种源管理"种植留种"吸收） -->
+          <div class="col-span-2">
+            <el-checkbox v-model="formData.isSeedSaving">种植留种（勾选后填写种子标识）</el-checkbox>
+          </div>
+          <div v-if="formData.isSeedSaving" class="col-span-2">
+            <label class="block text-gray-700 text-sm mb-2 font-medium">种子植株标识</label>
+            <el-input v-model="formData.seedPlantMarker" placeholder="留种植株的标记/编号" />
+          </div>
+
           <!-- 备注 - 跨两列 -->
           <div class="col-span-2">
             <label class="block text-gray-700 text-sm mb-2 font-medium">备注</label>
@@ -165,7 +231,6 @@ import { getSeedSources } from '@/services/apiSeedSourceService'
 import { getSeedlings } from '@/services/apiSeedlingService'
 import { updateQuantity as updateCropInstanceQuantity } from '@/services/apiCropInstanceService'
 import { getStandardCropCode } from '@/services/apiCropVarietyService'
-import { SourceType } from '@/types/crop'
 
 // props 命名 1:1 对齐 V1.1 (cropNames / areas / sourceTypeOptions)
 // 父组件 PlantingPage.vue 用 :crop-names / :areas / :source-type-options 传入
@@ -196,23 +261,51 @@ const productionPlanStore = useProductionPlanStore()
 // 种植 Store - 1:1 翻译 V1.1 usePlantingStore.getState().addItem
 const plantingStore = usePlantingStore()
 
-// 表单数据 - 与V1.1 AddModal完全一致
+// 表单数据 - 1:1 对齐 V1.1 AddModal.tsx L45-82（包含育种/留种/目标产量/品种路径）
 const formData = ref({
-  sourceType: 'seedling',  // 来源类型：seed-种源, seedling-种苗
-  sourceId: '',            // 来源ID
-  sourceCode: '',          // 来源批号
+  // 来源
+  sourceType: 'seedling',
+  originPath: 'direct_from_seedling',
+  sourceId: '',
+  sourceCode: '',
+  // 作物
+  selectedCropCode: '',
   cropName: '',
   cropVariety: '',
-  areaId: '',              // 种植区域ID（字典编码）
-  areaName: '',            // 种植区域显示名
-  rootName: '',            // 大棚/父级区域名
+  categoryName: '',
+  typeName: '',
+  varietyName: '',
+  subVarietyName: '',
+  // 种植批号
+  plantCode: '',
+  // 种植区域
+  areaId: '',
+  areaName: '',
+  rootName: '',
+  // 数量与日期
   plantingCount: 0,
+  unit: '株',
   plantingDate: new Date().toISOString().slice(0, 10),
-  soilPH: 6.5,            // V1.1默认值
-  soilEC: 1.0,            // V1.1默认值
+  soilPH: 6.5,
+  soilEC: 1.0,
+  // 2026-06-18: 目标产量（完成比例 = harvestToInventoryQty / target_yield）
+  targetYield: 0,
+  targetYieldUnit: '克',
   remarks: '',
-  productionPlanId: '',    // 关联生产计划ID
-  productionPlanCode: ''   // 关联生产计划批次号
+  // 关联生产计划
+  productionPlanId: '',
+  productionPlanCode: '',
+  // 2026-06-25: 育种模式
+  isBreeding: false,
+  parentMaleCode: '',
+  parentFemaleCode: '',
+  generation: '',
+  breedingMethod: '',
+  breedingLocation: '',
+  targetTraits: '',
+  // 2026-06-24: 种植留种
+  isSeedSaving: false,
+  seedPlantMarker: ''
 })
 
 // 图片上传状态
@@ -392,6 +485,13 @@ const onClose = () => {
   emit('close')
 }
 
+// 2026-07-24: 种植批号生成（对齐 V1.1 AddModal.tsx L148 generatePlantCode）
+const handleGeneratePlantCode = () => {
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  const seq = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+  formData.value.plantCode = `ZZ${today}-${seq}`
+}
+
 const handleSubmit = async () => {
   if (!formData.value.sourceId) {
     ElMessage.warning('请选择来源批次')
@@ -413,27 +513,30 @@ const handleSubmit = async () => {
     ElMessage.warning('请选择种植日期')
     return
   }
+  // 2026-07-24: 校验种植批号（对齐 V1.1）
+  if (!formData.value.plantCode) {
+    ElMessage.warning('请先生成种植批号')
+    return
+  }
 
   submitting.value = true
   try {
-    // 生成种植批号
-    const plantCode = `ZZ${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
+    // 2026-07-24: 优先用表单中已生成的 plantCode（用户可点击"生成"按钮提前生成）
+    const plantCode = formData.value.plantCode || `ZZ${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
 
     // 溯源码
     const traceabilityCode = 'TR' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + formData.value.cropName.substring(0, 2)
 
     // 生成作物编码 - 1:1 翻译 V1.1 cropVarietyService.getCropCodeInfo
-    // V1.1: cropInfo = cropVarietyService.getCropCodeInfo(formData.cropName); cropCode = `${cropInfo.categoryCode}${cropInfo.typeCode}${cropInfo.subCode}${seq}`
-    // V2.0: apiCropVarietyService 不提供 getCropCodeInfo，使用 getStandardCropCode(cropName) 代替
     let cropCode = ''
     try {
       cropCode = await getStandardCropCode(formData.value.cropVariety || formData.value.cropName)
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.warn('[AddModal] getStandardCropCode 失败:', err)
     }
     if (!cropCode) {
-      // 降级：与 V1.1 一致使用 categoryCode+typeCode+subCode+seq 模式
+      // 降级
       cropCode = `${formData.value.cropName.substring(0, 2)}${Date.now().toString().slice(-6)}`
     }
 
@@ -454,9 +557,13 @@ const handleSubmit = async () => {
       areaName: areaName,
       rootName: rootName,
       plantingCount: formData.value.plantingCount,
+      unit: formData.value.unit || '株',
       plantingDate: formData.value.plantingDate,
       soilPH: formData.value.soilPH,
       soilEC: formData.value.soilEC,
+      // 2026-07-24: 新增目标产量与单位（对齐 V1.1）
+      targetYield: formData.value.targetYield || 0,
+      targetYieldUnit: formData.value.targetYieldUnit || '克',
       transplantCount: 0,
       transplantDate: '',
       isHarvest: false,
@@ -468,7 +575,22 @@ const handleSubmit = async () => {
       status: PlantingStatus.PLANTED,
       createBy: localStorage.getItem('username') || '陆启闯',
       productionPlanId: formData.value.productionPlanId || undefined,
-      productionPlanCode: formData.value.productionPlanCode || undefined
+      productionPlanCode: formData.value.productionPlanCode || undefined,
+      // 2026-07-24: 育种模式 + 种植留种（对齐 V1.1）
+      isBreeding: formData.value.isBreeding,
+      parentMaleCode: formData.value.parentMaleCode || undefined,
+      parentFemaleCode: formData.value.parentFemaleCode || undefined,
+      generation: formData.value.generation || undefined,
+      breedingMethod: formData.value.breedingMethod || undefined,
+      breedingLocation: formData.value.breedingLocation || undefined,
+      targetTraits: formData.value.targetTraits || undefined,
+      isSeedSaving: formData.value.isSeedSaving,
+      seedPlantMarker: formData.value.seedPlantMarker || undefined,
+      // 品种路径 4 段
+      categoryName: formData.value.categoryName || undefined,
+      typeName: formData.value.typeName || undefined,
+      varietyName: formData.value.varietyName || undefined,
+      subVarietyName: formData.value.subVarietyName || undefined
     }
 
     // ============== 1:1 翻译 V1.1 usePlantingStore.getState().addItem() ==============
@@ -478,7 +600,7 @@ const handleSubmit = async () => {
     try {
       await plantingStore.addPlanting(submitData)
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.error('[AddModal] plantingStore.addPlanting 失败:', err)
       ElMessage.error('添加失败，请重试')
       return
@@ -509,7 +631,7 @@ const handleSubmit = async () => {
     // 更新作物实例的定植数量（异步，不阻塞提交）
     if (instanceId) {
       updateCropInstanceQuantity(instanceId, 'plant', formData.value.plantingCount).catch(err => {
-        // eslint-disable-next-line no-console
+         
         console.error('更新作物实例数量失败:', err)
       })
     }

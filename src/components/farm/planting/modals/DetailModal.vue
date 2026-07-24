@@ -29,6 +29,19 @@
               <span class="text-sm text-gray-500 w-24">品种：</span>
               <span class="text-sm text-gray-900">{{ record?.cropVariety }}</span>
             </div>
+            <!-- 2026-07-24: 品种路径 4段式（对齐 V1.1 DetailModal） -->
+            <div class="col-span-2 flex items-start" v-if="record?.categoryName || record?.typeName || record?.varietyName || record?.subVarietyName">
+              <span class="text-sm text-gray-500 w-24 flex-shrink-0">品种路径：</span>
+              <span class="text-sm text-gray-900">
+                <span class="text-gray-400">{{ record?.categoryName || '-' }}</span>
+                <span class="text-gray-300 mx-1">-</span>
+                <span class="text-gray-700">{{ record?.typeName || '-' }}</span>
+                <span class="text-gray-300 mx-1">-</span>
+                <span class="text-gray-700">{{ record?.varietyName || '-' }}</span>
+                <span class="text-gray-300 mx-1">-</span>
+                <span class="text-gray-900 font-medium">{{ record?.subVarietyName || '-' }}</span>
+              </span>
+            </div>
             <div class="flex items-center">
               <span class="text-sm text-gray-500 w-24">来源类型：</span>
               <span class="text-sm text-gray-900">{{ record?.sourceType === 'seed' ? '种子' : '种苗' }}</span>
@@ -36,6 +49,10 @@
             <div class="flex items-center">
               <span class="text-sm text-gray-500 w-24">关联批号：</span>
               <span class="text-sm text-gray-900">{{ record?.sourceCode || '-' }}</span>
+            </div>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-500 w-24">关联生产计划：</span>
+              <span class="text-sm text-gray-900">{{ record?.productionPlanCode || '-' }}</span>
             </div>
             <div class="flex items-center">
               <span class="text-sm text-gray-500 w-24">区域：</span>
@@ -54,7 +71,28 @@
             </div>
             <div class="flex items-center">
               <span class="text-sm text-gray-500 w-24">种植数量：</span>
-              <span class="text-sm text-emerald-600 font-medium">{{ record?.plantingCount?.toLocaleString() }}</span>
+              <span class="text-sm text-emerald-600 font-medium">{{ record?.plantingCount?.toLocaleString() }} {{ record?.unit || '株' }}</span>
+            </div>
+            <!-- 2026-07-24: 新增已定植/损耗/补苗/目标产量 -->
+            <div class="flex items-center" v-if="record?.transplantCount">
+              <span class="text-sm text-gray-500 w-24">已定植数量：</span>
+              <span class="text-sm text-blue-600">{{ record?.transplantCount?.toLocaleString() }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.transplantDate">
+              <span class="text-sm text-gray-500 w-24">已定植日期：</span>
+              <span class="text-sm text-gray-900">{{ record?.transplantDate }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.lossCount !== undefined">
+              <span class="text-sm text-gray-500 w-24">损耗数量：</span>
+              <span class="text-sm text-red-600">{{ record?.lossCount?.toLocaleString() || 0 }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.supplementCount !== undefined">
+              <span class="text-sm text-gray-500 w-24">补苗数量：</span>
+              <span class="text-sm text-emerald-600">{{ record?.supplementCount?.toLocaleString() || 0 }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.targetYield">
+              <span class="text-sm text-gray-500 w-24">目标产量：</span>
+              <span class="text-sm text-gray-900">{{ record?.targetYield?.toLocaleString() }} {{ record?.targetYieldUnit || '克' }}</span>
             </div>
             <div class="flex items-center" v-if="record?.soilPH">
               <span class="text-sm text-gray-500 w-24">土壤PH值：</span>
@@ -73,6 +111,48 @@
               <span :class="['px-2 py-1 rounded text-xs font-medium', statusClass]">
                 {{ statusLabel }}
               </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2026-07-24: 育种信息 -->
+        <div class="mb-6" v-if="record?.isBreeding">
+          <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">育种信息</h4>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex items-center" v-if="record?.parentMaleCode">
+              <span class="text-sm text-gray-500 w-24">父本批号：</span>
+              <span class="text-sm font-mono text-blue-600">{{ record?.parentMaleCode }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.parentFemaleCode">
+              <span class="text-sm text-gray-500 w-24">母本批号：</span>
+              <span class="text-sm font-mono text-pink-600">{{ record?.parentFemaleCode }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.generation">
+              <span class="text-sm text-gray-500 w-24">世代：</span>
+              <span class="text-sm text-gray-900">{{ record?.generation }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.breedingMethod">
+              <span class="text-sm text-gray-500 w-24">育种方法：</span>
+              <span class="text-sm text-gray-900">{{ record?.breedingMethod }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.breedingLocation">
+              <span class="text-sm text-gray-500 w-24">育种位置：</span>
+              <span class="text-sm text-gray-900">{{ record?.breedingLocation }}</span>
+            </div>
+            <div class="flex items-center" v-if="record?.targetTraits">
+              <span class="text-sm text-gray-500 w-24">目标性状：</span>
+              <span class="text-sm text-gray-900">{{ record?.targetTraits }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2026-07-24: 留种信息 -->
+        <div class="mb-6" v-if="record?.isSeedSaving">
+          <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">留种信息</h4>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2 flex items-center">
+              <span class="text-sm text-gray-500 w-24">种子植株标识：</span>
+              <span class="text-sm text-gray-900">{{ record?.seedPlantMarker }}</span>
             </div>
           </div>
         </div>
@@ -155,7 +235,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { View, Close } from '@element-plus/icons-vue'
 
 const props = defineProps({
@@ -189,7 +269,7 @@ const images = computed(() => {
   return []
 })
 
-const openImageViewer = (index) => {
+const openImageViewer = (_index) => {
   // 使用el-image的preview功能实现放大
 }
 

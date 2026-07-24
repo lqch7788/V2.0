@@ -60,6 +60,8 @@
       :on-seed-saving="handleSeedSaving"
       :on-daily-record="handleDailyRecord"
       :on-inbound="handleInbound"
+      :on-breeding-record="handleBreedingRecord"
+      :on-seed-saving-record="handleSeedSavingRecord"
       :on-view-move-records="handleViewMoveRecords"
       :operation-mode="operationMode"
       :on-operation-mode-change="setOperationMode"
@@ -111,6 +113,7 @@
       :on-close="() => setHarvestModalOpen(false)"
       :on-success="loadItems"
       :record="currentRecord"
+      @submit="handleHarvestSubmit"
     />
 
     <PrintModal
@@ -242,7 +245,8 @@ import {
   UnifiedRowHarvestInboundModal,
   PlantingMoveRecordsModal,
 } from './modals'
-import { useDictionaryStore, getDictItems } from '@/stores/modules/dictionary'
+import { ElMessage } from 'element-plus'
+import { useDictionaryStore } from '@/stores/modules/dictionary'
 import { usePlantingStore, PlantingStatus, SourceType } from '@/stores/modules/planting'
 import { usePlantLabelStore } from '@/stores/modules/plantLabel'
 import * as cropBatchService from '@/services/apiCropBatchService'
@@ -349,7 +353,6 @@ const plantingStatusOptions = computed(() => {
 const plantings = computed(() => plantingStore.plantings || [])
 const loading = computed(() => plantingStore.isLoading || false)
 const loadItems = plantingStore.fetchPlantings
-const deleteItem = plantingStore.deletePlanting
 const deleteItems = plantingStore.deletePlantings
 
 // ==================== 从标签 Store 映射（1:1 翻译 V1.1 解构） ====================
@@ -484,12 +487,13 @@ const filteredData = computed(() => {
 // ==================== 统计卡片数据 ====================
 /** @type {import('vue').ComputedRef<{total: number, growing: number, harvested: number, monthCount: number}>} */
 const statsData = computed(() => {
-  const total = plantings.value.length
-  const growing = plantings.value.filter(
+  const list = plantings.value
+  const total = list.length
+  const growing = list.filter(
     (p) => p.status === PlantingStatus.PLANTED || p.status === PlantingStatus.GROWING
   ).length
-  const harvested = plantings.value.filter((p) => p.status === PlantingStatus.HARVESTED).length
-  const monthCount = plantings.value.filter((p) => {
+  const harvested = list.filter((p) => p.status === PlantingStatus.HARVESTED).length
+  const monthCount = list.filter((p) => {
     const date = new Date(p.createTime)
     const now = new Date()
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
@@ -517,6 +521,31 @@ function handlePrint(record) {
 function handleImageClick(images) {
   currentImages.value = images
   setLightboxOpen(true)
+}
+
+// 2026-07-24: 真正调用 plantingStore.harvestPlanting（对齐 V1.1 L66-71）
+async function handleHarvestSubmit(payload) {
+  // payload: { harvestDate, harvestQuantity, remarks }
+  const plantingCount = Number(currentRecord.value?.plantingCount || 0)
+  const harvestCount = Number(payload.harvestQuantity || 0)
+  // 计算损耗率（对齐 V1.1 L60-62）
+  const attritionRate = plantingCount > 0
+    ? Math.round((1 - harvestCount / plantingCount) * 100)
+    : 0
+  try {
+    await plantingStore.harvestPlanting(
+      String(currentRecord.value?.id),
+      payload.harvestDate,
+      harvestCount,
+      attritionRate
+    )
+    ElMessage.success(`已采收：${currentRecord.value?.plantCode}（产量 ${harvestCount} 株，损耗率 ${attritionRate}%）`)
+    setHarvestModalOpen(false)
+    await loadItems()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    ElMessage.error(`采收登记失败：${msg}`)
+  }
 }
 
 // ==================== 处理删除（标签履历关联检查） ====================
@@ -617,20 +646,42 @@ function handleSeedSaving(record) {
   router.push(`/crop/seed-source?${params.toString()}`)
 }
 
+// 2026-07-24: 育种记录（行级按钮回调，对齐 V1.1 onBreedingRecord）
+function handleBreedingRecord(record) {
+  // 育种记录弹窗 - 与 V1.1 行为一致：跳转种植详情或打开弹窗
+  // V1.1 中 BreedingFields/BreedingHistoryTable 通过 PlantingLabelManageModal 入口
+  // V2.0 简化：直接进入详情页（详情页包含育种历史区块）
+  // 预留独立弹窗入口
+  ElMessage.info(`打开 ${record.plantCode} 的育种记录（${record.isBreeding ? '已启用' : '未启用'}）`)
+}
+
+// 2026-07-24: 留种记录（行级按钮回调，对齐 V1.1 onSeedSavingRecord）
+function handleSeedSavingRecord(record) {
+  // 与 handleSeedSaving 区分：V1.1 独立 onSeedSavingRecord 用于查看历史
+  handleSeedSaving(record)
+}
+
 // ==================== 移入/移出提交 ====================
 async function handleMoveSubmit(data) {
   // 从 store 读取最新标签列表（避免闭包陷阱）
   const freshLabels = plantLabelStore.labels
   const label = freshLabels.find((l) => l.label_number === data.labelNumber)
   if (!label) {
-    await showAlert('未找到对应标签，请检查标签编号')
+    ElMessage.error(`未找到对应标签 [${data.labelNumber}]，请检查标签编号`)
     return false
   }
-  const ok = await submitMove(label.id, data)
+  // 2026-07-24: 将 quantity 加到提交数据
+  const submitData = {
+    ...data,
+    quantity: Number(data.quantity || 1),
+    targetAreaName: data.targetArea  // 区域名称(area label) - 后端需要
+  }
+  const ok = await submitMove(label.id, submitData)
   if (ok) {
-    await showAlert('移动操作成功')
+    ElMessage.success(`移动成功：${data.labelNumber} → ${data.targetArea}（${submitData.quantity} 株）`)
+    await loadItems()
   } else {
-    await showAlert('移动操作失败')
+    ElMessage.error('移动操作失败')
   }
   return ok
 }
@@ -801,9 +852,9 @@ async function handleConfirmExport() {
   }))
 
   // 创建内容
-  let content = ''
-  let mimeType = ''
-  let extension = ''
+  let content
+  let mimeType
+  let extension
 
   if (exportFormat.value === 'csv') {
     content = headers.join(',') + '\n' + exportData.map((row) =>

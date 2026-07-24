@@ -148,8 +148,10 @@ const onClose = () => {
 }
 
 const handleSubmit = () => {
-  if (isHarvest.value !== 'yes') return
-
+  if (isHarvest.value !== 'yes') {
+    ElMessage.warning('请选择是否采收')
+    return
+  }
   if (!formData.value.harvestQuantity || formData.value.harvestQuantity <= 0) {
     ElMessage.warning('请输入正确的采收产量')
     return
@@ -158,6 +160,12 @@ const handleSubmit = () => {
     ElMessage.warning('请选择采收日期')
     return
   }
-  emit('submit', { ...formData.value })
+  // 2026-07-24: 真正提交给父组件，让 PlantPage 调 store
+  emit('submit', {
+    harvestDate: formData.value.harvestDate,
+    harvestQuantity: formData.value.harvestQuantity,
+    remarks: formData.value.remarks
+  })
+  emit('close')
 }
 </script>
