@@ -37,11 +37,10 @@
       </div>
     </div>
 
-    <!-- 表格（对齐 V1.1 L442-454：固定宽度 2400px + 强制横向滚动 + colgroup 百分比分配）-->
-    <div class="overflow-x-auto" style="overflow-x: auto; width: 100%;">
-      <table style="width: 2400px; table-layout: fixed; min-width: 2400px;" class="text-sm">
-        <!-- 列宽分配（对齐 V1.1 L454：121% 触发横向滚动）
-             基本9列 64% + 数值4列 32% + 完成6% + 状态5% + 操作14% + checkbox 2.5% -->
+    <!-- 表格（对齐 SeedSourceTable 风格：w-full 自适应 + min-width 触发滚动 + 操作列 sticky right-0）-->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm" style="min-width: 2400px;">
+        <!-- colgroup 列宽分配（保证超过 100% 触发水平滚动，但表格仍可 sticky）-->
         <colgroup>
           <col v-if="showCheckbox" class="slt-col" style="width: 2.5%;" />
           <col class="slt-col" style="width: 8%;" />
@@ -64,8 +63,8 @@
           <col class="slt-col" style="width: 5%;" />
           <col class="slt-col slt-col-op" style="width: 14%;" />
         </colgroup>
-        <!-- 表头（对齐 V1.1 L455-486）-->
-        <thead class="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+        <!-- 表头：每列设置显式背景色，避免依赖 tr 渐变（关键修复：sticky 操作列可见） -->
+        <thead>
           <tr class="slt-thead-tr">
             <th v-if="showCheckbox" class="slt-th slt-th-check">
               <input type="checkbox" :checked="currentData.length > 0 && currentData.every(r => selectedIds.has(r.id))" @change="togglePageSelection" class="w-4 h-4 rounded border-gray-300" />
@@ -79,12 +78,12 @@
             <th class="slt-th">品种路径</th>
             <th class="slt-th">育苗区域</th>
             <th class="slt-th">单位</th>
-            <!-- ===== 母株池（4 列） — 蓝色半透明背景 ===== -->
+            <!-- ===== 母株池（4 列） ===== -->
             <th class="slt-th slt-th-pond" title="母株池初始数量（建档时投入）">初始数量</th>
             <th class="slt-th slt-th-pond" title="母株池当前存活数">母株存活数</th>
             <th class="slt-th slt-th-pond" title="母株池累计损耗">母株累计损耗</th>
             <th class="slt-th slt-th-pond" title="母株池累计补栽">补苗累计</th>
-            <!-- ===== 小苗池（5 列） — 绿色半透明背景 ===== -->
+            <!-- ===== 小苗池（5 列） ===== -->
             <th class="slt-th slt-th-seedling" title="小苗池累计产出">小苗累计产出</th>
             <th class="slt-th slt-th-seedling" title="小苗池累计损耗">小苗累计损耗</th>
             <th class="slt-th slt-th-seedling" title="小苗池剩余 = 产出 - 损耗 - 采收入库">小苗剩余数量</th>
@@ -92,8 +91,10 @@
             <th class="slt-th">目标成苗数</th>
             <th class="slt-th" title="完成比例 = (小苗累计产出 − 小苗累计损耗) / 目标成苗数">完成比例</th>
             <th class="slt-th">状态</th>
-            <!-- 操作列 sticky right-0 -->
-            <th class="slt-th slt-th-op">操作</th>
+            <!-- 操作列表头（关键：sticky right-0 + 加深蓝色 + 居中 + 阴影 + z-index 30） -->
+            <th class="slt-th slt-th-op">
+              <span class="slt-th-op-text">操作</span>
+            </th>
           </tr>
         </thead>
         <!-- 表体 -->
@@ -153,37 +154,36 @@
               <span v-if="row.targetSurvivalCount > 0" :class="getCompletionRateClass(row)">{{ Math.round(Math.max(0, Math.min((row.expandedPlantCount || 0) - (row.seedlingLossCount || 0), 9.99 * row.targetSurvivalCount) / row.targetSurvivalCount * 100)) }}%</span>
               <span v-else class="text-gray-400">-</span>
             </td>
-            <!-- 19. 状态 -->
+            <!-- 19. 状态（统一文案：结束态均显示"已结束"，不再区分正常/异常） -->
             <td class="slt-td">
               <div class="flex items-center gap-1.5 justify-center">
-                <span class="px-2 py-1 rounded text-xs font-medium" :class="getStatusClass(row.status)">{{ getStatusLabel(row.status) }}</span>
-                <span v-if="row.endTime" class="px-2 py-1 rounded text-xs font-medium" :class="row.endType === 'abnormal' ? 'text-red-700 bg-red-100' : 'text-gray-500 bg-gray-100'" :title="`${row.endType === 'abnormal' ? '异常' : '正常'}结束于 ${row.endTime}`">{{ row.endType === 'abnormal' ? '已异常结束' : '已结束' }}</span>
+                <span v-if="row.endTime" class="px-2 py-1 rounded text-xs font-medium text-gray-700 bg-gray-200" :title="`结束于 ${row.endTime}${row.endType === 'abnormal' ? '（异常）' : ''}`">已结束</span>
+                <span v-else class="px-2 py-1 rounded text-xs font-medium" :class="getStatusClass(row.status)">{{ getStatusLabel(row.status) }}</span>
               </div>
             </td>
-            <!-- 20. 操作列：sticky right-0，宽度 14% = 336px 容纳所有图标
-                 2026-07-21 v3：完全简化 @click 直接调用 onXxx 函数，移除中间函数包装 -->
+            <!-- 操作列：sticky right-0，参照 SeedSourceTable 风格（lucide-vue-next 图标组件 + 16px） -->
             <td class="slt-td slt-td-op">
-              <div class="flex gap-1 justify-center">
+              <div class="flex gap-1">
                 <button v-if="row.pictures && row.pictures.length > 0" type="button" class="slt-op-btn slt-op-image" title="查看图片" @click.stop="onImageClick(row.pictures)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <Image :size="16" />
                 </button>
                 <button type="button" class="slt-op-btn slt-op-record" :class="isEnded(row) ? 'slt-op-ended' : ''" :title="`每日记录${isEnded(row)?'（只读）':''}`" @click.stop="onDailyRecord(row)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <Calendar :size="16" />
                 </button>
                 <button v-if="row.propagationMode === 'one_to_many'" type="button" class="slt-op-btn slt-op-breeding" :class="isEnded(row) ? 'slt-op-ended' : ''" :title="`无性繁殖记录${isEnded(row)?'（只读）':''}`" @click.stop="onPropagation(row)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+                  <GitBranch :size="16" />
                 </button>
                 <button type="button" class="slt-op-btn slt-op-tag" :title="`标签管理${isEnded(row)?'（只读）':''}`" @click.stop="onLabelManage(row)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                  <Tag :size="16" />
                 </button>
                 <button type="button" class="slt-op-btn slt-op-edit" :class="isEnded(row) ? 'slt-op-disabled' : ''" :title="isEnded(row) ? '已结束，禁止编辑' : '编辑'" :disabled="isEnded(row)" @click.stop="onEdit(row)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+                  <Edit2 :size="16" />
                 </button>
                 <button v-if="!row.isHarvestLocked" type="button" class="slt-op-btn slt-op-inbound" :class="{ 'abnormal': row.endType === 'abnormal', 'cancelled': row.status === 'cancelled' }" :title="getInboundTitle(row)" @click.stop="onInbound(row)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                  <Package :size="16" />
                 </button>
                 <button v-if="!isEnded(row)" type="button" class="slt-op-btn slt-op-end" title="结束" @click.stop="onEnd(row)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                  <StopCircle :size="16" />
                 </button>
               </div>
             </td>
@@ -210,7 +210,9 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Plus, Delete, Download, Printer, Close, Edit } from '@element-plus/icons-vue'
+import { Plus, Delete, Download, Printer, Close } from '@element-plus/icons-vue'
+// 操作列图标 1:1 对齐 SeedSourceTable（lucide-vue-next 16px）
+import { Image, Calendar, GitBranch, Tag, Edit2, Package, StopCircle } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
@@ -298,7 +300,7 @@ const getCompletionRateClass = (record) => {
   const ratio = available / record.targetSurvivalCount;
   return ratio >= 0.8 ? 'text-green-600' : ratio >= 0.5 ? 'text-amber-600' : 'text-red-600'
 }
-// 状态样式（对齐 V1.1 L228-237：6态完整映射）
+// 状态样式（对齐 V1.1 L228-237：6态完整映射，但 abnormal 统一归类到"已结束"，不在 status 主标签里显示异常文案）
 const getStatusClass = (status) => {
   const map = {
     'sown': 'bg-blue-100 text-blue-700',
@@ -306,11 +308,11 @@ const getStatusClass = (status) => {
     'transplant_ready': 'bg-emerald-100 text-emerald-700',
     'completed': 'bg-green-100 text-green-700',
     'cancelled': 'bg-gray-100 text-gray-600',
-    'abnormal': 'bg-red-100 text-red-700'
+    'abnormal': 'bg-gray-200 text-gray-700'  // 异常结束归类到"已结束"
   };
   return map[status] || 'bg-gray-100 text-gray-500'
 }
-// 状态标签（对齐 V1.1 L228-237：6态完整映射）
+// 状态标签（统一文案：已结束不再区分正常/异常，对齐 V1.1 v2 简化方案）
 const getStatusLabel = (status) => {
   const map = {
     'sown': '已播种',
@@ -318,7 +320,7 @@ const getStatusLabel = (status) => {
     'transplant_ready': '待出圃',
     'completed': '已出圃',
     'cancelled': '已取消',
-    'abnormal': '异常结束'
+    'abnormal': '已结束'  // 2026-07-24 统一文案：异常结束改为"已结束"
   };
   return map[status] || '未知'
 }
@@ -366,22 +368,49 @@ const getInboundTitle = (r) => {
 </script>
 
 <style scoped>
-/* ===== 表格 colgroup 基础样式 ===== */
+/* ===== 表格 colgroup 基础样式（不影响其他列背景） ===== */
 .slt-col { background: transparent; }
 
-/* ===== 表头整行渐变 ===== */
+/* ===== 表头整行渐变（V1.1 + SeedSourceTable 风格） ===== */
 .slt-thead-tr { background: linear-gradient(to right, #3b82f6, #2563eb); color: #ffffff; }
 
-/* ===== 表头单元格 ===== */
-.slt-th { padding: 0.75rem 1rem; text-align: left; font-size: 0.875rem; font-weight: 600; white-space: nowrap; color: #ffffff; border-bottom: none; }
+/* ===== 表头单元格（每列显式背景色 + 居中对齐） ===== */
+.slt-th {
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #ffffff;
+  border-bottom: none;
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+}
 .slt-th-check { width: 3rem; }
 
 /* ===== 双池列头（对齐 V1.1 L473-480）====== */
-.slt-th-pond { background: rgba(99, 102, 241, 0.3); }
-.slt-th-seedling { background: rgba(16, 185, 129, 0.3); }
+.slt-th-pond { background: linear-gradient(to right, #6366f1, #4f46e5); }
+.slt-th-seedling { background: linear-gradient(to right, #10b981, #059669); }
 
-/* ===== 操作列表头（sticky right-0，对齐 V1.1 + SeedSourceTable）====== */
-.slt-th-op { position: sticky; right: 0; background: #1d4ed8; box-shadow: -2px 0 4px rgba(0, 0, 0, 0.15); z-index: 20; }
+/* ===== ★ 操作列表头（完全对齐 SeedSourceTable 风格） ===== */
+.slt-th-op {
+  position: sticky;
+  right: 0;
+  background: #1d4ed8 !important;  /* 加深蓝色，明显区分 */
+  box-shadow: -3px 0 6px rgba(0, 0, 0, 0.35);
+  z-index: 30;
+  text-align: center;
+  font-weight: 700;
+  min-width: 280px;
+}
+/* "操作"文字：加粗、加白阴影，确保任何背景下都清晰 */
+.slt-th-op-text {
+  display: inline-block;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
 
 /* ===== 表格行 ===== */
 .slt-tr { border-bottom: 1px solid #d1d5db; transition: background-color 0.15s; }
@@ -392,15 +421,22 @@ const getInboundTitle = (r) => {
 .slt-td-check { width: 3rem; }
 .slt-num { text-align: right; color: #2563eb; font-weight: 500; }
 
-/* ===== 操作列固定（sticky right-0，对齐 V1.1 + SeedSourceTable）====== */
-.slt-td-op { position: sticky; right: 0; background: #ffffff; box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05); z-index: 10; }
+/* ===== ★ 操作列单元格（sticky right-0，对齐 SeedSourceTable） ===== */
+.slt-td-op {
+  position: sticky;
+  right: 0;
+  background: #ffffff;
+  box-shadow: -3px 0 6px rgba(0, 0, 0, 0.18);
+  z-index: 20;
+  min-width: 280px;
+}
 .slt-tr:hover .slt-td-op { background: #f9fafb; }
 
 /* ===== 链接按钮 ===== */
 .slt-link { color: #059669; text-decoration: none; font-weight: 500; background: none; border: none; padding: 0; cursor: pointer; font-size: 0.875rem; }
 .slt-link:hover { text-decoration: underline; }
 
-/* ===== 操作列按钮（对齐 SeedSourceTable 风格）====== */
+/* ===== 操作列按钮（对齐 SeedSourceTable 风格） ===== */
 .slt-op-btn { width: 32px; height: 32px; padding: 0; border-radius: 6px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 0.15s, color 0.15s; }
 .slt-op-image { color: #6b7280; } .slt-op-image:hover { color: #3b82f6; background-color: #eff6ff; }
 .slt-op-record { color: #3b82f6; } .slt-op-record:hover { color: #2563eb; background-color: #eff6ff; }
@@ -413,7 +449,6 @@ const getInboundTitle = (r) => {
 .slt-op-end { color: #4b5563; } .slt-op-end:hover { color: #374151; background-color: #f3f4f6; }
 .slt-op-disabled { color: #9ca3af !important; cursor: not-allowed !important; opacity: 0.4; }
 .slt-op-disabled:hover { background-color: transparent !important; color: #9ca3af !important; }
-/* 已结束态的读操作按钮（每日记录/繁殖）颜色淡化（对齐 V1.1 text-blue-400 / text-emerald-400）*/
 .slt-op-ended { opacity: 0.6; }
 
 /* ===== 顶部按钮 ===== */

@@ -110,8 +110,12 @@ function transformSingleSeedling(item) {
     orderCode: undefined,
     orgName: undefined,
     seedlingTaskTime: typeof item.work_hours === 'number' ? item.work_hours : undefined,
+    workHours: typeof item.work_hours === 'number' ? item.work_hours : 0,  // 对齐 V1.1 formData.workHours
+    sourceType: item.sourceType,
+    supplierName: item.supplierName,
+    seedForm: item.seedForm,
     planType: undefined,
-    productionPlanId: undefined,
+    productionPlanId: item.productionPlanCode,  // 对齐 V1.1 formData.productionPlanId
     calculateMode: undefined,
     categoryName: item.categoryName,
     typeName: item.typeName,
@@ -312,8 +316,13 @@ export async function addSeedlingWithDeduct(data) {
 const FIELD_TO_SNAKE = {
   seedlingCode: 'seedling_code',
   sourceId: 'source_id',
-  sourceCode: 'source_name',
+  sourceCode: 'source_code',  // V1.1 对齐：seedling.source_code（不是 source_name）
+  sourceName: 'source_name',
+  sourceType: 'source_type',
+  supplierName: 'supplier_name',
+  seedForm: 'seed_form',
   productionPlanCode: 'production_plan_code',
+  productionPlanId: 'production_plan_code',  // 编辑时前端字段
   cropCode: 'crop_code',
   cropName: 'crop_name',
   cropVariety: 'crop_variety',
@@ -327,9 +336,25 @@ const FIELD_TO_SNAKE = {
   expectedEndDate: 'expected_finish_date',
   endDate: 'actual_finish_date',
   initialCount: 'seedling_quantity',
+  survivalCount: 'survival_quantity',
+  plantedCount: 'planted_quantity',
+  pictures: 'pictures',
+  propagationMode: 'propagation_mode',
+  motherPlantCount: 'mother_plant_count',
+  expandedPlantCount: 'expanded_plant_count',
+  scionCount: 'scion_count',
+  customMultiple: 'custom_multiple',
+  propagationMultiple: 'propagation_multiple',
+  theoreticalYield: 'theoretical_yield',
+  motherLossCount: 'mother_loss_count',
+  seedlingLossCount: 'seedling_loss_count',
+  harvestStockedCount: 'harvest_stocked_count',
+  replantCount: 'replant_count',
+  isFinished: 'is_finished',
   survivalRate: 'survival_rate',
   qualityGrade: 'quality_grade',
   workHours: 'work_hours',
+  workHoursAlternative: 'work_hours',  // 兼容 seedlingTaskTime 别名
   endType: 'end_type',
   endTime: 'end_time',
   targetSurvivalRate: 'target_survival_rate',
@@ -338,6 +363,12 @@ const FIELD_TO_SNAKE = {
   lossRate: 'loss_rate',
   printCount: 'print_count',
   chargePerson: 'charge_person',
+  unit: 'unit',
+  remarks: 'remarks',
+  createBy: 'create_by',
+  status: 'status',
+  calculateMode: 'calculate_mode',
+  planType: 'plan_type',
 };
 
 export async function updateSeedling(id, updates) {

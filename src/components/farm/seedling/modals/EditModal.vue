@@ -18,21 +18,30 @@
       </div>
 
       <div class="grid grid-cols-2 gap-4">
-        <!-- 关联种源 -->
+        <!-- 关联种源（对齐 V1.1 EditModal.tsx L297-370 Combogrid） -->
         <div class="col-span-2">
           <label class="block text-sm font-medium text-gray-900 mb-1">关联种源</label>
-          <select v-model="formData.sourceId" @change="handleSourceChange" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm">
-            <option value="">请选择</option>
-            <option v-for="s in seedSources" :key="s.id" :value="s.id">{{ s.seedCode }} - {{ s.cropName }}</option>
-          </select>
+          <SeedSourceCombogrid
+            v-model="formData.sourceId"
+            :sources="seedSources"
+            placeholder="搜索种源批号或作物名称..."
+            @select="handleSourceSelect"
+          />
         </div>
+        <!-- 来源类型（自动带入，对齐 V1.1 sourceType） -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">来源类型</label>
           <input :model-value="formData.sourceType || '请先选择种源'" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100" />
         </div>
+        <!-- 供应商（自动带入，对齐 V1.1 supplierName） -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">供应商</label>
           <input :model-value="formData.supplierName || '请先选择种源'" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100" />
+        </div>
+        <!-- 关联种源形态 seedForm（V1.1 L902-911） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">种源形态</label>
+          <input :model-value="formatSeedForm(formData.seedForm) || '请先选择种源'" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100" />
         </div>
 
         <!-- 品种路径 -->
@@ -64,6 +73,39 @@
             <option value="">请选择</option>
             <option v-for="s in sites" :key="s.value" :value="s.value">{{ s.label }}</option>
           </select>
+        </div>
+        <!-- 初始数量（对齐 V1.1 EditModal.tsx L451-464） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">初始数量</label>
+          <input v-model.number="formData.initialCount" type="number" min="0" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 成活数量 / 母株数量（按模式显示，对齐 V1.1 L466-480） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">
+            {{ props.record?.propagationMode === 'one_to_many' ? '母株数量' : '成活数量' }}
+            <span class="text-xs text-gray-500 ml-1">（每日记录自动累加，可手动纠错）</span>
+          </label>
+          <input v-model.number="formData.survivalCount" type="number" min="0" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 目标成苗率（对齐 V1.1 formData） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">目标成苗率 (%)</label>
+          <input v-model.number="formData.targetSurvivalRate" type="number" min="0" max="100" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 扩繁倍数（V1.1 L1097-1102 字典） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">扩繁倍数</label>
+          <input v-model.number="formData.propagationMultiple" type="number" min="0" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- 自定义扩繁倍数（V1.1 L1106-1118） -->
+        <div v-if="formData.propagationMultiple === 0">
+          <label class="block text-sm font-medium text-gray-900 mb-1">自定义倍数</label>
+          <input v-model.number="formData.customMultiple" type="number" min="0" step="0.1" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
+        </div>
+        <!-- scionCount（V1.1 L485） -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 mb-1">接穗数 (scionCount)</label>
+          <input v-model.number="formData.scionCount" type="number" min="0" class="w-full px-3 py-2 border border-gray-400 rounded-lg text-sm" />
         </div>
         <!-- 开始日期 -->
         <div>
@@ -180,8 +222,23 @@
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import SimpleModal from '@/components/common/SimpleModal.vue'
+import SeedSourceCombogrid from '@/components/farm/seedling/components/SeedSourceCombogrid.vue'
 import { useSeedlingStore } from '@/stores/modules/seedling'
 import { useSeedSourceStore } from '@/stores/modules/seedSource'
+
+// 来源类型映射（对齐 V1.1 EditModal.tsx sourceTypeLabels L347-356）
+const SOURCE_TYPE_LABELS = {
+  seed: '种子', seedling: '种苗', cutting: '扦插苗', grafting: '嫁接苗',
+  tissue_culture: '组培苗', split: '分株苗', bulb: '种球', other: '其他'
+}
+const SEED_FORM_OPTIONS_ZH = ['种子','种苗','实生苗','扦插苗','嫁接苗','组培苗','分株苗','种球','球根','块根','块茎','鳞茎','穗条','枝条','叶片','花朵','果实','整株','其他']
+
+// 种源形态兜底翻译（对齐 V1.1 AddModal.tsx L53-57 formatSeedFormDisplay）
+function formatSeedForm(sf) {
+  if (!sf) return ''
+  if (SEED_FORM_OPTIONS_ZH.includes(sf)) return sf
+  return SOURCE_TYPE_LABELS[sf] || sf
+}
 
 const props = defineProps({
   visible: Boolean,
@@ -199,7 +256,7 @@ const submitting = ref(false)
 const seedSources = ref([])
 
 const formData = ref({
-  sourceId: '', sourceCode: '', sourceType: '', supplierName: '',
+  sourceId: '', sourceCode: '', sourceType: '', supplierName: '', seedForm: '',
   selectedCropCode: '', cropName: '', cropVariety: '',
   categoryName: '', typeName: '', varietyName: '', subVarietyName: '',
   seedlingType: '', siteId: '', siteName: '',
@@ -211,7 +268,8 @@ const formData = ref({
   isFinished: false, chargePerson: '', planType: 'routine',
   productionPlanId: '', workHours: 0, propagationMode: 'one_to_one',
   unit: '株', motherLossCount: 0, expandedPlantCount: 0,
-  seedlingLossCount: 0, harvestStockedCount: 0, replantCount: 0
+  seedlingLossCount: 0, harvestStockedCount: 0, replantCount: 0,
+  scionCount: 0
 })
 
 // 监听 record 变化填充表单
@@ -220,6 +278,9 @@ watch(() => props.record, (record) => {
     formData.value = {
       sourceId: record.sourceId || '',
       sourceCode: record.sourceCode || '',
+      sourceType: record.sourceType || '',
+      supplierName: record.supplierName || '',
+      seedForm: record.seedForm || '',
       selectedCropCode: record.cropCode || '',
       cropName: record.cropName || '',
       cropVariety: record.cropVariety || '',
@@ -242,9 +303,13 @@ watch(() => props.record, (record) => {
       isFinished: record.isFinished || false,
       chargePerson: record.chargePerson || '',
       targetSurvivalCount: record.targetSurvivalCount || 0,
+      targetSurvivalRate: record.targetSurvivalRate || 90,
       workHours: record.workHours || 0,
       propagationMode: record.propagationMode || 'one_to_one',
       unit: record.unit || '株',
+      propagationMultiple: record.propagationMultiple || 0,
+      customMultiple: record.customMultiple || 0,
+      scionCount: record.scionCount || 0,
       motherLossCount: record.motherLossCount || 0,
       expandedPlantCount: record.expandedPlantCount || 0,
       seedlingLossCount: record.seedlingLossCount || 0,
@@ -264,6 +329,30 @@ const handleSourceChange = () => {
   }
 }
 
+// Combogrid 选择回调（对齐 V1.1 EditModal.tsx L237-249 handleSourceChange）
+const handleSourceSelect = (source) => {
+  if (!source || !source.id) {
+    // 清空
+    formData.value.sourceId = ''
+    formData.value.sourceCode = ''
+    formData.value.seedForm = ''
+    formData.value.supplierName = ''
+    formData.value.sourceType = ''
+    formData.value.selectedCropCode = ''
+    formData.value.cropName = ''
+    formData.value.cropVariety = ''
+    return
+  }
+  const SOURCE_TYPE_LABELS_MAP = { seed: '种子', seedling: '种苗', cutting: '扦插苗', grafting: '嫁接苗', tissue_culture: '组培苗', split: '分株苗', bulb: '种球', other: '其他' }
+  formData.value.sourceCode = source.seedCode || ''
+  formData.value.seedForm = source.seedForm || ''
+  formData.value.supplierName = (source.supplierName && source.supplierName.trim()) || '无'
+  formData.value.sourceType = source.sourceType ? (SOURCE_TYPE_LABELS_MAP[source.sourceType] || source.sourceType) : ''
+  formData.value.selectedCropCode = source.cropCode || ''
+  formData.value.cropName = source.cropName || ''
+  formData.value.cropVariety = source.cropVariety || ''
+}
+
 const handleSiteChange = () => {
   const site = props.sites.find(s => s.value === formData.value.siteId)
   formData.value.siteName = site?.label || ''
@@ -281,6 +370,9 @@ const handleSubmit = async () => {
     await seedlingStore.updateItem(props.record.id, {
       source_id: formData.value.sourceId,
       source_name: formData.value.sourceCode,
+      source_type: formData.value.sourceType || undefined,
+      supplier_name: formData.value.supplierName || undefined,
+      seed_form: formData.value.seedForm || undefined,
       crop_name: formData.value.cropName,
       crop_variety: formData.value.cropVariety,
       crop_code: formData.value.cropCode,
@@ -296,6 +388,7 @@ const handleSubmit = async () => {
       survival_rate: survivalRate,
       loss_quantity: lossCount,
       loss_rate: lossRate,
+      target_survival_rate: formData.value.targetSurvivalRate ?? undefined,
       remarks: formData.value.remarks,
       quality_grade: formData.value.qualityGrade,
       is_finished: formData.value.isFinished,
